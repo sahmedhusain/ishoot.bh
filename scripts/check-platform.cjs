@@ -1,4 +1,4 @@
-require("ts-node").register({transpileOnly:true,skipProject:true,compilerOptions:{module:"CommonJS",target:"ES2022",moduleResolution:"Node",esModuleInterop:true,resolveJsonModule:true}});
+require("ts-node").register({ transpileOnly: true, skipProject: true, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true, resolveJsonModule: true } });
 const { realConstants } = require("./lib/real-constants.cjs");
 // Run: node scripts/check-platform.cjs
 // Exercise source modules with boundary mocks; no production database writes.
@@ -8,9 +8,9 @@ const vm = require("node:vm");
 const ts = require("typescript");
 function load(file, mocks) {
   if (mocks["@platform/locales"]) mocks["@platform/locales"] = { ...realConstants(file, "@platform/locales"), ...mocks["@platform/locales"] };
-  if (mocks["@platform/database"]) { mocks["@platform/database"].runAtomicMutation ??= async (fn) => fn(); mocks["@platform/database"].memoizeOperation ??= async(_key,fn)=>fn(); mocks["@platform/database"].requireFeatureEnabled ??= async()=>{}; mocks["@platform/database"].measureOperation ??= async (_name, fn) => fn(); if (mocks["@platform/database"].db) mocks["@platform/database"].db.$queryRaw ??= async () => []; }
+  if (mocks["@platform/database"]) { mocks["@platform/database"].runAtomicMutation ??= async (fn) => fn(); mocks["@platform/database"].memoizeOperation ??= async (_key, fn) => fn(); mocks["@platform/database"].requireFeatureEnabled ??= async () => { }; mocks["@platform/database"].measureOperation ??= async (_name, fn) => fn(); if (mocks["@platform/database"].db) mocks["@platform/database"].db.$queryRaw ??= async () => []; }
   mocks["../../lib/action-input"] ??= require("../apps/admin/lib/action-input.ts");
-  mocks["../services/uploads"] ??= { claimUpload: async () => ({fileSize: 1, mimeType: "application/pdf"}) };
+  mocks["../services/uploads"] ??= { claimUpload: async () => ({ fileSize: 1, mimeType: "application/pdf" }) };
   if (mocks["../db"]?.db) mocks["../db"].db.featureToggle ??= { findUnique: async () => null, findMany: async () => [] };
 
   const module = { exports: {} };
@@ -26,11 +26,11 @@ function load(file, mocks) {
     module,
     exports: module.exports,
     require: (id) => {
-      id = ((i,m)=>i in m?i:(i.startsWith('@platform/database/')&&'@platform/database' in m?'@platform/database':i))(id, mocks);
+      id = ((i, m) => i in m ? i : (i.startsWith('@platform/database/') && '@platform/database' in m ? '@platform/database' : i))(id, mocks);
       if (!(id in mocks)) { const real = realConstants(file, id); if (real) return real; throw new Error(`Unmocked dependency: ${id}`); }
       return mocks[id];
     },
-    console: { error() {}, warn() {} },
+    console: { error() { }, warn() { } },
     Date,
     Set,
     Buffer,
@@ -60,8 +60,8 @@ async function main() {
     "@platform/database": {
       getSessionByToken: async () => session,
       hasPermission: async () => false,
-      getEffectivePermissions:async()=>({}),
-      ensureRoleTemplatesOnce: async () => {},
+      getEffectivePermissions: async () => ({}),
+      ensureRoleTemplatesOnce: async () => { },
     },
   });
   assert.equal(await auth.getCurrentUser(), null, "revoked JWT must fail");
@@ -75,10 +75,12 @@ async function main() {
   // Super Admin must survive stale denials, user overrides and disabled module rows.
   let storedGrant;
   const permissionsApi = load("packages/database/src/queries/permissions.ts", {
-    "../db": { db: {
-      featureToggle: { findUnique: async () => ({ isEnabled: false }), findMany: async () => [{ moduleKey: "invoicing", isEnabled: false }] },
-      permission: { findMany: async () => [{ resource: "users", action: "write", allowed: false }], findUnique: async () => ({ allowed: false }), upsert: async (args) => { storedGrant = args; } },
-    } },
+    "../db": {
+      db: {
+        featureToggle: { findUnique: async () => ({ isEnabled: false }), findMany: async () => [{ moduleKey: "invoicing", isEnabled: false }] },
+        permission: { findMany: async () => [{ resource: "users", action: "write", allowed: false }], findUnique: async () => ({ allowed: false }), upsert: async (args) => { storedGrant = args; } },
+      }
+    },
   });
   const overrides = Object.fromEntries(permissionsApi.ALL_RESOURCES.flatMap((resource) =>
     permissionsApi.ALL_ACTIONS.map((action) => [resource + ":" + action, false])));
@@ -105,14 +107,16 @@ async function main() {
   let roleWrites = 0;
   const roleActions = load("apps/admin/app/actions/roles.ts", {
     "../../lib/auth": { requirePermission: async () => roleActor },
-    "next/cache": { revalidatePath() {} },
+    "next/cache": { revalidatePath() { } },
     "@platform/database": {
       ALL_RESOURCES: permissionsApi.ALL_RESOURCES, ALL_ACTIONS: permissionsApi.ALL_ACTIONS,
-      db: { $transaction: async (fn) => fn({
-        role: { update: async ({ where }) => { roleWrites++; return { id: where.id }; } },
-        permission: { findMany: async () => [], upsert: async (args) => { savedGrants.push({ ...args.create }); } },
-        activityLog: { create: async () => {} },
-      }) },
+      db: {
+        $transaction: async (fn) => fn({
+          role: { update: async ({ where }) => { roleWrites++; return { id: where.id }; } },
+          permission: { findMany: async () => [], upsert: async (args) => { savedGrants.push({ ...args.create }); } },
+          activityLog: { create: async () => { } },
+        })
+      },
     },
   });
   const denyAll = Object.fromEntries(permissionsApi.ALL_RESOURCES.flatMap((resource) =>
@@ -135,7 +139,7 @@ async function main() {
         mutation = true;
       },
     },
-    "next/cache": { revalidatePath() {} },
+    "next/cache": { revalidatePath() { } },
     "../../lib/public-paths": { publicSitePaths: async () => ["/"] },
     "../../lib/auth": {
       requirePermission: async () => {
@@ -169,7 +173,7 @@ async function main() {
       try {
         return await fn({
           $queryRaw: async () => [],
-          documentTax: { deleteMany: async () => {}, createMany: async () => {} },
+          documentTax: { deleteMany: async () => { }, createMany: async () => { } },
           invoiceLineItem: {
             deleteMany: async () => {
               deleted = true;
@@ -282,7 +286,7 @@ async function main() {
     $queryRaw: async () => {
       locked = true;
     },
-    inquiry: { findUnique: async () => inquiry, update: async () => {} },
+    inquiry: { findUnique: async () => inquiry, update: async () => { } },
     crmContact: { findUnique: async () => ({ id: "c" }) },
     crmDeal: {
       findUnique: async () => conversion ? { id: "d", contactId: "c" } : null,
@@ -302,9 +306,9 @@ async function main() {
   const crm = load("apps/admin/app/actions/crm.ts", {
     "../../lib/inquiry-access": { requireInquiryAccess: async () => user },
     "@platform/database": { db: { $transaction: async (fn) => fn(tx) } },
-    "next/cache": { revalidatePath() {} },
+    "next/cache": { revalidatePath() { } },
     "../../lib/auth": { requirePermission: async () => user },
-    "../../lib/data-scope": { assertRecordInScope: async () => {} },
+    "../../lib/data-scope": { assertRecordInScope: async () => { } },
   });
   assert.equal((await crm.convertInquiryToClientAction("q")).dealId, "d");
   assert.equal((await crm.convertInquiryToClientAction("q")).dealId, "d");

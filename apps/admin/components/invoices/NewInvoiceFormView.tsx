@@ -421,7 +421,7 @@ export function NewInvoiceFormView({
               <Link
                 href={ROUTES.crm.customer(selectedContact.id)}
                 target="_blank"
-                  rel="noopener noreferrer"
+                rel="noopener noreferrer"
                 className="text-xs text-accent hover:underline flex items-center gap-1 font-semibold"
               >
                 <span>{t.invoiceForm.clientProfile}</span>
@@ -577,11 +577,10 @@ export function NewInvoiceFormView({
                 )}
 
                 <div
-                  className={`space-y-1 ${
-                    services.length > 0
-                      ? "sm:col-span-12 md:col-span-4"
-                      : "sm:col-span-12 md:col-span-6"
-                  }`}
+                  className={`space-y-1 ${services.length > 0
+                    ? "sm:col-span-12 md:col-span-4"
+                    : "sm:col-span-12 md:col-span-6"
+                    }`}
                 >
                   <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
                     {t.invoiceForm.descEnLabel}
@@ -597,11 +596,10 @@ export function NewInvoiceFormView({
                 </div>
 
                 <div
-                  className={`space-y-1 ${
-                    services.length > 0
-                      ? "sm:col-span-12 md:col-span-3"
-                      : "sm:col-span-12 md:col-span-4"
-                  }`}
+                  className={`space-y-1 ${services.length > 0
+                    ? "sm:col-span-12 md:col-span-3"
+                    : "sm:col-span-12 md:col-span-4"
+                    }`}
                 >
                   <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
                     {t.invoiceForm.descArLabel}

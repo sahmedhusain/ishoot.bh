@@ -6,7 +6,11 @@ import websiteActivities from "./website-activities.json";
 import { deepMerge, type DeepPartial } from "./merge";
 import { withAdminActivity } from "./admin-activity";
 export { formatMessage, type MessageValues } from "./format-message";
-export { adminActivityCopy, withAdminActivity, type AdminCopyOverlay } from "./admin-activity";
+export {
+  adminActivityCopy,
+  withAdminActivity,
+  type AdminCopyOverlay,
+} from "./admin-activity";
 /** Canonical server messages; clients render their localized equivalents through the error catalog. */
 export const serverMessages = adminEn.serverErrors.messages;
 export const serverTemplates = adminEn.serverErrors.templates;
@@ -45,21 +49,41 @@ export { en, ar };
 /** Website wording an activity changes; the base dictionary is the media wording. */
 export type WebsiteCopyOverlay = DeepPartial<TranslationKeys>;
 
-const activityCopy = websiteActivities as unknown as Record<string, Partial<Record<Locale, WebsiteCopyOverlay>>>;
-
+const activityCopy = websiteActivities as unknown as Record<
+  string,
+  Partial<Record<Locale, WebsiteCopyOverlay>>
+>;
 
 /** The wording an activity layers over the base website copy ("media" uses the base as it is). */
-export function websiteActivityCopy(locale: Locale, activity: string | null | undefined): WebsiteCopyOverlay {
+export function websiteActivityCopy(
+  locale: Locale,
+  activity: string | null | undefined,
+): WebsiteCopyOverlay {
   if (!activity || activity === "media" || !activityCopy[activity]) return {};
-  return deepMerge({} as WebsiteCopyOverlay, activityCopy._common?.[locale] as never, activityCopy[activity]?.[locale] as never);
+  return deepMerge(
+    {} as WebsiteCopyOverlay,
+    activityCopy._common?.[locale] as never,
+    activityCopy[activity]?.[locale] as never,
+  );
 }
 
 /** Website translations for a company's activity, with the company's own wording (from the website editor) on top. */
-export function getWebsiteTranslations(locale: Locale, activity?: string | null, overrides?: WebsiteCopyOverlay): TranslationKeys {
-  return deepMerge(getTranslations(locale), websiteActivityCopy(locale, activity) as never, overrides as never);
+export function getWebsiteTranslations(
+  locale: Locale,
+  activity?: string | null,
+  overrides?: WebsiteCopyOverlay,
+): TranslationKeys {
+  return deepMerge(
+    getTranslations(locale),
+    websiteActivityCopy(locale, activity) as never,
+    overrides as never,
+  );
 }
 
 /** Admin translations with the company's activity wording on top. */
-export function getAdminTranslations(locale: Locale, activity?: string | null): AdminTranslationKeys {
+export function getAdminTranslations(
+  locale: Locale,
+  activity?: string | null,
+): AdminTranslationKeys {
   return withAdminActivity(getTranslations(locale).admin, locale, activity);
 }

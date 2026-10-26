@@ -8,7 +8,9 @@ export default defineConfig({
     testTimeout: 180_000,
     hookTimeout: 180_000,
     pool: "forks",
-    reporters: process.env.CI ? ["default", "junit", "github-actions"] : ["default"],
+    reporters: process.env.CI
+      ? ["default", "junit", "github-actions"]
+      : ["default"],
     outputFile: { junit: "tests/.results/vitest-junit.xml" },
   },
 });

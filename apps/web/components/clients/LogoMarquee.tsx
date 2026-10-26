@@ -1,5 +1,5 @@
 "use client";
-import {ContentImage} from "../shared/ContentImage";
+import { ContentImage } from "../shared/ContentImage";
 
 import * as React from "react";
 import type { ClientLogo } from "@platform/database/types";

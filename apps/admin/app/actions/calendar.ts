@@ -27,7 +27,8 @@ function assertEventWindow(start: string | undefined, end: string | undefined) {
     endAt = new Date(end ?? "");
   if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime()))
     throw new Error(serverMessages.provideAValidStartAndEndTime);
-  if (endAt < startAt) throw new Error(serverMessages.theEventCannotEndBeforeItStarts);
+  if (endAt < startAt)
+    throw new Error(serverMessages.theEventCannotEndBeforeItStarts);
 }
 
 export async function createCalendarEventAction(data: {
@@ -99,7 +100,8 @@ export async function updateCalendarEventAction(
     const user = await requirePermission("calendar", "write");
     validateActionArguments("updateCalendarEventAction", { id, data });
     if (data.deal_id) await requirePermission("deals", "read");
-    if (!data.title?.trim()) throw new Error(serverMessages.eventTitleIsRequired);
+    if (!data.title?.trim())
+      throw new Error(serverMessages.eventTitleIsRequired);
     assertEventWindow(data.start_date, data.end_date);
     const existing = await db.calendarEvent.findUnique({
       where: { id },

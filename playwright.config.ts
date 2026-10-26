@@ -41,8 +41,21 @@ export default defineConfig({
   timeout: 90_000,
   expect: { timeout: 15_000 },
   reporter: process.env.CI
-    ? [["github"], ["html", { outputFolder: "tests/.results/playwright-report", open: "never" }], ["junit", { outputFile: "tests/.results/playwright-junit.xml" }]]
-    : [["list"], ["html", { outputFolder: "tests/.results/playwright-report", open: "never" }]],
+    ? [
+        ["github"],
+        [
+          "html",
+          { outputFolder: "tests/.results/playwright-report", open: "never" },
+        ],
+        ["junit", { outputFile: "tests/.results/playwright-junit.xml" }],
+      ]
+    : [
+        ["list"],
+        [
+          "html",
+          { outputFolder: "tests/.results/playwright-report", open: "never" },
+        ],
+      ],
   use: {
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
@@ -51,12 +64,62 @@ export default defineConfig({
     actionTimeout: 15_000,
   },
   projects: [
-    { name: "setup-wizard", testDir: "tests/e2e/specs/setup", use: { ...devices["Desktop Chrome"], baseURL: `http://localhost:${ports.setup}` } },
-    { name: "admin-login", testDir: "tests/e2e/auth", testMatch: /admin\.setup\.ts/, use: { ...devices["Desktop Chrome"], baseURL: `http://localhost:${ports.admin}` } },
-    { name: "admin", testDir: "tests/e2e/specs/admin", dependencies: ["admin-login"], use: { ...devices["Desktop Chrome"], baseURL: `http://localhost:${ports.admin}`, storageState: session } },
-    { name: "admin-mobile", testDir: "tests/e2e/specs/admin", testMatch: /responsive\.spec\.ts/, dependencies: ["admin-login"], use: { ...devices["Pixel 7"], baseURL: `http://localhost:${ports.admin}`, storageState: session } },
-    { name: "web", testDir: "tests/e2e/specs/web", use: { ...devices["Desktop Chrome"], baseURL: `http://localhost:${ports.web}` } },
-    { name: "web-mobile", testDir: "tests/e2e/specs/web", testMatch: /site\.spec\.ts/, use: { ...devices["Pixel 7"], baseURL: `http://localhost:${ports.web}` } },
+    {
+      name: "setup-wizard",
+      testDir: "tests/e2e/specs/setup",
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: `http://localhost:${ports.setup}`,
+      },
+    },
+    {
+      name: "admin-login",
+      testDir: "tests/e2e/auth",
+      testMatch: /admin\.setup\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: `http://localhost:${ports.admin}`,
+      },
+    },
+    {
+      name: "admin",
+      testDir: "tests/e2e/specs/admin",
+      dependencies: ["admin-login"],
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: `http://localhost:${ports.admin}`,
+        storageState: session,
+      },
+    },
+    {
+      name: "admin-mobile",
+      testDir: "tests/e2e/specs/admin",
+      testMatch: /responsive\.spec\.ts/,
+      dependencies: ["admin-login"],
+      use: {
+        ...devices["Pixel 7"],
+        baseURL: `http://localhost:${ports.admin}`,
+        storageState: session,
+      },
+    },
+    {
+      name: "web",
+      testDir: "tests/e2e/specs/web",
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: `http://localhost:${ports.web}`,
+      },
+    },
+    {
+      name: "web-mobile",
+      testDir: "tests/e2e/specs/web",
+      testMatch: /site\.spec\.ts/,
+      use: { ...devices["Pixel 7"], baseURL: `http://localhost:${ports.web}` },
+    },
   ],
-  webServer: [server("admin", ports.admin, seeded), server("web", ports.web, seeded), server("admin", ports.setup, blank)],
+  webServer: [
+    server("admin", ports.admin, seeded),
+    server("web", ports.web, seeded),
+    server("admin", ports.setup, blank),
+  ],
 });

@@ -3,26 +3,26 @@ import { errorMessage } from "../../lib/error-text";
 import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
-import type { ServiceItem,ServiceCategory } from "@platform/database/types";
+import type { ServiceItem, ServiceCategory } from "@platform/database/types";
 import { Button, Input, Select, CurrencyDisplay, Modal } from "@platform/ui";
 import {
-Sparkles,
-Plus,
-Search,Edit2,
-Trash2,
-CheckCircle2,
-XCircle,
-Tag,Layers,
-DollarSign
+  Sparkles,
+  Plus,
+  Search, Edit2,
+  Trash2,
+  CheckCircle2,
+  XCircle,
+  Tag, Layers,
+  DollarSign
 } from "lucide-react";
 import {
-createServiceAction,
-updateServiceAction,
-deleteServiceAction,
+  createServiceAction,
+  updateServiceAction,
+  deleteServiceAction,
 } from "../../app/actions/services";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { usePermissions } from "../../hooks/usePermissions";
-import { SERVICE_CATEGORIES,SERVICE_UNITS } from "@platform/config/constants";
+import { SERVICE_CATEGORIES, SERVICE_UNITS } from "@platform/config/constants";
 import { pickText, type ContentLanguage } from "@platform/database/constants/languages";
 import { LanguageFields } from "../setup/LanguageFields";
 
@@ -259,17 +259,15 @@ export function ServicesManagementView({
             <button
               key={cat.value}
               onClick={() => setActiveCategory(cat.value)}
-              className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-                isActive
-                  ? "bg-tone-95 text-primary border border-primary/30 dark:bg-tone-15/40 dark:text-mint dark:border-tone-15 font-semibold"
-                  : "text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
-              }`}
+              className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1.5 ${isActive
+                ? "bg-tone-95 text-primary border border-primary/30 dark:bg-tone-15/40 dark:text-mint dark:border-tone-15 font-semibold"
+                : "text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                }`}
             >
               <span>{isRTL ? cat.labelAr : cat.labelEn}</span>
               {cat.value !== "all" && (
-                <span className={`text-[10px] px-1.5 py-0.2 rounded-full  ${
-                  isActive ? "bg-primary/20 dark:bg-mint/20" : "bg-slate-100 dark:bg-neutral-800 text-slate-500"
-                }`}>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full  ${isActive ? "bg-primary/20 dark:bg-mint/20" : "bg-slate-100 dark:bg-neutral-800 text-slate-500"
+                  }`}>
                   {services.filter((s) => s.category === cat.value).length}
                 </span>
               )}
@@ -417,111 +415,111 @@ export function ServicesManagementView({
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingService ? t.servicesView.modalEditTitle : t.servicesView.modalNewTitle} busy={saving} className="max-w-xl" footer={<div className="flex justify-end gap-3"><Button type="button" variant="ghost" disabled={saving} onClick={() => setIsModalOpen(false)}>{t.actions.cancel}</Button><Button type="submit" form={serviceFormId} disabled={saving}>{saving ? t.actions.saving : editingService ? t.actions.update : t.actions.add}</Button></div>}>
         <form id={serviceFormId} onSubmit={handleSave} onInvalidCapture={() => setSaveError(t.servicesView.validationFailed)}>
           <fieldset disabled={saving} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor={`${serviceFormId}-code`} className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                    {t.servicesView.codeLabel}
-                  </label>
-                  <Input
-                    placeholder={t.servicesView.codePlaceholder}
-                    id={`${serviceFormId}-code`}
-                    value={formCode}
-                    onChange={(e) => setFormCode(e.target.value)}
-                    className="text-xs "
-                  />
-                </div>
-                <div>
-                  <label htmlFor={`${serviceFormId}-category`} className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                    {t.servicesView.categoryLabel} *
-                  </label>
-                  <Select
-                    id={`${serviceFormId}-category`}
-                    value={formCategory}
-                    onChange={(e: any) => setFormCategory(e.target.value)}
-                    className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent"
-                  >
-                    <option value="production">{t.servicesView.categoryProduction}</option>
-                    <option value="post_production">{t.servicesView.categoryPost}</option>
-                    <option value="equipment">{t.servicesView.categoryEquipment}</option>
-                    <option value="other">{t.servicesView.categoryOther}</option>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <LanguageFields
-                  name="name"
-                  label={t.servicesView.nameLabel}
-                  languages={languages}
-                  required
-                  maxLength={300}
-                  placeholder={t.servicesView.nameEnPlaceholder}
-                  en={formNameEn}
-                  ar={formNameAr}
-                  onChange={(v) => { setFormNameEn(v.en); setFormNameAr(v.ar); }}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor={`${serviceFormId}-rate`} className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                    {t.servicesView.rateLabel} ({t.financials.currency}) *
-                  </label>
-                  <Input
-                    type="number"
-                    step="0.001"
-                    min="0"
-                    placeholder={t.servicesView.ratePlaceholder}
-                    id={`${serviceFormId}-rate`}
-                    value={formRate}
-                    onChange={(e) => setFormRate(parseFloat(e.target.value) || 0)}
-                    required
-                    className="text-xs "
-                  />
-                </div>
-                <div>
-                  <label htmlFor={`${serviceFormId}-unit`} className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                    {t.servicesView.unitLabel} *
-                  </label>
-                  <Select
-                    id={`${serviceFormId}-unit`}
-                    value={formUnit}
-                    onChange={(e: any) => setFormUnit(e.target.value)}
-                    className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent"
-                  >
-                    {SERVICE_UNITS.map((u) => (
-                      <option key={u.value} value={u.value}>
-                        {isRTL ? u.labelAr : u.labelEn}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-              </div>
-
-              <LanguageFields
-                name="description"
-                label={t.servicesView.descLabel}
-                languages={languages}
-                multiline
-                maxLength={2000}
-                placeholder={t.servicesView.descEnPlaceholder}
-                en={formDescEn}
-                ar={formDescAr}
-                onChange={(v) => { setFormDescEn(v.en); setFormDescAr(v.ar); }}
-              />
-
-              <div className="flex items-center gap-2 pt-2">
-                <input
-                  type="checkbox"
-                  id="formIsActive"
-                  checked={formIsActive}
-                  onChange={(e) => setFormIsActive(e.target.checked)}
-                  className="rounded text-accent focus:ring-accent"
-                />
-                <label htmlFor="formIsActive" className="text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
-                  {t.servicesView.statusActive}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor={`${serviceFormId}-code`} className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                  {t.servicesView.codeLabel}
                 </label>
+                <Input
+                  placeholder={t.servicesView.codePlaceholder}
+                  id={`${serviceFormId}-code`}
+                  value={formCode}
+                  onChange={(e) => setFormCode(e.target.value)}
+                  className="text-xs "
+                />
               </div>
+              <div>
+                <label htmlFor={`${serviceFormId}-category`} className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                  {t.servicesView.categoryLabel} *
+                </label>
+                <Select
+                  id={`${serviceFormId}-category`}
+                  value={formCategory}
+                  onChange={(e: any) => setFormCategory(e.target.value)}
+                  className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent"
+                >
+                  <option value="production">{t.servicesView.categoryProduction}</option>
+                  <option value="post_production">{t.servicesView.categoryPost}</option>
+                  <option value="equipment">{t.servicesView.categoryEquipment}</option>
+                  <option value="other">{t.servicesView.categoryOther}</option>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <LanguageFields
+                name="name"
+                label={t.servicesView.nameLabel}
+                languages={languages}
+                required
+                maxLength={300}
+                placeholder={t.servicesView.nameEnPlaceholder}
+                en={formNameEn}
+                ar={formNameAr}
+                onChange={(v) => { setFormNameEn(v.en); setFormNameAr(v.ar); }}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor={`${serviceFormId}-rate`} className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                  {t.servicesView.rateLabel} ({t.financials.currency}) *
+                </label>
+                <Input
+                  type="number"
+                  step="0.001"
+                  min="0"
+                  placeholder={t.servicesView.ratePlaceholder}
+                  id={`${serviceFormId}-rate`}
+                  value={formRate}
+                  onChange={(e) => setFormRate(parseFloat(e.target.value) || 0)}
+                  required
+                  className="text-xs "
+                />
+              </div>
+              <div>
+                <label htmlFor={`${serviceFormId}-unit`} className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                  {t.servicesView.unitLabel} *
+                </label>
+                <Select
+                  id={`${serviceFormId}-unit`}
+                  value={formUnit}
+                  onChange={(e: any) => setFormUnit(e.target.value)}
+                  className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent"
+                >
+                  {SERVICE_UNITS.map((u) => (
+                    <option key={u.value} value={u.value}>
+                      {isRTL ? u.labelAr : u.labelEn}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            </div>
+
+            <LanguageFields
+              name="description"
+              label={t.servicesView.descLabel}
+              languages={languages}
+              multiline
+              maxLength={2000}
+              placeholder={t.servicesView.descEnPlaceholder}
+              en={formDescEn}
+              ar={formDescAr}
+              onChange={(v) => { setFormDescEn(v.en); setFormDescAr(v.ar); }}
+            />
+
+            <div className="flex items-center gap-2 pt-2">
+              <input
+                type="checkbox"
+                id="formIsActive"
+                checked={formIsActive}
+                onChange={(e) => setFormIsActive(e.target.checked)}
+                className="rounded text-accent focus:ring-accent"
+              />
+              <label htmlFor="formIsActive" className="text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                {t.servicesView.statusActive}
+              </label>
+            </div>
 
           </fieldset>
           {saveError && <p role="alert" className="mt-3 text-sm text-rose-700 dark:text-rose-300">{saveError}</p>}

@@ -17,26 +17,40 @@ test("a wrong password is refused with a visible message", async ({ page }) => {
   await expect(page).toHaveURL(/\/login/);
 });
 
-test("the admin signs in to the company dashboard and the sign-in is audited", async ({ page }) => {
+test("the admin signs in to the company dashboard and the sign-in is audited", async ({
+  page,
+}) => {
   const db = testDatabase();
   try {
-    const user = await db.user.findUniqueOrThrow({ where: { email: admin.email } });
-    const before = await db.activityLog.count({ where: { userId: user.id, action: "login" } });
+    const user = await db.user.findUniqueOrThrow({
+      where: { email: admin.email },
+    });
+    const before = await db.activityLog.count({
+      where: { userId: user.id, action: "login" },
+    });
     await login(page);
     await expect(page).toHaveURL(/\/dashboard$/);
     await expect(page).toHaveTitle(new RegExp(demo.company.companyNameAr));
     // The audit entry is written after the response; it must not be lost.
-    await expect.poll(() => db.activityLog.count({ where: { userId: user.id, action: "login" } })).toBe(before + 1);
+    await expect
+      .poll(() =>
+        db.activityLog.count({ where: { userId: user.id, action: "login" } }),
+      )
+      .toBe(before + 1);
   } finally {
     await db.$disconnect();
   }
 });
 
-test("a narrow-role denial has one main landmark and does not expose the user directory", async ({ page }) => {
+test("a narrow-role denial has one main landmark and does not expose the user directory", async ({
+  page,
+}) => {
   await login(page, users.driver.email, users.driver.password);
   await expect(page).toHaveURL(/\/dashboard$/);
   await page.goto("/dashboard/users");
-  await expect(page.getByRole("heading", { name: t.forbidden.title })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: t.forbidden.title }),
+  ).toBeVisible();
   await expect(page.getByRole("main")).toHaveCount(1);
   await expect(page.getByRole("table")).toHaveCount(0);
 });

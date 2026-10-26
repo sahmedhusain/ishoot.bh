@@ -18,7 +18,10 @@ import {
   type CmsPageInput,
 } from "@platform/database";
 import type { Block } from "@platform/database/cms/blocks";
-import { resolveWebsiteConfig, validateWebsiteConfig } from "@platform/database/website-config";
+import {
+  resolveWebsiteConfig,
+  validateWebsiteConfig,
+} from "@platform/database/website-config";
 import { ROUTES } from "../../constants/routes";
 import { hasPermission, requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
@@ -34,7 +37,20 @@ function revalidatePages(id?: string) {
 function withRenderedText(blocks: Block[]): Block[] {
   return blocks.map((block) =>
     block.type === "rich_text"
-      ? ({ ...block, data: { ...block.data, html: { en: renderRichText((block.data as Block<"rich_text">["data"]).doc.en), ar: renderRichText((block.data as Block<"rich_text">["data"]).doc.ar) } } } as Block)
+      ? ({
+          ...block,
+          data: {
+            ...block.data,
+            html: {
+              en: renderRichText(
+                (block.data as Block<"rich_text">["data"]).doc.en,
+              ),
+              ar: renderRichText(
+                (block.data as Block<"rich_text">["data"]).doc.ar,
+              ),
+            },
+          },
+        } as Block)
       : block,
   );
 }
@@ -48,8 +64,11 @@ export async function saveCmsPageAction(input: CmsPageInput) {
     const blocks = withRenderedText(validateBlocks(input.blocks));
     const before = input.id ? await getCmsPage(input.id) : null;
     const codeChanged = codeBlocksChanged(before?.blocks ?? [], blocks);
-    if (codeChanged && !(await hasPermission("cms_code", "edit"))) throw new Error(serverMessages.cmsCodePermission);
-    const collection = resolveWebsiteConfig(validateWebsiteConfig((await getWebsiteEditor()).draft)).collection.slug;
+    if (codeChanged && !(await hasPermission("cms_code", "edit")))
+      throw new Error(serverMessages.cmsCodePermission);
+    const collection = resolveWebsiteConfig(
+      validateWebsiteConfig((await getWebsiteEditor()).draft),
+    ).collection.slug;
     const page = await runAtomicMutation(async () => {
       const saved = await saveCmsPage(input, blocks, collection);
       await createActivityLog({
@@ -57,7 +76,17 @@ export async function saveCmsPageAction(input: CmsPageInput) {
         action: input.id ? "update" : "create",
         entity_type: "cms_page",
         entity_id: saved.id,
-        details: { slug: saved.slug, blocks: blocks.length, ...(codeChanged ? { customCode: blocks.filter((b) => b.type === "code").map((b) => b.data) } : {}) },
+        details: {
+          slug: saved.slug,
+          blocks: blocks.length,
+          ...(codeChanged
+            ? {
+                customCode: blocks
+                  .filter((b) => b.type === "code")
+                  .map((b) => b.data),
+              }
+            : {}),
+        },
       });
       return saved;
     });
@@ -72,10 +101,20 @@ export async function duplicateCmsPageAction(id: string) {
     const user = await requirePermission("pages", "create");
     validateActionArguments("duplicateCmsPageAction", { id });
     const source = await getCmsPage(id);
-    if (source?.blocks.some((block) => block.type === "code") && !(await hasPermission("cms_code", "edit"))) throw new Error(serverMessages.cmsCodePermission);
+    if (
+      source?.blocks.some((block) => block.type === "code") &&
+      !(await hasPermission("cms_code", "edit"))
+    )
+      throw new Error(serverMessages.cmsCodePermission);
     const page = await runAtomicMutation(async () => {
       const copy = await duplicateCmsPage(id);
-      await createActivityLog({ user_id: user.id, action: "create", entity_type: "cms_page", entity_id: copy.id, details: { duplicateOf: id } });
+      await createActivityLog({
+        user_id: user.id,
+        action: "create",
+        entity_type: "cms_page",
+        entity_id: copy.id,
+        details: { duplicateOf: id },
+      });
       return copy;
     });
     revalidatePages();
@@ -90,7 +129,13 @@ export async function deleteCmsPageAction(id: string) {
     validateActionArguments("deleteCmsPageAction", { id });
     await runAtomicMutation(async () => {
       await deleteCmsPage(id);
-      await createActivityLog({ user_id: user.id, action: "delete", entity_type: "cms_page", entity_id: id, details: {} });
+      await createActivityLog({
+        user_id: user.id,
+        action: "delete",
+        entity_type: "cms_page",
+        entity_id: id,
+        details: {},
+      });
     });
     revalidatePages();
     return { success: true };
@@ -98,7 +143,14 @@ export async function deleteCmsPageAction(id: string) {
 }
 
 /** Pages in their new order, and whether each shows on the website and in the menus. */
-export async function updateCmsPagesListAction(pages: { id: string; is_visible: boolean; in_header: boolean; in_footer: boolean }[]) {
+export async function updateCmsPagesListAction(
+  pages: {
+    id: string;
+    is_visible: boolean;
+    in_header: boolean;
+    in_footer: boolean;
+  }[],
+) {
   return measureOperation("action:updateCmsPagesListAction", async () => {
     await requireFeatureEnabled("cms");
     const user = await requirePermission("pages", "edit");
@@ -106,7 +158,13 @@ export async function updateCmsPagesListAction(pages: { id: string; is_visible: 
     await runAtomicMutation(async () => {
       await reorderCmsPages(pages.map((page) => page.id));
       for (const page of pages) await updateCmsPageFlags(page.id, page);
-      await createActivityLog({ user_id: user.id, action: "update", entity_type: "cms_page", entity_id: "list", details: { order: pages.map((p) => p.id) } });
+      await createActivityLog({
+        user_id: user.id,
+        action: "update",
+        entity_type: "cms_page",
+        entity_id: "list",
+        details: { order: pages.map((p) => p.id) },
+      });
     });
     revalidatePages();
     return { success: true };

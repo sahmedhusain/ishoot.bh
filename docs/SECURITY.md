@@ -41,7 +41,7 @@
   own hosts (`embedSource` in `packages/database/src/cms/blocks.ts`).
 - Article and rich-text HTML is built on the server from the editor's document (never taken from the browser) and
   cleaned with an allow-list (`apps/admin/lib/rich-text/render.ts`): formatting, links (`rel="noopener noreferrer
-  nofollow"`), images, tables and frames for the embed providers only; scripts, event handlers and other schemes
+nofollow"`), images, tables and frames for the embed providers only; scripts, event handlers and other schemes
   are dropped. Code blocks and site code are previewed through the normal signed draft preview before publishing.
 
 ## Customer accounts (online store)
@@ -88,12 +88,14 @@
 ## Retention
 
 Implemented:
+
 - Expired sessions are removed by maintenance.
 - Unclaimed **private** uploads expire after 24 hours. Each maintenance pass removes up to 25 of them from storage, then from the database. Claimed files are kept, and storage failures leave the record for a retry.
 - Abuse-limit windows older than their expiry plus one day are removed.
 - Each message keeps at most 100 recent verified delivery events.
 
 Targets that still need an approved, reviewed job and a tested backup and restore:
+
 - Purge orphaned claimed private files after 30 days.
 - Purge successful email bodies and attachment bytes after 30 days, keeping evidence of provider acceptance.
 - Aggregate social analytics after 90 days and remove the raw entries.

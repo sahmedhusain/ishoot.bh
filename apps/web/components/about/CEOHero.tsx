@@ -1,5 +1,5 @@
 "use client";
-import {ContentImage} from "../shared/ContentImage";
+import { ContentImage } from "../shared/ContentImage";
 
 import type { PublicCompanySettings } from "@platform/database/types";
 import { useTranslation } from "../../hooks/useTranslation";

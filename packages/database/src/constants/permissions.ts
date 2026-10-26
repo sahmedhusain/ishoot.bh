@@ -93,7 +93,8 @@ export const LEGACY_ROLE_IDS: Record<string, RoleKey> = {
   production_manager: "operations_manager",
   producer: "project_lead",
 };
-export const canonicalRoleId = (role: string): string => LEGACY_ROLE_IDS[role] ?? role;
+export const canonicalRoleId = (role: string): string =>
+  LEGACY_ROLE_IDS[role] ?? role;
 
 export type PermissionResource = (typeof ALL_RESOURCES)[number];
 export type PermissionAction = (typeof ALL_ACTIONS)[number];
@@ -313,7 +314,15 @@ export const DEFAULT_ROLE_RULES: Record<
     tasks: [...CRUD, "export", "assign"],
     announcements: [...CRUD, "approve"],
     letters: [...CRUD, "export", "approve", "issue_send"],
-    employees: ["read", "write", "create", "edit", "assign", "export", "approve"],
+    employees: [
+      "read",
+      "write",
+      "create",
+      "edit",
+      "assign",
+      "export",
+      "approve",
+    ],
     payroll: ["read"],
     benefits: CRUD,
     profile_changes: ["read", "approve"],
@@ -573,7 +582,10 @@ export const PERMISSION_GROUPS: ReadonlyArray<{
       "cms_code",
     ],
   },
-  { key: "commerce", resources: ["products", "inventory", "procurement", "orders", "deliveries"] },
+  {
+    key: "commerce",
+    resources: ["products", "inventory", "procurement", "orders", "deliveries"],
+  },
   { key: "work", resources: ["tasks"] },
   { key: "outreach", resources: ["marketing", "press"] },
   { key: "legal", resources: ["legal"] },

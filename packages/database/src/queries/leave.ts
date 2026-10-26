@@ -1,12 +1,25 @@
-import { serverTemplates, formatMessage, serverMessages } from "@platform/locales";
+import {
+  serverTemplates,
+  formatMessage,
+  serverMessages,
+} from "@platform/locales";
 
 import { db } from "../db";
 import { leaveDaysCharged, type DayPortion } from "../hr/payroll-engine";
-import { getHrPolicy, holidaySet, listLeaveTypeRules, toLeaveTypeRules, type LeaveTypeView } from "./hr-settings";
+import {
+  getHrPolicy,
+  holidaySet,
+  listLeaveTypeRules,
+  toLeaveTypeRules,
+  type LeaveTypeView,
+} from "./hr-settings";
 import { getLeaveBalance, refreshLeaveBalanceCache } from "./leave-balances";
 import { LeaveRequest } from "../types";
 
-type LeaveApprovedHook = (leaveRequestId: string, approverId: string) => Promise<unknown>;
+type LeaveApprovedHook = (
+  leaveRequestId: string,
+  approverId: string,
+) => Promise<unknown>;
 const leaveApprovedHooks: LeaveApprovedHook[] = [];
 /**
  * Runs after a leave request is approved, inside the same transaction. Modules subscribe instead of being
@@ -37,12 +50,14 @@ export async function checkEmployeeAvailability(
   // First resolve the employee ID if a user ID was passed
   const employee = await db.employee.findFirst({
     where: {
-      OR: [
-        { id: employeeIdOrUserId },
-        { userId: employeeIdOrUserId },
-      ],
+      OR: [{ id: employeeIdOrUserId }, { userId: employeeIdOrUserId }],
     },
-    select: { id: true, employeeNumber: true, firstNameEn: true, lastNameEn: true },
+    select: {
+      id: true,
+      employeeNumber: true,
+      firstNameEn: true,
+      lastNameEn: true,
+    },
   });
 
   if (!employee) {
@@ -87,7 +102,10 @@ export async function checkBatchAvailability(
   periodStart: Date,
   periodEnd: Date,
 ): Promise<Map<string, { isAvailable: boolean; conflictReason?: string }>> {
-  const result = new Map<string, { isAvailable: boolean; conflictReason?: string }>();
+  const result = new Map<
+    string,
+    { isAvailable: boolean; conflictReason?: string }
+  >();
   if (!employeeOrUserIds.length) return result;
 
   const employees = await db.employee.findMany({
@@ -145,13 +163,27 @@ export async function checkBatchAvailability(
  * Asserts that an actor is NOT currently on approved leave when creating operational/financial work.
  * "An employee on approved leave cannot create new operational/financial work or make assignment/approval decisions during that period."
  */
-export async function assertActorNotOnLeave(actorId: string, workDate?: Date): Promise<void> {
-  const actor = await db.user.findUnique({ where: { id: actorId }, select: { role: true } });
+export async function assertActorNotOnLeave(
+  actorId: string,
+  workDate?: Date,
+): Promise<void> {
+  const actor = await db.user.findUnique({
+    where: { id: actorId },
+    select: { role: true },
+  });
   if (actor?.role === "super_admin") return;
   const targetDate = workDate || new Date();
-  const availability = await checkEmployeeAvailability(actorId, targetDate, targetDate);
+  const availability = await checkEmployeeAvailability(
+    actorId,
+    targetDate,
+    targetDate,
+  );
   if (!availability.isAvailable) {
-    throw new Error(formatMessage(serverTemplates.actionProhibited0EmployeesOnApprovedLeave, { 0: availability.conflictReason }));
+    throw new Error(
+      formatMessage(serverTemplates.actionProhibited0EmployeesOnApprovedLeave, {
+        0: availability.conflictReason,
+      }),
+    );
   }
 }
 
@@ -163,9 +195,17 @@ export async function assertAssigneeAvailable(
   periodStart: Date,
   periodEnd: Date,
 ): Promise<void> {
-  const availability = await checkEmployeeAvailability(assigneeId, periodStart, periodEnd);
+  const availability = await checkEmployeeAvailability(
+    assigneeId,
+    periodStart,
+    periodEnd,
+  );
   if (!availability.isAvailable) {
-    throw new Error(formatMessage(serverTemplates.assignmentConflict0, { 0: availability.conflictReason }));
+    throw new Error(
+      formatMessage(serverTemplates.assignmentConflict0, {
+        0: availability.conflictReason,
+      }),
+    );
   }
 }
 
@@ -184,7 +224,8 @@ export async function createLeaveRequest(data: {
   if (data.endDate < data.startDate) {
     throw new Error(serverMessages.invalidLeavePeriodEndDateCannotBe);
   }
-  const portion: DayPortion = data.dayPortion ?? (data.fullDay === false ? "hours" : "full");
+  const portion: DayPortion =
+    data.dayPortion ?? (data.fullDay === false ? "hours" : "full");
 
   // Check existing approved or pending leaves for overlap
   const existingOverlap = await db.leaveRequest.findFirst({
@@ -199,19 +240,34 @@ export async function createLeaveRequest(data: {
   if (existingOverlap) {
     // Two half days on the same date (morning and afternoon) may coexist.
     const halves = ["half_am", "half_pm"];
-    const sameDayHalves = halves.includes(portion) && halves.includes(existingOverlap.dayPortion) && existingOverlap.dayPortion !== portion;
-    if (!sameDayHalves) throw new Error(formatMessage(serverTemplates.conflictingLeaveRequestAlreadyExistsForThis, { 0: existingOverlap.status }));
+    const sameDayHalves =
+      halves.includes(portion) &&
+      halves.includes(existingOverlap.dayPortion) &&
+      existingOverlap.dayPortion !== portion;
+    if (!sameDayHalves)
+      throw new Error(
+        formatMessage(
+          serverTemplates.conflictingLeaveRequestAlreadyExistsForThis,
+          { 0: existingOverlap.status },
+        ),
+      );
   }
 
   const [typeRow, employee, policy] = await Promise.all([
     db.leaveType.findUniqueOrThrow({ where: { id: data.leaveTypeId } }),
-    db.employee.findUniqueOrThrow({ where: { id: data.employeeId }, select: { hireDate: true, status: true } }),
+    db.employee.findUniqueOrThrow({
+      where: { id: data.employeeId },
+      select: { hireDate: true, status: true },
+    }),
     getHrPolicy(),
   ]);
   const type = toLeaveTypeRules(typeRow);
-  if (!type.isActive) throw new Error(serverMessages.thisLeaveTypeIsNoLongerOffered);
-  if (employee.status === "terminated") throw new Error(serverMessages.leaveCannotBeRequestedForAFormer);
-  if (type.requiresAttachment && !data.attachmentUrl) throw new Error(serverMessages.attachASupportingDocumentForThisLeave);
+  if (!type.isActive)
+    throw new Error(serverMessages.thisLeaveTypeIsNoLongerOffered);
+  if (employee.status === "terminated")
+    throw new Error(serverMessages.leaveCannotBeRequestedForAFormer);
+  if (type.requiresAttachment && !data.attachmentUrl)
+    throw new Error(serverMessages.attachASupportingDocumentForThisLeave);
   const holidays = await holidaySet(data.startDate, data.endDate);
   const requestedDays = leaveDaysCharged(
     { start: data.startDate, end: data.endDate, portion, hours: data.hours },
@@ -221,11 +277,25 @@ export async function createLeaveRequest(data: {
   );
   if (data.startDate.getUTCFullYear() !== data.endDate.getUTCFullYear())
     throw new Error(serverMessages.splitLeaveThatCrossesTheNewYear);
-  const balance = await getLeaveBalance(data.employeeId, data.leaveTypeId, data.startDate.getUTCFullYear(), data.startDate);
+  const balance = await getLeaveBalance(
+    data.employeeId,
+    data.leaveTypeId,
+    data.startDate.getUTCFullYear(),
+    data.startDate,
+  );
   if (!balance.eligible)
-    throw new Error(formatMessage(serverTemplates.notYetEligibleForThisLeaveType, { 0: balance.eligibleFrom }));
+    throw new Error(
+      formatMessage(serverTemplates.notYetEligibleForThisLeaveType, {
+        0: balance.eligibleFrom,
+      }),
+    );
   if (balance.available != null && requestedDays > balance.available) {
-    throw new Error(formatMessage(serverTemplates.insufficientLeaveBalance0DaySRequested, { 0: requestedDays, 1: balance.available }));
+    throw new Error(
+      formatMessage(serverTemplates.insufficientLeaveBalance0DaySRequested, {
+        0: requestedDays,
+        1: balance.available,
+      }),
+    );
   }
 
   const created = await db.leaveRequest.create({
@@ -286,27 +356,30 @@ export async function getLeaveConflicts(leave: {
   let calendarEventsCount = 0;
 
   if (userId) {
-    [assignedInquiriesCount, assignedDealsCount, calendarEventsCount] = await Promise.all([
-      db.inquiry.count({
-        where: {
-          assignedToId: userId,
-          workflowStatus: { in: ["received", "under_review", "assigned", "in_progress"] },
-        },
-      }),
-      db.crmDeal.count({
-        where: {
-          assignedTo: userId,
-          dealStage: { notIn: ["closed_won", "closed_lost"] },
-        },
-      }),
-      db.calendarEvent.count({
-        where: {
-          createdById: userId,
-          startDate: { lte: leave.endDate },
-          endDate: { gte: leave.startDate },
-        },
-      }),
-    ]);
+    [assignedInquiriesCount, assignedDealsCount, calendarEventsCount] =
+      await Promise.all([
+        db.inquiry.count({
+          where: {
+            assignedToId: userId,
+            workflowStatus: {
+              in: ["received", "under_review", "assigned", "in_progress"],
+            },
+          },
+        }),
+        db.crmDeal.count({
+          where: {
+            assignedTo: userId,
+            dealStage: { notIn: ["closed_won", "closed_lost"] },
+          },
+        }),
+        db.calendarEvent.count({
+          where: {
+            createdById: userId,
+            startDate: { lte: leave.endDate },
+            endDate: { gte: leave.startDate },
+          },
+        }),
+      ]);
   }
 
   return { assignedInquiriesCount, assignedDealsCount, calendarEventsCount };
@@ -331,12 +404,25 @@ export async function approveLeaveRequest(
   });
 
   if (!leave) throw new Error(serverMessages.leaveRequestNotFound);
-  if (leave.status !== "pending") throw new Error(formatMessage(serverTemplates.cannotApproveLeaveWithStatus0, { 0: leave.status }));
+  if (leave.status !== "pending")
+    throw new Error(
+      formatMessage(serverTemplates.cannotApproveLeaveWithStatus0, {
+        0: leave.status,
+      }),
+    );
 
   const conflicts = await getLeaveConflicts(leave);
   // Other requests (approved or pending) already count against the balance; this one is pending too.
-  const balance = await getLeaveBalance(leave.employeeId, leave.leaveTypeId, leave.startDate.getUTCFullYear(), leave.startDate);
-  if (balance.available != null && balance.available < 0) throw new Error(serverMessages.insufficientLeaveBalanceToApproveThisRequest);
+  const balance = await getLeaveBalance(
+    leave.employeeId,
+    leave.leaveTypeId,
+    leave.startDate.getUTCFullYear(),
+    leave.startDate,
+  );
+  if (balance.available != null && balance.available < 0)
+    throw new Error(
+      serverMessages.insufficientLeaveBalanceToApproveThisRequest,
+    );
 
   await db.leaveRequest.update({
     where: { id: requestId },
@@ -350,7 +436,10 @@ export async function approveLeaveRequest(
   await refreshLeaveBalanceCache(leave.employeeId);
   // E.g. leave types that need a handover open one for HR (see employee-handovers).
   for (const hook of leaveApprovedHooks) await hook(requestId, approverId);
-  const updated = await db.leaveRequest.findUniqueOrThrow({ where: { id: requestId }, include: { employee: true, leaveType: true } });
+  const updated = await db.leaveRequest.findUniqueOrThrow({
+    where: { id: requestId },
+    include: { employee: true, leaveType: true },
+  });
 
   return {
     request: {
@@ -383,7 +472,12 @@ export async function rejectLeaveRequest(
   });
 
   if (!leave) throw new Error(serverMessages.leaveRequestNotFound);
-  if (leave.status !== "pending") throw new Error(formatMessage(serverTemplates.cannotRejectLeaveWithStatus0, { 0: leave.status }));
+  if (leave.status !== "pending")
+    throw new Error(
+      formatMessage(serverTemplates.cannotRejectLeaveWithStatus0, {
+        0: leave.status,
+      }),
+    );
 
   await db.leaveRequest.update({
     where: { id: requestId },
@@ -395,7 +489,10 @@ export async function rejectLeaveRequest(
     },
   });
   await refreshLeaveBalanceCache(leave.employeeId);
-  const updated = await db.leaveRequest.findUniqueOrThrow({ where: { id: requestId }, include: { employee: true, leaveType: true } });
+  const updated = await db.leaveRequest.findUniqueOrThrow({
+    where: { id: requestId },
+    include: { employee: true, leaveType: true },
+  });
 
   return {
     ...updated,
@@ -431,7 +528,10 @@ export async function listLeaveRequests(filters: {
   if (filters.userIds) where.employee = { userId: { in: filters.userIds } };
 
   if (filters.employeeId && filters.includeIds?.length)
-    where.OR = [{ employeeId: filters.employeeId }, { id: { in: filters.includeIds } }];
+    where.OR = [
+      { employeeId: filters.employeeId },
+      { id: { in: filters.includeIds } },
+    ];
   else if (filters.employeeId) where.employeeId = filters.employeeId;
   if (filters.status) where.status = filters.status;
   if (filters.startDate && filters.endDate) {

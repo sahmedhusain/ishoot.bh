@@ -24,10 +24,12 @@ global.fetch = async (url, init) => {
   const u = new URL(String(url));
   if (u.pathname.endsWith("/page-1")) return json(200, { name: "Example Productions", followers_count: 1200 });
   if (u.pathname.endsWith("/page-1/posts"))
-    return json(200, { data: [
-      { id: "p1", message: "Behind the scenes", created_time: day(2), permalink_url: "https://facebook.com/p1", reactions: { summary: { total_count: likes } }, comments: { summary: { total_count: 5 } }, shares: { count: 3 } },
-      { id: "p2", message: "Old post", created_time: day(45), reactions: { summary: { total_count: 10 } }, comments: { summary: { total_count: 1 } } },
-    ] });
+    return json(200, {
+      data: [
+        { id: "p1", message: "Behind the scenes", created_time: day(2), permalink_url: "https://facebook.com/p1", reactions: { summary: { total_count: likes } }, comments: { summary: { total_count: 5 } }, shares: { count: 3 } },
+        { id: "p2", message: "Old post", created_time: day(45), reactions: { summary: { total_count: 10 } }, comments: { summary: { total_count: 1 } } },
+      ]
+    });
   if (u.pathname.endsWith("/ig-1")) return json(200, { username: "example", followers_count: 3400, media_count: 210 });
   if (u.pathname.endsWith("/ig-1/media"))
     return json(200, { data: [{ id: "m1", caption: "Reel", media_type: "VIDEO", permalink: "https://instagram.com/p/m1", timestamp: day(1), like_count: 300, comments_count: 20 }] });

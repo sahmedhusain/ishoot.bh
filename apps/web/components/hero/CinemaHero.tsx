@@ -1,5 +1,5 @@
 "use client";
-import {ContentImage} from "../shared/ContentImage";
+import { ContentImage } from "../shared/ContentImage";
 import * as React from "react";
 import Link from "next/link";
 import type { HeroBanner } from "@platform/database/types";
@@ -27,8 +27,8 @@ export function CinemaHero({ banners, companyName }: { banners: HeroBanner[]; co
     const update = () =>
       setVisible(
         !document.hidden &&
-          !!section.current &&
-          section.current.getBoundingClientRect().bottom > 0,
+        !!section.current &&
+        section.current.getBoundingClientRect().bottom > 0,
       );
     document.addEventListener("visibilitychange", update);
     return () => {
@@ -45,7 +45,7 @@ export function CinemaHero({ banners, companyName }: { banners: HeroBanner[]; co
     return () => clearInterval(timer);
   }, [moving, banners.length]);
   React.useEffect(() => {
-    if (moving) video.current?.play().catch(() => {});
+    if (moving) video.current?.play().catch(() => { });
     else video.current?.pause();
   }, [moving, banner?.id]);
   const title = banner

@@ -13,13 +13,20 @@ export function isContentLanguage(value: unknown): value is ContentLanguage {
 /** A valid, de-duplicated language list in the canonical order; both languages when the input is unusable. */
 export function normalizeLanguages(value: unknown): ContentLanguage[] {
   const list = Array.isArray(value) ? value.filter(isContentLanguage) : [];
-  const unique = CONTENT_LANGUAGES.filter((language) => list.includes(language));
+  const unique = CONTENT_LANGUAGES.filter((language) =>
+    list.includes(language),
+  );
   return unique.length ? unique : [...CONTENT_LANGUAGES];
 }
 
 /** The language shown first: the requested one when the company writes in it, otherwise its first language. */
-export function normalizePrimaryLanguage(value: unknown, languages: readonly ContentLanguage[]): ContentLanguage {
-  return isContentLanguage(value) && languages.includes(value) ? value : languages[0];
+export function normalizePrimaryLanguage(
+  value: unknown,
+  languages: readonly ContentLanguage[],
+): ContentLanguage {
+  return isContentLanguage(value) && languages.includes(value)
+    ? value
+    : languages[0];
 }
 
 const PAIRS: [RegExp, (stem: string) => [string, string]][] = [
@@ -31,7 +38,10 @@ const PAIRS: [RegExp, (stem: string) => [string, string]][] = [
  * With a single content language, copies each English/Arabic pair from the written side to the other side,
  * through nested objects and arrays. With both languages the value is returned unchanged.
  */
-export function mirrorBilingual<T>(value: T, languages: readonly ContentLanguage[]): T {
+export function mirrorBilingual<T>(
+  value: T,
+  languages: readonly ContentLanguage[],
+): T {
   if (languages.length !== 1) return value;
   const source = languages[0];
   const visit = (node: unknown): unknown => {
@@ -45,7 +55,13 @@ export function mirrorBilingual<T>(value: T, languages: readonly ContentLanguage
         if (stem === undefined) continue;
         const [en, ar] = pair(stem);
         const [from, to] = source === "en" ? [en, ar] : [ar, en];
-        if (typeof out[from] === "string" && (out[to] === undefined || typeof out[to] === "string" || out[to] === null)) out[to] = out[from];
+        if (
+          typeof out[from] === "string" &&
+          (out[to] === undefined ||
+            typeof out[to] === "string" ||
+            out[to] === null)
+        )
+          out[to] = out[from];
       }
     }
     return out;
@@ -54,7 +70,11 @@ export function mirrorBilingual<T>(value: T, languages: readonly ContentLanguage
 }
 
 /** The text for a locale, falling back to the other language when that side is empty. */
-export function pickText(en: string | null | undefined, ar: string | null | undefined, locale: string): string {
+export function pickText(
+  en: string | null | undefined,
+  ar: string | null | undefined,
+  locale: string,
+): string {
   const [first, second] = locale === "ar" ? [ar, en] : [en, ar];
-  return first?.trim() ? first : second ?? "";
+  return first?.trim() ? first : (second ?? "");
 }

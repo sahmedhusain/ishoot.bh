@@ -146,7 +146,7 @@ export function CompanyArchiveView({
       const [kind, number] = d.file_name.split(" · ");
       return [
         t.employeeResidency.kinds[
-          kind as keyof typeof t.employeeResidency.kinds
+        kind as keyof typeof t.employeeResidency.kinds
         ] ?? kind,
         number,
       ]

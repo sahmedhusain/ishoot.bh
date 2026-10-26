@@ -1,12 +1,12 @@
 import {
-getCurrentPermissions,
-requirePagePermission,
+  getCurrentPermissions,
+  requirePagePermission,
 } from "../../../../../lib/auth";
 import {
-getCRMDealById,
-getCRMContactById,
-getInvoicesPage,
-getRelatedExpenses,
+  getCRMDealById,
+  getCRMContactById,
+  getInvoicesPage,
+  getRelatedExpenses,
 } from "@platform/database";
 import { RelatedExpensesPanel } from "../../../../../components/expenses/RelatedExpensesPanel";
 import { notFound } from "next/navigation";
@@ -49,20 +49,20 @@ export default async function DealDetailPage({
 
   return (
     <>
-    <DealDossierView
-      deal={deal}
-      contact={contact}
-      invoices={invoices?.items || []}
-      invoicePage={invoices || undefined}
-      actions={{
-        createQuotation: canContacts && grants["quotations:create"] === true,
-        createInvoice: canContacts && grants["invoices:write"] === true,
-        recordPayment: false,
-        createDeal: false,
-        editRecord: grants["deals:write"] === true,
-      }}
-    />
-    {expenses && <RelatedExpensesPanel dealId={id} items={expenses.items} totals={expenses.totals} canWrite={grants["expenses:write"] === true} />}
+      <DealDossierView
+        deal={deal}
+        contact={contact}
+        invoices={invoices?.items || []}
+        invoicePage={invoices || undefined}
+        actions={{
+          createQuotation: canContacts && grants["quotations:create"] === true,
+          createInvoice: canContacts && grants["invoices:write"] === true,
+          recordPayment: false,
+          createDeal: false,
+          editRecord: grants["deals:write"] === true,
+        }}
+      />
+      {expenses && <RelatedExpensesPanel dealId={id} items={expenses.items} totals={expenses.totals} canWrite={grants["expenses:write"] === true} />}
     </>
   );
 }

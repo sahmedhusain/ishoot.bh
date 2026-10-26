@@ -13,7 +13,10 @@ export async function GET(req: NextRequest) {
   return measureOperation("admin:notifications:GET", async () => {
     const user = await getCurrentUser();
     if (!user)
-      return NextResponse.json({ error: serverMessages.unauthorized }, { status: 401 });
+      return NextResponse.json(
+        { error: serverMessages.unauthorized },
+        { status: 401 },
+      );
     const notifications =
       req.nextUrl.searchParams.get("preview") === "1"
         ? await notificationPreview(

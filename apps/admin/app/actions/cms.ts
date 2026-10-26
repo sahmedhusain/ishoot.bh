@@ -8,20 +8,21 @@ import { runAtomicMutation } from "@platform/database";
 import { validateActionArguments } from "../../lib/action-input";
 
 import {
-createBanner,
-updateBanner,
-deleteBanner,
-createClientLogo,
-updateClientLogo,
-deleteClientLogo,
-createEquipment,
-updateEquipment,
-deleteEquipment,
-createPortfolioItem,
-updatePortfolioItem,
-deletePortfolioItem,
-createActivityLog,StudioEquipment,
-PortfolioItem
+  createBanner,
+  updateBanner,
+  deleteBanner,
+  createClientLogo,
+  updateClientLogo,
+  deleteClientLogo,
+  createEquipment,
+  updateEquipment,
+  deleteEquipment,
+  createPortfolioItem,
+  updatePortfolioItem,
+  deletePortfolioItem,
+  createActivityLog,
+  StudioEquipment,
+  PortfolioItem,
 } from "@platform/database";
 import { safeWebsiteUrl } from "@platform/database/website-config";
 import { revalidatePath } from "next/cache";
@@ -34,7 +35,8 @@ import { requireFeatureEnabled } from "@platform/database";
 
 export async function toggleBannerStatusAction(id: string, isActive: boolean) {
   return measureOperation("action:toggleBannerStatusAction", async () => {
-    await requireFeatureEnabled("cms"); const user = await requirePermission("banners", "write");
+    await requireFeatureEnabled("cms");
+    const user = await requirePermission("banners", "write");
     validateActionArguments("toggleBannerStatusAction", { id, isActive });
     await runAtomicMutation(async () => {
       if (!(await updateBanner(id, { is_active: isActive })))
@@ -57,10 +59,12 @@ export async function toggleBannerStatusAction(id: string, isActive: boolean) {
 
 export async function deleteBannerAction(id: string) {
   return measureOperation("action:deleteBannerAction", async () => {
-    await requireFeatureEnabled("cms"); const user = await requirePermission("banners", "delete");
+    await requireFeatureEnabled("cms");
+    const user = await requirePermission("banners", "delete");
     validateActionArguments("deleteBannerAction", { id });
     await runAtomicMutation(async () => {
-      if (!(await deleteBanner(id))) throw new Error(serverMessages.couldNotDeleteBanner);
+      if (!(await deleteBanner(id)))
+        throw new Error(serverMessages.couldNotDeleteBanner);
       await createActivityLog({
         user_id: user.id,
         action: "delete",
@@ -90,7 +94,8 @@ export async function createBannerAction(data: {
   display_order?: number;
 }) {
   return measureOperation("action:createBannerAction", async () => {
-    await requireFeatureEnabled("cms"); const user = await requirePermission("banners", "write");
+    await requireFeatureEnabled("cms");
+    const user = await requirePermission("banners", "write");
     validateActionArguments("createBannerAction", { data });
     data = await mirrorToContentLanguages(data);
     validateBannerData(data);
@@ -118,7 +123,8 @@ export async function createBannerAction(data: {
 
 export async function deleteClientLogoAction(id: string) {
   return measureOperation("action:deleteClientLogoAction", async () => {
-    await requireFeatureEnabled("cms"); const user = await requirePermission("clients", "delete");
+    await requireFeatureEnabled("cms");
+    const user = await requirePermission("clients", "delete");
     validateActionArguments("deleteClientLogoAction", { id });
     await runAtomicMutation(async () => {
       await deleteClientLogo(id);
@@ -144,7 +150,8 @@ export async function createClientLogoAction(data: {
   display_order?: number;
 }) {
   return measureOperation("action:createClientLogoAction", async () => {
-    await requireFeatureEnabled("cms"); const user = await requirePermission("clients", "write");
+    await requireFeatureEnabled("cms");
+    const user = await requirePermission("clients", "write");
     validateActionArguments("createClientLogoAction", { data });
     const fields = clientLogoFields(data);
     const { logo } = await runAtomicMutation(async () => {
@@ -171,14 +178,36 @@ export async function createClientLogoAction(data: {
   });
 }
 
-function clientLogoFields(data: { client_name?: string; logo_svg_url?: string; website_url?: string }) {
+function clientLogoFields(data: {
+  client_name?: string;
+  logo_svg_url?: string;
+  website_url?: string;
+}) {
   const clientName = data.client_name?.trim();
-  if (data.client_name !== undefined && (!clientName || clientName.length > 120)) throw new Error(serverMessages.clientNameIsRequired);
-  const logoUrl = data.logo_svg_url !== undefined ? safeWebsiteUrl(data.logo_svg_url.trim()) : undefined;
-  if (data.logo_svg_url !== undefined && (!logoUrl || logoUrl.length > 2000)) throw new Error(serverMessages.useAnHttpsLogoUrlOrA);
-  const websiteUrl = data.website_url !== undefined ? (data.website_url.trim() ? safeWebsiteUrl(data.website_url.trim()) : "") : undefined;
-  if (data.website_url?.trim() && !websiteUrl) throw new Error(serverMessages.invalidWebsiteUrl);
-  return { client_name: clientName, logo_svg_url: logoUrl, website_url: websiteUrl };
+  if (
+    data.client_name !== undefined &&
+    (!clientName || clientName.length > 120)
+  )
+    throw new Error(serverMessages.clientNameIsRequired);
+  const logoUrl =
+    data.logo_svg_url !== undefined
+      ? safeWebsiteUrl(data.logo_svg_url.trim())
+      : undefined;
+  if (data.logo_svg_url !== undefined && (!logoUrl || logoUrl.length > 2000))
+    throw new Error(serverMessages.useAnHttpsLogoUrlOrA);
+  const websiteUrl =
+    data.website_url !== undefined
+      ? data.website_url.trim()
+        ? safeWebsiteUrl(data.website_url.trim())
+        : ""
+      : undefined;
+  if (data.website_url?.trim() && !websiteUrl)
+    throw new Error(serverMessages.invalidWebsiteUrl);
+  return {
+    client_name: clientName,
+    logo_svg_url: logoUrl,
+    website_url: websiteUrl,
+  };
 }
 
 export async function updateClientLogoAction(
@@ -186,14 +215,21 @@ export async function updateClientLogoAction(
   data: { client_name?: string; logo_svg_url?: string; website_url?: string },
 ) {
   return measureOperation("action:updateClientLogoAction", async () => {
-    await requireFeatureEnabled("cms"); const user = await requirePermission("clients", "write");
+    await requireFeatureEnabled("cms");
+    const user = await requirePermission("clients", "write");
     validateActionArguments("updateClientLogoAction", { id, data });
     const fields = clientLogoFields(data);
     const { logo } = await runAtomicMutation(async () => {
       const logo = await updateClientLogo(id, {
-        ...(fields.client_name !== undefined && { client_name: fields.client_name }),
-        ...(fields.logo_svg_url !== undefined && { logo_svg_url: fields.logo_svg_url }),
-        ...(fields.website_url !== undefined && { website_url: fields.website_url }),
+        ...(fields.client_name !== undefined && {
+          client_name: fields.client_name,
+        }),
+        ...(fields.logo_svg_url !== undefined && {
+          logo_svg_url: fields.logo_svg_url,
+        }),
+        ...(fields.website_url !== undefined && {
+          website_url: fields.website_url,
+        }),
       });
       if (!logo) throw new Error(serverMessages.clientLogoNotFound);
       await createActivityLog({
@@ -214,7 +250,8 @@ export async function updateClientLogoAction(
 
 export async function deleteEquipmentAction(id: string) {
   return measureOperation("action:deleteEquipmentAction", async () => {
-    await requireFeatureEnabled("cms"); const user = await requirePermission("equipment", "delete");
+    await requireFeatureEnabled("cms");
+    const user = await requirePermission("equipment", "delete");
     validateActionArguments("deleteEquipmentAction", { id });
     await runAtomicMutation(async () => {
       await deleteEquipment(id);
@@ -241,7 +278,8 @@ export async function createEquipmentAction(data: {
   quantity?: number;
 }) {
   return measureOperation("action:createEquipmentAction", async () => {
-    await requireFeatureEnabled("cms"); const user = await requirePermission("equipment", "write");
+    await requireFeatureEnabled("cms");
+    const user = await requirePermission("equipment", "write");
     validateActionArguments("createEquipmentAction", { data });
     const { item } = await runAtomicMutation(async () => {
       const item = await createEquipment(data);
@@ -272,9 +310,11 @@ export async function updateEquipmentAction(
   },
 ) {
   return measureOperation("action:updateEquipmentAction", async () => {
-    await requireFeatureEnabled("cms"); const user = await requirePermission("equipment", "write");
+    await requireFeatureEnabled("cms");
+    const user = await requirePermission("equipment", "write");
     validateActionArguments("updateEquipmentAction", { id, data });
-    if (!data.model_name?.trim()) throw new Error(serverMessages.modelNameIsRequired);
+    if (!data.model_name?.trim())
+      throw new Error(serverMessages.modelNameIsRequired);
     const { item } = await runAtomicMutation(async () => {
       const item = await updateEquipment(id, {
         category: data.category,
@@ -305,7 +345,8 @@ export async function togglePortfolioFeaturedAction(
   isFeatured: boolean,
 ) {
   return measureOperation("action:togglePortfolioFeaturedAction", async () => {
-    await requireFeatureEnabled("cms"); const user = await requirePermission("portfolio", "write");
+    await requireFeatureEnabled("cms");
+    const user = await requirePermission("portfolio", "write");
     validateActionArguments("togglePortfolioFeaturedAction", {
       id,
       isFeatured,
@@ -331,7 +372,8 @@ export async function togglePortfolioFeaturedAction(
 
 export async function deletePortfolioItemAction(id: string) {
   return measureOperation("action:deletePortfolioItemAction", async () => {
-    await requireFeatureEnabled("cms"); const user = await requirePermission("portfolio", "delete");
+    await requireFeatureEnabled("cms");
+    const user = await requirePermission("portfolio", "delete");
     validateActionArguments("deletePortfolioItemAction", { id });
     await runAtomicMutation(async () => {
       if (!(await deletePortfolioItem(id)))
@@ -366,7 +408,12 @@ export async function createPortfolioItemAction(input: {
   price_note_ar?: string;
   location?: string;
   external_url?: string;
-  attributes?: { labelEn: string; labelAr: string; valueEn: string; valueAr: string }[];
+  attributes?: {
+    labelEn: string;
+    labelAr: string;
+    valueEn: string;
+    valueAr: string;
+  }[];
   aspect_ratio?: string;
   thumbnail_url: string;
   preview_video_url?: string;
@@ -378,7 +425,8 @@ export async function createPortfolioItemAction(input: {
   display_order?: number;
 }) {
   return measureOperation("action:createPortfolioItemAction", async () => {
-    await requireFeatureEnabled("cms"); const user = await requirePermission("portfolio", "write");
+    await requireFeatureEnabled("cms");
+    const user = await requirePermission("portfolio", "write");
     validateActionArguments("createPortfolioItemAction", { input });
     const data = await preparePortfolioData(input);
     const { project } = await runAtomicMutation(async () => {
@@ -403,14 +451,14 @@ export async function createPortfolioItemAction(input: {
 }
 
 import {
-updateReview,
-deleteReview,
-createFaq,
-updateFaq,
-deleteFaq,
-createStatistic,
-updateStatistic,
-deleteStatistic
+  updateReview,
+  deleteReview,
+  createFaq,
+  updateFaq,
+  deleteFaq,
+  createStatistic,
+  updateStatistic,
+  deleteStatistic,
 } from "@platform/database";
 
 export async function toggleReviewApprovalAction(
@@ -418,7 +466,8 @@ export async function toggleReviewApprovalAction(
   isApproved: boolean,
 ) {
   return measureOperation("action:toggleReviewApprovalAction", async () => {
-    await requireFeatureEnabled("cms"); const user = await requirePermission("reviews", "write");
+    await requireFeatureEnabled("cms");
+    const user = await requirePermission("reviews", "write");
     validateActionArguments("toggleReviewApprovalAction", { id, isApproved });
     const review = await runAtomicMutation(async () => {
       const review = await updateReview(id, { isApproved });
@@ -437,7 +486,8 @@ export async function toggleReviewApprovalAction(
 
 export async function deleteReviewAction(id: string) {
   return measureOperation("action:deleteReviewAction", async () => {
-    await requireFeatureEnabled("cms"); const user = await requirePermission("reviews", "delete");
+    await requireFeatureEnabled("cms");
+    const user = await requirePermission("reviews", "delete");
     validateActionArguments("deleteReviewAction", { id });
     await runAtomicMutation(async () => {
       await deleteReview(id);
@@ -455,7 +505,8 @@ export async function deleteReviewAction(id: string) {
 
 export async function createFaqAction(data: Parameters<typeof createFaq>[0]) {
   return measureOperation("action:createFaqAction", async () => {
-    await requireFeatureEnabled("cms"); const user = await requirePermission("faqs", "write");
+    await requireFeatureEnabled("cms");
+    const user = await requirePermission("faqs", "write");
     validateActionArguments("createFaqAction", { data });
     data = await mirrorToContentLanguages(data);
     const faq = await runAtomicMutation(async () => {
@@ -479,7 +530,8 @@ export async function updateFaqAction(
   data: Partial<Parameters<typeof createFaq>[0]>,
 ) {
   return measureOperation("action:updateFaqAction", async () => {
-    await requireFeatureEnabled("cms"); const user = await requirePermission("faqs", "write");
+    await requireFeatureEnabled("cms");
+    const user = await requirePermission("faqs", "write");
     validateActionArguments("updateFaqAction", { id, data });
     data = await mirrorToContentLanguages(data);
     const faq = await runAtomicMutation(async () => {
@@ -500,7 +552,8 @@ export async function updateFaqAction(
 
 export async function deleteFaqAction(id: string) {
   return measureOperation("action:deleteFaqAction", async () => {
-    await requireFeatureEnabled("cms"); const user = await requirePermission("faqs", "delete");
+    await requireFeatureEnabled("cms");
+    const user = await requirePermission("faqs", "delete");
     validateActionArguments("deleteFaqAction", { id });
     await runAtomicMutation(async () => {
       await deleteFaq(id);
@@ -521,7 +574,8 @@ export async function createStatisticAction(
   data: Parameters<typeof createStatistic>[0],
 ) {
   return measureOperation("action:createStatisticAction", async () => {
-    await requireFeatureEnabled("cms"); const user = await requirePermission("stats", "write");
+    await requireFeatureEnabled("cms");
+    const user = await requirePermission("stats", "write");
     validateActionArguments("createStatisticAction", { data });
     data = await mirrorToContentLanguages(data);
     validateStatisticData(data);
@@ -546,7 +600,8 @@ export async function updateStatisticAction(
   data: Partial<Parameters<typeof createStatistic>[0]>,
 ) {
   return measureOperation("action:updateStatisticAction", async () => {
-    await requireFeatureEnabled("cms"); const user = await requirePermission("stats", "write");
+    await requireFeatureEnabled("cms");
+    const user = await requirePermission("stats", "write");
     validateActionArguments("updateStatisticAction", { id, data });
     data = await mirrorToContentLanguages(data);
     validateStatisticData(data);
@@ -568,7 +623,8 @@ export async function updateStatisticAction(
 
 export async function deleteStatisticAction(id: string) {
   return measureOperation("action:deleteStatisticAction", async () => {
-    await requireFeatureEnabled("cms"); const user = await requirePermission("stats", "delete");
+    await requireFeatureEnabled("cms");
+    const user = await requirePermission("stats", "delete");
     validateActionArguments("deleteStatisticAction", { id });
     await runAtomicMutation(async () => {
       await deleteStatistic(id);
@@ -585,13 +641,24 @@ export async function deleteStatisticAction(id: string) {
   });
 }
 
-function validateStatisticData(data: Partial<Parameters<typeof createStatistic>[0]>) {
+function validateStatisticData(
+  data: Partial<Parameters<typeof createStatistic>[0]>,
+) {
   for (const key of ["labelEn", "labelAr"] as const)
-    if (key in data && (typeof data[key] !== "string" || !data[key]?.trim() || data[key]!.length > 100))
+    if (
+      key in data &&
+      (typeof data[key] !== "string" ||
+        !data[key]?.trim() ||
+        data[key]!.length > 100)
+    )
       throw new Error(serverMessages.bothLabelsAreRequiredMax100Characters);
   for (const key of ["subLabelEn", "subLabelAr", "icon"] as const)
-    if ((data[key]?.length ?? 0) > 200) throw new Error(serverMessages.textIsTooLongMax200Characters);
-  if (data.sortOrder !== undefined && (!Number.isInteger(data.sortOrder) || Math.abs(data.sortOrder) > 10000))
+    if ((data[key]?.length ?? 0) > 200)
+      throw new Error(serverMessages.textIsTooLongMax200Characters);
+  if (
+    data.sortOrder !== undefined &&
+    (!Number.isInteger(data.sortOrder) || Math.abs(data.sortOrder) > 10000)
+  )
     throw new Error(serverMessages.invalidSortOrder);
   // Value, preset, founding year, rounding and suffix rules live in validateStatisticInput.
 }
@@ -620,13 +687,21 @@ async function mirrorToContentLanguages<T>(input: T): Promise<T> {
   return mirrorBilingual(input, content_languages);
 }
 /** Checks a catalogue item and, for a company that writes in one language, fills both sides of every pair. */
-async function preparePortfolioData(input: Parameters<typeof createPortfolioItemAction>[0]) {
+async function preparePortfolioData(
+  input: Parameters<typeof createPortfolioItemAction>[0],
+) {
   const data = await mirrorToContentLanguages(input);
   validatePortfolioData(data);
   return {
     ...data,
     client_name: data.client_name?.trim() ?? "",
-    attributes: (data.attributes ?? []).filter((a) => a.labelEn.trim() || a.labelAr.trim() || a.valueEn.trim() || a.valueAr.trim()),
+    attributes: (data.attributes ?? []).filter(
+      (a) =>
+        a.labelEn.trim() ||
+        a.labelAr.trim() ||
+        a.valueEn.trim() ||
+        a.valueAr.trim(),
+    ),
   };
 }
 function validatePortfolioData(
@@ -643,14 +718,45 @@ function validatePortfolioData(
     throw new Error(
       "Use a unique slug with lowercase letters, numbers and hyphens",
     );
-  if (data.year !== undefined && data.year !== null && (!Number.isInteger(data.year) || data.year < 1900 || data.year > 2100))
+  if (
+    data.year !== undefined &&
+    data.year !== null &&
+    (!Number.isInteger(data.year) || data.year < 1900 || data.year > 2100)
+  )
     throw new Error(serverMessages.invalidYear);
-  if (data.price !== undefined && data.price !== null && !(Number.isFinite(data.price) && data.price >= 0 && data.price <= 1_000_000_000))
+  if (
+    data.price !== undefined &&
+    data.price !== null &&
+    !(
+      Number.isFinite(data.price) &&
+      data.price >= 0 &&
+      data.price <= 1_000_000_000
+    )
+  )
     throw new Error(serverMessages.invalidPrice);
-  for (const value of [data.subtitle_en, data.subtitle_ar, data.price_note_en, data.price_note_ar, data.location])
-    if (value && value.length > 300) throw new Error(serverMessages.invalidInput);
-  if (data.external_url && !/^https?:\/\//.test(safeWebsiteUrl(data.external_url))) throw new Error(serverMessages.invalidMediaUrl);
-  if (data.attributes && (data.attributes.length > 20 || data.attributes.some((a) => [a.labelEn, a.labelAr, a.valueEn, a.valueAr].some((v) => typeof v !== "string" || v.length > 200))))
+  for (const value of [
+    data.subtitle_en,
+    data.subtitle_ar,
+    data.price_note_en,
+    data.price_note_ar,
+    data.location,
+  ])
+    if (value && value.length > 300)
+      throw new Error(serverMessages.invalidInput);
+  if (
+    data.external_url &&
+    !/^https?:\/\//.test(safeWebsiteUrl(data.external_url))
+  )
+    throw new Error(serverMessages.invalidMediaUrl);
+  if (
+    data.attributes &&
+    (data.attributes.length > 20 ||
+      data.attributes.some((a) =>
+        [a.labelEn, a.labelAr, a.valueEn, a.valueAr].some(
+          (v) => typeof v !== "string" || v.length > 200,
+        ),
+      ))
+  )
     throw new Error(serverMessages.invalidInput);
   if (!safeWebsiteUrl(data.thumbnail_url))
     throw new Error(serverMessages.thumbnailUrlIsRequired);
@@ -659,7 +765,8 @@ function validatePortfolioData(
     data.full_video_url,
     ...(data.gallery_urls || []),
   ])
-    if (url && !safeWebsiteUrl(url)) throw new Error(serverMessages.invalidMediaUrl);
+    if (url && !safeWebsiteUrl(url))
+      throw new Error(serverMessages.invalidMediaUrl);
   if (data.gallery_urls && data.gallery_urls.length > 30)
     throw new Error(serverMessages.maximum30GalleryImages);
   if (
@@ -674,7 +781,8 @@ export async function updateBannerContentAction(
   data: Parameters<typeof createBannerAction>[0],
 ) {
   return measureOperation("action:updateBannerContentAction", async () => {
-    await requireFeatureEnabled("cms"); const user = await requirePermission("banners", "write");
+    await requireFeatureEnabled("cms");
+    const user = await requirePermission("banners", "write");
     validateActionArguments("updateBannerContentAction", { id, data });
     data = await mirrorToContentLanguages(data);
     validateBannerData(data);
@@ -699,7 +807,8 @@ export async function updatePortfolioContentAction(
   input: Parameters<typeof createPortfolioItemAction>[0],
 ) {
   return measureOperation("action:updatePortfolioContentAction", async () => {
-    await requireFeatureEnabled("cms"); const user = await requirePermission("portfolio", "write");
+    await requireFeatureEnabled("cms");
+    const user = await requirePermission("portfolio", "write");
     validateActionArguments("updatePortfolioContentAction", { id, input });
     const data = await preparePortfolioData(input);
     const { project } = await runAtomicMutation(async () => {

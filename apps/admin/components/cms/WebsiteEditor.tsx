@@ -192,12 +192,12 @@ export function WebsiteEditor({
       )}
       <section className="space-y-4 rounded-xl border p-5">
         <h2 className="font-bold">{t.websiteEditor.studioImageAndHistory}</h2>
-        <div className="block space-y-1"><span>{t.websiteEditor.imageUrl}</span><AssetUrlInput value={draft.aboutImageUrl || ""} onChange={(url)=>change({...draft,aboutImageUrl:url})} resource="settings" /></div>
-        {(draft.pillars || []).map((entry,index)=><div key={index} className="grid gap-3 sm:grid-cols-2 border p-3 rounded">
-          {(["titleEn","titleAr","textEn","textAr"] as const).map(key=><label key={key}>{key}<textarea className={field} maxLength={1500} value={entry[key]} onChange={e=>change({...draft,pillars:draft.pillars!.map((p,i)=>i===index?{...p,[key]:e.target.value}:p)})}/></label>)}
-          <button className={button} onClick={()=>change({...draft,pillars:draft.pillars!.filter((_,i)=>i!==index)})}>{t.websiteEditor.remove}</button>
+        <div className="block space-y-1"><span>{t.websiteEditor.imageUrl}</span><AssetUrlInput value={draft.aboutImageUrl || ""} onChange={(url) => change({ ...draft, aboutImageUrl: url })} resource="settings" /></div>
+        {(draft.pillars || []).map((entry, index) => <div key={index} className="grid gap-3 sm:grid-cols-2 border p-3 rounded">
+          {(["titleEn", "titleAr", "textEn", "textAr"] as const).map(key => <label key={key}>{key}<textarea className={field} maxLength={1500} value={entry[key]} onChange={e => change({ ...draft, pillars: draft.pillars!.map((p, i) => i === index ? { ...p, [key]: e.target.value } : p) })} /></label>)}
+          <button className={button} onClick={() => change({ ...draft, pillars: draft.pillars!.filter((_, i) => i !== index) })}>{t.websiteEditor.remove}</button>
         </div>)}
-        <button className={button} disabled={(draft.pillars?.length || 0)>=12} onClick={()=>change({...draft,pillars:[...(draft.pillars||[]),{titleEn:"",titleAr:"",textEn:"",textAr:""}]})}>{t.websiteEditor.addHistoryEntry}</button>
+        <button className={button} disabled={(draft.pillars?.length || 0) >= 12} onClick={() => change({ ...draft, pillars: [...(draft.pillars || []), { titleEn: "", titleAr: "", textEn: "", textAr: "" }] })}>{t.websiteEditor.addHistoryEntry}</button>
         <p className="text-xs">{t.websiteEditor.emptyContentStaysHiddenSave}</p>
       </section>
       <WebsiteSetupFields

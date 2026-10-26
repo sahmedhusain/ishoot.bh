@@ -47,12 +47,12 @@ export function SettingsNavTabs() {
     },
     ...(role === "super_admin" && can("settings", "read")
       ? [
-          {
-            href: ROUTES.settings.approvals,
-            label: t.settingsTabs.approvals,
-            icon: ShieldCheck,
-          },
-        ]
+        {
+          href: ROUTES.settings.approvals,
+          label: t.settingsTabs.approvals,
+          icon: ShieldCheck,
+        },
+      ]
       : []),
   ];
 
@@ -77,11 +77,10 @@ export function SettingsNavTabs() {
             key={tab.href}
             href={tab.href}
             aria-current={isActive ? "page" : undefined}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
-              isActive
-                ? "bg-primary text-white shadow-md border border-accent/40"
-                : "text-ink-muted hover:text-ink hover:bg-ink/5"
-            }`}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${isActive
+              ? "bg-primary text-white shadow-md border border-accent/40"
+              : "text-ink-muted hover:text-ink hover:bg-ink/5"
+              }`}
           >
             <Icon
               className={`w-3.5 h-3.5 ${isActive ? "text-accent" : "text-ink-muted"}`}

@@ -151,59 +151,59 @@ function Toolbar({ editor, imageResource }: { editor: Editor; imageResource: Ima
 
   return (
     <>
-    <div role="toolbar" aria-label={copy.toolbar} className="flex flex-wrap items-center gap-0.5 border-b border-ink/10 bg-surface-sunken/60 px-2 py-1.5 sticky top-0 z-10">
-      <ToolButton label={copy.paragraph} active={!state.h2 && !state.h3} onClick={() => chain().setParagraph().run()}><Pilcrow className="w-4 h-4" /></ToolButton>
-      <ToolButton label={copy.heading2} active={state.h2} onClick={() => chain().toggleHeading({ level: 2 }).run()}><Heading2 className="w-4 h-4" /></ToolButton>
-      <ToolButton label={copy.heading3} active={state.h3} onClick={() => chain().toggleHeading({ level: 3 }).run()}><Heading3 className="w-4 h-4" /></ToolButton>
-      <span className="mx-1 h-5 w-px bg-ink/10" />
-      <ToolButton label={copy.bold} active={state.bold} onClick={() => chain().toggleBold().run()}><Bold className="w-4 h-4" /></ToolButton>
-      <ToolButton label={copy.italic} active={state.italic} onClick={() => chain().toggleItalic().run()}><Italic className="w-4 h-4" /></ToolButton>
-      <ToolButton label={copy.underline} active={state.underline} onClick={() => chain().toggleUnderline().run()}><UnderlineIcon className="w-4 h-4" /></ToolButton>
-      <ToolButton label={copy.strike} active={state.strike} onClick={() => chain().toggleStrike().run()}><Strikethrough className="w-4 h-4" /></ToolButton>
-      <ToolButton label={copy.link} active={state.link} onClick={link}><Link2 className="w-4 h-4" /></ToolButton>
-      <span className="mx-1 h-5 w-px bg-ink/10" />
-      <ToolButton label={copy.alignLeft} active={state.align === "left"} onClick={() => chain().setTextAlign("left").run()}><AlignLeft className="w-4 h-4" /></ToolButton>
-      <ToolButton label={copy.alignCenter} active={state.align === "center"} onClick={() => chain().setTextAlign("center").run()}><AlignCenter className="w-4 h-4" /></ToolButton>
-      <ToolButton label={copy.alignRight} active={state.align === "right"} onClick={() => chain().setTextAlign("right").run()}><AlignRight className="w-4 h-4" /></ToolButton>
-      <ToolButton label={copy.justify} active={state.align === "justify"} onClick={() => chain().setTextAlign("justify").run()}><AlignJustify className="w-4 h-4" /></ToolButton>
-      <ToolButton label={copy.rtl} active={state.rtl} onClick={() => chain().setTextDirection(state.rtl ? null : "rtl").run()}><span className="font-bold">{copy.rtlShort}</span></ToolButton>
-      <ToolButton label={copy.ltr} active={state.ltr} onClick={() => chain().setTextDirection(state.ltr ? null : "ltr").run()}><span className="font-bold">{copy.ltrShort}</span></ToolButton>
-      <span className="mx-1 h-5 w-px bg-ink/10" />
-      <ToolButton label={copy.bulletList} active={state.bullet} onClick={() => chain().toggleBulletList().run()}><List className="w-4 h-4" /></ToolButton>
-      <ToolButton label={copy.orderedList} active={state.ordered} onClick={() => chain().toggleOrderedList().run()}><ListOrdered className="w-4 h-4" /></ToolButton>
-      <ToolButton label={copy.quote} active={state.quote} onClick={() => chain().toggleBlockquote().run()}><Quote className="w-4 h-4" /></ToolButton>
-      <ToolButton label={copy.table} active={state.table} onClick={() => (state.table ? chain().addRowAfter().run() : chain().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run())}><Table2 className="w-4 h-4" /></ToolButton>
-      {state.table && (
-        <>
-          <ToolButton label={copy.addColumn} onClick={() => chain().addColumnAfter().run()}><Columns3 className="w-4 h-4" /></ToolButton>
-          <ToolButton label={copy.deleteRow} onClick={() => chain().deleteRow().run()}><Rows3 className="w-4 h-4" /></ToolButton>
-          <ToolButton label={copy.deleteTable} onClick={() => chain().deleteTable().run()}><Trash2 className="w-4 h-4" /></ToolButton>
-        </>
-      )}
-      <span className="mx-1 h-5 w-px bg-ink/10" />
-      <ToolButton label={copy.image} disabled={!!uploading} onClick={() => { files.current?.setAttribute("data-mode", "image"); files.current?.removeAttribute("multiple"); files.current?.click(); }}>
-        {uploading === "image" ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
-      </ToolButton>
-      <ToolButton label={copy.gallery} disabled={!!uploading} onClick={() => { files.current?.setAttribute("data-mode", "gallery"); files.current?.setAttribute("multiple", ""); files.current?.click(); }}>
-        {uploading === "gallery" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Images className="w-4 h-4" />}
-      </ToolButton>
-      <ToolButton label={copy.video} onClick={video}><Video className="w-4 h-4" /></ToolButton>
-      <ToolButton label={copy.embed} onClick={embed}><Code2 className="w-4 h-4" /></ToolButton>
-      <span className="mx-1 h-5 w-px bg-ink/10" />
-      <ToolButton label={copy.clear} onClick={() => chain().unsetAllMarks().clearNodes().run()}><RemoveFormatting className="w-4 h-4" /></ToolButton>
-      <ToolButton label={copy.undo} disabled={!state.undo} onClick={() => chain().undo().run()}><Undo2 className="w-4 h-4" /></ToolButton>
-      <ToolButton label={copy.redo} disabled={!state.redo} onClick={() => chain().redo().run()}><Redo2 className="w-4 h-4" /></ToolButton>
-      <input ref={files} type="file" accept="image/png,image/jpeg,image/webp" aria-label={copy.uploadImages} tabIndex={-1} className="hidden" onChange={(e) => upload(e.target.files, (e.target.getAttribute("data-mode") as "image" | "gallery") ?? "image")} />
-    </div>
-    {error && !dialog && <p role="alert" className="px-3 py-2 text-sm text-rose-700 dark:text-rose-300">{error}</p>}
-    <Modal isOpen={dialog !== null} onClose={() => { setDialog(null); setError(""); }} title={dialog ? copy[dialog.kind] : undefined} className="max-w-lg" footer={<div className="flex justify-end gap-3"><Button type="button" variant="ghost" onClick={() => { setDialog(null); setError(""); }}>{t.actions.cancel}</Button><Button type="submit" form={formId}>{dialog?.kind === "image" ? copy.insertImage : copy.apply}</Button></div>}>
-      <form id={formId} noValidate onSubmit={applyDialog} className="space-y-3">
-        {dialog?.kind === "embed" && <div className="space-y-1"><label htmlFor={`${formId}-preset`} className="text-sm font-medium">{copy.embedPresetPrompt}</label><Select id={`${formId}-preset`} value={preset} onChange={event => { setPreset(event.target.value as EmbedPreset); setError(""); }}>{EMBED_PRESETS.map(value => <option key={value} value={value}>{copy.embedNames[value]}</option>)}</Select></div>}
-        <div className="space-y-1"><label htmlFor={`${formId}-value`} className="text-sm font-medium">{dialog?.kind === "image" ? copy.captionPrompt : dialog?.kind === "link" ? copy.linkPrompt : dialog?.kind === "video" ? copy.videoPrompt : copy.embedUrlPrompt}</label><Input id={`${formId}-value`} value={dialog?.value ?? ""} dir={dialog?.kind === "image" ? undefined : "ltr"} placeholder={dialog?.kind === "image" ? copy.captionPlaceholder : dialog?.kind === "video" ? copy.videoPlaceholder : t.copy.urlExample} onChange={event => { setDialog(current => current ? { ...current, value: event.target.value } : null); setError(""); }} aria-invalid={!!error} aria-describedby={`${formId}-help${error ? ` ${formId}-error` : ""}`} /></div>
-        <p id={`${formId}-help`} className="text-xs text-ink-muted">{dialog?.kind === "link" ? copy.linkHelp : dialog?.kind === "image" ? copy.captionHelp : dialog?.kind === "video" ? copy.videoHelp : copy.embedHelp}</p>
-        {error && <p id={`${formId}-error`} role="alert" className="text-sm text-rose-700 dark:text-rose-300">{error}</p>}
-      </form>
-    </Modal>
+      <div role="toolbar" aria-label={copy.toolbar} className="flex flex-wrap items-center gap-0.5 border-b border-ink/10 bg-surface-sunken/60 px-2 py-1.5 sticky top-0 z-10">
+        <ToolButton label={copy.paragraph} active={!state.h2 && !state.h3} onClick={() => chain().setParagraph().run()}><Pilcrow className="w-4 h-4" /></ToolButton>
+        <ToolButton label={copy.heading2} active={state.h2} onClick={() => chain().toggleHeading({ level: 2 }).run()}><Heading2 className="w-4 h-4" /></ToolButton>
+        <ToolButton label={copy.heading3} active={state.h3} onClick={() => chain().toggleHeading({ level: 3 }).run()}><Heading3 className="w-4 h-4" /></ToolButton>
+        <span className="mx-1 h-5 w-px bg-ink/10" />
+        <ToolButton label={copy.bold} active={state.bold} onClick={() => chain().toggleBold().run()}><Bold className="w-4 h-4" /></ToolButton>
+        <ToolButton label={copy.italic} active={state.italic} onClick={() => chain().toggleItalic().run()}><Italic className="w-4 h-4" /></ToolButton>
+        <ToolButton label={copy.underline} active={state.underline} onClick={() => chain().toggleUnderline().run()}><UnderlineIcon className="w-4 h-4" /></ToolButton>
+        <ToolButton label={copy.strike} active={state.strike} onClick={() => chain().toggleStrike().run()}><Strikethrough className="w-4 h-4" /></ToolButton>
+        <ToolButton label={copy.link} active={state.link} onClick={link}><Link2 className="w-4 h-4" /></ToolButton>
+        <span className="mx-1 h-5 w-px bg-ink/10" />
+        <ToolButton label={copy.alignLeft} active={state.align === "left"} onClick={() => chain().setTextAlign("left").run()}><AlignLeft className="w-4 h-4" /></ToolButton>
+        <ToolButton label={copy.alignCenter} active={state.align === "center"} onClick={() => chain().setTextAlign("center").run()}><AlignCenter className="w-4 h-4" /></ToolButton>
+        <ToolButton label={copy.alignRight} active={state.align === "right"} onClick={() => chain().setTextAlign("right").run()}><AlignRight className="w-4 h-4" /></ToolButton>
+        <ToolButton label={copy.justify} active={state.align === "justify"} onClick={() => chain().setTextAlign("justify").run()}><AlignJustify className="w-4 h-4" /></ToolButton>
+        <ToolButton label={copy.rtl} active={state.rtl} onClick={() => chain().setTextDirection(state.rtl ? null : "rtl").run()}><span className="font-bold">{copy.rtlShort}</span></ToolButton>
+        <ToolButton label={copy.ltr} active={state.ltr} onClick={() => chain().setTextDirection(state.ltr ? null : "ltr").run()}><span className="font-bold">{copy.ltrShort}</span></ToolButton>
+        <span className="mx-1 h-5 w-px bg-ink/10" />
+        <ToolButton label={copy.bulletList} active={state.bullet} onClick={() => chain().toggleBulletList().run()}><List className="w-4 h-4" /></ToolButton>
+        <ToolButton label={copy.orderedList} active={state.ordered} onClick={() => chain().toggleOrderedList().run()}><ListOrdered className="w-4 h-4" /></ToolButton>
+        <ToolButton label={copy.quote} active={state.quote} onClick={() => chain().toggleBlockquote().run()}><Quote className="w-4 h-4" /></ToolButton>
+        <ToolButton label={copy.table} active={state.table} onClick={() => (state.table ? chain().addRowAfter().run() : chain().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run())}><Table2 className="w-4 h-4" /></ToolButton>
+        {state.table && (
+          <>
+            <ToolButton label={copy.addColumn} onClick={() => chain().addColumnAfter().run()}><Columns3 className="w-4 h-4" /></ToolButton>
+            <ToolButton label={copy.deleteRow} onClick={() => chain().deleteRow().run()}><Rows3 className="w-4 h-4" /></ToolButton>
+            <ToolButton label={copy.deleteTable} onClick={() => chain().deleteTable().run()}><Trash2 className="w-4 h-4" /></ToolButton>
+          </>
+        )}
+        <span className="mx-1 h-5 w-px bg-ink/10" />
+        <ToolButton label={copy.image} disabled={!!uploading} onClick={() => { files.current?.setAttribute("data-mode", "image"); files.current?.removeAttribute("multiple"); files.current?.click(); }}>
+          {uploading === "image" ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+        </ToolButton>
+        <ToolButton label={copy.gallery} disabled={!!uploading} onClick={() => { files.current?.setAttribute("data-mode", "gallery"); files.current?.setAttribute("multiple", ""); files.current?.click(); }}>
+          {uploading === "gallery" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Images className="w-4 h-4" />}
+        </ToolButton>
+        <ToolButton label={copy.video} onClick={video}><Video className="w-4 h-4" /></ToolButton>
+        <ToolButton label={copy.embed} onClick={embed}><Code2 className="w-4 h-4" /></ToolButton>
+        <span className="mx-1 h-5 w-px bg-ink/10" />
+        <ToolButton label={copy.clear} onClick={() => chain().unsetAllMarks().clearNodes().run()}><RemoveFormatting className="w-4 h-4" /></ToolButton>
+        <ToolButton label={copy.undo} disabled={!state.undo} onClick={() => chain().undo().run()}><Undo2 className="w-4 h-4" /></ToolButton>
+        <ToolButton label={copy.redo} disabled={!state.redo} onClick={() => chain().redo().run()}><Redo2 className="w-4 h-4" /></ToolButton>
+        <input ref={files} type="file" accept="image/png,image/jpeg,image/webp" aria-label={copy.uploadImages} tabIndex={-1} className="hidden" onChange={(e) => upload(e.target.files, (e.target.getAttribute("data-mode") as "image" | "gallery") ?? "image")} />
+      </div>
+      {error && !dialog && <p role="alert" className="px-3 py-2 text-sm text-rose-700 dark:text-rose-300">{error}</p>}
+      <Modal isOpen={dialog !== null} onClose={() => { setDialog(null); setError(""); }} title={dialog ? copy[dialog.kind] : undefined} className="max-w-lg" footer={<div className="flex justify-end gap-3"><Button type="button" variant="ghost" onClick={() => { setDialog(null); setError(""); }}>{t.actions.cancel}</Button><Button type="submit" form={formId}>{dialog?.kind === "image" ? copy.insertImage : copy.apply}</Button></div>}>
+        <form id={formId} noValidate onSubmit={applyDialog} className="space-y-3">
+          {dialog?.kind === "embed" && <div className="space-y-1"><label htmlFor={`${formId}-preset`} className="text-sm font-medium">{copy.embedPresetPrompt}</label><Select id={`${formId}-preset`} value={preset} onChange={event => { setPreset(event.target.value as EmbedPreset); setError(""); }}>{EMBED_PRESETS.map(value => <option key={value} value={value}>{copy.embedNames[value]}</option>)}</Select></div>}
+          <div className="space-y-1"><label htmlFor={`${formId}-value`} className="text-sm font-medium">{dialog?.kind === "image" ? copy.captionPrompt : dialog?.kind === "link" ? copy.linkPrompt : dialog?.kind === "video" ? copy.videoPrompt : copy.embedUrlPrompt}</label><Input id={`${formId}-value`} value={dialog?.value ?? ""} dir={dialog?.kind === "image" ? undefined : "ltr"} placeholder={dialog?.kind === "image" ? copy.captionPlaceholder : dialog?.kind === "video" ? copy.videoPlaceholder : t.copy.urlExample} onChange={event => { setDialog(current => current ? { ...current, value: event.target.value } : null); setError(""); }} aria-invalid={!!error} aria-describedby={`${formId}-help${error ? ` ${formId}-error` : ""}`} /></div>
+          <p id={`${formId}-help`} className="text-xs text-ink-muted">{dialog?.kind === "link" ? copy.linkHelp : dialog?.kind === "image" ? copy.captionHelp : dialog?.kind === "video" ? copy.videoHelp : copy.embedHelp}</p>
+          {error && <p id={`${formId}-error`} role="alert" className="text-sm text-rose-700 dark:text-rose-300">{error}</p>}
+        </form>
+      </Modal>
     </>
   );
 }

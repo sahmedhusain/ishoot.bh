@@ -1,7 +1,14 @@
-import { serverTemplates, formatMessage, serverMessages } from "@platform/locales";
+import {
+  serverTemplates,
+  formatMessage,
+  serverMessages,
+} from "@platform/locales";
 
 import { db } from "../db";
-import { STATISTIC_PRESETS, type StatisticPreset } from "../constants/statistics";
+import {
+  STATISTIC_PRESETS,
+  type StatisticPreset,
+} from "../constants/statistics";
 
 export { STATISTIC_PRESETS, type StatisticPreset };
 
@@ -33,20 +40,44 @@ type StatisticSettings = {
 };
 
 /** Normalises and checks a statistic; manual rows carry no preset settings. */
-export function validateStatisticInput<T extends Partial<StatisticInput>>(data: T, now = new Date()): T {
+export function validateStatisticInput<T extends Partial<StatisticInput>>(
+  data: T,
+  now = new Date(),
+): T {
   const source = data.source ?? "manual";
-  if (source !== "manual" && source !== "preset") throw new Error(serverMessages.chooseManualOrComputedForTheValue);
-  if (data.suffix != null && data.suffix.length > 10) throw new Error(serverMessages.theSuffixCanBeAtMost10);
-  if (data.roundTo != null && (!Number.isInteger(data.roundTo) || data.roundTo < 1 || data.roundTo > 1_000_000))
+  if (source !== "manual" && source !== "preset")
+    throw new Error(serverMessages.chooseManualOrComputedForTheValue);
+  if (data.suffix != null && data.suffix.length > 10)
+    throw new Error(serverMessages.theSuffixCanBeAtMost10);
+  if (
+    data.roundTo != null &&
+    (!Number.isInteger(data.roundTo) ||
+      data.roundTo < 1 ||
+      data.roundTo > 1_000_000)
+  )
     throw new Error(serverMessages.roundToMustBeAWholeNumber);
   if (source === "manual") {
-    if (!data.value?.trim() || data.value.length > 20) throw new Error(serverMessages.enterAValueOfUpTo20);
-    return { ...data, source, preset: null, presetParam: null, roundTo: null, suffix: null } as T;
+    if (!data.value?.trim() || data.value.length > 20)
+      throw new Error(serverMessages.enterAValueOfUpTo20);
+    return {
+      ...data,
+      source,
+      preset: null,
+      presetParam: null,
+      roundTo: null,
+      suffix: null,
+    } as T;
   }
-  if (!data.preset || !STATISTIC_PRESETS.includes(data.preset)) throw new Error(serverMessages.chooseWhatToCount);
+  if (!data.preset || !STATISTIC_PRESETS.includes(data.preset))
+    throw new Error(serverMessages.chooseWhatToCount);
   if (data.preset === "years_in_business") {
     const year = data.presetParam;
-    if (year == null || !Number.isInteger(year) || year < 1900 || year > now.getFullYear())
+    if (
+      year == null ||
+      !Number.isInteger(year) ||
+      year < 1900 ||
+      year > now.getFullYear()
+    )
       throw new Error(serverMessages.enterTheFoundingYear);
   }
   return {
@@ -59,13 +90,20 @@ export function validateStatisticInput<T extends Partial<StatisticInput>>(data: 
   } as T;
 }
 
-async function countPreset(preset: string, presetParam: number | null, now: Date): Promise<number> {
+async function countPreset(
+  preset: string,
+  presetParam: number | null,
+  now: Date,
+): Promise<number> {
   switch (preset) {
     case "projects_delivered":
       return db.crmDeal.count({ where: { dealStage: "closed_won" } });
     case "clients_served": {
       const clients = await db.invoice.findMany({
-        where: { clientId: { not: null }, status: { in: ISSUED_INVOICE_STATUSES } },
+        where: {
+          clientId: { not: null },
+          status: { in: ISSUED_INVOICE_STATUSES },
+        },
         distinct: ["clientId"],
         select: { clientId: true },
       });
@@ -78,14 +116,21 @@ async function countPreset(preset: string, presetParam: number | null, now: Date
     case "five_star_reviews":
       return db.review.count({ where: { isApproved: true, rating: 5 } });
     case "years_in_business":
-      return presetParam == null ? 0 : Math.max(0, now.getFullYear() - presetParam);
+      return presetParam == null
+        ? 0
+        : Math.max(0, now.getFullYear() - presetParam);
     default:
-      throw new Error(formatMessage(serverTemplates.unknownStatisticPreset0, { 0: preset }));
+      throw new Error(
+        formatMessage(serverTemplates.unknownStatisticPreset0, { 0: preset }),
+      );
   }
 }
 
 /** The value shown on the website: typed in, or counted from live data, rounded down, plus the suffix. */
-export async function computeStatisticValue(stat: StatisticSettings, now = new Date()): Promise<string> {
+export async function computeStatisticValue(
+  stat: StatisticSettings,
+  now = new Date(),
+): Promise<string> {
   if (stat.source !== "preset" || !stat.preset) return stat.value;
   const count = await countPreset(stat.preset, stat.presetParam, now);
   const step = stat.roundTo && stat.roundTo > 0 ? stat.roundTo : 1;
@@ -100,10 +145,17 @@ export async function getStatistics() {
     });
     const now = new Date();
     return await Promise.all(
-      rows.map(async (row) => ({ ...row, storedValue: row.value, value: await computeStatisticValue(row, now) })),
+      rows.map(async (row) => ({
+        ...row,
+        storedValue: row.value,
+        value: await computeStatisticValue(row, now),
+      })),
     );
   } catch (e) {
-    console.error("Error fetching statistics from DB:", e instanceof Error ? e.message : e);
+    console.error(
+      "Error fetching statistics from DB:",
+      e instanceof Error ? e.message : e,
+    );
     throw e;
   }
 }
@@ -112,7 +164,10 @@ export async function createStatistic(data: StatisticInput) {
   return await db.statistic.create({ data: validateStatisticInput(data) });
 }
 
-export async function updateStatistic(id: string, data: Partial<StatisticInput>) {
+export async function updateStatistic(
+  id: string,
+  data: Partial<StatisticInput>,
+) {
   const existing = await db.statistic.findUniqueOrThrow({ where: { id } });
   const merged = validateStatisticInput({
     value: existing.value,

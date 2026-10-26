@@ -24,7 +24,10 @@ import { assertRecordInScope } from "../../lib/data-scope";
 
 /** A request outside the person's data scope cannot be changed, even by someone who knows its id. */
 async function requireRequestInScope(id: string) {
-  const request = await db.inquiry.findUnique({ where: { id }, select: { assignedToId: true } });
+  const request = await db.inquiry.findUnique({
+    where: { id },
+    select: { assignedToId: true },
+  });
   if (request) await assertRecordInScope("requests", request.assignedToId);
 }
 
@@ -41,10 +44,19 @@ export async function assignRequestAction(
     validateActionArguments("assignRequestAction", { id, assignment });
     await requireRequestInScope(id);
 
-    const updated = await assignConsolidatedRequest(id, assignment.assignedToId, actor.id, assignment.team, assignment.notes);
+    const updated = await assignConsolidatedRequest(
+      id,
+      assignment.assignedToId,
+      actor.id,
+      assignment.team,
+      assignment.notes,
+    );
 
     if (!updated) {
-      return { success: false, error: serverMessages.runtimeFailedToAssignRequest };
+      return {
+        success: false,
+        error: serverMessages.runtimeFailedToAssignRequest,
+      };
     }
 
     revalidatePath(ROUTES.requests.list);
@@ -65,10 +77,19 @@ export async function reassignRequestAction(
     validateActionArguments("reassignRequestAction", { id, assignment });
     await requireRequestInScope(id);
 
-    const updated = await assignConsolidatedRequest(id, assignment.newAssignedToId, actor.id, assignment.newTeam, assignment.notes);
+    const updated = await assignConsolidatedRequest(
+      id,
+      assignment.newAssignedToId,
+      actor.id,
+      assignment.newTeam,
+      assignment.notes,
+    );
 
     if (!updated) {
-      return { success: false, error: serverMessages.runtimeFailedToReAssignRequest };
+      return {
+        success: false,
+        error: serverMessages.runtimeFailedToReAssignRequest,
+      };
     }
 
     revalidatePath(ROUTES.requests.list);
@@ -98,7 +119,10 @@ export async function returnRequestAction(
     });
 
     if (!updated) {
-      return { success: false, error: serverMessages.runtimeFailedToReturnRequest };
+      return {
+        success: false,
+        error: serverMessages.runtimeFailedToReturnRequest,
+      };
     }
 
     revalidatePath(ROUTES.requests.list);
@@ -120,8 +144,14 @@ export async function approveRequestAction(
 
     const outcome = await runAtomicMutation(async () => {
       const pending = await findPendingApproval("service_request", id);
-      if (!pending) throw new Error(serverMessages.submitTheRequestForApprovalFirst);
-      return decideApprovalRequest(pending.id, actor.id, "approved", details.notes);
+      if (!pending)
+        throw new Error(serverMessages.submitTheRequestForApprovalFirst);
+      return decideApprovalRequest(
+        pending.id,
+        actor.id,
+        "approved",
+        details.notes,
+      );
     });
 
     revalidatePath(ROUTES.requests.list);
@@ -143,13 +173,23 @@ export async function submitRequestForApprovalAction(
     await requireRequestInScope(id);
 
     const outcome = await runAtomicMutation(async () => {
-      await submitRequestForApproval(id, { submittedById: actor.id, submittedByName: actor.full_name, notes: details.notes });
-      const request = await db.inquiry.findUniqueOrThrow({ where: { id }, select: { reference: true, requestType: true } });
+      await submitRequestForApproval(id, {
+        submittedById: actor.id,
+        submittedByName: actor.full_name,
+        notes: details.notes,
+      });
+      const request = await db.inquiry.findUniqueOrThrow({
+        where: { id },
+        select: { reference: true, requestType: true },
+      });
       return submitForApproval({
         targetType: "service_request",
         targetId: id,
         requesterId: actor.id,
-        policySnapshot: { reference: request.reference, requestType: request.requestType },
+        policySnapshot: {
+          reference: request.reference,
+          requestType: request.requestType,
+        },
       });
     });
 
@@ -179,7 +219,10 @@ export async function confirmRequestAction(
     });
 
     if (!updated) {
-      return { success: false, error: serverMessages.runtimeFailedToConfirmRequest };
+      return {
+        success: false,
+        error: serverMessages.runtimeFailedToConfirmRequest,
+      };
     }
 
     revalidatePath(ROUTES.requests.list);
@@ -206,7 +249,10 @@ export async function resolveRequestAction(
     });
 
     if (!updated) {
-      return { success: false, error: serverMessages.runtimeFailedToResolveRequest };
+      return {
+        success: false,
+        error: serverMessages.runtimeFailedToResolveRequest,
+      };
     }
 
     revalidatePath(ROUTES.requests.list);
@@ -230,34 +276,37 @@ export async function createConsolidatedRequestAction(data: {
   team?: string;
   assignedToId?: string;
 }): Promise<{ success: boolean; request?: any; error?: string }> {
-  return measureOperation("action:createConsolidatedRequestAction", async () => {
-    const actor = await requirePermission("requests", "write");
-    validateActionArguments("createConsolidatedRequestAction", { data });
+  return measureOperation(
+    "action:createConsolidatedRequestAction",
+    async () => {
+      const actor = await requirePermission("requests", "write");
+      validateActionArguments("createConsolidatedRequestAction", { data });
 
-    const { createConsolidatedRequest } = await import("@platform/database");
-    const created = await createConsolidatedRequest(
-      {
-        requestType: data.requestType,
-        name: data.fullName,
-        email: data.email,
-        phone: data.phone,
-        companyName: data.company,
-        serviceType: data.servicesRequested?.join(", "),
-        message: data.message || "",
-        budgetRange: data.budgetRange,
-        timeline: data.targetTimeline,
-        customerId: data.clientId,
-        slaDueDate: data.slaDueDate ? new Date(data.slaDueDate) : undefined,
-        priority: data.priority,
-        team: data.team,
-        assignedToId: data.assignedToId,
-      },
-      actor.id,
-    );
+      const { createConsolidatedRequest } = await import("@platform/database");
+      const created = await createConsolidatedRequest(
+        {
+          requestType: data.requestType,
+          name: data.fullName,
+          email: data.email,
+          phone: data.phone,
+          companyName: data.company,
+          serviceType: data.servicesRequested?.join(", "),
+          message: data.message || "",
+          budgetRange: data.budgetRange,
+          timeline: data.targetTimeline,
+          customerId: data.clientId,
+          slaDueDate: data.slaDueDate ? new Date(data.slaDueDate) : undefined,
+          priority: data.priority,
+          team: data.team,
+          assignedToId: data.assignedToId,
+        },
+        actor.id,
+      );
 
-    revalidatePath(ROUTES.requests.list);
-    return { success: true, request: created };
-  });
+      revalidatePath(ROUTES.requests.list);
+      return { success: true, request: created };
+    },
+  );
 }
 
 export async function assignRequestWithAvailabilityAction(
@@ -268,23 +317,29 @@ export async function assignRequestWithAvailabilityAction(
     reason?: string;
   },
 ): Promise<{ success: boolean; request?: any; error?: string }> {
-  return measureOperation("action:assignRequestWithAvailabilityAction", async () => {
-    const actor = await requirePermission("requests", "assign");
-    validateActionArguments("assignRequestWithAvailabilityAction", { id, assignment });
-    await requireRequestInScope(id);
+  return measureOperation(
+    "action:assignRequestWithAvailabilityAction",
+    async () => {
+      const actor = await requirePermission("requests", "assign");
+      validateActionArguments("assignRequestWithAvailabilityAction", {
+        id,
+        assignment,
+      });
+      await requireRequestInScope(id);
 
-    const updated = await assignConsolidatedRequest(
-      id,
-      assignment.assignedToId,
-      actor.id,
-      assignment.team,
-      assignment.reason,
-    );
+      const updated = await assignConsolidatedRequest(
+        id,
+        assignment.assignedToId,
+        actor.id,
+        assignment.team,
+        assignment.reason,
+      );
 
-    revalidatePath(ROUTES.requests.list);
-    revalidatePath(ROUTES.requests.detail(id));
-    return { success: true, request: updated };
-  });
+      revalidatePath(ROUTES.requests.list);
+      revalidatePath(ROUTES.requests.detail(id));
+      return { success: true, request: updated };
+    },
+  );
 }
 
 export async function addRequestCommentAction(
@@ -295,11 +350,22 @@ export async function addRequestCommentAction(
 ): Promise<{ success: boolean; comment?: any; error?: string }> {
   return measureOperation("action:addRequestCommentAction", async () => {
     const actor = await requirePermission("requests", "write");
-    validateActionArguments("addRequestCommentAction", { inquiryId, body, isClientVisible, attachments });
+    validateActionArguments("addRequestCommentAction", {
+      inquiryId,
+      body,
+      isClientVisible,
+      attachments,
+    });
     await requireRequestInScope(inquiryId);
 
     const { addRequestComment } = await import("@platform/database");
-    const comment = await addRequestComment(inquiryId, actor.id, body, isClientVisible, attachments);
+    const comment = await addRequestComment(
+      inquiryId,
+      actor.id,
+      body,
+      isClientVisible,
+      attachments,
+    );
 
     revalidatePath(ROUTES.requests.detail(inquiryId));
     return { success: true, comment };

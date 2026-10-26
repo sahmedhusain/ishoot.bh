@@ -60,7 +60,8 @@ export async function createEmployee(
             housingAllowance: data.housingAllowance || 0,
             transportAllowance: data.transportAllowance || 0,
             otherAllowances: data.otherAllowances || 0,
-            payrollSettings: data.payrollSettings as unknown as Prisma.InputJsonValue,
+            payrollSettings:
+              data.payrollSettings as unknown as Prisma.InputJsonValue,
             effectiveFrom: data.hireDate,
             isCurrent: true,
           },
@@ -68,11 +69,23 @@ export async function createEmployee(
       },
       include: {
         department: true,
-        user: { select: { id: true, fullName: true, email: true, role: true, isActive: true } },
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            role: true,
+            isActive: true,
+          },
+        },
         employmentRecords: { where: { isCurrent: true } },
       },
     });
-    if (data.userId && data.departmentId) await tx.user.update({ where: { id: data.userId }, data: { departmentId: data.departmentId } });
+    if (data.userId && data.departmentId)
+      await tx.user.update({
+        where: { id: data.userId },
+        data: { departmentId: data.departmentId },
+      });
 
     return emp;
   });
@@ -130,7 +143,15 @@ export async function listEmployees(filters: {
       take: pageSize,
       include: {
         department: true,
-        user: { select: { id: true, fullName: true, email: true, role: true, isActive: true } },
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            role: true,
+            isActive: true,
+          },
+        },
         employmentRecords: { where: { isCurrent: true } },
       },
     }),
@@ -150,7 +171,7 @@ export async function listEmployees(filters: {
         housingAllowance: Number(r.housingAllowance),
         transportAllowance: Number(r.transportAllowance),
         otherAllowances: Number(r.otherAllowances),
-      payrollSettings: parsePayrollSettings(r.payrollSettings),
+        payrollSettings: parsePayrollSettings(r.payrollSettings),
         effectiveFrom: r.effectiveFrom.toISOString(),
         effectiveTo: r.effectiveTo?.toISOString() || null,
       })),
@@ -163,7 +184,15 @@ export async function getEmployeeById(id: string): Promise<Employee | null> {
     where: { id },
     include: {
       department: true,
-      user: { select: { id: true, fullName: true, email: true, role: true, isActive: true } },
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          role: true,
+          isActive: true,
+        },
+      },
       employmentRecords: { orderBy: { effectiveFrom: "desc" } },
       leaveRequests: {
         orderBy: { createdAt: "desc" },
@@ -299,19 +328,37 @@ export async function updateEmployee(
         cprNumber: data.cprNumber !== undefined ? data.cprNumber : undefined,
         jobTitleEn: data.jobTitleEn,
         jobTitleAr: data.jobTitleAr,
-        departmentId: data.departmentId !== undefined ? data.departmentId : undefined,
+        departmentId:
+          data.departmentId !== undefined ? data.departmentId : undefined,
         status: data.status,
       },
     });
     // The staff account follows its employee record into the new department.
     if (data.departmentId !== undefined) {
-      const linked = await tx.employee.findUnique({ where: { id }, select: { userId: true } });
-      if (linked?.userId) await tx.user.update({ where: { id: linked.userId }, data: { departmentId: data.departmentId } });
+      const linked = await tx.employee.findUnique({
+        where: { id },
+        select: { userId: true },
+      });
+      if (linked?.userId)
+        await tx.user.update({
+          where: { id: linked.userId },
+          data: { departmentId: data.departmentId },
+        });
     }
 
-    const compensationFields = ["basicSalary", "housingAllowance", "transportAllowance", "otherAllowances", "contractType", "payrollSettings"] as const;
-    if (compensationFields.some(key => data[key] !== undefined)) {
-      const previous = await tx.employmentRecord.findFirst({ where: { employeeId: id, isCurrent: true }, orderBy: { effectiveFrom: "desc" } });
+    const compensationFields = [
+      "basicSalary",
+      "housingAllowance",
+      "transportAllowance",
+      "otherAllowances",
+      "contractType",
+      "payrollSettings",
+    ] as const;
+    if (compensationFields.some((key) => data[key] !== undefined)) {
+      const previous = await tx.employmentRecord.findFirst({
+        where: { employeeId: id, isCurrent: true },
+        orderBy: { effectiveFrom: "desc" },
+      });
       await tx.employmentRecord.updateMany({
         where: { employeeId: id, isCurrent: true },
         data: { isCurrent: false, effectiveTo: new Date() },
@@ -319,12 +366,18 @@ export async function updateEmployee(
       await tx.employmentRecord.create({
         data: {
           employeeId: id,
-          contractType: data.contractType ?? previous?.contractType ?? "full_time",
+          contractType:
+            data.contractType ?? previous?.contractType ?? "full_time",
           basicSalary: data.basicSalary ?? previous?.basicSalary ?? 0,
-          housingAllowance: data.housingAllowance ?? previous?.housingAllowance ?? 0,
-          transportAllowance: data.transportAllowance ?? previous?.transportAllowance ?? 0,
-          otherAllowances: data.otherAllowances ?? previous?.otherAllowances ?? 0,
-          payrollSettings: (data.payrollSettings ?? previous?.payrollSettings ?? undefined) as Prisma.InputJsonValue | undefined,
+          housingAllowance:
+            data.housingAllowance ?? previous?.housingAllowance ?? 0,
+          transportAllowance:
+            data.transportAllowance ?? previous?.transportAllowance ?? 0,
+          otherAllowances:
+            data.otherAllowances ?? previous?.otherAllowances ?? 0,
+          payrollSettings: (data.payrollSettings ??
+            previous?.payrollSettings ??
+            undefined) as Prisma.InputJsonValue | undefined,
           effectiveFrom: new Date(),
           isCurrent: true,
         },

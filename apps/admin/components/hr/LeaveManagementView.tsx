@@ -242,13 +242,13 @@ export function LeaveManagementView({
 
         <div className="flex items-center gap-3">
           {(myEmployee || canFileForOthers) && (
-          <Button
-            onClick={() => { setApplyError(""); setShowApplyModal(true); }}
-            className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-md text-xs font-medium active:scale-[0.98] transition-all shadow-xs"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>{t.leaveManagement.applyForLeave}</span>
-          </Button>
+            <Button
+              onClick={() => { setApplyError(""); setShowApplyModal(true); }}
+              className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-md text-xs font-medium active:scale-[0.98] transition-all shadow-xs"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>{t.leaveManagement.applyForLeave}</span>
+            </Button>
           )}
         </div>
       </div>
@@ -308,11 +308,10 @@ export function LeaveManagementView({
           <button
             key={tab.id}
             onClick={() => updateStatusFilter(tab.id)}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-              currentStatus === tab.id
-                ? "bg-primary text-white"
-                : "bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-400 hover:bg-slate-200 dark:hover:bg-neutral-700"
-            }`}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${currentStatus === tab.id
+              ? "bg-primary text-white"
+              : "bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-400 hover:bg-slate-200 dark:hover:bg-neutral-700"
+              }`}
           >
             {tab.label}
           </button>
@@ -401,13 +400,12 @@ export function LeaveManagementView({
 
                       <td className="py-3.5 px-4">
                         <span
-                          className={`inline-flex items-center gap-1 text-[11px] font-mono uppercase px-2 py-0.5 rounded-full border ${
-                            req.status === "approved"
-                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                              : req.status === "pending"
-                                ? "bg-amber-50 text-amber-700 border-amber-200"
-                                : "bg-red-50 text-red-700 border-red-200"
-                          }`}
+                          className={`inline-flex items-center gap-1 text-[11px] font-mono uppercase px-2 py-0.5 rounded-full border ${req.status === "approved"
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            : req.status === "pending"
+                              ? "bg-amber-50 text-amber-700 border-amber-200"
+                              : "bg-red-50 text-red-700 border-red-200"
+                            }`}
                         >
                           {(t.hrExtensions as Record<string, string>)[req.status] || req.status}
                         </span>
@@ -545,19 +543,19 @@ export function LeaveManagementView({
                   />
                 </div>
                 {portion === "full" && (
-                <div>
-                  <label htmlFor={`${applyFormId}-end`} className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                    {t.leaveManagement.endDate}
-                  </label>
-                  <Input id={`${applyFormId}-end`}
-                    type="date"
-                    required
-                    min={startDate}
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
-                  />
-                </div>
+                  <div>
+                    <label htmlFor={`${applyFormId}-end`} className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
+                      {t.leaveManagement.endDate}
+                    </label>
+                    <Input id={`${applyFormId}-end`}
+                      type="date"
+                      required
+                      min={startDate}
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
+                    />
+                  </div>
                 )}
               </div>
 

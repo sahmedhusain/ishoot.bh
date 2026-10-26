@@ -39,14 +39,12 @@ for (const mobile of [false, true]) {
     if (mobile) await page.setViewportSize({ width: 390, height: 844 });
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/dashboard/settings/integrations");
-    const card = page
-      .locator("section")
-      .filter({
-        has: page.getByRole("heading", {
-          name: copy.kinds.social,
-          exact: true,
-        }),
-      });
+    const card = page.locator("section").filter({
+      has: page.getByRole("heading", {
+        name: copy.kinds.social,
+        exact: true,
+      }),
+    });
     const unlink = card
       .locator("div")
       .filter({

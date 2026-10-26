@@ -1,8 +1,8 @@
 -- AlterTable
-ALTER TABLE "Inquiry" ADD COLUMN     "orderId" TEXT;
+ALTER TABLE "Inquiry" ADD COLUMN "orderId" TEXT;
 
 -- AlterTable
-ALTER TABLE "RequestComment" ADD COLUMN     "channel" TEXT;
+ALTER TABLE "RequestComment" ADD COLUMN "channel" TEXT;
 
 -- CreateTable
 CREATE TABLE "ServiceSettings" (
@@ -11,7 +11,6 @@ CREATE TABLE "ServiceSettings" (
     "slaHighHours" INTEGER NOT NULL DEFAULT 24,
     "slaNormalHours" INTEGER NOT NULL DEFAULT 72,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-
     CONSTRAINT "ServiceSettings_pkey" PRIMARY KEY ("id")
 );
 
@@ -25,17 +24,26 @@ CREATE TABLE "CannedReply" (
     "sortOrder" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-
     CONSTRAINT "CannedReply_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
-CREATE INDEX "Inquiry_orderId_idx" ON "Inquiry"("orderId");
+CREATE INDEX "Inquiry_orderId_idx" ON "Inquiry" ("orderId");
 
 -- AddForeignKey
-ALTER TABLE "Inquiry" ADD CONSTRAINT "Inquiry_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "SalesOrder"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
+ALTER TABLE "Inquiry"
+ADD CONSTRAINT "Inquiry_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "SalesOrder" ("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- Integrity
-ALTER TABLE "ServiceSettings" ADD CONSTRAINT "ServiceSettings_hours_check" CHECK ("slaUrgentHours" BETWEEN 1 AND 720 AND "slaHighHours" BETWEEN 1 AND 720 AND "slaNormalHours" BETWEEN 1 AND 2160);
-ALTER TABLE "RequestComment" ADD CONSTRAINT "RequestComment_channel_check" CHECK ("channel" IS NULL OR "channel" IN ('email', 'whatsapp'));
+ALTER TABLE "ServiceSettings"
+ADD CONSTRAINT "ServiceSettings_hours_check" CHECK (
+    "slaUrgentHours" BETWEEN 1 AND 720
+    AND "slaHighHours" BETWEEN 1 AND 720
+    AND "slaNormalHours" BETWEEN 1 AND 2160
+);
+
+ALTER TABLE "RequestComment"
+ADD CONSTRAINT "RequestComment_channel_check" CHECK (
+    "channel" IS NULL
+    OR "channel" IN ('email', 'whatsapp')
+);

@@ -89,4 +89,3 @@ export async function deleteCompanyAsset(assetKey: string): Promise<boolean> {
     throw e;
   }
 }
-

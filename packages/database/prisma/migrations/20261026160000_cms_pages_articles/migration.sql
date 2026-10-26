@@ -18,11 +18,12 @@ CREATE TABLE "CmsPage" (
     "sortOrder" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-
     CONSTRAINT "CmsPage_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
+
+
 CREATE TABLE "CmsArticle" (
     "id" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
@@ -53,20 +54,20 @@ CREATE TABLE "CmsArticle" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "CmsPage_slug_key" ON "CmsPage"("slug");
+CREATE UNIQUE INDEX "CmsPage_slug_key" ON "CmsPage" ("slug");
 
 -- CreateIndex
-CREATE INDEX "CmsPage_sortOrder_idx" ON "CmsPage"("sortOrder");
+CREATE INDEX "CmsPage_sortOrder_idx" ON "CmsPage" ("sortOrder");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "CmsArticle_slug_key" ON "CmsArticle"("slug");
+CREATE UNIQUE INDEX "CmsArticle_slug_key" ON "CmsArticle" ("slug");
 
 -- CreateIndex
-CREATE INDEX "CmsArticle_status_publishAt_idx" ON "CmsArticle"("status", "publishAt");
+CREATE INDEX "CmsArticle_status_publishAt_idx" ON "CmsArticle" ("status", "publishAt");
 
 -- CreateIndex
-CREATE INDEX "CmsArticle_category_idx" ON "CmsArticle"("category");
+CREATE INDEX "CmsArticle_category_idx" ON "CmsArticle" ("category");
 
 -- AddForeignKey
-ALTER TABLE "CmsArticle" ADD CONSTRAINT "CmsArticle_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
+ALTER TABLE "CmsArticle"
+ADD CONSTRAINT "CmsArticle_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE;

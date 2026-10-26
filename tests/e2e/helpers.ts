@@ -9,17 +9,41 @@ export const admin = users.admin;
 
 /** The demo profile every seeded run uses, read from company/ so tests never hardcode a company. */
 export const demo = {
-  ...JSON.parse(fs.readFileSync(path.join(root, "company/profiles/demo/company.json"), "utf8")),
-  theme: JSON.parse(fs.readFileSync(path.join(root, "company/profiles/demo/theme.json"), "utf8")),
+  ...JSON.parse(
+    fs.readFileSync(
+      path.join(root, "company/profiles/demo/company.json"),
+      "utf8",
+    ),
+  ),
+  theme: JSON.parse(
+    fs.readFileSync(
+      path.join(root, "company/profiles/demo/theme.json"),
+      "utf8",
+    ),
+  ),
 };
 
 /** Names of every company profile other than the demo; none may ever appear on a demo page. */
 export const otherCompanyNames: string[] = fs
   .readdirSync(path.join(root, "company/profiles"))
-  .filter((name) => name !== "demo" && fs.existsSync(path.join(root, "company/profiles", name, "company.json")))
+  .filter(
+    (name) =>
+      name !== "demo" &&
+      fs.existsSync(path.join(root, "company/profiles", name, "company.json")),
+  )
   .flatMap((name) => {
-    const { display = {}, company = {} } = JSON.parse(fs.readFileSync(path.join(root, "company/profiles", name, "company.json"), "utf8"));
-    return [display.nameEn, display.nameAr, company.companyNameEn, company.companyNameAr].filter(Boolean);
+    const { display = {}, company = {} } = JSON.parse(
+      fs.readFileSync(
+        path.join(root, "company/profiles", name, "company.json"),
+        "utf8",
+      ),
+    );
+    return [
+      display.nameEn,
+      display.nameAr,
+      company.companyNameEn,
+      company.companyNameAr,
+    ].filter(Boolean);
   });
 
 export const channels = (hex: string) => {
@@ -27,7 +51,11 @@ export const channels = (hex: string) => {
   return `${(n >> 16) & 255} ${(n >> 8) & 255} ${n & 255}`;
 };
 
-export async function login(page: Page, email = admin.email, password = admin.password) {
+export async function login(
+  page: Page,
+  email = admin.email,
+  password = admin.password,
+) {
   await page.goto("/login");
   await page.locator('input[type="email"]').fill(email);
   await page.locator('input[type="password"]').fill(password);
@@ -41,10 +69,17 @@ export function watchErrors(page: Page) {
   page.on("console", (message) => {
     if (message.type() !== "error") return;
     const text = message.text();
-    if (/favicon|Download the React DevTools|\[Fast Refresh\]|webpack-hmr|_next\/webpack|ERR_ABORTED/.test(text)) return;
+    if (
+      /favicon|Download the React DevTools|\[Fast Refresh\]|webpack-hmr|_next\/webpack|ERR_ABORTED/.test(
+        text,
+      )
+    )
+      return;
     // A failed load names only its status; the location says what failed.
     const where = message.location().url;
-    errors.push(`console: ${text}${where && /Failed to load resource/.test(text) ? ` (${where})` : ""}`);
+    errors.push(
+      `console: ${text}${where && /Failed to load resource/.test(text) ? ` (${where})` : ""}`,
+    );
   });
   return {
     errors,
@@ -57,18 +92,36 @@ export async function brokenImages(page: Page) {
   return page.evaluate(async () => {
     const images = Array.from(document.images);
     images.forEach((img) => (img.loading = "eager"));
-    await Promise.all(images.map((img) => (img.complete ? null : new Promise((r) => { img.onload = img.onerror = r; setTimeout(r, 8000); }))));
-    return images.filter((img) => img.currentSrc && img.naturalWidth === 0).map((img) => img.currentSrc);
+    await Promise.all(
+      images.map((img) =>
+        img.complete
+          ? null
+          : new Promise((r) => {
+              img.onload = img.onerror = r;
+              setTimeout(r, 8000);
+            }),
+      ),
+    );
+    return images
+      .filter((img) => img.currentSrc && img.naturalWidth === 0)
+      .map((img) => img.currentSrc);
   });
 }
 
 /** The CSS variable values the company theme stylesheet put on <html>. */
 export async function themeVariable(page: Page, name: string) {
-  return page.evaluate((variable) => getComputedStyle(document.documentElement).getPropertyValue(variable).trim(), name);
+  return page.evaluate(
+    (variable) =>
+      getComputedStyle(document.documentElement)
+        .getPropertyValue(variable)
+        .trim(),
+    name,
+  );
 }
 
 /** The page's own alert messages (Next.js adds a route announcer with role="alert" too). */
-export const alertMessage = (page: Page) => page.locator('[role="alert"]:not(#__next-route-announcer__)');
+export const alertMessage = (page: Page) =>
+  page.locator('[role="alert"]:not(#__next-route-announcer__)');
 
 /** What a visitor can see or download: text, title, meta tags, image sources and alt text (not dev-mode stack traces). */
 export async function visibleContent(page: Page) {
@@ -76,28 +129,48 @@ export async function visibleContent(page: Page) {
     [
       document.title,
       document.body.innerText,
-      ...Array.from(document.querySelectorAll("meta[content]"), (m) => m.getAttribute("content")),
-      ...Array.from(document.images, (img) => `${img.getAttribute("src")} ${img.alt}`),
-      ...Array.from(document.querySelectorAll("a[href]"), (a) => a.getAttribute("href")),
+      ...Array.from(document.querySelectorAll("meta[content]"), (m) =>
+        m.getAttribute("content"),
+      ),
+      ...Array.from(
+        document.images,
+        (img) => `${img.getAttribute("src")} ${img.alt}`,
+      ),
+      ...Array.from(document.querySelectorAll("a[href]"), (a) =>
+        a.getAttribute("href"),
+      ),
     ].join("\n"),
   );
 }
 
 /** Direct read access to the seeded test database, for asserting what the app stored. */
 export function testDatabase() {
-  const { createRequire } = require("node:module") as typeof import("node:module");
-  const { PrismaClient } = createRequire(path.join(root, "packages/database/package.json"))("@prisma/client");
-  const url = new URL(process.env.DIRECT_URL || process.env.DATABASE_URL || "postgresql://postgres@localhost:5432/postgres");
+  const { createRequire } =
+    require("node:module") as typeof import("node:module");
+  const { PrismaClient } = createRequire(
+    path.join(root, "packages/database/package.json"),
+  )("@prisma/client");
+  const url = new URL(
+    process.env.DIRECT_URL ||
+      process.env.DATABASE_URL ||
+      "postgresql://postgres@localhost:5432/postgres",
+  );
   url.pathname = `/${process.env.E2E_SEEDED_DATABASE || "platform_e2e_test"}`;
   return new PrismaClient({ datasources: { db: { url: url.toString() } } });
 }
 
 /** Accept only the shared confirmation dialog; ordinary forms remain under the spec's control. */
 export async function acceptConfirmations(page: Page) {
-  await page.addLocatorHandler(page.getByRole("dialog").filter({ has: page.locator("[data-confirm-dialog]") }), async dialog => {
-    const typed = dialog.getByRole("textbox");
-    if (await typed.count()) await typed.fill((await typed.getAttribute("placeholder"))!);
-    await dialog.getByRole("button").last().click();
-    await expect(dialog).toHaveCount(0);
-  });
+  await page.addLocatorHandler(
+    page
+      .getByRole("dialog")
+      .filter({ has: page.locator("[data-confirm-dialog]") }),
+    async (dialog) => {
+      const typed = dialog.getByRole("textbox");
+      if (await typed.count())
+        await typed.fill((await typed.getAttribute("placeholder"))!);
+      await dialog.getByRole("button").last().click();
+      await expect(dialog).toHaveCount(0);
+    },
+  );
 }

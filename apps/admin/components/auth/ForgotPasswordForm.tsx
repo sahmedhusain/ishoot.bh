@@ -31,7 +31,7 @@ export function ForgotPasswordForm(brand: AuthBrandingProps) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setMessage(t.copy.resetLinkSent);
-    } catch(err: any) {
+    } catch (err: any) {
       setError(errorMessage(err, t, t.forgotPasswordForm.failedToSendResetLink));
     } finally {
       setLoading(false);

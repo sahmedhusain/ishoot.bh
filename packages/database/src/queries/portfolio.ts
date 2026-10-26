@@ -23,7 +23,10 @@ function mapItem(item: any): PortfolioItem {
     year: item.year ?? undefined,
     subtitle_en: item.subtitleEn || undefined,
     subtitle_ar: item.subtitleAr || undefined,
-    price: item.price === null || item.price === undefined ? undefined : Number(item.price),
+    price:
+      item.price === null || item.price === undefined
+        ? undefined
+        : Number(item.price),
     price_note_en: item.priceNoteEn || undefined,
     price_note_ar: item.priceNoteAr || undefined,
     location: item.location || undefined,
@@ -232,7 +235,14 @@ export async function updatePortfolioItem(
     if (data.client_name !== undefined)
       updateData.clientName = data.client_name || null;
     if (data.year !== undefined) updateData.year = data.year ?? null;
-    for (const [key, column] of [["subtitle_en", "subtitleEn"], ["subtitle_ar", "subtitleAr"], ["price_note_en", "priceNoteEn"], ["price_note_ar", "priceNoteAr"], ["location", "location"], ["external_url", "externalUrl"]] as const)
+    for (const [key, column] of [
+      ["subtitle_en", "subtitleEn"],
+      ["subtitle_ar", "subtitleAr"],
+      ["price_note_en", "priceNoteEn"],
+      ["price_note_ar", "priceNoteAr"],
+      ["location", "location"],
+      ["external_url", "externalUrl"],
+    ] as const)
       if (data[key] !== undefined) updateData[column] = data[key] || null;
     if (data.price !== undefined) updateData.price = data.price ?? null;
     if (data.attributes !== undefined) updateData.attributes = data.attributes;

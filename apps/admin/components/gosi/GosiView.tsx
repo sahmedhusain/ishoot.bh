@@ -193,10 +193,10 @@ export function GosiView({
         form.id
           ? updateGosiComponentAction(form.id, payload)
           : scheduleGosiComponentAction({
-              ...payload,
-              code: form.code,
-              effective_from: form.effective_from,
-            }),
+            ...payload,
+            code: form.code,
+            effective_from: form.effective_from,
+          }),
       form.id ? g.saved : g.scheduled,
     );
     if (ok) setForm(null);
@@ -813,7 +813,7 @@ export function GosiView({
                   <td className="px-3 py-2.5">
                     {r.current ? (
                       g.categories[
-                        r.current.category as keyof typeof g.categories
+                      r.current.category as keyof typeof g.categories
                       ]
                     ) : (
                       <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-300">
@@ -844,7 +844,7 @@ export function GosiView({
                         <span className="text-ink-muted">
                           {
                             g.reasons[
-                              r.thisMonth.reason as keyof typeof g.reasons
+                            r.thisMonth.reason as keyof typeof g.reasons
                             ]
                           }
                         </span>
@@ -970,199 +970,199 @@ function RegistrationForm({
       </div>}>
       <form id={formId} onSubmit={submit}>
         <fieldset disabled={busy} className="space-y-4">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <label>
-            <span className={label}>{g.fields.category}</span>
-            <Select
-              value={form.category}
-              onChange={(e) => setForm({ ...form, category: e.target.value })}
-            >
-              {INSURED_CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {g.categories[c]}
-                </option>
-              ))}
-            </Select>
-          </label>
-          <label>
-            <span className={label}>{g.fields.effectiveFrom}</span>
-            <Input
-              type="date"
-              required
-              value={form.effective_from}
-              onChange={(e) =>
-                setForm({ ...form, effective_from: e.target.value })
-              }
-            />
-          </label>
-          <label>
-            <span className={label}>{g.fields.registrationNumber}</span>
-            <Input
-              dir="ltr"
-              value={form.registration_number}
-              onChange={(e) =>
-                setForm({ ...form, registration_number: e.target.value })
-              }
-            />
-          </label>
-          <label>
-            <span className={label}>{g.fields.registeredWage}</span>
-            <Input
-              type="number"
-              dir="ltr"
-              min={0}
-              step="0.001"
-              value={form.registered_wage}
-              onChange={(e) =>
-                setForm({ ...form, registered_wage: e.target.value })
-              }
-              placeholder={g.registeredWageHint}
-            />
-          </label>
-        </div>
-        <fieldset className="space-y-2">
-          <legend className={label}>{g.exceptions}</legend>
-          <p className="text-[11px] text-ink-muted">{g.exceptionsHint}</p>
-          <div className="overflow-x-auto rounded-2xl border border-ink/10">
-            <table className="w-full text-xs">
-              <thead className="bg-ink/[0.03] text-[11px] text-ink-muted">
-                <tr>
-                  <th className="px-3 py-2 text-start">{g.fields.name}</th>
-                  <th className="px-3 py-2">{g.exempt}</th>
-                  <th className="px-3 py-2">{g.fields.employee} (%)</th>
-                  <th className="px-3 py-2">{g.fields.employer} (%)</th>
-                  <th className="px-3 py-2">{g.fields.componentWage}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-ink/5">
-                {form.overrides.map((o, i) => {
-                  const c = components.find((x) => x.code === o.code)!;
-                  const set = (patch: Partial<typeof o>) =>
-                    setForm({
-                      ...form,
-                      overrides: form.overrides.map((x, j) =>
-                        j === i ? { ...x, ...patch } : x,
-                      ),
-                    });
-                  return (
-                    <tr key={o.code}>
-                      <td className="px-3 py-2 text-ink">
-                        {isAr ? c.nameAr : c.nameEn}{" "}
-                        <span className="text-[10px] text-ink-muted">
-                          ({c.employeePercent}% / {c.employerPercent}%)
-                        </span>
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        <input
-                          type="checkbox"
-                          aria-label={g.exempt}
-                          checked={o.exempt}
-                          onChange={(e) => set({ exempt: e.target.checked })}
-                        />
-                      </td>
-                      <td className="px-3 py-2">
-                        <Input
-                          type="number"
-                          dir="ltr"
-                          min={0}
-                          max={100}
-                          step="0.001"
-                          disabled={o.exempt}
-                          value={o.employee_percent}
-                          onChange={(e) =>
-                            set({ employee_percent: e.target.value })
-                          }
-                          placeholder={String(c.employeePercent)}
-                        />
-                      </td>
-                      <td className="px-3 py-2">
-                        <Input
-                          type="number"
-                          dir="ltr"
-                          min={0}
-                          max={100}
-                          step="0.001"
-                          disabled={o.exempt}
-                          value={o.employer_percent}
-                          onChange={(e) =>
-                            set({ employer_percent: e.target.value })
-                          }
-                          placeholder={String(c.employerPercent)}
-                        />
-                      </td>
-                      <td className="px-3 py-2">
-                        <Input
-                          type="number"
-                          dir="ltr"
-                          min={0}
-                          step="0.001"
-                          disabled={o.exempt}
-                          value={o.wage}
-                          aria-label={g.fields.componentWage}
-                          onChange={(e) => set({ wage: e.target.value })}
-                        />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <label>
+              <span className={label}>{g.fields.category}</span>
+              <Select
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+              >
+                {INSURED_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {g.categories[c]}
+                  </option>
+                ))}
+              </Select>
+            </label>
+            <label>
+              <span className={label}>{g.fields.effectiveFrom}</span>
+              <Input
+                type="date"
+                required
+                value={form.effective_from}
+                onChange={(e) =>
+                  setForm({ ...form, effective_from: e.target.value })
+                }
+              />
+            </label>
+            <label>
+              <span className={label}>{g.fields.registrationNumber}</span>
+              <Input
+                dir="ltr"
+                value={form.registration_number}
+                onChange={(e) =>
+                  setForm({ ...form, registration_number: e.target.value })
+                }
+              />
+            </label>
+            <label>
+              <span className={label}>{g.fields.registeredWage}</span>
+              <Input
+                type="number"
+                dir="ltr"
+                min={0}
+                step="0.001"
+                value={form.registered_wage}
+                onChange={(e) =>
+                  setForm({ ...form, registered_wage: e.target.value })
+                }
+                placeholder={g.registeredWageHint}
+              />
+            </label>
           </div>
-        </fieldset>
-        <label className="block">
-          <span className={label}>{g.fields.notes}</span>
-          <Input
-            value={form.notes}
-            onChange={(e) => setForm({ ...form, notes: e.target.value })}
-          />
-        </label>
-        {employee.history.length ? (
-          <div>
-            <h3 className={label}>{g.history}</h3>
-            <ul className="space-y-1">
-              {employee.history.map((h) => (
-                <li
-                  key={h.id}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ink/10 px-3 py-2 text-[11px] text-ink"
-                >
-                  <span>
-                    {formatDate(h.effectiveFrom, locale)} –{" "}
-                    {h.effectiveTo
-                      ? formatDate(h.effectiveTo, locale)
-                      : g.openEnded}{" "}
-                    · {g.categories[h.category as keyof typeof g.categories]}
-                    {h.registeredWage != null ? ` · ${h.registeredWage}` : ""}
-                  </span>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    className="font-semibold text-rose-600 hover:underline"
-                    onClick={async () => {
-                      return confirmAction({
-                        description: g.deleteConfirm,
-                        onConfirm: async () => {
-                          setBusy(true);
-                          try {
-                            await deleteEmployeeGosiRecordAction(h.id);
-                            toast.success(g.saved);
-                            onDone();
-                          } catch (error) {
-                            toast.error(errorMessage(error, t, g.failed));
-                            throw error;
-                          } finally {
-                            setBusy(false);
-                          }
-                        },
+          <fieldset className="space-y-2">
+            <legend className={label}>{g.exceptions}</legend>
+            <p className="text-[11px] text-ink-muted">{g.exceptionsHint}</p>
+            <div className="overflow-x-auto rounded-2xl border border-ink/10">
+              <table className="w-full text-xs">
+                <thead className="bg-ink/[0.03] text-[11px] text-ink-muted">
+                  <tr>
+                    <th className="px-3 py-2 text-start">{g.fields.name}</th>
+                    <th className="px-3 py-2">{g.exempt}</th>
+                    <th className="px-3 py-2">{g.fields.employee} (%)</th>
+                    <th className="px-3 py-2">{g.fields.employer} (%)</th>
+                    <th className="px-3 py-2">{g.fields.componentWage}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-ink/5">
+                  {form.overrides.map((o, i) => {
+                    const c = components.find((x) => x.code === o.code)!;
+                    const set = (patch: Partial<typeof o>) =>
+                      setForm({
+                        ...form,
+                        overrides: form.overrides.map((x, j) =>
+                          j === i ? { ...x, ...patch } : x,
+                        ),
                       });
-                    }}
+                    return (
+                      <tr key={o.code}>
+                        <td className="px-3 py-2 text-ink">
+                          {isAr ? c.nameAr : c.nameEn}{" "}
+                          <span className="text-[10px] text-ink-muted">
+                            ({c.employeePercent}% / {c.employerPercent}%)
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          <input
+                            type="checkbox"
+                            aria-label={g.exempt}
+                            checked={o.exempt}
+                            onChange={(e) => set({ exempt: e.target.checked })}
+                          />
+                        </td>
+                        <td className="px-3 py-2">
+                          <Input
+                            type="number"
+                            dir="ltr"
+                            min={0}
+                            max={100}
+                            step="0.001"
+                            disabled={o.exempt}
+                            value={o.employee_percent}
+                            onChange={(e) =>
+                              set({ employee_percent: e.target.value })
+                            }
+                            placeholder={String(c.employeePercent)}
+                          />
+                        </td>
+                        <td className="px-3 py-2">
+                          <Input
+                            type="number"
+                            dir="ltr"
+                            min={0}
+                            max={100}
+                            step="0.001"
+                            disabled={o.exempt}
+                            value={o.employer_percent}
+                            onChange={(e) =>
+                              set({ employer_percent: e.target.value })
+                            }
+                            placeholder={String(c.employerPercent)}
+                          />
+                        </td>
+                        <td className="px-3 py-2">
+                          <Input
+                            type="number"
+                            dir="ltr"
+                            min={0}
+                            step="0.001"
+                            disabled={o.exempt}
+                            value={o.wage}
+                            aria-label={g.fields.componentWage}
+                            onChange={(e) => set({ wage: e.target.value })}
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </fieldset>
+          <label className="block">
+            <span className={label}>{g.fields.notes}</span>
+            <Input
+              value={form.notes}
+              onChange={(e) => setForm({ ...form, notes: e.target.value })}
+            />
+          </label>
+          {employee.history.length ? (
+            <div>
+              <h3 className={label}>{g.history}</h3>
+              <ul className="space-y-1">
+                {employee.history.map((h) => (
+                  <li
+                    key={h.id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ink/10 px-3 py-2 text-[11px] text-ink"
                   >
-                    {g.delete}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
+                    <span>
+                      {formatDate(h.effectiveFrom, locale)} –{" "}
+                      {h.effectiveTo
+                        ? formatDate(h.effectiveTo, locale)
+                        : g.openEnded}{" "}
+                      · {g.categories[h.category as keyof typeof g.categories]}
+                      {h.registeredWage != null ? ` · ${h.registeredWage}` : ""}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      className="font-semibold text-rose-600 hover:underline"
+                      onClick={async () => {
+                        return confirmAction({
+                          description: g.deleteConfirm,
+                          onConfirm: async () => {
+                            setBusy(true);
+                            try {
+                              await deleteEmployeeGosiRecordAction(h.id);
+                              toast.success(g.saved);
+                              onDone();
+                            } catch (error) {
+                              toast.error(errorMessage(error, t, g.failed));
+                              throw error;
+                            } finally {
+                              setBusy(false);
+                            }
+                          },
+                        });
+                      }}
+                    >
+                      {g.delete}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </fieldset>
         {formError && <p role="alert" className="mt-3 text-sm text-rose-700 dark:text-rose-300">{formError}</p>}
       </form>

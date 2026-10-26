@@ -27,15 +27,29 @@ const resources: Record<string, PermissionResource> = {
 };
 
 /** Public website media (client logos, banners, portfolio, gear photos): the entity id names the CMS resource. */
-const CMS_ASSET_RESOURCES = ["banners", "portfolio", "clients", "equipment", "reviews", "settings", "pages", "articles", "products"] as const;
+const CMS_ASSET_RESOURCES = [
+  "banners",
+  "portfolio",
+  "clients",
+  "equipment",
+  "reviews",
+  "settings",
+  "pages",
+  "articles",
+  "products",
+] as const;
 
 export async function requireAttachmentAccess(
   entityType: string,
   entityId: string,
   action: PermissionAction,
 ) {
-  if (entityType === "employee" && (!entityId || entityId === "pending")) throw new Error(serverMessages.createTheEmployeeBeforeAttachingDocuments);
-  if (entityType === "user_signature" && (entityId === "pending" || !entityId)) {
+  if (entityType === "employee" && (!entityId || entityId === "pending"))
+    throw new Error(serverMessages.createTheEmployeeBeforeAttachingDocuments);
+  if (
+    entityType === "user_signature" &&
+    (entityId === "pending" || !entityId)
+  ) {
     // Anyone may upload a drawn signature for themselves; it only applies after approval.
     const user = await getCurrentUser();
     if (!user) throw new Error(serverMessages.unauthorized);
@@ -51,13 +65,21 @@ export async function requireAttachmentAccess(
     if (action !== "read") return requirePermission("self_service", "create");
     const user = await getCurrentUser();
     if (!user) throw new Error(serverMessages.unauthorized);
-    const claim = entityId && entityId !== "pending" ? await db.expenseClaim.findUnique({ where: { id: entityId }, select: { claimantId: true } }) : null;
+    const claim =
+      entityId && entityId !== "pending"
+        ? await db.expenseClaim.findUnique({
+            where: { id: entityId },
+            select: { claimantId: true },
+          })
+        : null;
     if (claim?.claimantId === user.id) return user;
     return requirePermission("expenses", "read");
   }
   if (entityType === "shipment") {
     // Proof of delivery: whoever may update the shipment (its driver, or people who assign deliveries).
-    return (await requireShipmentAccess(entityId, action === "read" ? "read" : "edit")).user;
+    return (
+      await requireShipmentAccess(entityId, action === "read" ? "read" : "edit")
+    ).user;
   }
   if (entityType === "cms_asset") {
     const resource = CMS_ASSET_RESOURCES.find((r) => r === entityId);
@@ -70,44 +92,57 @@ export async function requireAttachmentAccess(
   if (entityId && entityId !== "pending" && entityId !== "company_setting") {
     const exists =
       entityType === "employee"
-        ? await db.employee.findUnique({ where: { id: entityId }, select: { id: true } })
-        : entityType === "user_signature"
-        ? await db.user.findUnique({
+        ? await db.employee.findUnique({
             where: { id: entityId },
             select: { id: true },
           })
-        : entityType === "expense"
-          ? await db.expense.findUnique({
+        : entityType === "user_signature"
+          ? await db.user.findUnique({
               where: { id: entityId },
               select: { id: true },
             })
-          : entityType === "payment"
-            ? await db.payment.findUnique({
+          : entityType === "expense"
+            ? await db.expense.findUnique({
                 where: { id: entityId },
                 select: { id: true },
               })
-            : entityType === "invoice"
-              ? await db.invoice.findUnique({
+            : entityType === "payment"
+              ? await db.payment.findUnique({
                   where: { id: entityId },
                   select: { id: true },
                 })
-            : entityType === "quotation"
-              ? await db.quotation.findUnique({ where: { id: entityId }, select: { id: true } })
-              : entityType === "sales_order"
-                ? await db.salesOrder.findUnique({ where: { id: entityId }, select: { id: true } })
-              : entityType === "supplier_bill"
-                ? await db.supplierBill.findUnique({ where: { id: entityId }, select: { id: true } })
-              : entityType === "contact" || entityType === "customer_vault"
-                ? await db.crmContact.findUnique({
+              : entityType === "invoice"
+                ? await db.invoice.findUnique({
                     where: { id: entityId },
                     select: { id: true },
                   })
-                : entityType === "deal"
-                  ? await db.crmDeal.findUnique({
+                : entityType === "quotation"
+                  ? await db.quotation.findUnique({
                       where: { id: entityId },
                       select: { id: true },
                     })
-                  : true;
+                  : entityType === "sales_order"
+                    ? await db.salesOrder.findUnique({
+                        where: { id: entityId },
+                        select: { id: true },
+                      })
+                    : entityType === "supplier_bill"
+                      ? await db.supplierBill.findUnique({
+                          where: { id: entityId },
+                          select: { id: true },
+                        })
+                      : entityType === "contact" ||
+                          entityType === "customer_vault"
+                        ? await db.crmContact.findUnique({
+                            where: { id: entityId },
+                            select: { id: true },
+                          })
+                        : entityType === "deal"
+                          ? await db.crmDeal.findUnique({
+                              where: { id: entityId },
+                              select: { id: true },
+                            })
+                          : true;
     if (!exists) throw new Error(serverMessages.attachmentTargetNotFound);
   }
   return user;

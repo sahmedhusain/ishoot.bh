@@ -1,5 +1,5 @@
 "use client";
-import {ContentImage} from "../shared/ContentImage";
+import { ContentImage } from "../shared/ContentImage";
 
 import Link from "next/link";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -11,7 +11,7 @@ import { SectionBadge } from "../shared/SectionBadge";
 interface AboutSectionProps {
   clientLogos?: unknown[];
   company?: PublicCompanySettings;
-  imageUrl?:string;
+  imageUrl?: string;
 }
 
 export function AboutSection({ company, imageUrl }: AboutSectionProps) {

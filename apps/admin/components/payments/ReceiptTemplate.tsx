@@ -1,11 +1,11 @@
 "use client";
 
-import type { Payment,CompanySettings } from "@platform/database/types";
+import type { Payment, CompanySettings } from "@platform/database/types";
 import { formatCurrencyValue } from "@platform/ui";
 import { adminTranslations } from "../../lib/translations-bilingual";
 import {
-DocumentLetterhead,
-DocumentFooter,
+  DocumentLetterhead,
+  DocumentFooter,
 } from "../shared/DocumentLetterhead";
 
 interface ReceiptTemplateProps {
@@ -35,9 +35,8 @@ export function ReceiptTemplate({
     <div
       dir={dir}
       data-print-target
-      className={`w-full max-w-[850px] mx-auto bg-white text-slate-900 shadow-2xl rounded-2xl overflow-hidden min-h-[850px] print:min-h-0 print:shadow-none print:rounded-none print:max-w-none print:w-full print:overflow-visible relative ${
-        isAr ? "font-arabic" : "font-sans"
-      }`}
+      className={`w-full max-w-[850px] mx-auto bg-white text-slate-900 shadow-2xl rounded-2xl overflow-hidden min-h-[850px] print:min-h-0 print:shadow-none print:rounded-none print:max-w-none print:w-full print:overflow-visible relative ${isAr ? "font-arabic" : "font-sans"
+        }`}
     >
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] print:opacity-[0.02] rotate-[-25deg] select-none z-0">
         <span className="text-7xl font-black uppercase text-gray-900 border-4 border-gray-900 px-10 py-5 rounded-2xl">
@@ -118,10 +117,10 @@ export function ReceiptTemplate({
               <span className="text-sm font-bold text-gray-900">
                 {invoice
                   ? formatCurrencyValue(
-                      invoice.amount_paid - payment.amount,
-                      currency,
-                      isAr,
-                    )
+                    invoice.amount_paid - payment.amount,
+                    currency,
+                    isAr,
+                  )
                   : "—"}
               </span>
             </div>

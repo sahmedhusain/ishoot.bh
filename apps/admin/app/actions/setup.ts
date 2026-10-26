@@ -20,10 +20,21 @@ import {
   updateFeatureToggle,
 } from "@platform/database";
 import type { SupportedCurrency } from "@platform/database/types";
-import { mirrorBilingual, normalizeLanguages, normalizePrimaryLanguage } from "@platform/database/constants/languages";
-import { isBusinessActivity, type BusinessActivity } from "@platform/database/website-presets";
+import {
+  mirrorBilingual,
+  normalizeLanguages,
+  normalizePrimaryLanguage,
+} from "@platform/database/constants/languages";
+import {
+  isBusinessActivity,
+  type BusinessActivity,
+} from "@platform/database/website-presets";
 import { isDepartmentKey } from "@platform/database/constants/departments";
-import { safeWebsiteUrl, validateWebsiteConfig, type WebsiteConfig } from "@platform/database/website-config";
+import {
+  safeWebsiteUrl,
+  validateWebsiteConfig,
+  type WebsiteConfig,
+} from "@platform/database/website-config";
 import { publishWebsiteAction } from "./website";
 import { revalidatePublicSite } from "../../lib/revalidate-web";
 import { publicSitePaths } from "../../lib/public-paths";
@@ -87,7 +98,10 @@ function revalidateEverywhere() {
 
 /** Languages, names and the website switch show on the public site straight away. */
 async function refreshPublicSite() {
-  await revalidatePublicSite(["website", "company"], ["/en", "/ar", ...(await publicSitePaths())]);
+  await revalidatePublicSite(
+    ["website", "company"],
+    ["/en", "/ar", ...(await publicSitePaths())],
+  );
 }
 
 export async function saveSetupCompanyAction(input: SetupCompanyInput) {
@@ -95,16 +109,25 @@ export async function saveSetupCompanyAction(input: SetupCompanyInput) {
     const user = await requirePermission("settings", "write");
     validateActionArguments("saveSetupCompanyAction", { input });
     const trim = (value?: string) => value?.trim() ?? "";
-    if (!isBusinessActivity(input.businessActivity)) throw new Error(serverMessages.businessActivityInvalid);
+    if (!isBusinessActivity(input.businessActivity))
+      throw new Error(serverMessages.businessActivityInvalid);
     const languages = normalizeLanguages(input.contentLanguages);
-    if (!input.contentLanguages.length || languages.length !== new Set(input.contentLanguages).size) throw new Error(serverMessages.contentLanguagesInvalid);
+    if (
+      !input.contentLanguages.length ||
+      languages.length !== new Set(input.contentLanguages).size
+    )
+      throw new Error(serverMessages.contentLanguagesInvalid);
     const year = trim(input.foundedYear);
-    const url = (value?: string) => (trim(value) ? safeWebsiteUrl(trim(value)) || trim(value) : "");
+    const url = (value?: string) =>
+      trim(value) ? safeWebsiteUrl(trim(value)) || trim(value) : "";
     const previousActivity = (await getCompanySettings()).business_activity;
     await runAtomicMutation(async () => {
       await updateCompanySettings({
         content_languages: languages,
-        primary_language: normalizePrimaryLanguage(input.primaryLanguage, languages),
+        primary_language: normalizePrimaryLanguage(
+          input.primaryLanguage,
+          languages,
+        ),
         business_activity: input.businessActivity as BusinessActivity,
         company_name_en: trim(input.companyNameEn),
         company_name_ar: trim(input.companyNameAr),
@@ -130,7 +153,13 @@ export async function saveSetupCompanyAction(input: SetupCompanyInput) {
       if (previousActivity !== input.businessActivity) {
         await applyActivityDealPipeline(input.businessActivity);
       }
-      await createActivityLog({ user_id: user.id, action: "update", entity_type: "settings", entity_id: "setup", details: { step: "company" } });
+      await createActivityLog({
+        user_id: user.id,
+        action: "update",
+        entity_type: "settings",
+        entity_id: "setup",
+        details: { step: "company" },
+      });
     });
     revalidateEverywhere();
     await refreshPublicSite();
@@ -144,7 +173,16 @@ export async function saveSetupThemeAction(theme: BrandTheme) {
     validateActionArguments("saveSetupThemeAction", { theme });
     const saved = await runAtomicMutation(async () => {
       const company = await updateCompanyTheme(theme);
-      await createActivityLog({ user_id: user.id, action: "update", entity_type: "settings", entity_id: "theme", details: { primary: company.theme.primary, accent: company.theme.accent } });
+      await createActivityLog({
+        user_id: user.id,
+        action: "update",
+        entity_type: "settings",
+        entity_id: "theme",
+        details: {
+          primary: company.theme.primary,
+          accent: company.theme.accent,
+        },
+      });
       return company.theme;
     });
     revalidateEverywhere();
@@ -158,9 +196,16 @@ export async function saveSetupConfigAction(input: SetupConfigInput) {
     validateActionArguments("saveSetupConfigAction", { input });
     const invoicePrefix = input.invoicePrefix.trim().toUpperCase();
     const receiptPrefix = input.receiptPrefix.trim().toUpperCase();
-    if (!PREFIX.test(invoicePrefix) || !PREFIX.test(receiptPrefix)) throw new Error(serverMessages.setupPrefixInvalid);
-    if (!(input.vatPercentage >= 0 && input.vatPercentage <= 100)) throw new Error(serverMessages.setupVatInvalid);
-    if (!Number.isInteger(input.paymentTermsDays) || input.paymentTermsDays < 0 || input.paymentTermsDays > 365) throw new Error(serverMessages.setupPaymentTermsInvalid);
+    if (!PREFIX.test(invoicePrefix) || !PREFIX.test(receiptPrefix))
+      throw new Error(serverMessages.setupPrefixInvalid);
+    if (!(input.vatPercentage >= 0 && input.vatPercentage <= 100))
+      throw new Error(serverMessages.setupVatInvalid);
+    if (
+      !Number.isInteger(input.paymentTermsDays) ||
+      input.paymentTermsDays < 0 ||
+      input.paymentTermsDays > 365
+    )
+      throw new Error(serverMessages.setupPaymentTermsInvalid);
     await runAtomicMutation(async () => {
       await updateCompanySettings({
         default_currency: input.defaultCurrency,
@@ -173,10 +218,23 @@ export async function saveSetupConfigAction(input: SetupConfigInput) {
         receipt_next_number: input.receiptNextNumber,
         payment_terms_days: input.paymentTermsDays,
       });
-      const known = new Set((await ensureDefaultFeatureModules()).map((m) => m.moduleKey));
-      for (const choice of input.modules) if (known.has(choice.moduleKey)) await updateFeatureToggle(choice.moduleKey, choice.isEnabled);
-      await applyActivityDepartments(null, input.departments.filter(isDepartmentKey));
-      await createActivityLog({ user_id: user.id, action: "update", entity_type: "settings", entity_id: "setup", details: { step: "configuration" } });
+      const known = new Set(
+        (await ensureDefaultFeatureModules()).map((m) => m.moduleKey),
+      );
+      for (const choice of input.modules)
+        if (known.has(choice.moduleKey))
+          await updateFeatureToggle(choice.moduleKey, choice.isEnabled);
+      await applyActivityDepartments(
+        null,
+        input.departments.filter(isDepartmentKey),
+      );
+      await createActivityLog({
+        user_id: user.id,
+        action: "update",
+        entity_type: "settings",
+        entity_id: "setup",
+        details: { step: "configuration" },
+      });
     });
     revalidateEverywhere();
     return { success: true };
@@ -196,15 +254,38 @@ export async function saveSetupWebsiteAction(input: SetupWebsiteInput) {
     validateActionArguments("saveSetupWebsiteAction", { input });
     const company = await getCompanySettings();
     // A company writing in one language fills each pair once; the website reads either side.
-    const config = input.enabled ? validateWebsiteConfig(mirrorBilingual(input.config as WebsiteConfig, company.content_languages)) : null;
+    const config = input.enabled
+      ? validateWebsiteConfig(
+          mirrorBilingual(
+            input.config as WebsiteConfig,
+            company.content_languages,
+          ),
+        )
+      : null;
     await runAtomicMutation(async () => {
       await ensureDefaultFeatureModules();
       await updateFeatureToggle("cms", input.enabled);
       if (config) {
         await getWebsiteEditor();
-        await db.websiteContent.update({ where: { id: "main" }, data: { draft: JSON.parse(JSON.stringify(config)), revision: { increment: 1 } } });
+        await db.websiteContent.update({
+          where: { id: "main" },
+          data: {
+            draft: JSON.parse(JSON.stringify(config)),
+            revision: { increment: 1 },
+          },
+        });
       }
-      await createActivityLog({ user_id: user.id, action: "update", entity_type: "settings", entity_id: "setup", details: { step: "website", enabled: input.enabled, purpose: config?.purpose ?? null } });
+      await createActivityLog({
+        user_id: user.id,
+        action: "update",
+        entity_type: "settings",
+        entity_id: "setup",
+        details: {
+          step: "website",
+          enabled: input.enabled,
+          purpose: config?.purpose ?? null,
+        },
+      });
     });
     revalidateEverywhere();
     await refreshPublicSite();
@@ -212,15 +293,27 @@ export async function saveSetupWebsiteAction(input: SetupWebsiteInput) {
   });
 }
 
-export async function completeSetupAction(options: { publishWebsite: boolean }) {
+export async function completeSetupAction(options: {
+  publishWebsite: boolean;
+}) {
   return measureOperation("action:completeSetupAction", async () => {
     const user = await requirePermission("settings", "write");
     validateActionArguments("completeSetupAction", { options });
     await runAtomicMutation(async () => {
-      const company = await db.companySetting.findUniqueOrThrow({ where: { singleton: 1 }, select: { logoUrl: true, darkLogoUrl: true } });
-      if (!company.logoUrl && !company.darkLogoUrl) throw new Error(serverMessages.setupLogoRequired);
+      const company = await db.companySetting.findUniqueOrThrow({
+        where: { singleton: 1 },
+        select: { logoUrl: true, darkLogoUrl: true },
+      });
+      if (!company.logoUrl && !company.darkLogoUrl)
+        throw new Error(serverMessages.setupLogoRequired);
       await completeCompanySetup();
-      await createActivityLog({ user_id: user.id, action: "update", entity_type: "settings", entity_id: "setup", details: { step: "complete" } });
+      await createActivityLog({
+        user_id: user.id,
+        action: "update",
+        entity_type: "settings",
+        entity_id: "setup",
+        details: { step: "complete" },
+      });
     });
     let websitePublished = false;
     if (options.publishWebsite && (await isFeatureEnabled("cms"))) {
@@ -240,9 +333,12 @@ export async function setupPreviewAction(locale: string) {
     validateActionArguments("setupPreviewAction", { locale });
     const secret = process.env.REVALIDATION_SECRET;
     const web = process.env.WEB_URL;
-    if (!secret || !web) throw new Error(serverMessages.websitePreviewNotConfigured);
+    if (!secret || !web)
+      throw new Error(serverMessages.websitePreviewNotConfigured);
     const expires = String(Date.now() + 10 * 60 * 1000);
-    const token = createHmac("sha256", secret).update(`website-preview:${expires}`).digest("hex");
+    const token = createHmac("sha256", secret)
+      .update(`website-preview:${expires}`)
+      .digest("hex");
     return `${web}/api/preview?expires=${expires}&token=${token}&locale=${locale === "ar" ? "ar" : "en"}`;
   });
 }
@@ -253,9 +349,17 @@ export async function saveSetupWebsiteDraftAction(config: unknown) {
     await requirePermission("settings", "write");
     validateActionArguments("saveSetupWebsiteDraftAction", { config });
     const company = await getCompanySettings();
-    const draft = validateWebsiteConfig(mirrorBilingual(config as WebsiteConfig, company.content_languages));
+    const draft = validateWebsiteConfig(
+      mirrorBilingual(config as WebsiteConfig, company.content_languages),
+    );
     await getWebsiteEditor();
-    await db.websiteContent.update({ where: { id: "main" }, data: { draft: JSON.parse(JSON.stringify(draft)), revision: { increment: 1 } } });
+    await db.websiteContent.update({
+      where: { id: "main" },
+      data: {
+        draft: JSON.parse(JSON.stringify(draft)),
+        revision: { increment: 1 },
+      },
+    });
     return { success: true };
   });
 }

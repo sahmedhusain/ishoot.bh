@@ -5,10 +5,10 @@ import { runAtomicMutation } from "@platform/database";
 import { validateActionArguments } from "../../lib/action-input";
 
 import {
-createCompanyDocument,
-deleteCompanyDocument,
-createActivityLog,
-DocumentCategory
+  createCompanyDocument,
+  deleteCompanyDocument,
+  createActivityLog,
+  DocumentCategory,
 } from "@platform/database";
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "../../lib/auth";

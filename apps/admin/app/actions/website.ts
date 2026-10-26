@@ -32,7 +32,12 @@ export async function saveWebsiteDraftAction(value: unknown, revision: number) {
     const config = validateWebsiteConfig(value);
     // Site-wide tracking and code only change with the custom-code permission (it runs on every page).
     const stored = validateWebsiteConfig((await getWebsiteEditor()).draft);
-    if (JSON.stringify(config.code ?? null) !== JSON.stringify(stored.code ?? null) && !(await hasPermission("cms_code", "edit"))) throw new Error(serverMessages.cmsCodePermission);
+    if (
+      JSON.stringify(config.code ?? null) !==
+        JSON.stringify(stored.code ?? null) &&
+      !(await hasPermission("cms_code", "edit"))
+    )
+      throw new Error(serverMessages.cmsCodePermission);
     await db.$transaction(async (tx) => {
       const updated = await tx.websiteContent.updateMany({
         where: { id: "main", revision },
@@ -136,7 +141,9 @@ export async function restoreWebsiteAction(revision: number) {
         where: { id: "main" },
       });
       if (!content.previous || content.revision !== revision)
-        throw new Error(serverMessages.noPreviousPublicationAvailableOrContentChanged);
+        throw new Error(
+          serverMessages.noPreviousPublicationAvailableOrContentChanged,
+        );
       const result = await tx.websiteContent.updateMany({
         where: { id: "main", revision },
         data: {
@@ -203,7 +210,10 @@ export async function previewWebsiteAction(locale: string, path?: string) {
     const token = createHmac("sha256", secret)
       .update(`website-preview:${expires}`)
       .digest("hex");
-    const target = path && /^\/(en|ar)(\/[a-z0-9-/]*)?$/.test(path) ? `&path=${encodeURIComponent(path)}` : "";
+    const target =
+      path && /^\/(en|ar)(\/[a-z0-9-/]*)?$/.test(path)
+        ? `&path=${encodeURIComponent(path)}`
+        : "";
     return `${web}/api/preview?expires=${expires}&token=${token}&locale=${locale === "ar" ? "ar" : "en"}${target}`;
   });
 }
@@ -247,25 +257,55 @@ export async function updateWebsiteServiceAction(
 }
 
 /** Merges part of the website settings into the draft (menus, articles address, site code) and logs it. */
-async function updateWebsiteDraft(userId: string, patch: Partial<WebsiteConfig>, operation: string, details: Record<string, unknown> = {}) {
+async function updateWebsiteDraft(
+  userId: string,
+  patch: Partial<WebsiteConfig>,
+  operation: string,
+  details: Record<string, unknown> = {},
+) {
   const content = await getWebsiteEditor();
-  const config = validateWebsiteConfig({ ...validateWebsiteConfig(content.draft), ...patch });
+  const config = validateWebsiteConfig({
+    ...validateWebsiteConfig(content.draft),
+    ...patch,
+  });
   await db.$transaction(async (tx) => {
-    const updated = await tx.websiteContent.updateMany({ where: { id: "main", revision: content.revision }, data: { draft: JSON.parse(JSON.stringify(config)), revision: { increment: 1 } } });
-    if (!updated.count) throw new Error(serverMessages.contentChangedRefreshBeforePublishing);
-    await tx.activityLog.create({ data: { userId, action: "update", entityType: "website", entityId: "main", details: { operation, ...details } } });
+    const updated = await tx.websiteContent.updateMany({
+      where: { id: "main", revision: content.revision },
+      data: {
+        draft: JSON.parse(JSON.stringify(config)),
+        revision: { increment: 1 },
+      },
+    });
+    if (!updated.count)
+      throw new Error(serverMessages.contentChangedRefreshBeforePublishing);
+    await tx.activityLog.create({
+      data: {
+        userId,
+        action: "update",
+        entityType: "website",
+        entityId: "main",
+        details: { operation, ...details },
+      },
+    });
   });
   revalidatePath(ROUTES.cms.website);
   revalidatePath(ROUTES.cms.menus);
 }
 
 /** Website → Menus: the header and footer menus and the articles address and name. */
-export async function saveWebsiteMenusAction(menus: WebsiteMenus | null, articles: WebsiteArticles) {
+export async function saveWebsiteMenusAction(
+  menus: WebsiteMenus | null,
+  articles: WebsiteArticles,
+) {
   return measureOperation("action:saveWebsiteMenusAction", async () => {
     await requireFeatureEnabled("cms");
     const user = await requirePermission("pages", "edit");
     validateActionArguments("saveWebsiteMenusAction", { menus, articles });
-    await updateWebsiteDraft(user.id, { menus: menus ?? undefined, articles }, "menus");
+    await updateWebsiteDraft(
+      user.id,
+      { menus: menus ?? undefined, articles },
+      "menus",
+    );
     return { success: true };
   });
 }

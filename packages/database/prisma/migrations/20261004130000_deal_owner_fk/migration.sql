@@ -4,5 +4,8 @@ DO $$ BEGIN
     RAISE EXCEPTION 'Unresolved deal owners: reconcile CrmDeal.assignedTo before migrating';
   END IF;
 END $$;
-CREATE INDEX "CrmDeal_assignedTo_idx" ON "CrmDeal"("assignedTo");
-ALTER TABLE "CrmDeal" ADD CONSTRAINT "CrmDeal_assignedTo_fkey" FOREIGN KEY ("assignedTo") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+CREATE INDEX "CrmDeal_assignedTo_idx" ON "CrmDeal" ("assignedTo");
+
+ALTER TABLE "CrmDeal"
+ADD CONSTRAINT "CrmDeal_assignedTo_fkey" FOREIGN KEY ("assignedTo") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE;

@@ -5,20 +5,20 @@ import { ContentImage } from "../shared/ContentImage";
 import * as React from "react";
 import type { ClientLogo } from "@platform/database/types";
 import {
-Button,
-Card,
-Badge,
-Modal,
-Input,
-ConfirmDialog,
+  Button,
+  Card,
+  Badge,
+  Modal,
+  Input,
+  ConfirmDialog,
 } from "@platform/ui";
-import { Plus,Trash2,Globe,CheckCircle2,Pencil } from "lucide-react";
+import { Plus, Trash2, Globe, CheckCircle2, Pencil } from "lucide-react";
 import { AssetUrlInput } from "../shared/AssetUrlInput";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
-deleteClientLogoAction,
-createClientLogoAction,
-updateClientLogoAction,
+  deleteClientLogoAction,
+  createClientLogoAction,
+  updateClientLogoAction,
 } from "../../app/actions/cms";
 
 interface ClientsManagementViewProps {
@@ -146,7 +146,7 @@ export function ClientsManagementView({
 
               <div className="w-16 h-16 rounded-2xl mx-auto bg-ink/5 border border-ink/10 flex items-center justify-center p-3">
                 {logo.logo_svg_url.startsWith("http") ||
-                logo.logo_svg_url.startsWith("/") ? (
+                  logo.logo_svg_url.startsWith("/") ? (
                   <ContentImage
                     src={logo.logo_svg_url}
                     alt={logo.client_name}

@@ -43,9 +43,19 @@ export async function submitExpenseClaimAction(data: {
         targetType: "expense_claim",
         targetId: claim.id,
         requesterId: user.id,
-        policySnapshot: { amount: claim.amount, currency: claim.currency, claimNumber: claim.claimNumber },
+        policySnapshot: {
+          amount: claim.amount,
+          currency: claim.currency,
+          claimNumber: claim.claimNumber,
+        },
       });
-      await createActivityLog({ user_id: user.id, action: "create", entity_type: "expense_claim", entity_id: claim.id, details: { amount: claim.amount, currency: claim.currency } });
+      await createActivityLog({
+        user_id: user.id,
+        action: "create",
+        entity_type: "expense_claim",
+        entity_id: claim.id,
+        details: { amount: claim.amount, currency: claim.currency },
+      });
       return { claim, approvalStatus: approval.status };
     });
     refresh();
@@ -59,7 +69,12 @@ export async function cancelExpenseClaimAction(id: string) {
     validateActionArguments("cancelExpenseClaimAction", { id });
     const claim = await runAtomicMutation(async () => {
       const claim = await cancelExpenseClaim(id, user.id);
-      await createActivityLog({ user_id: user.id, action: "cancel", entity_type: "expense_claim", entity_id: id });
+      await createActivityLog({
+        user_id: user.id,
+        action: "cancel",
+        entity_type: "expense_claim",
+        entity_id: id,
+      });
       return claim;
     });
     refresh();
@@ -68,15 +83,27 @@ export async function cancelExpenseClaimAction(id: string) {
 }
 
 /** Finance: stage an approved claim for the next payment run. */
-export async function scheduleExpenseClaimAction(id: string, payOn?: string | null) {
+export async function scheduleExpenseClaimAction(
+  id: string,
+  payOn?: string | null,
+) {
   return measureOperation("action:scheduleExpenseClaimAction", async () => {
     const user = await requirePermission("expenses", "write");
     validateActionArguments("scheduleExpenseClaimAction", { id, payOn });
     const claim = await runAtomicMutation(async () => {
       const claim = await scheduleExpenseClaim(id, user.id, payOn);
-      await createActivityLog({ user_id: user.id, action: "schedule", entity_type: "expense_claim", entity_id: id, details: { payOn: payOn ?? null } });
+      await createActivityLog({
+        user_id: user.id,
+        action: "schedule",
+        entity_type: "expense_claim",
+        entity_id: id,
+        details: { payOn: payOn ?? null },
+      });
       const kind = claim.scheduledForDate ? "scheduledOn" : "scheduled";
-      const params = { number: claim.claimNumber, date: claim.scheduledForDate ?? "" };
+      const params = {
+        number: claim.claimNumber,
+        date: claim.scheduledForDate ?? "",
+      };
       const copy = getTranslations("en").admin.claims.notifications[kind];
       await createNotification({
         user_id: claim.claimantId,
@@ -96,14 +123,35 @@ export async function scheduleExpenseClaimAction(id: string, payOn?: string | nu
 }
 
 /** Finance: record the reimbursement; this also books the expense in the financials. */
-export async function payExpenseClaimAction(id: string, payment: { method: string; reference?: string | null; categoryId?: string | null }) {
+export async function payExpenseClaimAction(
+  id: string,
+  payment: {
+    method: string;
+    reference?: string | null;
+    categoryId?: string | null;
+  },
+) {
   return measureOperation("action:payExpenseClaimAction", async () => {
     const user = await requirePermission("expenses", "write");
     validateActionArguments("payExpenseClaimAction", { id, payment });
     const claim = await runAtomicMutation(async () => {
       const claim = await payExpenseClaim(id, user.id, payment);
-      await createActivityLog({ user_id: user.id, action: "pay", entity_type: "expense_claim", entity_id: id, details: { method: payment.method, reference: payment.reference ?? null, expenseId: claim.expenseId } });
-      const params = { number: claim.claimNumber, currency: claim.currency, amount: claim.amount.toFixed(3) };
+      await createActivityLog({
+        user_id: user.id,
+        action: "pay",
+        entity_type: "expense_claim",
+        entity_id: id,
+        details: {
+          method: payment.method,
+          reference: payment.reference ?? null,
+          expenseId: claim.expenseId,
+        },
+      });
+      const params = {
+        number: claim.claimNumber,
+        currency: claim.currency,
+        amount: claim.amount.toFixed(3),
+      };
       const copy = getTranslations("en").admin.claims.notifications.paid;
       await createNotification({
         user_id: claim.claimantId,

@@ -1,4 +1,4 @@
-import { getCurrentPermissions,requirePagePermission } from "../../../../../lib/auth";
+import { getCurrentPermissions, requirePagePermission } from "../../../../../lib/auth";
 import { getClientStanding, getCustomerDossier, getRelatedExpenses } from "@platform/database";
 import { RelatedExpensesPanel } from "../../../../../components/expenses/RelatedExpensesPanel";
 import { notFound } from "next/navigation";
@@ -17,7 +17,7 @@ export default async function CustomerDossierPage({
   await requirePagePermission("contacts", "read");
   const { id } = await params;
   const grants = await getCurrentPermissions();
-  const can = (resource:string)=>grants[`${resource}:read`] === true;
+  const can = (resource: string) => grants[`${resource}:read`] === true;
   const [invoices, payments, deals, leads, contracts, audit] =
     await Promise.all([
       can("invoices"),

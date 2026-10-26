@@ -1,4 +1,9 @@
-import { serverTemplates, formatMessage, serverMessages, getWebsiteTranslations } from "@platform/locales";
+import {
+  serverTemplates,
+  formatMessage,
+  serverMessages,
+  getWebsiteTranslations,
+} from "@platform/locales";
 
 import websiteDefaultCopy from "./website-default-copy.json";
 import {
@@ -28,7 +33,12 @@ export type WebsiteSection = (typeof websiteSections)[number];
 export const websitePages = ["works", "about", "contact"] as const;
 export type WebsitePage = (typeof websitePages)[number];
 
-export interface WebsitePillar {titleEn:string;titleAr:string;textEn:string;textAr:string;}
+export interface WebsitePillar {
+  titleEn: string;
+  titleAr: string;
+  textEn: string;
+  textAr: string;
+}
 
 /** The website's catalogue (projects, products, menu…): its route, card layout and names. */
 export interface WebsiteCollection {
@@ -114,15 +124,41 @@ export interface WebsiteConfig {
 
 /** A website config with every optional setting filled in, as the public website reads it. */
 export type ResolvedWebsiteConfig = WebsiteConfig &
-  Required<Pick<WebsiteConfig, "purpose" | "heroStyle" | "collection" | "inquiry" | "seo" | "showEquipment" | "whatsappButton" | "pages" | "articles" | "code">>;
+  Required<
+    Pick<
+      WebsiteConfig,
+      | "purpose"
+      | "heroStyle"
+      | "collection"
+      | "inquiry"
+      | "seo"
+      | "showEquipment"
+      | "whatsappButton"
+      | "pages"
+      | "articles"
+      | "code"
+    >
+  >;
 
-export const EMPTY_WEBSITE_CODE: WebsiteCode = { googleAnalyticsId: "", metaPixelId: "", tiktokPixelId: "", headHtml: "", bodyHtml: "" };
+export const EMPTY_WEBSITE_CODE: WebsiteCode = {
+  googleAnalyticsId: "",
+  metaPixelId: "",
+  tiktokPixelId: "",
+  headHtml: "",
+  bodyHtml: "",
+};
 
 /** The articles address an activity starts with, named from the website copy. */
-export function articlesForActivity(activity: BusinessActivity): WebsiteArticles {
+export function articlesForActivity(
+  activity: BusinessActivity,
+): WebsiteArticles {
   const en = getWebsiteTranslations("en", activity);
   const ar = getWebsiteTranslations("ar", activity);
-  return { slug: en.articles.slug, navEn: en.nav.articles, navAr: ar.nav.articles };
+  return {
+    slug: en.articles.slug,
+    navEn: en.nav.articles,
+    navAr: ar.nav.articles,
+  };
 }
 
 export const defaultWebsitePages: { id: WebsitePage; visible: boolean }[] = [
@@ -137,7 +173,9 @@ export const defaultWebsiteConfig: WebsiteConfig = {
 };
 
 /** The catalogue names an activity's website starts with, in both languages. */
-export function collectionForActivity(activity: BusinessActivity): WebsiteCollection {
+export function collectionForActivity(
+  activity: BusinessActivity,
+): WebsiteCollection {
   const preset = activityPreset(activity);
   const en = getWebsiteTranslations("en", activity);
   const ar = getWebsiteTranslations("ar", activity);
@@ -154,10 +192,16 @@ export function collectionForActivity(activity: BusinessActivity): WebsiteCollec
 }
 
 /** The recommended website for an activity: pages, section order, catalogue, hero and enquiry questions. */
-export function websiteConfigForActivity(activity: BusinessActivity, base: WebsiteConfig = defaultWebsiteConfig): WebsiteConfig {
+export function websiteConfigForActivity(
+  activity: BusinessActivity,
+  base: WebsiteConfig = defaultWebsiteConfig,
+): WebsiteConfig {
   const preset = activityPreset(activity);
   const shown = new Set<WebsiteSection>(preset.sections);
-  const order = [...preset.sections, ...websiteSections.filter((id) => !shown.has(id))];
+  const order = [
+    ...preset.sections,
+    ...websiteSections.filter((id) => !shown.has(id)),
+  ];
   return {
     ...base,
     purpose: activity,
@@ -172,7 +216,9 @@ export function websiteConfigForActivity(activity: BusinessActivity, base: Websi
 }
 
 /** Fills settings older drafts do not have from the preset of their activity (media when none is set). */
-export function resolveWebsiteConfig(config: WebsiteConfig): ResolvedWebsiteConfig {
+export function resolveWebsiteConfig(
+  config: WebsiteConfig,
+): ResolvedWebsiteConfig {
   const purpose = config.purpose ?? "media";
   const preset = activityPreset(purpose);
   return {
@@ -181,7 +227,12 @@ export function resolveWebsiteConfig(config: WebsiteConfig): ResolvedWebsiteConf
     heroStyle: config.heroStyle ?? preset.heroStyle,
     collection: config.collection ?? collectionForActivity(purpose),
     inquiry: config.inquiry ?? { ...preset.inquiry },
-    seo: config.seo ?? { titleEn: "", titleAr: "", descriptionEn: "", descriptionAr: "" },
+    seo: config.seo ?? {
+      titleEn: "",
+      titleAr: "",
+      descriptionEn: "",
+      descriptionAr: "",
+    },
     showEquipment: config.showEquipment ?? preset.showEquipment,
     whatsappButton: config.whatsappButton ?? true,
     pages: config.pages ?? defaultWebsitePages,
@@ -193,14 +244,23 @@ export function resolveWebsiteConfig(config: WebsiteConfig): ResolvedWebsiteConf
 const COLLECTION_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 function text(value: unknown, key: string, max: number) {
-  if (typeof value !== "string" || value.length > max) throw new Error(formatMessage(serverTemplates.invalid0, { 0: key }));
+  if (typeof value !== "string" || value.length > max)
+    throw new Error(formatMessage(serverTemplates.invalid0, { 0: key }));
   return value.trim();
 }
 
-function textGroup<K extends string>(value: unknown, keys: readonly K[], name: string, max: number): Record<K, string> {
-  if (!value || typeof value !== "object") throw new Error(formatMessage(serverTemplates.invalid0, { 0: name }));
+function textGroup<K extends string>(
+  value: unknown,
+  keys: readonly K[],
+  name: string,
+  max: number,
+): Record<K, string> {
+  if (!value || typeof value !== "object")
+    throw new Error(formatMessage(serverTemplates.invalid0, { 0: name }));
   const data = value as Record<string, unknown>;
-  return Object.fromEntries(keys.map((key) => [key, text(data[key] ?? "", `${name}.${key}`, max)])) as Record<K, string>;
+  return Object.fromEntries(
+    keys.map((key) => [key, text(data[key] ?? "", `${name}.${key}`, max)]),
+  ) as Record<K, string>;
 }
 
 export function validateWebsiteConfig(value: unknown): WebsiteConfig {
@@ -241,65 +301,147 @@ export function validateWebsiteConfig(value: unknown): WebsiteConfig {
     sections: data.sections.map((s) => ({ id: s.id, visible: s.visible })),
     pages,
   } as WebsiteConfig;
-  for (const key of Object.keys(websiteDefaultCopy) as (keyof typeof websiteDefaultCopy)[]) {
+  for (const key of Object.keys(
+    websiteDefaultCopy,
+  ) as (keyof typeof websiteDefaultCopy)[]) {
     if (typeof data[key] !== "string" || (data[key] as string).length > 1500)
       throw new Error(formatMessage(serverTemplates.invalid0, { 0: key }));
     result[key] = (data[key] as string).trim();
   }
-  if (data.aboutImageUrl !== undefined) { if (typeof data.aboutImageUrl !== "string" || data.aboutImageUrl.length > 2000 || (data.aboutImageUrl && !safeWebsiteUrl(data.aboutImageUrl))) throw new Error(serverMessages.invalidAboutImage); result.aboutImageUrl = data.aboutImageUrl; }
+  if (data.aboutImageUrl !== undefined) {
+    if (
+      typeof data.aboutImageUrl !== "string" ||
+      data.aboutImageUrl.length > 2000 ||
+      (data.aboutImageUrl && !safeWebsiteUrl(data.aboutImageUrl))
+    )
+      throw new Error(serverMessages.invalidAboutImage);
+    result.aboutImageUrl = data.aboutImageUrl;
+  }
   if (data.pillars !== undefined) {
-    if(!Array.isArray(data.pillars) || data.pillars.length > 12) throw new Error(serverMessages.invalidStudioHistory);
-    result.pillars = data.pillars.map((p:any) => { const entry = {} as WebsitePillar; for(const key of ["titleEn","titleAr","textEn","textAr"] as const){if(typeof p?.[key] !== "string" || p[key].length > 1500) throw new Error(serverMessages.invalidStudioHistoryText);entry[key]=p[key].trim();}return entry;});
+    if (!Array.isArray(data.pillars) || data.pillars.length > 12)
+      throw new Error(serverMessages.invalidStudioHistory);
+    result.pillars = data.pillars.map((p: any) => {
+      const entry = {} as WebsitePillar;
+      for (const key of ["titleEn", "titleAr", "textEn", "textAr"] as const) {
+        if (typeof p?.[key] !== "string" || p[key].length > 1500)
+          throw new Error(serverMessages.invalidStudioHistoryText);
+        entry[key] = p[key].trim();
+      }
+      return entry;
+    });
   }
   if (data.purpose !== undefined) {
-    if (!isBusinessActivity(data.purpose)) throw new Error(formatMessage(serverTemplates.invalid0, { 0: "purpose" }));
+    if (!isBusinessActivity(data.purpose))
+      throw new Error(
+        formatMessage(serverTemplates.invalid0, { 0: "purpose" }),
+      );
     result.purpose = data.purpose;
   }
   if (data.heroStyle !== undefined) {
-    if (!HERO_STYLES.includes(data.heroStyle as HeroStyle)) throw new Error(formatMessage(serverTemplates.invalid0, { 0: "heroStyle" }));
+    if (!HERO_STYLES.includes(data.heroStyle as HeroStyle))
+      throw new Error(
+        formatMessage(serverTemplates.invalid0, { 0: "heroStyle" }),
+      );
     result.heroStyle = data.heroStyle as HeroStyle;
   }
   if (data.collection !== undefined) {
     const raw = data.collection as Record<string, unknown> | null;
-    const names = textGroup(raw, ["navEn", "navAr", "titleEn", "titleAr", "subtitleEn", "subtitleAr"] as const, "collection", 300);
+    const names = textGroup(
+      raw,
+      [
+        "navEn",
+        "navAr",
+        "titleEn",
+        "titleAr",
+        "subtitleEn",
+        "subtitleAr",
+      ] as const,
+      "collection",
+      300,
+    );
     const slug = text(raw?.slug, "collection.slug", 40).toLowerCase();
-    if (!COLLECTION_SLUG.test(slug) || RESERVED_COLLECTION_SLUGS.includes(slug)) throw new Error(serverMessages.invalidCollectionAddress);
-    if (!COLLECTION_LAYOUTS.includes(raw?.layout as CollectionLayout)) throw new Error(formatMessage(serverTemplates.invalid0, { 0: "collection.layout" }));
-    if (!names.navEn || !names.navAr) throw new Error(serverMessages.collectionNameRequired);
-    result.collection = { slug, layout: raw!.layout as CollectionLayout, ...names };
+    if (!COLLECTION_SLUG.test(slug) || RESERVED_COLLECTION_SLUGS.includes(slug))
+      throw new Error(serverMessages.invalidCollectionAddress);
+    if (!COLLECTION_LAYOUTS.includes(raw?.layout as CollectionLayout))
+      throw new Error(
+        formatMessage(serverTemplates.invalid0, { 0: "collection.layout" }),
+      );
+    if (!names.navEn || !names.navAr)
+      throw new Error(serverMessages.collectionNameRequired);
+    result.collection = {
+      slug,
+      layout: raw!.layout as CollectionLayout,
+      ...names,
+    };
   }
   if (data.inquiry !== undefined) {
     const raw = (data.inquiry ?? {}) as Record<string, unknown>;
     const keys = ["budget", "timeline", "location", "reference"] as const;
-    if (keys.some((key) => typeof raw[key] !== "boolean")) throw new Error(formatMessage(serverTemplates.invalid0, { 0: "inquiry" }));
-    result.inquiry = Object.fromEntries(keys.map((key) => [key, raw[key]])) as unknown as InquiryOptions;
+    if (keys.some((key) => typeof raw[key] !== "boolean"))
+      throw new Error(
+        formatMessage(serverTemplates.invalid0, { 0: "inquiry" }),
+      );
+    result.inquiry = Object.fromEntries(
+      keys.map((key) => [key, raw[key]]),
+    ) as unknown as InquiryOptions;
   }
-  if (data.seo !== undefined) result.seo = textGroup(data.seo, ["titleEn", "titleAr", "descriptionEn", "descriptionAr"] as const, "seo", 300);
+  if (data.seo !== undefined)
+    result.seo = textGroup(
+      data.seo,
+      ["titleEn", "titleAr", "descriptionEn", "descriptionAr"] as const,
+      "seo",
+      300,
+    );
   for (const key of ["showEquipment", "whatsappButton"] as const) {
     if (data[key] === undefined) continue;
-    if (typeof data[key] !== "boolean") throw new Error(formatMessage(serverTemplates.invalid0, { 0: key }));
+    if (typeof data[key] !== "boolean")
+      throw new Error(formatMessage(serverTemplates.invalid0, { 0: key }));
     result[key] = data[key] as boolean;
   }
   if (data.articles !== undefined) {
     const raw = data.articles as Record<string, unknown> | null;
     const names = textGroup(raw, ["navEn", "navAr"] as const, "articles", 120);
     const slug = text(raw?.slug, "articles.slug", 40).toLowerCase();
-    if (!COLLECTION_SLUG.test(slug) || RESERVED_COLLECTION_SLUGS.includes(slug) || slug === result.collection?.slug) throw new Error(serverMessages.invalidCollectionAddress);
+    if (
+      !COLLECTION_SLUG.test(slug) ||
+      RESERVED_COLLECTION_SLUGS.includes(slug) ||
+      slug === result.collection?.slug
+    )
+      throw new Error(serverMessages.invalidCollectionAddress);
     result.articles = { slug, ...names };
   }
   if (data.menus !== undefined) {
     const raw = (data.menus ?? {}) as Record<string, unknown>;
     const menu = (value: unknown): WebsiteMenuItem[] => {
-      if (!Array.isArray(value) || value.length > 20) throw new Error(formatMessage(serverTemplates.invalid0, { 0: "menus" }));
+      if (!Array.isArray(value) || value.length > 20)
+        throw new Error(
+          formatMessage(serverTemplates.invalid0, { 0: "menus" }),
+        );
       return value.map((item) => {
         const entry = (item ?? {}) as Record<string, unknown>;
         const kind = entry.kind as WebsiteMenuItem["kind"];
-        if (!["page", "catalogue", "articles", "external"].includes(kind)) throw new Error(formatMessage(serverTemplates.invalid0, { 0: "menus" }));
-        const labels = textGroup(entry, ["labelEn", "labelAr"] as const, "menus", 80);
-        if (kind === "page") return { kind, pageId: text(entry.pageId, "menus.pageId", 60), ...labels };
+        if (!["page", "catalogue", "articles", "external"].includes(kind))
+          throw new Error(
+            formatMessage(serverTemplates.invalid0, { 0: "menus" }),
+          );
+        const labels = textGroup(
+          entry,
+          ["labelEn", "labelAr"] as const,
+          "menus",
+          80,
+        );
+        if (kind === "page")
+          return {
+            kind,
+            pageId: text(entry.pageId, "menus.pageId", 60),
+            ...labels,
+          };
         if (kind === "external") {
           const url = safeWebsiteUrl(text(entry.url, "menus.url", 500));
-          if (!url || !(labels.labelEn || labels.labelAr)) throw new Error(formatMessage(serverTemplates.invalid0, { 0: "menus" }));
+          if (!url || !(labels.labelEn || labels.labelAr))
+            throw new Error(
+              formatMessage(serverTemplates.invalid0, { 0: "menus" }),
+            );
           return { kind, url, ...labels };
         }
         return { kind, ...labels };
@@ -311,15 +453,18 @@ export function validateWebsiteConfig(value: unknown): WebsiteConfig {
     const raw = (data.code ?? {}) as Record<string, unknown>;
     const id = (key: string, pattern: RegExp) => {
       const value = text(raw[key] ?? "", `code.${key}`, 40);
-      if (value && !pattern.test(value)) throw new Error(formatMessage(serverTemplates.invalid0, { 0: key }));
+      if (value && !pattern.test(value))
+        throw new Error(formatMessage(serverTemplates.invalid0, { 0: key }));
       return value;
     };
     result.code = {
       googleAnalyticsId: id("googleAnalyticsId", /^G-[A-Z0-9]{4,20}$/),
       metaPixelId: id("metaPixelId", /^\d{6,20}$/),
       tiktokPixelId: id("tiktokPixelId", /^[A-Z0-9]{8,30}$/),
-      headHtml: typeof raw.headHtml === "string" ? raw.headHtml.slice(0, 50_000) : "",
-      bodyHtml: typeof raw.bodyHtml === "string" ? raw.bodyHtml.slice(0, 50_000) : "",
+      headHtml:
+        typeof raw.headHtml === "string" ? raw.headHtml.slice(0, 50_000) : "",
+      bodyHtml:
+        typeof raw.bodyHtml === "string" ? raw.bodyHtml.slice(0, 50_000) : "",
     };
   }
   if (!result.contactTitleEn || !result.contactTitleAr)

@@ -129,8 +129,8 @@ async function main() {
   const content = await getWebsiteEditor();
   if (!content.published) {
     await assert.rejects(getWebsiteSnapshot(), /setup is incomplete/);
-    const {collectWebsiteDraft} = require("../packages/database/src/queries/website.ts");
-    await db.websiteContent.update({where:{id:"main"},data:{published:JSON.parse(JSON.stringify(await collectWebsiteDraft(defaultWebsiteConfig))),publishedAt:new Date()}});
+    const { collectWebsiteDraft } = require("../packages/database/src/queries/website.ts");
+    await db.websiteContent.update({ where: { id: "main" }, data: { published: JSON.parse(JSON.stringify(await collectWebsiteDraft(defaultWebsiteConfig))), publishedAt: new Date() } });
   }
   const old = await getWebsiteSnapshot();
   await db.websiteContent.update({
@@ -147,7 +147,7 @@ async function main() {
   );
   await db.websiteContent.update({
     where: { id: "main" },
-    data: { draft: content.draft, published: content.published ?? require("../packages/database/node_modules/@prisma/client").Prisma.DbNull, publishedAt:content.publishedAt },
+    data: { draft: content.draft, published: content.published ?? require("../packages/database/node_modules/@prisma/client").Prisma.DbNull, publishedAt: content.publishedAt },
   });
   await db.review.delete({ where: { id: review.id } });
   await db.inquiry.deleteMany({

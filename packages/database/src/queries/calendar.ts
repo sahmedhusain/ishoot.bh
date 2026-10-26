@@ -1,4 +1,9 @@
-import { getAdminTranslations, getTranslations, formatMessage, serverMessages } from "@platform/locales";
+import {
+  getAdminTranslations,
+  getTranslations,
+  formatMessage,
+  serverMessages,
+} from "@platform/locales";
 
 import crypto from "crypto";
 import { db } from "../db";
@@ -351,7 +356,12 @@ async function systemEvents(
   if (layers.has("sales") && can("deals:read")) {
     // Scheduled days and expected closing: your deals and your team's; all of them for whoever manages the pipeline.
     const all = can("deals:delete");
-    const activity = (await db.companySetting.findUnique({ where: { singleton: 1 }, select: { businessActivity: true } }))?.businessActivity;
+    const activity = (
+      await db.companySetting.findUnique({
+        where: { singleton: 1 },
+        select: { businessActivity: true },
+      })
+    )?.businessActivity;
     const deals = await db.crmDeal.findMany({
       where: {
         dealStage: { notIn: ["closed_lost"] },
@@ -376,8 +386,14 @@ async function systemEvents(
           allDayItem({
             id: `${d.id}:shoot`,
             layer: "sales",
-            title: formatMessage(getAdminTranslations("en", activity).calendarMessages.shoot, { title: d.title }),
-            titleAr: formatMessage(getAdminTranslations("ar", activity).calendarMessages.shoot, { title: d.title }),
+            title: formatMessage(
+              getAdminTranslations("en", activity).calendarMessages.shoot,
+              { title: d.title },
+            ),
+            titleAr: formatMessage(
+              getAdminTranslations("ar", activity).calendarMessages.shoot,
+              { title: d.title },
+            ),
             date: d.shootDate,
             href: ROUTES.crm.deal(d.id),
             type: "shoot",
@@ -393,8 +409,14 @@ async function systemEvents(
           allDayItem({
             id: `${d.id}:close`,
             layer: "sales",
-            title: formatMessage(getTranslations("en").admin.calendarMessages.expectedClose, { title: d.title }),
-            titleAr: formatMessage(getTranslations("ar").admin.calendarMessages.expectedClose, { title: d.title }),
+            title: formatMessage(
+              getTranslations("en").admin.calendarMessages.expectedClose,
+              { title: d.title },
+            ),
+            titleAr: formatMessage(
+              getTranslations("ar").admin.calendarMessages.expectedClose,
+              { title: d.title },
+            ),
             date: d.expectedCloseDate,
             href: ROUTES.crm.deal(d.id),
           }),
@@ -425,8 +447,14 @@ async function systemEvents(
         allDayItem({
           id: q.id,
           layer: "sales",
-          title: formatMessage(getTranslations("en").admin.calendarMessages.quotationExpiry, { number: q.quotationNumber }),
-          titleAr: formatMessage(getTranslations("ar").admin.calendarMessages.quotationExpiry, { number: q.quotationNumber }),
+          title: formatMessage(
+            getTranslations("en").admin.calendarMessages.quotationExpiry,
+            { number: q.quotationNumber },
+          ),
+          titleAr: formatMessage(
+            getTranslations("ar").admin.calendarMessages.quotationExpiry,
+            { number: q.quotationNumber },
+          ),
           date: q.validUntilDate,
           href: ROUTES.quotations.detail(q.id),
         }),
@@ -447,8 +475,14 @@ async function systemEvents(
         allDayItem({
           id: i.id,
           layer: "finance",
-          title: formatMessage(getTranslations("en").admin.calendarMessages.invoiceDue, { number: i.invoiceNumber }),
-          titleAr: formatMessage(getTranslations("ar").admin.calendarMessages.invoiceDue, { number: i.invoiceNumber }),
+          title: formatMessage(
+            getTranslations("en").admin.calendarMessages.invoiceDue,
+            { number: i.invoiceNumber },
+          ),
+          titleAr: formatMessage(
+            getTranslations("ar").admin.calendarMessages.invoiceDue,
+            { number: i.invoiceNumber },
+          ),
           date: i.dueDate,
           href: ROUTES.invoices.detail(i.id),
         }),
@@ -466,8 +500,14 @@ async function systemEvents(
         allDayItem({
           id: b.id,
           layer: "finance",
-          title: formatMessage(getTranslations("en").admin.calendarMessages.billDue, { title: b.titleEn }),
-          titleAr: formatMessage(getTranslations("ar").admin.calendarMessages.billDue, { title: b.titleAr || b.titleEn }),
+          title: formatMessage(
+            getTranslations("en").admin.calendarMessages.billDue,
+            { title: b.titleEn },
+          ),
+          titleAr: formatMessage(
+            getTranslations("ar").admin.calendarMessages.billDue,
+            { title: b.titleAr || b.titleEn },
+          ),
           date: b.nextDueDate,
           href: ROUTES.expenses.recurring,
         }),
@@ -484,8 +524,14 @@ async function systemEvents(
         allDayItem({
           id: r.id,
           layer: "payroll",
-          title: formatMessage(getTranslations("en").admin.calendarMessages.payrollPaid, { period: `${r.year}-${String(r.month).padStart(2, "0")}` }),
-          titleAr: formatMessage(getTranslations("ar").admin.calendarMessages.payrollPaid, { period: `${r.year}-${String(r.month).padStart(2, "0")}` }),
+          title: formatMessage(
+            getTranslations("en").admin.calendarMessages.payrollPaid,
+            { period: `${r.year}-${String(r.month).padStart(2, "0")}` },
+          ),
+          titleAr: formatMessage(
+            getTranslations("ar").admin.calendarMessages.payrollPaid,
+            { period: `${r.year}-${String(r.month).padStart(2, "0")}` },
+          ),
           date: r.payDate!,
           href: ROUTES.hr.payroll({ highlight: r.id }),
         }),
@@ -531,8 +577,14 @@ async function systemEvents(
           allDayItem({
             id: `${e.id}:passport`,
             layer: "hr",
-            title: formatMessage(getTranslations("en").admin.calendarMessages.passportExpiry, { name: n.en }),
-            titleAr: formatMessage(getTranslations("ar").admin.calendarMessages.passportExpiry, { name: n.ar }),
+            title: formatMessage(
+              getTranslations("en").admin.calendarMessages.passportExpiry,
+              { name: n.en },
+            ),
+            titleAr: formatMessage(
+              getTranslations("ar").admin.calendarMessages.passportExpiry,
+              { name: n.ar },
+            ),
             date: e.passportExpiryDate,
             href: ROUTES.hr.employee(e.id),
           }),
@@ -542,8 +594,14 @@ async function systemEvents(
           allDayItem({
             id: `${e.id}:cpr`,
             layer: "hr",
-            title: formatMessage(getTranslations("en").admin.calendarMessages.cprExpiry, { name: n.en }),
-            titleAr: formatMessage(getTranslations("ar").admin.calendarMessages.cprExpiry, { name: n.ar }),
+            title: formatMessage(
+              getTranslations("en").admin.calendarMessages.cprExpiry,
+              { name: n.en },
+            ),
+            titleAr: formatMessage(
+              getTranslations("ar").admin.calendarMessages.cprExpiry,
+              { name: n.ar },
+            ),
             date: e.cprExpiryDate,
             href: ROUTES.hr.employee(e.id),
           }),
@@ -553,8 +611,32 @@ async function systemEvents(
           allDayItem({
             id: c.id,
             layer: "hr",
-            title: formatMessage(getTranslations("en").admin.calendarMessages.credentialExpiry, { document: c.label || (getTranslations("en").admin.employeeResidency.kinds as Record<string,string>)[c.kind] || getTranslations("en").admin.calendarMessages.document, name: n.en }),
-            titleAr: formatMessage(getTranslations("ar").admin.calendarMessages.credentialExpiry, { document: c.label || (getTranslations("ar").admin.employeeResidency.kinds as Record<string,string>)[c.kind] || getTranslations("ar").admin.calendarMessages.document, name: n.ar }),
+            title: formatMessage(
+              getTranslations("en").admin.calendarMessages.credentialExpiry,
+              {
+                document:
+                  c.label ||
+                  (
+                    getTranslations("en").admin.employeeResidency
+                      .kinds as Record<string, string>
+                  )[c.kind] ||
+                  getTranslations("en").admin.calendarMessages.document,
+                name: n.en,
+              },
+            ),
+            titleAr: formatMessage(
+              getTranslations("ar").admin.calendarMessages.credentialExpiry,
+              {
+                document:
+                  c.label ||
+                  (
+                    getTranslations("ar").admin.employeeResidency
+                      .kinds as Record<string, string>
+                  )[c.kind] ||
+                  getTranslations("ar").admin.calendarMessages.document,
+                name: n.ar,
+              },
+            ),
             date: c.expiryDate!,
             href: ROUTES.hr.employee(e.id),
           }),
@@ -570,8 +652,16 @@ async function systemEvents(
           allDayItem({
             id: d.id,
             layer: "hr",
-            title: formatMessage(getTranslations("en").admin.calendarMessages.companyDocumentExpiry, { title: d.titleEn }),
-            titleAr: formatMessage(getTranslations("ar").admin.calendarMessages.companyDocumentExpiry, { title: d.titleAr || d.titleEn }),
+            title: formatMessage(
+              getTranslations("en").admin.calendarMessages
+                .companyDocumentExpiry,
+              { title: d.titleEn },
+            ),
+            titleAr: formatMessage(
+              getTranslations("ar").admin.calendarMessages
+                .companyDocumentExpiry,
+              { title: d.titleAr || d.titleEn },
+            ),
             date: d.validUntil!,
             href: ROUTES.archive,
           }),
@@ -590,8 +680,14 @@ async function systemEvents(
         allDayItem({
           id: m.id,
           layer: "meetings",
-          title: formatMessage(getTranslations("en").admin.calendarMessages.meeting, { title: m.title }),
-          titleAr: formatMessage(getTranslations("ar").admin.calendarMessages.meeting, { title: m.titleAr || m.title }),
+          title: formatMessage(
+            getTranslations("en").admin.calendarMessages.meeting,
+            { title: m.title },
+          ),
+          titleAr: formatMessage(
+            getTranslations("ar").admin.calendarMessages.meeting,
+            { title: m.titleAr || m.title },
+          ),
           date: m.meetingDate,
           href: ROUTES.moms.detail(m.id),
           type: "meeting",
@@ -620,8 +716,14 @@ async function systemEvents(
         allDayItem({
           id: r.id,
           layer: "requests",
-          title: formatMessage(getTranslations("en").admin.calendarMessages.requestDue, { title: r.projectReference || r.name }),
-          titleAr: formatMessage(getTranslations("ar").admin.calendarMessages.requestDue, { title: r.projectReference || r.name }),
+          title: formatMessage(
+            getTranslations("en").admin.calendarMessages.requestDue,
+            { title: r.projectReference || r.name },
+          ),
+          titleAr: formatMessage(
+            getTranslations("ar").admin.calendarMessages.requestDue,
+            { title: r.projectReference || r.name },
+          ),
           date: r.slaDueDate!,
           href: ROUTES.requests.detail(r.id),
         }),
@@ -744,9 +846,7 @@ function normalizeAudience(input: CalendarAudienceInput) {
     !audience.audienceDepartmentIds.length &&
     !audience.audienceRoles.length
   )
-    throw new Error(
-      serverMessages.chooseThePeopleDepartmentsOrRoles,
-    );
+    throw new Error(serverMessages.chooseThePeopleDepartmentsOrRoles);
   return audience;
 }
 

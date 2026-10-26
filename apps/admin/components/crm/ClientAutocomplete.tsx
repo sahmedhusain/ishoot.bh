@@ -203,11 +203,10 @@ export function ClientAutocomplete({
                 setMode("search");
                 setCreateError(null);
               }}
-              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md transition-all font-medium active:scale-[0.98] ${
-                mode === "search"
-                  ? "bg-white dark:bg-surface-raised text-primary dark:text-mint shadow-xs"
-                  : "text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
-              }`}
+              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md transition-all font-medium active:scale-[0.98] ${mode === "search"
+                ? "bg-white dark:bg-surface-raised text-primary dark:text-mint shadow-xs"
+                : "text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
+                }`}
             >
               <Users className="w-3 h-3" />
               <span>{t.clientAutocomplete.existingClient}</span>
@@ -218,11 +217,10 @@ export function ClientAutocomplete({
                 setMode("create");
                 setIsOpen(false);
               }}
-              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md transition-all font-medium active:scale-[0.98] ${
-                mode === "create"
-                  ? "bg-white dark:bg-surface-raised text-primary dark:text-mint shadow-xs"
-                  : "text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
-              }`}
+              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md transition-all font-medium active:scale-[0.98] ${mode === "create"
+                ? "bg-white dark:bg-surface-raised text-primary dark:text-mint shadow-xs"
+                : "text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
+                }`}
             >
               <UserPlus className="w-3 h-3" />
               <span>{t.clientAutocomplete.newClient}</span>
@@ -234,7 +232,7 @@ export function ClientAutocomplete({
           <Link
             href={ROUTES.crm.customer(selectedContact.id)}
             target="_blank"
-                  rel="noopener noreferrer"
+            rel="noopener noreferrer"
             className="text-accent hover:underline inline-flex items-center gap-1 text-[11px] font-medium"
           >
             <span>{t.crm.viewDossier}</span>

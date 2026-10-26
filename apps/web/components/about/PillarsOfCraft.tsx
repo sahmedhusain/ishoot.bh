@@ -2,13 +2,13 @@
 
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
-import { motion,useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 
-export function PillarsOfCraft({pillars=[]}:{pillars?:import("@platform/database/website-config").WebsitePillar[]}) {
+export function PillarsOfCraft({ pillars = [] }: { pillars?: import("@platform/database/website-config").WebsitePillar[] }) {
   const reduced = useReducedMotion();
   const { t, locale } = useTranslation();
 
-  if(!pillars.length) return null;
+  if (!pillars.length) return null;
 
   return (
     <section className="relative z-10 bg-brand-base text-ink py-20 sm:py-28 border-t border-white/10 overflow-hidden">
@@ -42,7 +42,7 @@ export function PillarsOfCraft({pillars=[]}:{pillars?:import("@platform/database
               >
                 <div className="flex items-center justify-between font-sans relative z-10">
                   <span className="text-xs font-sans font-bold text-mint">
-                    {String(idx+1).padStart(2,"0")}
+                    {String(idx + 1).padStart(2, "0")}
                   </span>
                   <span className="text-[10px] uppercase font-bold text-mint tracking-widest ">
 

@@ -1,7 +1,16 @@
 import { Font } from "@react-pdf/renderer";
 import path from "path";
-import { generateDownloadUrl, isSupabaseStorageConfigured, uploadRoot, uploadStorageLocation } from "@platform/database";
-import { FONT_LIBRARY, type BrandTheme, type FontChoice } from "@platform/database/constants/theme";
+import {
+  generateDownloadUrl,
+  isSupabaseStorageConfigured,
+  uploadRoot,
+  uploadStorageLocation,
+} from "@platform/database";
+import {
+  FONT_LIBRARY,
+  type BrandTheme,
+  type FontChoice,
+} from "@platform/database/constants/theme";
 
 /** The single family every generated document uses; it is registered from the company theme's body font. */
 export const PDF_FONT = "CompanyPdf";
@@ -13,7 +22,9 @@ let registeredKey: string | null = null;
 const googleSources = new Map<string, Record<number, string>>();
 
 const nearest = (files: { weight: number; url: string }[], weight: number) =>
-  [...files].sort((a, b) => Math.abs(a.weight - weight) - Math.abs(b.weight - weight))[0];
+  [...files].sort(
+    (a, b) => Math.abs(a.weight - weight) - Math.abs(b.weight - weight),
+  )[0];
 
 async function uploadedFontSource(url: string) {
   if (isSupabaseStorageConfigured()) {
@@ -29,11 +40,16 @@ async function googleFontSources(family: string) {
   if (cached) return cached;
   // Asking for a weight the family lacks fails the whole request (Lalezar, Bebas Neue… have only 400).
   const known = FONT_LIBRARY.find((f) => f.family === family)?.weights;
-  const weights = known ? [400, 700].filter((w) => known.includes(w)) : [400, 700];
+  const weights = known
+    ? [400, 700].filter((w) => known.includes(w))
+    : [400, 700];
   const query = weights.length ? `:wght@${weights.join(";")}` : "";
-  const css = await fetch(`https://fonts.googleapis.com/css2?family=${family.replace(/ /g, "+")}${query}`, {
-    signal: AbortSignal.timeout(8000),
-  }).then((r) => (r.ok ? r.text() : ""));
+  const css = await fetch(
+    `https://fonts.googleapis.com/css2?family=${family.replace(/ /g, "+")}${query}`,
+    {
+      signal: AbortSignal.timeout(8000),
+    },
+  ).then((r) => (r.ok ? r.text() : ""));
   const sources: Record<number, string> = {};
   for (const block of css.split("@font-face").slice(1)) {
     const weight = Number(block.match(/font-weight:\s*(\d+)/)?.[1]);
@@ -44,7 +60,9 @@ async function googleFontSources(family: string) {
   return sources;
 }
 
-async function fontSources(font: FontChoice): Promise<{ regular: string; bold: string } | null> {
+async function fontSources(
+  font: FontChoice,
+): Promise<{ regular: string; bold: string } | null> {
   if (font.kind === "upload") {
     return {
       regular: await uploadedFontSource(nearest(font.files, 400).url),

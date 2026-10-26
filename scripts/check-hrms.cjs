@@ -7,7 +7,7 @@ function load(file, mocks = {}) {
   if (mocks["@platform/locales"]) mocks["@platform/locales"] = { ...realConstants(file, "@platform/locales"), ...mocks["@platform/locales"] };
   const module = { exports: {} };
   const code = ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } }).outputText;
-  vm.runInNewContext(code, { module, exports: module.exports, require(id) { id = ((i,m)=>i in m?i:(i.startsWith('@platform/database/')&&'@platform/database' in m?'@platform/database':i))(id, mocks); if (!(id in mocks)) { const real = realConstants(file, id); if (real) return real; throw new Error('Unmocked dependency ' + id); } return mocks[id]; }, Date, Intl, Set, Array, JSON, Number, Math, Blob, FormData, AbortSignal });
+  vm.runInNewContext(code, { module, exports: module.exports, require(id) { id = ((i, m) => i in m ? i : (i.startsWith('@platform/database/') && '@platform/database' in m ? '@platform/database' : i))(id, mocks); if (!(id in mocks)) { const real = realConstants(file, id); if (real) return real; throw new Error('Unmocked dependency ' + id); } return mocks[id]; }, Date, Intl, Set, Array, JSON, Number, Math, Blob, FormData, AbortSignal });
   return module.exports;
 }
 async function main() {
@@ -58,11 +58,11 @@ async function main() {
       runAtomicMutation: async fn => fn(), createActivityLog: async log => audit.push(log), measureOperation: async (_n, fn) => fn(),
       submitForApproval: async (input) => { submissions.push(input); return { approvalRequestId: 'apr', status: 'pending', finalized: false, approverIds: ['hr'] }; },
     },
-    '../../lib/auth': { requireAuth: async () => actor, requirePermission: async () => actor }, '../../lib/action-input': { validateActionArguments: () => {} },
+    '../../lib/auth': { requireAuth: async () => actor, requirePermission: async () => actor }, '../../lib/action-input': { validateActionArguments: () => { } },
     '../../lib/salary-documents': { canManageSalaryDocuments: async () => manager, availablePayslipMonths: async () => ['2026-02', '2026-01'] },
-    'next/cache': { revalidatePath: () => {} }, '../../lib/pdf/salary-document-pdf': {},
+    'next/cache': { revalidatePath: () => { } }, '../../lib/pdf/salary-document-pdf': {},
   });
-  await actions.requestSalaryDocumentAction({ employeeId: 'employee', kind: 'payslip', months: ['2026-02','2026-01','2026-02'], languages: ['en', 'ar', 'en'] });
+  await actions.requestSalaryDocumentAction({ employeeId: 'employee', kind: 'payslip', months: ['2026-02', '2026-01', '2026-02'], languages: ['en', 'ar', 'en'] });
   assert.equal(creates[0].status, 'pending');
   assert.equal(JSON.stringify(creates[0].languages), '["ar","en"]', 'both languages, each once, in a fixed order');
   await assert.rejects(actions.requestSalaryDocumentAction({ employeeId: 'employee', kind: 'payslip', months: ['2026-01'], languages: [] }), /document language/);

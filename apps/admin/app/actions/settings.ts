@@ -183,7 +183,10 @@ export async function toggleFeatureAction(
     // The website module decides whether the public site is shown at all.
     if (moduleKey === "cms") {
       const { revalidatePublicSite } = await import("../../lib/revalidate-web");
-      await revalidatePublicSite(["website", "company"], ["/en", "/ar", ...(await publicSitePaths())]);
+      await revalidatePublicSite(
+        ["website", "company"],
+        ["/en", "/ar", ...(await publicSitePaths())],
+      );
     }
     return { success: true, feature };
   });

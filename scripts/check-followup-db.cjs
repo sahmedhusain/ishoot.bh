@@ -316,11 +316,11 @@ async function main() {
   ).outputText;
   const dependencies = {
     "node:crypto": require("node:crypto"),
-    "@platform/database": { db, ...websiteQueries, requireFeatureEnabled: async()=>{}, measureOperation: async (_name,fn)=>fn() },
+    "@platform/database": { db, ...websiteQueries, requireFeatureEnabled: async () => { }, measureOperation: async (_name, fn) => fn() },
     "../../lib/action-input": require("../apps/admin/lib/action-input.ts"),
     "@platform/database/website-config": require("../packages/database/src/website-config.ts"),
     "../../lib/auth": { requirePermission: async () => ({ id: actor.id }) },
-    "next/cache": { revalidatePath: () => {} },
+    "next/cache": { revalidatePath: () => { } },
     "../../lib/revalidate-web": { revalidatePublicSite: async () => false },
     "../../lib/public-paths": { publicSitePaths: async () => ["/"] },
     "@platform/locales": require("../packages/locales/src/index.ts"),

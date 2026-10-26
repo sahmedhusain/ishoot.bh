@@ -1,6 +1,6 @@
 "use client";
 import { siteIcon, siteLogo } from "../../lib/brand-images";
-import {ContentImage} from "../shared/ContentImage";
+import { ContentImage } from "../shared/ContentImage";
 
 import * as React from "react";
 import Link from "next/link";
@@ -62,16 +62,15 @@ export function Navbar({ company, pages, links, accountHref }: NavbarProps) {
     { id: "works", href: site ? collectionHref(site, locale) : `/${locale}/works`, label: t("nav.works") },
     { id: "about", href: `/${locale}/about`, label: t("nav.about") },
     { id: "contact", href: `/${locale}/contact`, label: t("nav.contact") },
-  ] .filter((item) => item.id === "home" || pageMap.get(item.id) !== false);
+  ].filter((item) => item.id === "home" || pageMap.get(item.id) !== false);
 
   return (
     <>
       <header
-        className={`fixed top-0 start-0 end-0 z-[80] py-4 border-b transition-colors duration-150 ${
-          isScrolled
-            ? "bg-brand-base border-white/10"
-            : "bg-gradient-to-b from-brand-base/90 to-transparent border-transparent"
-        }`}
+        className={`fixed top-0 start-0 end-0 z-[80] py-4 border-b transition-colors duration-150 ${isScrolled
+          ? "bg-brand-base border-white/10"
+          : "bg-gradient-to-b from-brand-base/90 to-transparent border-transparent"
+          }`}
       >
         <div className="shell flex items-center justify-between">
           <Link href={`/${locale}`} className="flex items-center gap-3 group">
@@ -82,7 +81,7 @@ export function Navbar({ company, pages, links, accountHref }: NavbarProps) {
                 }
                 alt={t("common.brandIconAlt", { companyName: locale === "ar" ? company.company_name_ar : company.company_name_en })}
                 className="h-full w-full object-contain "
-               width={40} height={40} />
+                width={40} height={40} />
             </div>
             <ContentImage
               src={
@@ -90,7 +89,7 @@ export function Navbar({ company, pages, links, accountHref }: NavbarProps) {
               }
               alt={t("common.brandLogoAlt", { companyName: locale === "ar" ? company.company_name_ar : company.company_name_en })}
               className="h-7 w-auto object-contain"
-             fallbackText={company.company_name_en}  width={240} height={60} />
+              fallbackText={company.company_name_en} width={240} height={60} />
           </Link>
 
           <nav
@@ -108,11 +107,10 @@ export function Navbar({ company, pages, links, accountHref }: NavbarProps) {
                   key={link.href}
                   href={link.href}
                   aria-current={isActive ? "page" : undefined}
-                  className={`relative px-4 py-3 text-sm font-sans transition-colors duration-150 rounded-md select-none ${
-                    isActive
-                      ? "text-mint font-bold"
-                      : "text-white/80 hover:text-white hover:bg-white/10"
-                  }`}
+                  className={`relative px-4 py-3 text-sm font-sans transition-colors duration-150 rounded-md select-none ${isActive
+                    ? "text-mint font-bold"
+                    : "text-white/80 hover:text-white hover:bg-white/10"
+                    }`}
                 >
                   {isActive && (
                     <span

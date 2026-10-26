@@ -30,7 +30,8 @@ import {
   Building,
   CheckCircle2,
   Lock,
-  Pencil, KeyRound } from "lucide-react";
+  Pencil, KeyRound
+} from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { usePermissions } from "../../hooks/usePermissions";
 
@@ -91,19 +92,21 @@ export function UsersManagementView({
   const selectable = users.filter((u) => u.role !== "super_admin").map((u) => u.id);
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const pageHref = (next: number) => `${ROUTES.users.list}?${new URLSearchParams({ ...filters, page: String(next) })}`;
-  const applyBulk = (change: { role?: string; departmentId?: string }) => confirmAction({ description: formatMessage(t.usersBulk.confirmChange, { count: selected.length }), confirmMatchText: String(selected.length), onConfirm: async () => {
-    setBulkBusy(true);
-    try {
-      const result = await bulkUpdateUsersAction({ userIds: selected, ...change });
-      toast.success(formatMessage(t.usersBulk.updated, { count: result.updated }));
-      setSelected([]);
-      router.refresh();
-    } catch (err) {
-      setError(errorMessage(err, t, t.hrExtensions.failed));
-    } finally {
-      setBulkBusy(false);
+  const applyBulk = (change: { role?: string; departmentId?: string }) => confirmAction({
+    description: formatMessage(t.usersBulk.confirmChange, { count: selected.length }), confirmMatchText: String(selected.length), onConfirm: async () => {
+      setBulkBusy(true);
+      try {
+        const result = await bulkUpdateUsersAction({ userIds: selected, ...change });
+        toast.success(formatMessage(t.usersBulk.updated, { count: result.updated }));
+        setSelected([]);
+        router.refresh();
+      } catch (err) {
+        setError(errorMessage(err, t, t.hrExtensions.failed));
+      } finally {
+        setBulkBusy(false);
+      }
     }
-  } });
+  });
   const [activeTab, setActiveTab] = React.useState<"users" | "matrix">("users");
   const [showCreateModal, setShowCreateModal] = React.useState(false);
   const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(
@@ -212,21 +215,19 @@ export function UsersManagementView({
           <div className="flex items-center bg-surface p-1 rounded-xl border border-ink/10 text-xs font-semibold">
             <button
               onClick={() => setActiveTab("users")}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                activeTab === "users"
-                  ? "bg-accent text-white shadow-sm"
-                  : "text-ink-muted hover:text-ink"
-              }`}
+              className={`px-3 py-1.5 rounded-lg transition-all ${activeTab === "users"
+                ? "bg-accent text-white shadow-sm"
+                : "text-ink-muted hover:text-ink"
+                }`}
             >
               {t.nav.users} ({total})
             </button>
             <button
               onClick={() => setActiveTab("matrix")}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                activeTab === "matrix"
-                  ? "bg-accent text-white shadow-sm"
-                  : "text-ink-muted hover:text-ink"
-              }`}
+              className={`px-3 py-1.5 rounded-lg transition-all ${activeTab === "matrix"
+                ? "bg-accent text-white shadow-sm"
+                : "text-ink-muted hover:text-ink"
+                }`}
             >
               {t.usersView.permissionsMatrix}
             </button>

@@ -152,24 +152,24 @@ export function StatsManagementView({ initialStats, languages }: { initialStats:
             <div className="grid grid-cols-2 gap-4 rounded-2xl border border-ink/10 p-4">
               <div className="col-span-2">
                 <label htmlFor="stat-preset" className="text-xs font-bold block mb-1">{t.statsView.presetLabel}</label>
-                <Select id="stat-preset" value={preset} onChange={e=>setPreset(e.target.value as StatisticPreset)}>
+                <Select id="stat-preset" value={preset} onChange={e => setPreset(e.target.value as StatisticPreset)}>
                   {STATISTIC_PRESETS.map((p) => <option key={p} value={p}>{t.statsView[`preset_${p}`]}</option>)}
                 </Select>
               </div>
               {preset === "years_in_business" && (
                 <div className="col-span-2 sm:col-span-1">
                   <label htmlFor="stat-founded" className="text-xs font-bold block mb-1">{t.statsView.foundingYear}</label>
-                  <Input id="stat-founded" type="number" min={1900} max={new Date().getFullYear()} value={foundingYear} onChange={e=>setFoundingYear(e.target.value)} required />
+                  <Input id="stat-founded" type="number" min={1900} max={new Date().getFullYear()} value={foundingYear} onChange={e => setFoundingYear(e.target.value)} required />
                 </div>
               )}
               <div>
                 <label htmlFor="stat-round" className="text-xs font-bold block mb-1">{t.statsView.roundTo}</label>
-                <Input id="stat-round" type="number" min={1} value={roundTo} onChange={e=>setRoundTo(e.target.value)} aria-describedby="stat-round-hint" />
+                <Input id="stat-round" type="number" min={1} value={roundTo} onChange={e => setRoundTo(e.target.value)} aria-describedby="stat-round-hint" />
                 <p id="stat-round-hint" className="text-[11px] text-ink-muted mt-1">{t.statsView.roundToHint}</p>
               </div>
               <div>
                 <label htmlFor="stat-suffix" className="text-xs font-bold block mb-1">{t.statsView.suffix}</label>
-                <Input id="stat-suffix" value={suffix} maxLength={10} placeholder={t.statsView.suffixHint} onChange={e=>setSuffix(e.target.value)} />
+                <Input id="stat-suffix" value={suffix} maxLength={10} placeholder={t.statsView.suffixHint} onChange={e => setSuffix(e.target.value)} />
               </div>
               <p className="col-span-2 text-[11px] text-ink-muted">{t.statsView.computedNote}</p>
             </div>
@@ -178,7 +178,7 @@ export function StatsManagementView({ initialStats, languages }: { initialStats:
             {source === "manual" && (
               <div className="col-span-2 sm:col-span-1">
                 <label className="text-xs font-bold block mb-1">{t.statsView.valueLabel}</label>
-                <Input value={value} maxLength={20} onChange={e=>setValue(e.target.value)} required />
+                <Input value={value} maxLength={20} onChange={e => setValue(e.target.value)} required />
               </div>
             )}
             <div className="col-span-2 sm:col-span-1">
@@ -188,7 +188,7 @@ export function StatsManagementView({ initialStats, languages }: { initialStats:
             <LanguageFields name="label" label={t.statsView.label} languages={languages} required maxLength={100} en={labelEn} ar={labelAr} onChange={(v) => { setLabelEn(v.en); setLabelAr(v.ar); }} />
             <LanguageFields name="subLabel" label={t.statsView.subLabel} languages={languages} maxLength={200} en={subLabelEn} ar={subLabelAr} onChange={(v) => { setSubLabelEn(v.en); setSubLabelAr(v.ar); }} />
           </div>
-          <div><label className="text-xs font-bold block mb-1">{t.statsView.sortOrder}</label><Input type="number" value={sortOrder} onChange={e=>setSortOrder(Number(e.target.value))} /></div>
+          <div><label className="text-xs font-bold block mb-1">{t.statsView.sortOrder}</label><Input type="number" value={sortOrder} onChange={e => setSortOrder(Number(e.target.value))} /></div>
           {error && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>}
           <div className="flex justify-end gap-2 pt-4">
             <Button variant="ghost" onClick={() => setIsModalOpen(false)}>{t.statsView.cancel}</Button>

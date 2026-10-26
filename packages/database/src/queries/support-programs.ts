@@ -101,9 +101,7 @@ export async function saveSupportProgram(
   const nameAr = input.name_ar?.trim().slice(0, 120);
   const provider = input.provider?.trim().slice(0, 80);
   if (!nameEn || !nameAr || !provider)
-    throw new Error(
-      serverMessages.enterTheProgrammeNameInBothLanguages,
-    );
+    throw new Error(serverMessages.enterTheProgrammeNameInBothLanguages);
   const months = Math.round(Number(input.claim_period_months));
   if (!(months >= 1 && months <= 24))
     throw new Error(serverMessages.claimsCover1To24Months);
@@ -152,7 +150,8 @@ export async function scheduleSupportRule(
     input.effective_from,
     "Choose the date the terms take effect",
   );
-  if (!effectiveFrom) throw new Error(serverMessages.chooseTheDateTheTermsTakeEffect);
+  if (!effectiveFrom)
+    throw new Error(serverMessages.chooseTheDateTheTermsTakeEffect);
   if (!(WAGE_BASES as readonly string[]).includes(input.wage_basis))
     throw new Error(serverMessages.chooseTheWageTheSupportIsWorkedOut);
   const schedule = (input.schedule ?? []).map((s) => ({
@@ -167,9 +166,7 @@ export async function scheduleSupportRule(
     ) ||
     new Set(schedule.map((s) => s.year)).size !== schedule.length
   )
-    throw new Error(
-      serverMessages.giveEachYearOfSupport,
-    );
+    throw new Error(serverMessages.giveEachYearOfSupport);
   const caps = (input.qualification_caps ?? []).map((q) => ({
     qualification: q.qualification,
     cap: money(q.cap) ?? 0,
@@ -373,9 +370,7 @@ function normalizeEnrolment(input: EmployeeSupportInput) {
     approvedPercent == null &&
     approvedAmount == null
   )
-    throw new Error(
-      serverMessages.forAPartialApprovalEnterTheApproved,
-    );
+    throw new Error(serverMessages.forAPartialApprovalEnterTheApproved);
   return {
     status: input.status,
     qualification: input.qualification || null,
@@ -427,7 +422,8 @@ export async function saveEmployeeSupport(
             },
           ]),
       );
-      if (!Object.keys(changes).length) throw new Error(serverMessages.nothingChanged);
+      if (!Object.keys(changes).length)
+        throw new Error(serverMessages.nothingChanged);
       const updated = await db.employeeSupport.update({ where: { id }, data });
       await db.employeeSupportEvent.create({
         data: {

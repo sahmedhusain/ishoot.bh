@@ -5,7 +5,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 type CashflowPoint = { month?: string; name?: string; revenue: number; expenses: number };
 
 export function DeferredCashflowChart({ data }: { kind: "dashboard" | "finance"; data: CashflowPoint[] }) {
-  const {t} = useAdminLocale();
+  const { t } = useAdminLocale();
   const points = data.map((row) => ({ month: row.month || row.name || "", inflow: row.revenue, outflow: row.expenses }));
   return <div className="h-full w-full flex flex-col">
     <div className="flex-1 min-h-0">

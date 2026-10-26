@@ -76,28 +76,28 @@ export function ConfirmDialog({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} busy={isSubmitting || loading} description={description} className="max-w-lg" footer={
-        <div className="flex flex-wrap items-center justify-end gap-3">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            disabled={isSubmitting || loading}
-          >
-            {cancelLabel}
-          </Button>
-          <Button
-            type="button"
-            variant={isDanger ? "danger" : "primary"}
-            size="sm"
-            onClick={handleConfirm}
-            aria-busy={isSubmitting || loading}
-            disabled={!canConfirm || isSubmitting || loading}
-          >
-            {isSubmitting || loading ? loadingLabel : confirmLabel}
-          </Button>
-        </div>
-      }>
+      <div className="flex flex-wrap items-center justify-end gap-3">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onClose}
+          disabled={isSubmitting || loading}
+        >
+          {cancelLabel}
+        </Button>
+        <Button
+          type="button"
+          variant={isDanger ? "danger" : "primary"}
+          size="sm"
+          onClick={handleConfirm}
+          aria-busy={isSubmitting || loading}
+          disabled={!canConfirm || isSubmitting || loading}
+        >
+          {isSubmitting || loading ? loadingLabel : confirmLabel}
+        </Button>
+      </div>
+    }>
       <div data-confirm-dialog className="space-y-4 text-sm text-ink-muted">
         {confirmMatchText && (
           <div className="space-y-2">

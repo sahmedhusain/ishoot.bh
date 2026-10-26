@@ -187,18 +187,20 @@ export function HandoverWorkspaceView({
             </Link>
           ) : null}
           {canEdit &&
-          (handover.status === "open" ||
-            handover.status === "pending_approval") ? (
+            (handover.status === "open" ||
+              handover.status === "pending_approval") ? (
             <Button
               size="sm"
               variant="outline"
               className="self-start text-rose-600"
               disabled={busy}
               onClick={() => {
-                confirmAction({ description: e.cancelConfirm, onConfirm: () => run(
+                confirmAction({
+                  description: e.cancelConfirm, onConfirm: () => run(
                     () => cancelEmployeeHandoverAction(handover.id),
                     e.cancelled,
-                  ) });
+                  )
+                });
               }}
             >
               {e.cancel}
@@ -452,8 +454,8 @@ export function HandoverWorkspaceView({
                   {asset.name}
                 </Link>
                 {canReturnAssets &&
-                handover.status === "open" &&
-                returning?.id !== asset.id ? (
+                  handover.status === "open" &&
+                  returning?.id !== asset.id ? (
                   <Button
                     size="sm"
                     variant="outline"
@@ -501,7 +503,7 @@ export function HandoverWorkspaceView({
                 <span className="text-ink-muted">
                   {
                     t.assets.handoverStatuses[
-                      r.status as keyof typeof t.assets.handoverStatuses
+                    r.status as keyof typeof t.assets.handoverStatuses
                     ]
                   }
                 </span>

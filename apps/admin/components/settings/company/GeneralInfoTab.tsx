@@ -2,10 +2,10 @@
 
 import * as React from "react";
 import type { CompanySettings } from "@platform/database/types";
-import { Card,Input } from "@platform/ui";
+import { Card, Input } from "@platform/ui";
 import {
-Building2,
-Phone,
+  Building2,
+  Phone,
 } from "lucide-react";
 import type { Translations } from "../../../lib/translations";
 

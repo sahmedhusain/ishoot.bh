@@ -5,7 +5,10 @@ import { paymentGateway } from "./gateways";
 
 /** The gateway behind "Pay online": chosen in store settings and switched on in Integrations. Null otherwise. */
 export async function activePaymentGateway() {
-  const settings = await db.storeSettings.findUnique({ where: { id: "default" }, select: { paymentGateway: true } });
+  const settings = await db.storeSettings.findUnique({
+    where: { id: "default" },
+    select: { paymentGateway: true },
+  });
   const id = settings?.paymentGateway;
   if (!id || !isPaymentGateway(id)) return null;
   return gatewayWithCredentials(id);

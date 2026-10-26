@@ -46,29 +46,29 @@ export default async function HandoverSigningPage({
       handover={
         handover
           ? {
-              reference: handover.reference,
-              kind: handover.kind,
-              date: handover.handover_date,
-              condition: handover.condition,
-              employeeName:
-                language === "ar"
-                  ? handover.employee.name_ar
-                  : handover.employee.name_en,
-              assetName: `${handover.asset.asset_tag} · ${handover.asset.name}`,
-              category:
-                language === "ar"
-                  ? handover.asset.category.name_ar
-                  : handover.asset.category.name_en,
-              serial: handover.asset.serial_number ?? null,
-              checklist: handover.checklist.map((c) => ({
-                label: language === "ar" ? c.labelAr : c.labelEn,
-                ok: c.ok,
-                note: c.note,
-              })),
-              accessories: handover.accessories ?? null,
-              damage: handover.damage_notes ?? null,
-              issuedBy: handover.created_by,
-            }
+            reference: handover.reference,
+            kind: handover.kind,
+            date: handover.handover_date,
+            condition: handover.condition,
+            employeeName:
+              language === "ar"
+                ? handover.employee.name_ar
+                : handover.employee.name_en,
+            assetName: `${handover.asset.asset_tag} · ${handover.asset.name}`,
+            category:
+              language === "ar"
+                ? handover.asset.category.name_ar
+                : handover.asset.category.name_en,
+            serial: handover.asset.serial_number ?? null,
+            checklist: handover.checklist.map((c) => ({
+              label: language === "ar" ? c.labelAr : c.labelEn,
+              ok: c.ok,
+              note: c.note,
+            })),
+            accessories: handover.accessories ?? null,
+            damage: handover.damage_notes ?? null,
+            issuedBy: handover.created_by,
+          }
           : null
       }
       signedAt={record?.signedAt ? record.signedAt.toISOString() : null}

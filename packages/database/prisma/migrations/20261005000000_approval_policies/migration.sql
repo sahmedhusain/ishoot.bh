@@ -1,5 +1,6 @@
 -- AlterTable
-ALTER TABLE "ApprovalDecision" ADD COLUMN     "step" INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE "ApprovalDecision"
+ADD COLUMN "step" INTEGER NOT NULL DEFAULT 1;
 
 -- AlterTable
 ALTER TABLE "ApprovalRequest" ADD COLUMN     "approverIds" TEXT[] DEFAULT ARRAY[]::TEXT[],
@@ -8,6 +9,8 @@ ADD COLUMN     "policyId" TEXT,
 ADD COLUMN     "selfApproved" BOOLEAN NOT NULL DEFAULT false;
 
 -- CreateTable
+
+
 CREATE TABLE "ApprovalPolicy" (
     "id" TEXT NOT NULL,
     "targetType" TEXT NOT NULL,
@@ -29,21 +32,22 @@ CREATE TABLE "ApprovalPolicyStep" (
     "roleKey" TEXT,
     "userId" TEXT,
     "permission" TEXT,
-
     CONSTRAINT "ApprovalPolicyStep_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ApprovalPolicy_targetType_key" ON "ApprovalPolicy"("targetType");
+CREATE UNIQUE INDEX "ApprovalPolicy_targetType_key" ON "ApprovalPolicy" ("targetType");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ApprovalPolicyStep_policyId_order_key" ON "ApprovalPolicyStep"("policyId", "order");
+CREATE UNIQUE INDEX "ApprovalPolicyStep_policyId_order_key" ON "ApprovalPolicyStep" ("policyId", "order");
 
 -- AddForeignKey
-ALTER TABLE "ApprovalRequest" ADD CONSTRAINT "ApprovalRequest_policyId_fkey" FOREIGN KEY ("policyId") REFERENCES "ApprovalPolicy"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "ApprovalRequest"
+ADD CONSTRAINT "ApprovalRequest_policyId_fkey" FOREIGN KEY ("policyId") REFERENCES "ApprovalPolicy" ("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ApprovalPolicyStep" ADD CONSTRAINT "ApprovalPolicyStep_policyId_fkey" FOREIGN KEY ("policyId") REFERENCES "ApprovalPolicy"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ApprovalPolicyStep"
+ADD CONSTRAINT "ApprovalPolicyStep_policyId_fkey" FOREIGN KEY ("policyId") REFERENCES "ApprovalPolicy" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- Default approval policies (editable later in Settings → Approvals).
 -- Quotations and payroll keep the existing product rule: Super Admin approves.

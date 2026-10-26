@@ -20,7 +20,7 @@ export default async function InvoiceEditPage({
   const invoicePromise = getInvoiceById(id);
   const [invoice, contacts, company, services, fxBoard] = await Promise.all([
     invoicePromise,
-    invoicePromise.then(inv=>inv?.contact_id ? getCRMContactById(inv.contact_id).then(c=>c?[c]:[]) : []),
+    invoicePromise.then(inv => inv?.contact_id ? getCRMContactById(inv.contact_id).then(c => c ? [c] : []) : []),
     getCachedCompanySettings(),
     getAllServices({ isActive: true }),
     getFxBoard(),

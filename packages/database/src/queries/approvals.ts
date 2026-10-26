@@ -58,7 +58,8 @@ export async function listApprovalRequests(filters: {
   const pageSize = Math.min(100, Math.max(1, filters.pageSize || 25));
   const where: any = {};
 
-  if (filters.awaitingUserId) where.approverIds = { has: filters.awaitingUserId };
+  if (filters.awaitingUserId)
+    where.approverIds = { has: filters.awaitingUserId };
   if (filters.visibleToUserId)
     where.OR = [
       { requestedById: filters.visibleToUserId },

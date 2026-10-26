@@ -16,26 +16,51 @@ export function roundMoney(amount: number, currency: string): number {
   return toMinorUnits(amount, currency) / moneyFactor(currency);
 }
 
-export function lineTotal(quantity: number, unitPrice: number, currency: string): number {
+export function lineTotal(
+  quantity: number,
+  unitPrice: number,
+  currency: string,
+): number {
   return roundMoney(Number(quantity) * Number(unitPrice), currency);
 }
 
-export function sumMoney(amounts: Array<number | string | { toString(): string }>, currency: string): number {
-  const minor = amounts.reduce<number>((sum, value) => sum + toMinorUnits(Number(value), currency), 0);
+export function sumMoney(
+  amounts: Array<number | string | { toString(): string }>,
+  currency: string,
+): number {
+  const minor = amounts.reduce<number>(
+    (sum, value) => sum + toMinorUnits(Number(value), currency),
+    0,
+  );
   return minor / moneyFactor(currency);
 }
 
 /** Outstanding balance, never negative, compared in minor units. */
-export function amountDue(total: number, paid: number, currency: string): number {
-  return Math.max(0, toMinorUnits(total, currency) - toMinorUnits(paid, currency)) / moneyFactor(currency);
+export function amountDue(
+  total: number,
+  paid: number,
+  currency: string,
+): number {
+  return (
+    Math.max(0, toMinorUnits(total, currency) - toMinorUnits(paid, currency)) /
+    moneyFactor(currency)
+  );
 }
 
-export function isFullyPaid(total: number, paid: number, currency: string): boolean {
+export function isFullyPaid(
+  total: number,
+  paid: number,
+  currency: string,
+): boolean {
   return toMinorUnits(paid, currency) >= toMinorUnits(total, currency);
 }
 
 /** Payment status implied by the amount paid against the total. */
-export function paymentStatusFor(total: number, paid: number, currency: string): "paid" | "partially_paid" | null {
+export function paymentStatusFor(
+  total: number,
+  paid: number,
+  currency: string,
+): "paid" | "partially_paid" | null {
   if (toMinorUnits(paid, currency) <= 0) return null;
   return isFullyPaid(total, paid, currency) ? "paid" : "partially_paid";
 }

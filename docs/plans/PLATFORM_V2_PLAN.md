@@ -742,6 +742,7 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
 - Stopped here at the user's request: Phases 10 (dashboard v2) and 11 (motion polish) are not started.
 
 ### Deferred items closed (before Phases 10–11) — done
+
 - Supplier bills keep the supplier's invoice file (private attachment on the bill, also set as its expense's
   receipt).
 - A bank transfer recorded on an order can carry the transfer receipt; the order shows its files.
@@ -754,6 +755,7 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
 - Phases 10 (dashboard v2) and 11 (motion polish) are not started, at the user's request.
 
 ### Tooling and documentation (before Phases 10–11) — done
+
 - `run.sh`: one entry point for setup, doctor, `.env`, local services, databases (reset, migrate, backup, restore,
   test databases), development, builds, tests and CI, workers, the scheduled job and deployment (Vercel or own server).
 - `scripts/env-tool.cjs` (`./run.sh env init|sync|secrets|check|keys`): creates and updates `.env` from
@@ -764,6 +766,7 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
   API reference regenerated; MIT licence added.
 
 ### Phase 10: dashboard v2 (done)
+
 - Widget registry (`constants/dashboard.ts`): 22 widgets (figures for finance, pipeline, leads, orders, deliveries
   and tasks; revenue/expense and pipeline charts; the approvals and requests inbox; my tasks, recent deals, coming
   up, latest orders, low stock, campaigns, legal dates, company; quick actions; recent activity), each with the
@@ -786,6 +789,7 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
   confirmed the board, customizing, reset, the department page and the search.
 
 ### Phase 11: motion polish (done)
+
 - Motion tokens in the shared Tailwind preset (`packages/config/tailwind.config.ts`): `--motion-fast/base/slow`,
   `--motion-stagger`, `--motion-distance`, `--ease-standard/emphasized/exit` as CSS variables, Tailwind durations
   and easings (`duration-base`, `ease-emphasized`…), `animate-page-in`, `animate-fade-up`, `animate-scale-in`,

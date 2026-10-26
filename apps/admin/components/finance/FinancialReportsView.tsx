@@ -130,21 +130,19 @@ export function FinancialReportsView({
           <div className="inline-flex p-1 rounded-md bg-slate-100 dark:bg-neutral-800 border border-ink/10">
             <button
               onClick={() => handleBasisChange("cash")}
-              className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                currentBasis === "cash"
-                  ? "bg-primary text-white shadow-xs"
-                  : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white"
-              }`}
+              className={`px-3 py-1 rounded text-xs font-medium transition-colors ${currentBasis === "cash"
+                ? "bg-primary text-white shadow-xs"
+                : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white"
+                }`}
             >
               {t.financialReports.cashBasisReceipts}
             </button>
             <button
               onClick={() => handleBasisChange("accrual")}
-              className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                currentBasis === "accrual"
-                  ? "bg-primary text-white shadow-xs"
-                  : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white"
-              }`}
+              className={`px-3 py-1 rounded text-xs font-medium transition-colors ${currentBasis === "accrual"
+                ? "bg-primary text-white shadow-xs"
+                : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white"
+                }`}
             >
               {t.financialReports.accrualBasisInvoiced}
             </button>
@@ -238,18 +236,18 @@ export function FinancialReportsView({
 
         {/* Output VAT Collected */}
         {showVat && (
-        <div className="bg-white dark:bg-surface-raised border border-ink/10 p-5 rounded-lg space-y-1">
-          <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
-            {t.financialReports.outputVatNbrTax}
+          <div className="bg-white dark:bg-surface-raised border border-ink/10 p-5 rounded-lg space-y-1">
+            <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
+              {t.financialReports.outputVatNbrTax}
+            </div>
+            <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white">
+              {currentBasis === "cash" ? report.cashOutputVat.toFixed(3) : report.invoicedOutputVat.toFixed(3)}{" "}
+              <span className="text-xs font-normal text-slate-400">{bhd}</span>
+            </div>
+            <div className="text-[11px] text-amber-600 dark:text-amber-400">
+              {t.financialReports.fiduciaryTaxLiability}
+            </div>
           </div>
-          <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white">
-            {currentBasis === "cash" ? report.cashOutputVat.toFixed(3) : report.invoicedOutputVat.toFixed(3)}{" "}
-            <span className="text-xs font-normal text-slate-400">{bhd}</span>
-          </div>
-          <div className="text-[11px] text-amber-600 dark:text-amber-400">
-            {t.financialReports.fiduciaryTaxLiability}
-          </div>
-        </div>
         )}
 
         {/* Operating Costs */}

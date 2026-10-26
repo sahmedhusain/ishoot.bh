@@ -1,15 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-export function EntityLookup({ domain, value, onChange, clientId }: { domain: string; clientId?:string; value: string; onChange: (id: string) => void }) {
+export function EntityLookup({ domain, value, onChange, clientId }: { domain: string; clientId?: string; value: string; onChange: (id: string) => void }) {
   const { t } = useAdminLocale();
   const [query, setQuery] = useState(""), [page, setPage] = useState(1), [items, setItems] = useState<{ id: string; label: string }[]>([]), [more, setMore] = useState(false), [error, setError] = useState(false);
   useEffect(() => {
-    setItems([]);setError(false);
+    setItems([]); setError(false);
     const controller = new AbortController();
     const timer = setTimeout(async () => {
       try {
-        const response = await fetch(`/api/lookups/${domain}?${new URLSearchParams({ q: query, page: String(page), ...(clientId?{clientId}:{}) })}`, { signal: controller.signal });
+        const response = await fetch(`/api/lookups/${domain}?${new URLSearchParams({ q: query, page: String(page), ...(clientId ? { clientId } : {}) })}`, { signal: controller.signal });
         if (!response.ok) throw Error("Lookup failed");
         const result = await response.json(); setItems(result.items); setMore(result.hasMore); setError(false);
       } catch { if (!controller.signal.aborted) setError(true); }

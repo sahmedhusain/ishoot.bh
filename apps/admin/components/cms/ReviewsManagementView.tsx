@@ -3,19 +3,19 @@ import type { ReviewItem } from "../../types/cms";
 
 import * as React from "react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-import { Card,Badge,ConfirmDialog } from "@platform/ui";
+import { Card, Badge, ConfirmDialog } from "@platform/ui";
 import {
-Star,
-CheckCircle2,Trash2,
-Clock,Eye,
-EyeOff,
-Building2,
-User,
-MessageSquare
+  Star,
+  CheckCircle2, Trash2,
+  Clock, Eye,
+  EyeOff,
+  Building2,
+  User,
+  MessageSquare
 } from "lucide-react";
 import {
-toggleReviewApprovalAction,
-deleteReviewAction,
+  toggleReviewApprovalAction,
+  deleteReviewAction,
 } from "../../app/actions/cms";
 
 export function ReviewsManagementView({
@@ -37,9 +37,9 @@ export function ReviewsManagementView({
   const averageRating =
     reviews.length > 0
       ? (
-          reviews.reduce((acc, r) => acc + (Number(r.rating) || 5), 0) /
-          reviews.length
-        ).toFixed(1)
+        reviews.reduce((acc, r) => acc + (Number(r.rating) || 5), 0) /
+        reviews.length
+      ).toFixed(1)
       : "5.0";
 
   const filteredReviews = reviews.filter((r) => {
@@ -145,22 +145,20 @@ export function ReviewsManagementView({
         <button
           type="button"
           onClick={() => setFilter("all")}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-            filter === "all"
-              ? "bg-primary text-white shadow-xs"
-              : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
-          }`}
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${filter === "all"
+            ? "bg-primary text-white shadow-xs"
+            : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
+            }`}
         >
           {t.reviewsView.tabAll} ({reviews.length})
         </button>
         <button
           type="button"
           onClick={() => setFilter("pending")}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
-            filter === "pending"
-              ? "bg-amber-600 text-white shadow-xs"
-              : "text-amber-600 dark:text-amber-400 hover:bg-amber-500/10"
-          }`}
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${filter === "pending"
+            ? "bg-amber-600 text-white shadow-xs"
+            : "text-amber-600 dark:text-amber-400 hover:bg-amber-500/10"
+            }`}
         >
           <span>{t.reviewsView.tabPending}</span>
           {pendingCount > 0 && (
@@ -172,11 +170,10 @@ export function ReviewsManagementView({
         <button
           type="button"
           onClick={() => setFilter("published")}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-            filter === "published"
-              ? "bg-emerald-600 text-white shadow-xs"
-              : "text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10"
-          }`}
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${filter === "published"
+            ? "bg-emerald-600 text-white shadow-xs"
+            : "text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10"
+            }`}
         >
           {t.reviewsView.tabPublished} ({publishedCount})
         </button>
@@ -198,11 +195,10 @@ export function ReviewsManagementView({
           {filteredReviews.map((rev) => (
             <Card
               key={rev.id}
-              className={`p-5 rounded-2xl border transition-all flex flex-col justify-between space-y-4 ${
-                rev.isApproved
-                  ? "bg-white dark:bg-surface-raised border-slate-200 dark:border-white/10"
-                  : "bg-amber-50/40 dark:bg-amber-950/20 border-amber-300 dark:border-amber-500/30"
-              }`}
+              className={`p-5 rounded-2xl border transition-all flex flex-col justify-between space-y-4 ${rev.isApproved
+                ? "bg-white dark:bg-surface-raised border-slate-200 dark:border-white/10"
+                : "bg-amber-50/40 dark:bg-amber-950/20 border-amber-300 dark:border-amber-500/30"
+                }`}
             >
               <div>
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/10">
@@ -266,11 +262,10 @@ export function ReviewsManagementView({
                     type="button"
                     disabled={processingId === rev.id}
                     onClick={() => handleToggleApproval(rev.id, rev.isApproved)}
-                    className={`flex-1 px-3 py-1.5 rounded-xl text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition-all ${
-                      rev.isApproved
-                        ? "bg-slate-100 hover:bg-amber-50 text-slate-700 hover:text-amber-700 dark:bg-white/5 dark:hover:bg-amber-950/40 dark:text-neutral-300 dark:hover:text-amber-300 border border-slate-200 dark:border-white/10"
-                        : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
-                    }`}
+                    className={`flex-1 px-3 py-1.5 rounded-xl text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition-all ${rev.isApproved
+                      ? "bg-slate-100 hover:bg-amber-50 text-slate-700 hover:text-amber-700 dark:bg-white/5 dark:hover:bg-amber-950/40 dark:text-neutral-300 dark:hover:text-amber-300 border border-slate-200 dark:border-white/10"
+                      : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+                      }`}
                   >
                     {rev.isApproved ? (
                       <>

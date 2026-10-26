@@ -1,97 +1,155 @@
 -- Company assets issued to staff: categories with spec fields and checklists, assets, and signed, approved handovers.
 CREATE TABLE "AssetCategory" (
-  "id" TEXT NOT NULL,
-  "code" TEXT NOT NULL,
-  "nameEn" TEXT NOT NULL,
-  "nameAr" TEXT NOT NULL,
-  "specFields" JSONB NOT NULL DEFAULT '[]',
-  "checklist" JSONB NOT NULL DEFAULT '[]',
-  "isActive" BOOLEAN NOT NULL DEFAULT true,
-  "displayOrder" INTEGER NOT NULL DEFAULT 0,
-  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updatedAt" TIMESTAMP(3) NOT NULL,
-  CONSTRAINT "AssetCategory_pkey" PRIMARY KEY ("id")
+    "id" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
+    "nameEn" TEXT NOT NULL,
+    "nameAr" TEXT NOT NULL,
+    "specFields" JSONB NOT NULL DEFAULT '[]',
+    "checklist" JSONB NOT NULL DEFAULT '[]',
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "displayOrder" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "AssetCategory_pkey" PRIMARY KEY ("id")
 );
-CREATE UNIQUE INDEX "AssetCategory_code_key" ON "AssetCategory"("code");
+
+CREATE UNIQUE INDEX "AssetCategory_code_key" ON "AssetCategory" ("code");
 
 CREATE TABLE "Asset" (
-  "id" TEXT NOT NULL,
-  "assetTag" TEXT NOT NULL,
-  "categoryId" TEXT NOT NULL,
-  "name" TEXT NOT NULL,
-  "brand" TEXT,
-  "model" TEXT,
-  "serialNumber" TEXT,
-  "purchaseDate" DATE,
-  "purchaseCost" DECIMAL(12,3),
-  "currency" TEXT NOT NULL DEFAULT 'BHD',
-  "supplier" TEXT,
-  "invoiceReference" TEXT,
-  "warrantyUntil" DATE,
-  "condition" TEXT NOT NULL DEFAULT 'good',
-  "status" TEXT NOT NULL DEFAULT 'available',
-  "specs" JSONB NOT NULL DEFAULT '{}',
-  "location" TEXT,
-  "holderEmployeeId" TEXT,
-  "notes" TEXT,
-  "createdById" TEXT,
-  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updatedAt" TIMESTAMP(3) NOT NULL,
-  CONSTRAINT "Asset_pkey" PRIMARY KEY ("id"),
-  CONSTRAINT "Asset_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "AssetCategory"("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-  CONSTRAINT "Asset_holderEmployeeId_fkey" FOREIGN KEY ("holderEmployeeId") REFERENCES "Employee"("id") ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT "Asset_condition_check" CHECK ("condition" IN ('new', 'excellent', 'good', 'fair', 'poor', 'damaged')),
-  CONSTRAINT "Asset_status_check" CHECK ("status" IN ('available', 'assigned', 'maintenance', 'lost', 'retired')),
-  CONSTRAINT "Asset_holder_check" CHECK (("status" = 'assigned') = ("holderEmployeeId" IS NOT NULL)),
-  CONSTRAINT "Asset_cost_check" CHECK ("purchaseCost" IS NULL OR "purchaseCost" >= 0)
+    "id" TEXT NOT NULL,
+    "assetTag" TEXT NOT NULL,
+    "categoryId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "brand" TEXT,
+    "model" TEXT,
+    "serialNumber" TEXT,
+    "purchaseDate" DATE,
+    "purchaseCost" DECIMAL(12, 3),
+    "currency" TEXT NOT NULL DEFAULT 'BHD',
+    "supplier" TEXT,
+    "invoiceReference" TEXT,
+    "warrantyUntil" DATE,
+    "condition" TEXT NOT NULL DEFAULT 'good',
+    "status" TEXT NOT NULL DEFAULT 'available',
+    "specs" JSONB NOT NULL DEFAULT '{}',
+    "location" TEXT,
+    "holderEmployeeId" TEXT,
+    "notes" TEXT,
+    "createdById" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "Asset_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "Asset_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "AssetCategory" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "Asset_holderEmployeeId_fkey" FOREIGN KEY ("holderEmployeeId") REFERENCES "Employee" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT "Asset_condition_check" CHECK (
+        "condition" IN (
+            'new',
+            'excellent',
+            'good',
+            'fair',
+            'poor',
+            'damaged'
+        )
+    ),
+    CONSTRAINT "Asset_status_check" CHECK (
+        "status" IN (
+            'available',
+            'assigned',
+            'maintenance',
+            'lost',
+            'retired'
+        )
+    ),
+    CONSTRAINT "Asset_holder_check" CHECK (
+        ("status" = 'assigned') = (
+            "holderEmployeeId" IS NOT NULL
+        )
+    ),
+    CONSTRAINT "Asset_cost_check" CHECK (
+        "purchaseCost" IS NULL
+        OR "purchaseCost" >= 0
+    )
 );
-CREATE UNIQUE INDEX "Asset_assetTag_key" ON "Asset"("assetTag");
-CREATE INDEX "Asset_categoryId_idx" ON "Asset"("categoryId");
-CREATE INDEX "Asset_status_idx" ON "Asset"("status");
-CREATE INDEX "Asset_holderEmployeeId_idx" ON "Asset"("holderEmployeeId");
-CREATE UNIQUE INDEX "Asset_serial_per_category" ON "Asset"("categoryId", "serialNumber") WHERE "serialNumber" IS NOT NULL;
+
+CREATE UNIQUE INDEX "Asset_assetTag_key" ON "Asset" ("assetTag");
+
+CREATE INDEX "Asset_categoryId_idx" ON "Asset" ("categoryId");
+
+CREATE INDEX "Asset_status_idx" ON "Asset" ("status");
+
+CREATE INDEX "Asset_holderEmployeeId_idx" ON "Asset" ("holderEmployeeId");
+
+CREATE UNIQUE INDEX "Asset_serial_per_category" ON "Asset" ("categoryId", "serialNumber")
+WHERE
+    "serialNumber" IS NOT NULL;
 
 CREATE TABLE "AssetHandover" (
-  "id" TEXT NOT NULL,
-  "reference" TEXT NOT NULL,
-  "assetId" TEXT NOT NULL,
-  "employeeId" TEXT NOT NULL,
-  "kind" TEXT NOT NULL,
-  "status" TEXT NOT NULL DEFAULT 'awaiting_employee',
-  "handoverDate" DATE NOT NULL,
-  "condition" TEXT NOT NULL,
-  "checklist" JSONB NOT NULL DEFAULT '[]',
-  "specsSnapshot" JSONB NOT NULL DEFAULT '{}',
-  "accessories" TEXT,
-  "damageNotes" TEXT,
-  "damageCharge" DECIMAL(12,3),
-  "deductFromSalary" BOOLEAN NOT NULL DEFAULT false,
-  "notes" TEXT,
-  "offboardingId" TEXT,
-  "createdById" TEXT NOT NULL,
-  "creatorSignatureUrl" TEXT,
-  "employeeSignature" TEXT,
-  "employeeSignerName" TEXT,
-  "employeeSignedAt" TIMESTAMP(3),
-  "signedInPerson" BOOLEAN NOT NULL DEFAULT false,
-  "decidedAt" TIMESTAMP(3),
-  "decisionNotes" TEXT,
-  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updatedAt" TIMESTAMP(3) NOT NULL,
-  CONSTRAINT "AssetHandover_pkey" PRIMARY KEY ("id"),
-  CONSTRAINT "AssetHandover_assetId_fkey" FOREIGN KEY ("assetId") REFERENCES "Asset"("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-  CONSTRAINT "AssetHandover_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee"("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-  CONSTRAINT "AssetHandover_kind_check" CHECK ("kind" IN ('issue', 'return')),
-  CONSTRAINT "AssetHandover_status_check" CHECK ("status" IN ('awaiting_employee', 'pending_approval', 'completed', 'rejected', 'cancelled')),
-  CONSTRAINT "AssetHandover_signed_check" CHECK ("status" IN ('awaiting_employee', 'cancelled') OR "employeeSignedAt" IS NOT NULL),
-  CONSTRAINT "AssetHandover_charge_check" CHECK ("damageCharge" IS NULL OR "damageCharge" >= 0)
+    "id" TEXT NOT NULL,
+    "reference" TEXT NOT NULL,
+    "assetId" TEXT NOT NULL,
+    "employeeId" TEXT NOT NULL,
+    "kind" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'awaiting_employee',
+    "handoverDate" DATE NOT NULL,
+    "condition" TEXT NOT NULL,
+    "checklist" JSONB NOT NULL DEFAULT '[]',
+    "specsSnapshot" JSONB NOT NULL DEFAULT '{}',
+    "accessories" TEXT,
+    "damageNotes" TEXT,
+    "damageCharge" DECIMAL(12, 3),
+    "deductFromSalary" BOOLEAN NOT NULL DEFAULT false,
+    "notes" TEXT,
+    "offboardingId" TEXT,
+    "createdById" TEXT NOT NULL,
+    "creatorSignatureUrl" TEXT,
+    "employeeSignature" TEXT,
+    "employeeSignerName" TEXT,
+    "employeeSignedAt" TIMESTAMP(3),
+    "signedInPerson" BOOLEAN NOT NULL DEFAULT false,
+    "decidedAt" TIMESTAMP(3),
+    "decisionNotes" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "AssetHandover_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "AssetHandover_assetId_fkey" FOREIGN KEY ("assetId") REFERENCES "Asset" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "AssetHandover_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "AssetHandover_kind_check" CHECK ("kind" IN ('issue', 'return')),
+    CONSTRAINT "AssetHandover_status_check" CHECK (
+        "status" IN (
+            'awaiting_employee',
+            'pending_approval',
+            'completed',
+            'rejected',
+            'cancelled'
+        )
+    ),
+    CONSTRAINT "AssetHandover_signed_check" CHECK (
+        "status" IN (
+            'awaiting_employee',
+            'cancelled'
+        )
+        OR "employeeSignedAt" IS NOT NULL
+    ),
+    CONSTRAINT "AssetHandover_charge_check" CHECK (
+        "damageCharge" IS NULL
+        OR "damageCharge" >= 0
+    )
 );
-CREATE UNIQUE INDEX "AssetHandover_reference_key" ON "AssetHandover"("reference");
-CREATE INDEX "AssetHandover_assetId_idx" ON "AssetHandover"("assetId");
-CREATE INDEX "AssetHandover_employeeId_idx" ON "AssetHandover"("employeeId");
-CREATE INDEX "AssetHandover_status_idx" ON "AssetHandover"("status");
+
+CREATE UNIQUE INDEX "AssetHandover_reference_key" ON "AssetHandover" ("reference");
+
+CREATE INDEX "AssetHandover_assetId_idx" ON "AssetHandover" ("assetId");
+
+CREATE INDEX "AssetHandover_employeeId_idx" ON "AssetHandover" ("employeeId");
+
+CREATE INDEX "AssetHandover_status_idx" ON "AssetHandover" ("status");
 -- One open handover per asset at a time.
-CREATE UNIQUE INDEX "AssetHandover_one_open" ON "AssetHandover"("assetId") WHERE "status" IN ('awaiting_employee', 'pending_approval');
+CREATE UNIQUE INDEX "AssetHandover_one_open" ON "AssetHandover" ("assetId")
+WHERE
+    "status" IN (
+        'awaiting_employee',
+        'pending_approval'
+    );
 
 INSERT INTO "AssetCategory" ("id", "code", "nameEn", "nameAr", "specFields", "checklist", "displayOrder", "updatedAt") VALUES
 (gen_random_uuid()::text, 'laptop', 'Laptop', 'حاسوب محمول', '[{"key": "cpu", "labelEn": "Processor", "labelAr": "المعالج", "type": "text"}, {"key": "ram_gb", "labelEn": "Memory (GB)", "labelAr": "الذاكرة (جيجابايت)", "type": "number"}, {"key": "storage_gb", "labelEn": "Storage (GB)", "labelAr": "التخزين (جيجابايت)", "type": "number"}, {"key": "os", "labelEn": "Operating system", "labelAr": "نظام التشغيل", "type": "text"}]'::jsonb, '[{"key": "charger", "labelEn": "Charger", "labelAr": "الشاحن"}, {"key": "screen", "labelEn": "Screen free of scratches and dead pixels", "labelAr": "الشاشة خالية من الخدوش والبكسلات الميتة"}, {"key": "keyboard", "labelEn": "Keyboard and trackpad work", "labelAr": "لوحة المفاتيح ولوحة اللمس تعملان"}, {"key": "battery", "labelEn": "Battery holds charge", "labelAr": "البطارية تحتفظ بالشحن"}, {"key": "body", "labelEn": "Body free of dents", "labelAr": "الهيكل خالٍ من الصدمات"}, {"key": "data", "labelEn": "Work data backed up and personal accounts removed", "labelAr": "نسخ بيانات العمل احتياطيًا وإزالة الحسابات الشخصية"}]'::jsonb, 0, CURRENT_TIMESTAMP),
@@ -123,6 +181,7 @@ ON CONFLICT ("role", "resource", "action") DO NOTHING;
 INSERT INTO "ApprovalPolicy" ("id", "targetType", "enabled", "allowSelfApproval", "autoApproveRoles", "createdAt", "updatedAt")
 VALUES (gen_random_uuid()::text, 'asset_handover', true, false, ARRAY['super_admin'], CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT ("targetType") DO NOTHING;
+
 INSERT INTO "ApprovalPolicyStep" ("id", "policyId", "order", "approverMode", "permission")
 SELECT gen_random_uuid()::text, p."id", s."order", s."mode", s."permission"
 FROM "ApprovalPolicy" p

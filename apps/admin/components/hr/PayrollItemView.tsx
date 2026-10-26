@@ -361,10 +361,10 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
                       <td className="py-1.5 pe-2">{p.statuses[day.status as keyof typeof p.statuses] ?? day.status}</td>
                       <td className="py-1.5 pe-2 text-slate-600 dark:text-slate-400">
                         {[day.lateMinutes ? `${t.attendance.late}: ${day.lateMinutes}` : null,
-                          day.overtimeMinutes + day.overtimeNightMinutes + day.overtimeRestDayMinutes + day.overtimeHolidayMinutes
-                            ? `${t.payroll.overtime}: ${fill(t.payroll.hoursShort, { n: hours(day.overtimeMinutes + day.overtimeNightMinutes + day.overtimeRestDayMinutes + day.overtimeHolidayMinutes) })}`
-                            : null,
-                          day.shift ? (locale === "ar" ? day.shift.nameAr : day.shift.nameEn) : null].filter(Boolean).join(" · ")}
+                        day.overtimeMinutes + day.overtimeNightMinutes + day.overtimeRestDayMinutes + day.overtimeHolidayMinutes
+                          ? `${t.payroll.overtime}: ${fill(t.payroll.hoursShort, { n: hours(day.overtimeMinutes + day.overtimeNightMinutes + day.overtimeRestDayMinutes + day.overtimeHolidayMinutes) })}`
+                          : null,
+                        day.shift ? (locale === "ar" ? day.shift.nameAr : day.shift.nameEn) : null].filter(Boolean).join(" · ")}
                       </td>
                     </tr>
                   ))}

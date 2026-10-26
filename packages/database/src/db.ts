@@ -26,9 +26,18 @@ const prismaClientSingleton = () => {
     const start = performance.now();
     try {
       const result = await next(params);
-      context.rows += Array.isArray(result) ? result.length : result && typeof result === "object" && "count" in result ? result.count : result ? 1 : 0;
+      context.rows += Array.isArray(result)
+        ? result.length
+        : result && typeof result === "object" && "count" in result
+          ? result.count
+          : result
+            ? 1
+            : 0;
       return result;
-    } finally { context.dbQueries++; context.dbMs += performance.now() - start; }
+    } finally {
+      context.dbQueries++;
+      context.dbMs += performance.now() - start;
+    }
   });
   return client;
 };
@@ -42,16 +51,25 @@ const client = globalThis.prismaGlobal ?? prismaClientSingleton();
 export const db = new Proxy(client, {
   get(target, property) {
     const active = transactionContext.getStore();
-    if (active && property === "$transaction") return async (operation: any) =>
-      typeof operation === "function" ? operation(active) : Promise.all(operation);
+    if (active && property === "$transaction")
+      return async (operation: any) =>
+        typeof operation === "function"
+          ? operation(active)
+          : Promise.all(operation);
     const receiver = active || target;
     const value = (receiver as any)[property];
     return typeof value === "function" ? value.bind(receiver) : value;
   },
 });
-export async function runAtomicMutation<T>(operation: () => Promise<T>, isolationLevel?: Prisma.TransactionIsolationLevel): Promise<T> {
+export async function runAtomicMutation<T>(
+  operation: () => Promise<T>,
+  isolationLevel?: Prisma.TransactionIsolationLevel,
+): Promise<T> {
   if (transactionContext.getStore()) return operation();
-  return client.$transaction((tx) => transactionContext.run(tx, operation), { timeout: 15000, isolationLevel });
+  return client.$transaction((tx) => transactionContext.run(tx, operation), {
+    timeout: 15000,
+    isolationLevel,
+  });
 }
 
 /** Runs work outside any open transaction, e.g. a write scheduled with after() once the transaction has ended. */

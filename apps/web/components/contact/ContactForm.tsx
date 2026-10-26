@@ -97,28 +97,28 @@ export function ContactForm({
     const body =
       intent === "review"
         ? {
-            authorName: read("fullName"),
-            companyName: read("company"),
-            rating,
-            quote: read("message"),
-            locale,
-            website: read("website"),
-          }
+          authorName: read("fullName"),
+          companyName: read("company"),
+          rating,
+          quote: read("message"),
+          locale,
+          website: read("website"),
+        }
         : {
-            fullName: read("fullName"),
-            email: read("email"),
-            phone: read("phone"),
-            company: read("company"),
-            message: read("message"),
-            services: sales ? selected : [],
-            budget: read("budget"),
-            timeline: read("timeline"),
-            projectReference: read("projectReference"),
-            location: read("location"),
-            intent,
-            locale,
-            website: read("website"),
-          };
+          fullName: read("fullName"),
+          email: read("email"),
+          phone: read("phone"),
+          company: read("company"),
+          message: read("message"),
+          services: sales ? selected : [],
+          budget: read("budget"),
+          timeline: read("timeline"),
+          projectReference: read("projectReference"),
+          location: read("location"),
+          intent,
+          locale,
+          website: read("website"),
+        };
 
     const payload = JSON.stringify(body);
     if (submission.current.payload !== payload)
@@ -225,11 +225,10 @@ export function ContactForm({
             return (
               <label
                 key={value}
-                className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-colors duration-150 cursor-pointer flex items-center gap-2 ${
-                  isSelected
-                    ? "bg-accent text-paper border border-accent"
-                    : "bg-brand-base text-ink-muted hover:text-white border border-white/10 hover:border-white/20"
-                }`}
+                className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-colors duration-150 cursor-pointer flex items-center gap-2 ${isSelected
+                  ? "bg-accent text-paper border border-accent"
+                  : "bg-brand-base text-ink-muted hover:text-white border border-white/10 hover:border-white/20"
+                  }`}
               >
                 <input
                   type="radio"
@@ -335,11 +334,10 @@ export function ContactForm({
                 return (
                   <label
                     key={service.id}
-                    className={`min-h-11 px-3.5 py-2 rounded-xl text-xs font-medium transition-colors duration-150 cursor-pointer flex items-center gap-1.5 ${
-                      isChecked
-                        ? "bg-accent/25 text-mint border border-accent"
-                        : "bg-white/5 text-ink-muted hover:text-white border border-white/10"
-                    }`}
+                    className={`min-h-11 px-3.5 py-2 rounded-xl text-xs font-medium transition-colors duration-150 cursor-pointer flex items-center gap-1.5 ${isChecked
+                      ? "bg-accent/25 text-mint border border-accent"
+                      : "bg-white/5 text-ink-muted hover:text-white border border-white/10"
+                      }`}
                   >
                     <input
                       className="sr-only"
@@ -364,70 +362,70 @@ export function ContactForm({
         {intent === "quote_request" && (ask.budget || ask.timeline || ask.location || ask.reference) && (
           <div className="grid sm:grid-cols-2 gap-5">
             {ask.budget && (
-            <label className="block space-y-2">
-              <span className="text-xs font-semibold text-ink font-sans">
-                {t("contact.estimatedBudget")}
-              </span>
-              <select className={field} name="budget" defaultValue="">
-                <option value="" className="bg-brand-surface text-ink-muted">
-                  {t("contact.chooseRangeOptional")}
-                </option>
-                <option value="not_sure" className="bg-brand-surface text-white">
-                  {t("contact.budgetNotSure")}
-                </option>
-                <option value="under_500" className="bg-brand-surface text-white">
-                  {t("contact.budgetUnder500", { currency })}
-                </option>
-                <option value="500_1500" className="bg-brand-surface text-white">
-                  {t("contact.budget500_1500", { currency })}
-                </option>
-                <option value="1500_5000" className="bg-brand-surface text-white">
-                  {t("contact.budget1500_5000", { currency })}
-                </option>
-                <option value="5000_plus" className="bg-brand-surface text-white">
-                  {t("contact.budget5000Plus", { currency })}
-                </option>
-              </select>
-            </label>
+              <label className="block space-y-2">
+                <span className="text-xs font-semibold text-ink font-sans">
+                  {t("contact.estimatedBudget")}
+                </span>
+                <select className={field} name="budget" defaultValue="">
+                  <option value="" className="bg-brand-surface text-ink-muted">
+                    {t("contact.chooseRangeOptional")}
+                  </option>
+                  <option value="not_sure" className="bg-brand-surface text-white">
+                    {t("contact.budgetNotSure")}
+                  </option>
+                  <option value="under_500" className="bg-brand-surface text-white">
+                    {t("contact.budgetUnder500", { currency })}
+                  </option>
+                  <option value="500_1500" className="bg-brand-surface text-white">
+                    {t("contact.budget500_1500", { currency })}
+                  </option>
+                  <option value="1500_5000" className="bg-brand-surface text-white">
+                    {t("contact.budget1500_5000", { currency })}
+                  </option>
+                  <option value="5000_plus" className="bg-brand-surface text-white">
+                    {t("contact.budget5000Plus", { currency })}
+                  </option>
+                </select>
+              </label>
             )}
 
             {ask.timeline && (
-            <label className="block space-y-2">
-              <span className="text-xs font-semibold text-ink font-sans">
-                {t("contact.targetTimeline")}
-              </span>
-              <select className={field} name="timeline" defaultValue="">
-                <option value="" className="bg-brand-surface text-ink-muted">
-                  {t("contact.chooseTimelineOptional")}
-                </option>
-                <option value="urgent" className="bg-brand-surface text-white">
-                  {t("contact.timelineUrgent")}
-                </option>
-                <option value="month" className="bg-brand-surface text-white">
-                  {t("contact.timelineMonth")}
-                </option>
-                <option value="quarter" className="bg-brand-surface text-white">
-                  {t("contact.timelineQuarter")}
-                </option>
-                <option value="flexible" className="bg-brand-surface text-white">
-                  {t("contact.timelineFlexible")}
-                </option>
-              </select>
-            </label>
+              <label className="block space-y-2">
+                <span className="text-xs font-semibold text-ink font-sans">
+                  {t("contact.targetTimeline")}
+                </span>
+                <select className={field} name="timeline" defaultValue="">
+                  <option value="" className="bg-brand-surface text-ink-muted">
+                    {t("contact.chooseTimelineOptional")}
+                  </option>
+                  <option value="urgent" className="bg-brand-surface text-white">
+                    {t("contact.timelineUrgent")}
+                  </option>
+                  <option value="month" className="bg-brand-surface text-white">
+                    {t("contact.timelineMonth")}
+                  </option>
+                  <option value="quarter" className="bg-brand-surface text-white">
+                    {t("contact.timelineQuarter")}
+                  </option>
+                  <option value="flexible" className="bg-brand-surface text-white">
+                    {t("contact.timelineFlexible")}
+                  </option>
+                </select>
+              </label>
             )}
 
             {ask.location && (
-            <label className="block space-y-2 sm:col-span-2">
-              <span className="text-xs font-semibold text-ink-muted font-sans">
-                {t("contact.shootLocation")}
-              </span>
-              <input
-                name="location"
-                maxLength={300}
-                placeholder={t("contact.shootLocationPlaceholder")}
-                className={field}
-              />
-            </label>
+              <label className="block space-y-2 sm:col-span-2">
+                <span className="text-xs font-semibold text-ink-muted font-sans">
+                  {t("contact.shootLocation")}
+                </span>
+                <input
+                  name="location"
+                  maxLength={300}
+                  placeholder={t("contact.shootLocationPlaceholder")}
+                  className={field}
+                />
+              </label>
             )}
 
             {ask.reference && (
@@ -483,11 +481,10 @@ export function ContactForm({
                   />
                   <Star
                     aria-hidden
-                    className={`w-7 h-7 transition-colors ${
-                      rating >= value
-                        ? "text-amber-400 fill-amber-400"
-                        : "text-neutral-600"
-                    }`}
+                    className={`w-7 h-7 transition-colors ${rating >= value
+                      ? "text-amber-400 fill-amber-400"
+                      : "text-neutral-600"
+                      }`}
                   />
                 </label>
               ))}

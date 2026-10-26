@@ -92,37 +92,37 @@ async function salarySignatory(
   // A signature drawn when the document was approved (signing on the spot) takes precedence over the saved one.
   const drawn = reviewedById
     ? await db.approvalDecision.findFirst({
-        where: {
-          decidedById: reviewedById,
-          decision: "approved",
-          signatureData: { not: null },
-          approvalRequest: {
-            targetType: "salary_document",
-            targetId: documentId,
-          },
+      where: {
+        decidedById: reviewedById,
+        decision: "approved",
+        signatureData: { not: null },
+        approvalRequest: {
+          targetType: "salary_document",
+          targetId: documentId,
         },
-        orderBy: { decidedAt: "desc" },
-        select: { signatureData: true },
-      })
+      },
+      orderBy: { decidedAt: "desc" },
+      select: { signatureData: true },
+    })
     : null;
   const reviewer = reviewedById
     ? await db.user.findUnique({
-        where: { id: reviewedById },
-        select: {
-          fullName: true,
-          signatureUrl: true,
-          employee: {
-            select: {
-              jobTitleEn: true,
-              jobTitleAr: true,
-              firstNameEn: true,
-              lastNameEn: true,
-              firstNameAr: true,
-              lastNameAr: true,
-            },
+      where: { id: reviewedById },
+      select: {
+        fullName: true,
+        signatureUrl: true,
+        employee: {
+          select: {
+            jobTitleEn: true,
+            jobTitleAr: true,
+            firstNameEn: true,
+            lastNameEn: true,
+            firstNameAr: true,
+            lastNameAr: true,
           },
         },
-      })
+      },
+    })
     : null;
   const own = await resolveConfiguredPdfAsset(
     drawn?.signatureData ?? reviewer?.signatureUrl,
@@ -234,18 +234,18 @@ function AmountTable({
     .flatMap((key) =>
       key === expanded && named.length
         ? named.map((l, i) => ({
-            key: `${key}-${i}`,
-            label: categories[l.category] ?? lines[key],
-            detail: l.label,
-            amount: num(l.amount),
-          }))
+          key: `${key}-${i}`,
+          label: categories[l.category] ?? lines[key],
+          detail: l.label,
+          amount: num(l.amount),
+        }))
         : key === "gosiEmployee" && gosiLines.length
           ? gosiLines.map((l, i) => ({
-              key: `${key}-${i}`,
-              label: `${isAr ? l.nameAr : l.nameEn} (${l.employeePercent}%)`,
-              detail: lines[key],
-              amount: l.employee,
-            }))
+            key: `${key}-${i}`,
+            label: `${isAr ? l.nameAr : l.nameEn} (${l.employeePercent}%)`,
+            detail: lines[key],
+            amount: l.employee,
+          }))
           : [{ key, label: lines[key], amount: num(item[key]) }],
     );
   return (
@@ -358,8 +358,8 @@ function PayslipPage({
         facts={[
           ...(run.payDate
             ? ([[p.payDate, fmtDate(run.payDate.slice(0, 10), isAr)]] as Array<
-                [string, string]
-              >)
+              [string, string]
+            >)
             : []),
           [t.pdfDocs.issuedOn, fmtDate(issuedAt, isAr)],
         ]}
@@ -537,13 +537,13 @@ function CertificatePage({
           [p.position, isAr ? employee.jobTitleAr : employee.jobTitleEn],
           ...((isAr ? employee.departmentAr : employee.departmentEn)
             ? [
-                [
-                  p.department,
-                  (isAr
-                    ? employee.departmentAr
-                    : employee.departmentEn) as string,
-                ],
-              ]
+              [
+                p.department,
+                (isAr
+                  ? employee.departmentAr
+                  : employee.departmentEn) as string,
+              ],
+            ]
             : []),
           [p.hireDate, fmtDate(employee.hireDate, isAr)],
           [h.grossSalary, fmtMoney(gross, currency, isAr)],

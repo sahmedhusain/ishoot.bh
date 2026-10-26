@@ -2,7 +2,7 @@
 import type { AdminTranslations } from "../../lib/translations";
 
 import { ConfirmDialog } from "@platform/ui";
-import { ArrowRight,AlertCircle } from "lucide-react";
+import { ArrowRight, AlertCircle } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 export interface FieldChange {
@@ -59,49 +59,49 @@ export function EditConfirmModal({
       loading={isSaving}
       errorLabel={errorLabel}
       description={
-      <div className="space-y-5">
-        <p className="text-xs text-slate-500 dark:text-ink-muted">
-          {description ||
-            (t.editConfirmModal.pleaseReviewTheModifiedFields)}
-        </p>
+        <div className="space-y-5">
+          <p className="text-xs text-slate-500 dark:text-ink-muted">
+            {description ||
+              (t.editConfirmModal.pleaseReviewTheModifiedFields)}
+          </p>
 
-        {filteredChanges.length > 0 ? (
-          <div className="space-y-2.5 max-h-72 overflow-y-auto pe-1">
-            {filteredChanges.map((change, idx) => (
-              <div
-                key={idx}
-                className="p-3.5 rounded-2xl bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 space-y-1.5"
-              >
-                <div className="text-[11px] font-bold text-slate-700 dark:text-ink-muted uppercase tracking-wider">
-                  {change.label}
-                </div>
-
-                <div className="flex items-center gap-3 text-xs">
-                  {/* Old Value */}
-                  <div className="flex-1 p-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-rose-700 dark:text-rose-300 font-mono text-[11px] min-w-0 break-words line-through opacity-80">
-                    {formatValue(change.oldValue, t)}
+          {filteredChanges.length > 0 ? (
+            <div className="space-y-2.5 max-h-72 overflow-y-auto pe-1">
+              {filteredChanges.map((change, idx) => (
+                <div
+                  key={idx}
+                  className="p-3.5 rounded-2xl bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 space-y-1.5"
+                >
+                  <div className="text-[11px] font-bold text-slate-700 dark:text-ink-muted uppercase tracking-wider">
+                    {change.label}
                   </div>
 
-                  <ArrowRight className="w-3.5 h-3.5 text-slate-400 shrink-0 rtl:rotate-180" />
+                  <div className="flex items-center gap-3 text-xs">
+                    {/* Old Value */}
+                    <div className="flex-1 p-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-rose-700 dark:text-rose-300 font-mono text-[11px] min-w-0 break-words line-through opacity-80">
+                      {formatValue(change.oldValue, t)}
+                    </div>
 
-                  {/* New Value */}
-                  <div className="flex-1 p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 font-mono text-[11px] font-bold min-w-0 break-words">
-                    {formatValue(change.newValue, t)}
+                    <ArrowRight className="w-3.5 h-3.5 text-slate-400 shrink-0 rtl:rotate-180" />
+
+                    {/* New Value */}
+                    <div className="flex-1 p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 font-mono text-[11px] font-bold min-w-0 break-words">
+                      {formatValue(change.newValue, t)}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 flex items-center gap-2.5 text-amber-800 dark:text-amber-300 text-xs">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>
-              {t.editConfirmModal.noFieldsHaveBeenModified}
-            </span>
-          </div>
-        )}
+              ))}
+            </div>
+          ) : (
+            <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 flex items-center gap-2.5 text-amber-800 dark:text-amber-300 text-xs">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>
+                {t.editConfirmModal.noFieldsHaveBeenModified}
+              </span>
+            </div>
+          )}
 
-      </div>
+        </div>
       }
     />
   );

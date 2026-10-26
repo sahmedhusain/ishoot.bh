@@ -20,8 +20,11 @@ export async function GET(
     return new NextResponse(null, { status: 409 });
   // Only the languages the employee asked for are issued.
   const requested = request.nextUrl.searchParams.get("locale");
-  const locale = (requested === "ar" || requested === "en" ? requested : document.languages[0]) as "ar" | "en";
-  if (!document.languages.includes(locale)) return new NextResponse(null, { status: 404 });
+  const locale = (
+    requested === "ar" || requested === "en" ? requested : document.languages[0]
+  ) as "ar" | "en";
+  if (!document.languages.includes(locale))
+    return new NextResponse(null, { status: 404 });
   const buffer = await generateSalaryDocumentPdf(
     document,
     await getCompanySettings(),

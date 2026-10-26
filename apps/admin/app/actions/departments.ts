@@ -10,7 +10,10 @@ import {
   saveDepartment,
   type DepartmentInput,
 } from "@platform/database";
-import { isDepartmentKey, type DepartmentKey } from "@platform/database/constants/departments";
+import {
+  isDepartmentKey,
+  type DepartmentKey,
+} from "@platform/database/constants/departments";
 import { ROUTES } from "../../constants/routes";
 import { requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
@@ -29,7 +32,13 @@ export async function saveDepartmentAction(input: DepartmentInput) {
     validateActionArguments("saveDepartmentAction", { input });
     const department = await runAtomicMutation(async () => {
       const saved = await saveDepartment(input);
-      await createActivityLog({ user_id: user.id, action: input.id ? "update" : "create", entity_type: "department", entity_id: saved.id, details: { code: saved.code, parentId: saved.parentId } });
+      await createActivityLog({
+        user_id: user.id,
+        action: input.id ? "update" : "create",
+        entity_type: "department",
+        entity_id: saved.id,
+        details: { code: saved.code, parentId: saved.parentId },
+      });
       return saved;
     });
     revalidateDepartments();
@@ -43,7 +52,13 @@ export async function deleteDepartmentAction(id: string) {
     validateActionArguments("deleteDepartmentAction", { id });
     await runAtomicMutation(async () => {
       await deleteDepartment(id);
-      await createActivityLog({ user_id: user.id, action: "delete", entity_type: "department", entity_id: id, details: {} });
+      await createActivityLog({
+        user_id: user.id,
+        action: "delete",
+        entity_type: "department",
+        entity_id: id,
+        details: {},
+      });
     });
     revalidateDepartments();
     return { success: true };
@@ -58,11 +73,19 @@ export async function addCatalogueDepartmentsAction(keys: string[]) {
     const company = await getCompanySettings();
     const picked = keys.filter(isDepartmentKey) as DepartmentKey[];
     await runAtomicMutation(async () => {
-      await applyActivityDepartments(company.business_activity, keys.length ? picked : undefined);
-      await createActivityLog({ user_id: user.id, action: "create", entity_type: "department", entity_id: "catalogue", details: { keys: picked } });
+      await applyActivityDepartments(
+        company.business_activity,
+        keys.length ? picked : undefined,
+      );
+      await createActivityLog({
+        user_id: user.id,
+        action: "create",
+        entity_type: "department",
+        entity_id: "catalogue",
+        details: { keys: picked },
+      });
     });
     revalidateDepartments();
     return { success: true };
   });
 }
-

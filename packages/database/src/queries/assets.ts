@@ -227,9 +227,7 @@ export async function saveAssetCategory(
     const labelEn = clean(f.label_en, 80);
     const labelAr = clean(f.label_ar, 80);
     if (!labelEn || !labelAr)
-      throw new Error(
-        serverMessages.everyFieldAndChecklistItemNeeds,
-      );
+      throw new Error(serverMessages.everyFieldAndChecklistItemNeeds);
     if (!(SPEC_FIELD_TYPES as readonly string[]).includes(f.type))
       throw new Error(serverMessages.chooseAFieldType);
     return {
@@ -245,9 +243,7 @@ export async function saveAssetCategory(
     const labelEn = clean(c.label_en, 120);
     const labelAr = clean(c.label_ar, 120);
     if (!labelEn || !labelAr)
-      throw new Error(
-        serverMessages.everyFieldAndChecklistItemNeeds,
-      );
+      throw new Error(serverMessages.everyFieldAndChecklistItemNeeds);
     return { key: key(c.key, labelEn), labelEn, labelAr };
   });
   const data = {
@@ -507,10 +503,7 @@ export async function saveAsset(
         },
         select: { id: true },
       });
-      if (clash)
-        throw new Error(
-          serverMessages.anotherAssetInThisCategoryHas,
-        );
+      if (clash) throw new Error(serverMessages.anotherAssetInThisCategoryHas);
     }
     if (id) {
       const existing = await db.asset.findUnique({
@@ -633,9 +626,7 @@ export async function startAssetHandover(
       issuerSignature,
     );
     const returnStatus =
-      input.kind === "return"
-        ? input.status_after_return || "available"
-        : null;
+      input.kind === "return" ? input.status_after_return || "available" : null;
     if (
       returnStatus &&
       !["available", "maintenance", "lost", "retired"].includes(returnStatus)

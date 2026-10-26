@@ -413,78 +413,78 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false }
 
         {/* Compensation & Allowances */}
         {canSetPay ? (<>
-        <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
-          <div className="flex items-center justify-between border-b border-ink/10 pb-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-accent" />
-              {t.newEmployeeForm.monthlyCompensationStructureBhd}
-            </h2>
-            <div className="text-xs font-mono font-semibold text-primary dark:text-mint">
-              {t.newEmployeeForm.totalMonthlyGross}
-              {totalMonthlyGross.toFixed(3)}
-              {t.shared.bhd}
+          <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
+            <div className="flex items-center justify-between border-b border-ink/10 pb-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-accent" />
+                {t.newEmployeeForm.monthlyCompensationStructureBhd}
+              </h2>
+              <div className="text-xs font-mono font-semibold text-primary dark:text-mint">
+                {t.newEmployeeForm.totalMonthlyGross}
+                {totalMonthlyGross.toFixed(3)}
+                {t.shared.bhd}
+              </div>
             </div>
-          </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-neutral-400 mb-1">
-                {t.newEmployeeForm.basicSalaryBhd}
-              </label>
-              <input
-                type="number"
-                min="0"
-                step="1"
-                value={basicSalary}
-                onChange={(e) => setBasicSalary(Number(e.target.value))}
-                className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
-              />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-slate-600 dark:text-neutral-400 mb-1">
+                  {t.newEmployeeForm.basicSalaryBhd}
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={basicSalary}
+                  onChange={(e) => setBasicSalary(Number(e.target.value))}
+                  className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-600 dark:text-neutral-400 mb-1">
+                  {t.shared.housingAllowance}
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={housingAllowance}
+                  onChange={(e) => setHousingAllowance(Number(e.target.value))}
+                  className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-600 dark:text-neutral-400 mb-1">
+                  {t.newEmployeeForm.transportAllowance}
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={transportAllowance}
+                  onChange={(e) => setTransportAllowance(Number(e.target.value))}
+                  className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-600 dark:text-neutral-400 mb-1">
+                  {t.shared.otherAllowances}
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={otherAllowances}
+                  onChange={(e) => setOtherAllowances(Number(e.target.value))}
+                  className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-neutral-400 mb-1">
-                {t.shared.housingAllowance}
-              </label>
-              <input
-                type="number"
-                min="0"
-                step="1"
-                value={housingAllowance}
-                onChange={(e) => setHousingAllowance(Number(e.target.value))}
-                className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-neutral-400 mb-1">
-                {t.newEmployeeForm.transportAllowance}
-              </label>
-              <input
-                type="number"
-                min="0"
-                step="1"
-                value={transportAllowance}
-                onChange={(e) => setTransportAllowance(Number(e.target.value))}
-                className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-neutral-400 mb-1">
-                {t.shared.otherAllowances}
-              </label>
-              <input
-                type="number"
-                min="0"
-                step="1"
-                value={otherAllowances}
-                onChange={(e) => setOtherAllowances(Number(e.target.value))}
-                className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
-              />
-            </div>
-          </div>
-        </Card>
-        <PayrollSettingsFields
-          value={payrollSettings}
-          onChange={setPayrollSettings}
-        />
+          </Card>
+          <PayrollSettingsFields
+            value={payrollSettings}
+            onChange={setPayrollSettings}
+          />
         </>) : (
           <p className="text-xs text-amber-700 dark:text-amber-300 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">{t.hrExtensions.payrollCompletesPay}</p>
         )}

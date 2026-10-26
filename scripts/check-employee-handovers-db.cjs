@@ -284,7 +284,7 @@ async function main() {
           });
           assert.ok(
             !moved.approverIds.includes(leaver.id) &&
-              moved.approverIds.length === 1,
+            moved.approverIds.length === 1,
             "the approval now waits for a colleague",
           );
 

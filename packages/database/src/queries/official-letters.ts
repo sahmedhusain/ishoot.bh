@@ -52,8 +52,7 @@ export async function saveLetterTemplate(
 ) {
   const nameEn = input.name_en?.trim().slice(0, 120);
   const nameAr = input.name_ar?.trim().slice(0, 120);
-  if (!nameEn || !nameAr)
-    throw new Error(serverMessages.communicationError13);
+  if (!nameEn || !nameAr) throw new Error(serverMessages.communicationError13);
   const data = {
     nameEn,
     nameAr,
@@ -230,22 +229,17 @@ function normalizeLetter(input: OfficialLetterInput) {
   const languages = (["ar", "en"] as const).filter((l) =>
     input.languages.includes(l),
   );
-  if (!languages.length)
-    throw new Error(serverMessages.communicationError15);
+  if (!languages.length) throw new Error(serverMessages.communicationError15);
   if (
     languages.includes("en") &&
     (!input.subject_en?.trim() || !input.body_en?.trim())
   )
-    throw new Error(
-      serverMessages.communicationError16,
-    );
+    throw new Error(serverMessages.communicationError16);
   if (
     languages.includes("ar") &&
     (!input.subject_ar?.trim() || !input.body_ar?.trim())
   )
-    throw new Error(
-      serverMessages.communicationError17,
-    );
+    throw new Error(serverMessages.communicationError17);
   if (
     !(LETTER_CLASSIFICATIONS as readonly string[]).includes(
       input.classification,

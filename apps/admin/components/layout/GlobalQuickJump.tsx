@@ -5,12 +5,13 @@ import { Input, Modal } from "@platform/ui";
 import { errorMessage } from "../../lib/error-text";
 import { useRouter } from "next/navigation";
 import {
-Search,Users,
-FileText,
-Briefcase,
-ArrowRight,
-Loader2,
-UserRound, ShoppingBag, Package, Truck, CheckSquare, ClipboardList, Gavel, Megaphone } from "lucide-react";
+  Search, Users,
+  FileText,
+  Briefcase,
+  ArrowRight,
+  Loader2,
+  UserRound, ShoppingBag, Package, Truck, CheckSquare, ClipboardList, Gavel, Megaphone
+} from "lucide-react";
 import { globalSearchAction } from "../../app/actions/crm";
 import type { GlobalSearchResult } from "@platform/database";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -147,115 +148,114 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
       {/* Modal Dialog */}
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={t.quickJump.universalSearch}
         className="max-w-xl" footer={<>
-            {/* Footer */}
-            <div className=" flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-              <span className="flex items-center gap-3">
-                <span>
-                  <kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">
-                    ↑↓
-                  </kbd>{" "}
-                  {t.quickJump.navigate}
-                </span>
-                <span>
-                  <kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">
-                    ↵
-                  </kbd>{" "}
-                  {t.quickJump.select}
-                </span>
-                <span>
-                  <kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">
-                    {t.copy.escape}</kbd>{" "}
-                  {t.actions.cancel}
-                </span>
+          {/* Footer */}
+          <div className=" flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+            <span className="flex items-center gap-3">
+              <span>
+                <kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">
+                  ↑↓
+                </kbd>{" "}
+                {t.quickJump.navigate}
               </span>
-              <span className=" text-[10px] text-accent font-semibold">
-                {t.quickJump.universalSearch}
+              <span>
+                <kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">
+                  ↵
+                </kbd>{" "}
+                {t.quickJump.select}
               </span>
-            </div>        </>}>
-            {/* Input Header */}
-            <div className="flex items-center gap-3">
-              <Search className="w-5 h-5 text-slate-400 shrink-0" />
-              <Input
-                role="combobox"
-                aria-label={t.quickJump.searchLabel}
-                aria-autocomplete="list"
-                aria-expanded={isOpen}
-                aria-controls={resultsId}
-                aria-activedescendant={results[selectedIndex] ? `${resultsId}-${selectedIndex}` : undefined}
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder={t.quickJump.placeholder}
-                className="w-full min-w-0 bg-transparent text-sm sm:text-base text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
-              />
-              {loading && (
-                <Loader2 role="status" aria-label={t.quickJump.searching} className="w-4 h-4 text-accent animate-spin shrink-0" />
-              )}
+              <span>
+                <kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">
+                  {t.copy.escape}</kbd>{" "}
+                {t.actions.cancel}
+              </span>
+            </span>
+            <span className=" text-[10px] text-accent font-semibold">
+              {t.quickJump.universalSearch}
+            </span>
+          </div>        </>}>
+        {/* Input Header */}
+        <div className="flex items-center gap-3">
+          <Search className="w-5 h-5 text-slate-400 shrink-0" />
+          <Input
+            role="combobox"
+            aria-label={t.quickJump.searchLabel}
+            aria-autocomplete="list"
+            aria-expanded={isOpen}
+            aria-controls={resultsId}
+            aria-activedescendant={results[selectedIndex] ? `${resultsId}-${selectedIndex}` : undefined}
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={t.quickJump.placeholder}
+            className="w-full min-w-0 bg-transparent text-sm sm:text-base text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
+          />
+          {loading && (
+            <Loader2 role="status" aria-label={t.quickJump.searching} className="w-4 h-4 text-accent animate-spin shrink-0" />
+          )}
 
+        </div>
+
+        {error && <p role="alert" className="py-3 text-sm text-rose-700 dark:text-rose-300">{error}</p>}
+        {/* Results Body */}
+        <div id={resultsId} role="listbox" aria-busy={loading} aria-label={t.quickJump.resultsLabel} className="max-h-80 overflow-y-auto p-2 divide-y divide-slate-100 dark:divide-white/5">
+          {query.trim().length < 2 && (
+            <div className="py-8 text-center text-xs text-slate-400 dark:text-slate-500">
+              {t.quickJump.helper}
             </div>
+          )}
 
-            {error && <p role="alert" className="py-3 text-sm text-rose-700 dark:text-rose-300">{error}</p>}
-            {/* Results Body */}
-            <div id={resultsId} role="listbox" aria-busy={loading} aria-label={t.quickJump.resultsLabel} className="max-h-80 overflow-y-auto p-2 divide-y divide-slate-100 dark:divide-white/5">
-              {query.trim().length < 2 && (
-                <div className="py-8 text-center text-xs text-slate-400 dark:text-slate-500">
-                  {t.quickJump.helper}
-                </div>
-              )}
+          {query.trim().length >= 2 && results.length === 0 && !loading && !error && (
+            <div className="py-8 text-center text-xs text-slate-500 dark:text-slate-400">
+              {t.quickJump.noMatches}{" "}
+              <span className="font-semibold text-slate-700 dark:text-slate-300">
+                &quot;{query}&quot;
+              </span>
+            </div>
+          )}
 
-              {query.trim().length >= 2 && results.length === 0 && !loading && !error && (
-                <div className="py-8 text-center text-xs text-slate-500 dark:text-slate-400">
-                  {t.quickJump.noMatches}{" "}
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">
-                    &quot;{query}&quot;
-                  </span>
-                </div>
-              )}
-
-              {results.map((result, idx) => {
-                const isSelected = idx === selectedIndex;
-                return (
-                  <div
-                    key={`${result.category}-${result.id}`}
-                    id={`${resultsId}-${idx}`}
-                    role="option"
-                    aria-selected={isSelected}
-                    onClick={() => handleSelect(result)}
-                    onMouseEnter={() => setSelectedIndex(idx)}
-                    className={`p-3 rounded-xl cursor-pointer flex items-center justify-between gap-3 text-xs transition-colors ${
-                      isSelected
-                        ? "bg-tone-95 text-primary dark:bg-tone-15 dark:text-white"
-                        : "hover:bg-slate-50 text-slate-700 dark:hover:bg-white/5 dark:text-slate-200"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="p-2 rounded-lg bg-slate-100 dark:bg-white/10 shrink-0">
-                        {getCategoryIcon(result.category)}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-bold truncate text-sm">
-                          {result.title}
-                        </div>
-                        <div className="text-[11px] opacity-75 truncate mt-0.5">
-                          {result.subtitle}
-                        </div>
-                      </div>
+          {results.map((result, idx) => {
+            const isSelected = idx === selectedIndex;
+            return (
+              <div
+                key={`${result.category}-${result.id}`}
+                id={`${resultsId}-${idx}`}
+                role="option"
+                aria-selected={isSelected}
+                onClick={() => handleSelect(result)}
+                onMouseEnter={() => setSelectedIndex(idx)}
+                className={`p-3 rounded-xl cursor-pointer flex items-center justify-between gap-3 text-xs transition-colors ${isSelected
+                  ? "bg-tone-95 text-primary dark:bg-tone-15 dark:text-white"
+                  : "hover:bg-slate-50 text-slate-700 dark:hover:bg-white/5 dark:text-slate-200"
+                  }`}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="p-2 rounded-lg bg-slate-100 dark:bg-white/10 shrink-0">
+                    {getCategoryIcon(result.category)}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-bold truncate text-sm">
+                      {result.title}
                     </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      {result.badge && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px]  uppercase bg-slate-200/60 dark:bg-white/10">
-                          {badgeLabel(result.category, result.badge)}
-                        </span>
-                      )}
-                      <ArrowRight className="w-3.5 h-3.5 opacity-50" />
+                    <div className="text-[11px] opacity-75 truncate mt-0.5">
+                      {result.subtitle}
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  {result.badge && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px]  uppercase bg-slate-200/60 dark:bg-white/10">
+                      {badgeLabel(result.category, result.badge)}
+                    </span>
+                  )}
+                  <ArrowRight className="w-3.5 h-3.5 opacity-50" />
+                </div>
+              </div>
+            );
+          })}
+        </div>
 
       </Modal>
     </>

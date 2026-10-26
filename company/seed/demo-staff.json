@@ -1,12 +1,92 @@
 [
-  { "key": "omar-haddad", "nameEn": "Omar Haddad", "nameAr": "عمر حداد", "role": "super_admin", "email": null, "department": "executive", "phone": null },
-  { "key": "yusuf-rahman", "nameEn": "Yusuf Rahman", "nameAr": "يوسف رحمن", "role": "admin", "email": "director@example.com", "department": "executive", "phone": "+973 3600 2200" },
-  { "key": "layla-nasser", "nameEn": "Layla Nasser", "nameAr": "ليلى ناصر", "role": "finance_manager", "email": "finance@example.com", "department": "finance", "phone": "+973 3600 3300" },
-  { "key": "karim-fawzi", "nameEn": "Karim Fawzi", "nameAr": "كريم فوزي", "role": "operations_manager", "email": "production@example.com", "department": "production", "phone": "+973 3600 4400" },
-  { "key": "tariq-saleh", "nameEn": "Tariq Saleh", "nameAr": "طارق صالح", "role": "project_lead", "email": "producer@example.com", "department": "production", "phone": "+973 3600 5500" },
-  { "key": "noor-hamdan", "nameEn": "Noor Hamdan", "nameAr": "نور حمدان", "role": "editor", "email": "editor@example.com", "department": "post_production", "phone": "+973 3600 6600" },
-  { "key": "faisal-mansour", "nameEn": "Faisal Mansour", "nameAr": "فيصل منصور", "role": "accountant", "email": "accountant@example.com", "department": "finance", "phone": "+973 3600 7700" },
-  { "key": "sami-khoury", "nameEn": "Sami Khoury", "nameAr": "سامي خوري", "role": "sales", "email": "sales@example.com", "department": "sales", "phone": "+973 3600 8811" },
-  { "key": "hana-yousef", "nameEn": "Hana Yousef", "nameAr": "هناء يوسف", "role": "marketing", "email": "marketing@example.com", "department": "marketing", "phone": "+973 3600 8822" },
-  { "key": "guest", "nameEn": "Guest Observer", "nameAr": "مراقب عام", "role": "viewer", "email": "guest@example.com", "department": "operations", "phone": "+973 3600 8800" }
+  {
+    "key": "omar-haddad",
+    "nameEn": "Omar Haddad",
+    "nameAr": "عمر حداد",
+    "role": "super_admin",
+    "email": null,
+    "department": "executive",
+    "phone": null
+  },
+  {
+    "key": "yusuf-rahman",
+    "nameEn": "Yusuf Rahman",
+    "nameAr": "يوسف رحمن",
+    "role": "admin",
+    "email": "director@example.com",
+    "department": "executive",
+    "phone": "+973 3600 2200"
+  },
+  {
+    "key": "layla-nasser",
+    "nameEn": "Layla Nasser",
+    "nameAr": "ليلى ناصر",
+    "role": "finance_manager",
+    "email": "finance@example.com",
+    "department": "finance",
+    "phone": "+973 3600 3300"
+  },
+  {
+    "key": "karim-fawzi",
+    "nameEn": "Karim Fawzi",
+    "nameAr": "كريم فوزي",
+    "role": "operations_manager",
+    "email": "production@example.com",
+    "department": "production",
+    "phone": "+973 3600 4400"
+  },
+  {
+    "key": "tariq-saleh",
+    "nameEn": "Tariq Saleh",
+    "nameAr": "طارق صالح",
+    "role": "project_lead",
+    "email": "producer@example.com",
+    "department": "production",
+    "phone": "+973 3600 5500"
+  },
+  {
+    "key": "noor-hamdan",
+    "nameEn": "Noor Hamdan",
+    "nameAr": "نور حمدان",
+    "role": "editor",
+    "email": "editor@example.com",
+    "department": "post_production",
+    "phone": "+973 3600 6600"
+  },
+  {
+    "key": "faisal-mansour",
+    "nameEn": "Faisal Mansour",
+    "nameAr": "فيصل منصور",
+    "role": "accountant",
+    "email": "accountant@example.com",
+    "department": "finance",
+    "phone": "+973 3600 7700"
+  },
+  {
+    "key": "sami-khoury",
+    "nameEn": "Sami Khoury",
+    "nameAr": "سامي خوري",
+    "role": "sales",
+    "email": "sales@example.com",
+    "department": "sales",
+    "phone": "+973 3600 8811"
+  },
+  {
+    "key": "hana-yousef",
+    "nameEn": "Hana Yousef",
+    "nameAr": "هناء يوسف",
+    "role": "marketing",
+    "email": "marketing@example.com",
+    "department": "marketing",
+    "phone": "+973 3600 8822"
+  },
+  {
+    "key": "guest",
+    "nameEn": "Guest Observer",
+    "nameAr": "مراقب عام",
+    "role": "viewer",
+    "email": "guest@example.com",
+    "department": "operations",
+    "phone": "+973 3600 8800"
+  }
 ]

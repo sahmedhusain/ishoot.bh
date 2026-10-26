@@ -336,7 +336,7 @@ export function SupportProgramsView({
                         >
                           {
                             s.qualifications[
-                              q.qualification as keyof typeof s.qualifications
+                            q.qualification as keyof typeof s.qualifications
                             ]
                           }
                           : {money(q.cap)}
@@ -371,10 +371,14 @@ export function SupportProgramsView({
                               aria-label={s.delete}
                               disabled={busy}
                               onClick={() =>
-                                confirmAction({ description: s.deleteTermsConfirm, onConfirm: async () => { if (!(await run(
-                                  () => deleteSupportRuleAction(r.id),
-                                  s.saved,
-                                ))) throw new Error(s.failed); } })
+                                confirmAction({
+                                  description: s.deleteTermsConfirm, onConfirm: async () => {
+                                    if (!(await run(
+                                      () => deleteSupportRuleAction(r.id),
+                                      s.saved,
+                                    ))) throw new Error(s.failed);
+                                  }
+                                })
                               }
                               className="text-rose-600"
                             >
@@ -871,7 +875,7 @@ export function SupportProgramsView({
                           <div className="mt-1 text-[10px] text-ink-muted">
                             {
                               s.qualifications[
-                                e.qualification as keyof typeof s.qualifications
+                              e.qualification as keyof typeof s.qualifications
                               ]
                             }
                           </div>
@@ -926,10 +930,14 @@ export function SupportProgramsView({
                               title={s.delete}
                               disabled={busy}
                               onClick={() =>
-                                confirmAction({ description: s.deleteConfirm, onConfirm: async () => { if (!(await run(
-                                  () => deleteEmployeeSupportAction(e.id),
-                                  s.saved,
-                                ))) throw new Error(s.failed); } })
+                                confirmAction({
+                                  description: s.deleteConfirm, onConfirm: async () => {
+                                    if (!(await run(
+                                      () => deleteEmployeeSupportAction(e.id),
+                                      s.saved,
+                                    ))) throw new Error(s.failed);
+                                  }
+                                })
                               }
                               className="rounded-lg p-1.5 text-ink-muted hover:bg-rose-500/10 hover:text-rose-600"
                             >
@@ -957,8 +965,8 @@ export function SupportProgramsView({
                                     {Object.entries(ev.details)
                                       .map(([k, v]) =>
                                         typeof v === "object" &&
-                                        v &&
-                                        "to" in (v as object)
+                                          v &&
+                                          "to" in (v as object)
                                           ? `${(s.fields as Record<string, string>)[k] ?? k}: ${String((v as { from: unknown }).from ?? "—")} → ${String((v as { to: unknown }).to ?? "—")}`
                                           : `${(s.fields as Record<string, string>)[k] ?? k}: ${String(v)}`,
                                       )

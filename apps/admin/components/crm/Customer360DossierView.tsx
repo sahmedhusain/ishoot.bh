@@ -6,23 +6,23 @@ import { RelatedListControls } from "../shared/RelatedListControls";
 import * as React from "react";
 import Link from "next/link";
 import {
-Card,
-Button,
-Badge,
-CurrencyDisplay,
-DateDisplay,
-StatusBadge,
+  Card,
+  Button,
+  Badge,
+  CurrencyDisplay,
+  DateDisplay,
+  StatusBadge,
 } from "@platform/ui";
 import {
-User,Mail,Briefcase,CreditCard,
-FolderLock,
-ArrowLeft,
-Edit,
-ExternalLink,
-Download,DollarSign,
-TrendingUp,ShieldCheck,
-CheckCircle2,
-Plus,AlertCircle,
+  User, Mail, Briefcase, CreditCard,
+  FolderLock,
+  ArrowLeft,
+  Edit,
+  ExternalLink,
+  Download, DollarSign,
+  TrendingUp, ShieldCheck,
+  CheckCircle2,
+  Plus, AlertCircle,
   FileSignature,
 } from "lucide-react";
 import type { CustomerDossier } from "@platform/database";
@@ -41,7 +41,7 @@ export function Customer360DossierView({
   actions,
   standing,
 }: Customer360DossierViewProps) {
-  const {t, locale} = useAdminLocale();
+  const { t, locale } = useAdminLocale();
   const [activeTab, setActiveTab] = React.useState<
     "overview" | "interactions" | "deals" | "finance" | "vault"
   >("overview");
@@ -281,11 +281,10 @@ export function Customer360DossierView({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`pb-3.5 flex items-center gap-2 border-b-2 transition-colors shrink-0 ${
-                isActive
-                  ? "border-accent text-accent"
-                  : "border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
-              }`}
+              className={`pb-3.5 flex items-center gap-2 border-b-2 transition-colors shrink-0 ${isActive
+                ? "border-accent text-accent"
+                : "border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
+                }`}
             >
               <Icon className="w-4 h-4" />
               <span>{tab.label}</span>

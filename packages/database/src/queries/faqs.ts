@@ -7,7 +7,10 @@ export async function getFaqs(adminOnly = true) {
       orderBy: { sortOrder: "asc" },
     });
   } catch (e) {
-    console.error("Error fetching FAQs from DB:", e instanceof Error ? e.message : e);
+    console.error(
+      "Error fetching FAQs from DB:",
+      e instanceof Error ? e.message : e,
+    );
     throw e;
   }
 }
@@ -16,7 +19,10 @@ export async function getFaqById(id: string) {
   try {
     return await db.faq.findUnique({ where: { id } });
   } catch (e) {
-    console.error(`Error fetching FAQ ${id}:`, e instanceof Error ? e.message : e);
+    console.error(
+      `Error fetching FAQ ${id}:`,
+      e instanceof Error ? e.message : e,
+    );
     throw e;
   }
 }
@@ -41,7 +47,10 @@ export async function createFaq(data: {
   });
 }
 
-export async function updateFaq(id: string, data: Partial<Parameters<typeof createFaq>[0]>) {
+export async function updateFaq(
+  id: string,
+  data: Partial<Parameters<typeof createFaq>[0]>,
+) {
   return await db.faq.update({
     where: { id },
     data,

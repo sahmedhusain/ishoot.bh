@@ -1,4 +1,4 @@
-import { requirePagePermission,getCurrentUser } from "../../../../lib/auth";
+import { requirePagePermission, getCurrentUser } from "../../../../lib/auth";
 import { notFound } from "next/navigation";
 import { getMinuteOfMeetingById } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
@@ -31,12 +31,12 @@ export default async function MomDetailPage({ params }: MomDetailPageProps) {
       currentUser={
         currentUser
           ? {
-              id: currentUser.id,
-              name: currentUser.full_name,
-              email: currentUser.email,
-              role: currentUser.role,
-              signature_url: currentUser.signature_url,
-            }
+            id: currentUser.id,
+            name: currentUser.full_name,
+            email: currentUser.email,
+            role: currentUser.role,
+            signature_url: currentUser.signature_url,
+          }
           : null
       }
     />

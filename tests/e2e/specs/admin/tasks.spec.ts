@@ -13,26 +13,53 @@ let driverUserId = "";
 test.describe.configure({ mode: "serial" });
 
 test.beforeAll(async () => {
-  await db.featureToggle.upsert({ where: { moduleKey: "tasks" }, update: { isEnabled: true }, create: { moduleKey: "tasks", nameEn: "Tasks and projects", nameAr: "المهام والمشاريع", isEnabled: true } });
-  driverUserId = (await db.user.findUniqueOrThrow({ where: { email: users.driver.email } })).id;
-  const projects = await db.project.findMany({ where: { name: PROJECT }, select: { id: true } });
-  await db.task.deleteMany({ where: { OR: [{ projectId: { in: projects.map((p) => p.id) } }, { title: { startsWith: "E2E " } }] } });
+  await db.featureToggle.upsert({
+    where: { moduleKey: "tasks" },
+    update: { isEnabled: true },
+    create: {
+      moduleKey: "tasks",
+      nameEn: "Tasks and projects",
+      nameAr: "المهام والمشاريع",
+      isEnabled: true,
+    },
+  });
+  driverUserId = (
+    await db.user.findUniqueOrThrow({ where: { email: users.driver.email } })
+  ).id;
+  const projects = await db.project.findMany({
+    where: { name: PROJECT },
+    select: { id: true },
+  });
+  await db.task.deleteMany({
+    where: {
+      OR: [
+        { projectId: { in: projects.map((p) => p.id) } },
+        { title: { startsWith: "E2E " } },
+      ],
+    },
+  });
   await db.project.deleteMany({ where: { name: PROJECT } });
-  await db.notification.deleteMany({ where: { userId: driverUserId, entityType: "task" } });
+  await db.notification.deleteMany({
+    where: { userId: driverUserId, entityType: "task" },
+  });
 });
 
 test.afterAll(async () => {
   await db.$disconnect();
 });
 
-test("a manager creates a project and gives a task to someone, who is told", async ({ page }) => {
+test("a manager creates a project and gives a task to someone, who is told", async ({
+  page,
+}) => {
   const errors = watchErrors(page);
   await page.goto("/dashboard/tasks/projects");
   await page.getByTestId("project-new").first().click();
   await page.locator('input[name="projectName"]').fill(PROJECT);
   await page.locator('input[name="projectDue"]').fill("2030-01-31");
   await page.getByTestId("project-save").first().click();
-  await expect(page).toHaveURL(/\/dashboard\/tasks\/projects\/[0-9a-f-]{36}$/, { timeout: 60_000 });
+  await expect(page).toHaveURL(/\/dashboard\/tasks\/projects\/[0-9a-f-]{36}$/, {
+    timeout: 60_000,
+  });
 
   await page.getByTestId("task-new").first().click();
   const form = page.getByTestId("task-form").first();
@@ -42,26 +69,49 @@ test("a manager creates a project and gives a task to someone, who is told", asy
   await form.locator('select[name="taskPriority"]').selectOption("high");
   await page.getByTestId("task-save").first().click();
   await expect(page.getByTestId("column-todo").first()).toContainText(TASK);
-  const task = await db.task.findFirstOrThrow({ where: { title: TASK }, include: { project: true } });
-  expect(task).toMatchObject({ assigneeId: driverUserId, priority: "high", status: "todo" });
+  const task = await db.task.findFirstOrThrow({
+    where: { title: TASK },
+    include: { project: true },
+  });
+  expect(task).toMatchObject({
+    assigneeId: driverUserId,
+    priority: "high",
+    status: "todo",
+  });
   expect(task.project?.name).toBe(PROJECT);
-  await expect.poll(() => db.notification.count({ where: { userId: driverUserId, entityType: "task", entityId: task.id } })).toBe(1);
+  await expect
+    .poll(() =>
+      db.notification.count({
+        where: { userId: driverUserId, entityType: "task", entityId: task.id },
+      }),
+    )
+    .toBe(1);
 
   // Moving it on the board.
-  await page.getByTestId(`task-${task.number}`).first().getByRole("combobox").selectOption("in_progress");
-  await expect(page.getByTestId("column-in_progress").first()).toContainText(TASK);
+  await page
+    .getByTestId(`task-${task.number}`)
+    .first()
+    .getByRole("combobox")
+    .selectOption("in_progress");
+  await expect(page.getByTestId("column-in_progress").first()).toContainText(
+    TASK,
+  );
   errors.assertClean();
 });
 
 async function signIn(browser: Browser) {
-  const context = await browser.newContext({ baseURL: `http://localhost:${ports.admin}` });
+  const context = await browser.newContext({
+    baseURL: `http://localhost:${ports.admin}`,
+  });
   const page = await context.newPage();
   await login(page, users.driver.email, users.driver.password);
   await expect(page).toHaveURL(/\/dashboard/, { timeout: 90_000 });
   return page;
 }
 
-test("the assignee finds it in My tasks, comments and finishes it, and can only give tasks to themselves", async ({ browser }) => {
+test("the assignee finds it in My tasks, comments and finishes it, and can only give tasks to themselves", async ({
+  browser,
+}) => {
   const page = await signIn(browser);
   const errors = watchErrors(page);
   const task = await db.task.findFirstOrThrow({ where: { title: TASK } });
@@ -69,18 +119,38 @@ test("the assignee finds it in My tasks, comments and finishes it, and can only 
   await expect(page.getByTestId(`task-${task.number}`).first()).toBeVisible();
   await page.getByRole("link", { name: TASK }).first().click();
   await expect(page).toHaveURL(new RegExp(`/dashboard/tasks/${task.id}$`));
-  await page.locator('textarea[name="taskComment"]').fill("On it, done by Thursday.");
+  await page
+    .locator('textarea[name="taskComment"]')
+    .fill("On it, done by Thursday.");
   await page.getByTestId("task-comment-send").click();
-  await expect(page.getByTestId("task-comments")).toContainText("On it, done by Thursday.");
+  await expect(page.getByTestId("task-comments")).toContainText(
+    "On it, done by Thursday.",
+  );
   await page.locator('select[name="taskStatusQuick"]').selectOption("done");
-  await expect(page.getByTestId("task-status").first()).toHaveText(copy.statuses.done);
+  await expect(page.getByTestId("task-status").first()).toHaveText(
+    copy.statuses.done,
+  );
   // The manager who asked hears it is done.
-  await expect.poll(async () => db.notification.count({ where: { entityType: "task", entityId: task.id, messageKey: "tasks.notifications.done" } })).toBe(1);
+  await expect
+    .poll(async () =>
+      db.notification.count({
+        where: {
+          entityType: "task",
+          entityId: task.id,
+          messageKey: "tasks.notifications.done",
+        },
+      }),
+    )
+    .toBe(1);
 
   // Without the right to assign, the "who does it" list has only them.
   await page.goto("/dashboard/tasks");
   await page.getByTestId("task-new").first().click();
-  const options = await page.getByTestId("task-form").first().locator('select[name="taskAssignee"] option').count();
+  const options = await page
+    .getByTestId("task-form")
+    .first()
+    .locator('select[name="taskAssignee"] option')
+    .count();
   expect(options).toBe(2);
   errors.assertClean();
   await page.context().close();

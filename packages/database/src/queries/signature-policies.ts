@@ -66,16 +66,12 @@ export async function resolveSigningSignature(
     return drawn;
   }
   if (mode === "live")
-    throw new Error(
-      serverMessages.thisDocumentMustBeSignedNowDraw,
-    );
+    throw new Error(serverMessages.thisDocumentMustBeSignedNowDraw);
   const signer = await db.user.findUniqueOrThrow({
     where: { id: signerId },
     select: { signatureUrl: true },
   });
   if (!signer.signatureUrl)
-    throw new Error(
-      serverMessages.addYourSignatureOnYourProfileIt,
-    );
+    throw new Error(serverMessages.addYourSignatureOnYourProfileIt);
   return signer.signatureUrl;
 }

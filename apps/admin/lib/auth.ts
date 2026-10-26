@@ -2,9 +2,9 @@ import { cache } from "react";
 import { cookies } from "next/headers";
 import { forbidden, redirect } from "next/navigation";
 import {
-verifySessionToken,
-SessionJwtPayload,
-SESSION_COOKIE_NAME,
+  verifySessionToken,
+  SessionJwtPayload,
+  SESSION_COOKIE_NAME,
 } from "./jwt";
 import { getSessionByToken } from "@platform/database/queries/sessions";
 import {
@@ -33,19 +33,21 @@ async function getJwtPayload(): Promise<SessionJwtPayload | null> {
   return await verifySessionToken(sessionToken);
 }
 
-export const getCurrentUser = cache(async (): Promise<Profile | null> => memoizeOperation("auth:user", async () => {
-  const jwt = await getJwtPayload();
-  if (!jwt) return null;
+export const getCurrentUser = cache(async (): Promise<Profile | null> =>
+  memoizeOperation("auth:user", async () => {
+    const jwt = await getJwtPayload();
+    if (!jwt) return null;
 
-  const token = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
-  if (!token) return null;
-  const session = await getSessionByToken(token);
-  if (!session || session.user_id !== jwt.userId) return null;
-  const user = session.user;
-  if (!user || !user.is_active) return null;
+    const token = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
+    if (!token) return null;
+    const session = await getSessionByToken(token);
+    if (!session || session.user_id !== jwt.userId) return null;
+    const user = session.user;
+    if (!user || !user.is_active) return null;
 
-  return user;
-}));
+    return user;
+  }),
+);
 
 export async function requireAuth(): Promise<Profile> {
   const user = await getCurrentUser();
@@ -55,12 +57,19 @@ export async function requireAuth(): Promise<Profile> {
   return user;
 }
 
-export const getCurrentPermissions = cache(async () => memoizeOperation("auth:permissions", async () => {
-  const user = await requireAuth();
-  // After an update that adds role templates or resources, their default grants are stored once per process.
-  await ensureRoleTemplatesOnce().catch((error) => console.error("Could not store role template grants:", error));
-  return getEffectivePermissions(user.role, user.permissions as Record<string,boolean> | undefined);
-}));
+export const getCurrentPermissions = cache(async () =>
+  memoizeOperation("auth:permissions", async () => {
+    const user = await requireAuth();
+    // After an update that adds role templates or resources, their default grants are stored once per process.
+    await ensureRoleTemplatesOnce().catch((error) =>
+      console.error("Could not store role template grants:", error),
+    );
+    return getEffectivePermissions(
+      user.role,
+      user.permissions as Record<string, boolean> | undefined,
+    );
+  }),
+);
 
 export async function requirePermission(
   resource: PermissionResource,
@@ -68,7 +77,8 @@ export async function requirePermission(
 ): Promise<Profile> {
   const user = await requireAuth();
 
-  const allowed = (await getCurrentPermissions())[`${resource}:${action}`] === true;
+  const allowed =
+    (await getCurrentPermissions())[`${resource}:${action}`] === true;
 
   if (!allowed) {
     throw new Error(
@@ -88,7 +98,8 @@ export async function requirePagePermission(
   action: PermissionAction,
 ): Promise<Profile> {
   const user = await requireAuth();
-  if ((await getCurrentPermissions())[`${resource}:${action}`] !== true) forbidden();
+  if ((await getCurrentPermissions())[`${resource}:${action}`] !== true)
+    forbidden();
   return user;
 }
 

@@ -100,7 +100,8 @@ const country = (value: unknown) => {
 /** Identity columns for an employee; a Bahrain CPR has 9 digits. */
 export function normalizeEmployeeIdentity(input: EmployeeIdentityInput) {
   const cpr = clean(input.cpr_number, 20)?.replace(/\s+/g, "") ?? null;
-  if (cpr && !/^\d{9}$/.test(cpr)) throw new Error(serverMessages.aCPRNumberHas9Digits);
+  if (cpr && !/^\d{9}$/.test(cpr))
+    throw new Error(serverMessages.aCPRNumberHas9Digits);
   const birth = day(input.date_of_birth);
   if (birth && (birth > new Date() || birth.getUTCFullYear() < 1920))
     throw new Error(serverMessages.enterAValidDateOfBirth);

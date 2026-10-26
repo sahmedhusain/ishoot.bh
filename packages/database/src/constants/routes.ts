@@ -76,7 +76,10 @@ export const ROUTES = {
     templates: "/dashboard/letters/templates",
   },
   directory: "/dashboard/directory",
-  departmentDashboard: (departmentId?: string) => (departmentId ? `/dashboard/department?d=${encodeURIComponent(departmentId)}` : "/dashboard/department"),
+  departmentDashboard: (departmentId?: string) =>
+    departmentId
+      ? `/dashboard/department?d=${encodeURIComponent(departmentId)}`
+      : "/dashboard/department",
   orgChart: "/dashboard/directory/org",
   team: "/dashboard/team",
   profile: (query?: HighlightQuery) => withQuery("/dashboard/profile", query),
@@ -89,10 +92,14 @@ export const ROUTES = {
   },
   inventory: {
     stock: "/dashboard/inventory",
-    movements: (query?: { productId?: string }) => (query?.productId ? `/dashboard/inventory/movements?productId=${encodeURIComponent(query.productId)}` : "/dashboard/inventory/movements"),
+    movements: (query?: { productId?: string }) =>
+      query?.productId
+        ? `/dashboard/inventory/movements?productId=${encodeURIComponent(query.productId)}`
+        : "/dashboard/inventory/movements",
     warehouses: "/dashboard/inventory/warehouses",
     counts: "/dashboard/inventory/counts",
-    count: (id: string) => `/dashboard/inventory/counts/${encodeURIComponent(id)}`,
+    count: (id: string) =>
+      `/dashboard/inventory/counts/${encodeURIComponent(id)}`,
   },
   orders: {
     list: "/dashboard/orders",
@@ -120,14 +127,16 @@ export const ROUTES = {
     list: "/dashboard/tasks",
     detail: (id: string) => `/dashboard/tasks/${encodeURIComponent(id)}`,
     projects: "/dashboard/tasks/projects",
-    project: (id: string) => `/dashboard/tasks/projects/${encodeURIComponent(id)}`,
+    project: (id: string) =>
+      `/dashboard/tasks/projects/${encodeURIComponent(id)}`,
   },
   delivery: {
     shipments: "/dashboard/delivery",
     shipment: (id: string) => `/dashboard/delivery/${encodeURIComponent(id)}`,
     settings: "/dashboard/delivery/settings",
     routes: "/dashboard/delivery/routes",
-    route: (id: string) => `/dashboard/delivery/routes/${encodeURIComponent(id)}`,
+    route: (id: string) =>
+      `/dashboard/delivery/routes/${encodeURIComponent(id)}`,
     fleet: "/dashboard/delivery/fleet",
     cash: "/dashboard/delivery/cash",
     agencies: "/dashboard/delivery/agencies",
@@ -137,15 +146,25 @@ export const ROUTES = {
     suppliers: "/dashboard/procurement/suppliers",
     requisitions: "/dashboard/procurement/requisitions",
     newRequisition: "/dashboard/procurement/requisitions/new",
-    requisition: (id: string) => `/dashboard/procurement/requisitions/${encodeURIComponent(id)}`,
+    requisition: (id: string) =>
+      `/dashboard/procurement/requisitions/${encodeURIComponent(id)}`,
     rfqs: "/dashboard/procurement/rfqs",
-    rfq: (id: string) => `/dashboard/procurement/rfqs/${encodeURIComponent(id)}`,
+    rfq: (id: string) =>
+      `/dashboard/procurement/rfqs/${encodeURIComponent(id)}`,
     orders: "/dashboard/procurement/orders",
-    newOrder: (query?: { requisitionId?: string }) => (query?.requisitionId ? `/dashboard/procurement/orders/new?requisitionId=${encodeURIComponent(query.requisitionId)}` : "/dashboard/procurement/orders/new"),
-    order: (id: string) => `/dashboard/procurement/orders/${encodeURIComponent(id)}`,
+    newOrder: (query?: { requisitionId?: string }) =>
+      query?.requisitionId
+        ? `/dashboard/procurement/orders/new?requisitionId=${encodeURIComponent(query.requisitionId)}`
+        : "/dashboard/procurement/orders/new",
+    order: (id: string) =>
+      `/dashboard/procurement/orders/${encodeURIComponent(id)}`,
     bills: "/dashboard/procurement/bills",
-    newBill: (query?: { orderId?: string }) => (query?.orderId ? `/dashboard/procurement/bills/new?orderId=${encodeURIComponent(query.orderId)}` : "/dashboard/procurement/bills/new"),
-    bill: (id: string) => `/dashboard/procurement/bills/${encodeURIComponent(id)}`,
+    newBill: (query?: { orderId?: string }) =>
+      query?.orderId
+        ? `/dashboard/procurement/bills/new?orderId=${encodeURIComponent(query.orderId)}`
+        : "/dashboard/procurement/bills/new",
+    bill: (id: string) =>
+      `/dashboard/procurement/bills/${encodeURIComponent(id)}`,
   },
   cms: {
     banners: "/dashboard/cms/banners",
@@ -161,7 +180,8 @@ export const ROUTES = {
     menus: "/dashboard/cms/menus",
     code: "/dashboard/cms/code",
     articles: "/dashboard/cms/articles",
-    article: (id: string) => `/dashboard/cms/articles/${encodeURIComponent(id)}`,
+    article: (id: string) =>
+      `/dashboard/cms/articles/${encodeURIComponent(id)}`,
     newArticle: "/dashboard/cms/articles/new",
   },
   company: {
@@ -206,8 +226,11 @@ export const ROUTES = {
     newEmployee: (query?: NewEmployeeQuery) =>
       withQuery("/dashboard/hr/employees/new", query),
     leave: (query?: HighlightQuery) => withQuery("/dashboard/hr/leave", query),
-    requests: (query?: { type?: string | null; status?: string | null; employeeId?: string | null }) =>
-      withQuery("/dashboard/hr/requests", query),
+    requests: (query?: {
+      type?: string | null;
+      status?: string | null;
+      employeeId?: string | null;
+    }) => withQuery("/dashboard/hr/requests", query),
     payroll: (query?: HighlightQuery) =>
       withQuery("/dashboard/hr/payroll", query),
     payrollItem: (id: string) => `/dashboard/hr/payroll/items/${encode(id)}`,

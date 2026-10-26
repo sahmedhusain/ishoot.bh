@@ -46,11 +46,10 @@ export function TaxVatSettingsTab({
         <div className="flex items-center justify-between pb-3 border-b border-ink/15 dark:border-ink/15">
           <div className="flex items-center gap-3">
             <div
-              className={`p-2 rounded-xl transition-colors ${
-                settings.vat_enabled
-                  ? "bg-primary/10 text-primary dark:text-mint"
-                  : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
-              }`}
+              className={`p-2 rounded-xl transition-colors ${settings.vat_enabled
+                ? "bg-primary/10 text-primary dark:text-mint"
+                : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                }`}
             >
               <Percent className="w-5 h-5" />
             </div>
@@ -78,11 +77,10 @@ export function TaxVatSettingsTab({
 
         {/* State Toggle Controller Banner */}
         <div
-          className={`p-4 rounded-xl border transition-colors flex items-center justify-between gap-4 ${
-            settings.vat_enabled
-              ? "bg-primary/5 border-primary/30 dark:bg-primary/10 dark:border-tone-25/40"
-              : "bg-slate-50 border-slate-200 dark:bg-slate-800/40 dark:border-slate-700"
-          }`}
+          className={`p-4 rounded-xl border transition-colors flex items-center justify-between gap-4 ${settings.vat_enabled
+            ? "bg-primary/5 border-primary/30 dark:bg-primary/10 dark:border-tone-25/40"
+            : "bg-slate-50 border-slate-200 dark:bg-slate-800/40 dark:border-slate-700"
+            }`}
         >
           <div className="space-y-1">
             <div className="flex items-center gap-2">
@@ -92,11 +90,10 @@ export function TaxVatSettingsTab({
                   : t.companySettingsView.vatInactiveBadge}
               </span>
               <span
-                className={`px-2.5 py-0.5 rounded-full text-[10px]  font-bold ${
-                  settings.vat_enabled
-                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700"
-                    : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700"
-                }`}
+                className={`px-2.5 py-0.5 rounded-full text-[10px]  font-bold ${settings.vat_enabled
+                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700"
+                  : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700"
+                  }`}
               >
                 {settings.vat_enabled
                   ? `${settings.vat_percentage}% ${t.companySettingsView.vatActiveBadge}`
@@ -116,22 +113,20 @@ export function TaxVatSettingsTab({
             role="switch"
             aria-checked={settings.vat_enabled}
             aria-label={t.companySettingsTabs.vatStateLabel}
-            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors shrink-0 ${
-              settings.vat_enabled
-                ? "bg-primary dark:bg-tone-25"
-                : "bg-slate-300 dark:bg-slate-700"
-            }`}
+            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors shrink-0 ${settings.vat_enabled
+              ? "bg-primary dark:bg-tone-25"
+              : "bg-slate-300 dark:bg-slate-700"
+              }`}
           >
             <span
-              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-xs transition-transform ${
-                settings.vat_enabled
-                  ? isRTL
-                    ? "-translate-x-6"
-                    : "translate-x-6"
-                  : isRTL
-                    ? "-translate-x-1"
-                    : "translate-x-1"
-              }`}
+              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-xs transition-transform ${settings.vat_enabled
+                ? isRTL
+                  ? "-translate-x-6"
+                  : "translate-x-6"
+                : isRTL
+                  ? "-translate-x-1"
+                  : "translate-x-1"
+                }`}
             />
           </button>
         </div>
@@ -244,36 +239,36 @@ export function TaxVatSettingsTab({
 
       {/* VAT Status Confirmation Modal */}
       <ConfirmDialog isOpen={pendingVatToggle !== null} onClose={() => setPendingVatToggle(null)} title={pendingVatToggle ? t.companySettingsTabs.vatModalTitleEnable : t.companySettingsTabs.vatModalTitleDisable} description={<div className="space-y-4"><p>{t.companySettingsTabs.vatModalDesc}</p>
-              {pendingVatToggle ? (
-                <div className="space-y-3">
-                  <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 space-y-2">
-                    <div className="flex items-center justify-between font-bold text-xs">
-                      <span>
-                        {t.companySettingsTabs.vatModalNewStatusEnabled}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-200 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 ">
-                        {settings.vat_percentage}{t.copy.vatPercent}</span>
-                    </div>
-                    <ul className="list-disc list-inside space-y-1 text-[11px] text-emerald-800/90 dark:text-emerald-300/90 leading-relaxed">
-                      <li>{t.companySettingsTabs.vatModalNotice1}</li>
-                      <li>{t.companySettingsTabs.vatModalNotice2}</li>
-                      <li>{t.companySettingsTabs.vatModalNotice3}</li>
-                    </ul>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 space-y-2">
-                    <div className="font-bold text-xs">
-                      {t.companySettingsTabs.vatModalNewStatusDisabled}
-                    </div>
-                    <ul className="list-disc list-inside space-y-1 text-[11px] text-amber-800/90 dark:text-amber-300/90 leading-relaxed">
-                      <li>{t.companySettingsTabs.vatModalDisabledNotice1}</li>
-                      <li>{t.companySettingsTabs.vatModalDisabledNotice2}</li>
-                    </ul>
-                  </div>
-                </div>
-              )}
+        {pendingVatToggle ? (
+          <div className="space-y-3">
+            <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 space-y-2">
+              <div className="flex items-center justify-between font-bold text-xs">
+                <span>
+                  {t.companySettingsTabs.vatModalNewStatusEnabled}
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-200 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 ">
+                  {settings.vat_percentage}{t.copy.vatPercent}</span>
+              </div>
+              <ul className="list-disc list-inside space-y-1 text-[11px] text-emerald-800/90 dark:text-emerald-300/90 leading-relaxed">
+                <li>{t.companySettingsTabs.vatModalNotice1}</li>
+                <li>{t.companySettingsTabs.vatModalNotice2}</li>
+                <li>{t.companySettingsTabs.vatModalNotice3}</li>
+              </ul>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 space-y-2">
+              <div className="font-bold text-xs">
+                {t.companySettingsTabs.vatModalNewStatusDisabled}
+              </div>
+              <ul className="list-disc list-inside space-y-1 text-[11px] text-amber-800/90 dark:text-amber-300/90 leading-relaxed">
+                <li>{t.companySettingsTabs.vatModalDisabledNotice1}</li>
+                <li>{t.companySettingsTabs.vatModalDisabledNotice2}</li>
+              </ul>
+            </div>
+          </div>
+        )}
 
       </div>} variant={pendingVatToggle ? "warning" : "danger"} confirmLabel={t.companySettingsTabs.applyTaxChange} cancelLabel={t.companySettingsTabs.cancelTaxChange} onConfirm={() => { if (pendingVatToggle !== null) setSettings({ ...settings, vat_enabled: pendingVatToggle }); }} />
     </div>

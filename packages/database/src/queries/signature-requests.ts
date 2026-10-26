@@ -1,4 +1,8 @@
-import { serverTemplates, formatMessage, serverMessages } from "@platform/locales";
+import {
+  serverTemplates,
+  formatMessage,
+  serverMessages,
+} from "@platform/locales";
 
 import crypto from "crypto";
 import { db, runAtomicMutation } from "../db";
@@ -46,7 +50,10 @@ export async function createSignatureRequest(
     const days = Math.round(options.days ?? SIGNING_REQUEST_DAYS.default);
     if (!(days >= SIGNING_REQUEST_DAYS.min && days <= SIGNING_REQUEST_DAYS.max))
       throw new Error(
-        formatMessage(serverTemplates.aLinkCanStayOpenFor0, { 0: SIGNING_REQUEST_DAYS.min, 1: SIGNING_REQUEST_DAYS.max }),
+        formatMessage(serverTemplates.aLinkCanStayOpenFor0, {
+          0: SIGNING_REQUEST_DAYS.min,
+          1: SIGNING_REQUEST_DAYS.max,
+        }),
       );
     const email = options.recipientEmail?.trim() || null;
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))

@@ -78,9 +78,9 @@ function createDb() {
         );
         return policy
           ? {
-              ...policy,
-              steps: [...policy.steps].sort((a, b) => a.order - b.order),
-            }
+            ...policy,
+            steps: [...policy.steps].sort((a, b) => a.order - b.order),
+          }
           : null;
       },
     },
@@ -166,7 +166,7 @@ function createEngine(db, finalized) {
   return load("packages/database/src/services/approval-engine.ts", {
     "../db": { db, runAtomicMutation: async (fn) => fn() },
     "../queries/signature-policies": { getSignatureMode: async () => "stored" },
-    "./signature-image": { validateSignatureImage: () => {} },
+    "./signature-image": { validateSignatureImage: () => { } },
     "../queries/permissions": {
       // Admins and HR hold employees:approve; Super Admin holds everything.
       hasPermission: async (role, resource, action) =>
@@ -178,24 +178,24 @@ function createEngine(db, finalized) {
       rejectLeaveRequest: leave.reject,
     },
     "../queries/profile-changes": {
-      approveProfileChange: async () => {},
-      rejectProfileChange: async () => {},
+      approveProfileChange: async () => { },
+      rejectProfileChange: async () => { },
     },
     "../queries/salary-documents": { salaryDocumentSnapshot: async () => ({}) },
     "../queries/inquiries": {
-      approveRequest: async () => {},
-      returnRequest: async () => {},
+      approveRequest: async () => { },
+      returnRequest: async () => { },
     },
     "../queries/signature-changes": {
-      approveSignatureChange: async () => {},
-      rejectSignatureChange: async () => {},
+      approveSignatureChange: async () => { },
+      rejectSignatureChange: async () => { },
     },
     "../queries/fx-settlement": {
       getLatestExchangeRate: async () => ({ rate: 1 }),
     },
     "../queries/account-changes": {
-      approveAccountChange: async () => {},
-      rejectAccountChange: async () => {},
+      approveAccountChange: async () => { },
+      rejectAccountChange: async () => { },
     },
   });
 }

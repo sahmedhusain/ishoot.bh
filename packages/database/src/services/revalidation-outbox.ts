@@ -1,4 +1,8 @@
-import { serverTemplates, formatMessage, serverMessages } from "@platform/locales";
+import {
+  serverTemplates,
+  formatMessage,
+  serverMessages,
+} from "@platform/locales";
 
 import { db } from "../db";
 
@@ -61,7 +65,12 @@ export async function processRevalidationJobs(options: {
           signal: AbortSignal.timeout(3000),
         },
       );
-      if (!response.ok) throw new Error(formatMessage(serverTemplates.invalidationHttp0, { 0: response.status }));
+      if (!response.ok)
+        throw new Error(
+          formatMessage(serverTemplates.invalidationHttp0, {
+            0: response.status,
+          }),
+        );
       await txResult(job.id, job.attempts, {
         status: "delivered",
         deliveredAt: new Date(),

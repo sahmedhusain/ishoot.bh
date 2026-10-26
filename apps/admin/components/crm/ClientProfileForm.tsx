@@ -180,9 +180,8 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
                     role="radio"
                     aria-checked={active}
                     onClick={() => setKind(k)}
-                    className={`flex items-start gap-3 rounded-2xl border p-4 text-start transition-colors ${
-                      active ? "border-accent bg-accent/5 ring-2 ring-accent/20" : "border-ink/15 hover:border-ink/30"
-                    }`}
+                    className={`flex items-start gap-3 rounded-2xl border p-4 text-start transition-colors ${active ? "border-accent bg-accent/5 ring-2 ring-accent/20" : "border-ink/15 hover:border-ink/30"
+                      }`}
                   >
                     <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${active ? "bg-accent text-white" : "bg-ink/5 text-ink-muted"}`}>
                       <Icon className="h-4.5 w-4.5" />
@@ -214,9 +213,8 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
                         type="button"
                         aria-pressed={values.company_origin === origin}
                         onClick={() => set("company_origin", origin)}
-                        className={`h-11 rounded-xl border text-sm font-semibold transition-colors ${
-                          values.company_origin === origin ? "border-accent bg-accent/5 text-accent" : "border-ink/20 text-ink-muted hover:border-ink/40"
-                        }`}
+                        className={`h-11 rounded-xl border text-sm font-semibold transition-colors ${values.company_origin === origin ? "border-accent bg-accent/5 text-accent" : "border-ink/20 text-ink-muted hover:border-ink/40"
+                          }`}
                       >
                         {c.origins[origin]}
                       </button>

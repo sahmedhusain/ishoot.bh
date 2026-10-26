@@ -408,7 +408,7 @@ export function UserProfileView({
                       !(
                         proposedEmail.trim() &&
                         proposedEmail.trim().toLowerCase() !==
-                          user.email.toLowerCase()
+                        user.email.toLowerCase()
                       ))
                   }
                   className="bg-accent hover:bg-accent-pressed text-white text-xs font-semibold gap-1.5"
@@ -475,8 +475,8 @@ export function UserProfileView({
                       <div className="text-end text-[11px] text-slate-400">
                         {req.reviewedAt
                           ? formatMessage(t.profileWorkspace.reviewedDate, {
-                              date: formatDate(req.reviewedAt, locale),
-                            })
+                            date: formatDate(req.reviewedAt, locale),
+                          })
                           : req.status === "pending"
                             ? t.userProfile.awaitingAction
                             : ""}

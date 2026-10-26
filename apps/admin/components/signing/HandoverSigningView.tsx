@@ -238,7 +238,7 @@ export function HandoverSigningView({
                   [
                     a.handover.condition,
                     a.conditions[
-                      handover.condition as keyof typeof a.conditions
+                    handover.condition as keyof typeof a.conditions
                     ] ?? handover.condition,
                   ],
                   [a.handover.issuedBy, handover.issuedBy],

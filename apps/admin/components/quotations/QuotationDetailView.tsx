@@ -10,7 +10,8 @@ import { useRouter } from "next/navigation";
 import type { Quotation, ApprovalRequest } from "@platform/database/types";
 import {
   Card,
-  Button, Textarea, formatDate } from "@platform/ui";
+  Button, Textarea, formatDate
+} from "@platform/ui";
 import {
   ArrowLeft,
   ArrowRight,

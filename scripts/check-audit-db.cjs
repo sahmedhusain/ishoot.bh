@@ -40,8 +40,8 @@ db.$use(async (params, next) => {
       raw?.text ||
       (Array.isArray(raw)
         ? raw
-            .map((s, i) => s + (i < raw.length - 1 ? "$" + (i + 1) : ""))
-            .join("")
+          .map((s, i) => s + (i < raw.length - 1 ? "$" + (i + 1) : ""))
+          .join("")
         : typeof raw === "string"
           ? raw
           : null);
@@ -92,7 +92,7 @@ vm.runInNewContext(legacyCode, {
 });
 async function main() {
   const { ALL_ROLES } = require("../packages/database/src/queries/permissions.ts");
-  await db.role.createMany({ data: [...ALL_ROLES, prefix].map(id => ({id,nameEn:id,nameAr:id,isSystem:true})), skipDuplicates:true });
+  await db.role.createMany({ data: [...ALL_ROLES, prefix].map(id => ({ id, nameEn: id, nameAr: id, isSystem: true })), skipDuplicates: true });
   // Compare against the previous algorithm using real Decimal/date/relation records.
   const invoices = [
     {

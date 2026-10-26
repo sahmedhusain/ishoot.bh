@@ -217,14 +217,14 @@ function PolicyCard({ policy, users }: { policy: ApprovalPolicyView; users: User
     : draft.steps.length === 0
       ? p.summaryNoSteps
       : draft.steps
-          .map((step) =>
-            step.approverMode === "role" && step.roleKey
-              ? roleLabel(step.roleKey)
-              : step.approverMode === "user"
-                ? users.find((u) => u.id === step.userId)?.fullName ?? p.modes.user
-                : p.modes[step.approverMode],
-          )
-          .join(isRTL ? " ← " : " → ");
+        .map((step) =>
+          step.approverMode === "role" && step.roleKey
+            ? roleLabel(step.roleKey)
+            : step.approverMode === "user"
+              ? users.find((u) => u.id === step.userId)?.fullName ?? p.modes.user
+              : p.modes[step.approverMode],
+        )
+        .join(isRTL ? " ← " : " → ");
 
   return (
     <Card className="p-0 overflow-hidden dark:bg-surface-raised">
@@ -327,9 +327,8 @@ function PolicyCard({ policy, users }: { policy: ApprovalPolicyView; users: User
                       return (
                         <label
                           key={role}
-                          className={`cursor-pointer rounded-full border px-2.5 py-1 transition-colors focus-within:ring-2 focus-within:ring-accent/40 ${
-                            on ? "border-accent bg-accent/10 text-slate-900 dark:text-white" : "border-ink/15 text-slate-600 dark:text-slate-300"
-                          }`}
+                          className={`cursor-pointer rounded-full border px-2.5 py-1 transition-colors focus-within:ring-2 focus-within:ring-accent/40 ${on ? "border-accent bg-accent/10 text-slate-900 dark:text-white" : "border-ink/15 text-slate-600 dark:text-slate-300"
+                            }`}
                         >
                           <input
                             type="checkbox"

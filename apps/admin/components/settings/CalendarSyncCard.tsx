@@ -241,9 +241,11 @@ export function CalendarSyncCard({
                   className="ms-auto gap-1.5 text-rose-600"
                   disabled={busy}
                   onClick={() =>
-                    confirmAction({ description: c.disconnectConfirm, onConfirm: () => run(() => revokeCalendarFeedAction(), c.disconnected).then(
-                      () => setLink(null),
-                    ) })
+                    confirmAction({
+                      description: c.disconnectConfirm, onConfirm: () => run(() => revokeCalendarFeedAction(), c.disconnected).then(
+                        () => setLink(null),
+                      )
+                    })
                   }
                 >
                   <Unlink className="h-3.5 w-3.5" aria-hidden />
@@ -254,9 +256,11 @@ export function CalendarSyncCard({
           </div>
           {feed ? (
             <p className="text-[11px] text-ink-muted">
-              {formatMessage(c.status, { since: formatDate(feed.createdAt, locale), synced: feed.lastUsedAt
-                    ? formatDate(feed.lastUsedAt, locale, "time")
-                    : c.never })}
+              {formatMessage(c.status, {
+                since: formatDate(feed.createdAt, locale), synced: feed.lastUsedAt
+                  ? formatDate(feed.lastUsedAt, locale, "time")
+                  : c.never
+              })}
             </p>
           ) : null}
         </>

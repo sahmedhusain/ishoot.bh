@@ -3,9 +3,9 @@
 import { ROUTES } from "../../constants/routes";
 import { useDraggable } from "@dnd-kit/core";
 import type { CRMDeal } from "@platform/database/types";
-import { Card,CurrencyDisplay } from "@platform/ui";
+import { Card, CurrencyDisplay } from "@platform/ui";
 import Link from "next/link";
-import { Calendar,User } from "lucide-react";
+import { Calendar, User } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 interface DealCardProps {
@@ -22,8 +22,8 @@ export function DealCard({ deal }: DealCardProps) {
 
   const style = transform
     ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-      }
+      transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+    }
     : undefined;
 
   return (
@@ -32,9 +32,8 @@ export function DealCard({ deal }: DealCardProps) {
       style={style}
       {...listeners}
       {...attributes}
-      className={`cursor-grab active:cursor-grabbing transition-shadow ${
-        isDragging ? "opacity-50 z-50 shadow-2xl scale-105" : ""
-      }`}
+      className={`cursor-grab active:cursor-grabbing transition-shadow ${isDragging ? "opacity-50 z-50 shadow-2xl scale-105" : ""
+        }`}
     >
       <Card className="p-4 bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 hover:border-accent/50 transition-all rounded-xl shadow-sm space-y-3">
         <Link

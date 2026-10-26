@@ -5,13 +5,13 @@ import { StudioEquipment } from "@platform/database";
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
 import {
-Camera,
-Aperture,
-Sun,
-Sliders,
-Warehouse
+  Camera,
+  Aperture,
+  Sun,
+  Sliders,
+  Warehouse
 } from "lucide-react";
-import { motion,AnimatePresence,useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
 interface EquipmentGridProps {
   equipment: StudioEquipment[];
@@ -90,11 +90,10 @@ export function EquipmentGrid({ equipment }: EquipmentGridProps) {
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
               aria-pressed={selectedCategory === cat.id}
-              className={`min-h-11 px-4 py-2 rounded-md text-xs font-bold transition-colors duration-150 cursor-pointer ${
-                selectedCategory === cat.id
-                  ? "bg-primary text-paper border border-accent"
-                  : "bg-white text-slate-700 hover:text-slate-950 border border-slate-200 shadow-2xs"
-              }`}
+              className={`min-h-11 px-4 py-2 rounded-md text-xs font-bold transition-colors duration-150 cursor-pointer ${selectedCategory === cat.id
+                ? "bg-primary text-paper border border-accent"
+                : "bg-white text-slate-700 hover:text-slate-950 border border-slate-200 shadow-2xs"
+                }`}
             >
               <span>{cat.label}</span>
             </button>

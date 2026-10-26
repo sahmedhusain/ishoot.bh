@@ -106,7 +106,8 @@ export async function completeMfaEnrollment(userId: string, code: string) {
       decrypt(user.mfaPendingSecretEncrypted, userId),
       code,
     );
-    if (step === undefined) throw new Error(serverMessages.invalidAuthenticationCode);
+    if (step === undefined)
+      throw new Error(serverMessages.invalidAuthenticationCode);
     const codes = Array.from({ length: 10 }, () =>
       randomBytes(16).toString("hex"),
     );

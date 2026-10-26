@@ -2,7 +2,16 @@ import { slaDueFor } from "../services/service-sla";
 import { serverMessages } from "@platform/locales";
 import type { Prisma } from "@prisma/client";
 import { db, runAtomicMutation } from "../db";
-import { REQUEST_CLOSED_STATUSES, REQUEST_SORTS, REQUEST_SOURCES, canTransitionRequest, referencePrefixFor, requestKindOf, type RequestKind, type RequestSort } from "../constants/requests";
+import {
+  REQUEST_CLOSED_STATUSES,
+  REQUEST_SORTS,
+  REQUEST_SOURCES,
+  canTransitionRequest,
+  referencePrefixFor,
+  requestKindOf,
+  type RequestKind,
+  type RequestSort,
+} from "../constants/requests";
 import { cancelPendingApprovals } from "../services/approval-engine";
 import { assignRequest, reassignRequest } from "./inquiries";
 import { getNextSequenceNumber } from "./sequence";
@@ -33,14 +42,20 @@ export async function createConsolidatedRequest(
 
   // Generate sequence reference e.g. SR-2026-000001 or CR-2026-000001
   // Change requests (CR) are retired: client feedback arrives as inquiries and is triaged in the inbox.
-  if ((data.requestType as string) === "CR") throw new Error(serverMessages.changeRequestsAreNoLongerCreatedLog);
+  if ((data.requestType as string) === "CR")
+    throw new Error(serverMessages.changeRequestsAreNoLongerCreatedLog);
   const reference = await getNextSequenceNumber(
-    referencePrefixFor({ requestType: data.requestType, intent: data.requestType === "quote_request" ? "quote_request" : "inquiry" }),
+    referencePrefixFor({
+      requestType: data.requestType,
+      intent:
+        data.requestType === "quote_request" ? "quote_request" : "inquiry",
+    }),
   );
 
   if (data.assignedToId) {
     const periodStart = new Date();
-    const periodEnd = data.slaDueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const periodEnd =
+      data.slaDueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     await assertAssigneeAvailable(data.assignedToId, periodStart, periodEnd);
   }
 
@@ -51,7 +66,8 @@ export async function createConsolidatedRequest(
       data: {
         reference,
         requestType: data.requestType,
-        intent: data.requestType === "quote_request" ? "quote_request" : "inquiry",
+        intent:
+          data.requestType === "quote_request" ? "quote_request" : "inquiry",
         name: data.name,
         email: data.email,
         emailNorm,
@@ -65,7 +81,8 @@ export async function createConsolidatedRequest(
         team: data.team || null,
         assignedToId: data.assignedToId || null,
         customerId: data.customerId || null,
-        slaDueDate: data.slaDueDate || (await slaDueFor(data.priority, new Date(), tx)),
+        slaDueDate:
+          data.slaDueDate || (await slaDueFor(data.priority, new Date(), tx)),
         workflowStatus: data.assignedToId ? "assigned" : "received",
       },
       include: {
@@ -125,18 +142,29 @@ export async function assignConsolidatedRequest(
   return runAtomicMutation(async () => {
     const request = await db.inquiry.findUnique({
       where: { id },
-      select: { id: true, slaDueDate: true, assignedToId: true, workflowStatus: true },
+      select: {
+        id: true,
+        slaDueDate: true,
+        assignedToId: true,
+        workflowStatus: true,
+      },
     });
     if (!request) throw new Error(serverMessages.requestNotFound);
 
     const periodStart = new Date();
-    const periodEnd = request.slaDueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const periodEnd =
+      request.slaDueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     await assertAssigneeAvailable(newAssigneeId, periodStart, periodEnd);
 
-    const actor = await db.user.findUnique({ where: { id: actorId }, select: { fullName: true } });
+    const actor = await db.user.findUnique({
+      where: { id: actorId },
+      select: { fullName: true },
+    });
     // Requests still being received or reviewed take an assignment even if someone was noted on them earlier.
     const isFirstAssignment =
-      canTransitionRequest(request.workflowStatus, "assign") && (!request.assignedToId || !canTransitionRequest(request.workflowStatus, "reassign"));
+      canTransitionRequest(request.workflowStatus, "assign") &&
+      (!request.assignedToId ||
+        !canTransitionRequest(request.workflowStatus, "reassign"));
     if (isFirstAssignment) {
       await assignRequest(id, {
         assignedToId: newAssigneeId,
@@ -147,7 +175,8 @@ export async function assignConsolidatedRequest(
       });
     } else {
       // Re-assigning work that is waiting for approval withdraws that approval.
-      if (request.workflowStatus === "pending_approval") await cancelPendingApprovals("service_request", id);
+      if (request.workflowStatus === "pending_approval")
+        await cancelPendingApprovals("service_request", id);
       await reassignRequest(id, {
         newAssignedToId: newAssigneeId,
         newTeam: team || undefined,
@@ -157,7 +186,10 @@ export async function assignConsolidatedRequest(
       });
     }
 
-    await db.requestAssignment.updateMany({ where: { inquiryId: id, active: true }, data: { active: false } });
+    await db.requestAssignment.updateMany({
+      where: { inquiryId: id, active: true },
+      data: { active: false },
+    });
     await db.requestAssignment.create({
       data: {
         inquiryId: id,
@@ -173,13 +205,21 @@ export async function assignConsolidatedRequest(
         inquiryId: id,
         actorId,
         eventType: "assignment",
-        details: { previousAssigneeId: request.assignedToId, newAssigneeId, team, reason },
+        details: {
+          previousAssigneeId: request.assignedToId,
+          newAssigneeId,
+          team,
+          reason,
+        },
       },
     });
 
     return db.inquiry.findUnique({
       where: { id },
-      include: { assignedTo: { select: { id: true, fullName: true, email: true } }, customer: true },
+      include: {
+        assignedTo: { select: { id: true, fullName: true, email: true } },
+        customer: true,
+      },
     });
   });
 }
@@ -247,9 +287,17 @@ export async function addRequestEvent(
 const consolidatedRequestInclude = {
   customer: true,
   assignedTo: { select: { id: true, fullName: true, email: true } },
-  convertedDeal: { select: { id: true, title: true, dealStage: true, dealValue: true } },
+  convertedDeal: {
+    select: { id: true, title: true, dealStage: true, dealValue: true },
+  },
   quotations: {
-    select: { id: true, quotationNumber: true, totalAmount: true, currency: true, status: true },
+    select: {
+      id: true,
+      quotationNumber: true,
+      totalAmount: true,
+      currency: true,
+      status: true,
+    },
     orderBy: { createdAt: "desc" },
   },
   requestEvents: {
@@ -269,27 +317,49 @@ const consolidatedRequestInclude = {
   },
 } satisfies Prisma.InquiryInclude;
 
-type RawConsolidatedRequest = Prisma.InquiryGetPayload<{ include: typeof consolidatedRequestInclude }>;
+type RawConsolidatedRequest = Prisma.InquiryGetPayload<{
+  include: typeof consolidatedRequestInclude;
+}>;
 
 /** A request with everything its detail page shows. Money is converted to numbers so it can cross into client components. */
-export type ConsolidatedRequest = Omit<RawConsolidatedRequest, "convertedDeal" | "quotations"> & {
-  convertedDeal: (Omit<NonNullable<RawConsolidatedRequest["convertedDeal"]>, "dealValue"> & { dealValue: number }) | null;
-  quotations: (Omit<RawConsolidatedRequest["quotations"][number], "totalAmount"> & { totalAmount: number })[];
+export type ConsolidatedRequest = Omit<
+  RawConsolidatedRequest,
+  "convertedDeal" | "quotations"
+> & {
+  convertedDeal:
+    | (Omit<
+        NonNullable<RawConsolidatedRequest["convertedDeal"]>,
+        "dealValue"
+      > & { dealValue: number })
+    | null;
+  quotations: (Omit<
+    RawConsolidatedRequest["quotations"][number],
+    "totalAmount"
+  > & { totalAmount: number })[];
 };
 
-export async function getConsolidatedRequestById(id: string): Promise<ConsolidatedRequest | null> {
-  const request = await db.inquiry.findUnique({ where: { id }, include: consolidatedRequestInclude });
+export async function getConsolidatedRequestById(
+  id: string,
+): Promise<ConsolidatedRequest | null> {
+  const request = await db.inquiry.findUnique({
+    where: { id },
+    include: consolidatedRequestInclude,
+  });
   if (!request) return null;
   return {
     ...request,
     convertedDeal: request.convertedDeal
-      ? { ...request.convertedDeal, dealValue: Number(request.convertedDeal.dealValue) }
+      ? {
+          ...request.convertedDeal,
+          dealValue: Number(request.convertedDeal.dealValue),
+        }
       : null,
-    quotations: request.quotations.map((quotation) => ({ ...quotation, totalAmount: Number(quotation.totalAmount) })),
+    quotations: request.quotations.map((quotation) => ({
+      ...quotation,
+      totalAmount: Number(quotation.totalAmount),
+    })),
   };
 }
-
-
 
 export interface RequestListFilters {
   kind?: RequestKind | "all";
@@ -332,14 +402,31 @@ const kindWhere = (kind: RequestKind): Prisma.InquiryWhereInput =>
   kind === "service"
     ? { requestType: "SR" }
     : kind === "feedback"
-      ? { OR: [{ requestType: "CR" }, { intent: { in: ["complaint", "suggestion"] } }] }
+      ? {
+          OR: [
+            { requestType: "CR" },
+            { intent: { in: ["complaint", "suggestion"] } },
+          ],
+        }
       : kind === "quote"
-        ? { requestType: { notIn: ["SR", "CR"] }, OR: [{ requestType: "quote_request" }, { intent: "quote_request" }] }
-        : { requestType: { notIn: ["SR", "CR", "quote_request"] }, intent: "inquiry" };
+        ? {
+            requestType: { notIn: ["SR", "CR"] },
+            OR: [{ requestType: "quote_request" }, { intent: "quote_request" }],
+          }
+        : {
+            requestType: { notIn: ["SR", "CR", "quote_request"] },
+            intent: "inquiry",
+          };
 
-function requestWhere(filters: RequestListFilters, viewerId: string, visible?: string[] | null): Prisma.InquiryWhereInput {
+function requestWhere(
+  filters: RequestListFilters,
+  viewerId: string,
+  visible?: string[] | null,
+): Prisma.InquiryWhereInput {
   const now = new Date();
-  const open: Prisma.InquiryWhereInput = { workflowStatus: { notIn: [...REQUEST_CLOSED_STATUSES] } };
+  const open: Prisma.InquiryWhereInput = {
+    workflowStatus: { notIn: [...REQUEST_CLOSED_STATUSES] },
+  };
   const and: Prisma.InquiryWhereInput[] = [];
   // Data scope: only requests assigned to someone the viewer may see.
   if (visible) and.push({ assignedToId: { in: visible } });
@@ -350,7 +437,8 @@ function requestWhere(filters: RequestListFilters, viewerId: string, visible?: s
   if (filters.scope === "mine") and.push({ assignedToId: viewerId });
   if (filters.scope === "unassigned") and.push({ assignedToId: null });
   if (filters.team && filters.team !== "all") and.push({ team: filters.team });
-  if (filters.priority && filters.priority !== "all") and.push({ priority: filters.priority });
+  if (filters.priority && filters.priority !== "all")
+    and.push({ priority: filters.priority });
   const due = filters.overdue ? "overdue" : filters.due;
   if (due === "overdue") and.push(open, { slaDueDate: { lt: now } });
   if (due === "today") {
@@ -358,42 +446,109 @@ function requestWhere(filters: RequestListFilters, viewerId: string, visible?: s
     end.setHours(23, 59, 59, 999);
     and.push(open, { slaDueDate: { gte: now, lte: end } });
   }
-  if (due === "week") and.push(open, { slaDueDate: { gte: now, lte: new Date(now.getTime() + 7 * 86400000) } });
+  if (due === "week")
+    and.push(open, {
+      slaDueDate: { gte: now, lte: new Date(now.getTime() + 7 * 86400000) },
+    });
   if (due === "none") and.push({ slaDueDate: null });
-  if (filters.assignee && filters.assignee !== "all" && filters.assignee.length <= 150) and.push({ assignedToId: filters.assignee });
-  if (filters.source && (REQUEST_SOURCES as readonly string[]).includes(filters.source)) and.push({ source: filters.source });
-  if (filters.customerId && filters.customerId.length <= 150) and.push({ customerId: filters.customerId });
+  if (
+    filters.assignee &&
+    filters.assignee !== "all" &&
+    filters.assignee.length <= 150
+  )
+    and.push({ assignedToId: filters.assignee });
+  if (
+    filters.source &&
+    (REQUEST_SOURCES as readonly string[]).includes(filters.source)
+  )
+    and.push({ source: filters.source });
+  if (filters.customerId && filters.customerId.length <= 150)
+    and.push({ customerId: filters.customerId });
   const day = (value: string | undefined, end = false) =>
-    value && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) ? new Date(`${value}T${end ? "23:59:59.999" : "00:00:00"}+03:00`) : null;
+    value &&
+    /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+    Number.isFinite(Date.parse(value))
+      ? new Date(`${value}T${end ? "23:59:59.999" : "00:00:00"}+03:00`)
+      : null;
   const from = day(filters.from);
   const to = day(filters.to, true);
-  if (from || to) and.push({ createdAt: { ...(from ? { gte: from } : {}), ...(to ? { lte: to } : {}) } });
+  if (from || to)
+    and.push({
+      createdAt: { ...(from ? { gte: from } : {}), ...(to ? { lte: to } : {}) },
+    });
   if (filters.search?.trim()) {
     const term = filters.search.trim().slice(0, 200);
-    and.push({ OR: ["name", "email", "companyName", "message", "reference", "serviceType"].map((field) => ({ [field]: { contains: term, mode: "insensitive" as const } })) });
+    and.push({
+      OR: [
+        "name",
+        "email",
+        "companyName",
+        "message",
+        "reference",
+        "serviceType",
+      ].map((field) => ({
+        [field]: { contains: term, mode: "insensitive" as const },
+      })),
+    });
   }
   return and.length ? { AND: and } : {};
 }
 
-const REQUEST_ORDER: Record<Exclude<RequestSort, "priority">, Prisma.InquiryOrderByWithRelationInput[]> = {
+const REQUEST_ORDER: Record<
+  Exclude<RequestSort, "priority">,
+  Prisma.InquiryOrderByWithRelationInput[]
+> = {
   // Most urgent first: overdue SLAs, then newest.
-  urgency: [{ slaDueDate: { sort: "asc", nulls: "last" } }, { createdAt: "desc" }, { id: "desc" }],
+  urgency: [
+    { slaDueDate: { sort: "asc", nulls: "last" } },
+    { createdAt: "desc" },
+    { id: "desc" },
+  ],
   newest: [{ createdAt: "desc" }, { id: "desc" }],
   oldest: [{ createdAt: "asc" }, { id: "asc" }],
   sla_asc: [{ slaDueDate: { sort: "asc", nulls: "last" } }, { id: "asc" }],
   sla_desc: [{ slaDueDate: { sort: "desc", nulls: "last" } }, { id: "asc" }],
-  customer_asc: [{ companyName: { sort: "asc", nulls: "last" } }, { name: "asc" }, { id: "asc" }],
+  customer_asc: [
+    { companyName: { sort: "asc", nulls: "last" } },
+    { name: "asc" },
+    { id: "asc" },
+  ],
 };
 
 const listSelect = {
-  id: true, reference: true, requestType: true, intent: true, serviceType: true, message: true, name: true, companyName: true, source: true,
-  priority: true, workflowStatus: true, team: true, slaDueDate: true, createdAt: true, assignedTo: { select: { fullName: true } },
+  id: true,
+  reference: true,
+  requestType: true,
+  intent: true,
+  serviceType: true,
+  message: true,
+  name: true,
+  companyName: true,
+  source: true,
+  priority: true,
+  workflowStatus: true,
+  team: true,
+  slaDueDate: true,
+  createdAt: true,
+  assignedTo: { select: { fullName: true } },
 } satisfies Prisma.InquirySelect;
 type ListRecord = Prisma.InquiryGetPayload<{ select: typeof listSelect }>;
 
 /** One page of matches. Priority order (urgent, high, normal) walks the priority buckets in turn. */
-async function requestPage(where: Prisma.InquiryWhereInput, sort: RequestSort, skip: number, take: number): Promise<ListRecord[]> {
-  if (sort !== "priority") return db.inquiry.findMany({ where, select: listSelect, orderBy: REQUEST_ORDER[sort], skip, take });
+async function requestPage(
+  where: Prisma.InquiryWhereInput,
+  sort: RequestSort,
+  skip: number,
+  take: number,
+): Promise<ListRecord[]> {
+  if (sort !== "priority")
+    return db.inquiry.findMany({
+      where,
+      select: listSelect,
+      orderBy: REQUEST_ORDER[sort],
+      skip,
+      take,
+    });
   const buckets = ["urgent", "high", "normal"];
   const rest: Prisma.InquiryWhereInput = { priority: { notIn: buckets } };
   const groups = [...buckets.map((priority) => ({ priority })), rest];
@@ -406,7 +561,15 @@ async function requestPage(where: Prisma.InquiryWhereInput, sort: RequestSort, s
       skip -= count;
       continue;
     }
-    rows.push(...(await db.inquiry.findMany({ where: bucket, select: listSelect, orderBy: REQUEST_ORDER.urgency, skip, take: take - rows.length })));
+    rows.push(
+      ...(await db.inquiry.findMany({
+        where: bucket,
+        select: listSelect,
+        orderBy: REQUEST_ORDER.urgency,
+        skip,
+        take: take - rows.length,
+      })),
+    );
     skip = 0;
   }
   return rows;
@@ -418,7 +581,9 @@ function toRow(r: ListRecord, now: Date): RequestListRow {
     id: r.id,
     reference: r.reference,
     kind: requestKindOf(r),
-    title: r.serviceType || (r.message.length > 80 ? r.message.slice(0, 80) + "…" : r.message),
+    title:
+      r.serviceType ||
+      (r.message.length > 80 ? r.message.slice(0, 80) + "…" : r.message),
     customer: r.companyName || r.name,
     priority: r.priority,
     workflowStatus: r.workflowStatus,
@@ -426,16 +591,24 @@ function toRow(r: ListRecord, now: Date): RequestListRow {
     source: r.source,
     assignee: r.assignedTo?.fullName ?? null,
     slaDueDate: r.slaDueDate?.toISOString() ?? null,
-    overdue: !!r.slaDueDate && r.slaDueDate < now && !closed.has(r.workflowStatus),
+    overdue:
+      !!r.slaDueDate && r.slaDueDate < now && !closed.has(r.workflowStatus),
     createdAt: r.createdAt.toISOString(),
   };
 }
 
 /** Every match for the CSV export, walked by id. */
-export async function getRequestExportBatch(filters: RequestListFilters, viewerId: string, batch: { after?: string; batchSize: number }, visible?: string[] | null) {
+export async function getRequestExportBatch(
+  filters: RequestListFilters,
+  viewerId: string,
+  batch: { after?: string; batchSize: number },
+  visible?: string[] | null,
+) {
   const where = requestWhere(filters, viewerId, visible);
   const rows = await db.inquiry.findMany({
-    where: { AND: [where, ...(batch.after ? [{ id: { gt: batch.after } }] : [])] },
+    where: {
+      AND: [where, ...(batch.after ? [{ id: { gt: batch.after } }] : [])],
+    },
     select: listSelect,
     orderBy: { id: "asc" },
     take: Math.min(500, batch.batchSize),
@@ -445,15 +618,41 @@ export async function getRequestExportBatch(filters: RequestListFilters, viewerI
 }
 
 /** The request inbox: lean rows, server-side filters and sorting, and the counters the managers need. */
-export async function getRequestList(filters: RequestListFilters, viewerId: string, page = 1, visible?: string[] | null) {
+export async function getRequestList(
+  filters: RequestListFilters,
+  viewerId: string,
+  page = 1,
+  visible?: string[] | null,
+) {
   const now = new Date();
-  const scope: Prisma.InquiryWhereInput = visible ? { assignedToId: { in: visible } } : {};
-  const open: Prisma.InquiryWhereInput = { ...scope, workflowStatus: { notIn: [...REQUEST_CLOSED_STATUSES] } };
+  const scope: Prisma.InquiryWhereInput = visible
+    ? { assignedToId: { in: visible } }
+    : {};
+  const open: Prisma.InquiryWhereInput = {
+    ...scope,
+    workflowStatus: { notIn: [...REQUEST_CLOSED_STATUSES] },
+  };
   const where = requestWhere(filters, viewerId, visible);
-  const sort: RequestSort = (REQUEST_SORTS as readonly string[]).includes(filters.sort ?? "") ? (filters.sort as RequestSort) : "urgency";
-  const safePage = Number.isInteger(page) && page >= 1 ? Math.min(page, 10000) : 1;
-  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-  const [rows, total, openCount, overdueCount, unassignedCount, awaitingApproval, mineCount, resolvedThisMonth] = await runAtomicMutation(
+  const sort: RequestSort = (REQUEST_SORTS as readonly string[]).includes(
+    filters.sort ?? "",
+  )
+    ? (filters.sort as RequestSort)
+    : "urgency";
+  const safePage =
+    Number.isInteger(page) && page >= 1 ? Math.min(page, 10000) : 1;
+  const monthStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
+  );
+  const [
+    rows,
+    total,
+    openCount,
+    overdueCount,
+    unassignedCount,
+    awaitingApproval,
+    mineCount,
+    resolvedThisMonth,
+  ] = await runAtomicMutation(
     () =>
       Promise.all([
         requestPage(where, sort, (safePage - 1) * 50, 50),
@@ -461,9 +660,17 @@ export async function getRequestList(filters: RequestListFilters, viewerId: stri
         db.inquiry.count({ where: open }),
         db.inquiry.count({ where: { ...open, slaDueDate: { lt: now } } }),
         db.inquiry.count({ where: { ...open, assignedToId: null } }),
-        db.inquiry.count({ where: { ...scope, workflowStatus: "pending_approval" } }),
+        db.inquiry.count({
+          where: { ...scope, workflowStatus: "pending_approval" },
+        }),
         db.inquiry.count({ where: { ...open, assignedToId: viewerId } }),
-        db.inquiry.count({ where: { ...scope, workflowStatus: "resolved", resolvedAt: { gte: monthStart } } }),
+        db.inquiry.count({
+          where: {
+            ...scope,
+            workflowStatus: "resolved",
+            resolvedAt: { gte: monthStart },
+          },
+        }),
       ]),
     "RepeatableRead",
   );
@@ -472,7 +679,14 @@ export async function getRequestList(filters: RequestListFilters, viewerId: stri
     pageSize: 50,
     total,
     sort,
-    stats: { open: openCount, overdue: overdueCount, unassigned: unassignedCount, awaitingApproval, mine: mineCount, resolvedThisMonth },
+    stats: {
+      open: openCount,
+      overdue: overdueCount,
+      unassigned: unassignedCount,
+      awaitingApproval,
+      mine: mineCount,
+      resolvedThisMonth,
+    },
     items: rows.map((r) => toRow(r, now)),
   };
 }

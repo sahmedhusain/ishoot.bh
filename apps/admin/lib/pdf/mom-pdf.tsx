@@ -13,7 +13,7 @@ import {
   type DocKit,
 } from "./kit";
 
-function MomBody({ k, mom, brand, signing }: { k: DocKit;  mom: MinuteOfMeetingItem; brand: PdfBrand; signing: CompanySignature | null }) {
+function MomBody({ k, mom, brand, signing }: { k: DocKit; mom: MinuteOfMeetingItem; brand: PdfBrand; signing: CompanySignature | null }) {
   const { t, isAr, T, Row, Card, Field, Table, TitleBlock, SectionTitle, Paragraph, CompanySignatureBlock } = k;
   const m = t.pdfDocs.mom;
   const status = (value: string) => (t.statusLabels as Record<string, string>)[value] ?? value;
@@ -115,11 +115,11 @@ export async function generateMomPdf(mom: MinuteOfMeetingItem, company: CompanyS
   const signing: CompanySignature | null = approved ? { signatureSrc: signature ?? null, signerName: mom.approved_by_name || null } : null;
   return renderToBuffer(
     <Document title={`${mom.mom_number} · ${mom.title}`} author={company.company_name_en} language={locale}>
-        <Page size="A4" style={pageStyle}>
-          <Letterhead brand={brand} />
-          <MomBody k={k} mom={mom} brand={brand} signing={signing} />
-          <k.Footer brand={brand} reference={mom.mom_number} />
-        </Page>
+      <Page size="A4" style={pageStyle}>
+        <Letterhead brand={brand} />
+        <MomBody k={k} mom={mom} brand={brand} signing={signing} />
+        <k.Footer brand={brand} reference={mom.mom_number} />
+      </Page>
     </Document>,
   );
 }

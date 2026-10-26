@@ -119,11 +119,10 @@ export function ApprovalsCenterView({
             type="button"
             aria-current={scope === tab.id ? "page" : undefined}
             onClick={() => navigate({ scope: tab.id, status: "all" })}
-            className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
-              scope === tab.id
-                ? "bg-primary text-white"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/5 dark:text-neutral-300 dark:hover:bg-white/10"
-            }`}
+            className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${scope === tab.id
+              ? "bg-primary text-white"
+              : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/5 dark:text-neutral-300 dark:hover:bg-white/10"
+              }`}
           >
             {tab.label}
             {tab.count !== undefined && tab.count > 0 && (

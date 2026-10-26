@@ -1,12 +1,48 @@
 import sanitizeHtml from "sanitize-html";
-import { EMBED_HOSTS, EMBED_PRESETS, embedSource, type EmbedPreset } from "@platform/database/cms/blocks";
+import {
+  EMBED_HOSTS,
+  EMBED_PRESETS,
+  embedSource,
+  type EmbedPreset,
+} from "@platform/database/cms/blocks";
 
 const FRAME_HOSTS = Object.values(EMBED_HOSTS);
 
 /** The website-safe HTML of an editor document: only formatting, links, images, tables and known embeds survive. */
 function cleanHtml(html: string) {
   return sanitizeHtml(html, {
-    allowedTags: ["h2", "h3", "h4", "p", "br", "strong", "b", "em", "i", "u", "s", "code", "pre", "blockquote", "ul", "ol", "li", "a", "hr", "img", "figure", "figcaption", "div", "table", "thead", "tbody", "tr", "th", "td", "iframe"],
+    allowedTags: [
+      "h2",
+      "h3",
+      "h4",
+      "p",
+      "br",
+      "strong",
+      "b",
+      "em",
+      "i",
+      "u",
+      "s",
+      "code",
+      "pre",
+      "blockquote",
+      "ul",
+      "ol",
+      "li",
+      "a",
+      "hr",
+      "img",
+      "figure",
+      "figcaption",
+      "div",
+      "table",
+      "thead",
+      "tbody",
+      "tr",
+      "th",
+      "td",
+      "iframe",
+    ],
     allowedAttributes: {
       "*": ["dir", "style"],
       a: ["href", "rel", "title"],
@@ -22,7 +58,15 @@ function cleanHtml(html: string) {
     allowedSchemesByTag: { img: ["https", "http"], iframe: ["https"] },
     allowProtocolRelative: false,
     // Frames only for the embed providers (and their subdomains); the filter below checks the exact hosts too.
-    allowedIframeDomains: ["youtube-nocookie.com", "youtube.com", "vimeo.com", "instagram.com", "google.com", "calendly.com", "typeform.com"],
+    allowedIframeDomains: [
+      "youtube-nocookie.com",
+      "youtube.com",
+      "vimeo.com",
+      "instagram.com",
+      "google.com",
+      "calendly.com",
+      "typeform.com",
+    ],
     exclusiveFilter: (frame) => {
       if (frame.tag !== "iframe") return false;
       try {
@@ -33,21 +77,45 @@ function cleanHtml(html: string) {
       }
     },
     transformTags: {
-      a: (tagName, attribs) => ({ tagName, attribs: { ...attribs, rel: "noopener noreferrer nofollow" } }),
-      img: (tagName, attribs) => ({ tagName, attribs: { ...attribs, loading: "lazy" } }),
+      a: (tagName, attribs) => ({
+        tagName,
+        attribs: { ...attribs, rel: "noopener noreferrer nofollow" },
+      }),
+      img: (tagName, attribs) => ({
+        tagName,
+        attribs: { ...attribs, loading: "lazy" },
+      }),
     },
   });
 }
 
-type JsonNode = { type?: string; text?: string; attrs?: Record<string, unknown>; marks?: { type: string; attrs?: Record<string, unknown> }[]; content?: JsonNode[] };
+type JsonNode = {
+  type?: string;
+  text?: string;
+  attrs?: Record<string, unknown>;
+  marks?: { type: string; attrs?: Record<string, unknown> }[];
+  content?: JsonNode[];
+};
 
-const escape = (value: unknown) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]!);
+const escape = (value: unknown) =>
+  String(value ?? "").replace(
+    /[&<>"']/g,
+    (char) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        char
+      ]!,
+  );
 
 /** dir and text-align, the two paragraph-level attributes the editor sets. */
 function blockAttributes(attrs: Record<string, unknown> = {}) {
   const out: string[] = [];
-  if (attrs.dir === "rtl" || attrs.dir === "ltr") out.push(`dir="${attrs.dir}"`);
-  if (typeof attrs.textAlign === "string" && /^(left|right|center|justify)$/.test(attrs.textAlign)) out.push(`style="text-align:${attrs.textAlign}"`);
+  if (attrs.dir === "rtl" || attrs.dir === "ltr")
+    out.push(`dir="${attrs.dir}"`);
+  if (
+    typeof attrs.textAlign === "string" &&
+    /^(left|right|center|justify)$/.test(attrs.textAlign)
+  )
+    out.push(`style="text-align:${attrs.textAlign}"`);
   return out.length ? ` ${out.join(" ")}` : "";
 }
 
@@ -84,7 +152,9 @@ function toHtml(node: JsonNode): string {
     case "paragraph":
       return `<p${blockAttributes(attrs)}>${inner()}</p>`;
     case "heading": {
-      const level = [2, 3, 4].includes(Number(attrs.level)) ? Number(attrs.level) : 2;
+      const level = [2, 3, 4].includes(Number(attrs.level))
+        ? Number(attrs.level)
+        : 2;
       return `<h${level}${blockAttributes(attrs)}>${inner()}</h${level}>`;
     }
     case "bulletList":
@@ -109,12 +179,20 @@ function toHtml(node: JsonNode): string {
       return `<div class="rt-gallery">${(Array.isArray(attrs.images) ? attrs.images : []).map((image: { src?: string; alt?: string }) => `<img src="${escape(image?.src)}" alt="${escape(image?.alt)}" />`).join("")}</div>`;
     case "youtube": {
       const src = embedSource("youtube", String(attrs.src ?? ""));
-      return src ? `<div class="rt-embed" data-preset="youtube"><iframe src="${escape(src)}" title="video" allowfullscreen="true"></iframe></div>` : "";
+      return src
+        ? `<div class="rt-embed" data-preset="youtube"><iframe src="${escape(src)}" title="video" allowfullscreen="true"></iframe></div>`
+        : "";
     }
     case "embed": {
-      const preset = (EMBED_PRESETS as readonly string[]).includes(String(attrs.preset)) ? (attrs.preset as EmbedPreset) : "vimeo";
+      const preset = (EMBED_PRESETS as readonly string[]).includes(
+        String(attrs.preset),
+      )
+        ? (attrs.preset as EmbedPreset)
+        : "vimeo";
       const src = embedSource(preset, String(attrs.src ?? ""));
-      return src ? `<div class="rt-embed" data-preset="${preset}"><iframe src="${escape(src)}" title="${preset}" allowfullscreen="true"></iframe></div>` : "";
+      return src
+        ? `<div class="rt-embed" data-preset="${preset}"><iframe src="${escape(src)}" title="${preset}" allowfullscreen="true"></iframe></div>`
+        : "";
     }
     case "table":
       return `<table><tbody>${inner()}</tbody></table>`;
@@ -123,7 +201,10 @@ function toHtml(node: JsonNode): string {
     case "tableHeader":
     case "tableCell": {
       const tag = node.type === "tableHeader" ? "th" : "td";
-      const span = [Number(attrs.colspan) > 1 ? ` colspan="${Number(attrs.colspan)}"` : "", Number(attrs.rowspan) > 1 ? ` rowspan="${Number(attrs.rowspan)}"` : ""].join("");
+      const span = [
+        Number(attrs.colspan) > 1 ? ` colspan="${Number(attrs.colspan)}"` : "",
+        Number(attrs.rowspan) > 1 ? ` rowspan="${Number(attrs.rowspan)}"` : "",
+      ].join("");
       return `<${tag}${span}>${inner()}</${tag}>`;
     }
     default:
@@ -133,6 +214,7 @@ function toHtml(node: JsonNode): string {
 
 /** Renders a stored editor document to website HTML; anything that is not a document renders as nothing. */
 export function renderRichText(doc: unknown): string {
-  if (!doc || typeof doc !== "object" || (doc as JsonNode).type !== "doc") return "";
+  if (!doc || typeof doc !== "object" || (doc as JsonNode).type !== "doc")
+    return "";
   return cleanHtml(toHtml(doc as JsonNode));
 }

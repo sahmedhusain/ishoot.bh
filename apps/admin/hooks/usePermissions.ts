@@ -1,7 +1,11 @@
 "use client";
 
 import * as React from "react";
-import type { UserRole, PermissionResource, PermissionAction } from "@platform/database";
+import type {
+  UserRole,
+  PermissionResource,
+  PermissionAction,
+} from "@platform/database";
 
 export type { PermissionResource, PermissionAction };
 
@@ -45,5 +49,11 @@ export function usePermissions() {
       user?.permissions?.[`${resource}:${action}`] === true,
     [user],
   );
-  return { user, role: user?.role, can, loading, managesTeam: user?.managesTeam === true };
+  return {
+    user,
+    role: user?.role,
+    can,
+    loading,
+    managesTeam: user?.managesTeam === true,
+  };
 }

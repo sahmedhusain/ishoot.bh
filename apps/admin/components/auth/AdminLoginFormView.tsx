@@ -109,9 +109,8 @@ export function AdminLoginFormView(brand: AuthBrandingProps) {
             </label>
             <div className="relative">
               <Mail
-                className={`w-4 h-4 absolute top-3.5 text-ink-muted ${
-                  isRTL ? "right-3.5" : "left-3.5"
-                }`}
+                className={`w-4 h-4 absolute top-3.5 text-ink-muted ${isRTL ? "right-3.5" : "left-3.5"
+                  }`}
               />
               <Input
                 type="email"
@@ -136,9 +135,8 @@ export function AdminLoginFormView(brand: AuthBrandingProps) {
             </div>
             <div className="relative">
               <Lock
-                className={`w-4 h-4 absolute top-3.5 text-ink-muted ${
-                  isRTL ? "right-3.5" : "left-3.5"
-                }`}
+                className={`w-4 h-4 absolute top-3.5 text-ink-muted ${isRTL ? "right-3.5" : "left-3.5"
+                  }`}
               />
               <Input
                 type="password"

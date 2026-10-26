@@ -78,19 +78,19 @@ export default async function EmployeeDetailPage({
     getLeaveBalances(id, year),
     canViewPay
       ? db.payrollItem.findMany({
-          where: { employeeId: id },
-          orderBy: [
-            { payrollRun: { year: "desc" } },
-            { payrollRun: { month: "desc" } },
-          ],
-          take: 12,
-          select: {
-            id: true,
-            netSalary: true,
-            paymentStatus: true,
-            payrollRun: { select: { month: true, year: true, status: true } },
-          },
-        })
+        where: { employeeId: id },
+        orderBy: [
+          { payrollRun: { year: "desc" } },
+          { payrollRun: { month: "desc" } },
+        ],
+        take: 12,
+        select: {
+          id: true,
+          netSalary: true,
+          paymentStatus: true,
+          payrollRun: { select: { month: true, year: true, status: true } },
+        },
+      })
       : Promise.resolve([]),
     canViewPay ? listRecurringPay(id) : Promise.resolve([]),
   ]);
@@ -102,18 +102,18 @@ export default async function EmployeeDetailPage({
   const canManage = await canManageSalaryDocuments(actor);
   const documents = canManage
     ? await db.salaryDocument.findMany({
-        where: { employeeId: id },
-        orderBy: { createdAt: "desc" },
-      })
+      where: { employeeId: id },
+      orderBy: { createdAt: "desc" },
+    })
     : [];
   const [availableMonths, decidableIds] = canManage
     ? await Promise.all([
-        availablePayslipMonths(id),
-        decidableSalaryDocumentIds(
-          actor,
-          documents.filter((d) => d.status === "pending").map((d) => d.id),
-        ),
-      ])
+      availablePayslipMonths(id),
+      decidableSalaryDocumentIds(
+        actor,
+        documents.filter((d) => d.status === "pending").map((d) => d.id),
+      ),
+    ])
     : [[], []];
   return (
     <div className="space-y-6">
@@ -149,14 +149,14 @@ export default async function EmployeeDetailPage({
         account={
           account && linkedUserId
             ? {
-                userId: linkedUserId,
-                fullName: account.fullName,
-                role: account.role,
-                managerId: account.managerId,
-                status: account.status,
-                discountLimitPercent: account.discountLimitPercent,
-                commissionRatePercent: account.commissionRatePercent,
-              }
+              userId: linkedUserId,
+              fullName: account.fullName,
+              role: account.role,
+              managerId: account.managerId,
+              status: account.status,
+              discountLimitPercent: account.discountLimitPercent,
+              commissionRatePercent: account.commissionRatePercent,
+            }
             : null
         }
         email={account?.email ?? null}

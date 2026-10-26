@@ -1,4 +1,8 @@
-import { serverTemplates, formatMessage, serverMessages } from "@platform/locales";
+import {
+  serverTemplates,
+  formatMessage,
+  serverMessages,
+} from "@platform/locales";
 
 import {
   calculateContributions,
@@ -125,7 +129,9 @@ export function computePayrollLine(
 ) {
   for (const [key, value] of Object.entries(input))
     if (value !== undefined && !(Number.isFinite(value) && value >= 0))
-      throw new Error(formatMessage(serverTemplates["0MustBeZeroOrMore"], { 0: key }));
+      throw new Error(
+        formatMessage(serverTemplates["0MustBeZeroOrMore"], { 0: key }),
+      );
   const fixed = r3(
     input.basicSalary +
       input.housingAllowance +
@@ -422,7 +428,11 @@ function lineFor(
     : null;
   if (!record || (!settings && !scheme))
     throw new Error(
-      formatMessage(serverTemplates.completeTheSalaryAndPayrollSettingsFor, { 0: employee.firstNameEn, 1: employee.lastNameEn, 2: employee.employeeNumber }),
+      formatMessage(serverTemplates.completeTheSalaryAndPayrollSettingsFor, {
+        0: employee.firstNameEn,
+        1: employee.lastNameEn,
+        2: employee.employeeNumber,
+      }),
     );
   const userId = employee.userId;
   const commission =
@@ -797,7 +807,9 @@ export async function setPayrollItemLines(
   });
   if (!["draft", "calculated"].includes(item.payrollRun.status))
     throw new Error(
-      formatMessage(serverTemplates.payrollIs0LinesCanOnlyBe, { 0: item.payrollRun.status }),
+      formatMessage(serverTemplates.payrollIs0LinesCanOnlyBe, {
+        0: item.payrollRun.status,
+      }),
     );
   if (input.additions.length + input.deductions.length > MAX_PAY_LINES)
     throw new Error(serverMessages.aSalaryCanHaveAtMost);
@@ -895,7 +907,11 @@ export async function submitPayrollRunForApproval(
   });
   if (!run) throw new Error(serverMessages.payrollRunNotFound);
   if (run.status !== "calculated" && run.status !== "draft")
-    throw new Error(formatMessage(serverTemplates.payrollRunCannotBeSubmittedStatusIs, { 0: run.status }));
+    throw new Error(
+      formatMessage(serverTemplates.payrollRunCannotBeSubmittedStatusIs, {
+        0: run.status,
+      }),
+    );
   await db.payrollRun.update({ where: { id }, data: { status: "submitted" } });
   const approvalReq = await submitForApproval({
     targetType: "payroll_run",
@@ -957,7 +973,9 @@ async function payItems(
     });
     if (run.status !== "approved")
       throw new Error(
-        formatMessage(serverTemplates.salariesCanBePaidOnceThePayroll, { 0: run.status }),
+        formatMessage(serverTemplates.salariesCanBePaidOnceThePayroll, {
+          0: run.status,
+        }),
       );
     const targets = run.items.filter(
       (i) => i.paymentStatus !== "paid" && (!itemIds || itemIds.includes(i.id)),

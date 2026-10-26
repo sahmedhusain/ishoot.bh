@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import type { Invoice,PaymentMethod } from "@platform/database/types";
-import { Modal,Input,Select,Button,CurrencyDisplay } from "@platform/ui";
+import type { Invoice, PaymentMethod } from "@platform/database/types";
+import { Modal, Input, Select, Button, CurrencyDisplay } from "@platform/ui";
 import { CheckCircle2 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { createPaymentAction } from "../../app/actions/finance";

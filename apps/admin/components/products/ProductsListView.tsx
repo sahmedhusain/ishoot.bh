@@ -45,18 +45,20 @@ export function ProductsListView({ rows, total, page, pageSize, filters, categor
   };
   React.useEffect(() => setSelected([]), [rows]);
 
-  const bulk = (isActive: boolean) => confirmAction({ description: formatMessage(copy.bulkConfirm, { count: selected.length }), confirmMatchText: String(selected.length), onConfirm: async () => {
-    setBusy(true);
-    setError("");
-    try {
-      await setProductsActiveAction(selected, isActive);
-      router.refresh();
-    } catch (err) {
-      setError(errorMessage(err, t));
-    } finally {
-      setBusy(false);
+  const bulk = (isActive: boolean) => confirmAction({
+    description: formatMessage(copy.bulkConfirm, { count: selected.length }), confirmMatchText: String(selected.length), onConfirm: async () => {
+      setBusy(true);
+      setError("");
+      try {
+        await setProductsActiveAction(selected, isActive);
+        router.refresh();
+      } catch (err) {
+        setError(errorMessage(err, t));
+      } finally {
+        setBusy(false);
+      }
     }
-  } });
+  });
 
   const allChecked = rows.length > 0 && rows.every((row) => selected.includes(row.id));
   return (

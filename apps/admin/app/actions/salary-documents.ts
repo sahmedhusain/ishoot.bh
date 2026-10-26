@@ -1,5 +1,10 @@
 "use server";
-import { serverTemplates, formatMessage, serverMessages, getTranslations } from "@platform/locales";
+import {
+  serverTemplates,
+  formatMessage,
+  serverMessages,
+  getTranslations,
+} from "@platform/locales";
 
 import { ROUTES } from "../../constants/routes";
 
@@ -59,7 +64,9 @@ export async function requestSalaryDocumentAction(data: {
       const missing = months.filter((month) => !available.includes(month));
       if (missing.length)
         throw new Error(
-          formatMessage(serverTemplates.payrollIsNotApprovedYetFor0, { 0: missing.join(", ") }),
+          formatMessage(serverTemplates.payrollIsNotApprovedYetFor0, {
+            0: missing.join(", "),
+          }),
         );
     }
     const { id, approvalStatus } = await runAtomicMutation(async () => {
@@ -118,7 +125,8 @@ export async function reviewSalaryDocumentAction(
     // Who may issue is defined by the salary document approval policy and enforced by the engine.
     await runAtomicMutation(async () => {
       const pending = await findPendingApproval("salary_document", id);
-      if (!pending) throw new Error(serverMessages.requestHasAlreadyBeenReviewed);
+      if (!pending)
+        throw new Error(serverMessages.requestHasAlreadyBeenReviewed);
       const outcome = await decideApprovalRequest(
         pending.id,
         actor.id,
@@ -149,15 +157,14 @@ export async function emailSalaryDocumentAction(
   validateActionArguments("emailSalaryDocumentAction", { id, locale });
   const document = await getAccessibleSalaryDocument(id, actor);
   if (!(await canShareSalaryDocument(document, actor)))
-    throw new Error(
-      serverMessages.youCanViewDownloadOrPrintYourOwn,
-    );
+    throw new Error(serverMessages.youCanViewDownloadOrPrintYourOwn);
   if (document.status !== "issued")
     throw new Error(serverMessages.onlyIssuedDocumentsCanBeSent);
   if (!document.languages.includes(locale))
     throw new Error(serverMessages.thisDocumentWasNotRequestedIn);
   const recipient = document.employee.email;
-  if (!recipient) throw new Error(serverMessages.addTheEmployeeEmailBeforeSending);
+  if (!recipient)
+    throw new Error(serverMessages.addTheEmployeeEmailBeforeSending);
   const h = getTranslations(locale).admin.hrExtensions;
   const attachment = await generateSalaryDocumentPdf(
     document,
@@ -201,9 +208,7 @@ export async function whatsappSalaryDocumentAction(
   const h = getTranslations(locale).admin.hrExtensions;
   const document = await getAccessibleSalaryDocument(id, actor);
   if (!(await canShareSalaryDocument(document, actor)))
-    throw new Error(
-      serverMessages.youCanViewDownloadOrPrintYourOwn,
-    );
+    throw new Error(serverMessages.youCanViewDownloadOrPrintYourOwn);
   if (document.status !== "issued")
     throw new Error(serverMessages.onlyIssuedDocumentsCanBeSent);
   if (!document.languages.includes(locale))

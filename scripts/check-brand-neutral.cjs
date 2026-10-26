@@ -28,10 +28,10 @@ function terms() {
     const { company = {}, display = {} } = JSON.parse(fs.readFileSync(path.join(dir, "company.json"), "utf8"));
     const why = `company profile "${name}"`;
     for (const value of [display.nameEn, display.nameAr, company.companyNameEn, company.companyNameAr]) add(value, why);
-    try { add(new URL(company.website).hostname.replace(/^www\./, ""), why); } catch {}
+    try { add(new URL(company.website).hostname.replace(/^www\./, ""), why); } catch { }
     // Social links are matched by the account handle, not the shared host.
     for (const url of [company.instagramUrl, company.linkedinUrl, company.youtubeUrl]) {
-      try { add(new URL(url).pathname.split("/").filter(Boolean).pop()?.replace(/^@/, ""), why); } catch {}
+      try { add(new URL(url).pathname.split("/").filter(Boolean).pop()?.replace(/^@/, ""), why); } catch { }
     }
     if (company.email?.includes("@")) add("@" + company.email.split("@")[1], why);
     for (const key of ["crNumber", "vatId", "bankIban", "bankAccountNumber"]) if (!/^[0A-Z-]*0{4,}[0-]*$|EXMP|^CR-0+/.test(company[key] ?? "")) add(company[key], why);

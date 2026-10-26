@@ -8,7 +8,8 @@ export function validateSignatureImage(dataUrl: string) {
   );
   if (!match) throw new Error(serverMessages.drawYourSignatureToContinue);
   const bytes = Buffer.from(match[1], "base64");
-  if (bytes.length < 200) throw new Error(serverMessages.drawYourSignatureToContinue);
+  if (bytes.length < 200)
+    throw new Error(serverMessages.drawYourSignatureToContinue);
   if (bytes.length > MAX_SIGNATURE_BYTES)
     throw new Error(serverMessages.theSignatureImageIsTooLarge);
   if (

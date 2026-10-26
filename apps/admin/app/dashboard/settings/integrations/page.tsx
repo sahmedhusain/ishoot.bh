@@ -49,11 +49,11 @@ export default async function IntegrationsSettingsPage() {
       setupLinks={
         canManage
           ? Object.fromEntries(
-              INTEGRATION_PROVIDERS.map((provider) => [
-                provider.id,
-                integrationSetupLinks(provider.id, website, adminOrigin),
-              ]),
-            )
+            INTEGRATION_PROVIDERS.map((provider) => [
+              provider.id,
+              integrationSetupLinks(provider.id, website, adminOrigin),
+            ]),
+          )
           : {}
       }
       canManage={canManage}

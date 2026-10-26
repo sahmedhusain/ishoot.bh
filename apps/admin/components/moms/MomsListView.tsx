@@ -4,17 +4,17 @@ import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import type { MinuteOfMeetingItem } from "@platform/database";
-import { Card,Button,ConfirmDialog } from "@platform/ui";
+import { Card, Button, ConfirmDialog } from "@platform/ui";
 import {
-FileSignature,
-Plus,
-Search,
-Calendar,Trash2,
-ExternalLink,
-Users,
-CheckCircle,
-Clock4,
-Share2
+  FileSignature,
+  Plus,
+  Search,
+  Calendar, Trash2,
+  ExternalLink,
+  Users,
+  CheckCircle,
+  Clock4,
+  Share2
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { deleteMomAction } from "../../app/actions/mom";
@@ -120,21 +120,20 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
             <button
               key={st}
               onClick={() => setStatusFilter(st)}
-              className={`px-3 py-1 text-xs rounded-lg font-medium transition-all ${
-                statusFilter === st
-                  ? "bg-accent text-white"
-                  : "bg-ink/5 text-ink-muted hover:text-ink"
-              }`}
+              className={`px-3 py-1 text-xs rounded-lg font-medium transition-all ${statusFilter === st
+                ? "bg-accent text-white"
+                : "bg-ink/5 text-ink-muted hover:text-ink"
+                }`}
             >
               {st === "all"
                 ? t.momsList.all
                 : st === "approved"
-                ? t.momsList.approved
-                : st === "in_review"
-                ? t.momsList.inReview
-                : st === "shared"
-                ? t.momsList.shared2
-                : t.momsList.draft}
+                  ? t.momsList.approved
+                  : st === "in_review"
+                    ? t.momsList.inReview
+                    : st === "shared"
+                      ? t.momsList.shared2
+                      : t.momsList.draft}
             </button>
           ))}
         </div>

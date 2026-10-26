@@ -317,9 +317,9 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
                             {t.hrExtensions.details}
                           </summary>
                           {log.details.before &&
-                          log.details.after &&
-                          typeof log.details.before === "object" &&
-                          typeof log.details.after === "object" ? (
+                            log.details.after &&
+                            typeof log.details.before === "object" &&
+                            typeof log.details.after === "object" ? (
                             <table className="mt-3 text-xs w-full table-fixed">
                               <thead>
                                 <tr>
@@ -354,14 +354,14 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
                                           >
                                         )[key],
                                       ) !==
-                                        JSON.stringify(
-                                          (
-                                            log.details!.after as Record<
-                                              string,
-                                              unknown
-                                            >
-                                          )[key],
-                                        ),
+                                      JSON.stringify(
+                                        (
+                                          log.details!.after as Record<
+                                            string,
+                                            unknown
+                                          >
+                                        )[key],
+                                      ),
                                   )
                                   .map((key) => (
                                     <tr

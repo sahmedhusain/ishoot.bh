@@ -45,12 +45,14 @@ export interface TaxCertificate {
 export const VAT_TAX_CODE = "vat";
 
 function slug(text: string) {
-  return text
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 36) || "tax";
+  return (
+    text
+      .toLowerCase()
+      .normalize("NFKD")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 36) || "tax"
+  );
 }
 
 export async function listTaxRates(): Promise<TaxRateRecord[]> {
@@ -66,7 +68,9 @@ export async function listTaxRates(): Promise<TaxRateRecord[]> {
     rate: Number(r.ratePercent),
     registration_number: r.registrationNumber ?? undefined,
     certificate_url: r.certificateUrl ?? undefined,
-    certificate_valid_until: r.certificateValidUntil?.toISOString().slice(0, 10),
+    certificate_valid_until: r.certificateValidUntil
+      ?.toISOString()
+      .slice(0, 10),
     applies_to_invoices: r.appliesToInvoices,
     applies_to_quotations: r.appliesToQuotations,
     is_active: r.isActive,
@@ -78,33 +82,48 @@ export async function listTaxRates(): Promise<TaxRateRecord[]> {
 export async function saveTaxRate(input: TaxRateInput) {
   const nameEn = input.name_en?.trim().slice(0, 80);
   const nameAr = input.name_ar?.trim().slice(0, 80);
-  if (!nameEn || !nameAr) throw new Error(serverMessages.enterTheTaxNameInEnglish);
-  if (/^(vat|value added tax)$/i.test(nameEn)) throw new Error(serverMessages.vatIsSetUpInThe);
+  if (!nameEn || !nameAr)
+    throw new Error(serverMessages.enterTheTaxNameInEnglish);
+  if (/^(vat|value added tax)$/i.test(nameEn))
+    throw new Error(serverMessages.vatIsSetUpInThe);
   const rate = Math.round(Number(input.rate) * 100) / 100;
-  if (!Number.isFinite(rate) || rate <= 0 || rate > 100) throw new Error(serverMessages.enterATaxRateBetween0);
-  if (!input.applies_to_invoices && !input.applies_to_quotations) throw new Error(serverMessages.chooseWhereTheTaxAppliesInvoices);
+  if (!Number.isFinite(rate) || rate <= 0 || rate > 100)
+    throw new Error(serverMessages.enterATaxRateBetween0);
+  if (!input.applies_to_invoices && !input.applies_to_quotations)
+    throw new Error(serverMessages.chooseWhereTheTaxAppliesInvoices);
   const validUntil = input.certificate_valid_until?.trim();
-  if (validUntil && !Number.isFinite(Date.parse(validUntil))) throw new Error(serverMessages.invalidDate);
+  if (validUntil && !Number.isFinite(Date.parse(validUntil)))
+    throw new Error(serverMessages.invalidDate);
   const data = {
     nameEn,
     nameAr,
     ratePercent: rate,
     registrationNumber: input.registration_number?.trim().slice(0, 60) || null,
     certificateUrl: input.certificate_url?.trim() || null,
-    certificateValidUntil: validUntil ? new Date(`${validUntil}T00:00:00Z`) : null,
+    certificateValidUntil: validUntil
+      ? new Date(`${validUntil}T00:00:00Z`)
+      : null,
     appliesToInvoices: !!input.applies_to_invoices,
     appliesToQuotations: !!input.applies_to_quotations,
     isActive: !!input.is_active,
   };
   return runAtomicMutation(async () => {
     if (input.id) {
-      const existing = await db.taxRate.findUnique({ where: { id: input.id }, select: { id: true } });
+      const existing = await db.taxRate.findUnique({
+        where: { id: input.id },
+        select: { id: true },
+      });
       if (!existing) throw new Error(serverMessages.taxNotFound);
       return db.taxRate.update({ where: { id: input.id }, data });
     }
     const base = slug(nameEn) === VAT_TAX_CODE ? "tax" : slug(nameEn);
     let code = base;
-    for (let n = 2; await db.taxRate.findUnique({ where: { code }, select: { id: true } }); n++) code = `${base}-${n}`;
+    for (
+      let n = 2;
+      await db.taxRate.findUnique({ where: { code }, select: { id: true } });
+      n++
+    )
+      code = `${base}-${n}`;
     const order = await db.taxRate.count();
     return db.taxRate.create({ data: { ...data, code, displayOrder: order } });
   });
@@ -120,9 +139,13 @@ export async function deleteTaxRate(id: string) {
 }
 
 /** The certificate behind a document's QR code. */
-export async function getTaxCertificate(code: string): Promise<TaxCertificate | null> {
+export async function getTaxCertificate(
+  code: string,
+): Promise<TaxCertificate | null> {
   if (code === VAT_TAX_CODE) {
-    const company = await db.companySetting.findFirst({ select: { vatEnabled: true, vatId: true, vatCertificateUrl: true } });
+    const company = await db.companySetting.findFirst({
+      select: { vatEnabled: true, vatId: true, vatCertificateUrl: true },
+    });
     if (!company?.vatId && !company?.vatCertificateUrl) return null;
     return {
       code,
@@ -150,7 +173,10 @@ export async function getTaxCertificate(code: string): Promise<TaxCertificate | 
 
 /** Active taxes for the forms' live totals. */
 export async function getActiveTaxSummary() {
-  const rows = await db.taxRate.findMany({ where: { isActive: true }, orderBy: [{ displayOrder: "asc" }, { createdAt: "asc" }] });
+  const rows = await db.taxRate.findMany({
+    where: { isActive: true },
+    orderBy: [{ displayOrder: "asc" }, { createdAt: "asc" }],
+  });
   return rows.map((r) => ({
     code: r.code,
     name_en: r.nameEn,

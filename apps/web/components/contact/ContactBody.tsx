@@ -81,17 +81,17 @@ export async function ContactBody({ locale, query }: { locale: string; query: { 
 
               {((ar ? company.address_ar : company.address_en) ||
                 company.address_en) && (
-                <div className="flex gap-3.5 items-start p-3 rounded-xl bg-white/5 border border-white/10">
-                  <div className="w-9 h-9 rounded-lg bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0 text-mint mt-0.5">
-                    <MapPin className="w-4 h-4" />
+                  <div className="flex gap-3.5 items-start p-3 rounded-xl bg-white/5 border border-white/10">
+                    <div className="w-9 h-9 rounded-lg bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0 text-mint mt-0.5">
+                      <MapPin className="w-4 h-4" />
+                    </div>
+                    <span className="leading-relaxed">
+                      {ar
+                        ? company.address_ar || company.address_en
+                        : company.address_en}
+                    </span>
                   </div>
-                  <span className="leading-relaxed">
-                    {ar
-                      ? company.address_ar || company.address_en
-                      : company.address_en}
-                  </span>
-                </div>
-              )}
+                )}
 
               {hours && (
                 <div className="flex gap-3.5 items-start p-3 rounded-xl bg-white/5 border border-white/10">

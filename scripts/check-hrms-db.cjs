@@ -11,7 +11,7 @@ const { decideApprovalRequest } = require('../packages/database/src/services/app
 const rollback = new Error('ROLLBACK_HRMS_TEST');
 async function main() {
   const url = new URL(process.env.DATABASE_URL);
-  assert.ok(['localhost','127.0.0.1','::1'].includes(url.hostname), 'Run only against a local test/development database');
+  assert.ok(['localhost', '127.0.0.1', '::1'].includes(url.hostname), 'Run only against a local test/development database');
   try {
     await db.$transaction(tx => transactionContext.run(tx, async () => {
       const actor = await tx.user.findFirstOrThrow({ where: { role: 'super_admin', isActive: true }, select: { id: true } });
@@ -71,7 +71,7 @@ async function main() {
       const snapshot = await salaryDocumentSnapshot(employee.id, 'payslip', ['2199-01']);
       assert.equal(snapshot.items.length, 1);
       assert.equal(Number(snapshot.items[0].netSalary), 1035);
-      await assert.rejects(salaryDocumentSnapshot(employee.id, 'payslip', ['2199-01','2199-02']), /Approved payroll is required/);
+      await assert.rejects(salaryDocumentSnapshot(employee.id, 'payslip', ['2199-01', '2199-02']), /Approved payroll is required/);
       const leaveType = await tx.leaveType.create({ data: { code: `test-${employee.id}`, nameEn: 'Test paid leave', nameAr: 'إجازة اختبار', isPaid: true } });
       const leave = await createLeaveRequest({ employeeId: employee.id, leaveTypeId: leaveType.id, startDate: new Date('2199-04-01'), endDate: new Date('2199-04-02'), reason: 'Integration test' });
       await approveLeaveRequest(leave.id, actor.id);

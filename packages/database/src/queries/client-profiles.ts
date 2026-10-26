@@ -26,9 +26,15 @@ const clean = (value: unknown, max = 200): string | null => {
   const text = value.trim().slice(0, max);
   return text || null;
 };
-const oneOf = <T extends readonly string[]>(list: T, value: unknown): T[number] | null =>
-  typeof value === "string" && (list as readonly string[]).includes(value) ? (value as T[number]) : null;
-const looksLikeEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+const oneOf = <T extends readonly string[]>(
+  list: T,
+  value: unknown,
+): T[number] | null =>
+  typeof value === "string" && (list as readonly string[]).includes(value)
+    ? (value as T[number])
+    : null;
+const looksLikeEmail = (value: string) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
 /** Turns a stored client back into form input, so a partial update can be validated as a whole profile. */
 function storedProfile(c: CRMContact): ClientProfileInput {
@@ -69,19 +75,31 @@ function storedProfile(c: CRMContact): ClientProfileInput {
  * and the primary one is mirrored onto the client's name, e-mail, phone and job title.
  */
 export function normalizeClientProfile(input: ClientProfileInput) {
-  const kind = oneOf(CLIENT_KINDS, input.client_kind) ?? (clean(input.company) ? "company" : "individual");
+  const kind =
+    oneOf(CLIENT_KINDS, input.client_kind) ??
+    (clean(input.company) ? "company" : "individual");
   const address = input.address ?? {};
   const addressCountry = clean(address.country, 2);
-  if (addressCountry && !isCountryCode(addressCountry)) throw new Error(serverMessages.chooseACountryFromTheList);
+  if (addressCountry && !isCountryCode(addressCountry))
+    throw new Error(serverMessages.chooseACountryFromTheList);
   const nationality = clean(input.nationality, 2);
-  if (nationality && !isCountryCode(nationality)) throw new Error(serverMessages.chooseACountryFromTheList);
-  const preferredLanguage = input.preferred_language === "ar" || input.preferred_language === "en" ? input.preferred_language : null;
+  if (nationality && !isCountryCode(nationality))
+    throw new Error(serverMessages.chooseACountryFromTheList);
+  const preferredLanguage =
+    input.preferred_language === "ar" || input.preferred_language === "en"
+      ? input.preferred_language
+      : null;
   const terms = input.payment_terms_days;
-  if (terms !== undefined && terms !== null && (!Number.isInteger(terms) || terms < 0 || terms > 365))
+  if (
+    terms !== undefined &&
+    terms !== null &&
+    (!Number.isInteger(terms) || terms < 0 || terms > 365)
+  )
     throw new Error(serverMessages.paymentTermsMustBeBetween0);
   const website = clean(input.website, 300);
   const email = clean(input.email, 254)?.toLowerCase() ?? null;
-  if (email && !looksLikeEmail(email)) throw new Error(serverMessages.enterAValidEMailAddress);
+  if (email && !looksLikeEmail(email))
+    throw new Error(serverMessages.enterAValidEMailAddress);
 
   const companyName = clean(input.company);
   let companyOrigin: "local" | "foreign" | null = null;
@@ -93,47 +111,69 @@ export function normalizeClientProfile(input: ClientProfileInput) {
     companyOrigin = input.company_origin === "foreign" ? "foreign" : "local";
     if (companyOrigin === "local") {
       crNumber = clean(input.cr_number, 20)?.replace(/\s+/g, "") ?? null;
-      if (!crNumber || !BAHRAIN_CR_PATTERN.test(crNumber)) throw new Error(serverMessages.enterTheCommercialRegistrationCRNumber);
+      if (!crNumber || !BAHRAIN_CR_PATTERN.test(crNumber))
+        throw new Error(serverMessages.enterTheCommercialRegistrationCRNumber);
       registrationCountry = "BH";
     } else {
       registrationCountry = clean(input.registration_country, 2);
-      if (!registrationCountry || !isCountryCode(registrationCountry) || registrationCountry === "BH")
+      if (
+        !registrationCountry ||
+        !isCountryCode(registrationCountry) ||
+        registrationCountry === "BH"
+      )
         throw new Error(serverMessages.chooseTheCountryWhereTheCompany);
       registrationNumber = clean(input.registration_number, 60);
-      if (!registrationNumber) throw new Error(serverMessages.enterTheCompanySRegistrationNumber);
+      if (!registrationNumber)
+        throw new Error(serverMessages.enterTheCompanySRegistrationNumber);
     }
   } else if (kind === "government") {
-    if (!companyName) throw new Error(serverMessages.enterTheGovernmentEntitySName);
+    if (!companyName)
+      throw new Error(serverMessages.enterTheGovernmentEntitySName);
     registrationCountry = clean(input.registration_country, 2) ?? "BH";
-    if (!isCountryCode(registrationCountry)) throw new Error(serverMessages.chooseACountryFromTheList);
+    if (!isCountryCode(registrationCountry))
+      throw new Error(serverMessages.chooseACountryFromTheList);
   }
   const vatNumber = clean(input.vat_number, 30)?.replace(/\s+/g, "") ?? null;
-  if (vatNumber && kind !== "individual" && registrationCountry === "BH" && !BAHRAIN_VAT_PATTERN.test(vatNumber))
+  if (
+    vatNumber &&
+    kind !== "individual" &&
+    registrationCountry === "BH" &&
+    !BAHRAIN_VAT_PATTERN.test(vatNumber)
+  )
     throw new Error(serverMessages.aBahrainVATNumberHas15);
 
   // Points of contact.
   const persons =
     kind === "individual"
       ? []
-      : (input.contact_persons ?? []).slice(0, MAX_CONTACT_PERSONS + 1).map((p, index) => {
-          const fullName = clean(p.full_name, 150);
-          if (!fullName) throw new Error(serverMessages.everyPointOfContactNeedsA);
-          const personEmail = clean(p.email, 254)?.toLowerCase() ?? null;
-          if (personEmail && !looksLikeEmail(personEmail)) throw new Error(serverMessages.enterAValidEMailAddress);
-          return {
-            fullName,
-            position: clean(p.position, 120),
-            department: clean(p.department, 120),
-            email: personEmail,
-            phone: clean(p.phone, 40),
-            notes: clean(p.notes, 500),
-            isPrimary: !!p.is_primary,
-            displayOrder: index,
-          };
-        });
-  if (persons.length > MAX_CONTACT_PERSONS) throw new Error(serverMessages.aClientCanHaveAtMost);
-  if (kind !== "individual" && !persons.length) throw new Error(serverMessages.addAtLeastOnePointOf);
-  const primaryIndex = Math.max(0, persons.findIndex((p) => p.isPrimary));
+      : (input.contact_persons ?? [])
+          .slice(0, MAX_CONTACT_PERSONS + 1)
+          .map((p, index) => {
+            const fullName = clean(p.full_name, 150);
+            if (!fullName)
+              throw new Error(serverMessages.everyPointOfContactNeedsA);
+            const personEmail = clean(p.email, 254)?.toLowerCase() ?? null;
+            if (personEmail && !looksLikeEmail(personEmail))
+              throw new Error(serverMessages.enterAValidEMailAddress);
+            return {
+              fullName,
+              position: clean(p.position, 120),
+              department: clean(p.department, 120),
+              email: personEmail,
+              phone: clean(p.phone, 40),
+              notes: clean(p.notes, 500),
+              isPrimary: !!p.is_primary,
+              displayOrder: index,
+            };
+          });
+  if (persons.length > MAX_CONTACT_PERSONS)
+    throw new Error(serverMessages.aClientCanHaveAtMost);
+  if (kind !== "individual" && !persons.length)
+    throw new Error(serverMessages.addAtLeastOnePointOf);
+  const primaryIndex = Math.max(
+    0,
+    persons.findIndex((p) => p.isPrimary),
+  );
   persons.forEach((p, index) => (p.isPrimary = index === primaryIndex));
   const primary = persons[primaryIndex];
 
@@ -171,15 +211,28 @@ export function normalizeClientProfile(input: ClientProfileInput) {
     companyOrigin,
     legalForm: kind === "company" ? oneOf(LEGAL_FORMS, input.legal_form) : null,
     crNumber,
-    crExpiryDate: kind === "company" && companyOrigin === "local" && clean(input.cr_expiry_date, 10) ? new Date(`${clean(input.cr_expiry_date, 10)}T00:00:00Z`) : null,
+    crExpiryDate:
+      kind === "company" &&
+      companyOrigin === "local" &&
+      clean(input.cr_expiry_date, 10)
+        ? new Date(`${clean(input.cr_expiry_date, 10)}T00:00:00Z`)
+        : null,
     registrationNumber,
     registrationCountry,
-    governmentType: kind === "government" ? oneOf(GOVERNMENT_TYPES, input.government_type) : null,
-    supplierNumber: kind === "government" ? clean(input.supplier_number, 60) : null,
-    requiresPurchaseOrder: kind === "government" ? !!input.requires_purchase_order : false,
+    governmentType:
+      kind === "government"
+        ? oneOf(GOVERNMENT_TYPES, input.government_type)
+        : null,
+    supplierNumber:
+      kind === "government" ? clean(input.supplier_number, 60) : null,
+    requiresPurchaseOrder:
+      kind === "government" ? !!input.requires_purchase_order : false,
     nationality: kind === "individual" ? nationality : null,
     industry: kind === "individual" ? null : oneOf(INDUSTRIES, input.industry),
-    website: website && !/^https?:\/\//i.test(website) ? `https://${website}` : website,
+    website:
+      website && !/^https?:\/\//i.test(website)
+        ? `https://${website}`
+        : website,
     vatNumber,
     preferredLanguage,
     paymentTermsDays: terms ?? null,
@@ -197,22 +250,32 @@ export function normalizeClientProfile(input: ClientProfileInput) {
     addressPostalCode: clean(address.postal_code, 20),
     addressPoBox: clean(address.po_box, 20),
   };
-  if (data.crExpiryDate && Number.isNaN(data.crExpiryDate.getTime())) throw new Error(serverMessages.invalidDate);
+  if (data.crExpiryDate && Number.isNaN(data.crExpiryDate.getTime()))
+    throw new Error(serverMessages.invalidDate);
   return { data, persons: persons.map(({ ...p }) => p) };
 }
 
 async function assertUniqueCr(crNumber: string | null, exceptId?: string) {
   if (!crNumber) return;
-  const other = await db.crmContact.findFirst({ where: { crNumber, ...(exceptId ? { id: { not: exceptId } } : {}) }, select: { id: true } });
-  if (other) throw new Error(serverMessages.anotherClientIsAlreadyRegisteredWith);
+  const other = await db.crmContact.findFirst({
+    where: { crNumber, ...(exceptId ? { id: { not: exceptId } } : {}) },
+    select: { id: true },
+  });
+  if (other)
+    throw new Error(serverMessages.anotherClientIsAlreadyRegisteredWith);
 }
 
 export async function getClientProfile(id: string): Promise<CRMContact | null> {
-  const row = await db.crmContact.findUnique({ where: { id }, include: { contactPersons: { orderBy: { displayOrder: "asc" } } } });
+  const row = await db.crmContact.findUnique({
+    where: { id },
+    include: { contactPersons: { orderBy: { displayOrder: "asc" } } },
+  });
   return row ? mapContact(row) : null;
 }
 
-export async function createClientProfile(input: ClientProfileInput): Promise<CRMContact> {
+export async function createClientProfile(
+  input: ClientProfileInput,
+): Promise<CRMContact> {
   const { data, persons } = normalizeClientProfile(input);
   return runAtomicMutation(async () => {
     await assertUniqueCr(data.crNumber);
@@ -224,12 +287,20 @@ export async function createClientProfile(input: ClientProfileInput): Promise<CR
   });
 }
 
-export async function updateClientProfile(id: string, input: ClientProfileInput): Promise<CRMContact> {
+export async function updateClientProfile(
+  id: string,
+  input: ClientProfileInput,
+): Promise<CRMContact> {
   return runAtomicMutation(async () => {
     const existing = await getClientProfile(id);
     if (!existing) throw new Error(serverMessages.contactNotFound);
-    const defined = Object.fromEntries(Object.entries(input).filter(([, value]) => value !== undefined)) as ClientProfileInput;
-    const merged: ClientProfileInput = { ...storedProfile(existing), ...defined };
+    const defined = Object.fromEntries(
+      Object.entries(input).filter(([, value]) => value !== undefined),
+    ) as ClientProfileInput;
+    const merged: ClientProfileInput = {
+      ...storedProfile(existing),
+      ...defined,
+    };
     // A changed type starts from the new type's own fields: a full name typed for an individual replaces the stored one.
     if (defined.full_name) {
       merged.first_name = undefined;
@@ -263,12 +334,19 @@ export type ClientListParameters = {
 };
 
 export function clientListParameters(input: ClientListParameters = {}) {
-  const pick = <T extends readonly string[]>(list: T, value: unknown) => oneOf(list, value) ?? "all";
+  const pick = <T extends readonly string[]>(list: T, value: unknown) =>
+    oneOf(list, value) ?? "all";
   return {
     q: typeof input.q === "string" ? input.q.trim().slice(0, 200) : "",
-    page: Math.min(1000000, Math.max(1, Number.parseInt(input.page || "1", 10) || 1)),
+    page: Math.min(
+      1000000,
+      Math.max(1, Number.parseInt(input.page || "1", 10) || 1),
+    ),
     kind: pick(CLIENT_KINDS, input.kind),
-    type: pick(["client", "agency", "vendor", "freelancer"] as const, input.type),
+    type: pick(
+      ["client", "agency", "vendor", "freelancer"] as const,
+      input.type,
+    ),
     origin: pick(["local", "foreign"] as const, input.origin),
     country: isCountryCode(input.country) ? input.country : "all",
     tier: pick(CLIENT_TIERS, input.tier),
@@ -367,16 +445,23 @@ function filterSql(f: ClientListFilters, extra: Prisma.Sql[] = []) {
   if (f.type !== "all") and.push(Prisma.sql`c."contactType" = ${f.type}`);
   if (f.origin !== "all") and.push(Prisma.sql`c."companyOrigin" = ${f.origin}`);
   if (f.country !== "all")
-    and.push(Prisma.sql`(c."addressCountry" = ${f.country} OR c."registrationCountry" = ${f.country} OR c.nationality = ${f.country})`);
+    and.push(
+      Prisma.sql`(c."addressCountry" = ${f.country} OR c."registrationCountry" = ${f.country} OR c.nationality = ${f.country})`,
+    );
   if (f.tier !== "all") and.push(Prisma.sql`x.tier = ${f.tier}`);
   if (f.balance === "outstanding") and.push(Prisma.sql`x.outstanding > 0`);
   if (f.balance === "overdue") and.push(Prisma.sql`x.overdue`);
-  if (f.balance === "settled") and.push(Prisma.sql`NOT x.never_billed AND x.outstanding <= 0`);
+  if (f.balance === "settled")
+    and.push(Prisma.sql`NOT x.never_billed AND x.outstanding <= 0`);
   if (f.balance === "never_billed") and.push(Prisma.sql`x.never_billed`);
   const dormantSince = new Date(Date.now() - CLIENT_DORMANT_DAYS * 86400000);
-  if (f.activity === "active") and.push(Prisma.sql`x.last_activity >= ${dormantSince}`);
-  if (f.activity === "dormant") and.push(Prisma.sql`x.last_activity < ${dormantSince}`);
-  return and.length ? Prisma.sql`WHERE ${Prisma.join(and, " AND ")}` : Prisma.empty;
+  if (f.activity === "active")
+    and.push(Prisma.sql`x.last_activity >= ${dormantSince}`);
+  if (f.activity === "dormant")
+    and.push(Prisma.sql`x.last_activity < ${dormantSince}`);
+  return and.length
+    ? Prisma.sql`WHERE ${Prisma.join(and, " AND ")}`
+    : Prisma.empty;
 }
 
 const SORT_SQL: Record<ClientSort, Prisma.Sql> = {
@@ -407,7 +492,9 @@ type StandingRow = {
 };
 
 async function baseCurrency() {
-  const settings = await db.companySetting.findFirst({ select: { defaultCurrency: true } });
+  const settings = await db.companySetting.findFirst({
+    select: { defaultCurrency: true },
+  });
   return settings?.defaultCurrency || "BHD";
 }
 
@@ -422,42 +509,62 @@ async function hydrate(rows: StandingRow[]): Promise<ClientListRow[]> {
     if (!contact) return [];
     const mapped = mapContact(contact);
     delete (mapped as any).notes;
-    return [{
-      ...mapped,
-      rank: r.rank === null ? null : Number(r.rank),
-      tier: r.tier,
-      billed: Number(r.billed),
-      collected: Number(r.collected),
-      outstanding: Number(r.outstanding),
-      overdue: r.overdue,
-      invoice_count: r.invoice_count,
-      deals_won: r.deals_won,
-      contact_persons_count: r.persons,
-      last_activity: (r.last_activity ?? contact.createdAt).toISOString(),
-    }];
+    return [
+      {
+        ...mapped,
+        rank: r.rank === null ? null : Number(r.rank),
+        tier: r.tier,
+        billed: Number(r.billed),
+        collected: Number(r.collected),
+        outstanding: Number(r.outstanding),
+        overdue: r.overdue,
+        invoice_count: r.invoice_count,
+        deals_won: r.deals_won,
+        contact_persons_count: r.persons,
+        last_activity: (r.last_activity ?? contact.createdAt).toISOString(),
+      },
+    ];
   });
 }
 
 /** The client list with filters, sorting and ABC ranking. In export mode it walks every match by id. */
-export async function getClientsPage(input: ClientListParameters, batch?: { after?: string; batchSize: number }) {
+export async function getClientsPage(
+  input: ClientListParameters,
+  batch?: { after?: string; batchSize: number },
+) {
   const f = clientListParameters(input);
   const currency = await baseCurrency();
   return runAtomicMutation(async () => {
     const withSql = Prisma.sql`WITH ${standingSql(currency)}`;
     const from = Prisma.sql`FROM "CrmContact" c JOIN client_rows x ON x.id = c.id ${filterSql(f)}`;
     if (batch) {
-      const where = filterSql(f, batch.after ? [Prisma.sql`c.id > ${batch.after}`] : []);
+      const where = filterSql(
+        f,
+        batch.after ? [Prisma.sql`c.id > ${batch.after}`] : [],
+      );
       const rows = await db.$queryRaw<StandingRow[]>(Prisma.sql`${withSql}
         SELECT x.* FROM "CrmContact" c JOIN client_rows x ON x.id = c.id ${where}
         ORDER BY c.id ASC LIMIT ${Math.min(500, batch.batchSize)}`);
-      return { items: await hydrate(rows), total: 0, page: 1, pageSize: 500, filters: f, summary: null, currency };
+      return {
+        items: await hydrate(rows),
+        total: 0,
+        page: 1,
+        pageSize: 500,
+        filters: f,
+        summary: null,
+        currency,
+      };
     }
-    const [{ count }] = await db.$queryRaw<Array<{ count: bigint }>>(Prisma.sql`${withSql} SELECT COUNT(*) AS count ${from}`);
+    const [{ count }] = await db.$queryRaw<Array<{ count: bigint }>>(
+      Prisma.sql`${withSql} SELECT COUNT(*) AS count ${from}`,
+    );
     const total = Number(count);
     const page = Math.min(f.page, Math.max(1, Math.ceil(total / 50)));
     const rows = await db.$queryRaw<StandingRow[]>(Prisma.sql`${withSql}
       SELECT x.* ${from} ORDER BY ${SORT_SQL[f.sort]} LIMIT 50 OFFSET ${(page - 1) * 50}`);
-    const [summary] = await db.$queryRaw<Array<Record<string, bigint | unknown>>>(Prisma.sql`${withSql}
+    const [summary] = await db.$queryRaw<
+      Array<Record<string, bigint | unknown>>
+    >(Prisma.sql`${withSql}
       SELECT COUNT(*) AS total,
         COUNT(*) FILTER (WHERE c."clientKind" = 'company') AS companies,
         COUNT(*) FILTER (WHERE c."clientKind" = 'government') AS government,
@@ -474,8 +581,17 @@ export async function getClientsPage(input: ClientListParameters, batch?: { afte
       pageSize: 50,
       filters: f,
       currency,
-      summary: Object.fromEntries(Object.entries(summary).map(([key, value]) => [key, Number(value)])) as Record<
-        "total" | "companies" | "government" | "individuals" | "tier_a" | "with_balance" | "outstanding" | "billed",
+      summary: Object.fromEntries(
+        Object.entries(summary).map(([key, value]) => [key, Number(value)]),
+      ) as Record<
+        | "total"
+        | "companies"
+        | "government"
+        | "individuals"
+        | "tier_a"
+        | "with_balance"
+        | "outstanding"
+        | "billed",
         number
       >,
     };
@@ -485,10 +601,14 @@ export async function getClientsPage(input: ClientListParameters, batch?: { afte
 /** One client's rank and tier among all clients, for the client page. */
 export async function getClientStanding(id: string) {
   const currency = await baseCurrency();
-  const rows = await db.$queryRaw<StandingRow[]>(Prisma.sql`WITH ${standingSql(currency)} SELECT x.* FROM client_rows x WHERE x.id = ${id}`);
+  const rows = await db.$queryRaw<StandingRow[]>(
+    Prisma.sql`WITH ${standingSql(currency)} SELECT x.* FROM client_rows x WHERE x.id = ${id}`,
+  );
   const r = rows[0];
   if (!r) return null;
-  const [{ ranked }] = await db.$queryRaw<Array<{ ranked: bigint }>>(Prisma.sql`WITH ${standingSql(currency)} SELECT COUNT(*) AS ranked FROM ranked`);
+  const [{ ranked }] = await db.$queryRaw<Array<{ ranked: bigint }>>(
+    Prisma.sql`WITH ${standingSql(currency)} SELECT COUNT(*) AS ranked FROM ranked`,
+  );
   return {
     rank: r.rank === null ? null : Number(r.rank),
     rankedClients: Number(ranked),

@@ -628,7 +628,8 @@ export function calculateInvoiceTotals(
   /** Taxes besides VAT (company tax registry), each charged on the amount after discount. */
   otherTaxes: Array<{ code: string; rate: number }> = [],
 ) {
-  if (!CURRENCY_CONFIGS[currency]) throw new Error(serverMessages.unsupportedCurrency);
+  if (!CURRENCY_CONFIGS[currency])
+    throw new Error(serverMessages.unsupportedCurrency);
   if (
     otherTaxes.some(
       (tax) => !Number.isFinite(tax.rate) || tax.rate <= 0 || tax.rate > 100,

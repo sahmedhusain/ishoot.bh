@@ -32,8 +32,16 @@ export async function collectWebsiteDraft(config: WebsiteConfig) {
   // Pages are created from the settings the first time; outside the snapshot transaction so they are kept.
   await listCmsPages().catch(() => undefined);
   return runAtomicMutation(async () => {
-  const [banners, portfolio, clients, faqs, stats, services, pages, articles] =
-    await Promise.all([
+    const [
+      banners,
+      portfolio,
+      clients,
+      faqs,
+      stats,
+      services,
+      pages,
+      articles,
+    ] = await Promise.all([
       getActiveBanners(),
       getPortfolioItems(),
       getActiveClientLogos(),
@@ -43,18 +51,18 @@ export async function collectWebsiteDraft(config: WebsiteConfig) {
       listCmsPages(),
       getPublishedArticles(),
     ]);
-  // Query failures propagate; no redundant full-table count probes are needed.
-  return {
-    config: validateWebsiteConfig(config),
-    banners,
-    portfolio,
-    clients,
-    faqs,
-    stats,
-    services,
-    pages,
-    articles,
-  };
+    // Query failures propagate; no redundant full-table count probes are needed.
+    return {
+      config: validateWebsiteConfig(config),
+      banners,
+      portfolio,
+      clients,
+      faqs,
+      stats,
+      services,
+      pages,
+      articles,
+    };
   }, "RepeatableRead");
 }
 export type WebsiteSnapshot = Awaited<ReturnType<typeof collectWebsiteDraft>>;
@@ -80,19 +88,32 @@ export async function getWebsiteSnapshot(
   const content = await db.websiteContent.findUnique({ where: { id: "main" } });
   if (!preview && content?.published)
     return content.published as unknown as WebsiteSnapshot;
-  if (!preview || !content) throw new Error(serverMessages.websiteSetupIsIncompleteSaveAndPublish);
+  if (!preview || !content)
+    throw new Error(serverMessages.websiteSetupIsIncompleteSaveAndPublish);
   return collectWebsiteDraft(validateWebsiteConfig(content.draft));
 }
 
 /** Snapshot sections an editor can change outside the Website page. */
-export const WEBSITE_SNAPSHOT_SECTIONS = ["config", "banners", "portfolio", "clients", "faqs", "stats", "services", "pages", "articles"] as const;
+export const WEBSITE_SNAPSHOT_SECTIONS = [
+  "config",
+  "banners",
+  "portfolio",
+  "clients",
+  "faqs",
+  "stats",
+  "services",
+  "pages",
+  "articles",
+] as const;
 export type WebsiteSnapshotSection = (typeof WEBSITE_SNAPSHOT_SECTIONS)[number];
 
 // Postgres jsonb does not keep key order, so compare with keys sorted.
 const stableJson = (value: unknown): string =>
   JSON.stringify(value, (_key, v) =>
     v && typeof v === "object" && !Array.isArray(v)
-      ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => a.localeCompare(b)))
+      ? Object.fromEntries(
+          Object.entries(v).sort(([a], [b]) => a.localeCompare(b)),
+        )
       : v,
   );
 
@@ -106,12 +127,22 @@ export async function getWebsitePublicationStatus(): Promise<{
 }> {
   const content = await getWebsiteEditor();
   const published = content.published as Record<string, unknown> | null;
-  if (!published) return { isPublished: false, changedSections: [...WEBSITE_SNAPSHOT_SECTIONS] };
-  const draft = JSON.parse(JSON.stringify(await collectWebsiteDraft(validateWebsiteConfig(content.draft))));
+  if (!published)
+    return {
+      isPublished: false,
+      changedSections: [...WEBSITE_SNAPSHOT_SECTIONS],
+    };
+  const draft = JSON.parse(
+    JSON.stringify(
+      await collectWebsiteDraft(validateWebsiteConfig(content.draft)),
+    ),
+  );
   return {
     isPublished: true,
     changedSections: WEBSITE_SNAPSHOT_SECTIONS.filter(
-      (section) => stableJson(draft[section] ?? null) !== stableJson(published[section] ?? null),
+      (section) =>
+        stableJson(draft[section] ?? null) !==
+        stableJson(published[section] ?? null),
     ),
   };
 }

@@ -1506,15 +1506,7 @@
       "November",
       "December"
     ],
-    "weekdays": [
-      "Sun",
-      "Mon",
-      "Tue",
-      "Wed",
-      "Thu",
-      "Fri",
-      "Sat"
-    ],
+    "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
     "more": "more",
     "upcomingAgenda": "Upcoming Event Agenda",
     "googleCalendar": "Google Calendar",
@@ -10447,15 +10439,7 @@
         "Friday",
         "Saturday"
       ],
-      "weekdaysShort": [
-        "Sun",
-        "Mon",
-        "Tue",
-        "Wed",
-        "Thu",
-        "Fri",
-        "Sat"
-      ]
+      "weekdaysShort": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
     },
     "kinds": {
       "car": "Car",

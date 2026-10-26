@@ -184,9 +184,11 @@ export function ClientSignaturePanel({
         <div className="flex flex-wrap items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-900 dark:text-emerald-200">
           <CheckCircle2 className="w-4 h-4 shrink-0" aria-hidden />
           <span className="min-w-0 flex-1">
-            {formatMessage(s.signedSummary, { name: [signed.signerName, signed.signerTitle]
-                  .filter(Boolean)
-                  .join(locale === "ar" ? "، " : ", "), date: "" })}
+            {formatMessage(s.signedSummary, {
+              name: [signed.signerName, signed.signerTitle]
+                .filter(Boolean)
+                .join(locale === "ar" ? "، " : ", "), date: ""
+            })}
             <DateDisplay
               date={signed.signedAt ?? signed.createdAt}
               locale={locale}
@@ -307,10 +309,12 @@ export function ClientSignaturePanel({
                 </Button>
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-300">
-                {formatMessage(s.linkNotice, { date: new Intl.DateTimeFormat(
+                {formatMessage(s.linkNotice, {
+                  date: new Intl.DateTimeFormat(
                     locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB",
                     { dateStyle: "long", timeStyle: "short" },
-                  ).format(new Date(link.expiresAt)) })}
+                  ).format(new Date(link.expiresAt))
+                })}
               </p>
               <p className="text-xs font-medium text-amber-700 dark:text-amber-300">
                 {s.linkOnce}
@@ -490,11 +494,11 @@ export function ClientSignaturePanel({
                   setFile(
                     url
                       ? {
-                          url,
-                          name:
-                            meta?.fileName ??
-                            (meta?.isLink ? new URL(url).hostname : url),
-                        }
+                        url,
+                        name:
+                          meta?.fileName ??
+                          (meta?.isLink ? new URL(url).hostname : url),
+                      }
                       : null,
                   )
                 }

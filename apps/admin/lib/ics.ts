@@ -77,7 +77,9 @@ export function buildIcs(
         `DTSTART:${stamp(ev.start_date)}`,
         `DTEND:${stamp(ev.end_date)}`,
       );
-    lines.push(`SUMMARY:${escape(title || getTranslations(options.language).admin.calendarMessages.event)}`);
+    lines.push(
+      `SUMMARY:${escape(title || getTranslations(options.language).admin.calendarMessages.event)}`,
+    );
     if (description) lines.push(`DESCRIPTION:${escape(description)}`);
     if (ev.location) lines.push(`LOCATION:${escape(ev.location)}`);
     if (ev.layer) lines.push(`CATEGORIES:${escape(ev.layer)}`);

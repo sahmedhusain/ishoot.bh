@@ -57,11 +57,10 @@ export function ModulesManagementView({ initialToggles }: ModulesManagementViewP
         {toggles.map((toggle) => (
           <Card
             key={toggle.id}
-            className={`p-5 transition-all ${
-              toggle.isEnabled
-                ? "bg-white dark:bg-surface-raised border-slate-200 dark:border-accent/30"
-                : "bg-slate-50 dark:bg-surface-sunken border-slate-200 dark:border-white/10 opacity-70"
-            }`}
+            className={`p-5 transition-all ${toggle.isEnabled
+              ? "bg-white dark:bg-surface-raised border-slate-200 dark:border-accent/30"
+              : "bg-slate-50 dark:bg-surface-sunken border-slate-200 dark:border-white/10 opacity-70"
+              }`}
           >
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -81,11 +80,10 @@ export function ModulesManagementView({ initialToggles }: ModulesManagementViewP
               <button
                 onClick={() => handleToggle(toggle.moduleKey, toggle.isEnabled)}
                 disabled={loadingId === toggle.moduleKey}
-                className={`p-1 -m-1 transition-colors ${
-                  toggle.isEnabled
-                    ? "text-accent hover:text-primary"
-                    : "text-slate-300 dark:text-slate-600 hover:text-slate-400 dark:hover:text-slate-500"
-                }`}
+                className={`p-1 -m-1 transition-colors ${toggle.isEnabled
+                  ? "text-accent hover:text-primary"
+                  : "text-slate-300 dark:text-slate-600 hover:text-slate-400 dark:hover:text-slate-500"
+                  }`}
               >
                 {loadingId === toggle.moduleKey ? (
                   <div className="w-8 h-8 rounded-full border-2 border-current border-t-transparent animate-spin" />

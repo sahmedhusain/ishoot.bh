@@ -20,34 +20,45 @@ company/
 
 A step-by-step walkthrough (demo, your own profile, blank install) is in [docs/GETTING_STARTED.md](../docs/GETTING_STARTED.md).
 
-| Command | What it does |
-|---|---|
-| `pnpm db:reset --profile <name>` | Fresh local database and files with demo data branded for the profile (local only) |
-| `pnpm db:seed` | Fills an empty database with demo data for `COMPANY_PROFILE` (default `demo`) |
-| `pnpm db:bootstrap` | Creates roles, permissions and the first admin. With no `COMPANY_PROFILE` the company starts blank and the admin shows the setup wizard. |
-| `COMPANY_PROFILE=<name> pnpm db:bootstrap` | Same, and installs the profile (skips the wizard) when no company exists yet |
-| `COMPANY_PROFILE=<name> COMPANY_PROFILE_OVERWRITE=1 pnpm db:bootstrap` | Re-applies a profile's identity, files and theme to an existing install |
-| `pnpm company:demo-assets` | Regenerates the demo profile artwork |
+| Command                                                                | What it does                                                                                                                             |
+| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm db:reset --profile <name>`                                       | Fresh local database and files with demo data branded for the profile (local only)                                                       |
+| `pnpm db:seed`                                                         | Fills an empty database with demo data for `COMPANY_PROFILE` (default `demo`)                                                            |
+| `pnpm db:bootstrap`                                                    | Creates roles, permissions and the first admin. With no `COMPANY_PROFILE` the company starts blank and the admin shows the setup wizard. |
+| `COMPANY_PROFILE=<name> pnpm db:bootstrap`                             | Same, and installs the profile (skips the wizard) when no company exists yet                                                             |
+| `COMPANY_PROFILE=<name> COMPANY_PROFILE_OVERWRITE=1 pnpm db:bootstrap` | Re-applies a profile's identity, files and theme to an existing install                                                                  |
+| `pnpm company:demo-assets`                                             | Regenerates the demo profile artwork                                                                                                     |
 
 ### company.json
 
 ```json
 {
   "display": { "nameEn": "Acme", "nameAr": "أكمي" },
-  "company": { "companyNameEn": "Acme Trading W.L.L.", "companyNameAr": "…", "defaultCurrency": "BHD", "invoicePrefix": "INV" },
-  "assets": { "logo": "brand/logo-light.png", "darkLogo": "brand/logo-dark.png", "icon": "brand/icon-light.png",
-              "darkIcon": "brand/icon-dark.png", "stamp": "brand/stamp.png", "signature": "brand/signature.png" }
+  "company": {
+    "companyNameEn": "Acme Trading W.L.L.",
+    "companyNameAr": "…",
+    "defaultCurrency": "BHD",
+    "invoicePrefix": "INV"
+  },
+  "assets": {
+    "logo": "brand/logo-light.png",
+    "darkLogo": "brand/logo-dark.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
 }
 ```
 
 `company` takes any `CompanySetting` field except the file URLs, which are filled from `assets`. Useful ones beyond identity: `businessActivity` (one of the activities in `packages/database/src/website-presets.ts`, such as `media` or `products`), `contentLanguages` (`["ar", "en"]`, `["ar"]` or `["en"]`) and `primaryLanguage`.
 
-| Slot | Artwork |
-|---|---|
+| Slot                | Artwork                                                                                                                               |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | `logo` / `darkLogo` | The **text logo only** (wordmark), for light and dark backgrounds. The apps show the icon beside it, so it must not contain the icon. |
-| `icon` / `darkIcon` | The square mark on its own; `icon` is also the browser icon |
-| `stamp` | The company seal printed on approved documents |
-| `signature` | The authorised signatory's signature |
+| `icon` / `darkIcon` | The square mark on its own; `icon` is also the browser icon                                                                           |
+| `stamp`             | The company seal printed on approved documents                                                                                        |
+| `signature`         | The authorised signatory's signature                                                                                                  |
 
 Optional extras inside `assets/`: `brand/signatures/<staff key>.png` (demo staff signatures), `media/banners/*` (website hero images), `media/clients/<slug>.png` (client logos for the demo).
 
@@ -61,7 +72,11 @@ Optional extras inside `assets/`: `brand/signatures/<staff key>.png` (demo staff
   "defaultMode": "system",
   "fonts": {
     "body": { "kind": "google", "family": "IBM Plex Sans Arabic" },
-    "heading": { "kind": "upload", "family": "Brand Display", "files": [{ "weight": 400, "file": "fonts/display-regular.woff2" }] }
+    "heading": {
+      "kind": "upload",
+      "family": "Brand Display",
+      "files": [{ "weight": 400, "file": "fonts/display-regular.woff2" }]
+    }
   }
 }
 ```

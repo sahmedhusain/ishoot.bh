@@ -35,14 +35,14 @@ export default async function NewSettlementPage({
     }),
     handoverId
       ? db.employeeHandover.findUnique({
-          where: { id: handoverId },
-          select: {
-            id: true,
-            employeeId: true,
-            effectiveDate: true,
-            reason: true,
-          },
-        })
+        where: { id: handoverId },
+        select: {
+          id: true,
+          employeeId: true,
+          effectiveDate: true,
+          reason: true,
+        },
+      })
       : null,
   ]);
   return (

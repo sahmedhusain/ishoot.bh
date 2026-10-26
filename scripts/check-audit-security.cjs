@@ -1,4 +1,4 @@
-require("ts-node").register({transpileOnly:true,skipProject:true,compilerOptions:{module:"CommonJS",target:"ES2022",moduleResolution:"Node",esModuleInterop:true,resolveJsonModule:true}});
+require("ts-node").register({ transpileOnly: true, skipProject: true, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true, resolveJsonModule: true } });
 const { realConstants } = require("./lib/real-constants.cjs");
 // Exercise actual server-action boundaries without a network or database.
 const assert = require("node:assert/strict");
@@ -7,9 +7,9 @@ const vm = require("node:vm");
 const ts = require("typescript");
 function load(file, mocks) {
   if (mocks["@platform/locales"]) mocks["@platform/locales"] = { ...realConstants(file, "@platform/locales"), ...mocks["@platform/locales"] };
-  if (mocks["@platform/database"]) { mocks["@platform/database"].requireFeatureEnabled ??= async () => {}; mocks["@platform/database"].runAtomicMutation ??= async (fn) => fn(); mocks["@platform/database"].measureOperation ??= async (_name, fn) => fn(); if (mocks["@platform/database"].db) mocks["@platform/database"].db.$queryRaw ??= async () => []; }
+  if (mocks["@platform/database"]) { mocks["@platform/database"].requireFeatureEnabled ??= async () => { }; mocks["@platform/database"].runAtomicMutation ??= async (fn) => fn(); mocks["@platform/database"].measureOperation ??= async (_name, fn) => fn(); if (mocks["@platform/database"].db) mocks["@platform/database"].db.$queryRaw ??= async () => []; }
   mocks["../../lib/action-input"] ??= require("../apps/admin/lib/action-input.ts");
-  mocks["../services/uploads"] ??= { claimUpload: async () => ({fileSize: 1, mimeType: "application/pdf"}) };
+  mocks["../services/uploads"] ??= { claimUpload: async () => ({ fileSize: 1, mimeType: "application/pdf" }) };
   if (mocks["../db"]?.db) mocks["../db"].db.featureToggle ??= { findUnique: async () => null, findMany: async () => [] };
 
   const module = { exports: {} };
@@ -27,7 +27,7 @@ function load(file, mocks) {
       require: (id) => {
         if (id === "node:crypto") return require(id);
         if (id === "../../lib/pdf/mom-pdf") return {};
-        id = ((i,m)=>i in m?i:(i.startsWith('@platform/database/')&&'@platform/database' in m?'@platform/database':i))(id, mocks);
+        id = ((i, m) => i in m ? i : (i.startsWith('@platform/database/') && '@platform/database' in m ? '@platform/database' : i))(id, mocks);
         if (!(id in mocks)) { const real = realConstants(file, id); if (real) return real; throw Error(`Missing mock ${id}`); }
         return mocks[id];
       },
@@ -55,7 +55,7 @@ async function main() {
       },
       getCurrentUser: async () => actor,
     },
-    "next/cache": { revalidatePath() {} },
+    "next/cache": { revalidatePath() { } },
     "@platform/database": {
       createMinuteOfMeeting: async () => {
         touched = true;
@@ -105,11 +105,11 @@ async function main() {
         upserts.push(args);
       },
     },
-    activityLog: { create: async () => {} },
+    activityLog: { create: async () => { } },
   };
   const roles = load("apps/admin/app/actions/roles.ts", {
     "../../lib/auth": { requirePermission: async () => actor },
-    "next/cache": { revalidatePath() {} },
+    "next/cache": { revalidatePath() { } },
     "@platform/database": {
       ALL_RESOURCES: ["invoices", "moms"],
       ALL_ACTIONS: ["read", "write", "delete", "export", "approve", "create", "edit"],
@@ -152,7 +152,7 @@ async function main() {
   let updateData = null;
   const users = load("apps/admin/app/actions/users.ts", {
     "../../lib/auth": { requirePermission: async () => actor },
-    "next/cache": { revalidatePath() {} },
+    "next/cache": { revalidatePath() { } },
     "@platform/database": {
       getUserById: async () => ({ id: "t", role: "viewer" }),
       getEffectivePermissions: async () => ({ "deals:read": true }),
@@ -161,7 +161,7 @@ async function main() {
         updateData = data;
         return { id };
       },
-      createActivityLog: async () => {},
+      createActivityLog: async () => { },
     },
   });
   actor = { id: "a", role: "admin" };
@@ -279,8 +279,8 @@ async function main() {
   assert.ok(sanitized.startsWith("<p>Hello</p>"));
   assert.ok(
     !sanitized.includes("<script") &&
-      !sanitized.includes("<img") &&
-      !sanitized.includes("<a "),
+    !sanitized.includes("<img") &&
+    !sanitized.includes("<a "),
   );
   assert.equal(
     legal
@@ -342,7 +342,7 @@ async function main() {
   );
 
   const buckets = new Map();
-  const loginInput = load("apps/admin/lib/login-input.ts", { "@platform/database": { trustedClientIp: (h) => h.get("x-forwarded-for"), consumeAbuseLimit: async (scope,key,limit) => {const next=(buckets.get(key)||0)+1;buckets.set(key,next);if(next>limit)throw Error("RATE_LIMIT");} } });
+  const loginInput = load("apps/admin/lib/login-input.ts", { "@platform/database": { trustedClientIp: (h) => h.get("x-forwarded-for"), consumeAbuseLimit: async (scope, key, limit) => { const next = (buckets.get(key) || 0) + 1; buckets.set(key, next); if (next > limit) throw Error("RATE_LIMIT"); } } });
   const request = (ip, body) => ({
     headers: { get: (key) => (key === "x-forwarded-for" ? ip : null) },
     body: {
@@ -353,7 +353,7 @@ async function main() {
             done
               ? { done: true }
               : ((done = true), { done: false, value: Buffer.from(body) }),
-          cancel: async () => {},
+          cancel: async () => { },
         };
       },
     },

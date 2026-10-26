@@ -1,8 +1,17 @@
 import { serverMessages } from "@platform/locales";
 import { assertSupportedCurrency } from "../constants/finance";
-import { isFontMimeType, normalizeTheme, type BrandTheme } from "../constants/theme";
+import {
+  isFontMimeType,
+  normalizeTheme,
+  type BrandTheme,
+} from "../constants/theme";
 import { db } from "../db";
-import { CONTENT_LANGUAGES, mirrorBilingual, normalizeLanguages, normalizePrimaryLanguage } from "../constants/languages";
+import {
+  CONTENT_LANGUAGES,
+  mirrorBilingual,
+  normalizeLanguages,
+  normalizePrimaryLanguage,
+} from "../constants/languages";
 import { isBusinessActivity } from "../website-presets";
 import { safeWebsiteUrl } from "../website-config";
 import { normalizeDomain } from "../constants/domains";
@@ -69,8 +78,13 @@ function mapSettings(s: any): CompanySettings {
     theme: normalizeTheme(s.theme),
     setup_completed: Boolean(s.setupCompletedAt),
     content_languages: normalizeLanguages(s.contentLanguages),
-    primary_language: normalizePrimaryLanguage(s.primaryLanguage, normalizeLanguages(s.contentLanguages)),
-    business_activity: isBusinessActivity(s.businessActivity) ? s.businessActivity : null,
+    primary_language: normalizePrimaryLanguage(
+      s.primaryLanguage,
+      normalizeLanguages(s.contentLanguages),
+    ),
+    business_activity: isBusinessActivity(s.businessActivity)
+      ? s.businessActivity
+      : null,
     tagline_en: s.taglineEn || undefined,
     tagline_ar: s.taglineAr || undefined,
     founded_year: s.foundedYear ?? undefined,
@@ -84,7 +98,9 @@ function mapSettings(s: any): CompanySettings {
 }
 
 export async function getCompanySettings(): Promise<CompanySettings> {
-  const settings = await db.companySetting.findUnique({ where: { singleton: 1 } });
+  const settings = await db.companySetting.findUnique({
+    where: { singleton: 1 },
+  });
   if (!settings)
     throw new Error(
       "Company settings are missing. Run the production-safe database bootstrap before using the application.",
@@ -95,42 +111,104 @@ export async function getCompanySettings(): Promise<CompanySettings> {
 export async function updateCompanySettings(
   input: Partial<CompanySettings>,
 ): Promise<CompanySettings> {
-  if (input.content_languages !== undefined && (!Array.isArray(input.content_languages) || !input.content_languages.length || input.content_languages.some((l) => !(CONTENT_LANGUAGES as readonly string[]).includes(l))))
+  if (
+    input.content_languages !== undefined &&
+    (!Array.isArray(input.content_languages) ||
+      !input.content_languages.length ||
+      input.content_languages.some(
+        (l) => !(CONTENT_LANGUAGES as readonly string[]).includes(l),
+      ))
+  )
     throw new Error(serverMessages.contentLanguagesInvalid);
-  if (input.business_activity !== undefined && input.business_activity !== null && !isBusinessActivity(input.business_activity))
+  if (
+    input.business_activity !== undefined &&
+    input.business_activity !== null &&
+    !isBusinessActivity(input.business_activity)
+  )
     throw new Error(serverMessages.businessActivityInvalid);
-  if (input.founded_year !== undefined && input.founded_year !== null && !(Number.isInteger(input.founded_year) && input.founded_year >= 1800 && input.founded_year <= new Date().getFullYear()))
+  if (
+    input.founded_year !== undefined &&
+    input.founded_year !== null &&
+    !(
+      Number.isInteger(input.founded_year) &&
+      input.founded_year >= 1800 &&
+      input.founded_year <= new Date().getFullYear()
+    )
+  )
     throw new Error(serverMessages.invalidFoundedYear);
-  if (input.map_url && !/^https?:\/\//.test(safeWebsiteUrl(input.map_url))) throw new Error(serverMessages.invalidMapLink);
-  for (const value of [input.website_domain, input.admin_domain]) if (value && !normalizeDomain(value)) throw new Error(serverMessages.invalidDomain);
+  if (input.map_url && !/^https?:\/\//.test(safeWebsiteUrl(input.map_url)))
+    throw new Error(serverMessages.invalidMapLink);
+  for (const value of [input.website_domain, input.admin_domain])
+    if (value && !normalizeDomain(value))
+      throw new Error(serverMessages.invalidDomain);
   // A company writing in one language gets the same text on both sides of every pair it saves.
-  const stored = await db.companySetting.findUnique({ where: { singleton: 1 }, select: { contentLanguages: true } });
-  const languages = normalizeLanguages(input.content_languages ?? stored?.contentLanguages);
+  const stored = await db.companySetting.findUnique({
+    where: { singleton: 1 },
+    select: { contentLanguages: true },
+  });
+  const languages = normalizeLanguages(
+    input.content_languages ?? stored?.contentLanguages,
+  );
   const updates = mirrorBilingual(input, languages);
-  if (updates.company_name_en !== undefined && !updates.company_name_en.trim()) throw new Error(serverMessages.companyEnglishNameIsRequired);
-  if (updates.company_name_ar !== undefined && !updates.company_name_ar.trim()) throw new Error(serverMessages.companyArabicNameIsRequired);
-  if (updates.default_currency !== undefined) assertSupportedCurrency(updates.default_currency);
-  if (updates.default_discount_limit_percent !== undefined && !(updates.default_discount_limit_percent >= 0 && updates.default_discount_limit_percent <= 100))
+  if (updates.company_name_en !== undefined && !updates.company_name_en.trim())
+    throw new Error(serverMessages.companyEnglishNameIsRequired);
+  if (updates.company_name_ar !== undefined && !updates.company_name_ar.trim())
+    throw new Error(serverMessages.companyArabicNameIsRequired);
+  if (updates.default_currency !== undefined)
+    assertSupportedCurrency(updates.default_currency);
+  if (
+    updates.default_discount_limit_percent !== undefined &&
+    !(
+      updates.default_discount_limit_percent >= 0 &&
+      updates.default_discount_limit_percent <= 100
+    )
+  )
     throw new Error(serverMessages.theDiscountLimitMustBeBetween0);
   const current = await getCompanySettings();
   // Moving a counter backwards would reissue numbers that already exist.
   for (const field of ["invoice_next_number", "receipt_next_number"] as const) {
     const next = updates[field];
     if (next === undefined) continue;
-    if (!Number.isInteger(next) || next < 1) throw new Error(serverMessages.sequenceNumbersMustBePositiveWholeNumbers);
-    if (next < current[field]) throw new Error(serverMessages.aSequenceCanOnlyMoveForward);
+    if (!Number.isInteger(next) || next < 1)
+      throw new Error(serverMessages.sequenceNumbersMustBePositiveWholeNumbers);
+    if (next < current[field])
+      throw new Error(serverMessages.aSequenceCanOnlyMoveForward);
   }
   // Private uploads may become company artwork only through the owned asset workflow.
-  for(const field of ["logo_url","dark_logo_url","icon_url","dark_icon_url","stamp_url","signature_url"] as const){
-    const value=updates[field];
-    if(value && value!==current[field] && value.startsWith("/api/files/")){
-      const upload=await db.uploadObject.findUnique({where:{fileUrl:value},select:{isPublic:true}});
-      const asset=await db.attachment.findFirst({where:{fileUrl:value,entityType:"company_asset"},select:{id:true}});
-      if(!upload || !asset || (!["stamp_url","signature_url"].includes(field) && !upload.isPublic)) throw new Error(serverMessages.chooseArtworkFromRegisteredCompanyAssets);
+  for (const field of [
+    "logo_url",
+    "dark_logo_url",
+    "icon_url",
+    "dark_icon_url",
+    "stamp_url",
+    "signature_url",
+  ] as const) {
+    const value = updates[field];
+    if (value && value !== current[field] && value.startsWith("/api/files/")) {
+      const upload = await db.uploadObject.findUnique({
+        where: { fileUrl: value },
+        select: { isPublic: true },
+      });
+      const asset = await db.attachment.findFirst({
+        where: { fileUrl: value, entityType: "company_asset" },
+        select: { id: true },
+      });
+      if (
+        !upload ||
+        !asset ||
+        (!["stamp_url", "signature_url"].includes(field) && !upload.isPublic)
+      )
+        throw new Error(
+          serverMessages.chooseArtworkFromRegisteredCompanyAssets,
+        );
     }
   }
 
-  if ((updates.vat_enabled ?? current.vat_enabled) && !(updates.vat_id ?? current.vat_id)?.trim()) throw new Error(serverMessages.vatRegistrationIsRequiredWhenVatIs);
+  if (
+    (updates.vat_enabled ?? current.vat_enabled) &&
+    !(updates.vat_id ?? current.vat_id)?.trim()
+  )
+    throw new Error(serverMessages.vatRegistrationIsRequiredWhenVatIs);
   const updated = await db.companySetting.update({
     where: { id: current.id },
     data: {
@@ -186,8 +264,13 @@ export async function updateCompanySettings(
       termsAr: updates.terms_ar,
       rulesEn: updates.rules_en,
       rulesAr: updates.rules_ar,
-      contentLanguages: updates.content_languages ? normalizeLanguages(updates.content_languages) : undefined,
-      primaryLanguage: updates.primary_language || updates.content_languages ? normalizePrimaryLanguage(updates.primary_language, languages) : undefined,
+      contentLanguages: updates.content_languages
+        ? normalizeLanguages(updates.content_languages)
+        : undefined,
+      primaryLanguage:
+        updates.primary_language || updates.content_languages
+          ? normalizePrimaryLanguage(updates.primary_language, languages)
+          : undefined,
       businessActivity: updates.business_activity,
       taglineEn: updates.tagline_en,
       taglineAr: updates.tagline_ar,
@@ -195,32 +278,41 @@ export async function updateCompanySettings(
       city: updates.city,
       country: updates.country,
       mapUrl: updates.map_url,
-      websiteDomain: updates.website_domain === undefined ? undefined : normalizeDomain(updates.website_domain) || null,
-      adminDomain: updates.admin_domain === undefined ? undefined : normalizeDomain(updates.admin_domain) || null,
+      websiteDomain:
+        updates.website_domain === undefined
+          ? undefined
+          : normalizeDomain(updates.website_domain) || null,
+      adminDomain:
+        updates.admin_domain === undefined
+          ? undefined
+          : normalizeDomain(updates.admin_domain) || null,
     },
   });
   return mapSettings(updated);
 }
 
 export async function getSetupCompleteness() {
-  const settings = await db.companySetting.findUnique({ where: { singleton: 1 } });
-  if (!settings) return { complete: false, missing: ["company_settings_record"] };
+  const settings = await db.companySetting.findUnique({
+    where: { singleton: 1 },
+  });
+  if (!settings)
+    return { complete: false, missing: ["company_settings_record"] };
   const missing: string[] = [];
   if (!settings.companyNameEn) missing.push("company_name_en");
   if (!settings.companyNameAr) missing.push("company_name_ar");
   if (!settings.addressEn) missing.push("address_en");
   if (!settings.phone && !settings.email) missing.push("contact_info");
-  
+
   if (settings.vatEnabled && !settings.vatId) missing.push("vat_id");
   if (!settings.crNumber) missing.push("cr_number");
-  
+
   if (!settings.logoUrl) missing.push("logo_url");
   if (!settings.iconUrl) missing.push("icon_url");
-  
+
   // Publication check - let's see if website config exists and is published
   const website = await db.websiteContent.findUnique({ where: { id: "main" } });
   if (!website || !website.publishedAt) missing.push("website_publication");
-  
+
   return {
     complete: missing.length === 0,
     missing,
@@ -228,20 +320,34 @@ export async function getSetupCompleteness() {
 }
 
 /** Saves the company theme. Uploaded fonts must be public brand font uploads so both apps can serve them. */
-export async function updateCompanyTheme(input: BrandTheme): Promise<CompanySettings> {
+export async function updateCompanyTheme(
+  input: BrandTheme,
+): Promise<CompanySettings> {
   const theme = normalizeTheme(input);
   for (const font of [theme.fonts.body, theme.fonts.heading]) {
     if (font.kind !== "upload") continue;
-    const uploads = await db.uploadObject.findMany({ where: { fileUrl: { in: font.files.map((f) => f.url) } }, select: { isPublic: true, mimeType: true } });
-    if (uploads.length !== new Set(font.files.map((f) => f.url)).size || uploads.some((u) => !u.isPublic || !isFontMimeType(u.mimeType)))
+    const uploads = await db.uploadObject.findMany({
+      where: { fileUrl: { in: font.files.map((f) => f.url) } },
+      select: { isPublic: true, mimeType: true },
+    });
+    if (
+      uploads.length !== new Set(font.files.map((f) => f.url)).size ||
+      uploads.some((u) => !u.isPublic || !isFontMimeType(u.mimeType))
+    )
       throw new Error(serverMessages.invalidUploadedFile);
   }
-  const settings = await db.companySetting.update({ where: { singleton: 1 }, data: { theme: theme as unknown as object } });
+  const settings = await db.companySetting.update({
+    where: { singleton: 1 },
+    data: { theme: theme as unknown as object },
+  });
   return mapSettings(settings);
 }
 
 /** Marks the first-run setup as finished; the admin stops showing the setup wizard. */
 export async function completeCompanySetup(): Promise<CompanySettings> {
-  const settings = await db.companySetting.update({ where: { singleton: 1 }, data: { setupCompletedAt: new Date() } });
+  const settings = await db.companySetting.update({
+    where: { singleton: 1 },
+    data: { setupCompletedAt: new Date() },
+  });
   return mapSettings(settings);
 }

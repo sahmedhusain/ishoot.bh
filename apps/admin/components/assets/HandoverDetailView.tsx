@@ -145,7 +145,7 @@ export function HandoverDetailView({
               >
                 {
                   a.handoverStatuses[
-                    handover.status as keyof typeof a.handoverStatuses
+                  handover.status as keyof typeof a.handoverStatuses
                   ]
                 }
               </span>

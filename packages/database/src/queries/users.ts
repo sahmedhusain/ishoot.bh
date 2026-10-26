@@ -13,8 +13,10 @@ function mapUser(u: any): Profile {
     role: u.role as UserRole,
     avatar_url: u.avatarUrl || undefined,
     signature_url: u.signatureUrl || undefined,
-    discount_limit_percent: u.discountLimitPercent == null ? null : Number(u.discountLimitPercent),
-    commission_rate_percent: u.commissionRatePercent == null ? null : Number(u.commissionRatePercent),
+    discount_limit_percent:
+      u.discountLimitPercent == null ? null : Number(u.discountLimitPercent),
+    commission_rate_percent:
+      u.commissionRatePercent == null ? null : Number(u.commissionRatePercent),
     phone: u.phone || undefined,
     department: u.department || undefined,
     department_id: u.departmentId ?? null,
@@ -79,7 +81,8 @@ export async function createUser(data: {
   signature_url?: string;
   manager_id?: string;
 }): Promise<Profile> {
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) throw new Error(serverMessages.invalidUserEmail);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim()))
+    throw new Error(serverMessages.invalidUserEmail);
   if (data.manager_id) await validateManager(data.manager_id);
   const passwordHash = await bcrypt.hash(data.password, PASSWORD_HASH_ROUNDS);
   const created = await db.user.create({
@@ -108,11 +111,27 @@ export async function updateUser(
 ): Promise<Profile | null> {
   try {
     if (data.manager_id) await validateManager(data.manager_id, id);
-    const existing = await db.user.findUniqueOrThrow({ where: { id }, select: { role: true, isActive: true } });
-    if (existing.role === "super_admin" && existing.isActive && (data.is_active === false || (data.role !== undefined && data.role !== "super_admin")) && !(await db.user.count({ where: { role: "super_admin", isActive: true, id: { not: id } } }))) throw new Error(serverMessages.keepAtLeastOneActiveSuperAdministrator);
+    const existing = await db.user.findUniqueOrThrow({
+      where: { id },
+      select: { role: true, isActive: true },
+    });
+    if (
+      existing.role === "super_admin" &&
+      existing.isActive &&
+      (data.is_active === false ||
+        (data.role !== undefined && data.role !== "super_admin")) &&
+      !(await db.user.count({
+        where: { role: "super_admin", isActive: true, id: { not: id } },
+      }))
+    )
+      throw new Error(serverMessages.keepAtLeastOneActiveSuperAdministrator);
     const updateData: any = {};
     if (data.full_name !== undefined) updateData.fullName = data.full_name;
-    if (data.email !== undefined && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) throw new Error(serverMessages.invalidUserEmail);
+    if (
+      data.email !== undefined &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())
+    )
+      throw new Error(serverMessages.invalidUserEmail);
     if (data.email !== undefined)
       updateData.email = data.email.trim().toLowerCase();
     if (data.role !== undefined) updateData.role = data.role;
@@ -121,14 +140,18 @@ export async function updateUser(
       updateData.signatureUrl = data.signature_url;
     if (data.phone !== undefined) updateData.phone = data.phone;
     if (data.department !== undefined) updateData.department = data.department;
-    if (data.department_id !== undefined) updateData.departmentId = data.department_id || null;
+    if (data.department_id !== undefined)
+      updateData.departmentId = data.department_id || null;
     if (data.manager_id !== undefined)
       updateData.managerId = data.manager_id || null;
     if (data.is_active !== undefined) updateData.isActive = data.is_active;
     if (data.permissions !== undefined)
       updateData.permissions = data.permissions;
     if (data.password) {
-      updateData.passwordHash = await bcrypt.hash(data.password, PASSWORD_HASH_ROUNDS);
+      updateData.passwordHash = await bcrypt.hash(
+        data.password,
+        PASSWORD_HASH_ROUNDS,
+      );
     }
 
     const updated = await db.user.update({
@@ -156,8 +179,18 @@ export async function updateUserRole(
 
 export async function deleteUser(id: string): Promise<boolean> {
   try {
-    const existing = await db.user.findUniqueOrThrow({ where: { id }, select: { role: true, isActive: true } });
-    if (existing.role === "super_admin" && existing.isActive && !(await db.user.count({ where: { role: "super_admin", isActive: true, id: { not: id } } }))) throw new Error(serverMessages.keepAtLeastOneActiveSuperAdministrator);
+    const existing = await db.user.findUniqueOrThrow({
+      where: { id },
+      select: { role: true, isActive: true },
+    });
+    if (
+      existing.role === "super_admin" &&
+      existing.isActive &&
+      !(await db.user.count({
+        where: { role: "super_admin", isActive: true, id: { not: id } },
+      }))
+    )
+      throw new Error(serverMessages.keepAtLeastOneActiveSuperAdministrator);
     await db.user.delete({ where: { id } });
     return true;
   } catch (e) {
@@ -197,12 +230,20 @@ export async function verifyUserCredentials(
     }
 
     // Rehash legacy hashes created with a different cost so every login pays the same bcrypt price.
-    const needsRehash = bcrypt.getRounds(user.passwordHash) !== PASSWORD_HASH_ROUNDS;
+    const needsRehash =
+      bcrypt.getRounds(user.passwordHash) !== PASSWORD_HASH_ROUNDS;
     await db.user.update({
       where: { id: user.id },
       data: {
         lastLoginAt: new Date(),
-        ...(needsRehash ? { passwordHash: await bcrypt.hash(plainTextPassword, PASSWORD_HASH_ROUNDS) } : {}),
+        ...(needsRehash
+          ? {
+              passwordHash: await bcrypt.hash(
+                plainTextPassword,
+                PASSWORD_HASH_ROUNDS,
+              ),
+            }
+          : {}),
       },
     });
 
@@ -225,22 +266,45 @@ export async function updateUserLastLogin(id: string): Promise<void> {
 }
 
 async function validateManager(managerId: string, userId?: string) {
-  if (managerId === userId || !(await db.user.findFirst({ where: { id: managerId, isActive: true }, select: { id: true } }))) throw new Error(serverMessages.invalidManager);
+  if (
+    managerId === userId ||
+    !(await db.user.findFirst({
+      where: { id: managerId, isActive: true },
+      select: { id: true },
+    }))
+  )
+    throw new Error(serverMessages.invalidManager);
   if (userId) {
-    const cycle = await db.$queryRaw<Array<{ id: string }>>`WITH RECURSIVE chain AS (SELECT id,"managerId" FROM "User" WHERE id=${managerId} UNION SELECT u.id,u."managerId" FROM "User" u JOIN chain c ON u.id=c."managerId") SELECT id FROM chain WHERE id=${userId}`;
-    if (cycle.length) throw new Error(serverMessages.managerAssignmentWouldCreateACycle);
+    const cycle = await db.$queryRaw<
+      Array<{ id: string }>
+    >`WITH RECURSIVE chain AS (SELECT id,"managerId" FROM "User" WHERE id=${managerId} UNION SELECT u.id,u."managerId" FROM "User" u JOIN chain c ON u.id=c."managerId") SELECT id FROM chain WHERE id=${userId}`;
+    if (cycle.length)
+      throw new Error(serverMessages.managerAssignmentWouldCreateACycle);
   }
 }
 
 /** Sets how much discount (% of subtotal) a user may give without approval; null falls back to the company default. */
-export async function setUserDiscountLimit(userId: string, limit: number | null) {
-  if (limit !== null && !(Number.isFinite(limit) && limit >= 0 && limit <= 100)) throw new Error(serverMessages.theDiscountLimitMustBeBetween0);
+export async function setUserDiscountLimit(
+  userId: string,
+  limit: number | null,
+) {
+  if (limit !== null && !(Number.isFinite(limit) && limit >= 0 && limit <= 100))
+    throw new Error(serverMessages.theDiscountLimitMustBeBetween0);
   const updated = await db.user.update({
     where: { id: userId },
-    data: { discountLimitPercent: limit === null ? null : Math.round(limit * 100) / 100 },
+    data: {
+      discountLimitPercent:
+        limit === null ? null : Math.round(limit * 100) / 100,
+    },
     select: { id: true, discountLimitPercent: true },
   });
-  return { id: updated.id, discount_limit_percent: updated.discountLimitPercent == null ? null : Number(updated.discountLimitPercent) };
+  return {
+    id: updated.id,
+    discount_limit_percent:
+      updated.discountLimitPercent == null
+        ? null
+        : Number(updated.discountLimitPercent),
+  };
 }
 
 export interface UserListFilters {
@@ -252,33 +316,64 @@ export interface UserListFilters {
   page?: number;
 }
 
-const USER_STATUSES = ["active", "suspended", "archived", "inactive", "all"] as const;
+const USER_STATUSES = [
+  "active",
+  "suspended",
+  "archived",
+  "inactive",
+  "all",
+] as const;
 
 /** One page (50) of staff accounts, searched and filtered on the server, for lists of any size. */
 export async function getUsersPage(filters: UserListFilters) {
   const q = (filters.q ?? "").trim().slice(0, 120);
-  const status = (USER_STATUSES as readonly string[]).includes(filters.status ?? "") ? filters.status! : "all";
+  const status = (USER_STATUSES as readonly string[]).includes(
+    filters.status ?? "",
+  )
+    ? filters.status!
+    : "all";
   const where: Record<string, unknown> = {
     ...(filters.role && filters.role !== "all" ? { role: filters.role } : {}),
-    ...(filters.departmentId === "none" ? { departmentId: null } : filters.departmentId && filters.departmentId !== "all" ? { departmentId: filters.departmentId } : {}),
-    ...(status === "active" ? { isActive: true, suspendedAt: null, archivedAt: null } : {}),
-    ...(status === "suspended" ? { suspendedAt: { not: null }, archivedAt: null } : {}),
+    ...(filters.departmentId === "none"
+      ? { departmentId: null }
+      : filters.departmentId && filters.departmentId !== "all"
+        ? { departmentId: filters.departmentId }
+        : {}),
+    ...(status === "active"
+      ? { isActive: true, suspendedAt: null, archivedAt: null }
+      : {}),
+    ...(status === "suspended"
+      ? { suspendedAt: { not: null }, archivedAt: null }
+      : {}),
     ...(status === "archived" ? { archivedAt: { not: null } } : {}),
-    ...(status === "inactive" ? { isActive: false, suspendedAt: null, archivedAt: null } : {}),
+    ...(status === "inactive"
+      ? { isActive: false, suspendedAt: null, archivedAt: null }
+      : {}),
     ...(q
       ? {
           OR: [
             { fullName: { contains: q, mode: "insensitive" } },
             { email: { contains: q, mode: "insensitive" } },
             { phone: { contains: q } },
-            { employee: { OR: [{ firstNameAr: { contains: q } }, { lastNameAr: { contains: q } }, { employeeNumber: { contains: q, mode: "insensitive" } }] } },
+            {
+              employee: {
+                OR: [
+                  { firstNameAr: { contains: q } },
+                  { lastNameAr: { contains: q } },
+                  { employeeNumber: { contains: q, mode: "insensitive" } },
+                ],
+              },
+            },
           ],
         }
       : {}),
   };
   const total = await db.user.count({ where });
   const pageSize = 50;
-  const page = Math.min(Math.max(1, filters.page || 1), Math.max(1, Math.ceil(total / pageSize)));
+  const page = Math.min(
+    Math.max(1, filters.page || 1),
+    Math.max(1, Math.ceil(total / pageSize)),
+  );
   const rows = await db.user.findMany({
     where,
     include: {
@@ -290,5 +385,16 @@ export async function getUsersPage(filters: UserListFilters) {
     skip: (page - 1) * pageSize,
     take: pageSize,
   });
-  return { items: rows.map(mapUser), total, page, pageSize, filters: { q, role: filters.role || "all", departmentId: filters.departmentId || "all", status } };
+  return {
+    items: rows.map(mapUser),
+    total,
+    page,
+    pageSize,
+    filters: {
+      q,
+      role: filters.role || "all",
+      departmentId: filters.departmentId || "all",
+      status,
+    },
+  };
 }

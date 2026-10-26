@@ -12,9 +12,9 @@ export default async function PayrollPage() {
   const submittedIds = runs.filter((run) => run.status === "submitted").map((run) => run.id);
   const pending = submittedIds.length
     ? await db.approvalRequest.findMany({
-        where: { targetType: "payroll_run", targetId: { in: submittedIds }, status: "pending" },
-        select: { targetId: true, status: true, requestedById: true, approverIds: true },
-      })
+      where: { targetType: "payroll_run", targetId: { in: submittedIds }, status: "pending" },
+      select: { targetId: true, status: true, requestedById: true, approverIds: true },
+    })
     : [];
   const decidableRunIds = pending.filter((request) => canDecideApproval(request, user)).map((request) => request.targetId);
 

@@ -62,7 +62,10 @@ export async function GET(
       request.nextUrl.searchParams.get("lang") === "en" ? "en" : "ar";
     const company = await getCompanySettings();
     const body = buildIcs(events, {
-      name: formatMessage(getTranslations(language).admin.copy.calendarName, { companyName: language === "ar" ? company.company_name_ar : company.company_name_en }),
+      name: formatMessage(getTranslations(language).admin.copy.calendarName, {
+        companyName:
+          language === "ar" ? company.company_name_ar : company.company_name_en,
+      }),
       language,
       origin: await publicOrigin(),
     });

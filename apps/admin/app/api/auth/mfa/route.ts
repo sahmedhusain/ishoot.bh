@@ -17,7 +17,10 @@ export async function POST(req: NextRequest) {
   return measureOperation("admin:auth/mfa:POST", async () => {
     const user = await getCurrentUser();
     if (!user)
-      return NextResponse.json({ error: serverMessages.unauthorized }, { status: 401 });
+      return NextResponse.json(
+        { error: serverMessages.unauthorized },
+        { status: 401 },
+      );
     try {
       await consumeAbuseLimit("mfa-management", user.id, 10);
       const input = await readLoginInput(req);
@@ -56,7 +59,10 @@ export async function POST(req: NextRequest) {
         await disableMfa(user.id, input.code);
         return NextResponse.json({ enabled: false }, { headers });
       }
-      return NextResponse.json({ error: serverMessages.runtimeInvalidOperation }, { status: 400 });
+      return NextResponse.json(
+        { error: serverMessages.runtimeInvalidOperation },
+        { status: 400 },
+      );
     } catch (error) {
       if (error instanceof Error && error.message === "RATE_LIMIT")
         return NextResponse.json(

@@ -1,7 +1,19 @@
 import { describe, expect, test } from "vitest";
 import { getTranslations } from "../../packages/locales/src";
-import { ADJUSTMENT_REASONS, COUNT_STATUSES, MOVEMENT_TYPES, averageCostAfter, countVariance, daysToExpiry, roundQuantity } from "../../packages/database/src/constants/inventory";
-import { ALL_RESOURCES, PERMISSION_GROUPS, RESOURCE_FEATURES } from "../../packages/database/src/constants/permissions";
+import {
+  ADJUSTMENT_REASONS,
+  COUNT_STATUSES,
+  MOVEMENT_TYPES,
+  averageCostAfter,
+  countVariance,
+  daysToExpiry,
+  roundQuantity,
+} from "../../packages/database/src/constants/inventory";
+import {
+  ALL_RESOURCES,
+  PERMISSION_GROUPS,
+  RESOURCE_FEATURES,
+} from "../../packages/database/src/constants/permissions";
 
 describe("inventory", () => {
   test("receipts move the weighted average cost; empty or negative stock takes the new cost", () => {
@@ -31,9 +43,18 @@ describe("inventory", () => {
   test("every movement type, reason and count status has a name in both languages", () => {
     for (const locale of ["en", "ar"] as const) {
       const copy = getTranslations(locale).admin.inventory;
-      for (const type of MOVEMENT_TYPES) expect((copy.movementTypes as Record<string, string>)[type], `${locale} ${type}`).toBeTruthy();
-      for (const reason of ADJUSTMENT_REASONS) expect(copy.reasons[reason], `${locale} ${reason}`).toBeTruthy();
-      for (const status of COUNT_STATUSES) expect(copy.counts.statuses[status], `${locale} ${status}`).toBeTruthy();
+      for (const type of MOVEMENT_TYPES)
+        expect(
+          (copy.movementTypes as Record<string, string>)[type],
+          `${locale} ${type}`,
+        ).toBeTruthy();
+      for (const reason of ADJUSTMENT_REASONS)
+        expect(copy.reasons[reason], `${locale} ${reason}`).toBeTruthy();
+      for (const status of COUNT_STATUSES)
+        expect(
+          copy.counts.statuses[status],
+          `${locale} ${status}`,
+        ).toBeTruthy();
     }
   });
 

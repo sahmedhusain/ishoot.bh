@@ -38,9 +38,7 @@ async function requirePayAccessFor(
       !(typeof data[key] === "number" && data[key] === 0),
   );
   if (touchesPay && !(await hasPermission("payroll", "edit")))
-    throw new Error(
-      serverMessages.onlyPayrollManagersCanSetSalariesAnd,
-    );
+    throw new Error(serverMessages.onlyPayrollManagersCanSetSalariesAnd);
 }
 
 export async function createEmployeeAction(data: {
@@ -79,7 +77,8 @@ export async function createEmployeeAction(data: {
           where: { id: data.userId },
           select: { isActive: true, employee: { select: { id: true } } },
         });
-        if (!user || !user.isActive) throw new Error(serverMessages.userAccountNotFound);
+        if (!user || !user.isActive)
+          throw new Error(serverMessages.userAccountNotFound);
         if (user.employee)
           throw new Error(serverMessages.thisUserAlreadyHasAnEmployeeRecord);
       }

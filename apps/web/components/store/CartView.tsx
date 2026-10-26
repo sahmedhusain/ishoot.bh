@@ -23,7 +23,7 @@ const remembered = (key: string) => {
 const remember = (key: string, value: string) => {
   try {
     window.localStorage.setItem(key, value);
-  } catch {}
+  } catch { }
 };
 
 /** The cart page: lines priced by the server, quantities, coupon, delivery or pickup, then checkout. */

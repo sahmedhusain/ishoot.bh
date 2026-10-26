@@ -2,17 +2,25 @@
 -- templates, and the permissions that control them.
 
 ALTER TABLE "Notification" ADD COLUMN "hiddenAt" TIMESTAMP(3);
-CREATE INDEX "Notification_userId_hiddenAt_createdAt_idx" ON "Notification"("userId", "hiddenAt", "createdAt");
+
+CREATE INDEX "Notification_userId_hiddenAt_createdAt_idx" ON "Notification" (
+    "userId",
+    "hiddenAt",
+    "createdAt"
+);
 
 -- Who may announce, beyond the permission: reporting managers to their own team.
 CREATE TABLE "CommunicationSettings" (
-  "id" TEXT NOT NULL DEFAULT 'default',
-  "managersAnnounceToTeam" BOOLEAN NOT NULL DEFAULT true,
-  "updatedById" TEXT,
-  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "CommunicationSettings_pkey" PRIMARY KEY ("id")
+    "id" TEXT NOT NULL DEFAULT 'default',
+    "managersAnnounceToTeam" BOOLEAN NOT NULL DEFAULT true,
+    "updatedById" TEXT,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "CommunicationSettings_pkey" PRIMARY KEY ("id")
 );
-INSERT INTO "CommunicationSettings" ("id") VALUES ('default') ON CONFLICT DO NOTHING;
+
+INSERT INTO
+    "CommunicationSettings" ("id")
+VALUES ('default') ON CONFLICT DO NOTHING;
 
 CREATE TABLE "Announcement" (
   "id" TEXT NOT NULL,
@@ -51,39 +59,43 @@ CREATE TABLE "Announcement" (
   CONSTRAINT "Announcement_audience_check" CHECK ("audience" IN ('company', 'team', 'departments', 'roles', 'people')),
   CONSTRAINT "Announcement_priority_check" CHECK ("priority" IN ('normal', 'important', 'urgent'))
 );
-CREATE UNIQUE INDEX "Announcement_reference_key" ON "Announcement"("reference");
-CREATE INDEX "Announcement_status_publishedAt_idx" ON "Announcement"("status", "publishedAt");
+
+CREATE UNIQUE INDEX "Announcement_reference_key" ON "Announcement" ("reference");
+
+CREATE INDEX "Announcement_status_publishedAt_idx" ON "Announcement" ("status", "publishedAt");
 
 CREATE TABLE "AnnouncementReceipt" (
-  "announcementId" TEXT NOT NULL,
-  "userId" TEXT NOT NULL,
-  "readAt" TIMESTAMP(3),
-  "acknowledgedAt" TIMESTAMP(3),
-  "hiddenAt" TIMESTAMP(3),
-  CONSTRAINT "AnnouncementReceipt_pkey" PRIMARY KEY ("announcementId", "userId"),
-  CONSTRAINT "AnnouncementReceipt_announcementId_fkey" FOREIGN KEY ("announcementId") REFERENCES "Announcement"("id") ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT "AnnouncementReceipt_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "announcementId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "readAt" TIMESTAMP(3),
+    "acknowledgedAt" TIMESTAMP(3),
+    "hiddenAt" TIMESTAMP(3),
+    CONSTRAINT "AnnouncementReceipt_pkey" PRIMARY KEY ("announcementId", "userId"),
+    CONSTRAINT "AnnouncementReceipt_announcementId_fkey" FOREIGN KEY ("announcementId") REFERENCES "Announcement" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "AnnouncementReceipt_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
-CREATE INDEX "AnnouncementReceipt_userId_idx" ON "AnnouncementReceipt"("userId");
+
+CREATE INDEX "AnnouncementReceipt_userId_idx" ON "AnnouncementReceipt" ("userId");
 
 CREATE TABLE "LetterTemplate" (
-  "id" TEXT NOT NULL,
-  "key" TEXT NOT NULL,
-  "nameEn" TEXT NOT NULL,
-  "nameAr" TEXT NOT NULL,
-  "subjectEn" TEXT NOT NULL DEFAULT '',
-  "subjectAr" TEXT NOT NULL DEFAULT '',
-  "bodyEn" TEXT NOT NULL DEFAULT '',
-  "bodyAr" TEXT NOT NULL DEFAULT '',
-  -- Letters about an employee fill their name, job, dates and pay from the HR record.
-  "aboutEmployee" BOOLEAN NOT NULL DEFAULT false,
-  "isActive" BOOLEAN NOT NULL DEFAULT true,
-  "displayOrder" INTEGER NOT NULL DEFAULT 0,
-  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "LetterTemplate_pkey" PRIMARY KEY ("id")
+    "id" TEXT NOT NULL,
+    "key" TEXT NOT NULL,
+    "nameEn" TEXT NOT NULL,
+    "nameAr" TEXT NOT NULL,
+    "subjectEn" TEXT NOT NULL DEFAULT '',
+    "subjectAr" TEXT NOT NULL DEFAULT '',
+    "bodyEn" TEXT NOT NULL DEFAULT '',
+    "bodyAr" TEXT NOT NULL DEFAULT '',
+    -- Letters about an employee fill their name, job, dates and pay from the HR record.
+    "aboutEmployee" BOOLEAN NOT NULL DEFAULT false,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "displayOrder" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "LetterTemplate_pkey" PRIMARY KEY ("id")
 );
-CREATE UNIQUE INDEX "LetterTemplate_key_key" ON "LetterTemplate"("key");
+
+CREATE UNIQUE INDEX "LetterTemplate_key_key" ON "LetterTemplate" ("key");
 
 CREATE TABLE "OfficialLetter" (
   "id" TEXT NOT NULL,
@@ -121,9 +133,12 @@ CREATE TABLE "OfficialLetter" (
   CONSTRAINT "OfficialLetter_status_check" CHECK ("status" IN ('draft', 'pending_approval', 'approved', 'rejected', 'cancelled')),
   CONSTRAINT "OfficialLetter_classification_check" CHECK ("classification" IN ('confidential', 'internal', 'external'))
 );
-CREATE UNIQUE INDEX "OfficialLetter_reference_key" ON "OfficialLetter"("reference");
-CREATE UNIQUE INDEX "OfficialLetter_verificationCode_key" ON "OfficialLetter"("verificationCode");
-CREATE INDEX "OfficialLetter_status_idx" ON "OfficialLetter"("status");
+
+CREATE UNIQUE INDEX "OfficialLetter_reference_key" ON "OfficialLetter" ("reference");
+
+CREATE UNIQUE INDEX "OfficialLetter_verificationCode_key" ON "OfficialLetter" ("verificationCode");
+
+CREATE INDEX "OfficialLetter_status_idx" ON "OfficialLetter" ("status");
 
 INSERT INTO "LetterTemplate" ("id", "key", "nameEn", "nameAr", "subjectEn", "subjectAr", "bodyEn", "bodyAr", "aboutEmployee", "displayOrder") VALUES
 (gen_random_uuid()::text, 'general', 'General letter', 'خطاب عام', '', '', '', '', false, 0),
@@ -151,6 +166,7 @@ SELECT gen_random_uuid()::text, r."id", 'announcements', a."action",
 FROM "Role" r
 CROSS JOIN (VALUES ('read'), ('write'), ('delete'), ('export'), ('approve'), ('create'), ('edit'), ('assign'), ('issue_send'), ('manage_permissions'), ('reset_credentials')) AS a("action")
 ON CONFLICT ("role", "resource", "action") DO NOTHING;
+
 INSERT INTO "Permission" ("id", "role", "resource", "action", "allowed")
 SELECT gen_random_uuid()::text, r."id", 'letters', a."action",
   r."id" = 'super_admin'
@@ -165,6 +181,7 @@ INSERT INTO "ApprovalPolicy" ("id", "targetType", "enabled", "allowSelfApproval"
   (gen_random_uuid()::text, 'announcement', true, false, ARRAY['super_admin', 'admin'], CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
   (gen_random_uuid()::text, 'official_letter', true, false, ARRAY['super_admin'], CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT ("targetType") DO NOTHING;
+
 INSERT INTO "ApprovalPolicyStep" ("id", "policyId", "order", "approverMode", "permission")
 SELECT gen_random_uuid()::text, p."id", 1, 'permission', CASE p."targetType" WHEN 'announcement' THEN 'announcements:approve' ELSE 'letters:approve' END
 FROM "ApprovalPolicy" p WHERE p."targetType" IN ('announcement', 'official_letter')

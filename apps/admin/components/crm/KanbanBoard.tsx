@@ -64,22 +64,22 @@ export function KanbanBoard({ initialDeals, contacts = [], stages, canCustomize 
         </div>
 
         <div className="flex items-center gap-2">
-        {canCustomize && (
-          <Link href={ROUTES.settings.pipeline} className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-semibold text-ink-muted hover:text-ink hover:bg-ink/5 transition-colors">
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            {t.pipelineSettings.customize}
+          {canCustomize && (
+            <Link href={ROUTES.settings.pipeline} className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-semibold text-ink-muted hover:text-ink hover:bg-ink/5 transition-colors">
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              {t.pipelineSettings.customize}
+            </Link>
+          )}
+          <Link href={ROUTES.crm.newDeal()}>
+            <Button
+              variant="primary"
+              size="sm"
+              className="gap-1.5 shrink-0 bg-primary hover:bg-primary/90 text-white rounded-full px-4 h-8 text-xs font-semibold shadow-xs"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>{t.actions.newDeal}</span>
+            </Button>
           </Link>
-        )}
-        <Link href={ROUTES.crm.newDeal()}>
-          <Button
-            variant="primary"
-            size="sm"
-            className="gap-1.5 shrink-0 bg-primary hover:bg-primary/90 text-white rounded-full px-4 h-8 text-xs font-semibold shadow-xs"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>{t.actions.newDeal}</span>
-          </Button>
-        </Link>
         </div>
       </div>
 

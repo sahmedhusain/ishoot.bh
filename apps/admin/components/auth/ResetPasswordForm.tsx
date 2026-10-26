@@ -47,7 +47,7 @@ export function ResetPasswordForm(brand: AuthBrandingProps) {
       if (!res.ok) throw new Error(data.error);
       setMessage(t.resetPasswordForm.passwordSuccessfullyResetYouCan);
       setTimeout(() => router.push("/login"), 3000);
-    } catch(err: any) {
+    } catch (err: any) {
       setError(errorMessage(err, t, t.resetPasswordForm.failedToResetPassword));
     } finally {
       setLoading(false);

@@ -1,13 +1,13 @@
 "use client";
 
 import { formatMessage } from "@platform/locales";
-import type { Invoice,CompanySettings } from "@platform/database/types";
+import type { Invoice, CompanySettings } from "@platform/database/types";
 import { formatCurrencyValue } from "@platform/ui";
 import { adminTranslations } from "../../lib/translations-bilingual";
 import { formatClientAddress } from "../../lib/client-address";
 import {
-DocumentLetterhead,
-DocumentFooter,
+  DocumentLetterhead,
+  DocumentFooter,
 } from "../shared/DocumentLetterhead";
 
 interface InvoiceTemplateProps {
@@ -29,9 +29,8 @@ export function InvoiceTemplate({ invoice, company, signing = null }: InvoiceTem
     <div
       dir={isAr ? "rtl" : "ltr"}
       data-print-target
-      className={`w-full max-w-[850px] mx-auto bg-white text-slate-900 shadow-2xl rounded-2xl overflow-hidden min-h-[1050px] print:min-h-0 print:shadow-none print:rounded-none print:max-w-none print:w-full print:overflow-visible ${
-        isAr ? "font-arabic" : "font-sans"
-      }`}
+      className={`w-full max-w-[850px] mx-auto bg-white text-slate-900 shadow-2xl rounded-2xl overflow-hidden min-h-[1050px] print:min-h-0 print:shadow-none print:rounded-none print:max-w-none print:w-full print:overflow-visible ${isAr ? "font-arabic" : "font-sans"
+        }`}
     >
       {/* Unified Brand Letterhead */}
       <DocumentLetterhead

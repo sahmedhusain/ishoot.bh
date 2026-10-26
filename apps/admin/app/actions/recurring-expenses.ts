@@ -22,14 +22,31 @@ const refresh = () => {
 };
 
 /** Adds or edits a periodic bill (rent, utilities, phones, subscriptions…). */
-export async function saveRecurringExpenseAction(data: RecurringExpenseInput, recurringId?: string) {
+export async function saveRecurringExpenseAction(
+  data: RecurringExpenseInput,
+  recurringId?: string,
+) {
   return measureOperation("action:saveRecurringExpenseAction", async () => {
     await requireFeatureEnabled("invoicing");
     const user = await requirePermission("expenses", "write");
-    validateActionArguments("saveRecurringExpenseAction", { data, recurringId });
+    validateActionArguments("saveRecurringExpenseAction", {
+      data,
+      recurringId,
+    });
     const saved = await runAtomicMutation(async () => {
       const saved = await saveRecurringExpense(data, user.id, recurringId);
-      await createActivityLog({ user_id: user.id, action: recurringId ? "update" : "create", entity_type: "recurring_expense", entity_id: saved.id, details: { title: saved.titleEn, amount: Number(saved.amount), frequency: saved.frequency, autoRecord: saved.autoRecord } });
+      await createActivityLog({
+        user_id: user.id,
+        action: recurringId ? "update" : "create",
+        entity_type: "recurring_expense",
+        entity_id: saved.id,
+        details: {
+          title: saved.titleEn,
+          amount: Number(saved.amount),
+          frequency: saved.frequency,
+          autoRecord: saved.autoRecord,
+        },
+      });
       return saved;
     });
     refresh();
@@ -38,14 +55,31 @@ export async function saveRecurringExpenseAction(data: RecurringExpenseInput, re
 }
 
 /** Records the current due date's expense, with the actual amount when it differs from the usual one. */
-export async function recordRecurringExpenseAction(recurringId: string, actual: { amount?: number; input_vat_amount?: number; receipt_url?: string; notes?: string } = {}) {
+export async function recordRecurringExpenseAction(
+  recurringId: string,
+  actual: {
+    amount?: number;
+    input_vat_amount?: number;
+    receipt_url?: string;
+    notes?: string;
+  } = {},
+) {
   return measureOperation("action:recordRecurringExpenseAction", async () => {
     await requireFeatureEnabled("invoicing");
     const user = await requirePermission("expenses", "write");
-    validateActionArguments("recordRecurringExpenseAction", { recurringId, actual });
+    validateActionArguments("recordRecurringExpenseAction", {
+      recurringId,
+      actual,
+    });
     const result = await runAtomicMutation(async () => {
       const result = await recordRecurringExpense(recurringId, user.id, actual);
-      await createActivityLog({ user_id: user.id, action: "record", entity_type: "recurring_expense", entity_id: recurringId, details: result });
+      await createActivityLog({
+        user_id: user.id,
+        action: "record",
+        entity_type: "recurring_expense",
+        entity_id: recurringId,
+        details: result,
+      });
       return result;
     });
     refresh();
@@ -60,7 +94,13 @@ export async function skipRecurringExpenseAction(recurringId: string) {
     validateActionArguments("skipRecurringExpenseAction", { recurringId });
     const dueDate = await runAtomicMutation(async () => {
       const dueDate = await skipRecurringExpense(recurringId);
-      await createActivityLog({ user_id: user.id, action: "skip", entity_type: "recurring_expense", entity_id: recurringId, details: { dueDate } });
+      await createActivityLog({
+        user_id: user.id,
+        action: "skip",
+        entity_type: "recurring_expense",
+        entity_id: recurringId,
+        details: { dueDate },
+      });
       return dueDate;
     });
     refresh();
@@ -75,7 +115,13 @@ export async function deleteRecurringExpenseAction(recurringId: string) {
     validateActionArguments("deleteRecurringExpenseAction", { recurringId });
     await runAtomicMutation(async () => {
       await deleteRecurringExpense(recurringId);
-      await createActivityLog({ user_id: user.id, action: "delete", entity_type: "recurring_expense", entity_id: recurringId, details: {} });
+      await createActivityLog({
+        user_id: user.id,
+        action: "delete",
+        entity_type: "recurring_expense",
+        entity_id: recurringId,
+        details: {},
+      });
     });
     refresh();
     return { success: true };

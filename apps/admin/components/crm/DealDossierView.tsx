@@ -7,29 +7,29 @@ import type { InvoiceListRow } from "@platform/database";
 import * as React from "react";
 import Link from "next/link";
 import {
-Card,
-Button,
-Badge,
-StatusBadge,
-DateDisplay,
-CurrencyDisplay,
+  Card,
+  Button,
+  Badge,
+  StatusBadge,
+  DateDisplay,
+  CurrencyDisplay,
 } from "@platform/ui";
 import {
-User,
-Building2,
-Briefcase,
-Calendar,
-DollarSign,
-TrendingUp,
-Clock,
-Mail,
-Phone,
-FileText,ExternalLink,
-ArrowLeft,
-Edit,
+  User,
+  Building2,
+  Briefcase,
+  Calendar,
+  DollarSign,
+  TrendingUp,
+  Clock,
+  Mail,
+  Phone,
+  FileText, ExternalLink,
+  ArrowLeft,
+  Edit,
   FileSignature,
 } from "lucide-react";
-import type { CRMDeal,CRMContact } from "@platform/database/types";
+import type { CRMDeal, CRMContact } from "@platform/database/types";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { isActiveDealStage } from "@platform/database/constants/crm";
 import type { DossierActions } from "../../types/crm";
@@ -233,11 +233,10 @@ export function DealDossierView({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`pb-3.5 flex items-center gap-2 border-b-2 transition-colors shrink-0 ${
-                isActive
-                  ? "border-accent text-primary dark:text-accent"
-                  : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-              }`}
+              className={`pb-3.5 flex items-center gap-2 border-b-2 transition-colors shrink-0 ${isActive
+                ? "border-accent text-primary dark:text-accent"
+                : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                }`}
             >
               <Icon className="w-4 h-4" />
               <span>{tab.label}</span>

@@ -34,9 +34,9 @@ export default async function LeaveManagementPage({
   const pendingIds = requests.filter((r) => r.status === "pending").map((r) => r.id);
   const pendingApprovals = pendingIds.length
     ? await db.approvalRequest.findMany({
-        where: { targetType: "leave_request", targetId: { in: pendingIds }, status: "pending" },
-        select: { targetId: true, status: true, requestedById: true, approverIds: true },
-      })
+      where: { targetType: "leave_request", targetId: { in: pendingIds }, status: "pending" },
+      select: { targetId: true, status: true, requestedById: true, approverIds: true },
+    })
     : [];
   const decidableIds = pendingApprovals.filter((a) => canDecideApproval(a, user)).map((a) => a.targetId);
 
@@ -50,12 +50,12 @@ export default async function LeaveManagementPage({
       myEmployee={
         myEmployee
           ? {
-              ...myEmployee,
-              leaveBalanceDays: Number(myEmployee.leaveBalanceDays),
-              hireDate: myEmployee.hireDate.toISOString(),
-              createdAt: myEmployee.createdAt.toISOString(),
-              updatedAt: myEmployee.updatedAt.toISOString(),
-            }
+            ...myEmployee,
+            leaveBalanceDays: Number(myEmployee.leaveBalanceDays),
+            hireDate: myEmployee.hireDate.toISOString(),
+            createdAt: myEmployee.createdAt.toISOString(),
+            updatedAt: myEmployee.updatedAt.toISOString(),
+          }
           : null
       }
       currentUserId={user.id}

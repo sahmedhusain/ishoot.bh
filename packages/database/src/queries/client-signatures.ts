@@ -1,4 +1,8 @@
-import { serverTemplates, formatMessage, serverMessages } from "@platform/locales";
+import {
+  serverTemplates,
+  formatMessage,
+  serverMessages,
+} from "@platform/locales";
 
 import crypto from "crypto";
 import type { Prisma } from "@prisma/client";
@@ -250,16 +254,17 @@ export async function createSigningLink(
   const days = Math.round(options.days ?? SIGNING_LINK_DAYS.default);
   if (!(days >= SIGNING_LINK_DAYS.min && days <= SIGNING_LINK_DAYS.max))
     throw new Error(
-      formatMessage(serverTemplates.aLinkCanStayOpenFor0, { 0: SIGNING_LINK_DAYS.min, 1: SIGNING_LINK_DAYS.max }),
+      formatMessage(serverTemplates.aLinkCanStayOpenFor0, {
+        0: SIGNING_LINK_DAYS.min,
+        1: SIGNING_LINK_DAYS.max,
+      }),
     );
   let expiresAt = new Date(Date.now() + days * 86_400_000);
   // A quotation cannot be signed after it stops being valid.
   if (type === "quotation") {
     const validUntil = endOfDayBahrain(doc.untilDate);
     if (validUntil <= new Date())
-      throw new Error(
-        serverMessages.thisQuotationHasExpiredIssueANew,
-      );
+      throw new Error(serverMessages.thisQuotationHasExpiredIssueANew);
     if (validUntil < expiresAt) expiresAt = validUntil;
   }
   const email = options.recipientEmail?.trim() || doc.clientEmail || null;

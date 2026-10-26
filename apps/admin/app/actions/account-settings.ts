@@ -39,13 +39,27 @@ export async function saveAccountSettingsAction(
   },
   reason?: string | null,
 ) {
-  validateActionArguments("saveAccountSettingsAction", { userId, changes, reason });
+  validateActionArguments("saveAccountSettingsAction", {
+    userId,
+    changes,
+    reason,
+  });
   return measureOperation("action:saveAccountSettingsAction", async () => {
     const actor = await requireAuth();
-    const [canManageUsers, canEditEmployees] = await Promise.all([hasPermission("users", "write"), hasPermission("employees", "edit")]);
-    if (!canManageUsers && !canEditEmployees) throw new Error(serverMessages.youDoNotHavePermissionToChange);
-    const input = { ...changes, status: changes.status as AccountChanges["status"] };
-    const employee = await db.employee.findFirst({ where: { userId }, select: { id: true } });
+    const [canManageUsers, canEditEmployees] = await Promise.all([
+      hasPermission("users", "write"),
+      hasPermission("employees", "edit"),
+    ]);
+    if (!canManageUsers && !canEditEmployees)
+      throw new Error(serverMessages.youDoNotHavePermissionToChange);
+    const input = {
+      ...changes,
+      status: changes.status as AccountChanges["status"],
+    };
+    const employee = await db.employee.findFirst({
+      where: { userId },
+      select: { id: true },
+    });
 
     if (canManageUsers) {
       const applied = await runAtomicMutation(async () => {
@@ -53,17 +67,49 @@ export async function saveAccountSettingsAction(
         return applyAccountChanges(userId, input, actor.id);
       });
       revalidateAccount(userId, employee?.id ?? null);
-      return { mode: "applied" as const, changed: Object.keys(applied.changes) };
+      return {
+        mode: "applied" as const,
+        changed: Object.keys(applied.changes),
+      };
     }
 
     const outcome = await runAtomicMutation(async () => {
-      const request = await createAccountChangeRequest(userId, input, actor.id, reason);
-      const approval = await submitForApproval({ targetType: "account_change", targetId: request.id, requesterId: actor.id, policySnapshot: { userId, fields: Object.keys(request.changes as object) } });
-      await createActivityLog({ user_id: actor.id, action: "request", entity_type: "account_change", entity_id: request.id, details: { userId, changes: request.changes, approvalStatus: approval.status } });
+      const request = await createAccountChangeRequest(
+        userId,
+        input,
+        actor.id,
+        reason,
+      );
+      const approval = await submitForApproval({
+        targetType: "account_change",
+        targetId: request.id,
+        requesterId: actor.id,
+        policySnapshot: {
+          userId,
+          fields: Object.keys(request.changes as object),
+        },
+      });
+      await createActivityLog({
+        user_id: actor.id,
+        action: "request",
+        entity_type: "account_change",
+        entity_id: request.id,
+        details: {
+          userId,
+          changes: request.changes,
+          approvalStatus: approval.status,
+        },
+      });
       return approval;
     });
     revalidateAccount(userId, employee?.id ?? null);
-    return { mode: outcome.status === "approved" ? ("applied" as const) : ("pending" as const), changed: [] as string[] };
+    return {
+      mode:
+        outcome.status === "approved"
+          ? ("applied" as const)
+          : ("pending" as const),
+      changed: [] as string[],
+    };
   });
 }
 
@@ -72,14 +118,28 @@ export async function cancelAccountChangeAction(requestId: string) {
   validateActionArguments("cancelAccountChangeAction", { requestId });
   return measureOperation("action:cancelAccountChangeAction", async () => {
     const actor = await requireAuth();
-    const request = await db.accountChangeRequest.findUniqueOrThrow({ where: { id: requestId }, select: { status: true, requestedById: true, userId: true } });
-    if (request.status !== "pending") throw new Error(serverMessages.onlyPendingChangesCanBeWithdrawn);
-    if (request.requestedById !== actor.id && !(await hasPermission("users", "write"))) throw new Error(serverMessages.onlyThePersonWhoFiledItCan);
+    const request = await db.accountChangeRequest.findUniqueOrThrow({
+      where: { id: requestId },
+      select: { status: true, requestedById: true, userId: true },
+    });
+    if (request.status !== "pending")
+      throw new Error(serverMessages.onlyPendingChangesCanBeWithdrawn);
+    if (
+      request.requestedById !== actor.id &&
+      !(await hasPermission("users", "write"))
+    )
+      throw new Error(serverMessages.onlyThePersonWhoFiledItCan);
     await runAtomicMutation(async () => {
-      await db.accountChangeRequest.update({ where: { id: requestId }, data: { status: "cancelled", decidedAt: new Date() } });
+      await db.accountChangeRequest.update({
+        where: { id: requestId },
+        data: { status: "cancelled", decidedAt: new Date() },
+      });
       await cancelPendingApprovals("account_change", requestId);
     });
-    const employee = await db.employee.findFirst({ where: { userId: request.userId }, select: { id: true } });
+    const employee = await db.employee.findFirst({
+      where: { userId: request.userId },
+      select: { id: true },
+    });
     revalidateAccount(request.userId, employee?.id ?? null);
     return { success: true };
   });

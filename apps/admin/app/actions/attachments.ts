@@ -48,7 +48,11 @@ export async function createAttachmentAction(data: {
             action: "create",
             entity_type: "attachment",
             entity_id: attachment.id,
-            details: { fileName: data.fileName, entityType: data.entityType, entityId: data.entityId },
+            details: {
+              fileName: data.fileName,
+              entityType: data.entityType,
+              entityId: data.entityId,
+            },
           });
         }
 

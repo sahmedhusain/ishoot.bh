@@ -5,10 +5,17 @@ import type { DocumentTaxLine } from "../types";
  * The only source of a document's VAT: the company registration. When VAT is enabled every invoice
  * and quotation carries it at the company rate; when it is disabled none does. Forms cannot override it.
  */
-export async function companyVat(client: Pick<typeof db, "companySetting"> = db): Promise<{ vatEnabled: boolean; vatPercentage: number }> {
-  const company = await client.companySetting.findFirst({ select: { vatEnabled: true, vatPercentage: true } });
+export async function companyVat(
+  client: Pick<typeof db, "companySetting"> = db,
+): Promise<{ vatEnabled: boolean; vatPercentage: number }> {
+  const company = await client.companySetting.findFirst({
+    select: { vatEnabled: true, vatPercentage: true },
+  });
   const vatEnabled = company?.vatEnabled ?? false;
-  return { vatEnabled, vatPercentage: vatEnabled ? Number(company?.vatPercentage ?? 10) : 0 };
+  return {
+    vatEnabled,
+    vatPercentage: vatEnabled ? Number(company?.vatPercentage ?? 10) : 0,
+  };
 }
 
 export interface ActiveTax {
@@ -21,16 +28,34 @@ export interface ActiveTax {
 }
 
 /** Active taxes besides VAT that apply to new invoices or quotations, in display order. */
-export async function companyTaxes(kind: "invoice" | "quotation", client: Pick<typeof db, "taxRate"> = db): Promise<ActiveTax[]> {
+export async function companyTaxes(
+  kind: "invoice" | "quotation",
+  client: Pick<typeof db, "taxRate"> = db,
+): Promise<ActiveTax[]> {
   const rows = await client.taxRate.findMany({
-    where: { isActive: true, ...(kind === "invoice" ? { appliesToInvoices: true } : { appliesToQuotations: true }) },
+    where: {
+      isActive: true,
+      ...(kind === "invoice"
+        ? { appliesToInvoices: true }
+        : { appliesToQuotations: true }),
+    },
     orderBy: [{ displayOrder: "asc" }, { createdAt: "asc" }],
   });
-  return rows.map((r) => ({ id: r.id, code: r.code, nameEn: r.nameEn, nameAr: r.nameAr, rate: Number(r.ratePercent), registrationNumber: r.registrationNumber }));
+  return rows.map((r) => ({
+    id: r.id,
+    code: r.code,
+    nameEn: r.nameEn,
+    nameAr: r.nameAr,
+    rate: Number(r.ratePercent),
+    registrationNumber: r.registrationNumber,
+  }));
 }
 
 /** DocumentTax rows for a calculated document: the frozen name, rate, registration and amount of each tax. */
-export function documentTaxRows(taxes: ActiveTax[], amounts: Array<{ code: string; amount: number }>) {
+export function documentTaxRows(
+  taxes: ActiveTax[],
+  amounts: Array<{ code: string; amount: number }>,
+) {
   return taxes.map((tax, index) => ({
     taxRateId: tax.id || null,
     code: tax.code,
@@ -44,8 +69,24 @@ export function documentTaxRows(taxes: ActiveTax[], amounts: Array<{ code: strin
 }
 
 /** The taxes frozen on an issued document, in the shape used to recalculate it. */
-export function frozenTaxes(rows: Array<{ taxRateId: string | null; code: string; nameEn: string; nameAr: string; ratePercent: unknown; registrationNumber: string | null }>): ActiveTax[] {
-  return rows.map((r) => ({ id: r.taxRateId ?? "", code: r.code, nameEn: r.nameEn, nameAr: r.nameAr, rate: Number(r.ratePercent), registrationNumber: r.registrationNumber }));
+export function frozenTaxes(
+  rows: Array<{
+    taxRateId: string | null;
+    code: string;
+    nameEn: string;
+    nameAr: string;
+    ratePercent: unknown;
+    registrationNumber: string | null;
+  }>,
+): ActiveTax[] {
+  return rows.map((r) => ({
+    id: r.taxRateId ?? "",
+    code: r.code,
+    nameEn: r.nameEn,
+    nameAr: r.nameAr,
+    rate: Number(r.ratePercent),
+    registrationNumber: r.registrationNumber,
+  }));
 }
 
 /** Frozen tax rows → the shape documents and screens use. */

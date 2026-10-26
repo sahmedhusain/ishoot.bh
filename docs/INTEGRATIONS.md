@@ -6,13 +6,13 @@ Connection checks do not create charges, shipments or email. The separate WhatsA
 
 Implemented address patterns (use the in-app copy buttons for actual origins):
 
-| Connection | Address |
-| --- | --- |
-| Google / Apple customer sign-in | `{website}/api/account/google/callback`, `{website}/api/account/apple/callback` |
-| Payment gateways | `{website}/api/store/payment/webhook/{provider}` |
-| Payment browser return | `{website}/api/store/payment/return` — the app adds attempt parameters; never use as a webhook |
-| Resend delivery events | `{admin}/api/webhooks/resend` |
-| Social / WhatsApp / couriers | No inbound callback currently implemented |
+| Connection                      | Address                                                                                        |
+| ------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Google / Apple customer sign-in | `{website}/api/account/google/callback`, `{website}/api/account/apple/callback`                |
+| Payment gateways                | `{website}/api/store/payment/webhook/{provider}`                                               |
+| Payment browser return          | `{website}/api/store/payment/return` — the app adds attempt parameters; never use as a webhook |
+| Resend delivery events          | `{admin}/api/webhooks/resend`                                                                  |
+| Social / WhatsApp / couriers    | No inbound callback currently implemented                                                      |
 
 ## Status and acceptance boundaries
 

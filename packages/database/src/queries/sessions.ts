@@ -5,7 +5,20 @@ const hashSessionToken = (token: string) =>
   createHash("sha256").update(token).digest("hex");
 import { Session, Profile, UserRole } from "../types";
 
-const sessionUserSelect = {id:true,fullName:true,email:true,role:true,avatarUrl:true,signatureUrl:true,phone:true,department:true,isActive:true,permissions:true,createdAt:true,updatedAt:true} as const;
+const sessionUserSelect = {
+  id: true,
+  fullName: true,
+  email: true,
+  role: true,
+  avatarUrl: true,
+  signatureUrl: true,
+  phone: true,
+  department: true,
+  isActive: true,
+  permissions: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
 
 function mapSession(s: any): Session {
   return {
@@ -51,7 +64,7 @@ export async function createSession(data: {
       userAgent: data.userAgent || null,
     },
     include: {
-      user: {select:sessionUserSelect},
+      user: { select: sessionUserSelect },
     },
   });
 
@@ -64,7 +77,7 @@ export async function getSessionByToken(
   try {
     const session = await db.session.findUnique({
       where: { token: hashSessionToken(token) },
-      include: { user: {select:sessionUserSelect} },
+      include: { user: { select: sessionUserSelect } },
     });
 
     if (!session) return null;
@@ -116,7 +129,7 @@ export async function getAllActiveSessions(): Promise<Session[]> {
         },
       },
       include: {
-        user: {select:sessionUserSelect},
+        user: { select: sessionUserSelect },
       },
       orderBy: { createdAt: "desc" },
     });

@@ -16,7 +16,7 @@ import {
   CheckCircle2,
   Clock,
   Layers,
-  
+
   FileQuestion,
   HelpCircle,
   Sparkles,
@@ -81,7 +81,7 @@ export function NewRequestFormView({
     if (contact) {
       setFullName(
         contact.full_name ||
-          `${contact.first_name || ""} ${contact.last_name || ""}`.trim(),
+        `${contact.first_name || ""} ${contact.last_name || ""}`.trim(),
       );
       setEmail(contact.email || "");
       setPhone(contact.phone || "");
@@ -224,11 +224,10 @@ export function NewRequestFormView({
                   key={tab.id}
                   type="button"
                   onClick={() => setRequestType(tab.id as any)}
-                  className={`p-4 rounded-xl text-start border transition-all ${
-                    isSelected
-                      ? "border-accent bg-accent/5 ring-2 ring-accent/20"
-                      : "border-slate-200/80 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 bg-slate-50/50 dark:bg-white/[0.01]"
-                  }`}
+                  className={`p-4 rounded-xl text-start border transition-all ${isSelected
+                    ? "border-accent bg-accent/5 ring-2 ring-accent/20"
+                    : "border-slate-200/80 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 bg-slate-50/50 dark:bg-white/[0.01]"
+                    }`}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div
@@ -414,11 +413,10 @@ export function NewRequestFormView({
                       key={svc.id}
                       type="button"
                       onClick={() => handleToggleService(svc.name_en)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${
-                        isChecked
-                          ? "bg-accent text-white border-accent shadow-sm shadow-accent/20"
-                          : "border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] text-slate-700 dark:text-slate-300 hover:border-slate-300"
-                      }`}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${isChecked
+                        ? "bg-accent text-white border-accent shadow-sm shadow-accent/20"
+                        : "border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] text-slate-700 dark:text-slate-300 hover:border-slate-300"
+                        }`}
                     >
                       {isRTL ? svc.name_ar : svc.name_en}
                     </button>

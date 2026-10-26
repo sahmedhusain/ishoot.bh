@@ -3,7 +3,12 @@ import { db } from "../db";
 import { safeWebsiteUrl } from "../website-config";
 
 /** Built-in article categories; a company may also use its own keys. PR uses press_release. */
-export const ARTICLE_CATEGORIES = ["news", "update", "post", "press_release"] as const;
+export const ARTICLE_CATEGORIES = [
+  "news",
+  "update",
+  "post",
+  "press_release",
+] as const;
 
 /** An article as the website shows it (part of the published snapshot). */
 export interface PublicArticle {
@@ -71,7 +76,15 @@ const mapArticle = (row: ArticleRow): CmsArticleRecord => ({
 
 /** Published articles (including scheduled ones) for the website snapshot, newest first. */
 export async function getPublishedArticles(): Promise<PublicArticle[]> {
-  const rows = await db.cmsArticle.findMany({ where: { status: "published" }, orderBy: [{ featured: "desc" }, { publishAt: "desc" }, { createdAt: "desc" }], take: 500 });
+  const rows = await db.cmsArticle.findMany({
+    where: { status: "published" },
+    orderBy: [
+      { featured: "desc" },
+      { publishAt: "desc" },
+      { createdAt: "desc" },
+    ],
+    take: 500,
+  });
   return rows.map(mapPublic);
 }
 
@@ -85,14 +98,34 @@ export interface ArticleListFilters {
 export async function getArticlesPage(filters: ArticleListFilters) {
   const q = (filters.q ?? "").trim().slice(0, 120);
   const where = {
-    ...(filters.status === "draft" || filters.status === "published" ? { status: filters.status } : {}),
-    ...(filters.category && filters.category !== "all" ? { category: filters.category } : {}),
-    ...(q ? { OR: [{ titleEn: { contains: q, mode: "insensitive" as const } }, { titleAr: { contains: q } }, { slug: { contains: q } }] } : {}),
+    ...(filters.status === "draft" || filters.status === "published"
+      ? { status: filters.status }
+      : {}),
+    ...(filters.category && filters.category !== "all"
+      ? { category: filters.category }
+      : {}),
+    ...(q
+      ? {
+          OR: [
+            { titleEn: { contains: q, mode: "insensitive" as const } },
+            { titleAr: { contains: q } },
+            { slug: { contains: q } },
+          ],
+        }
+      : {}),
   };
   const total = await db.cmsArticle.count({ where });
   const pageSize = 30;
-  const page = Math.min(Math.max(1, filters.page || 1), Math.max(1, Math.ceil(total / pageSize)));
-  const rows = await db.cmsArticle.findMany({ where, orderBy: [{ updatedAt: "desc" }], skip: (page - 1) * pageSize, take: pageSize });
+  const page = Math.min(
+    Math.max(1, filters.page || 1),
+    Math.max(1, Math.ceil(total / pageSize)),
+  );
+  const rows = await db.cmsArticle.findMany({
+    where,
+    orderBy: [{ updatedAt: "desc" }],
+    skip: (page - 1) * pageSize,
+    take: pageSize,
+  });
   return { items: rows.map(mapArticle), total, page, pageSize };
 }
 
@@ -130,22 +163,46 @@ const CATEGORY = /^[a-z][a-z0-9_]{1,39}$/;
 
 /** A web-safe address from a title: Latin letters and digits only, else a dated fallback. */
 export function articleSlug(title: string) {
-  const slug = title.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 70);
+  const slug = title
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 70);
   return slug || `article-${new Date().toISOString().slice(0, 10)}`;
 }
 
-export async function saveCmsArticle(input: CmsArticleInput, html: { en: string; ar: string }, authorId: string) {
-  const existing = input.id ? await db.cmsArticle.findUnique({ where: { id: input.id }, select: { id: true, authorId: true } }) : null;
+export async function saveCmsArticle(
+  input: CmsArticleInput,
+  html: { en: string; ar: string },
+  authorId: string,
+) {
+  const existing = input.id
+    ? await db.cmsArticle.findUnique({
+        where: { id: input.id },
+        select: { id: true, authorId: true },
+      })
+    : null;
   if (input.id && !existing) throw new Error(serverMessages.cmsArticleNotFound);
-  if (!input.title_en.trim() || !input.title_ar.trim()) throw new Error(serverMessages.cmsArticleTitleRequired);
-  const slug = (input.slug.trim().toLowerCase() || articleSlug(input.title_en)).slice(0, 80);
+  if (!input.title_en.trim() || !input.title_ar.trim())
+    throw new Error(serverMessages.cmsArticleTitleRequired);
+  const slug = (
+    input.slug.trim().toLowerCase() || articleSlug(input.title_en)
+  ).slice(0, 80);
   if (!SLUG.test(slug)) throw new Error(serverMessages.cmsArticleSlugInvalid);
-  const clash = await db.cmsArticle.findUnique({ where: { slug }, select: { id: true } });
-  if (clash && clash.id !== input.id) throw new Error(serverMessages.cmsArticleSlugTaken);
-  if (!CATEGORY.test(input.category)) throw new Error(serverMessages.cmsArticleCategoryInvalid);
+  const clash = await db.cmsArticle.findUnique({
+    where: { slug },
+    select: { id: true },
+  });
+  if (clash && clash.id !== input.id)
+    throw new Error(serverMessages.cmsArticleSlugTaken);
+  if (!CATEGORY.test(input.category))
+    throw new Error(serverMessages.cmsArticleCategoryInvalid);
   const publishAt = input.publish_at ? new Date(input.publish_at) : null;
-  if (publishAt && !Number.isFinite(publishAt.getTime())) throw new Error(serverMessages.cmsArticleDateInvalid);
-  const text = (value: string, max: number) => value.trim().slice(0, max) || null;
+  if (publishAt && !Number.isFinite(publishAt.getTime()))
+    throw new Error(serverMessages.cmsArticleDateInvalid);
+  const text = (value: string, max: number) =>
+    value.trim().slice(0, max) || null;
   const data = {
     slug,
     titleEn: input.title_en.trim().slice(0, 200),
@@ -158,11 +215,14 @@ export async function saveCmsArticle(input: CmsArticleInput, html: { en: string;
     bodyHtmlAr: html.ar.slice(0, 500_000),
     coverUrl: safeWebsiteUrl(input.cover_url.trim()) || null,
     category: input.category,
-    tags: Array.from(new Set(input.tags.map((tag) => tag.trim().slice(0, 40)).filter(Boolean))).slice(0, 20),
+    tags: Array.from(
+      new Set(input.tags.map((tag) => tag.trim().slice(0, 40)).filter(Boolean)),
+    ).slice(0, 20),
     authorName: text(input.author_name, 120),
     status: input.status === "published" ? "published" : "draft",
     // A published article without a date goes out now; drafts keep whatever date was chosen.
-    publishAt: input.status === "published" && !publishAt ? new Date() : publishAt,
+    publishAt:
+      input.status === "published" && !publishAt ? new Date() : publishAt,
     featured: input.featured,
     seoTitleEn: text(input.seo_title_en, 200),
     seoTitleAr: text(input.seo_title_ar, 200),

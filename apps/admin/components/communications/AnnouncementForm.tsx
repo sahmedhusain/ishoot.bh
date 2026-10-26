@@ -56,13 +56,13 @@ export function AnnouncementForm({
       ? options.users.map((u) => ({ id: u.id, label: u.fullName }))
       : form.audience === "departments"
         ? options.departments.map((d) => ({
-            id: d.id,
-            label: locale === "ar" ? d.nameAr : d.nameEn,
-          }))
+          id: d.id,
+          label: locale === "ar" ? d.nameAr : d.nameEn,
+        }))
         : options.roles.map((r) => ({
-            id: r.id,
-            label: locale === "ar" ? r.nameAr : r.nameEn,
-          }));
+          id: r.id,
+          label: locale === "ar" ? r.nameAr : r.nameEn,
+        }));
   const audienceKey =
     form.audience === "people"
       ? "audience_user_ids"
@@ -186,11 +186,11 @@ export function AnnouncementForm({
               value={
                 form[key]
                   ? new Date(
-                      new Date(form[key]!).getTime() -
-                        new Date(form[key]!).getTimezoneOffset() * 60000,
-                    )
-                      .toISOString()
-                      .slice(0, 16)
+                    new Date(form[key]!).getTime() -
+                    new Date(form[key]!).getTimezoneOffset() * 60000,
+                  )
+                    .toISOString()
+                    .slice(0, 16)
                   : ""
               }
               onChange={(e) =>

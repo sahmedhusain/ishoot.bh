@@ -1,7 +1,13 @@
 "use server";
 import { serverMessages } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
-import { measureOperation, updateApprovalPolicy, createActivityLog, type ApprovalTargetType, type ApproverMode } from "@platform/database";
+import {
+  measureOperation,
+  updateApprovalPolicy,
+  createActivityLog,
+  type ApprovalTargetType,
+  type ApproverMode,
+} from "@platform/database";
 import { revalidatePath } from "next/cache";
 import { validateActionArguments } from "../../lib/action-input";
 import { requirePermission } from "../../lib/auth";
@@ -30,16 +36,25 @@ export async function updateApprovalPolicyAction(
 ) {
   return measureOperation("action:updateApprovalPolicyAction", async () => {
     const actor = await requirePermission("settings", "write");
-    validateActionArguments("updateApprovalPolicyAction", { targetType, policy });
+    validateActionArguments("updateApprovalPolicyAction", {
+      targetType,
+      policy,
+    });
     // Approval routing is governance: same rule as role permissions.
-    if (actor.role !== "super_admin") throw new Error(serverMessages.onlySuperAdministratorsCanChangeApprovalPolicies);
+    if (actor.role !== "super_admin")
+      throw new Error(
+        serverMessages.onlySuperAdministratorsCanChangeApprovalPolicies,
+      );
     // Values are validated against the approval/permission constants inside updateApprovalPolicy.
     await updateApprovalPolicy(targetType as ApprovalTargetType, {
       ...policy,
       steps: policy.steps.map((step) => ({
         ...step,
         approverMode: step.approverMode as ApproverMode,
-        escalateMode: step.escalateMode === "role" || step.escalateMode === "user" ? step.escalateMode : null,
+        escalateMode:
+          step.escalateMode === "role" || step.escalateMode === "user"
+            ? step.escalateMode
+            : null,
       })),
     });
     await createActivityLog({

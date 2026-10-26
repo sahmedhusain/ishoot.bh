@@ -55,13 +55,11 @@ export function BackToTop() {
       aria-hidden={!isVisible}
       tabIndex={isVisible ? 0 : -1}
       title={label}
-      className={`fixed bottom-6 sm:bottom-8 z-[70] flex items-center justify-center w-12 h-12 rounded-full transition-[opacity,transform,background-color,border-color] duration-200 ease-out group ${
-        isRTL ? "left-6 sm:left-8" : "right-6 sm:right-8"
-      } ${
-        isVisible
+      className={`fixed bottom-6 sm:bottom-8 z-[70] flex items-center justify-center w-12 h-12 rounded-full transition-[opacity,transform,background-color,border-color] duration-200 ease-out group ${isRTL ? "left-6 sm:left-8" : "right-6 sm:right-8"
+        } ${isVisible
           ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
           : "opacity-0 scale-75 translate-y-4 pointer-events-none"
-      } bg-brand-surface/90 backdrop-blur-2xl border border-white/15 text-paper hover:border-accent hover:bg-primary shadow-[0_10px_30px_rgba(0,0,0,0.6)] hover:shadow-[0_0_24px_rgb(var(--brand-accent)/0.55)] active:scale-95`}
+        } bg-brand-surface/90 backdrop-blur-2xl border border-white/15 text-paper hover:border-accent hover:bg-primary shadow-[0_10px_30px_rgba(0,0,0,0.6)] hover:shadow-[0_0_24px_rgb(var(--brand-accent)/0.55)] active:scale-95`}
     >
       <svg
         className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none p-1"

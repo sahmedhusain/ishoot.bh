@@ -148,11 +148,10 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
             <Link
               key={st.id}
               href={statusHref(st.id)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap transition-all ${
-                pagination.filters.status === st.id
-                  ? "bg-primary text-white shadow-xs"
-                  : "bg-slate-100 hover:bg-slate-200 text-slate-600 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
-              }`}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap transition-all ${pagination.filters.status === st.id
+                ? "bg-primary text-white shadow-xs"
+                : "bg-slate-100 hover:bg-slate-200 text-slate-600 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+                }`}
             >
               {st.label}
             </Link>
@@ -226,9 +225,8 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
                       </td>
                       <td className="py-3.5 px-4 text-center">
                         <span
-                          className={`inline-block px-2.5 py-0.5 text-xs font-medium rounded-full capitalize ${
-                            statusColors[q.status] || "bg-ink/5 text-ink-muted"
-                          }`}
+                          className={`inline-block px-2.5 py-0.5 text-xs font-medium rounded-full capitalize ${statusColors[q.status] || "bg-ink/5 text-ink-muted"
+                            }`}
                         >
                           {getStatusLabel(q.status)}
                         </span>

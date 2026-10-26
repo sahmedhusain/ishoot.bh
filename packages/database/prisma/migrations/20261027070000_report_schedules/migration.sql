@@ -1,4 +1,6 @@
 -- CreateTable
+
+
 CREATE TABLE "ReportSchedule" (
     "id" TEXT NOT NULL,
     "reportKey" TEXT NOT NULL,
@@ -19,8 +21,13 @@ CREATE TABLE "ReportSchedule" (
 );
 
 -- CreateIndex
-CREATE INDEX "ReportSchedule_isActive_nextRunAt_idx" ON "ReportSchedule"("isActive", "nextRunAt");
-
+CREATE INDEX "ReportSchedule_isActive_nextRunAt_idx" ON "ReportSchedule" ("isActive", "nextRunAt");
 
 -- Integrity
-ALTER TABLE "ReportSchedule" ADD CONSTRAINT "ReportSchedule_values_check" CHECK ("frequency" IN ('daily', 'weekly', 'monthly') AND "format" IN ('csv', 'xlsx', 'pdf') AND "locale" IN ('en', 'ar') AND cardinality("recipients") BETWEEN 1 AND 20);
+ALTER TABLE "ReportSchedule"
+ADD CONSTRAINT "ReportSchedule_values_check" CHECK (
+    "frequency" IN ('daily', 'weekly', 'monthly')
+    AND "format" IN ('csv', 'xlsx', 'pdf')
+    AND "locale" IN ('en', 'ar')
+    AND cardinality ("recipients") BETWEEN 1 AND 20
+);

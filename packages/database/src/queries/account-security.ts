@@ -12,9 +12,7 @@ export async function changeOwnPassword(
     input.newPassword.length < 12 ||
     Buffer.byteLength(input.newPassword, "utf8") > 72
   )
-    throw new Error(
-      serverMessages.profileSecurityError0,
-    );
+    throw new Error(serverMessages.profileSecurityError0);
   if (!input.currentPassword || input.currentPassword.length > 1024)
     throw new Error(serverMessages.profileSecurityError1);
   return runAtomicMutation(async () => {

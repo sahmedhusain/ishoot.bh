@@ -122,10 +122,10 @@ export function Sidebar() {
       setFolded(
         saved && typeof saved === "object" && !Array.isArray(saved)
           ? (Object.fromEntries(
-              Object.entries(saved).filter(
-                ([, value]) => typeof value === "boolean",
-              ),
-            ) as Record<string, boolean>)
+            Object.entries(saved).filter(
+              ([, value]) => typeof value === "boolean",
+            ),
+          ) as Record<string, boolean>)
           : {},
       );
     } catch {
@@ -785,7 +785,7 @@ export function Sidebar() {
     setFolded(next);
     try {
       localStorage.setItem(storageKey, JSON.stringify(next));
-    } catch {}
+    } catch { }
   };
 
   const navContent = (
@@ -829,18 +829,16 @@ export function Sidebar() {
                     aria-current={isActive ? "page" : undefined}
                     title={item.label}
                     onClick={() => setIsMobileOpen(false)}
-                    className={`flex items-center gap-3 mx-2 px-3 h-9 rounded-xl text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-                      isActive
-                        ? "bg-tone-95 text-primary dark:bg-tone-15/40 dark:text-mint font-semibold"
-                        : "text-slate-700 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800"
-                    }`}
+                    className={`flex items-center gap-3 mx-2 px-3 h-9 rounded-xl text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${isActive
+                      ? "bg-tone-95 text-primary dark:bg-tone-15/40 dark:text-mint font-semibold"
+                      : "text-slate-700 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800"
+                      }`}
                   >
                     <Icon
-                      className={`w-4 h-4 shrink-0 transition-colors ${
-                        isActive
-                          ? "text-primary dark:text-mint"
-                          : "text-slate-500 dark:text-neutral-400"
-                      }`}
+                      className={`w-4 h-4 shrink-0 transition-colors ${isActive
+                        ? "text-primary dark:text-mint"
+                        : "text-slate-500 dark:text-neutral-400"
+                        }`}
                     />
                     <span className="truncate">{item.label}</span>
                   </Link>

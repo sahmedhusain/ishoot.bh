@@ -77,17 +77,17 @@ export function EmployeeAccountCard({
 
   const rows: Array<[string, React.ReactNode]> = account
     ? [
-        [a.email, <bdi key="e" dir="ltr">{email}</bdi>],
-        [a.role, roleName(account.role)],
-        [a.manager, managerName(account.managerId)],
-        [a.status, a.statuses[account.status]],
-        ...(showPay
-          ? ([
-              [a.discountLimit, isSuperAdmin ? t.usersManagement.unlimited : percent(account.discountLimitPercent, a.discountDefault)],
-              [a.commissionRate, percent(account.commissionRatePercent, a.noCommission)],
-            ] as Array<[string, React.ReactNode]>)
-          : []),
-      ]
+      [a.email, <bdi key="e" dir="ltr">{email}</bdi>],
+      [a.role, roleName(account.role)],
+      [a.manager, managerName(account.managerId)],
+      [a.status, a.statuses[account.status]],
+      ...(showPay
+        ? ([
+          [a.discountLimit, isSuperAdmin ? t.usersManagement.unlimited : percent(account.discountLimitPercent, a.discountDefault)],
+          [a.commissionRate, percent(account.commissionRatePercent, a.noCommission)],
+        ] as Array<[string, React.ReactNode]>)
+        : []),
+    ]
     : [];
 
   return (

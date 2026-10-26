@@ -1,6 +1,6 @@
 "use client";
 import { siteIcon, siteLogo } from "../../lib/brand-images";
-import {ContentImage} from "../shared/ContentImage";
+import { ContentImage } from "../shared/ContentImage";
 
 import * as React from "react";
 import Link from "next/link";
@@ -74,14 +74,14 @@ export function MobileMenu({
             }
             alt={t("common.brandIconAlt", { companyName: locale === "ar" ? company.company_name_ar : company.company_name_en })}
             className="h-8 w-auto object-contain"
-           width={40} height={40} />
+            width={40} height={40} />
           <ContentImage
             src={
               siteLogo(company)
             }
             alt={t("common.brandLogoAlt", { companyName: locale === "ar" ? company.company_name_ar : company.company_name_en })}
             className="h-6 w-auto object-contain"
-           fallbackText={company.company_name_en}  width={240} height={60} />
+            fallbackText={company.company_name_en} width={240} height={60} />
         </Link>
         <div className="flex items-center gap-4">
           <button

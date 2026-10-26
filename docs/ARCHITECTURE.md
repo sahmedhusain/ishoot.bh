@@ -52,20 +52,20 @@ The system needs no always-on daemon to stay correct. Work that must survive fai
 
 `packages/database/prisma/schema.prisma` is the source of truth (180 models, 84 migrations). The main groups:
 
-| Area | Models |
-|---|---|
-| Company | `CompanySetting` (identity, numbering, VAT, theme, setup state), `CompanyAsset`, `FeatureToggle`, `CompanyDocument` |
-| Access | `User`, `Role`, `Permission`, `Session`, `MfaRecoveryCode`, `ActivityLog`, `Department` |
-| Sales | `CrmContact`, `CrmDeal`, `Inquiry`, `Quotation`, `Invoice`, `Payment`, `Expense`, approval requests and decisions |
-| People | `Employee`, employment and compensation history, leave, attendance, payroll runs and items, social insurance, support programmes, settlements, handovers |
-| Operations | assets, handovers, calendar events, minutes of meetings, announcements, official letters |
-| Website and CMS | banners, portfolio, services, equipment, client logos, reviews, FAQs, statistics, `CmsPage`, `CmsArticle`, menus, published website snapshots |
-| Products and stock | `Product`, `ProductVariant`, `ProductCategory`, `Warehouse`, `StockLocation`, `StockLevel`, `StockMovement` (the ledger), batches, reorder points, stock counts |
-| Purchasing | requisitions, RFQs and quotes, `PurchaseOrder`, goods receipts, `SupplierBill`, supplier payments |
-| Store and payments | `Customer` (sessions, addresses, wishlist), `StoreSettings`, `Coupon`, `SalesOrder`, lines and events, `PaymentAttempt`, `PaymentWebhookEvent` |
-| Delivery | `DeliverySettings`, `DeliveryZone`, `DeliverySlot`, `Shipment` and events, `Vehicle`, `RouteSheet`, `CodSettlement`, `CourierAgency`, `AgencyInvoice` |
+| Area               | Models                                                                                                                                                                                              |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Company            | `CompanySetting` (identity, numbering, VAT, theme, setup state), `CompanyAsset`, `FeatureToggle`, `CompanyDocument`                                                                                 |
+| Access             | `User`, `Role`, `Permission`, `Session`, `MfaRecoveryCode`, `ActivityLog`, `Department`                                                                                                             |
+| Sales              | `CrmContact`, `CrmDeal`, `Inquiry`, `Quotation`, `Invoice`, `Payment`, `Expense`, approval requests and decisions                                                                                   |
+| People             | `Employee`, employment and compensation history, leave, attendance, payroll runs and items, social insurance, support programmes, settlements, handovers                                            |
+| Operations         | assets, handovers, calendar events, minutes of meetings, announcements, official letters                                                                                                            |
+| Website and CMS    | banners, portfolio, services, equipment, client logos, reviews, FAQs, statistics, `CmsPage`, `CmsArticle`, menus, published website snapshots                                                       |
+| Products and stock | `Product`, `ProductVariant`, `ProductCategory`, `Warehouse`, `StockLocation`, `StockLevel`, `StockMovement` (the ledger), batches, reorder points, stock counts                                     |
+| Purchasing         | requisitions, RFQs and quotes, `PurchaseOrder`, goods receipts, `SupplierBill`, supplier payments                                                                                                   |
+| Store and payments | `Customer` (sessions, addresses, wishlist), `StoreSettings`, `Coupon`, `SalesOrder`, lines and events, `PaymentAttempt`, `PaymentWebhookEvent`                                                      |
+| Delivery           | `DeliverySettings`, `DeliveryZone`, `DeliverySlot`, `Shipment` and events, `Vehicle`, `RouteSheet`, `CodSettlement`, `CourierAgency`, `AgencyInvoice`                                               |
 | Departments' tools | `Project`, `Task`, `TaskComment`, `ServiceSettings`, `CannedReply`, `Campaign`, `CustomerSegment`, `Broadcast`, `MediaContact`, `MediaCoverage`, `LegalMatter`, `ReportSchedule`, `DashboardLayout` |
-| Files | `UploadObject` (every stored file: owner, type, size, public or private, claimed), `Attachment` |
+| Files              | `UploadObject` (every stored file: owner, type, size, public or private, claimed), `Attachment`                                                                                                     |
 
 Rules the code relies on are listed in `packages/database/prisma/check-integrity.ts`, and `pnpm db:check-integrity` verifies them on any database.
 

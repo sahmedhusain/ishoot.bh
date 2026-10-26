@@ -20,7 +20,14 @@ const config: Config = {
     extend: {
       // Latin monospace first; Arabic glyphs fall back to the company's body font instead of a system font.
       fontFamily: {
-        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Consolas", "var(--brand-font-body)", "monospace"],
+        mono: [
+          "ui-monospace",
+          "SFMono-Regular",
+          "Menlo",
+          "Consolas",
+          "var(--brand-font-body)",
+          "monospace",
+        ],
       },
       colors: {
         surface: {
@@ -32,8 +39,15 @@ const config: Config = {
         slate: { 400: themed("--ui-slate-400") },
         neutral: { 400: themed("--ui-neutral-400") },
         gray: { 400: themed("--ui-gray-400") },
-        emerald: { 400: themed("--ui-emerald-400"), 500: themed("--ui-emerald-500") },
-        amber: { 400: themed("--ui-amber-400"), 500: themed("--ui-amber-500"), 600: themed("--ui-amber-600") },
+        emerald: {
+          400: themed("--ui-emerald-400"),
+          500: themed("--ui-emerald-500"),
+        },
+        amber: {
+          400: themed("--ui-amber-400"),
+          500: themed("--ui-amber-500"),
+          600: themed("--ui-amber-600"),
+        },
         rose: { 400: themed("--ui-rose-400") },
         blue: { 400: themed("--ui-blue-400") },
       },

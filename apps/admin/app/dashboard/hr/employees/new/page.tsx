@@ -18,9 +18,9 @@ export default async function NewEmployeePage({
     // Creating the HR record for an existing account that has none yet.
     userId
       ? db.user.findFirst({
-          where: { id: userId, employee: null },
-          select: { id: true, fullName: true, email: true },
-        })
+        where: { id: userId, employee: null },
+        select: { id: true, fullName: true, email: true },
+      })
       : Promise.resolve(null),
   ]);
 

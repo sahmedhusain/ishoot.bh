@@ -47,28 +47,34 @@ export async function generatePayrollRunAction(month: number, year: number) {
 }
 
 export async function submitPayrollRunForApprovalAction(runId: string) {
-  return measureOperation("action:submitPayrollRunForApprovalAction", async () => {
-    const actor = await requirePermission("payroll", "edit");
-    validateActionArguments("submitPayrollRunForApprovalAction", { runId });
+  return measureOperation(
+    "action:submitPayrollRunForApprovalAction",
+    async () => {
+      const actor = await requirePermission("payroll", "edit");
+      validateActionArguments("submitPayrollRunForApprovalAction", { runId });
 
-    const { approvalRequest } = await runAtomicMutation(async () => {
-      const approvalRequest = await submitPayrollRunForApproval(runId, actor.id);
+      const { approvalRequest } = await runAtomicMutation(async () => {
+        const approvalRequest = await submitPayrollRunForApproval(
+          runId,
+          actor.id,
+        );
 
-      await createActivityLog({
-        user_id: actor.id,
-        action: "submit_approval",
-        entity_type: "payroll_run",
-        entity_id: runId,
-        details: { approvalRequestId: approvalRequest.approvalRequestId },
+        await createActivityLog({
+          user_id: actor.id,
+          action: "submit_approval",
+          entity_type: "payroll_run",
+          entity_id: runId,
+          details: { approvalRequestId: approvalRequest.approvalRequestId },
+        });
+
+        return { approvalRequest };
       });
 
-      return { approvalRequest };
-    });
-
-    revalidatePath(ROUTES.hr.payroll());
-    revalidatePath(ROUTES.approvals());
-    return { success: true, approvalRequest };
-  });
+      revalidatePath(ROUTES.hr.payroll());
+      revalidatePath(ROUTES.approvals());
+      return { success: true, approvalRequest };
+    },
+  );
 }
 
 export async function approvePayrollRunAction(runId: string) {
@@ -80,8 +86,13 @@ export async function approvePayrollRunAction(runId: string) {
 
     const outcome = await runAtomicMutation(async () => {
       const pending = await findPendingApproval("payroll_run", runId);
-      if (!pending) throw new Error(serverMessages.thisPayrollRunHasNoPendingApproval);
-      const result = await decideApprovalRequest(pending.id, actor.id, "approved");
+      if (!pending)
+        throw new Error(serverMessages.thisPayrollRunHasNoPendingApproval);
+      const result = await decideApprovalRequest(
+        pending.id,
+        actor.id,
+        "approved",
+      );
       await createActivityLog({
         user_id: actor.id,
         action: "approve",
@@ -105,7 +116,10 @@ interface PaymentInput {
 }
 
 /** Pays every salary still unpaid in an approved run. */
-export async function markPayrollRunPaidAction(runId: string, payment: PaymentInput = { method: "bank_transfer" }) {
+export async function markPayrollRunPaidAction(
+  runId: string,
+  payment: PaymentInput = { method: "bank_transfer" },
+) {
   return measureOperation("action:markPayrollRunPaidAction", async () => {
     const actor = await requirePermission("payroll", "issue_send");
     validateActionArguments("markPayrollRunPaidAction", { runId, payment });
@@ -118,7 +132,11 @@ export async function markPayrollRunPaidAction(runId: string, payment: PaymentIn
         action: "mark_paid",
         entity_type: "payroll_run",
         entity_id: runId,
-        details: { paidAt: new Date().toISOString(), method: payment.method, reference: payment.reference ?? null },
+        details: {
+          paidAt: new Date().toISOString(),
+          method: payment.method,
+          reference: payment.reference ?? null,
+        },
       });
 
       return { payrollRun };
@@ -130,13 +148,26 @@ export async function markPayrollRunPaidAction(runId: string, payment: PaymentIn
 }
 
 /** One employee's salary payment, from their payment page. */
-export async function payPayrollItemAction(itemId: string, payment: PaymentInput) {
+export async function payPayrollItemAction(
+  itemId: string,
+  payment: PaymentInput,
+) {
   return measureOperation("action:payPayrollItemAction", async () => {
     const actor = await requirePermission("payroll", "issue_send");
     validateActionArguments("payPayrollItemAction", { itemId, payment });
     const run = await runAtomicMutation(async () => {
       const run = await payPayrollItem(itemId, payment, actor.id);
-      await createActivityLog({ user_id: actor.id, action: "mark_paid", entity_type: "payroll_item", entity_id: itemId, details: { payrollRunId: run.id, method: payment.method, reference: payment.reference ?? null } });
+      await createActivityLog({
+        user_id: actor.id,
+        action: "mark_paid",
+        entity_type: "payroll_item",
+        entity_id: itemId,
+        details: {
+          payrollRunId: run.id,
+          method: payment.method,
+          reference: payment.reference ?? null,
+        },
+      });
       return run;
     });
     revalidatePath(ROUTES.hr.payroll());
@@ -151,7 +182,13 @@ export async function recalculatePayrollRunAction(runId: string) {
     validateActionArguments("recalculatePayrollRunAction", { runId });
     const run = await runAtomicMutation(async () => {
       const run = await recalculatePayrollRun(runId, actor.id);
-      await createActivityLog({ user_id: actor.id, action: "recalculate", entity_type: "payroll_run", entity_id: runId, details: { totalNet: run.totalNet } });
+      await createActivityLog({
+        user_id: actor.id,
+        action: "recalculate",
+        entity_type: "payroll_run",
+        entity_id: runId,
+        details: { totalNet: run.totalNet },
+      });
       return run;
     });
     revalidatePath(ROUTES.hr.payroll());
@@ -163,19 +200,36 @@ export async function recalculatePayrollRunAction(runId: string) {
 /** Sets one employee's manual additions and deductions for the month, as separate named lines. */
 export async function setPayrollLinesAction(
   itemId: string,
-  data: { additions: PayLineInput[]; deductions: PayLineInput[]; note?: string | null },
+  data: {
+    additions: PayLineInput[];
+    deductions: PayLineInput[];
+    note?: string | null;
+  },
 ) {
   return measureOperation("action:setPayrollLinesAction", async () => {
     const actor = await requirePermission("payroll", "edit");
     validateActionArguments("setPayrollLinesAction", { itemId, data });
     const { item } = await runAtomicMutation(async () => {
-      const { item, before, lines } = await setPayrollItemLines(itemId, data, actor.id);
+      const { item, before, lines } = await setPayrollItemLines(
+        itemId,
+        data,
+        actor.id,
+      );
       await createActivityLog({
         user_id: actor.id,
         action: "update",
         entity_type: "payroll_item",
         entity_id: itemId,
-        details: { payrollRunId: item.payrollRunId, employeeId: item.employeeId, lines, bonus: { from: before.bonus, to: item.bonus }, otherDeductions: { from: before.otherDeductions, to: item.otherDeductions } },
+        details: {
+          payrollRunId: item.payrollRunId,
+          employeeId: item.employeeId,
+          lines,
+          bonus: { from: before.bonus, to: item.bonus },
+          otherDeductions: {
+            from: before.otherDeductions,
+            to: item.otherDeductions,
+          },
+        },
       });
       return { item };
     });
@@ -186,13 +240,32 @@ export async function setPayrollLinesAction(
 }
 
 /** Adds or edits a custom addition or deduction an employee receives every month. */
-export async function saveRecurringPayAction(employeeId: string, data: RecurringPayInput, recurringId?: string) {
+export async function saveRecurringPayAction(
+  employeeId: string,
+  data: RecurringPayInput,
+  recurringId?: string,
+) {
   return measureOperation("action:saveRecurringPayAction", async () => {
     const actor = await requirePermission("payroll", "edit");
-    validateActionArguments("saveRecurringPayAction", { employeeId, data, recurringId });
+    validateActionArguments("saveRecurringPayAction", {
+      employeeId,
+      data,
+      recurringId,
+    });
     const saved = await runAtomicMutation(async () => {
       const saved = await saveRecurringPay(employeeId, data, recurringId);
-      await createActivityLog({ user_id: actor.id, action: recurringId ? "update" : "create", entity_type: "recurring_pay", entity_id: saved.id, details: { employeeId, kind: saved.kind, label: saved.label, amount: Number(saved.amount) } });
+      await createActivityLog({
+        user_id: actor.id,
+        action: recurringId ? "update" : "create",
+        entity_type: "recurring_pay",
+        entity_id: saved.id,
+        details: {
+          employeeId,
+          kind: saved.kind,
+          label: saved.label,
+          amount: Number(saved.amount),
+        },
+      });
       return saved;
     });
     revalidatePath(ROUTES.hr.employee(employeeId));
@@ -206,7 +279,13 @@ export async function deleteRecurringPayAction(recurringId: string) {
     validateActionArguments("deleteRecurringPayAction", { recurringId });
     const employeeId = await runAtomicMutation(async () => {
       const employeeId = await deleteRecurringPay(recurringId);
-      await createActivityLog({ user_id: actor.id, action: "delete", entity_type: "recurring_pay", entity_id: recurringId, details: { employeeId } });
+      await createActivityLog({
+        user_id: actor.id,
+        action: "delete",
+        entity_type: "recurring_pay",
+        entity_id: recurringId,
+        details: { employeeId },
+      });
       return employeeId;
     });
     revalidatePath(ROUTES.hr.employee(employeeId));
@@ -223,15 +302,24 @@ export async function recordSupportReimbursementAction(input: {
   receivedOn: string;
   reference?: string | null;
 }) {
-  return measureOperation("action:recordSupportReimbursementAction", async () => {
-    const actor = await requirePermission("payroll", "edit");
-    validateActionArguments("recordSupportReimbursementAction", { input });
-    const receipt = await runAtomicMutation(async () => {
-      const receipt = await recordSupportReimbursement(input, actor.id);
-      await createActivityLog({ user_id: actor.id, action: "create", entity_type: "support_reimbursement", entity_id: receipt.id, details: { ...input } });
-      return receipt;
-    });
-    revalidatePath(ROUTES.hr.payroll());
-    return { success: true, id: receipt.id };
-  });
+  return measureOperation(
+    "action:recordSupportReimbursementAction",
+    async () => {
+      const actor = await requirePermission("payroll", "edit");
+      validateActionArguments("recordSupportReimbursementAction", { input });
+      const receipt = await runAtomicMutation(async () => {
+        const receipt = await recordSupportReimbursement(input, actor.id);
+        await createActivityLog({
+          user_id: actor.id,
+          action: "create",
+          entity_type: "support_reimbursement",
+          entity_id: receipt.id,
+          details: { ...input },
+        });
+        return receipt;
+      });
+      revalidatePath(ROUTES.hr.payroll());
+      return { success: true, id: receipt.id };
+    },
+  );
 }

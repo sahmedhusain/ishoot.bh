@@ -132,8 +132,8 @@ async function main() {
           );
           assert.ok(
             bobSees.has(team.id) &&
-              leadSees.has(team.id) &&
-              ceoSees.has(team.id),
+            leadSees.has(team.id) &&
+            ceoSees.has(team.id),
             "team: peers and the managers above",
           );
           assert.ok(
@@ -151,8 +151,8 @@ async function main() {
           assert.ok(finSees.has(company.id), "company: everyone");
           assert.ok(
             finSees.has(custom.id) &&
-              !aliceSees.has(custom.id) &&
-              leadSees.has(custom.id),
+            !aliceSees.has(custom.id) &&
+            leadSees.has(custom.id),
             "custom: the roles chosen, plus the creator's managers",
           );
 

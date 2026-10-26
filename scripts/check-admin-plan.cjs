@@ -29,7 +29,7 @@ function loadTs(file, mocks) {
     module: mod,
     exports: mod.exports,
     require: (id) => {
-      id = ((i,m)=>i in m?i:(i.startsWith('@platform/database/')&&'@platform/database' in m?'@platform/database':i))(id, mocks);
+      id = ((i, m) => i in m ? i : (i.startsWith('@platform/database/') && '@platform/database' in m ? '@platform/database' : i))(id, mocks);
       if (id in mocks) return mocks[id];
       if (id.startsWith("node:")) return require(id);
       const real = realConstants(file, id);
@@ -78,7 +78,7 @@ async function runTests() {
   const leaveQueries = loadTs("packages/database/src/queries/leave.ts", {
     // Leave rules and balances are not used by the availability checks below.
     "./hr-settings": { getHrPolicy: async () => ({}), holidaySet: async () => new Set(), listLeaveTypeRules: async () => [], toLeaveTypeRules: (row) => row },
-    "./leave-balances": { getLeaveBalance: async () => ({}), refreshLeaveBalanceCache: async () => {} },
+    "./leave-balances": { getLeaveBalance: async () => ({}), refreshLeaveBalanceCache: async () => { } },
     "../db": {
       db: {
         user: { findUnique: async ({ where }) => ({ id: where.id, role: where.id === "super-admin" ? "super_admin" : "project_lead" }) },
@@ -283,7 +283,7 @@ async function runTests() {
     "../types": { calculateInvoiceTotals: () => ({}) },
     "../finance/numbering": { allocateDocumentNumber: async () => "INV-2026-0001" },
     "./leave": {
-      assertActorNotOnLeave: async () => {},
+      assertActorNotOnLeave: async () => { },
     },
     "./sequence": {
       getNextSequenceNumber: async () => "INV-2026-000001",
@@ -369,10 +369,10 @@ async function runTests() {
       },
     },
     "../services/storage": {
-      deleteObject: async () => {},
+      deleteObject: async () => { },
     },
     "./leave": {
-      assertActorNotOnLeave: async () => {},
+      assertActorNotOnLeave: async () => { },
     },
     bcryptjs: {
       hash: async () => "hashed_pw",

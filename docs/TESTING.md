@@ -2,12 +2,12 @@
 
 Three layers, all of which run in GitHub Actions (`.github/workflows/ci.yml`) on every pull request and every push to `main`.
 
-| Layer | Command | Needs | What it covers |
-|---|---|---|---|
-| Unit | `pnpm test:unit` | nothing | Theme engine, company profiles, activities and website presets, CMS blocks, sample content, departments and roles, products, inventory, purchasing, store pricing and orders, payment gateways (webhook verification, amounts), customer sign-in, delivery zones and slots, couriers, tasks, marketing, reports (periods, schedules, the Excel writer) |
-| Static checks | `pnpm test:checks` | nothing | Brand neutrality, copy and language rules, permissions, payroll and approval engines, security boundaries, upload storage, navigation |
-| Database checks | `pnpm test:checks:db` | two `_test` databases | About 35 suites of business rules on real Postgres (finance, payroll, GOSI, approvals, assets, handovers, archive, signatures, website…). Each rolls back its own records. |
-| End-to-end | `pnpm test:e2e` | Postgres, Chromium | First-run setup wizard, admin sign-in and audit, branding, theme editing, departments, every sidebar page and link, phone layouts; products, stock, purchasing, orders, payments, delivery, fleet, courier agencies, tasks, customer service, marketing, PR, legal and reports; website pages in English and Arabic, customer accounts, cart and checkout, online payment, delivery tracking, 404 |
+| Layer           | Command               | Needs                 | What it covers                                                                                                                                                                                                                                                                                                                                                                                    |
+| --------------- | --------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unit            | `pnpm test:unit`      | nothing               | Theme engine, company profiles, activities and website presets, CMS blocks, sample content, departments and roles, products, inventory, purchasing, store pricing and orders, payment gateways (webhook verification, amounts), customer sign-in, delivery zones and slots, couriers, tasks, marketing, reports (periods, schedules, the Excel writer)                                            |
+| Static checks   | `pnpm test:checks`    | nothing               | Brand neutrality, copy and language rules, permissions, payroll and approval engines, security boundaries, upload storage, navigation                                                                                                                                                                                                                                                             |
+| Database checks | `pnpm test:checks:db` | two `_test` databases | About 35 suites of business rules on real Postgres (finance, payroll, GOSI, approvals, assets, handovers, archive, signatures, website…). Each rolls back its own records.                                                                                                                                                                                                                        |
+| End-to-end      | `pnpm test:e2e`       | Postgres, Chromium    | First-run setup wizard, admin sign-in and audit, branding, theme editing, departments, every sidebar page and link, phone layouts; products, stock, purchasing, orders, payments, delivery, fleet, courier agencies, tasks, customer service, marketing, PR, legal and reports; website pages in English and Arabic, customer accounts, cart and checkout, online payment, delivery tracking, 404 |
 
 `pnpm test` runs the unit tests and static checks together, and needs no database. `./run.sh check` runs everything the CI static job runs (lint, types, tests, copy, brand, action schemas, knip); `./run.sh test db` prepares both databases and runs the database checks; `./run.sh test e2e [args]` prepares the e2e databases and runs Playwright; `./run.sh test ci` runs all three.
 
@@ -39,11 +39,11 @@ pnpm test:e2e
 
 `test:e2e` rebuilds `platform_e2e_test` (seeded, demo profile) and `platform_e2e_blank_test` (blank install), then starts three servers through `tests/e2e/serve.cjs`, each on its own database and build folder:
 
-| Port | Server | Projects |
-|---|---|---|
-| 3101 | Admin on the seeded database | `admin-login`, `admin`, `admin-mobile` |
-| 3102 | Website on the seeded database | `web`, `web-mobile` |
-| 3103 | Admin on the blank database | `setup-wizard` |
+| Port | Server                                                | Projects                                                                              |
+| ---- | ----------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| 3101 | Admin on the seeded database                          | `admin-login`, `admin`, `admin-mobile`                                                |
+| 3102 | Website on the seeded database                        | `web`, `web-mobile`                                                                   |
+| 3103 | Admin on the blank database                           | `setup-wizard`                                                                        |
 | 3199 | A local Stripe stand-in, started by the payment specs | (the servers get `PAYMENT_GATEWAY_BASE_URL_STRIPE` and `CRON_SECRET=e2e-cron-secret`) |
 
 Disposable accounts for these runs (administrator, viewer, driver) are in `tests/e2e/fixtures/users.json`; they exist only in the test databases.
@@ -88,9 +88,9 @@ keeps the volume, so `node tests/e2e/serve.cjs admin 3023 platform_volume_test` 
 
 These need running servers and are not part of CI:
 
-| Script | Purpose |
-|---|---|
-| `node scripts/check-website-http.cjs` | Website HTTP behaviour against a preview server on a `_test` database (fixtures: `node company/seed/website-preview.cjs`) |
-| `pnpm test:followup-http` | Admin HTTP follow-up checks against a running server |
-| `node scripts/profile-local-http.cjs` | Local response-time baseline (not a production benchmark) |
-| `node scripts/test-heavy-load-and-optimizations.cjs` | Stress and edge-case scenarios on a `_test` database |
+| Script                                               | Purpose                                                                                                                   |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `node scripts/check-website-http.cjs`                | Website HTTP behaviour against a preview server on a `_test` database (fixtures: `node company/seed/website-preview.cjs`) |
+| `pnpm test:followup-http`                            | Admin HTTP follow-up checks against a running server                                                                      |
+| `node scripts/profile-local-http.cjs`                | Local response-time baseline (not a production benchmark)                                                                 |
+| `node scripts/test-heavy-load-and-optimizations.cjs` | Stress and edge-case scenarios on a `_test` database                                                                      |

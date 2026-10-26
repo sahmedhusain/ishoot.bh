@@ -105,11 +105,11 @@ function ReceiptPDF(props: ReceiptPDFProps) {
   const k = docKit(isAr ? "ar" : "en");
   return (
     <Document title={`${props.payment.receipt_number} · ${isAr ? company.company_name_ar : company.company_name_en}`} author={company.company_name_en} language={isAr ? "ar" : "en"}>
-        <Page size="A4" style={pageStyle}>
-          <Letterhead brand={props.brand} />
-          <ReceiptBody k={k} {...props} />
-          <k.Footer brand={props.brand} reference={props.payment.receipt_number} />
-        </Page>
+      <Page size="A4" style={pageStyle}>
+        <Letterhead brand={props.brand} />
+        <ReceiptBody k={k} {...props} />
+        <k.Footer brand={props.brand} reference={props.payment.receipt_number} />
+      </Page>
     </Document>
   );
 }

@@ -40,7 +40,17 @@ export async function changeStockAction(input: StockChangeInput) {
     const user = await requirePermission("inventory", "edit");
     validateActionArguments("changeStockAction", { input });
     const low = await changeStock(input, user.id);
-    await createActivityLog({ user_id: user.id, action: "update", entity_type: "stock", entity_id: input.productId, details: { type: input.type, quantity: input.quantity, locationId: input.locationId } });
+    await createActivityLog({
+      user_id: user.id,
+      action: "update",
+      entity_type: "stock",
+      entity_id: input.productId,
+      details: {
+        type: input.type,
+        quantity: input.quantity,
+        locationId: input.locationId,
+      },
+    });
     await notifyLowStock(low);
     revalidateStock(input.productId);
     return { success: true };
@@ -53,7 +63,18 @@ export async function transferStockAction(input: TransferInput) {
     const user = await requirePermission("inventory", "edit");
     validateActionArguments("transferStockAction", { input });
     const low = await transferStock(input, user.id);
-    await createActivityLog({ user_id: user.id, action: "update", entity_type: "stock", entity_id: input.productId, details: { type: "transfer", quantity: input.quantity, from: input.fromLocationId, to: input.toLocationId } });
+    await createActivityLog({
+      user_id: user.id,
+      action: "update",
+      entity_type: "stock",
+      entity_id: input.productId,
+      details: {
+        type: "transfer",
+        quantity: input.quantity,
+        from: input.fromLocationId,
+        to: input.toLocationId,
+      },
+    });
     await notifyLowStock(low);
     revalidateStock(input.productId);
     return { success: true };
@@ -61,14 +82,33 @@ export async function transferStockAction(input: TransferInput) {
 }
 
 /** Saves the reorder levels of a product's items (one per variant, or one for the product). */
-export async function saveReorderPointsAction(productId: string, levels: { variantKey: string; reorderPoint: string; reorderQuantity: string }[]) {
+export async function saveReorderPointsAction(
+  productId: string,
+  levels: {
+    variantKey: string;
+    reorderPoint: string;
+    reorderQuantity: string;
+  }[],
+) {
   return measureOperation("action:saveReorderPointsAction", async () => {
     await requireFeatureEnabled("products");
     const user = await requirePermission("inventory", "edit");
     validateActionArguments("saveReorderPointsAction", { productId, levels });
     const value = (text: string) => (text.trim() === "" ? null : Number(text));
-    for (const level of levels) await setReorderPoint(productId, level.variantKey, value(level.reorderPoint), value(level.reorderQuantity));
-    await createActivityLog({ user_id: user.id, action: "update", entity_type: "product", entity_id: productId, details: { reorderLevels: levels.length } });
+    for (const level of levels)
+      await setReorderPoint(
+        productId,
+        level.variantKey,
+        value(level.reorderPoint),
+        value(level.reorderQuantity),
+      );
+    await createActivityLog({
+      user_id: user.id,
+      action: "update",
+      entity_type: "product",
+      entity_id: productId,
+      details: { reorderLevels: levels.length },
+    });
     revalidateStock(productId);
     return { success: true };
   });
@@ -77,10 +117,19 @@ export async function saveReorderPointsAction(productId: string, levels: { varia
 export async function saveWarehouseAction(input: WarehouseInput) {
   return measureOperation("action:saveWarehouseAction", async () => {
     await requireFeatureEnabled("products");
-    const user = await requirePermission("inventory", input.id ? "edit" : "create");
+    const user = await requirePermission(
+      "inventory",
+      input.id ? "edit" : "create",
+    );
     validateActionArguments("saveWarehouseAction", { input });
     const warehouse = await saveWarehouse(input);
-    await createActivityLog({ user_id: user.id, action: input.id ? "update" : "create", entity_type: "warehouse", entity_id: warehouse.id, details: { code: warehouse.code } });
+    await createActivityLog({
+      user_id: user.id,
+      action: input.id ? "update" : "create",
+      entity_type: "warehouse",
+      entity_id: warehouse.id,
+      details: { code: warehouse.code },
+    });
     revalidatePath(ROUTES.inventory.warehouses);
     return { success: true, id: warehouse.id };
   });
@@ -89,10 +138,19 @@ export async function saveWarehouseAction(input: WarehouseInput) {
 export async function saveLocationAction(input: LocationInput) {
   return measureOperation("action:saveLocationAction", async () => {
     await requireFeatureEnabled("products");
-    const user = await requirePermission("inventory", input.id ? "edit" : "create");
+    const user = await requirePermission(
+      "inventory",
+      input.id ? "edit" : "create",
+    );
     validateActionArguments("saveLocationAction", { input });
     const location = await saveLocation(input);
-    await createActivityLog({ user_id: user.id, action: input.id ? "update" : "create", entity_type: "stock_location", entity_id: location.id, details: { code: location.code } });
+    await createActivityLog({
+      user_id: user.id,
+      action: input.id ? "update" : "create",
+      entity_type: "stock_location",
+      entity_id: location.id,
+      details: { code: location.code },
+    });
     revalidatePath(ROUTES.inventory.warehouses);
     return { success: true, id: location.id };
   });
@@ -104,13 +162,22 @@ export async function createStockCountAction(input: StockCountInput) {
     const user = await requirePermission("inventory", "create");
     validateActionArguments("createStockCountAction", { input });
     const count = await createStockCount(input, user.id);
-    await createActivityLog({ user_id: user.id, action: "create", entity_type: "stock_count", entity_id: count.id, details: { number: count.number, scope: count.scope } });
+    await createActivityLog({
+      user_id: user.id,
+      action: "create",
+      entity_type: "stock_count",
+      entity_id: count.id,
+      details: { number: count.number, scope: count.scope },
+    });
     revalidatePath(ROUTES.inventory.counts);
     return { success: true, id: count.id };
   });
 }
 
-export async function saveCountedAction(countId: string, entries: { lineId: string; counted: string }[]) {
+export async function saveCountedAction(
+  countId: string,
+  entries: { lineId: string; counted: string }[],
+) {
   return measureOperation("action:saveCountedAction", async () => {
     await requireFeatureEnabled("products");
     await requirePermission("inventory", "edit");
@@ -122,29 +189,58 @@ export async function saveCountedAction(countId: string, entries: { lineId: stri
 }
 
 /** Scanning during a count: finds the item by barcode or SKU and adds a line for it when it has none. */
-export async function scanCountItemAction(countId: string, code: string, locationId: string) {
+export async function scanCountItemAction(
+  countId: string,
+  code: string,
+  locationId: string,
+) {
   return measureOperation("action:scanCountItemAction", async () => {
     await requireFeatureEnabled("products");
     await requirePermission("inventory", "edit");
-    validateActionArguments("scanCountItemAction", { countId, code, locationId });
+    validateActionArguments("scanCountItemAction", {
+      countId,
+      code,
+      locationId,
+    });
     const found = await findByCode(code);
     if (!found) return { success: false as const };
-    const lines = await db.stockCountLine.findMany({ where: { countId, productId: found.productId, variantKey: found.variantId ?? "" }, select: { id: true } });
-    if (lines.length) return { success: true as const, lineIds: lines.map((l) => l.id) };
-    const line = await addCountLine(countId, { productId: found.productId, variantId: found.variantId, locationId });
+    const lines = await db.stockCountLine.findMany({
+      where: {
+        countId,
+        productId: found.productId,
+        variantKey: found.variantId ?? "",
+      },
+      select: { id: true },
+    });
+    if (lines.length)
+      return { success: true as const, lineIds: lines.map((l) => l.id) };
+    const line = await addCountLine(countId, {
+      productId: found.productId,
+      variantId: found.variantId,
+      locationId,
+    });
     revalidatePath(ROUTES.inventory.count(countId));
     return { success: true as const, lineIds: [line.id] };
   });
 }
 
 /** Moves a count between counting and review, or cancels it. */
-export async function setStockCountStatusAction(countId: string, status: "review" | "counting" | "cancelled") {
+export async function setStockCountStatusAction(
+  countId: string,
+  status: "review" | "counting" | "cancelled",
+) {
   return measureOperation("action:setStockCountStatusAction", async () => {
     await requireFeatureEnabled("products");
     const user = await requirePermission("inventory", "edit");
     validateActionArguments("setStockCountStatusAction", { countId, status });
     await setStockCountStatus(countId, status);
-    await createActivityLog({ user_id: user.id, action: "update", entity_type: "stock_count", entity_id: countId, details: { status } });
+    await createActivityLog({
+      user_id: user.id,
+      action: "update",
+      entity_type: "stock_count",
+      entity_id: countId,
+      details: { status },
+    });
     revalidatePath(ROUTES.inventory.counts);
     revalidatePath(ROUTES.inventory.count(countId));
     return { success: true };
@@ -157,7 +253,13 @@ export async function approveStockCountAction(countId: string) {
     const user = await requirePermission("inventory", "approve");
     validateActionArguments("approveStockCountAction", { countId });
     const { low, adjusted } = await approveStockCount(countId, user.id);
-    await createActivityLog({ user_id: user.id, action: "approve", entity_type: "stock_count", entity_id: countId, details: { adjusted } });
+    await createActivityLog({
+      user_id: user.id,
+      action: "approve",
+      entity_type: "stock_count",
+      entity_id: countId,
+      details: { adjusted },
+    });
     await notifyLowStock(low);
     revalidatePath(ROUTES.inventory.counts);
     revalidatePath(ROUTES.inventory.count(countId));

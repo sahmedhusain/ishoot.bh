@@ -22,8 +22,19 @@ const refresh = (id: string) => {
   revalidatePath(ROUTES.hr.handover(id));
   revalidatePath(ROUTES.approvals());
 };
-const log = (userId: string, id: string, action: string, details: Record<string, unknown> = {}) =>
-  createActivityLog({ user_id: userId, action, entity_type: "employee_handover", entity_id: id, details });
+const log = (
+  userId: string,
+  id: string,
+  action: string,
+  details: Record<string, unknown> = {},
+) =>
+  createActivityLog({
+    user_id: userId,
+    action,
+    entity_type: "employee_handover",
+    entity_id: id,
+    details,
+  });
 
 /** Opens an exit or leave handover for an employee. */
 export async function openEmployeeHandoverAction(data: EmployeeHandoverInput) {
@@ -32,7 +43,11 @@ export async function openEmployeeHandoverAction(data: EmployeeHandoverInput) {
     validateActionArguments("openEmployeeHandoverAction", { data });
     const handover = await runAtomicMutation(async () => {
       const handover = await openEmployeeHandover(data, user.id);
-      await log(user.id, handover.id, "create", { reference: handover.reference, kind: data.kind, employeeId: data.employee_id });
+      await log(user.id, handover.id, "create", {
+        reference: handover.reference,
+        kind: data.kind,
+        employeeId: data.employee_id,
+      });
       return handover;
     });
     refresh(handover.id);
@@ -41,7 +56,10 @@ export async function openEmployeeHandoverAction(data: EmployeeHandoverInput) {
   });
 }
 
-export async function setHandoverCaseModeAction(handoverId: string, data: { mode: string; delegate_user_id?: string; team_user_ids?: string[] }) {
+export async function setHandoverCaseModeAction(
+  handoverId: string,
+  data: { mode: string; delegate_user_id?: string; team_user_ids?: string[] },
+) {
   return measureOperation("action:setHandoverCaseModeAction", async () => {
     const user = await requirePermission("employees", "edit");
     validateActionArguments("setHandoverCaseModeAction", { handoverId, data });
@@ -55,10 +73,16 @@ export async function setHandoverCaseModeAction(handoverId: string, data: { mode
 }
 
 /** Reassigns the pending cases (by the chosen mode, or by the person chosen for each case in manual mode). */
-export async function applyHandoverCasesAction(handoverId: string, choices: Record<string, string> = {}) {
+export async function applyHandoverCasesAction(
+  handoverId: string,
+  choices: Record<string, string> = {},
+) {
   return measureOperation("action:applyHandoverCasesAction", async () => {
     const user = await requirePermission("employees", "edit");
-    validateActionArguments("applyHandoverCasesAction", { handoverId, choices });
+    validateActionArguments("applyHandoverCasesAction", {
+      handoverId,
+      choices,
+    });
     const moved = await runAtomicMutation(async () => {
       const moved = await applyHandoverCases(handoverId, user.id, choices);
       await log(user.id, handoverId, "reassign", { moved });
@@ -80,10 +104,18 @@ export async function refreshHandoverCasesAction(handoverId: string) {
   });
 }
 
-export async function updateHandoverChecklistAction(handoverId: string, key: string, data: { done: boolean; not_applicable: boolean; note?: string }) {
+export async function updateHandoverChecklistAction(
+  handoverId: string,
+  key: string,
+  data: { done: boolean; not_applicable: boolean; note?: string },
+) {
   return measureOperation("action:updateHandoverChecklistAction", async () => {
     const user = await requirePermission("employees", "edit");
-    validateActionArguments("updateHandoverChecklistAction", { handoverId, key, data });
+    validateActionArguments("updateHandoverChecklistAction", {
+      handoverId,
+      key,
+      data,
+    });
     await updateHandoverChecklist(handoverId, key, data, user.id);
     refresh(handoverId);
     return { success: true };

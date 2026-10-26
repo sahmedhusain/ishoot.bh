@@ -1,5 +1,9 @@
 "use server";
-import { serverTemplates, formatMessage, serverMessages } from "@platform/locales";
+import {
+  serverTemplates,
+  formatMessage,
+  serverMessages,
+} from "@platform/locales";
 
 import { ROUTES } from "../../constants/routes";
 import { measureOperation, runAtomicMutation } from "@platform/database";
@@ -45,9 +49,13 @@ export async function createLeaveRequestAction(data: {
       targetEmployeeId = emp.id;
     }
 
-    const target = await db.employee.findUnique({ where: { id: targetEmployeeId }, select: { userId: true } });
+    const target = await db.employee.findUnique({
+      where: { id: targetEmployeeId },
+      select: { userId: true },
+    });
     if (!target) throw new Error(serverMessages.employeeNotFound);
-    if (target.userId === actor.id) await requirePermission("self_service", "create");
+    if (target.userId === actor.id)
+      await requirePermission("self_service", "create");
     else await requirePermission("employees", "create");
     const { leaveRequest, approval } = await runAtomicMutation(async () => {
       const leaveRequest = await createLeaveRequest({
@@ -68,14 +76,23 @@ export async function createLeaveRequestAction(data: {
         targetType: "leave_request",
         targetId: leaveRequest.id,
         requesterId,
-        policySnapshot: { startDate: data.startDate, endDate: data.endDate, leaveTypeId: data.leaveTypeId },
+        policySnapshot: {
+          startDate: data.startDate,
+          endDate: data.endDate,
+          leaveTypeId: data.leaveTypeId,
+        },
       });
       await createActivityLog({
         user_id: actor.id,
         action: "create",
         entity_type: "leave_request",
         entity_id: leaveRequest.id,
-        details: { startDate: data.startDate, endDate: data.endDate, reason: data.reason, approvalStatus: approval.status },
+        details: {
+          startDate: data.startDate,
+          endDate: data.endDate,
+          reason: data.reason,
+          approvalStatus: approval.status,
+        },
       });
 
       return { leaveRequest, approval };
@@ -95,18 +112,32 @@ export async function decideLeaveRequestAction(
   return measureOperation("action:decideLeaveRequestAction", async () => {
     // Who may decide is defined by the leave approval policy and enforced by the engine.
     const actor = await requireAuth();
-    validateActionArguments("decideLeaveRequestAction", { requestId, decision, notes });
+    validateActionArguments("decideLeaveRequestAction", {
+      requestId,
+      decision,
+      notes,
+    });
 
     const result = await runAtomicMutation(async () => {
       const pending = await findPendingApproval("leave_request", requestId);
-      if (!pending) throw new Error(serverMessages.thisLeaveRequestHasNoPendingApproval);
-      const outcome = await decideApprovalRequest(pending.id, actor.id, decision, notes);
+      if (!pending)
+        throw new Error(serverMessages.thisLeaveRequestHasNoPendingApproval);
+      const outcome = await decideApprovalRequest(
+        pending.id,
+        actor.id,
+        decision,
+        notes,
+      );
       const conflicts =
         decision === "approved"
           ? await getLeaveConflicts(
               await db.leaveRequest.findUniqueOrThrow({
                 where: { id: requestId },
-                select: { startDate: true, endDate: true, employee: { select: { userId: true } } },
+                select: {
+                  startDate: true,
+                  endDate: true,
+                  employee: { select: { userId: true } },
+                },
               }),
             )
           : null;
@@ -137,10 +168,18 @@ export async function cancelLeaveRequestAction(requestId: string) {
       include: { employee: true },
     });
     if (!leave) throw new Error(serverMessages.leaveRequestNotFound);
-    if (leave.status !== "pending") throw new Error(formatMessage(serverTemplates.cannotCancelLeaveWithStatus0, { 0: leave.status }));
+    if (leave.status !== "pending")
+      throw new Error(
+        formatMessage(serverTemplates.cannotCancelLeaveWithStatus0, {
+          0: leave.status,
+        }),
+      );
 
     // Your own pending request, or anyone's if you manage employee records.
-    if (leave.employee.userId !== actor.id && !(await hasPermission("employees", "edit"))) {
+    if (
+      leave.employee.userId !== actor.id &&
+      !(await hasPermission("employees", "edit"))
+    ) {
       throw new Error(serverMessages.youCanOnlyCancelYourOwnPending);
     }
 

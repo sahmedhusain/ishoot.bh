@@ -131,13 +131,12 @@ export function EmployeeDetailView({
                 {employee.employeeNumber}
               </span>
               <span
-                className={`text-[11px] font-mono uppercase px-2.5 py-0.5 rounded-full border ${
-                  employee.status === "active"
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                    : employee.status === "on_leave"
-                      ? "bg-amber-50 text-amber-700 border-amber-200"
-                      : "bg-ink/5 text-ink-muted"
-                }`}
+                className={`text-[11px] font-mono uppercase px-2.5 py-0.5 rounded-full border ${employee.status === "active"
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                  : employee.status === "on_leave"
+                    ? "bg-amber-50 text-amber-700 border-amber-200"
+                    : "bg-ink/5 text-ink-muted"
+                  }`}
               >
                 {(t.hrExtensions as Record<string, string>)[employee.status] ||
                   employee.status}
@@ -187,7 +186,7 @@ export function EmployeeDetailView({
       )}
       {canViewPay && !isEditing && (
         <fieldset disabled>
-          <PayrollSettingsFields value={payrollSettings} onChange={() => {}} />
+          <PayrollSettingsFields value={payrollSettings} onChange={() => { }} />
         </fieldset>
       )}
       {isEditing ? (
@@ -287,72 +286,72 @@ export function EmployeeDetailView({
 
           {/* Compensation Adjustment */}
           {canEditPay && (<>
-          <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono border-b border-ink/10 pb-3">
-              {t.employeeDetail.effectiveCompensationBhd}
-            </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-ink-muted mb-1">
-                  {t.employeeDetail.basicSalary}
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={basicSalary}
-                  onChange={(e) => setBasicSalary(Number(e.target.value))}
-                  className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2"
-                />
+            <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono border-b border-ink/10 pb-3">
+                {t.employeeDetail.effectiveCompensationBhd}
+              </h2>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-ink-muted mb-1">
+                    {t.employeeDetail.basicSalary}
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={basicSalary}
+                    onChange={(e) => setBasicSalary(Number(e.target.value))}
+                    className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-ink-muted mb-1">
+                    {t.shared.housing}
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={housingAllowance}
+                    onChange={(e) => setHousingAllowance(Number(e.target.value))}
+                    className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-ink-muted mb-1">
+                    {t.shared.transport}
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={transportAllowance}
+                    onChange={(e) =>
+                      setTransportAllowance(Number(e.target.value))
+                    }
+                    className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-ink-muted mb-1">
+                    {t.employeeDetail.other}
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={otherAllowances}
+                    onChange={(e) => setOtherAllowances(Number(e.target.value))}
+                    className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-xs font-medium text-ink-muted mb-1">
-                  {t.shared.housing}
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={housingAllowance}
-                  onChange={(e) => setHousingAllowance(Number(e.target.value))}
-                  className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-ink-muted mb-1">
-                  {t.shared.transport}
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={transportAllowance}
-                  onChange={(e) =>
-                    setTransportAllowance(Number(e.target.value))
-                  }
-                  className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-ink-muted mb-1">
-                  {t.employeeDetail.other}
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={otherAllowances}
-                  onChange={(e) => setOtherAllowances(Number(e.target.value))}
-                  className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2"
-                />
-              </div>
-            </div>
-          </Card>
+            </Card>
 
-          <PayrollSettingsFields
-            value={payrollSettings}
-            onChange={setPayrollSettings}
-          />
+            <PayrollSettingsFields
+              value={payrollSettings}
+              onChange={setPayrollSettings}
+            />
           </>)}
           <div className="flex justify-end gap-3">
             <button
@@ -447,50 +446,50 @@ export function EmployeeDetailView({
 
             {/* Compensation Structure */}
             {canViewPay && (
-            <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
-              <div className="flex items-center justify-between border-b border-ink/10 pb-3">
-                <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono flex items-center gap-2">
-                  <DollarSign className="w-4 h-4 text-accent" />
-                  {t.employeeDetail.monthlyRemunerationAndGosiBase}
-                </h2>
-                <span className="text-xs font-mono font-bold text-primary dark:text-mint">
-                  {t.employeeDetail.totalGross}
-                  {totalMonthlyGross.toFixed(3)}
-                  {t.shared.bhd}
-                </span>
-              </div>
+              <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
+                <div className="flex items-center justify-between border-b border-ink/10 pb-3">
+                  <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-accent" />
+                    {t.employeeDetail.monthlyRemunerationAndGosiBase}
+                  </h2>
+                  <span className="text-xs font-mono font-bold text-primary dark:text-mint">
+                    {t.employeeDetail.totalGross}
+                    {totalMonthlyGross.toFixed(3)}
+                    {t.shared.bhd}
+                  </span>
+                </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-                <div className="p-3 bg-slate-50 dark:bg-neutral-900/40 rounded border border-ink/10 dark:border-white/5 space-y-1">
-                  <span className="text-slate-400">{t.employeeDetail.basicSalary}</span>
-                  <div className="font-mono font-semibold text-slate-900 dark:text-white text-sm">
-                    {basicSalary.toFixed(3)}
-                    {t.shared.bhd}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                  <div className="p-3 bg-slate-50 dark:bg-neutral-900/40 rounded border border-ink/10 dark:border-white/5 space-y-1">
+                    <span className="text-slate-400">{t.employeeDetail.basicSalary}</span>
+                    <div className="font-mono font-semibold text-slate-900 dark:text-white text-sm">
+                      {basicSalary.toFixed(3)}
+                      {t.shared.bhd}
+                    </div>
+                  </div>
+                  <div className="p-3 bg-slate-50 dark:bg-neutral-900/40 rounded border border-ink/10 dark:border-white/5 space-y-1">
+                    <span className="text-slate-400">{t.shared.housingAllowance}</span>
+                    <div className="font-mono font-semibold text-slate-900 dark:text-white text-sm">
+                      {housingAllowance.toFixed(3)}
+                      {t.shared.bhd}
+                    </div>
+                  </div>
+                  <div className="p-3 bg-slate-50 dark:bg-neutral-900/40 rounded border border-ink/10 dark:border-white/5 space-y-1">
+                    <span className="text-slate-400">{t.shared.transport}</span>
+                    <div className="font-mono font-semibold text-slate-900 dark:text-white text-sm">
+                      {transportAllowance.toFixed(3)}
+                      {t.shared.bhd}
+                    </div>
+                  </div>
+                  <div className="p-3 bg-slate-50 dark:bg-neutral-900/40 rounded border border-ink/10 dark:border-white/5 space-y-1">
+                    <span className="text-slate-400">{t.shared.otherAllowances}</span>
+                    <div className="font-mono font-semibold text-slate-900 dark:text-white text-sm">
+                      {otherAllowances.toFixed(3)}
+                      {t.shared.bhd}
+                    </div>
                   </div>
                 </div>
-                <div className="p-3 bg-slate-50 dark:bg-neutral-900/40 rounded border border-ink/10 dark:border-white/5 space-y-1">
-                  <span className="text-slate-400">{t.shared.housingAllowance}</span>
-                  <div className="font-mono font-semibold text-slate-900 dark:text-white text-sm">
-                    {housingAllowance.toFixed(3)}
-                    {t.shared.bhd}
-                  </div>
-                </div>
-                <div className="p-3 bg-slate-50 dark:bg-neutral-900/40 rounded border border-ink/10 dark:border-white/5 space-y-1">
-                  <span className="text-slate-400">{t.shared.transport}</span>
-                  <div className="font-mono font-semibold text-slate-900 dark:text-white text-sm">
-                    {transportAllowance.toFixed(3)}
-                    {t.shared.bhd}
-                  </div>
-                </div>
-                <div className="p-3 bg-slate-50 dark:bg-neutral-900/40 rounded border border-ink/10 dark:border-white/5 space-y-1">
-                  <span className="text-slate-400">{t.shared.otherAllowances}</span>
-                  <div className="font-mono font-semibold text-slate-900 dark:text-white text-sm">
-                    {otherAllowances.toFixed(3)}
-                    {t.shared.bhd}
-                  </div>
-                </div>
-              </div>
-            </Card>
+              </Card>
             )}
           </div>
 

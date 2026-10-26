@@ -36,7 +36,14 @@ export async function getFinancialSummary(): Promise<FinancialSummary> {
   // Profit uses the same definition as the financial report (net of VAT, incl. payroll and bank fees).
   const report = await getFinancialSummaryReport({ basis: "cash" });
   const revenue = report.cashNetReceipts;
-  const expenses = Math.round((report.expensesNet + report.inputVatNonRecoverable + report.payrollCostsTotal + report.bankFeesTotal) * 1000) / 1000;
+  const expenses =
+    Math.round(
+      (report.expensesNet +
+        report.inputVatNonRecoverable +
+        report.payrollCostsTotal +
+        report.bankFeesTotal) *
+        1000,
+    ) / 1000;
   const netProfit = report.operatingProfit;
   return {
     revenue,
@@ -114,14 +121,20 @@ export async function getExpenseCategoryTotals(): Promise<
 
 // Invoice readers receive invoice metrics without expense or unrelated revenue data.
 export async function getInvoiceSummary() {
-  const [row] = await db.$queryRaw<Array<{ outstanding: unknown; overdue: unknown; discountsGiven: unknown }>>`
+  const [row] = await db.$queryRaw<
+    Array<{ outstanding: unknown; overdue: unknown; discountsGiven: unknown }>
+  >`
     WITH paid AS (SELECT "invoiceId", SUM(amount) amount FROM "Payment" WHERE currency='BHD' GROUP BY "invoiceId"),
     balances AS (SELECT i.*, GREATEST(0, i."totalAmount" - COALESCE(p.amount,0)) due FROM "Invoice" i LEFT JOIN paid p ON p."invoiceId"=i.id WHERE i.currency='BHD' AND i.status<>'void')
     SELECT COALESCE(SUM(due) FILTER (WHERE status IN ('sent','partially_paid','overdue')),0) outstanding,
     COALESCE(SUM(due) FILTER (WHERE status<>'draft' AND "dueDate"<(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bahrain')::date),0) overdue,
     COALESCE(SUM("discountAmount"),0) "discountsGiven" FROM balances
   `;
-  return { outstanding: Number(row.outstanding), overdue: Number(row.overdue), discountsGiven: Number(row.discountsGiven) };
+  return {
+    outstanding: Number(row.outstanding),
+    overdue: Number(row.overdue),
+    discountsGiven: Number(row.discountsGiven),
+  };
 }
 
 export interface ReceivablesInsight {
@@ -131,13 +144,30 @@ export interface ReceivablesInsight {
   averageDaysToCollect: number;
   averageInvoiceValue: number;
   invoicesIssued: number;
-  aging: Array<{ bucket: "current" | "d1_30" | "d31_60" | "d61_90" | "d90_plus"; amount: number; count: number }>;
-  topClients: Array<{ clientId: string; name: string; collected: number; invoices: number }>;
+  aging: Array<{
+    bucket: "current" | "d1_30" | "d31_60" | "d61_90" | "d90_plus";
+    amount: number;
+    count: number;
+  }>;
+  topClients: Array<{
+    clientId: string;
+    name: string;
+    collected: number;
+    invoices: number;
+  }>;
 }
 
 /** Receivables and client analytics (BHD) — the operational view; the P&L lives in the financial report. */
 export async function getReceivablesInsight(): Promise<ReceivablesInsight> {
-  const [summary] = await db.$queryRaw<Array<{ issued: unknown; paid: unknown; count: bigint; avg: unknown; days: unknown }>>`
+  const [summary] = await db.$queryRaw<
+    Array<{
+      issued: unknown;
+      paid: unknown;
+      count: bigint;
+      avg: unknown;
+      days: unknown;
+    }>
+  >`
     WITH recent AS (
       SELECT i.id, i."totalAmount", i."issueDate", i.status FROM "Invoice" i
       WHERE i.currency = 'BHD' AND i.status NOT IN ('draft','void') AND i."issueDate" >= CURRENT_DATE - INTERVAL '12 months'
@@ -145,30 +175,59 @@ export async function getReceivablesInsight(): Promise<ReceivablesInsight> {
     SELECT COALESCE(SUM(r."totalAmount"),0) issued, COALESCE(SUM(p.amount),0) paid, COUNT(r.id) count, COALESCE(AVG(r."totalAmount"),0) avg,
       COALESCE(AVG(EXTRACT(DAY FROM (p.last::timestamp - r."issueDate"::timestamp))) FILTER (WHERE r.status = 'paid'), 0) days
     FROM recent r LEFT JOIN paid p ON p."invoiceId" = r.id`;
-  const aging = await db.$queryRaw<Array<{ bucket: ReceivablesInsight["aging"][number]["bucket"]; amount: unknown; count: bigint }>>`
+  const aging = await db.$queryRaw<
+    Array<{
+      bucket: ReceivablesInsight["aging"][number]["bucket"];
+      amount: unknown;
+      count: bigint;
+    }>
+  >`
     WITH open AS (
       SELECT i.id, i."totalAmount" - COALESCE((SELECT SUM(p.amount) FROM "Payment" p WHERE p."invoiceId" = i.id), 0) due,
         CURRENT_DATE - i."dueDate"::date late
       FROM "Invoice" i WHERE i.currency = 'BHD' AND i.status IN ('sent','partially_paid','overdue'))
     SELECT CASE WHEN late <= 0 THEN 'current' WHEN late <= 30 THEN 'd1_30' WHEN late <= 60 THEN 'd31_60' WHEN late <= 90 THEN 'd61_90' ELSE 'd90_plus' END bucket,
       SUM(due) amount, COUNT(*) count FROM open WHERE due > 0 GROUP BY 1`;
-  const top = await db.$queryRaw<Array<{ clientId: string; name: string; collected: unknown; invoices: bigint }>>`
+  const top = await db.$queryRaw<
+    Array<{
+      clientId: string;
+      name: string;
+      collected: unknown;
+      invoices: bigint;
+    }>
+  >`
     SELECT c.id "clientId", COALESCE(c."companyName", TRIM(c."firstName" || ' ' || COALESCE(c."lastName", ''))) name,
       SUM(p.amount) collected, COUNT(DISTINCT i.id) invoices
     FROM "Payment" p JOIN "Invoice" i ON i.id = p."invoiceId" JOIN "CrmContact" c ON c.id = i."clientId"
     WHERE p.currency = 'BHD' AND i.status <> 'void' AND p."paymentDate" >= CURRENT_DATE - INTERVAL '12 months'
     GROUP BY c.id ORDER BY collected DESC LIMIT 5`;
   const issued = Number(summary.issued);
-  const buckets: ReceivablesInsight["aging"][number]["bucket"][] = ["current", "d1_30", "d31_60", "d61_90", "d90_plus"];
+  const buckets: ReceivablesInsight["aging"][number]["bucket"][] = [
+    "current",
+    "d1_30",
+    "d31_60",
+    "d61_90",
+    "d90_plus",
+  ];
   return {
-    collectionRate: issued > 0 ? Math.round((Number(summary.paid) / issued) * 1000) / 10 : 0,
+    collectionRate:
+      issued > 0 ? Math.round((Number(summary.paid) / issued) * 1000) / 10 : 0,
     averageDaysToCollect: Math.round(Number(summary.days)),
     averageInvoiceValue: Math.round(Number(summary.avg) * 1000) / 1000,
     invoicesIssued: Number(summary.count),
     aging: buckets.map((bucket) => {
       const row = aging.find((a) => a.bucket === bucket);
-      return { bucket, amount: Number(row?.amount ?? 0), count: Number(row?.count ?? 0) };
+      return {
+        bucket,
+        amount: Number(row?.amount ?? 0),
+        count: Number(row?.count ?? 0),
+      };
     }),
-    topClients: top.map((row) => ({ clientId: row.clientId, name: row.name, collected: Number(row.collected), invoices: Number(row.invoices) })),
+    topClients: top.map((row) => ({
+      clientId: row.clientId,
+      name: row.name,
+      collected: Number(row.collected),
+      invoices: Number(row.invoices),
+    })),
   };
 }

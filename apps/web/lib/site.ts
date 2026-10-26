@@ -4,13 +4,20 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { getWebsiteTranslations, type Locale } from "@platform/locales";
 import { isFeatureEnabled } from "@platform/database";
-import { defaultWebsiteConfig, resolveWebsiteConfig } from "@platform/database/website-config";
+import {
+  defaultWebsiteConfig,
+  resolveWebsiteConfig,
+} from "@platform/database/website-config";
 import { getPublicCompanySettings } from "./company";
 import { getWebsite } from "./website";
 import { siteCopyOverrides, type SiteInfo } from "./site-copy";
 
 // Switching the website module off in the admin takes effect within a minute.
-const websiteModuleEnabled = unstable_cache(() => isFeatureEnabled("cms"), ["website-module"], { revalidate: 60, tags: ["company", "website"] });
+const websiteModuleEnabled = unstable_cache(
+  () => isFeatureEnabled("cms"),
+  ["website-module"],
+  { revalidate: 60, tags: ["company", "website"] },
+);
 
 /** The company, its published website and the site profile every page renders from. */
 export const getSite = cache(async () => {
@@ -38,7 +45,11 @@ export const getSite = cache(async () => {
 /** Website copy for this company's activity and catalogue names. */
 export async function siteTranslations(locale: string) {
   const { info } = await getSite();
-  return getWebsiteTranslations(locale as Locale, info.activity, siteCopyOverrides(info, locale));
+  return getWebsiteTranslations(
+    locale as Locale,
+    info.activity,
+    siteCopyOverrides(info, locale),
+  );
 }
 
 /** A language the company does not write in is sent to the same page in its main language. */
@@ -46,5 +57,7 @@ export async function requireSiteLanguage(locale: string) {
   const { info } = await getSite();
   if ((info.languages as string[]).includes(locale)) return;
   const path = (await headers()).get("x-pathname") ?? `/${locale}`;
-  redirect(path.replace(new RegExp(`^/${locale}(?=/|$)`), `/${info.primaryLanguage}`));
+  redirect(
+    path.replace(new RegExp(`^/${locale}(?=/|$)`), `/${info.primaryLanguage}`),
+  );
 }

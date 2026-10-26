@@ -13,7 +13,16 @@ export interface CmsCounts {
 
 /** Row counts for the CMS overview, without loading the collections themselves. */
 export async function getCmsCounts(): Promise<CmsCounts> {
-  const [banners, portfolio, clients, equipment, reviews, pendingReviews, faqs, stats] = await Promise.all([
+  const [
+    banners,
+    portfolio,
+    clients,
+    equipment,
+    reviews,
+    pendingReviews,
+    faqs,
+    stats,
+  ] = await Promise.all([
     db.heroBanner.count(),
     db.portfolioItem.count(),
     db.clientLogo.count(),
@@ -23,5 +32,14 @@ export async function getCmsCounts(): Promise<CmsCounts> {
     db.faq.count(),
     db.statistic.count(),
   ]);
-  return { banners, portfolio, clients, equipment, reviews, pendingReviews, faqs, stats };
+  return {
+    banners,
+    portfolio,
+    clients,
+    equipment,
+    reviews,
+    pendingReviews,
+    faqs,
+    stats,
+  };
 }

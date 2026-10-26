@@ -281,8 +281,8 @@ export function SettlementDetailView({
                   f.fields.category,
                   calc.category
                     ? t.gosi.categories[
-                        calc.category as keyof typeof t.gosi.categories
-                      ]
+                    calc.category as keyof typeof t.gosi.categories
+                    ]
                     : "—",
                 ],
                 [f.fields.months, (calc.unpaidMonths ?? []).join(", ") || "—"],
@@ -470,7 +470,7 @@ export function SettlementDetailView({
                           kind: e.target.value as ManualLine["kind"],
                           category:
                             SETTLEMENT_LINE_CATEGORIES[
-                              e.target.value as ManualLine["kind"]
+                            e.target.value as ManualLine["kind"]
                             ][0],
                         })
                       }
@@ -690,7 +690,8 @@ export function SettlementDetailView({
           className="space-y-3 rounded-3xl border border-emerald-500/30 bg-emerald-500/5 p-5"
           onSubmit={(e) => {
             e.preventDefault();
-            confirmAction({ description: f.payConfirm, onConfirm: () => run(
+            confirmAction({
+              description: f.payConfirm, onConfirm: () => run(
                 () =>
                   payFinalSettlementAction(s.id, {
                     method: payment.method,
@@ -698,7 +699,8 @@ export function SettlementDetailView({
                     paid_on: payment.paid_on,
                   }),
                 f.paidToast,
-              ) });
+              )
+            });
           }}
         >
           <h2 className="flex items-center gap-2 text-sm font-bold text-ink">

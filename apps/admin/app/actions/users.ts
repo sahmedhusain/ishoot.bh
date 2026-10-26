@@ -28,7 +28,8 @@ async function checkUserManagement(
   const target = id ? await getUserById(id) : null;
   if (id && !target) throw new Error(serverMessages.userNotFound);
   // Super Admin accounts are protected: nobody changes, suspends, archives or deletes them from user management.
-  if (target?.role === "super_admin") throw new Error(serverMessages.superAdminAccountsAreProtectedAndCannot);
+  if (target?.role === "super_admin")
+    throw new Error(serverMessages.superAdminAccountsAreProtectedAndCannot);
   if (actor.role !== "super_admin" && role === "super_admin")
     throw new Error(serverMessages.onlySuperAdministratorsCanMakeSomeoneA);
   if (
@@ -155,7 +156,7 @@ export async function updateUserAction(
     department?: string;
     department_id?: string | null;
     manager_id?: string;
-      is_active?: boolean;
+    is_active?: boolean;
     password?: string;
   },
 ) {
@@ -189,7 +190,11 @@ export async function updateUserAction(
         password: data.password,
       });
       if (!user) throw new Error(serverMessages.userUpdateFailed);
-      if (data.department_id !== undefined) await db.employee.updateMany({ where: { userId: id }, data: { departmentId: data.department_id || null } });
+      if (data.department_id !== undefined)
+        await db.employee.updateMany({
+          where: { userId: id },
+          data: { departmentId: data.department_id || null },
+        });
       await createActivityLog({
         user_id: actor.id,
         action: "update",
@@ -224,7 +229,8 @@ export async function suspendUserAction(id: string, reason: string) {
   return measureOperation("action:suspendUserAction", async () => {
     const actor = await requirePermission("users", "write");
     validateActionArguments("suspendUserAction", { id, reason });
-    if (id === actor.id) throw new Error(serverMessages.cannotSuspendYourOwnAccount);
+    if (id === actor.id)
+      throw new Error(serverMessages.cannotSuspendYourOwnAccount);
     if (!reason || reason.trim().length === 0)
       throw new Error(serverMessages.suspensionReasonIsRequired);
 
@@ -337,7 +343,8 @@ export async function archiveUserAction(id: string) {
   return measureOperation("action:archiveUserAction", async () => {
     const actor = await requirePermission("users", "write");
     validateActionArguments("archiveUserAction", { id });
-    if (id === actor.id) throw new Error(serverMessages.cannotArchiveYourOwnAccount);
+    if (id === actor.id)
+      throw new Error(serverMessages.cannotArchiveYourOwnAccount);
 
     await runAtomicMutation(async () => {
       await db.$queryRaw`SELECT pg_advisory_xact_lock(19041005)::text`;
@@ -395,7 +402,8 @@ export async function deleteUserAction(id: string) {
   return measureOperation("action:deleteUserAction", async () => {
     const actor = await requirePermission("users", "delete");
     validateActionArguments("deleteUserAction", { id });
-    if (id === actor.id) throw new Error(serverMessages.cannotDeleteYourOwnAccount);
+    if (id === actor.id)
+      throw new Error(serverMessages.cannotDeleteYourOwnAccount);
     await runAtomicMutation(async () => {
       await db.$queryRaw`SELECT pg_advisory_xact_lock(19041005)::text`;
       await checkUserManagement(actor, id);
@@ -437,7 +445,8 @@ export async function deleteUserAction(id: string) {
         );
       }
 
-      if (!(await deleteUser(id))) throw new Error(serverMessages.userDeletionFailed);
+      if (!(await deleteUser(id)))
+        throw new Error(serverMessages.userDeletionFailed);
       await createActivityLog({
         user_id: actor.id,
         action: "delete",
@@ -461,20 +470,34 @@ export async function deleteUserAction(id: string) {
 }
 
 /** Per-user discount margin: discounts up to this % of the subtotal need no approval. Null = company default. */
-export async function updateUserDiscountLimitAction(id: string, limit: number | null) {
+export async function updateUserDiscountLimitAction(
+  id: string,
+  limit: number | null,
+) {
   return measureOperation("action:updateUserDiscountLimitAction", async () => {
     const actor = await requirePermission("users", "write");
     validateActionArguments("updateUserDiscountLimitAction", { id, limit });
     const result = await runAtomicMutation(async () => {
       await checkUserManagement(actor, id);
-      const before = await db.user.findUniqueOrThrow({ where: { id }, select: { discountLimitPercent: true } });
+      const before = await db.user.findUniqueOrThrow({
+        where: { id },
+        select: { discountLimitPercent: true },
+      });
       const result = await setUserDiscountLimit(id, limit);
       await createActivityLog({
         user_id: actor.id,
         action: "update",
         entity_type: "user",
         entity_id: id,
-        details: { discountLimitPercent: { from: before.discountLimitPercent == null ? null : Number(before.discountLimitPercent), to: result.discount_limit_percent } },
+        details: {
+          discountLimitPercent: {
+            from:
+              before.discountLimitPercent == null
+                ? null
+                : Number(before.discountLimitPercent),
+            to: result.discount_limit_percent,
+          },
+        },
       });
       return result;
     });
@@ -496,8 +519,18 @@ export async function bulkUpdateUsersAction(change: BulkUserChange) {
     const actor = await requirePermission("users", "write");
     validateActionArguments("bulkUpdateUsersAction", { change });
     const ids = Array.from(new Set(change.userIds)).slice(0, 500);
-    if (!ids.length || (change.role === undefined && change.departmentId === undefined)) return { success: true, updated: 0 };
-    if (change.departmentId && !(await db.department.findUnique({ where: { id: change.departmentId }, select: { id: true } })))
+    if (
+      !ids.length ||
+      (change.role === undefined && change.departmentId === undefined)
+    )
+      return { success: true, updated: 0 };
+    if (
+      change.departmentId &&
+      !(await db.department.findUnique({
+        where: { id: change.departmentId },
+        select: { id: true },
+      }))
+    )
       throw new Error(serverMessages.departmentNotFound);
     const updated = await runAtomicMutation(async () => {
       await db.$queryRaw`SELECT pg_advisory_xact_lock(19041005)::text`;
@@ -506,11 +539,27 @@ export async function bulkUpdateUsersAction(change: BulkUserChange) {
         await checkUserManagement(actor, id, change.role);
         await updateUser(id, {
           ...(change.role !== undefined ? { role: change.role } : {}),
-          ...(change.departmentId !== undefined ? { department_id: change.departmentId || null } : {}),
+          ...(change.departmentId !== undefined
+            ? { department_id: change.departmentId || null }
+            : {}),
         });
-        if (change.departmentId !== undefined) await db.employee.updateMany({ where: { userId: id }, data: { departmentId: change.departmentId || null } });
+        if (change.departmentId !== undefined)
+          await db.employee.updateMany({
+            where: { userId: id },
+            data: { departmentId: change.departmentId || null },
+          });
       }
-      await createActivityLog({ user_id: actor.id, action: "update", entity_type: "user", entity_id: "bulk", details: { count: ids.length, role: change.role ?? null, departmentId: change.departmentId ?? null } });
+      await createActivityLog({
+        user_id: actor.id,
+        action: "update",
+        entity_type: "user",
+        entity_id: "bulk",
+        details: {
+          count: ids.length,
+          role: change.role ?? null,
+          departmentId: change.departmentId ?? null,
+        },
+      });
       return ids.length;
     });
     revalidatePath(ROUTES.users.list);

@@ -9,15 +9,15 @@ export default async function NewClaimPage() {
   const since = new Date(Date.now() - 90 * 86400000);
   const [categories, grants] = await Promise.all([getExpenseCategories(), getCurrentPermissions()]);
   const meetings = await db.calendarEvent.findMany({
-      // Recent meetings: the claimant's own, or all of them for people who can see the calendar.
-      where: {
-        startDate: { gte: since, lte: new Date(Date.now() + 86400000) },
-        ...(grants["calendar:read"] === true ? {} : { createdById: user.id }),
-      },
-      select: { id: true, title: true, startDate: true },
-      orderBy: { startDate: "desc" },
-      take: 60,
-    });
+    // Recent meetings: the claimant's own, or all of them for people who can see the calendar.
+    where: {
+      startDate: { gte: since, lte: new Date(Date.now() + 86400000) },
+      ...(grants["calendar:read"] === true ? {} : { createdById: user.id }),
+    },
+    select: { id: true, title: true, startDate: true },
+    orderBy: { startDate: "desc" },
+    take: 60,
+  });
   return (
     <NewClaimFormView
       categories={categories}

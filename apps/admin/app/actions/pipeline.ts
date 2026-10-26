@@ -28,7 +28,13 @@ export async function saveDealPipelineAction(stages: DealPipelineStageInput[]) {
     validateActionArguments("saveDealPipelineAction", { stages });
     const saved = await runAtomicMutation(async () => {
       const result = await saveDealPipeline(stages);
-      await createActivityLog({ user_id: user.id, action: "update", entity_type: "settings", entity_id: "deal_pipeline", details: { stages: stages.map((stage) => stage.id) } });
+      await createActivityLog({
+        user_id: user.id,
+        action: "update",
+        entity_type: "settings",
+        entity_id: "deal_pipeline",
+        details: { stages: stages.map((stage) => stage.id) },
+      });
       return result;
     });
     revalidatePipeline();
@@ -45,7 +51,13 @@ export async function resetDealPipelineAction() {
     const company = await getCompanySettings();
     await runAtomicMutation(async () => {
       await applyActivityDealPipeline(company.business_activity);
-      await createActivityLog({ user_id: user.id, action: "update", entity_type: "settings", entity_id: "deal_pipeline", details: { reset: company.business_activity ?? null } });
+      await createActivityLog({
+        user_id: user.id,
+        action: "update",
+        entity_type: "settings",
+        entity_id: "deal_pipeline",
+        details: { reset: company.business_activity ?? null },
+      });
     });
     revalidatePipeline();
     return { success: true };

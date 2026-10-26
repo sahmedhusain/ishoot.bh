@@ -42,7 +42,7 @@ async function main() {
     throw new Error(
       "Set SUPER_ADMIN_EMAIL and a SUPER_ADMIN_PASSWORD of at least 12 characters",
     );
-  if (Buffer.byteLength(password,"utf8") > 72) throw new Error("Bootstrap password exceeds bcrypt byte limit");
+  if (Buffer.byteLength(password, "utf8") > 72) throw new Error("Bootstrap password exceeds bcrypt byte limit");
   const profileName = process.env.COMPANY_PROFILE?.trim();
   const profile = profileName ? loadCompanyProfile(profileName) : null;
   const hash = await bcrypt.hash(password, 10);

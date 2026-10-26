@@ -10,32 +10,32 @@
 
 creates `.env` and generates every secret; on an existing `.env`, `./run.sh env sync` adds the variables that are new in `.env.example` without touching your values, `./run.sh env secrets` fills any empty secret, `./run.sh env check` validates the values (add `--production` for a live installation) and `./run.sh env keys` lists what is set, empty, missing or retired, without printing values.
 
-| Variable | Required | Purpose |
-|---|---|---|
-| `DATABASE_URL` | yes | Postgres for the apps. In production use the provider's connection pooler (for example port 6543) and set `connection_limit`, `pool_timeout` and `sslmode=require` |
-| `DIRECT_URL` | yes | Direct Postgres connection, used for migrations |
-| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | production | Server-side file storage. If either is empty, files are stored on disk under `UPLOAD_ROOT` (development or a single server only) |
-| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | | Public Supabase values (the apps do not need the anon key today) |
-| `UPLOAD_ROOT` | disk mode | Absolute upload folder; defaults to `apps/admin/private/uploads` |
-| `POSTGRES_*`, `PGADMIN_*` | docker | Only for the plain Postgres and pgAdmin in `docker-compose.yml` |
-| `COMPANY_PROFILE`, `COMPANY_PROFILE_OVERWRITE`, `SEED_VOLUME` | | Profile loaded by `db:seed`, `db:reset` and `db:bootstrap` (empty in production to use the setup wizard); `1` re-applies a profile; `off` seeds less demo data |
-| `SUPER_ADMIN_EMAIL`, `SUPER_ADMIN_PASSWORD`, `SUPER_ADMIN_NAME`, `SUPER_ADMIN_PHONE` | bootstrap | First administrator (password 12 to 72 bytes) |
-| `WEB_URL`, `ADMIN_URL`, `NEXT_PUBLIC_WEB_URL`, `NEXT_PUBLIC_ADMIN_URL` | yes | Public addresses of each app. Payment returns, tracking links, unsubscribe links and broadcasts use them; the website accepts live-preview messages only from `ADMIN_URL` |
-| `ADMIN_APP_URL` | | Address clients open admin links and QR codes on, when it differs from `ADMIN_URL` |
-| `JWT_SECRET` | yes | Staff session signing, at least 32 bytes |
-| `REVALIDATION_SECRET` | yes | Shared by the admin, the website and the worker for publishing website changes |
-| `MFA_ENCRYPTION_KEY` | yes | Exactly 32 random bytes, base64. Keep it stable: changing it invalidates every authenticator |
-| `ENCRYPTION_KEY` | yes | Exactly 32 characters; encrypts saved integration credentials (gateways, couriers, WhatsApp, sign-in). Keep it stable |
-| `CUSTOMER_AUTH_SECRET` | | Website customer accounts: Google and Apple sign-in state and payment links. Falls back to `REVALIDATION_SECRET` |
-| `CRON_SECRET` | production | Authenticates the scheduled job (`/api/cron`) |
-| `RESEND_API_KEY`, `FROM_EMAIL` | email | Legacy fallback only when no Resend settings record exists; prefer encrypted credentials in Settings → Integrations |
-| `NOTIFICATION_EMAIL` | | Receives website enquiries (default: the company email) |
-| `RESEND_WEBHOOK_SECRET` | email | Legacy fallback for delivery webhook signing; prefer the encrypted Resend integration field |
-| `FX_API_URL`, `FX_LIVE_DISABLED` | | Live exchange rates for BHD (defaults to open.er-api.com); `1` uses stored rates only |
-| `OBSERVABILITY_ENABLED`, `TRUSTED_CLIENT_IP_HEADER` | | Operation timing logs; the header your proxy overwrites with the client IP |
-| `WORKER_ALERT_AFTER_SECONDS` | | `check:workers` flags queues older than this (default 300) |
-| `PAYMENT_GATEWAY_BASE_URL_<GATEWAY>`, `COURIER_BASE_URL_<COURIER>` | never in production | Point a gateway (`STRIPE`, `TAP`, `PAYPAL`, `CHECKOUT_COM`, `PAYTABS`, `MOYASAR`, `HYPERPAY`) or courier (`ARAMEX`, `DHL_EXPRESS`, `SMSA`) at a local stand-in |
-| `E2E_*`, `CHECKS_*_DATABASE_URL` | tests | Test databases and server mode (see [TESTING.md](TESTING.md)) |
+| Variable                                                                             | Required            | Purpose                                                                                                                                                                   |
+| ------------------------------------------------------------------------------------ | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                                                                       | yes                 | Postgres for the apps. In production use the provider's connection pooler (for example port 6543) and set `connection_limit`, `pool_timeout` and `sslmode=require`        |
+| `DIRECT_URL`                                                                         | yes                 | Direct Postgres connection, used for migrations                                                                                                                           |
+| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`                                          | production          | Server-side file storage. If either is empty, files are stored on disk under `UPLOAD_ROOT` (development or a single server only)                                          |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`                          |                     | Public Supabase values (the apps do not need the anon key today)                                                                                                          |
+| `UPLOAD_ROOT`                                                                        | disk mode           | Absolute upload folder; defaults to `apps/admin/private/uploads`                                                                                                          |
+| `POSTGRES_*`, `PGADMIN_*`                                                            | docker              | Only for the plain Postgres and pgAdmin in `docker-compose.yml`                                                                                                           |
+| `COMPANY_PROFILE`, `COMPANY_PROFILE_OVERWRITE`, `SEED_VOLUME`                        |                     | Profile loaded by `db:seed`, `db:reset` and `db:bootstrap` (empty in production to use the setup wizard); `1` re-applies a profile; `off` seeds less demo data            |
+| `SUPER_ADMIN_EMAIL`, `SUPER_ADMIN_PASSWORD`, `SUPER_ADMIN_NAME`, `SUPER_ADMIN_PHONE` | bootstrap           | First administrator (password 12 to 72 bytes)                                                                                                                             |
+| `WEB_URL`, `ADMIN_URL`, `NEXT_PUBLIC_WEB_URL`, `NEXT_PUBLIC_ADMIN_URL`               | yes                 | Public addresses of each app. Payment returns, tracking links, unsubscribe links and broadcasts use them; the website accepts live-preview messages only from `ADMIN_URL` |
+| `ADMIN_APP_URL`                                                                      |                     | Address clients open admin links and QR codes on, when it differs from `ADMIN_URL`                                                                                        |
+| `JWT_SECRET`                                                                         | yes                 | Staff session signing, at least 32 bytes                                                                                                                                  |
+| `REVALIDATION_SECRET`                                                                | yes                 | Shared by the admin, the website and the worker for publishing website changes                                                                                            |
+| `MFA_ENCRYPTION_KEY`                                                                 | yes                 | Exactly 32 random bytes, base64. Keep it stable: changing it invalidates every authenticator                                                                              |
+| `ENCRYPTION_KEY`                                                                     | yes                 | Exactly 32 characters; encrypts saved integration credentials (gateways, couriers, WhatsApp, sign-in). Keep it stable                                                     |
+| `CUSTOMER_AUTH_SECRET`                                                               |                     | Website customer accounts: Google and Apple sign-in state and payment links. Falls back to `REVALIDATION_SECRET`                                                          |
+| `CRON_SECRET`                                                                        | production          | Authenticates the scheduled job (`/api/cron`)                                                                                                                             |
+| `RESEND_API_KEY`, `FROM_EMAIL`                                                       | email               | Legacy fallback only when no Resend settings record exists; prefer encrypted credentials in Settings → Integrations                                                       |
+| `NOTIFICATION_EMAIL`                                                                 |                     | Receives website enquiries (default: the company email)                                                                                                                   |
+| `RESEND_WEBHOOK_SECRET`                                                              | email               | Legacy fallback for delivery webhook signing; prefer the encrypted Resend integration field                                                                               |
+| `FX_API_URL`, `FX_LIVE_DISABLED`                                                     |                     | Live exchange rates for BHD (defaults to open.er-api.com); `1` uses stored rates only                                                                                     |
+| `OBSERVABILITY_ENABLED`, `TRUSTED_CLIENT_IP_HEADER`                                  |                     | Operation timing logs; the header your proxy overwrites with the client IP                                                                                                |
+| `WORKER_ALERT_AFTER_SECONDS`                                                         |                     | `check:workers` flags queues older than this (default 300)                                                                                                                |
+| `PAYMENT_GATEWAY_BASE_URL_<GATEWAY>`, `COURIER_BASE_URL_<COURIER>`                   | never in production | Point a gateway (`STRIPE`, `TAP`, `PAYPAL`, `CHECKOUT_COM`, `PAYTABS`, `MOYASAR`, `HYPERPAY`) or courier (`ARAMEX`, `DHL_EXPRESS`, `SMSA`) at a local stand-in            |
+| `E2E_*`, `CHECKS_*_DATABASE_URL`                                                     | tests               | Test databases and server mode (see [TESTING.md](TESTING.md))                                                                                                             |
 
 Older `.env` files may still hold `NEXT_PUBLIC_DEFAULT_LOCALE`, `WHATSAPP_API_TOKEN`, `WHATSAPP_PHONE_ID`, `FACEBOOK_APP_ID` and `FACEBOOK_APP_SECRET`. No code reads them: the main language is chosen in the setup wizard, and WhatsApp and Meta are configured in Settings → Integrations. `./run.sh env check` points them out.
 
@@ -43,13 +43,13 @@ Generate a secret by hand with `openssl rand -base64 32` (`openssl rand -hex 16`
 
 ## Local services
 
-| Service | Address | Notes |
-|---|---|---|
-| Website | http://localhost:3000 | `pnpm dev:web` |
-| Admin | http://localhost:3001 | `pnpm dev:admin` |
-| Postgres (local Supabase) | 127.0.0.1:54322 | See [DATABASE.md](DATABASE.md) |
-| Supabase API and storage | http://127.0.0.1:54321 | `pnpm db:reset` creates the buckets |
-| Prisma Studio | http://localhost:5555 | `./run.sh db studio` |
+| Service                               | Address                               | Notes                                             |
+| ------------------------------------- | ------------------------------------- | ------------------------------------------------- |
+| Website                               | http://localhost:3000                 | `pnpm dev:web`                                    |
+| Admin                                 | http://localhost:3001                 | `pnpm dev:admin`                                  |
+| Postgres (local Supabase)             | 127.0.0.1:54322                       | See [DATABASE.md](DATABASE.md)                    |
+| Supabase API and storage              | http://127.0.0.1:54321                | `pnpm db:reset` creates the buckets               |
+| Prisma Studio                         | http://localhost:5555                 | `./run.sh db studio`                              |
 | Plain Postgres and pgAdmin (optional) | 127.0.0.1:5432, http://localhost:5050 | `./run.sh services docker` (`docker-compose.yml`) |
 
 `./run.sh services up` starts the local Supabase stack, `./run.sh services status` prints its addresses and keys, and `./run.sh urls` lists every local address.
@@ -60,10 +60,10 @@ Generate a secret by hand with `openssl rand -base64 32` (`openssl rand -hex 16`
 
 **Supabase (database and storage).** The apps connect through Prisma. Uploads go straight from the browser to storage using short-lived signed URLs; the server checks type, size and permission first and verifies the stored bytes when the upload is claimed. Two buckets:
 
-| Bucket | Visibility | Contents |
-|---|---|---|
-| `public-assets` | public | Logos, icons, brand fonts (WOFF2), website media |
-| `private-assets` | private | Everything else; downloads need application permission and a short-lived signed URL |
+| Bucket           | Visibility | Contents                                                                            |
+| ---------------- | ---------- | ----------------------------------------------------------------------------------- |
+| `public-assets`  | public     | Logos, icons, brand fonts (WOFF2), website media                                    |
+| `private-assets` | private    | Everything else; downloads need application permission and a short-lived signed URL |
 
 Limit both to 10 MiB, with PDF, PNG, JPEG and WebP, plus WOFF2 on `public-assets`.
 
@@ -71,12 +71,12 @@ Limit both to 10 MiB, with PDF, PNG, JPEG and WebP, plus WOFF2 on `public-assets
 
 **Integrations (Settings → Integrations).** Credentials are saved encrypted with `ENCRYPTION_KEY`, each with a **Test connection** health check, and never come from `.env`:
 
-| Group | Providers | Used for |
-|---|---|---|
-| Payment gateways | Stripe, Tap, PayPal, Checkout.com, PayTabs, Moyasar, HyperPay | **Pay online** at checkout and payment links (Online store → Store settings chooses one); refunds |
-| Courier agencies | Aramex, DHL Express, SMSA | Booking, labels and tracking for shipments handed to an agency |
-| Customer sign-in | Google, Apple | Website customer accounts; the integration shows the redirect address to register |
-| Messaging and social | WhatsApp Cloud API, Meta | Salary documents, service replies, purchase orders; social metrics |
+| Group                | Providers                                                     | Used for                                                                                          |
+| -------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Payment gateways     | Stripe, Tap, PayPal, Checkout.com, PayTabs, Moyasar, HyperPay | **Pay online** at checkout and payment links (Online store → Store settings chooses one); refunds |
+| Courier agencies     | Aramex, DHL Express, SMSA                                     | Booking, labels and tracking for shipments handed to an agency                                    |
+| Customer sign-in     | Google, Apple                                                 | Website customer accounts; the integration shows the redirect address to register                 |
+| Messaging and social | WhatsApp Cloud API, Meta                                      | Salary documents, service replies, purchase orders; social metrics                                |
 
 Payment webhooks arrive at `<WEB_URL>/api/store/payment/webhook/<gateway>` (verified and stored once) and customers return to `<WEB_URL>/api/store/payment/return`. Register these addresses in each gateway's dashboard. Gateway keys marked test (or a sandbox environment) show "Test mode" on the order.
 
@@ -86,11 +86,11 @@ Payment webhooks arrive at `<WEB_URL>/api/store/payment/webhook/<gateway>` (veri
 
 ## Background work
 
-| Process | Command | Purpose |
-|---|---|---|
-| Email worker | `pnpm worker:email` | Sends queued email, retries failures |
+| Process             | Command                    | Purpose                                                                                  |
+| ------------------- | -------------------------- | ---------------------------------------------------------------------------------------- |
+| Email worker        | `pnpm worker:email`        | Sends queued email, retries failures                                                     |
 | Revalidation worker | `pnpm worker:revalidation` | Pushes published website changes to the website (needs `WEB_URL`, `REVALIDATION_SECRET`) |
-| Maintenance worker | `pnpm worker:maintenance` | Removes expired sessions, abuse windows and unclaimed private uploads |
+| Maintenance worker  | `pnpm worker:maintenance`  | Removes expired sessions, abuse windows and unclaimed private uploads                    |
 
 `./run.sh worker all` runs the three together. `pnpm check:workers` verifies the worker configuration.
 
@@ -114,11 +114,11 @@ PDF links. `WEB_URL` and `ADMIN_URL` (or `ADMIN_APP_URL`) still win when they ar
 
 The app never changes DNS. Add one record at the registrar:
 
-| Hosting | Domain | Record |
-|---|---|---|
-| Vercel | `example.com` (apex) | `A @ 76.76.21.21` |
-| Vercel | `www.example.com`, `admin.example.com` | `CNAME www cname.vercel-dns.com` |
-| Your own server | any | `A <name> <server IP address>`, with the reverse proxy routing the domain to the app's port |
+| Hosting         | Domain                                 | Record                                                                                      |
+| --------------- | -------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Vercel          | `example.com` (apex)                   | `A @ 76.76.21.21`                                                                           |
+| Vercel          | `www.example.com`, `admin.example.com` | `CNAME www cname.vercel-dns.com`                                                            |
+| Your own server | any                                    | `A <name> <server IP address>`, with the reverse proxy routing the domain to the app's port |
 
 Then add the domain to the hosting project and press **Check domain**: the admin fetches
 `https://<domain>/api/health`, which answers with the app and a fingerprint of this installation, and reports

@@ -4,18 +4,18 @@ import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import {
-Card,
-Button,
-Badge,
-DateDisplay,
-ConfirmDialog,
+  Card,
+  Button,
+  Badge,
+  DateDisplay,
+  ConfirmDialog,
 } from "@platform/ui";
 import {
-Building2,
-Plus,
-Download,
-FileText,
-Trash2,Calendar
+  Building2,
+  Plus,
+  Download,
+  FileText,
+  Trash2, Calendar
 } from "lucide-react";
 import type { CompanyDocument } from "@platform/database";
 import { deleteCompanyDocumentAction } from "../../app/actions/documents";
@@ -110,11 +110,10 @@ export function CompanyDocumentsClientView({
           <button
             key={cat.id}
             onClick={() => setSelectedCat(cat.id)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
-              selectedCat === cat.id
-                ? "bg-primary text-white border border-accent"
-                : "bg-surface text-ink-muted hover:text-ink border border-ink/10"
-            }`}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${selectedCat === cat.id
+              ? "bg-primary text-white border border-accent"
+              : "bg-surface text-ink-muted hover:text-ink border border-ink/10"
+              }`}
           >
             {cat.label}
           </button>

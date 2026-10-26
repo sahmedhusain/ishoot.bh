@@ -5,7 +5,12 @@ import { measureOperation } from "@platform/database";
 import { validateActionArguments } from "../../lib/action-input";
 
 import { requirePermission } from "../../lib/auth";
-import { db, ALL_RESOURCES, ALL_ACTIONS, setRoleDataScopes } from "@platform/database";
+import {
+  db,
+  ALL_RESOURCES,
+  ALL_ACTIONS,
+  setRoleDataScopes,
+} from "@platform/database";
 import { revalidatePath } from "next/cache";
 
 /**
@@ -24,7 +29,9 @@ export async function upsertRoleAction(data: {
     const actor = await requirePermission("users", "write");
     validateActionArguments("upsertRoleAction", { data });
     if (actor.role !== "super_admin")
-      throw new Error(serverMessages.onlySuperAdministratorsCanManageRolePermissions);
+      throw new Error(
+        serverMessages.onlySuperAdministratorsCanManageRolePermissions,
+      );
     if (
       !data ||
       typeof data.nameEn !== "string" ||
@@ -39,11 +46,15 @@ export async function upsertRoleAction(data: {
     )
       throw new Error(serverMessages.invalidRole);
     const validKeys = new Set(
-      ALL_RESOURCES.flatMap((resource) => ALL_ACTIONS.map((action) => `${resource}:${action}`)),
+      ALL_RESOURCES.flatMap((resource) =>
+        ALL_ACTIONS.map((action) => `${resource}:${action}`),
+      ),
     );
     for (const [key, allowed] of Object.entries(data.grants)) {
-      if (!validKeys.has(key) || key.endsWith(":write")) throw new Error(serverMessages.invalidPermissionResource);
-      if (typeof allowed !== "boolean") throw new Error(serverMessages.invalidPermissionValue);
+      if (!validKeys.has(key) || key.endsWith(":write"))
+        throw new Error(serverMessages.invalidPermissionResource);
+      if (typeof allowed !== "boolean")
+        throw new Error(serverMessages.invalidPermissionValue);
     }
     const saved = await db.$transaction(async (tx) => {
       const role = data.id
@@ -60,22 +71,34 @@ export async function upsertRoleAction(data: {
           });
       const isSuperAdmin = role.id === "super_admin";
       const stored = new Map<string, boolean>(
-        (await tx.permission.findMany({
-          where: { role: role.id },
-          select: { resource: true, action: true, allowed: true },
-        })).map((p) => [`${p.resource}:${p.action}`, p.allowed]),
+        (
+          await tx.permission.findMany({
+            where: { role: role.id },
+            select: { resource: true, action: true, allowed: true },
+          })
+        ).map((p) => [`${p.resource}:${p.action}`, p.allowed]),
       );
       const desired = new Map<string, boolean>();
-      for (const [key, allowed] of Object.entries(data.grants)) desired.set(key, isSuperAdmin || allowed);
+      for (const [key, allowed] of Object.entries(data.grants))
+        desired.set(key, isSuperAdmin || allowed);
       // Legacy "write" grant mirrors create/edit so older checks stay consistent.
       for (const resource of ALL_RESOURCES) {
-        const create = desired.get(`${resource}:create`) ?? stored.get(`${resource}:create`);
-        const edit = desired.get(`${resource}:edit`) ?? stored.get(`${resource}:edit`);
-        if (desired.has(`${resource}:create`) || desired.has(`${resource}:edit`))
-          desired.set(`${resource}:write`, isSuperAdmin || create === true || edit === true);
+        const create =
+          desired.get(`${resource}:create`) ?? stored.get(`${resource}:create`);
+        const edit =
+          desired.get(`${resource}:edit`) ?? stored.get(`${resource}:edit`);
+        if (
+          desired.has(`${resource}:create`) ||
+          desired.has(`${resource}:edit`)
+        )
+          desired.set(
+            `${resource}:write`,
+            isSuperAdmin || create === true || edit === true,
+          );
       }
       if (isSuperAdmin) validKeys.forEach((key) => desired.set(key, true));
-      const changes: Array<{ key: string; from: boolean | null; to: boolean }> = [];
+      const changes: Array<{ key: string; from: boolean | null; to: boolean }> =
+        [];
       for (const [key, allowed] of Array.from(desired)) {
         const before = stored.get(key);
         if (before === allowed) continue;
@@ -98,7 +121,8 @@ export async function upsertRoleAction(data: {
       });
       return role;
     });
-    if (data.scopes && saved.id !== "super_admin") await setRoleDataScopes(saved.id, data.scopes);
+    if (data.scopes && saved.id !== "super_admin")
+      await setRoleDataScopes(saved.id, data.scopes);
     revalidatePath(ROUTES.home, "layout");
     return { success: true };
   });
@@ -116,7 +140,9 @@ export async function deleteRoleAction(id: string) {
       if (role.isSystem || id === "super_admin")
         throw new Error(serverMessages.cannotDeleteSystemRoles);
       if (await tx.user.count({ where: { role: id } }))
-        throw new Error(serverMessages.cannotDeleteRoleCurrentlyAssignedToUsers);
+        throw new Error(
+          serverMessages.cannotDeleteRoleCurrentlyAssignedToUsers,
+        );
       await tx.permission.deleteMany({ where: { role: id } });
       await tx.role.delete({ where: { id } });
       await tx.activityLog.create({

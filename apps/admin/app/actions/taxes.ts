@@ -1,6 +1,13 @@
 "use server";
 import { revalidatePath } from "next/cache";
-import { createActivityLog, deleteTaxRate, measureOperation, runAtomicMutation, saveTaxRate, type TaxRateInput } from "@platform/database";
+import {
+  createActivityLog,
+  deleteTaxRate,
+  measureOperation,
+  runAtomicMutation,
+  saveTaxRate,
+  type TaxRateInput,
+} from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { validateActionArguments } from "../../lib/action-input";
 import { requirePermission } from "../../lib/auth";
@@ -17,7 +24,11 @@ export async function saveTaxRateAction(data: TaxRateInput) {
         action: data.id ? "update" : "create",
         entity_type: "tax_rate",
         entity_id: saved.id,
-        details: { name: saved.nameEn, rate: Number(saved.ratePercent), active: saved.isActive },
+        details: {
+          name: saved.nameEn,
+          rate: Number(saved.ratePercent),
+          active: saved.isActive,
+        },
       });
       return saved;
     });
@@ -32,7 +43,13 @@ export async function deleteTaxRateAction(id: string) {
     validateActionArguments("deleteTaxRateAction", { id });
     await runAtomicMutation(async () => {
       await deleteTaxRate(id);
-      await createActivityLog({ user_id: user.id, action: "delete", entity_type: "tax_rate", entity_id: id, details: {} });
+      await createActivityLog({
+        user_id: user.id,
+        action: "delete",
+        entity_type: "tax_rate",
+        entity_id: id,
+        details: {},
+      });
     });
     revalidatePath(ROUTES.settings.company);
     return { success: true };

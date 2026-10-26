@@ -53,7 +53,7 @@ close(run({ policy: current, window: october, attendance: late }).absenceDeducti
 assert.equal(run().absenceDeduction, 0);
 assert.equal(run().summary.unmarkedDays, 22);
 close(run({ policy: policy({ unmarkedDays: "absent" }) }).absenceDeduction, 3500, "absent on every working day: no salary");
-const allButOne = ["01","02","03","06","07","08","09","10","13","14","15","16","17","20","21","22","23","24","27","28","29"].map((d) => day(`2026-09-${d}`, { status: "absent" }));
+const allButOne = ["01", "02", "03", "06", "07", "08", "09", "10", "13", "14", "15", "16", "17", "20", "21", "22", "23", "24", "27", "28", "29"].map((d) => day(`2026-09-${d}`, { status: "absent" }));
 close(run({ attendance: allButOne }).absenceDeduction, 21 * 3500 / 30, "21 absent days, one worked");
 
 // --- Leave ---

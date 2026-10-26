@@ -1,7 +1,15 @@
 import { db } from "../db";
 import { ActivityLog } from "../types";
 
-const ACTIVITY_USER_SELECT = { id: true, fullName: true, email: true, role: true, avatarUrl: true, createdAt: true, updatedAt: true } as const;
+const ACTIVITY_USER_SELECT = {
+  id: true,
+  fullName: true,
+  email: true,
+  role: true,
+  avatarUrl: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
 
 function mapActivity(a: any): ActivityLog {
   return {

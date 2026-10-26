@@ -61,7 +61,8 @@ export async function resolveIncomingLead(
 ): Promise<ResolvedLeadResult> {
   const emailNorm = data.email.trim().toLowerCase();
   const phoneE164 = data.phone ? normalizeToE164(data.phone, "BH") : null;
-  if (data.phone && !phoneE164) throw new Error(serverMessages.invalidPhoneNumber);
+  if (data.phone && !phoneE164)
+    throw new Error(serverMessages.invalidPhoneNumber);
   const intent = data.intent || "inquiry";
   return db.$transaction(async (tx) => {
     if (data.submissionKey) {
@@ -104,7 +105,11 @@ export async function resolveIncomingLead(
         : [];
       const emailMatch = emailMatches.length === 1 ? emailMatches[0] : null;
       const phoneMatch = phoneMatches.length === 1 ? phoneMatches[0] : null;
-      if (emailMatches.length > 1 || phoneMatches.length > 1 || (emailMatch && phoneMatch && emailMatch.id !== phoneMatch.id)) {
+      if (
+        emailMatches.length > 1 ||
+        phoneMatches.length > 1 ||
+        (emailMatch && phoneMatch && emailMatch.id !== phoneMatch.id)
+      ) {
         resolution = "merge_conflict";
       } else {
         const existing = emailMatch || phoneMatch;
@@ -133,7 +138,11 @@ export async function resolveIncomingLead(
     }
     const inquiry = await tx.inquiry.create({
       data: {
-        reference: await getNextSequenceNumber(referencePrefixFor({ intent }), undefined, tx),
+        reference: await getNextSequenceNumber(
+          referencePrefixFor({ intent }),
+          undefined,
+          tx,
+        ),
         name: data.name,
         email: data.email,
         emailNorm: emailNorm || null,

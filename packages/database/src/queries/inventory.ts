@@ -14,8 +14,10 @@ import { getNextSequenceNumber } from "./sequence";
 import { normalizeProductOptions, variantLabel } from "../constants/products";
 
 type Tx = Prisma.TransactionClient;
-const num = (value: { toString(): string } | null | undefined) => (value == null ? 0 : Number(value.toString()));
-const numOrNull = (value: { toString(): string } | null | undefined) => (value == null ? null : Number(value.toString()));
+const num = (value: { toString(): string } | null | undefined) =>
+  value == null ? 0 : Number(value.toString());
+const numOrNull = (value: { toString(): string } | null | undefined) =>
+  value == null ? null : Number(value.toString());
 
 // ─── Warehouses and locations ────────────────────────────────────────────────────────────────────────────────────
 
@@ -32,21 +34,41 @@ export interface WarehouseRecord {
 
 /** A company with stock always has a warehouse to put it in: the first one is created on demand. */
 export async function ensureDefaultWarehouse(client: Tx | typeof db = db) {
-  const existing = await client.warehouse.findFirst({ where: { isDefault: true }, include: { locations: { orderBy: { createdAt: "asc" } } } });
+  const existing = await client.warehouse.findFirst({
+    where: { isDefault: true },
+    include: { locations: { orderBy: { createdAt: "asc" } } },
+  });
   if (existing) return existing;
-  const any = await client.warehouse.findFirst({ orderBy: { createdAt: "asc" }, include: { locations: { orderBy: { createdAt: "asc" } } } });
-  if (any) return client.warehouse.update({ where: { id: any.id }, data: { isDefault: true }, include: { locations: { orderBy: { createdAt: "asc" } } } });
+  const any = await client.warehouse.findFirst({
+    orderBy: { createdAt: "asc" },
+    include: { locations: { orderBy: { createdAt: "asc" } } },
+  });
+  if (any)
+    return client.warehouse.update({
+      where: { id: any.id },
+      data: { isDefault: true },
+      include: { locations: { orderBy: { createdAt: "asc" } } },
+    });
   const en = getTranslations("en").admin.inventory;
   const ar = getTranslations("ar").admin.inventory;
   return client.warehouse.create({
-    data: { code: "MAIN", nameEn: en.defaultWarehouse, nameAr: ar.defaultWarehouse, isDefault: true, locations: { create: { code: "MAIN" } } },
+    data: {
+      code: "MAIN",
+      nameEn: en.defaultWarehouse,
+      nameAr: ar.defaultWarehouse,
+      isDefault: true,
+      locations: { create: { code: "MAIN" } },
+    },
     include: { locations: { orderBy: { createdAt: "asc" } } },
   });
 }
 
 export async function listWarehouses(): Promise<WarehouseRecord[]> {
   await ensureDefaultWarehouse();
-  const rows = await db.warehouse.findMany({ orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }], include: { locations: { orderBy: { createdAt: "asc" } } } });
+  const rows = await db.warehouse.findMany({
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    include: { locations: { orderBy: { createdAt: "asc" } } },
+  });
   return rows.map((w) => ({
     id: w.id,
     code: w.code,
@@ -55,7 +77,12 @@ export async function listWarehouses(): Promise<WarehouseRecord[]> {
     address: w.address ?? "",
     is_active: w.isActive,
     is_default: w.isDefault,
-    locations: w.locations.map((l) => ({ id: l.id, code: l.code, name: l.name ?? "", is_active: l.isActive })),
+    locations: w.locations.map((l) => ({
+      id: l.id,
+      code: l.code,
+      name: l.name ?? "",
+      is_active: l.isActive,
+    })),
   }));
 }
 
@@ -71,20 +98,50 @@ export interface WarehouseInput {
 
 export async function saveWarehouse(input: WarehouseInput) {
   const code = input.code.trim().toUpperCase();
-  if (!WAREHOUSE_CODE.test(code)) throw new Error(serverMessages.warehouseCodeInvalid);
+  if (!WAREHOUSE_CODE.test(code))
+    throw new Error(serverMessages.warehouseCodeInvalid);
   const nameEn = input.nameEn.trim().slice(0, 120);
   const nameAr = input.nameAr.trim().slice(0, 120);
   if (!nameEn || !nameAr) throw new Error(serverMessages.productNameRequired);
-  if (await db.warehouse.findFirst({ where: { code, id: { not: input.id ?? "" } }, select: { id: true } })) throw new Error(serverMessages.warehouseCodeTaken);
-  if (input.id && !input.isActive && (await stockInLocations({ location: { warehouseId: input.id } }))) throw new Error(serverMessages.warehouseHasStock);
-  const data = { code, nameEn, nameAr, address: input.address.trim().slice(0, 300) || null, isActive: input.isActive || input.isDefault };
+  if (
+    await db.warehouse.findFirst({
+      where: { code, id: { not: input.id ?? "" } },
+      select: { id: true },
+    })
+  )
+    throw new Error(serverMessages.warehouseCodeTaken);
+  if (
+    input.id &&
+    !input.isActive &&
+    (await stockInLocations({ location: { warehouseId: input.id } }))
+  )
+    throw new Error(serverMessages.warehouseHasStock);
+  const data = {
+    code,
+    nameEn,
+    nameAr,
+    address: input.address.trim().slice(0, 300) || null,
+    isActive: input.isActive || input.isDefault,
+  };
   return db.$transaction(async (tx) => {
     const warehouse = input.id
       ? await tx.warehouse.update({ where: { id: input.id }, data })
-      : await tx.warehouse.create({ data: { ...data, sortOrder: await tx.warehouse.count(), locations: { create: { code: "MAIN" } } } });
+      : await tx.warehouse.create({
+          data: {
+            ...data,
+            sortOrder: await tx.warehouse.count(),
+            locations: { create: { code: "MAIN" } },
+          },
+        });
     if (input.isDefault) {
-      await tx.warehouse.updateMany({ where: { id: { not: warehouse.id } }, data: { isDefault: false } });
-      await tx.warehouse.update({ where: { id: warehouse.id }, data: { isDefault: true } });
+      await tx.warehouse.updateMany({
+        where: { id: { not: warehouse.id } },
+        data: { isDefault: false },
+      });
+      await tx.warehouse.update({
+        where: { id: warehouse.id },
+        data: { isDefault: true },
+      });
     }
     return warehouse;
   });
@@ -100,14 +157,42 @@ export interface LocationInput {
 
 export async function saveLocation(input: LocationInput) {
   const code = input.code.trim().toUpperCase();
-  if (!WAREHOUSE_CODE.test(code)) throw new Error(serverMessages.warehouseCodeInvalid);
-  if (await db.stockLocation.findFirst({ where: { warehouseId: input.warehouseId, code, id: { not: input.id ?? "" } }, select: { id: true } })) throw new Error(serverMessages.warehouseCodeTaken);
-  if (input.id && !input.isActive && (await stockInLocations({ locationId: input.id }))) throw new Error(serverMessages.warehouseHasStock);
-  const data = { code, name: input.name.trim().slice(0, 80) || null, isActive: input.isActive };
-  return input.id ? db.stockLocation.update({ where: { id: input.id }, data }) : db.stockLocation.create({ data: { ...data, warehouseId: input.warehouseId } });
+  if (!WAREHOUSE_CODE.test(code))
+    throw new Error(serverMessages.warehouseCodeInvalid);
+  if (
+    await db.stockLocation.findFirst({
+      where: {
+        warehouseId: input.warehouseId,
+        code,
+        id: { not: input.id ?? "" },
+      },
+      select: { id: true },
+    })
+  )
+    throw new Error(serverMessages.warehouseCodeTaken);
+  if (
+    input.id &&
+    !input.isActive &&
+    (await stockInLocations({ locationId: input.id }))
+  )
+    throw new Error(serverMessages.warehouseHasStock);
+  const data = {
+    code,
+    name: input.name.trim().slice(0, 80) || null,
+    isActive: input.isActive,
+  };
+  return input.id
+    ? db.stockLocation.update({ where: { id: input.id }, data })
+    : db.stockLocation.create({
+        data: { ...data, warehouseId: input.warehouseId },
+      });
 }
 
-const stockInLocations = async (where: Prisma.StockLevelWhereInput) => !!(await db.stockLevel.findFirst({ where: { ...where, OR: [{ onHand: { not: 0 } }, { reserved: { not: 0 } }] }, select: { id: true } }));
+const stockInLocations = async (where: Prisma.StockLevelWhereInput) =>
+  !!(await db.stockLevel.findFirst({
+    where: { ...where, OR: [{ onHand: { not: 0 } }, { reserved: { not: 0 } }] },
+    select: { id: true },
+  }));
 
 // ─── The ledger ──────────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -133,26 +218,65 @@ export interface MovementInput {
 
 /** The item a movement is about, checked: the product keeps stock, the variant is its own, the location is in use. */
 async function resolveItem(tx: Tx, input: MovementInput) {
-  const product = await tx.product.findUnique({ where: { id: input.productId }, select: { id: true, trackStock: true, trackBatches: true, nameEn: true, nameAr: true, sku: true, variants: { select: { id: true, sku: true } } } });
+  const product = await tx.product.findUnique({
+    where: { id: input.productId },
+    select: {
+      id: true,
+      trackStock: true,
+      trackBatches: true,
+      nameEn: true,
+      nameAr: true,
+      sku: true,
+      variants: { select: { id: true, sku: true } },
+    },
+  });
   if (!product) throw new Error(serverMessages.productMissing);
   if (!product.trackStock) throw new Error(serverMessages.stockNotTracked);
-  if (product.variants.length > 0 && !product.variants.some((v) => v.id === input.variantId)) throw new Error(serverMessages.stockVariantRequired);
-  if (product.variants.length === 0 && input.variantId) throw new Error(serverMessages.stockVariantRequired);
-  const location = await tx.stockLocation.findUnique({ where: { id: input.locationId }, include: { warehouse: { select: { isActive: true } } } });
-  if (!location || !location.isActive || !location.warehouse.isActive) throw new Error(serverMessages.stockLocationMissing);
-  return { product, variantKey: input.variantId ?? "", sku: product.variants.find((v) => v.id === input.variantId)?.sku ?? product.sku };
+  if (
+    product.variants.length > 0 &&
+    !product.variants.some((v) => v.id === input.variantId)
+  )
+    throw new Error(serverMessages.stockVariantRequired);
+  if (product.variants.length === 0 && input.variantId)
+    throw new Error(serverMessages.stockVariantRequired);
+  const location = await tx.stockLocation.findUnique({
+    where: { id: input.locationId },
+    include: { warehouse: { select: { isActive: true } } },
+  });
+  if (!location || !location.isActive || !location.warehouse.isActive)
+    throw new Error(serverMessages.stockLocationMissing);
+  return {
+    product,
+    variantKey: input.variantId ?? "",
+    sku:
+      product.variants.find((v) => v.id === input.variantId)?.sku ??
+      product.sku,
+  };
 }
 
-async function resolveBatch(tx: Tx, productId: string, variantKey: string, trackBatches: boolean, input: MovementInput) {
+async function resolveBatch(
+  tx: Tx,
+  productId: string,
+  variantKey: string,
+  trackBatches: boolean,
+  input: MovementInput,
+) {
   if (!trackBatches) return "";
   const batchNumber = input.batchNumber?.trim().slice(0, 60);
   if (!batchNumber) throw new Error(serverMessages.stockBatchRequired);
-  const existing = await tx.stockBatch.findUnique({ where: { productId_variantKey_batchNumber: { productId, variantKey, batchNumber } } });
+  const existing = await tx.stockBatch.findUnique({
+    where: {
+      productId_variantKey_batchNumber: { productId, variantKey, batchNumber },
+    },
+  });
   if (existing) return existing.id;
   if (input.quantity < 0) throw new Error(serverMessages.stockInsufficient);
   const expiry = input.expiryDate ? new Date(input.expiryDate) : null;
-  if (expiry && !Number.isFinite(expiry.getTime())) throw new Error(serverMessages.stockBatchRequired);
-  const batch = await tx.stockBatch.create({ data: { productId, variantKey, batchNumber, expiryDate: expiry } });
+  if (expiry && !Number.isFinite(expiry.getTime()))
+    throw new Error(serverMessages.stockBatchRequired);
+  const batch = await tx.stockBatch.create({
+    data: { productId, variantKey, batchNumber, expiryDate: expiry },
+  });
   return batch.id;
 }
 
@@ -161,34 +285,78 @@ async function resolveBatch(tx: Tx, productId: string, variantKey: string, track
  * given. Stock never goes below what is reserved (or below zero); receipts move the weighted average cost.
  * Returns the items whose available stock fell to their reorder point, for low-stock alerts.
  */
-export async function postMovements(tx: Tx, movements: MovementInput[], userId: string | null) {
+export async function postMovements(
+  tx: Tx,
+  movements: MovementInput[],
+  userId: string | null,
+) {
   const touched = new Map<string, { productId: string; variantKey: string }>();
   for (const input of movements) {
     const quantity = roundQuantity(Number(input.quantity));
-    if (!Number.isFinite(quantity) || quantity === 0 || Math.abs(quantity) > 10_000_000) throw new Error(serverMessages.stockQuantityInvalid);
-    if (input.reason && !isAdjustmentReason(input.reason)) throw new Error(serverMessages.stockQuantityInvalid);
+    if (
+      !Number.isFinite(quantity) ||
+      quantity === 0 ||
+      Math.abs(quantity) > 10_000_000
+    )
+      throw new Error(serverMessages.stockQuantityInvalid);
+    if (input.reason && !isAdjustmentReason(input.reason))
+      throw new Error(serverMessages.stockQuantityInvalid);
     const { product, variantKey } = await resolveItem(tx, input);
-    const batchKey = await resolveBatch(tx, product.id, variantKey, product.trackBatches, { ...input, quantity });
-    const key = { productId: product.id, variantKey, locationId: input.locationId, batchKey };
+    const batchKey = await resolveBatch(
+      tx,
+      product.id,
+      variantKey,
+      product.trackBatches,
+      { ...input, quantity },
+    );
+    const key = {
+      productId: product.id,
+      variantKey,
+      locationId: input.locationId,
+      batchKey,
+    };
 
     // One row per item for the average cost; locked for the rest of the transaction.
-    await tx.stockItem.upsert({ where: { productId_variantKey: { productId: product.id, variantKey } }, update: {}, create: { productId: product.id, variantKey } });
-    const [item] = await tx.$queryRaw<{ averageCost: Prisma.Decimal }[]>`SELECT "averageCost" FROM "StockItem" WHERE "productId" = ${product.id} AND "variantKey" = ${variantKey} FOR UPDATE`;
+    await tx.stockItem.upsert({
+      where: { productId_variantKey: { productId: product.id, variantKey } },
+      update: {},
+      create: { productId: product.id, variantKey },
+    });
+    const [item] = await tx.$queryRaw<
+      { averageCost: Prisma.Decimal }[]
+    >`SELECT "averageCost" FROM "StockItem" WHERE "productId" = ${product.id} AND "variantKey" = ${variantKey} FOR UPDATE`;
     let unitCost = num(item?.averageCost);
     if (quantity > 0 && input.type === "receipt") {
       const cost = Number(input.unitCost ?? 0);
-      if (!Number.isFinite(cost) || cost < 0 || cost > 99_999_999) throw new Error(serverMessages.productAmountInvalid);
-      const totals = await tx.stockLevel.aggregate({ where: { productId: product.id, variantKey }, _sum: { onHand: true } });
-      const averageCost = averageCostAfter(num(totals._sum.onHand), unitCost, quantity, cost);
-      await tx.stockItem.update({ where: { productId_variantKey: { productId: product.id, variantKey } }, data: { averageCost } });
+      if (!Number.isFinite(cost) || cost < 0 || cost > 99_999_999)
+        throw new Error(serverMessages.productAmountInvalid);
+      const totals = await tx.stockLevel.aggregate({
+        where: { productId: product.id, variantKey },
+        _sum: { onHand: true },
+      });
+      const averageCost = averageCostAfter(
+        num(totals._sum.onHand),
+        unitCost,
+        quantity,
+        cost,
+      );
+      await tx.stockItem.update({
+        where: { productId_variantKey: { productId: product.id, variantKey } },
+        data: { averageCost },
+      });
       unitCost = cost;
     }
 
     if (quantity > 0) {
-      await tx.stockLevel.upsert({ where: { productId_variantKey_locationId_batchKey: key }, update: { onHand: { increment: quantity } }, create: { ...key, onHand: quantity } });
+      await tx.stockLevel.upsert({
+        where: { productId_variantKey_locationId_batchKey: key },
+        update: { onHand: { increment: quantity } },
+        create: { ...key, onHand: quantity },
+      });
     } else {
       // Only what is not reserved can leave, and never more than there is.
-      const changed = await tx.$executeRaw`UPDATE "StockLevel" SET "onHand" = "onHand" + ${quantity}, "updatedAt" = now()
+      const changed =
+        await tx.$executeRaw`UPDATE "StockLevel" SET "onHand" = "onHand" + ${quantity}, "updatedAt" = now()
         WHERE "productId" = ${product.id} AND "variantKey" = ${variantKey} AND "locationId" = ${input.locationId} AND "batchKey" = ${batchKey}
           AND "onHand" - "reserved" + ${quantity} >= 0`;
       if (changed === 0) throw new Error(serverMessages.stockInsufficient);
@@ -207,37 +375,69 @@ export async function postMovements(tx: Tx, movements: MovementInput[], userId: 
         createdById: userId,
       },
     });
-    touched.set(`${product.id}|${variantKey}`, { productId: product.id, variantKey });
+    touched.set(`${product.id}|${variantKey}`, {
+      productId: product.id,
+      variantKey,
+    });
   }
   return lowStockAfter(tx, Array.from(touched.values()));
 }
 
 /** Of the items given, those now at or below their reorder point that have not been alerted yet (marked alerted). */
-async function lowStockAfter(tx: Tx, items: { productId: string; variantKey: string }[]) {
-  const low: { productId: string; variantKey: string; available: number; reorderPoint: number }[] = [];
+async function lowStockAfter(
+  tx: Tx,
+  items: { productId: string; variantKey: string }[],
+) {
+  const low: {
+    productId: string;
+    variantKey: string;
+    available: number;
+    reorderPoint: number;
+  }[] = [];
   for (const { productId, variantKey } of items) {
-    const item = await tx.stockItem.findUnique({ where: { productId_variantKey: { productId, variantKey } } });
+    const item = await tx.stockItem.findUnique({
+      where: { productId_variantKey: { productId, variantKey } },
+    });
     if (!item || item.reorderPoint == null) continue;
-    const totals = await tx.stockLevel.aggregate({ where: { productId, variantKey }, _sum: { onHand: true, reserved: true } });
+    const totals = await tx.stockLevel.aggregate({
+      where: { productId, variantKey },
+      _sum: { onHand: true, reserved: true },
+    });
     const available = num(totals._sum.onHand) - num(totals._sum.reserved);
     const point = num(item.reorderPoint);
     if (available <= point && !item.lowAlertedAt) {
-      await tx.stockItem.update({ where: { id: item.id }, data: { lowAlertedAt: new Date() } });
+      await tx.stockItem.update({
+        where: { id: item.id },
+        data: { lowAlertedAt: new Date() },
+      });
       low.push({ productId, variantKey, available, reorderPoint: point });
     } else if (available > point && item.lowAlertedAt) {
       // Back above the point: the next dip alerts again.
-      await tx.stockItem.update({ where: { id: item.id }, data: { lowAlertedAt: null } });
+      await tx.stockItem.update({
+        where: { id: item.id },
+        data: { lowAlertedAt: null },
+      });
     }
   }
   return low;
 }
 
 /** Holds stock for an order (or releases it with a negative quantity); reserved stock cannot be sold or moved. */
-export async function reserveStock(tx: Tx, input: { productId: string; variantId?: string; locationId: string; batchKey?: string; quantity: number }) {
+export async function reserveStock(
+  tx: Tx,
+  input: {
+    productId: string;
+    variantId?: string;
+    locationId: string;
+    batchKey?: string;
+    quantity: number;
+  },
+) {
   const quantity = roundQuantity(input.quantity);
   const variantKey = input.variantId ?? "";
   const batchKey = input.batchKey ?? "";
-  const changed = await tx.$executeRaw`UPDATE "StockLevel" SET "reserved" = "reserved" + ${quantity}, "updatedAt" = now()
+  const changed =
+    await tx.$executeRaw`UPDATE "StockLevel" SET "reserved" = "reserved" + ${quantity}, "updatedAt" = now()
     WHERE "productId" = ${input.productId} AND "variantKey" = ${variantKey} AND "locationId" = ${input.locationId} AND "batchKey" = ${batchKey}
       AND "reserved" + ${quantity} >= 0 AND "onHand" - "reserved" - ${quantity} >= 0`;
   if (changed === 0) throw new Error(serverMessages.stockInsufficient);
@@ -262,14 +462,40 @@ export interface StockChangeInput {
   note?: string;
 }
 
-export async function changeStock(input: StockChangeInput, userId: string | null) {
+export async function changeStock(
+  input: StockChangeInput,
+  userId: string | null,
+) {
   const amount = roundQuantity(Math.abs(Number(input.quantity)));
   if (!amount) throw new Error(serverMessages.stockQuantityInvalid);
-  if (!["receipt", "adjustment", "write_off"].includes(input.type)) throw new Error(serverMessages.stockQuantityInvalid);
-  if (input.type !== "receipt" && !isAdjustmentReason(input.reason)) throw new Error(serverMessages.stockReasonRequired);
-  const sign = input.type === "receipt" || (input.type === "adjustment" && input.direction === "in") ? 1 : -1;
+  if (!["receipt", "adjustment", "write_off"].includes(input.type))
+    throw new Error(serverMessages.stockQuantityInvalid);
+  if (input.type !== "receipt" && !isAdjustmentReason(input.reason))
+    throw new Error(serverMessages.stockReasonRequired);
+  const sign =
+    input.type === "receipt" ||
+    (input.type === "adjustment" && input.direction === "in")
+      ? 1
+      : -1;
   return db.$transaction((tx) =>
-    postMovements(tx, [{ type: input.type as MovementType, productId: input.productId, variantId: input.variantId || undefined, locationId: input.locationId, quantity: sign * amount, unitCost: input.unitCost, batchNumber: input.batchNumber, expiryDate: input.expiryDate, reason: input.type === "receipt" ? undefined : input.reason, note: input.note }], userId),
+    postMovements(
+      tx,
+      [
+        {
+          type: input.type as MovementType,
+          productId: input.productId,
+          variantId: input.variantId || undefined,
+          locationId: input.locationId,
+          quantity: sign * amount,
+          unitCost: input.unitCost,
+          batchNumber: input.batchNumber,
+          expiryDate: input.expiryDate,
+          reason: input.type === "receipt" ? undefined : input.reason,
+          note: input.note,
+        },
+      ],
+      userId,
+    ),
   );
 }
 
@@ -284,22 +510,57 @@ export interface TransferInput {
 }
 
 /** Moves stock between locations or warehouses: two ledger rows sharing one transfer id. */
-export async function transferStock(input: TransferInput, userId: string | null) {
+export async function transferStock(
+  input: TransferInput,
+  userId: string | null,
+) {
   const amount = roundQuantity(Math.abs(Number(input.quantity)));
   if (!amount) throw new Error(serverMessages.stockQuantityInvalid);
-  if (input.fromLocationId === input.toLocationId) throw new Error(serverMessages.stockTransferSame);
+  if (input.fromLocationId === input.toLocationId)
+    throw new Error(serverMessages.stockTransferSame);
   const transferId = randomUUID();
-  const base = { productId: input.productId, variantId: input.variantId || undefined, batchNumber: input.batchNumber, sourceType: "transfer", transferId, note: input.note };
+  const base = {
+    productId: input.productId,
+    variantId: input.variantId || undefined,
+    batchNumber: input.batchNumber,
+    sourceType: "transfer",
+    transferId,
+    note: input.note,
+  };
   return db.$transaction((tx) =>
-    postMovements(tx, [
-      { ...base, type: "transfer_out", locationId: input.fromLocationId, quantity: -amount },
-      { ...base, type: "transfer_in", locationId: input.toLocationId, quantity: amount },
-    ], userId),
+    postMovements(
+      tx,
+      [
+        {
+          ...base,
+          type: "transfer_out",
+          locationId: input.fromLocationId,
+          quantity: -amount,
+        },
+        {
+          ...base,
+          type: "transfer_in",
+          locationId: input.toLocationId,
+          quantity: amount,
+        },
+      ],
+      userId,
+    ),
   );
 }
 
-export async function setReorderPoint(productId: string, variantKey: string, reorderPoint: number | null, reorderQuantity: number | null) {
-  for (const value of [reorderPoint, reorderQuantity]) if (value != null && (!Number.isFinite(value) || value < 0 || value > 10_000_000)) throw new Error(serverMessages.stockQuantityInvalid);
+export async function setReorderPoint(
+  productId: string,
+  variantKey: string,
+  reorderPoint: number | null,
+  reorderQuantity: number | null,
+) {
+  for (const value of [reorderPoint, reorderQuantity])
+    if (
+      value != null &&
+      (!Number.isFinite(value) || value < 0 || value > 10_000_000)
+    )
+      throw new Error(serverMessages.stockQuantityInvalid);
   await db.stockItem.upsert({
     where: { productId_variantKey: { productId, variantKey } },
     update: { reorderPoint, reorderQuantity, lowAlertedAt: null },
@@ -349,23 +610,67 @@ export async function getStockOverview(query: StockQuery = {}) {
     where: {
       trackStock: true,
       ...(search
-        ? { OR: [{ nameEn: { contains: search, mode: "insensitive" } }, { nameAr: { contains: search, mode: "insensitive" } }, { sku: { contains: search, mode: "insensitive" } }, { barcode: search }, { variants: { some: { OR: [{ sku: { contains: search, mode: "insensitive" } }, { barcode: search }] } } }] }
+        ? {
+            OR: [
+              { nameEn: { contains: search, mode: "insensitive" } },
+              { nameAr: { contains: search, mode: "insensitive" } },
+              { sku: { contains: search, mode: "insensitive" } },
+              { barcode: search },
+              {
+                variants: {
+                  some: {
+                    OR: [
+                      { sku: { contains: search, mode: "insensitive" } },
+                      { barcode: search },
+                    ],
+                  },
+                },
+              },
+            ],
+          }
         : {}),
     },
     orderBy: [{ createdAt: "desc" }, { id: "asc" }],
-    select: { id: true, sku: true, nameEn: true, nameAr: true, unit: true, trackBatches: true, options: true, variants: { orderBy: { sortOrder: "asc" }, select: { id: true, sku: true, optionValues: true } } },
+    select: {
+      id: true,
+      sku: true,
+      nameEn: true,
+      nameAr: true,
+      unit: true,
+      trackBatches: true,
+      options: true,
+      variants: {
+        orderBy: { sortOrder: "asc" },
+        select: { id: true, sku: true, optionValues: true },
+      },
+    },
     take: 5000,
   });
   const ids = products.map((p) => p.id);
   const [levels, items] = await Promise.all([
-    db.stockLevel.groupBy({ by: ["productId", "variantKey"], where: { productId: { in: ids }, ...(query.warehouseId ? { location: { warehouseId: query.warehouseId } } : {}) }, _sum: { onHand: true, reserved: true } }),
+    db.stockLevel.groupBy({
+      by: ["productId", "variantKey"],
+      where: {
+        productId: { in: ids },
+        ...(query.warehouseId
+          ? { location: { warehouseId: query.warehouseId } }
+          : {}),
+      },
+      _sum: { onHand: true, reserved: true },
+    }),
     db.stockItem.findMany({ where: { productId: { in: ids } } }),
   ]);
-  const level = new Map(levels.map((l) => [`${l.productId}|${l.variantKey}`, l._sum]));
+  const level = new Map(
+    levels.map((l) => [`${l.productId}|${l.variantKey}`, l._sum]),
+  );
   const item = new Map(items.map((i) => [`${i.productId}|${i.variantKey}`, i]));
   let rows: StockRow[] = products.flatMap((p) => {
     const options = normalizeProductOptions(p.options) ?? [];
-    return (p.variants.length ? p.variants.map((v) => ({ variant: v as typeof v | null })) : [{ variant: null }]).map(({ variant }) => {
+    return (
+      p.variants.length
+        ? p.variants.map((v) => ({ variant: v as typeof v | null }))
+        : [{ variant: null }]
+    ).map(({ variant }) => {
       const key = `${p.id}|${variant?.id ?? ""}`;
       const onHand = num(level.get(key)?.onHand);
       const reserved = num(level.get(key)?.reserved);
@@ -379,8 +684,12 @@ export async function getStockOverview(query: StockQuery = {}) {
         name_en: p.nameEn,
         name_ar: p.nameAr,
         variant_values: variant?.optionValues ?? [],
-        variant_en: variant ? variantLabel(options, variant.optionValues, "en") : "",
-        variant_ar: variant ? variantLabel(options, variant.optionValues, "ar") : "",
+        variant_en: variant
+          ? variantLabel(options, variant.optionValues, "en")
+          : "",
+        variant_ar: variant
+          ? variantLabel(options, variant.optionValues, "ar")
+          : "",
         unit: p.unit,
         track_batches: p.trackBatches,
         on_hand: onHand,
@@ -395,16 +704,32 @@ export async function getStockOverview(query: StockQuery = {}) {
   });
   if (query.filter === "low") rows = rows.filter((r) => r.low);
   if (query.filter === "out") rows = rows.filter((r) => r.available <= 0);
-  const totalValue = Math.round(rows.reduce((sum, r) => sum + r.value, 0) * 1000) / 1000;
-  return { rows: rows.slice((page - 1) * pageSize, page * pageSize), total: rows.length, page, pageSize, totalValue };
+  const totalValue =
+    Math.round(rows.reduce((sum, r) => sum + r.value, 0) * 1000) / 1000;
+  return {
+    rows: rows.slice((page - 1) * pageSize, page * pageSize),
+    total: rows.length,
+    page,
+    pageSize,
+    totalValue,
+  };
 }
 
 /** One product's stock by variant, location and batch, its reorder points and recent movements. */
 export async function getProductStock(productId: string) {
   const [levels, items, movements, batches] = await Promise.all([
-    db.stockLevel.findMany({ where: { productId }, include: { location: { include: { warehouse: true } } }, orderBy: { updatedAt: "desc" } }),
+    db.stockLevel.findMany({
+      where: { productId },
+      include: { location: { include: { warehouse: true } } },
+      orderBy: { updatedAt: "desc" },
+    }),
     db.stockItem.findMany({ where: { productId } }),
-    db.stockMovement.findMany({ where: { productId }, include: { location: { include: { warehouse: true } } }, orderBy: { createdAt: "desc" }, take: 20 }),
+    db.stockMovement.findMany({
+      where: { productId },
+      include: { location: { include: { warehouse: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
     db.stockBatch.findMany({ where: { productId } }),
   ]);
   const batch = new Map(batches.map((b) => [b.id, b]));
@@ -416,11 +741,17 @@ export async function getProductStock(productId: string) {
         location_id: l.locationId,
         location: `${l.location.warehouse.code} · ${l.location.code}`,
         batch: batch.get(l.batchKey)?.batchNumber ?? null,
-        expiry: batch.get(l.batchKey)?.expiryDate?.toISOString().slice(0, 10) ?? null,
+        expiry:
+          batch.get(l.batchKey)?.expiryDate?.toISOString().slice(0, 10) ?? null,
         on_hand: num(l.onHand),
         reserved: num(l.reserved),
       })),
-    items: items.map((i) => ({ variant_key: i.variantKey, reorder_point: numOrNull(i.reorderPoint), reorder_quantity: numOrNull(i.reorderQuantity), average_cost: num(i.averageCost) })),
+    items: items.map((i) => ({
+      variant_key: i.variantKey,
+      reorder_point: numOrNull(i.reorderPoint),
+      reorder_quantity: numOrNull(i.reorderQuantity),
+      average_cost: num(i.averageCost),
+    })),
     movements: movements.map(movementRecord(batch)),
   };
 }
@@ -441,21 +772,27 @@ export interface MovementRecord {
   created_at: string;
 }
 
-const movementRecord = (batch: Map<string, { batchNumber: string }>) => (m: Prisma.StockMovementGetPayload<{ include: { location: { include: { warehouse: true } } } }>): MovementRecord => ({
-  id: m.id,
-  type: m.type,
-  product_id: m.productId,
-  variant_key: m.variantKey,
-  location: `${m.location.warehouse.code} · ${m.location.code}`,
-  batch: batch.get(m.batchKey)?.batchNumber ?? null,
-  quantity: num(m.quantity),
-  unit_cost: num(m.unitCost),
-  source_type: m.sourceType,
-  source_id: m.sourceId,
-  reason: m.reason,
-  note: m.note,
-  created_at: m.createdAt.toISOString(),
-});
+const movementRecord =
+  (batch: Map<string, { batchNumber: string }>) =>
+  (
+    m: Prisma.StockMovementGetPayload<{
+      include: { location: { include: { warehouse: true } } };
+    }>,
+  ): MovementRecord => ({
+    id: m.id,
+    type: m.type,
+    product_id: m.productId,
+    variant_key: m.variantKey,
+    location: `${m.location.warehouse.code} · ${m.location.code}`,
+    batch: batch.get(m.batchKey)?.batchNumber ?? null,
+    quantity: num(m.quantity),
+    unit_cost: num(m.unitCost),
+    source_type: m.sourceType,
+    source_id: m.sourceId,
+    reason: m.reason,
+    note: m.note,
+    created_at: m.createdAt.toISOString(),
+  });
 
 export interface MovementQuery {
   productId?: string;
@@ -477,19 +814,58 @@ export async function listMovements(query: MovementQuery = {}) {
   };
   const where: Prisma.StockMovementWhereInput = {
     ...(query.productId ? { productId: query.productId } : {}),
-    ...(query.warehouseId ? { location: { warehouseId: query.warehouseId } } : {}),
+    ...(query.warehouseId
+      ? { location: { warehouseId: query.warehouseId } }
+      : {}),
     ...(query.type ? { type: query.type } : {}),
-    ...(date(query.from) || date(query.to, true) ? { createdAt: { gte: date(query.from), lte: date(query.to, true) } } : {}),
+    ...(date(query.from) || date(query.to, true)
+      ? { createdAt: { gte: date(query.from), lte: date(query.to, true) } }
+      : {}),
   };
   const [rows, total] = await Promise.all([
-    db.stockMovement.findMany({ where, include: { location: { include: { warehouse: true } } }, orderBy: [{ createdAt: "desc" }, { id: "asc" }], skip: (page - 1) * pageSize, take: pageSize }),
+    db.stockMovement.findMany({
+      where,
+      include: { location: { include: { warehouse: true } } },
+      orderBy: [{ createdAt: "desc" }, { id: "asc" }],
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
     db.stockMovement.count({ where }),
   ]);
   const [products, variants, batches, people] = await Promise.all([
-    db.product.findMany({ where: { id: { in: Array.from(new Set(rows.map((r) => r.productId))) } }, select: { id: true, sku: true, nameEn: true, nameAr: true } }),
-    db.productVariant.findMany({ where: { id: { in: Array.from(new Set(rows.map((r) => r.variantKey).filter(Boolean))) } }, select: { id: true, sku: true } }),
-    db.stockBatch.findMany({ where: { id: { in: Array.from(new Set(rows.map((r) => r.batchKey).filter(Boolean))) } } }),
-    db.user.findMany({ where: { id: { in: Array.from(new Set(rows.map((r) => r.createdById).filter((id): id is string => !!id))) } }, select: { id: true, fullName: true } }),
+    db.product.findMany({
+      where: { id: { in: Array.from(new Set(rows.map((r) => r.productId))) } },
+      select: { id: true, sku: true, nameEn: true, nameAr: true },
+    }),
+    db.productVariant.findMany({
+      where: {
+        id: {
+          in: Array.from(
+            new Set(rows.map((r) => r.variantKey).filter(Boolean)),
+          ),
+        },
+      },
+      select: { id: true, sku: true },
+    }),
+    db.stockBatch.findMany({
+      where: {
+        id: {
+          in: Array.from(new Set(rows.map((r) => r.batchKey).filter(Boolean))),
+        },
+      },
+    }),
+    db.user.findMany({
+      where: {
+        id: {
+          in: Array.from(
+            new Set(
+              rows.map((r) => r.createdById).filter((id): id is string => !!id),
+            ),
+          ),
+        },
+      },
+      select: { id: true, fullName: true },
+    }),
   ]);
   const batch = new Map(batches.map((b) => [b.id, b]));
   return {
@@ -497,7 +873,10 @@ export async function listMovements(query: MovementQuery = {}) {
       const product = products.find((p) => p.id === m.productId);
       return {
         ...movementRecord(batch)(m),
-        sku: variants.find((v) => v.id === m.variantKey)?.sku ?? product?.sku ?? "",
+        sku:
+          variants.find((v) => v.id === m.variantKey)?.sku ??
+          product?.sku ??
+          "",
         name_en: product?.nameEn ?? "",
         name_ar: product?.nameAr ?? "",
         by: people.find((u) => u.id === m.createdById)?.fullName ?? null,
@@ -512,16 +891,38 @@ export async function listMovements(query: MovementQuery = {}) {
 /** Batches that expire within the days given (or have expired) and still have stock. */
 export async function expiringBatches(days = 30) {
   const limit = new Date(Date.now() + days * 86_400_000);
-  const batches = await db.stockBatch.findMany({ where: { expiryDate: { lte: limit } }, orderBy: { expiryDate: "asc" }, take: 200 });
+  const batches = await db.stockBatch.findMany({
+    where: { expiryDate: { lte: limit } },
+    orderBy: { expiryDate: "asc" },
+    take: 200,
+  });
   if (!batches.length) return [];
-  const levels = await db.stockLevel.groupBy({ by: ["batchKey"], where: { batchKey: { in: batches.map((b) => b.id) } }, _sum: { onHand: true } });
-  const products = await db.product.findMany({ where: { id: { in: Array.from(new Set(batches.map((b) => b.productId))) } }, select: { id: true, sku: true, nameEn: true, nameAr: true } });
+  const levels = await db.stockLevel.groupBy({
+    by: ["batchKey"],
+    where: { batchKey: { in: batches.map((b) => b.id) } },
+    _sum: { onHand: true },
+  });
+  const products = await db.product.findMany({
+    where: { id: { in: Array.from(new Set(batches.map((b) => b.productId))) } },
+    select: { id: true, sku: true, nameEn: true, nameAr: true },
+  });
   return batches
-    .map((b) => ({ batch: b, onHand: num(levels.find((l) => l.batchKey === b.id)?._sum.onHand) }))
+    .map((b) => ({
+      batch: b,
+      onHand: num(levels.find((l) => l.batchKey === b.id)?._sum.onHand),
+    }))
     .filter(({ onHand }) => onHand > 0)
     .map(({ batch: b, onHand }) => {
       const product = products.find((p) => p.id === b.productId);
-      return { product_id: b.productId, sku: product?.sku ?? "", name_en: product?.nameEn ?? "", name_ar: product?.nameAr ?? "", batch: b.batchNumber, expiry: b.expiryDate!.toISOString().slice(0, 10), on_hand: onHand };
+      return {
+        product_id: b.productId,
+        sku: product?.sku ?? "",
+        name_en: product?.nameEn ?? "",
+        name_ar: product?.nameAr ?? "",
+        batch: b.batchNumber,
+        expiry: b.expiryDate!.toISOString().slice(0, 10),
+        on_hand: onHand,
+      };
     });
 }
 
@@ -538,19 +939,51 @@ export interface StockCountInput {
 }
 
 /** Starts a count: every stock line in the warehouse (or the chosen products) with what is expected now. */
-export async function createStockCount(input: StockCountInput, userId: string | null) {
-  const warehouse = await db.warehouse.findUnique({ where: { id: input.warehouseId }, include: { locations: { where: { isActive: true } } } });
-  if (!warehouse || !warehouse.isActive) throw new Error(serverMessages.stockLocationMissing);
-  if (input.scope !== "full" && input.scope !== "cycle") throw new Error(serverMessages.stockCountScopeInvalid);
+export async function createStockCount(
+  input: StockCountInput,
+  userId: string | null,
+) {
+  const warehouse = await db.warehouse.findUnique({
+    where: { id: input.warehouseId },
+    include: { locations: { where: { isActive: true } } },
+  });
+  if (!warehouse || !warehouse.isActive)
+    throw new Error(serverMessages.stockLocationMissing);
+  if (input.scope !== "full" && input.scope !== "cycle")
+    throw new Error(serverMessages.stockCountScopeInvalid);
   let productFilter: string[] | undefined;
   if (input.scope === "cycle") {
-    const chosen = input.categoryId ? (await db.product.findMany({ where: { categoryId: input.categoryId, trackStock: true }, select: { id: true } })).map((p) => p.id) : (input.productIds ?? []).slice(0, 500);
+    const chosen = input.categoryId
+      ? (
+          await db.product.findMany({
+            where: { categoryId: input.categoryId, trackStock: true },
+            select: { id: true },
+          })
+        ).map((p) => p.id)
+      : (input.productIds ?? []).slice(0, 500);
     if (!chosen.length) throw new Error(serverMessages.stockCountScopeInvalid);
     productFilter = chosen;
   }
-  const levels = await db.stockLevel.findMany({ where: { locationId: { in: warehouse.locations.map((l) => l.id) }, ...(productFilter ? { productId: { in: productFilter } } : {}) } });
+  const levels = await db.stockLevel.findMany({
+    where: {
+      locationId: { in: warehouse.locations.map((l) => l.id) },
+      ...(productFilter ? { productId: { in: productFilter } } : {}),
+    },
+  });
   // Products chosen for a cycle count that have no stock line yet are counted at the warehouse's first location.
-  const missing = productFilter ? await db.product.findMany({ where: { id: { in: productFilter.filter((id) => !levels.some((l) => l.productId === id)) }, trackStock: true }, select: { id: true, variants: { select: { id: true } } } }) : [];
+  const missing = productFilter
+    ? await db.product.findMany({
+        where: {
+          id: {
+            in: productFilter.filter(
+              (id) => !levels.some((l) => l.productId === id),
+            ),
+          },
+          trackStock: true,
+        },
+        select: { id: true, variants: { select: { id: true } } },
+      })
+    : [];
   const first = warehouse.locations[0];
   return db.$transaction(async (tx) => {
     const number = await getNextSequenceNumber("CNT", undefined, tx);
@@ -563,8 +996,26 @@ export async function createStockCount(input: StockCountInput, userId: string | 
         createdById: userId,
         lines: {
           create: [
-            ...levels.map((l) => ({ productId: l.productId, variantKey: l.variantKey, locationId: l.locationId, batchKey: l.batchKey, expected: l.onHand })),
-            ...(first ? missing.flatMap((p) => (p.variants.length ? p.variants.map((v) => v.id) : [""]).map((variantKey) => ({ productId: p.id, variantKey, locationId: first.id, batchKey: "", expected: 0 }))) : []),
+            ...levels.map((l) => ({
+              productId: l.productId,
+              variantKey: l.variantKey,
+              locationId: l.locationId,
+              batchKey: l.batchKey,
+              expected: l.onHand,
+            })),
+            ...(first
+              ? missing.flatMap((p) =>
+                  (p.variants.length ? p.variants.map((v) => v.id) : [""]).map(
+                    (variantKey) => ({
+                      productId: p.id,
+                      variantKey,
+                      locationId: first.id,
+                      batchKey: "",
+                      expected: 0,
+                    }),
+                  ),
+                )
+              : []),
           ],
         },
       },
@@ -590,14 +1041,44 @@ export interface StockCountLineRecord {
 }
 
 export async function getStockCount(id: string) {
-  const count = await db.stockCount.findUnique({ where: { id }, include: { warehouse: true, lines: true } });
+  const count = await db.stockCount.findUnique({
+    where: { id },
+    include: { warehouse: true, lines: true },
+  });
   if (!count) return null;
   const [products, variants, locations, batches, people] = await Promise.all([
-    db.product.findMany({ where: { id: { in: Array.from(new Set(count.lines.map((l) => l.productId))) } }, select: { id: true, sku: true, barcode: true, nameEn: true, nameAr: true } }),
-    db.productVariant.findMany({ where: { id: { in: count.lines.map((l) => l.variantKey).filter(Boolean) } }, select: { id: true, sku: true, barcode: true, optionValues: true } }),
+    db.product.findMany({
+      where: {
+        id: { in: Array.from(new Set(count.lines.map((l) => l.productId))) },
+      },
+      select: {
+        id: true,
+        sku: true,
+        barcode: true,
+        nameEn: true,
+        nameAr: true,
+      },
+    }),
+    db.productVariant.findMany({
+      where: {
+        id: { in: count.lines.map((l) => l.variantKey).filter(Boolean) },
+      },
+      select: { id: true, sku: true, barcode: true, optionValues: true },
+    }),
     db.stockLocation.findMany({ where: { warehouseId: count.warehouseId } }),
-    db.stockBatch.findMany({ where: { id: { in: count.lines.map((l) => l.batchKey).filter(Boolean) } } }),
-    db.user.findMany({ where: { id: { in: [count.createdById, count.approvedById].filter((v): v is string => !!v) } }, select: { id: true, fullName: true } }),
+    db.stockBatch.findMany({
+      where: { id: { in: count.lines.map((l) => l.batchKey).filter(Boolean) } },
+    }),
+    db.user.findMany({
+      where: {
+        id: {
+          in: [count.createdById, count.approvedById].filter(
+            (v): v is string => !!v,
+          ),
+        },
+      },
+      select: { id: true, fullName: true },
+    }),
   ]);
   const lines: StockCountLineRecord[] = count.lines
     .map((l) => {
@@ -622,8 +1103,12 @@ export async function getStockCount(id: string) {
         note: l.note ?? "",
       };
     })
-    .sort((a, b) => a.location.localeCompare(b.location) || a.sku.localeCompare(b.sku));
-  const name = (userId: string | null) => people.find((u) => u.id === userId)?.fullName ?? null;
+    .sort(
+      (a, b) =>
+        a.location.localeCompare(b.location) || a.sku.localeCompare(b.sku),
+    );
+  const name = (userId: string | null) =>
+    people.find((u) => u.id === userId)?.fullName ?? null;
   return {
     id: count.id,
     number: count.number,
@@ -643,7 +1128,15 @@ export async function getStockCount(id: string) {
 }
 
 export async function listStockCounts() {
-  const counts = await db.stockCount.findMany({ orderBy: { createdAt: "desc" }, take: 200, include: { warehouse: true, _count: { select: { lines: true } }, lines: { select: { counted: true } } } });
+  const counts = await db.stockCount.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 200,
+    include: {
+      warehouse: true,
+      _count: { select: { lines: true } },
+      lines: { select: { counted: true } },
+    },
+  });
   return counts.map((c) => ({
     id: c.id,
     number: c.number,
@@ -659,44 +1152,111 @@ export async function listStockCounts() {
 
 // All count writers lock this row so status checks and ledger posting see one current state.
 async function lockStockCount(tx: Tx, countId: string) {
-  const [count] = await tx.$queryRaw<StockCount[]>`SELECT * FROM "StockCount" WHERE "id" = ${countId} FOR UPDATE`;
+  const [count] = await tx.$queryRaw<
+    StockCount[]
+  >`SELECT * FROM "StockCount" WHERE "id" = ${countId} FOR UPDATE`;
   if (!count) throw new Error(serverMessages.stockCountMissing);
   return count;
 }
 
 /** Saves counted quantities (empty to clear) while the count is open. */
-export async function recordCountedQuantities(countId: string, entries: { lineId: string; counted: string; note?: string }[]) {
-  if (entries.length > 200 || new Set(entries.map(entry => entry.lineId)).size !== entries.length) throw new Error(serverMessages.stockCountLinesInvalid);
-  await db.$transaction(async tx => {
+export async function recordCountedQuantities(
+  countId: string,
+  entries: { lineId: string; counted: string; note?: string }[],
+) {
+  if (
+    entries.length > 200 ||
+    new Set(entries.map((entry) => entry.lineId)).size !== entries.length
+  )
+    throw new Error(serverMessages.stockCountLinesInvalid);
+  await db.$transaction(async (tx) => {
     const count = await lockStockCount(tx, countId);
-    if (count.status !== "counting") throw new Error(serverMessages.stockCountClosed);
+    if (count.status !== "counting")
+      throw new Error(serverMessages.stockCountClosed);
     for (const entry of entries) {
       const text = entry.counted.trim();
       const counted = text === "" ? null : roundQuantity(Number(text));
-      if (counted != null && (!Number.isFinite(counted) || counted < 0 || counted > 10_000_000)) throw new Error(serverMessages.stockQuantityInvalid);
-      const result = await tx.stockCountLine.updateMany({ where: { id: entry.lineId, countId }, data: { counted, note: entry.note === undefined ? undefined : entry.note.trim().slice(0, 200) || null } });
-      if (result.count !== 1) throw new Error(serverMessages.stockCountLinesInvalid);
+      if (
+        counted != null &&
+        (!Number.isFinite(counted) || counted < 0 || counted > 10_000_000)
+      )
+        throw new Error(serverMessages.stockQuantityInvalid);
+      const result = await tx.stockCountLine.updateMany({
+        where: { id: entry.lineId, countId },
+        data: {
+          counted,
+          note:
+            entry.note === undefined
+              ? undefined
+              : entry.note.trim().slice(0, 200) || null,
+        },
+      });
+      if (result.count !== 1)
+        throw new Error(serverMessages.stockCountLinesInvalid);
     }
   });
 }
 
 /** Adds an item found during the count that had no line (a product or variant at a location of the warehouse). */
-export async function addCountLine(countId: string, input: { productId: string; variantId?: string; locationId: string }) {
-  return db.$transaction(async tx => {
+export async function addCountLine(
+  countId: string,
+  input: { productId: string; variantId?: string; locationId: string },
+) {
+  return db.$transaction(async (tx) => {
     const count = await lockStockCount(tx, countId);
-    if (count.status !== "counting") throw new Error(serverMessages.stockCountClosed);
-    const location = await tx.stockLocation.findFirst({ where: { id: input.locationId, warehouseId: count.warehouseId } });
+    if (count.status !== "counting")
+      throw new Error(serverMessages.stockCountClosed);
+    const location = await tx.stockLocation.findFirst({
+      where: { id: input.locationId, warehouseId: count.warehouseId },
+    });
     if (!location) throw new Error(serverMessages.stockLocationMissing);
-    const product = await tx.product.findUnique({ where: { id: input.productId }, select: { trackStock: true, trackBatches: true, variants: { select: { id: true } } } });
+    const product = await tx.product.findUnique({
+      where: { id: input.productId },
+      select: {
+        trackStock: true,
+        trackBatches: true,
+        variants: { select: { id: true } },
+      },
+    });
     if (!product?.trackStock) throw new Error(serverMessages.stockNotTracked);
-    if (product.trackBatches) throw new Error(serverMessages.stockBatchRequired);
+    if (product.trackBatches)
+      throw new Error(serverMessages.stockBatchRequired);
     const variantKey = input.variantId ?? "";
-    if (product.variants.length ? !product.variants.some((v) => v.id === variantKey) : variantKey) throw new Error(serverMessages.stockVariantRequired);
-    const level = await tx.stockLevel.findUnique({ where: { productId_variantKey_locationId_batchKey: { productId: input.productId, variantKey, locationId: location.id, batchKey: "" } } });
+    if (
+      product.variants.length
+        ? !product.variants.some((v) => v.id === variantKey)
+        : variantKey
+    )
+      throw new Error(serverMessages.stockVariantRequired);
+    const level = await tx.stockLevel.findUnique({
+      where: {
+        productId_variantKey_locationId_batchKey: {
+          productId: input.productId,
+          variantKey,
+          locationId: location.id,
+          batchKey: "",
+        },
+      },
+    });
     return tx.stockCountLine.upsert({
-      where: { countId_productId_variantKey_locationId_batchKey: { countId, productId: input.productId, variantKey, locationId: location.id, batchKey: "" } },
+      where: {
+        countId_productId_variantKey_locationId_batchKey: {
+          countId,
+          productId: input.productId,
+          variantKey,
+          locationId: location.id,
+          batchKey: "",
+        },
+      },
       update: {},
-      create: { countId, productId: input.productId, variantKey, locationId: location.id, batchKey: "", expected: level?.onHand ?? 0 },
+      create: {
+        countId,
+        productId: input.productId,
+        variantKey,
+        locationId: location.id,
+        batchKey: "",
+        expected: level?.onHand ?? 0,
+      },
     });
   });
 }
@@ -705,18 +1265,42 @@ export async function addCountLine(countId: string, input: { productId: string; 
 export async function findByCode(code: string) {
   const text = code.trim().slice(0, 60);
   if (!text) return null;
-  const variant = await db.productVariant.findFirst({ where: { OR: [{ barcode: text }, { sku: { equals: text, mode: "insensitive" } }] }, select: { id: true, productId: true } });
+  const variant = await db.productVariant.findFirst({
+    where: {
+      OR: [{ barcode: text }, { sku: { equals: text, mode: "insensitive" } }],
+    },
+    select: { id: true, productId: true },
+  });
   if (variant) return { productId: variant.productId, variantId: variant.id };
-  const product = await db.product.findFirst({ where: { OR: [{ barcode: text }, { sku: { equals: text, mode: "insensitive" } }] }, select: { id: true } });
+  const product = await db.product.findFirst({
+    where: {
+      OR: [{ barcode: text }, { sku: { equals: text, mode: "insensitive" } }],
+    },
+    select: { id: true },
+  });
   return product ? { productId: product.id, variantId: undefined } : null;
 }
 
-export async function setStockCountStatus(countId: string, status: "review" | "counting" | "cancelled") {
-  await db.$transaction(async tx => {
+export async function setStockCountStatus(
+  countId: string,
+  status: "review" | "counting" | "cancelled",
+) {
+  await db.$transaction(async (tx) => {
     const count = await lockStockCount(tx, countId);
-    const allowed: Record<string, string[]> = { review: ["counting"], counting: ["review"], cancelled: ["counting", "review"] };
-    if (!allowed[status].includes(count.status)) throw new Error(serverMessages.stockCountClosed);
-    await tx.stockCount.update({ where: { id: countId }, data: { status, submittedAt: status === "review" ? new Date() : undefined } });
+    const allowed: Record<string, string[]> = {
+      review: ["counting"],
+      counting: ["review"],
+      cancelled: ["counting", "review"],
+    };
+    if (!allowed[status].includes(count.status))
+      throw new Error(serverMessages.stockCountClosed);
+    await tx.stockCount.update({
+      where: { id: countId },
+      data: {
+        status,
+        submittedAt: status === "review" ? new Date() : undefined,
+      },
+    });
   });
 }
 
@@ -724,14 +1308,23 @@ export async function setStockCountStatus(countId: string, status: "review" | "c
  * Approves a reviewed count: each counted line whose count differs from what was expected becomes a "count"
  * movement for the difference (lines left uncounted change nothing). Returns low-stock items for alerts.
  */
-export async function approveStockCount(countId: string, userId: string | null) {
+export async function approveStockCount(
+  countId: string,
+  userId: string | null,
+) {
   return db.$transaction(async (tx) => {
     const count = await lockStockCount(tx, countId);
-    if (count.status !== "review") throw new Error(serverMessages.stockCountClosed);
+    if (count.status !== "review")
+      throw new Error(serverMessages.stockCountClosed);
     const lines = await tx.stockCountLine.findMany({ where: { countId } });
-    const batches = await tx.stockBatch.findMany({ where: { id: { in: lines.map((l) => l.batchKey).filter(Boolean) } } });
+    const batches = await tx.stockBatch.findMany({
+      where: { id: { in: lines.map((l) => l.batchKey).filter(Boolean) } },
+    });
     const movements: MovementInput[] = lines
-      .map((l) => ({ line: l, variance: countVariance(num(l.expected), numOrNull(l.counted)) }))
+      .map((l) => ({
+        line: l,
+        variance: countVariance(num(l.expected), numOrNull(l.counted)),
+      }))
       .filter(({ variance }) => variance !== 0)
       .map(({ line, variance }) => ({
         type: "count" as const,
@@ -747,11 +1340,24 @@ export async function approveStockCount(countId: string, userId: string | null) 
     // Counted stock replaces what the books said, so a count may take reserved stock below its reservation.
     for (const m of movements.filter((m) => m.quantity < 0)) {
       const variantKey = m.variantId ?? "";
-      const batchKey = lines.find((l) => l.productId === m.productId && l.variantKey === variantKey && l.locationId === m.locationId)?.batchKey ?? "";
+      const batchKey =
+        lines.find(
+          (l) =>
+            l.productId === m.productId &&
+            l.variantKey === variantKey &&
+            l.locationId === m.locationId,
+        )?.batchKey ?? "";
       await tx.$executeRaw`UPDATE "StockLevel" SET "reserved" = LEAST("reserved", GREATEST("onHand" + ${m.quantity}, 0)) WHERE "productId" = ${m.productId} AND "variantKey" = ${variantKey} AND "locationId" = ${m.locationId} AND "batchKey" = ${batchKey}`;
     }
     const low = await postMovements(tx, movements, userId);
-    await tx.stockCount.update({ where: { id: countId }, data: { status: "approved", approvedById: userId, approvedAt: new Date() } });
+    await tx.stockCount.update({
+      where: { id: countId },
+      data: {
+        status: "approved",
+        approvedById: userId,
+        approvedAt: new Date(),
+      },
+    });
     return { low, adjusted: movements.length };
   });
 }

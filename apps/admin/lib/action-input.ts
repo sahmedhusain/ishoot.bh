@@ -1,4 +1,8 @@
-import { serverTemplates, formatMessage, serverMessages } from "@platform/locales";
+import {
+  serverTemplates,
+  formatMessage,
+  serverMessages,
+} from "@platform/locales";
 
 import contracts from "./action-schemas.json";
 import { safeWebsiteUrl } from "@platform/database/website-config";
@@ -21,7 +25,9 @@ function valid(
   if (value === undefined) return schema.optional === true;
   if (depth > 12) return false;
   if (schema.kind === "union")
-    return schema.variants!.some((s) => valid(value, s, key, depth + 1, action));
+    return schema.variants!.some((s) =>
+      valid(value, s, key, depth + 1, action),
+    );
   if (schema.kind === "literal") return value === schema.value;
   if (schema.kind === "unknown") return true; // WebsiteConfig is separately parsed by validateWebsiteConfig.
   if (schema.kind === "array")
@@ -31,14 +37,24 @@ function valid(
       value.every((v) => valid(v, schema.element!, key, depth + 1, action))
     );
   if (schema.kind === "record") {
-    if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+    if (!value || typeof value !== "object" || Array.isArray(value))
+      return false;
     const entries = Object.entries(value);
-    return entries.length <= 500 && entries.every(([field, entry]) => {
-      if (["__proto__", "constructor", "prototype"].includes(field)) return false;
-      // External credential IDs use provider validation; other field semantics still apply.
-      const fieldKey = action === "saveIntegration" && key === "values" && IDENTIFIER_KEY.test(field) ? "credential" : field;
-      return valid(entry, schema.element!, fieldKey, depth + 1, action);
-    });
+    return (
+      entries.length <= 500 &&
+      entries.every(([field, entry]) => {
+        if (["__proto__", "constructor", "prototype"].includes(field))
+          return false;
+        // External credential IDs use provider validation; other field semantics still apply.
+        const fieldKey =
+          action === "saveIntegration" &&
+          key === "values" &&
+          IDENTIFIER_KEY.test(field)
+            ? "credential"
+            : field;
+        return valid(entry, schema.element!, fieldKey, depth + 1, action);
+      })
+    );
   }
   if (schema.kind === "object") {
     if (
@@ -53,7 +69,13 @@ function valid(
     if (Object.keys(value).some((field) => !Object.hasOwn(fields, field)))
       return false;
     return Object.entries(fields).every(([field, shape]) =>
-      valid((value as Record<string, unknown>)[field], shape, field, depth + 1, action),
+      valid(
+        (value as Record<string, unknown>)[field],
+        shape,
+        field,
+        depth + 1,
+        action,
+      ),
     );
   }
   if (schema.kind === "boolean") return typeof value === "boolean";
@@ -150,6 +172,11 @@ export function validateActionArguments(
   } catch {
     throw new Error(serverMessages.invalidActionInput);
   }
-  if (bytes > (PAYLOAD_LIMITS[name] ?? 250000) || !valid(values, contracts[name] as Schema, name))
-    throw new Error(formatMessage(serverTemplates.invalidInputFor0, { 0: name }));
+  if (
+    bytes > (PAYLOAD_LIMITS[name] ?? 250000) ||
+    !valid(values, contracts[name] as Schema, name)
+  )
+    throw new Error(
+      formatMessage(serverTemplates.invalidInputFor0, { 0: name }),
+    );
 }

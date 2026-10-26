@@ -3,13 +3,19 @@ import { ports } from "../../../../playwright.config";
 import { testDatabase, watchErrors } from "../../helpers";
 import { t } from "../../locale";
 import { enableStore, freshStockedProduct } from "../../store-fixtures";
-import { startStripeStandIn, useStripeStandIn, type StandIn } from "../../stripe-stand-in";
+import {
+  startStripeStandIn,
+  useStripeStandIn,
+  type StandIn,
+} from "../../stripe-stand-in";
 
 const copy = t.orders;
 const db = testDatabase();
 const SKU = "E2E-PAYLINK";
 let stripe: StandIn;
-const PDF = Buffer.from("%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n");
+const PDF = Buffer.from(
+  "%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n",
+);
 
 test.describe.configure({ mode: "serial" });
 
@@ -17,45 +23,88 @@ test.beforeAll(async () => {
   await enableStore(db);
   await useStripeStandIn(db);
   stripe = await startStripeStandIn(`http://localhost:${ports.web}`);
-  await freshStockedProduct(db, { sku: SKU, nameEn: "E2E Pay Link Item", nameAr: "صنف رابط الدفع", price: 6, onHand: 5 });
+  await freshStockedProduct(db, {
+    sku: SKU,
+    nameEn: "E2E Pay Link Item",
+    nameAr: "صنف رابط الدفع",
+    price: 6,
+    onHand: 5,
+  });
 });
 
 test.afterAll(async () => {
   await stripe?.close();
-  await db.storeSettings.update({ where: { id: "default" }, data: { paymentGateway: null } });
+  await db.storeSettings.update({
+    where: { id: "default" },
+    data: { paymentGateway: null },
+  });
   await db.$disconnect();
 });
 
-test("a payment gateway is checked from Integrations and chosen in store settings", async ({ page }) => {
+test("a payment gateway is checked from Integrations and chosen in store settings", async ({
+  page,
+}) => {
   const errors = watchErrors(page);
   await page.goto("/dashboard/settings/integrations");
-  const card = page.locator("div.flex.flex-col").filter({ has: page.getByRole("heading", { name: t.integrations.providers.stripe.name, exact: true }) }).first();
+  const card = page
+    .locator("div.flex.flex-col")
+    .filter({
+      has: page.getByRole("heading", {
+        name: t.integrations.providers.stripe.name,
+        exact: true,
+      }),
+    })
+    .first();
   await card.getByRole("button", { name: t.integrations.test }).click();
-  await expect(page.getByText(`${t.integrations.testOk} · Test mode`)).toBeVisible();
-  await expect.poll(async () => (await db.integrationSetting.findUniqueOrThrow({ where: { provider: "stripe" } })).healthStatus).toBe("healthy");
+  await expect(
+    page.getByText(`${t.integrations.testOk} · Test mode`),
+  ).toBeVisible();
+  await expect
+    .poll(
+      async () =>
+        (
+          await db.integrationSetting.findUniqueOrThrow({
+            where: { provider: "stripe" },
+          })
+        ).healthStatus,
+    )
+    .toBe("healthy");
 
   await page.goto("/dashboard/orders/settings");
   // In development a Fast Refresh can briefly mount the page twice; read one copy.
   const gateway = page.locator('select[name="paymentGateway"]').first();
   await expect(gateway).toHaveValue("stripe");
-  await expect(gateway.locator('option[value="stripe"]')).toHaveText(`Stripe (${copy.settings.gatewayTest})`);
+  await expect(gateway.locator('option[value="stripe"]')).toHaveText(
+    `Stripe (${copy.settings.gatewayTest})`,
+  );
   errors.assertClean();
 });
 
-test("a phone order is paid from a payment link and refunded through the gateway", async ({ page }) => {
+test("a phone order is paid from a payment link and refunded through the gateway", async ({
+  page,
+}) => {
   const errors = watchErrors(page);
   await page.goto("/dashboard/orders/new");
-  await expect(page.getByTestId("sale-search")).toHaveCount(1, { timeout: 30_000 });
+  await expect(page.getByTestId("sale-search")).toHaveCount(1, {
+    timeout: 30_000,
+  });
   await page.getByTestId("sale-search").fill(SKU);
   await page.getByTestId("sale-search").press("Enter");
   await page.getByLabel(copy.pos.channel).selectOption("phone");
   await page.locator('input[name="saleName"]').fill("Link Buyer");
   await page.getByTestId("sale-paid-with").selectOption("");
   await page.getByTestId("sale-create").click();
-  await expect(page).toHaveURL(/\/dashboard\/orders\/[0-9a-f-]{36}$/, { timeout: 60_000 });
+  await expect(page).toHaveURL(/\/dashboard\/orders\/[0-9a-f-]{36}$/, {
+    timeout: 60_000,
+  });
   const id = page.url().split("/").pop()!;
-  const link = await page.getByTestId("order-payment-link").getByRole("textbox").inputValue();
-  expect(link).toMatch(new RegExp(`^http://localhost:${ports.web}/(ar|en)/pay/${id}\\.`));
+  const link = await page
+    .getByTestId("order-payment-link")
+    .getByRole("textbox")
+    .inputValue();
+  expect(link).toMatch(
+    new RegExp(`^http://localhost:${ports.web}/(ar|en)/pay/${id}\\.`),
+  );
 
   // The customer opens the link.
   await page.goto(link);
@@ -63,44 +112,88 @@ test("a phone order is paid from a payment link and refunded through the gateway
   await page.getByTestId("pay-now").click();
   await page.waitForURL(`${stripe.url}/pay/**`, { timeout: 60_000 });
   await page.getByRole("link", { name: "Pay" }).click();
-  await expect(page.getByTestId("order-placed")).toBeVisible({ timeout: 60_000 });
-  await expect.poll(async () => (await db.salesOrder.findUniqueOrThrow({ where: { id } })).paymentStatus).toBe("paid");
+  await expect(page.getByTestId("order-placed")).toBeVisible({
+    timeout: 60_000,
+  });
+  await expect
+    .poll(
+      async () =>
+        (await db.salesOrder.findUniqueOrThrow({ where: { id } }))
+          .paymentStatus,
+    )
+    .toBe("paid");
 
   await page.goto(`/dashboard/orders/${id}`);
-  await expect(page.getByTestId("order-attempts")).toContainText(copy.detail.attemptStatuses.paid);
+  await expect(page.getByTestId("order-attempts")).toContainText(
+    copy.detail.attemptStatuses.paid,
+  );
   await expect(page.getByTestId("order-payment-link")).toHaveCount(0);
   await page.locator('input[name="refundAmount"]').fill("1");
   await page.getByTestId("order-refund").click();
-  await expect.poll(async () => Number((await db.salesOrder.findUniqueOrThrow({ where: { id } })).amountRefunded)).toBe(1);
-  const attempt = await db.paymentAttempt.findFirstOrThrow({ where: { orderId: id, status: "paid" } });
+  await expect
+    .poll(async () =>
+      Number(
+        (await db.salesOrder.findUniqueOrThrow({ where: { id } }))
+          .amountRefunded,
+      ),
+    )
+    .toBe(1);
+  const attempt = await db.paymentAttempt.findFirstOrThrow({
+    where: { orderId: id, status: "paid" },
+  });
   expect(Number(attempt.amountRefunded)).toBe(1);
-  expect(stripe.refunds).toEqual([{ payment_intent: attempt.gatewayPaymentId, amount: 1000 }]);
+  expect(stripe.refunds).toEqual([
+    { payment_intent: attempt.gatewayPaymentId, amount: 1000 },
+  ]);
   errors.assertClean();
 });
 
-test("a bank transfer is recorded on a phone order with the transfer receipt kept on the order", async ({ page }) => {
+test("a bank transfer is recorded on a phone order with the transfer receipt kept on the order", async ({
+  page,
+}) => {
   const errors = watchErrors(page);
   await page.goto("/dashboard/orders/new");
-  await expect(page.getByTestId("sale-search")).toHaveCount(1, { timeout: 30_000 });
+  await expect(page.getByTestId("sale-search")).toHaveCount(1, {
+    timeout: 30_000,
+  });
   await page.getByTestId("sale-search").fill(SKU);
   await page.getByTestId("sale-search").press("Enter");
   await page.getByLabel(copy.pos.channel).selectOption("phone");
   await page.locator('input[name="saleName"]').fill("Transfer Buyer");
   await page.getByTestId("sale-paid-with").selectOption("");
   await page.getByTestId("sale-create").click();
-  await expect(page).toHaveURL(/\/dashboard\/orders\/[0-9a-f-]{36}$/, { timeout: 60_000 });
+  await expect(page).toHaveURL(/\/dashboard\/orders\/[0-9a-f-]{36}$/, {
+    timeout: 60_000,
+  });
   const id = page.url().split("/").pop()!;
   await page.waitForLoadState("networkidle");
   const card = page.getByTestId("order-payment").first();
   const order = await db.salesOrder.findUniqueOrThrow({ where: { id } });
-  await card.locator('input[name="paymentAmount"]').fill(String(Number(order.total)));
+  await card
+    .locator('input[name="paymentAmount"]')
+    .fill(String(Number(order.total)));
   await card.locator("select").selectOption("bank_transfer");
-  await card.locator('input[name="transferProof"]').setInputFiles({ name: "transfer.pdf", mimeType: "application/pdf", buffer: PDF });
+  await card.locator('input[name="transferProof"]').setInputFiles({
+    name: "transfer.pdf",
+    mimeType: "application/pdf",
+    buffer: PDF,
+  });
   await expect(card.getByText(copy.detail.proofAdded).first()).toBeVisible();
   await card.getByTestId("order-pay").click();
-  await expect.poll(async () => (await db.salesOrder.findUniqueOrThrow({ where: { id } })).paymentStatus).toBe("paid");
-  await expect(page.getByTestId("order-files").first()).toContainText("transfer.pdf");
-  expect(await db.attachment.count({ where: { entityType: "sales_order", entityId: id } })).toBe(1);
+  await expect
+    .poll(
+      async () =>
+        (await db.salesOrder.findUniqueOrThrow({ where: { id } }))
+          .paymentStatus,
+    )
+    .toBe("paid");
+  await expect(page.getByTestId("order-files").first()).toContainText(
+    "transfer.pdf",
+  );
+  expect(
+    await db.attachment.count({
+      where: { entityType: "sales_order", entityId: id },
+    }),
+  ).toBe(1);
   errors.assertClean();
 });
-

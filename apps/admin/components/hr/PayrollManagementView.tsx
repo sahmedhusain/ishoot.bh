@@ -327,15 +327,14 @@ export function PayrollManagementView({
                           {monthName} {run.year}
                         </span>
                         <span
-                          className={`text-[11px] font-mono uppercase px-2.5 py-0.5 rounded-full border ${
-                            run.status === "paid"
-                              ? "bg-purple-50 text-purple-700 border-purple-200"
-                              : run.status === "approved"
-                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                : run.status === "submitted"
-                                  ? "bg-amber-50 text-amber-700 border-amber-200"
-                                  : "bg-ink/5 text-ink"
-                          }`}
+                          className={`text-[11px] font-mono uppercase px-2.5 py-0.5 rounded-full border ${run.status === "paid"
+                            ? "bg-purple-50 text-purple-700 border-purple-200"
+                            : run.status === "approved"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              : run.status === "submitted"
+                                ? "bg-amber-50 text-amber-700 border-amber-200"
+                                : "bg-ink/5 text-ink"
+                            }`}
                         >
                           {(t.hrExtensions as Record<string, string>)[
                             run.status

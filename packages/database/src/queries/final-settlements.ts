@@ -1,4 +1,8 @@
-import { serverTemplates, formatMessage, serverMessages } from "@platform/locales";
+import {
+  serverTemplates,
+  formatMessage,
+  serverMessages,
+} from "@platform/locales";
 
 import type { Prisma } from "@prisma/client";
 import { db, runAtomicMutation } from "../db";
@@ -177,12 +181,9 @@ export async function calculateSettlement(
   });
   if (!employee) throw new Error(serverMessages.employeeNotFound);
   if (lastWorkingDay < employee.hireDate)
-    throw new Error(
-      serverMessages.theLastWorkingDayCannotBeBeforeThe,
-    );
+    throw new Error(serverMessages.theLastWorkingDayCannotBeBeforeThe);
   const record = employee.employmentRecords[0];
-  if (!record)
-    throw new Error(serverMessages.theEmployeeHasNoSalaryOnRecord);
+  if (!record) throw new Error(serverMessages.theEmployeeHasNoSalaryOnRecord);
   const pay = {
     basic: Number(record.basicSalary),
     housing: Number(record.housingAllowance),
@@ -813,8 +814,7 @@ export async function createFinalSettlement(
       },
       select: { id: true },
     });
-    if (open)
-      throw new Error(serverMessages.thisEmployeeAlreadyHasASettlement);
+    if (open) throw new Error(serverMessages.thisEmployeeAlreadyHasASettlement);
     const created = await db.finalSettlement.create({
       data: {
         reference: await getNextSequenceNumber(
@@ -839,7 +839,9 @@ async function editable(id: string) {
   if (!settlement) throw new Error(serverMessages.settlementNotFound);
   if (!["draft", "rejected"].includes(settlement.status))
     throw new Error(
-      formatMessage(serverTemplates.theSettlementIsXItCanOnlyBeChanged, { 0: settlement.status }),
+      formatMessage(serverTemplates.theSettlementIsXItCanOnlyBeChanged, {
+        0: settlement.status,
+      }),
     );
   return settlement;
 }
@@ -1037,7 +1039,9 @@ export async function payFinalSettlement(
     });
     if (settlement.status !== "approved")
       throw new Error(
-        formatMessage(serverTemplates.theSettlementCanBePaidOnceItIsApproved, { 0: settlement.status }),
+        formatMessage(serverTemplates.theSettlementCanBePaidOnceItIsApproved, {
+          0: settlement.status,
+        }),
       );
     const detail = (line: (typeof settlement.lines)[number], key: string) =>
       (line.details as Record<string, unknown> | null)?.[key] as
@@ -1058,9 +1062,7 @@ export async function payFinalSettlement(
           item.payrollRun.status !== "approved" ||
           Number(item.netSalary) !== Number(line.amount)
         )
-          throw new Error(
-            serverMessages.settlementPaymentChanged,
-          );
+          throw new Error(serverMessages.settlementPaymentChanged);
         await db.payrollItem.updateMany({
           where: { id: payrollItemId, paymentStatus: { not: "paid" } },
           data: {
@@ -1081,9 +1083,7 @@ export async function payFinalSettlement(
           where: { userId_periodMonth: { userId, periodMonth } },
         });
         if (Number(current?.amount ?? 0) !== Number(details.paidAmount ?? 0))
-          throw new Error(
-            serverMessages.settlementPaymentChanged,
-          );
+          throw new Error(serverMessages.settlementPaymentChanged);
         await db.commissionPayout.upsert({
           where: { userId_periodMonth: { userId, periodMonth } },
           update: { amount: { increment: line.amount }, recordedById: actorId },
@@ -1110,9 +1110,7 @@ export async function payFinalSettlement(
           !["approved", "scheduled"].includes(claim.status) ||
           Number(claim.amount) !== Number(line.amount)
         )
-          throw new Error(
-            serverMessages.settlementPaymentChanged,
-          );
+          throw new Error(serverMessages.settlementPaymentChanged);
         {
           const categoryId =
             claim.categoryId ??

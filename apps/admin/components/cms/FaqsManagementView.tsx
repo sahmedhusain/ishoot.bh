@@ -113,9 +113,9 @@ export function FaqsManagementView({ initialFaqs, languages }: { initialFaqs: Fa
           <LanguageFields name="answer" label={t.faqsView.answer} languages={languages} multiline required maxLength={5000} en={answerEn} ar={answerAr} onChange={(v) => { setAnswerEn(v.en); setAnswerAr(v.ar); }} />
 
           <div className="flex justify-between items-center pt-2">
-            <div><label className="text-xs font-bold block mb-1">{t.faqsView.sortOrder}</label><Input type="number" value={sortOrder} onChange={e=>setSortOrder(Number(e.target.value))} /></div>
+            <div><label className="text-xs font-bold block mb-1">{t.faqsView.sortOrder}</label><Input type="number" value={sortOrder} onChange={e => setSortOrder(Number(e.target.value))} /></div>
             <label className="flex items-center gap-2 text-sm font-bold cursor-pointer">
-              <input type="checkbox" checked={isPublished} onChange={e=>setIsPublished(e.target.checked)} className="w-4 h-4" /> {t.faqsView.publishOnWebsite}
+              <input type="checkbox" checked={isPublished} onChange={e => setIsPublished(e.target.checked)} className="w-4 h-4" /> {t.faqsView.publishOnWebsite}
             </label>
           </div>
           <div className="flex justify-end gap-2 pt-4">

@@ -38,30 +38,30 @@ export default async function QuotationDetailPage({
 
   return (
     <>
-    <QuotationDetailView
-      quotation={quotation}
-      approvalRequest={approvalRequest}
-      currentUserId={currentUser.id}
-      currentUserRole={currentUser.role}
-      canApprove={!!approvalRequest && canDecideApproval(approvalRequest, currentUser)}
-      canIssue={canIssue}
-      canEdit={canEdit}
-    />
-    <div className="max-w-6xl mx-auto mt-6 grid gap-6 lg:grid-cols-2">
-      <SigningPanel type="quotation" id={id} state={signing} canSign={canSign} hasSignature={!!currentUser.signature_url} />
-      <AttributionPanel entityType="quotation" entityId={id} info={attribution} salesPeople={salesPeople} canReassign={canEdit || canAssign} />
-      <div className="lg:col-span-2">
-        <ClientSignaturePanel
-          documentType="quotation"
-          documentId={quotation.id}
-          signable={SIGNABLE_STATUSES.quotation.includes(quotation.status)}
-          records={clientSignatures}
-          canSend={canIssue}
-          canRecord={canEdit}
-          defaultEmail={(quotation.client as { email?: string | null } | null)?.email ?? null}
-        />
+      <QuotationDetailView
+        quotation={quotation}
+        approvalRequest={approvalRequest}
+        currentUserId={currentUser.id}
+        currentUserRole={currentUser.role}
+        canApprove={!!approvalRequest && canDecideApproval(approvalRequest, currentUser)}
+        canIssue={canIssue}
+        canEdit={canEdit}
+      />
+      <div className="max-w-6xl mx-auto mt-6 grid gap-6 lg:grid-cols-2">
+        <SigningPanel type="quotation" id={id} state={signing} canSign={canSign} hasSignature={!!currentUser.signature_url} />
+        <AttributionPanel entityType="quotation" entityId={id} info={attribution} salesPeople={salesPeople} canReassign={canEdit || canAssign} />
+        <div className="lg:col-span-2">
+          <ClientSignaturePanel
+            documentType="quotation"
+            documentId={quotation.id}
+            signable={SIGNABLE_STATUSES.quotation.includes(quotation.status)}
+            records={clientSignatures}
+            canSend={canIssue}
+            canRecord={canEdit}
+            defaultEmail={(quotation.client as { email?: string | null } | null)?.email ?? null}
+          />
+        </div>
       </div>
-    </div>
     </>
   );
 }

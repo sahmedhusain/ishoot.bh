@@ -1,7 +1,13 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { serverMessages } from "@platform/locales";
-import { createActivityLog, measureOperation, saveReportSchedule, stopReportSchedule, type ReportScheduleInput } from "@platform/database";
+import {
+  createActivityLog,
+  measureOperation,
+  saveReportSchedule,
+  stopReportSchedule,
+  type ReportScheduleInput,
+} from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { getCurrentUser } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
@@ -12,9 +18,16 @@ export async function saveReportScheduleAction(input: ReportScheduleInput) {
     const user = await getCurrentUser();
     if (!user) throw new Error(serverMessages.unauthorized);
     validateActionArguments("saveReportScheduleAction", { input });
-    if (!(await reportsForUser(user.id)).some((r) => r.key === input.reportKey)) throw new Error(serverMessages.reportNotFound);
+    if (!(await reportsForUser(user.id)).some((r) => r.key === input.reportKey))
+      throw new Error(serverMessages.reportNotFound);
     const schedule = await saveReportSchedule(input, user.id);
-    await createActivityLog({ user_id: user.id, action: "create", entity_type: "report_schedule", entity_id: schedule.id, details: { report: input.reportKey, frequency: input.frequency } });
+    await createActivityLog({
+      user_id: user.id,
+      action: "create",
+      entity_type: "report_schedule",
+      entity_id: schedule.id,
+      details: { report: input.reportKey, frequency: input.frequency },
+    });
     revalidatePath(ROUTES.reports.report(input.reportKey));
     return { success: true };
   });

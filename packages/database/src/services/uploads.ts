@@ -1,4 +1,8 @@
-import { serverTemplates, formatMessage, serverMessages } from "@platform/locales";
+import {
+  serverTemplates,
+  formatMessage,
+  serverMessages,
+} from "@platform/locales";
 
 import {
   getStorageClient,
@@ -28,9 +32,7 @@ export function uploadRoot() {
     process.env.NODE_ENV === "production" &&
     (!configured || !path.isAbsolute(configured))
   )
-    throw new Error(
-      serverMessages.configureAnAbsoluteUploadRootOnDurable,
-    );
+    throw new Error(serverMessages.configureAnAbsoluteUploadRootOnDurable);
   return configured
     ? path.resolve(configured)
     : path.join(workspaceRoot(), "apps", "admin", "private", "uploads");
@@ -55,9 +57,7 @@ export async function claimUpload(
     upload.claimedAt ||
     upload.expiresAt <= new Date()
   )
-    throw new Error(
-      serverMessages.uploadIsExpiredAlreadyClaimedOrBelongs,
-    );
+    throw new Error(serverMessages.uploadIsExpiredAlreadyClaimedOrBelongs);
   // Both storage modes check the stored bytes match what was registered.
   await verifyStoredUpload(
     upload,
@@ -74,9 +74,7 @@ export async function claimUpload(
     data: { claimedAt: new Date() },
   });
   if (claimed.count !== 1)
-    throw new Error(
-      serverMessages.uploadIsExpiredAlreadyClaimedOrBelongs,
-    );
+    throw new Error(serverMessages.uploadIsExpiredAlreadyClaimedOrBelongs);
   return tx.uploadObject.findUniqueOrThrow({ where: { fileUrl } });
 }
 
@@ -137,7 +135,11 @@ export async function storeFileBytes(
       .storage.from(location.bucket)
       .upload(location.path, bytes, { contentType, upsert: false });
     if (error && !/exists/i.test(error.message))
-      throw new Error(formatMessage(serverTemplates.storageUploadFailed0, { 0: error.message }));
+      throw new Error(
+        formatMessage(serverTemplates.storageUploadFailed0, {
+          0: error.message,
+        }),
+      );
     return;
   }
   try {

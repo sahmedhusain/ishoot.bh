@@ -31,7 +31,21 @@ export const BLOCK_TYPES = [
 export type BlockType = (typeof BLOCK_TYPES)[number];
 
 /** Blocks that show company data kept elsewhere (banners, catalogue, services…); they hold only display options. */
-export const DATA_BLOCKS: readonly BlockType[] = ["hero", "about", "catalogue", "services", "stats", "testimonials", "faq", "clients", "contact_form", "latest_articles", "leader", "pillars", "equipment"];
+export const DATA_BLOCKS: readonly BlockType[] = [
+  "hero",
+  "about",
+  "catalogue",
+  "services",
+  "stats",
+  "testimonials",
+  "faq",
+  "clients",
+  "contact_form",
+  "latest_articles",
+  "leader",
+  "pillars",
+  "equipment",
+];
 
 /** Blocks only people with the custom-code permission (cms_code:edit) may add or change. */
 export const CODE_BLOCKS: readonly BlockType[] = ["code"];
@@ -41,28 +55,66 @@ export interface LocalText {
   ar: string;
 }
 
-export const EMBED_PRESETS = ["google_maps", "youtube", "vimeo", "instagram", "calendly", "typeform"] as const;
+export const EMBED_PRESETS = [
+  "google_maps",
+  "youtube",
+  "vimeo",
+  "instagram",
+  "calendly",
+  "typeform",
+] as const;
 export type EmbedPreset = (typeof EMBED_PRESETS)[number];
 
 export interface BlockData {
-  hero: { style: "cinematic" | "split" | "centered"; title: LocalText; subtitle: LocalText };
+  hero: {
+    style: "cinematic" | "split" | "centered";
+    title: LocalText;
+    subtitle: LocalText;
+  };
   about: { title: LocalText };
   rich_text: { html: LocalText; doc: { en: unknown; ar: unknown } };
-  image_text: { title: LocalText; text: LocalText; imageUrl: string; imageSide: "start" | "end"; buttonLabel: LocalText; buttonUrl: string };
-  gallery: { title: LocalText; images: { url: string; caption: LocalText }[]; columns: 2 | 3 | 4 };
+  image_text: {
+    title: LocalText;
+    text: LocalText;
+    imageUrl: string;
+    imageSide: "start" | "end";
+    buttonLabel: LocalText;
+    buttonUrl: string;
+  };
+  gallery: {
+    title: LocalText;
+    images: { url: string; caption: LocalText }[];
+    columns: 2 | 3 | 4;
+  };
   video: { title: LocalText; url: string; posterUrl: string };
-  catalogue: { title: LocalText; layout: "grid" | "list"; filterable: boolean; limit: number };
+  catalogue: {
+    title: LocalText;
+    layout: "grid" | "list";
+    filterable: boolean;
+    limit: number;
+  };
   services: { title: LocalText };
   stats: { title: LocalText };
   testimonials: { title: LocalText };
   faq: { title: LocalText };
   clients: { title: LocalText };
-  cta: { title: LocalText; text: LocalText; buttonLabel: LocalText; buttonUrl: string };
+  cta: {
+    title: LocalText;
+    text: LocalText;
+    buttonLabel: LocalText;
+    buttonUrl: string;
+  };
   contact_form: { title: LocalText };
   map: { title: LocalText; embedUrl: string };
-  team: { title: LocalText; members: { name: LocalText; role: LocalText; photoUrl: string }[] };
+  team: {
+    title: LocalText;
+    members: { name: LocalText; role: LocalText; photoUrl: string }[];
+  };
   latest_articles: { title: LocalText; count: number; category: string };
-  columns: { title: LocalText; columns: { title: LocalText; text: LocalText }[] };
+  columns: {
+    title: LocalText;
+    columns: { title: LocalText; text: LocalText }[];
+  };
   spacer: { size: "sm" | "md" | "lg" };
   divider: Record<string, never>;
   code: { html: string; css: string; js: string; height: number };
@@ -72,7 +124,12 @@ export interface BlockData {
   equipment: { title: LocalText };
 }
 
-export type Block<T extends BlockType = BlockType> = { id: string; type: T; visible: boolean; data: BlockData[T] };
+export type Block<T extends BlockType = BlockType> = {
+  id: string;
+  type: T;
+  visible: boolean;
+  data: BlockData[T];
+};
 
 const text = (en = "", ar = en): LocalText => ({ en, ar });
 const none = () => text();
@@ -83,21 +140,44 @@ export function newBlockData<T extends BlockType>(type: T): BlockData[T] {
     hero: () => ({ style: "split", title: none(), subtitle: none() }),
     about: () => ({ title: none() }),
     rich_text: () => ({ html: none(), doc: { en: null, ar: null } }),
-    image_text: () => ({ title: none(), text: none(), imageUrl: "", imageSide: "end", buttonLabel: none(), buttonUrl: "" }),
+    image_text: () => ({
+      title: none(),
+      text: none(),
+      imageUrl: "",
+      imageSide: "end",
+      buttonLabel: none(),
+      buttonUrl: "",
+    }),
     gallery: () => ({ title: none(), images: [], columns: 3 }),
     video: () => ({ title: none(), url: "", posterUrl: "" }),
-    catalogue: () => ({ title: none(), layout: "grid", filterable: true, limit: 12 }),
+    catalogue: () => ({
+      title: none(),
+      layout: "grid",
+      filterable: true,
+      limit: 12,
+    }),
     services: () => ({ title: none() }),
     stats: () => ({ title: none() }),
     testimonials: () => ({ title: none() }),
     faq: () => ({ title: none() }),
     clients: () => ({ title: none() }),
-    cta: () => ({ title: none(), text: none(), buttonLabel: none(), buttonUrl: "" }),
+    cta: () => ({
+      title: none(),
+      text: none(),
+      buttonLabel: none(),
+      buttonUrl: "",
+    }),
     contact_form: () => ({ title: none() }),
     map: () => ({ title: none(), embedUrl: "" }),
     team: () => ({ title: none(), members: [] }),
     latest_articles: () => ({ title: none(), count: 3, category: "" }),
-    columns: () => ({ title: none(), columns: [{ title: none(), text: none() }, { title: none(), text: none() }] }),
+    columns: () => ({
+      title: none(),
+      columns: [
+        { title: none(), text: none() },
+        { title: none(), text: none() },
+      ],
+    }),
     spacer: () => ({ size: "md" }),
     divider: () => ({}),
     code: () => ({ html: "", css: "", js: "", height: 0 }),
@@ -130,12 +210,18 @@ export function embedSource(preset: EmbedPreset, input: string): string {
   } catch {
     return "";
   }
-  if (url.protocol !== "https:" || !EMBED_HOSTS[preset].test(url.hostname)) return "";
+  if (url.protocol !== "https:" || !EMBED_HOSTS[preset].test(url.hostname))
+    return "";
   const path = url.pathname.split("/").filter(Boolean);
   switch (preset) {
     case "youtube": {
-      const id = url.hostname.endsWith("youtu.be") ? path[0] : url.searchParams.get("v") ?? (["embed", "shorts", "live"].includes(path[0]) ? path[1] : "");
-      return id && /^[\w-]{6,20}$/.test(id) ? `https://www.youtube-nocookie.com/embed/${id}` : "";
+      const id = url.hostname.endsWith("youtu.be")
+        ? path[0]
+        : (url.searchParams.get("v") ??
+          (["embed", "shorts", "live"].includes(path[0]) ? path[1] : ""));
+      return id && /^[\w-]{6,20}$/.test(id)
+        ? `https://www.youtube-nocookie.com/embed/${id}`
+        : "";
     }
     case "vimeo": {
       const id = path.find((part) => /^\d+$/.test(part));
@@ -144,7 +230,9 @@ export function embedSource(preset: EmbedPreset, input: string): string {
     case "instagram": {
       const at = path.findIndex((part) => part === "p" || part === "reel");
       const id = at >= 0 ? path[at + 1] : "";
-      return id && /^[\w-]+$/.test(id) ? `https://www.instagram.com/${path[at]}/${id}/embed` : "";
+      return id && /^[\w-]+$/.test(id)
+        ? `https://www.instagram.com/${path[at]}/${id}/embed`
+        : "";
     }
     case "google_maps":
       return path[0] === "maps" && path[1] === "embed" ? url.href : "";
@@ -155,11 +243,14 @@ export function embedSource(preset: EmbedPreset, input: string): string {
 }
 
 /** The address a video block plays: an embeddable YouTube or Vimeo link, or a direct video file. */
-export function videoSource(input: string): { kind: "iframe" | "file"; src: string } | null {
+export function videoSource(
+  input: string,
+): { kind: "iframe" | "file"; src: string } | null {
   const youtube = embedSource("youtube", input) || "";
   if (youtube) return { kind: "iframe", src: youtube };
   const vimeo = embedSource("vimeo", input) || "";
   if (vimeo) return { kind: "iframe", src: vimeo };
-  if (/^(https:\/\/|\/)[^\s]+\.(mp4|webm)(\?[^\s]*)?$/i.test(input.trim())) return { kind: "file", src: input.trim() };
+  if (/^(https:\/\/|\/)[^\s]+\.(mp4|webm)(\?[^\s]*)?$/i.test(input.trim()))
+    return { kind: "file", src: input.trim() };
   return null;
 }

@@ -44,13 +44,27 @@ const SEEDED_CHECKS = [
 
 function suite(title: string, url: string | undefined, checks: string[]) {
   const database = url ? new URL(url).pathname.slice(1) : "";
-  describe.skipIf(!database.endsWith("_test"))(`${title} (${database || "not configured"})`, () => {
-    test.each(checks)("%s", (name) => {
-      const { ok, output } = runCheck(name, { DATABASE_URL: url, DIRECT_URL: url });
-      expect(ok, output).toBe(true);
-    });
-  });
+  describe.skipIf(!database.endsWith("_test"))(
+    `${title} (${database || "not configured"})`,
+    () => {
+      test.each(checks)("%s", (name) => {
+        const { ok, output } = runCheck(name, {
+          DATABASE_URL: url,
+          DIRECT_URL: url,
+        });
+        expect(ok, output).toBe(true);
+      });
+    },
+  );
 }
 
-suite("database checks on a bare database", process.env.CHECKS_BARE_DATABASE_URL, BARE_CHECKS);
-suite("database checks on seeded demo data", process.env.CHECKS_SEEDED_DATABASE_URL, SEEDED_CHECKS);
+suite(
+  "database checks on a bare database",
+  process.env.CHECKS_BARE_DATABASE_URL,
+  BARE_CHECKS,
+);
+suite(
+  "database checks on seeded demo data",
+  process.env.CHECKS_SEEDED_DATABASE_URL,
+  SEEDED_CHECKS,
+);

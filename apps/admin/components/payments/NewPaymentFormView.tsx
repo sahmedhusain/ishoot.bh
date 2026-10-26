@@ -55,7 +55,7 @@ export function NewPaymentFormView({
 
   const [selectedClientId, setSelectedClientId] = React.useState<string>(
     preselectedClientId ||
-      (initialContacts.length > 0 ? initialContacts[0].id : ""),
+    (initialContacts.length > 0 ? initialContacts[0].id : ""),
   );
   const [selectedInvoiceId, setSelectedInvoiceId] = React.useState<string>("");
   const [amount, setAmount] = React.useState<number>(0);

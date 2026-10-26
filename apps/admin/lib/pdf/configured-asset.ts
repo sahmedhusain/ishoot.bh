@@ -15,7 +15,12 @@ async function printReady(buffer: Buffer): Promise<Buffer> {
     // Sharp at the printed size (a stamp or logo is under 3 cm) while keeping multi-page PDFs small.
     return await sharp(buffer, { limitInputPixels: 16000000 })
       .trim()
-      .resize({ width: 520, height: 520, fit: "inside", withoutEnlargement: true })
+      .resize({
+        width: 520,
+        height: 520,
+        fit: "inside",
+        withoutEnlargement: true,
+      })
       .png({ compressionLevel: 9, palette: true })
       .toBuffer();
   } catch {

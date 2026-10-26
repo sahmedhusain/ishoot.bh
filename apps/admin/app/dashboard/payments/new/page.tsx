@@ -14,7 +14,7 @@ export default async function NewPaymentPage({
   await requirePagePermission("contacts", "read");
   const params = await searchParams;
   const [contacts, invoices] = await Promise.all([
-    params?.clientId ? getCRMContactById(params.clientId).then(c=>c?[c]:[]) : Promise.resolve([]),
+    params?.clientId ? getCRMContactById(params.clientId).then(c => c ? [c] : []) : Promise.resolve([]),
     Promise.resolve([]),
   ]);
 

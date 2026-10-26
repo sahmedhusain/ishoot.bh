@@ -112,9 +112,7 @@ export interface GosiComponentInput {
 function normalizeComponent(input: GosiComponentInput) {
   const code = input.code?.trim().toLowerCase();
   if (!code || !/^[a-z][a-z0-9_]{1,39}$/.test(code))
-    throw new Error(
-      serverMessages.giveTheContributionAShortCode,
-    );
+    throw new Error(serverMessages.giveTheContributionAShortCode);
   const nameEn = input.name_en?.trim().slice(0, 120);
   const nameAr = input.name_ar?.trim().slice(0, 120);
   if (!nameEn || !nameAr)
@@ -157,14 +155,13 @@ function normalizeComponent(input: GosiComponentInput) {
     ) ||
     new Set(tiers.map((t) => t.fromYears)).size !== tiers.length
   )
-    throw new Error(
-      serverMessages.eachServiceBandStartsAt,
-    );
+    throw new Error(serverMessages.eachServiceBandStartsAt);
   const effectiveFrom = dateInput(
     input.effective_from,
     "Choose the date the rates take effect",
   );
-  if (!effectiveFrom) throw new Error(serverMessages.chooseTheDateTheRatesTakeEffect);
+  if (!effectiveFrom)
+    throw new Error(serverMessages.chooseTheDateTheRatesTakeEffect);
   return {
     code,
     nameEn,

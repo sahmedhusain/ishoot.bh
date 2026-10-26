@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
 /* Theme-aware UI tokens (RGB channels so Tailwind opacity modifiers work). Surfaces and ink come from the
    company theme stylesheet each layout injects; these are the status hues and secondary greys. */
 :root,
@@ -43,7 +42,6 @@ body.dark {
 
 html.light,
 body.light {
-
   background-color: #f8fafc;
   color: #0f172a;
   color-scheme: light;
@@ -71,13 +69,13 @@ html:hover,
 body:hover,
 *:hover {
   scrollbar-width: thin;
-  scrollbar-color: rgb(var(--brand-accent)/0.5) transparent;
+  scrollbar-color: rgb(var(--brand-accent) / 0.5) transparent;
 }
 
 .light html:hover,
 .light body:hover,
 .light *:hover {
-  scrollbar-color: rgb(var(--brand-primary)/0.45) transparent;
+  scrollbar-color: rgb(var(--brand-primary) / 0.45) transparent;
 }
 
 /* WebKit / Blink Engine (Chrome, Safari, Edge, Opera) */
@@ -106,27 +104,27 @@ body:hover,
 html:hover::-webkit-scrollbar-thumb,
 body:hover::-webkit-scrollbar-thumb,
 *:hover::-webkit-scrollbar-thumb {
-  background-color: rgb(var(--brand-accent)/0.45);
+  background-color: rgb(var(--brand-accent) / 0.45);
 }
 
 .light html:hover::-webkit-scrollbar-thumb,
 .light body:hover::-webkit-scrollbar-thumb,
 .light *:hover::-webkit-scrollbar-thumb {
-  background-color: rgb(var(--brand-primary)/0.4);
+  background-color: rgb(var(--brand-primary) / 0.4);
 }
 
 /* Scroller thumb active hover state */
 ::-webkit-scrollbar-thumb:hover {
-  background-color: rgb(var(--brand-accent)/0.85) !important;
+  background-color: rgb(var(--brand-accent) / 0.85) !important;
 }
 
 .light ::-webkit-scrollbar-thumb:hover {
-  background-color: rgb(var(--brand-primary)/0.8) !important;
+  background-color: rgb(var(--brand-primary) / 0.8) !important;
 }
 
 /* Card glass aesthetics */
 .glass-panel {
-  background: rgb(var(--brand-bg-surface)/0.85);
+  background: rgb(var(--brand-bg-surface) / 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -330,7 +328,9 @@ html[dir="rtl"] [class*="tracking-"] {
 
 /* Bilingual fields: each line takes its direction from its own text (English stays LTR inside the
    Arabic UI and vice versa); empty fields keep the page direction so placeholders align. */
-input:not([type="number"]):not([type="date"]):not([type="time"]):not([type="color"]):not([dir]),
+input:not([type="number"]):not([type="date"]):not([type="time"]):not(
+    [type="color"]
+  ):not([dir]),
 textarea:not([dir]),
 .whitespace-pre-wrap:not([dir]) {
   unicode-bidi: plaintext;
@@ -365,52 +365,116 @@ a[href^="tel:"] {
     0 1px 0 rgb(255 255 255 / 0.04) inset,
     0 0 0 1px rgb(var(--ui-ink) / 0.06),
     0 30px 80px -10px rgba(0, 0, 0, 0.45),
-    0 10px 30px -10px rgb(var(--brand-primary)/0.4);
+    0 10px 30px -10px rgb(var(--brand-primary) / 0.4);
   animation: modal-card-in var(--motion-base) var(--ease-emphasized) both;
 }
 html.light [role="dialog"][aria-modal="true"]:not([data-navigation-drawer]) {
   background-color: #ffffff;
-  border-color: rgb(var(--brand-primary)/0.12);
+  border-color: rgb(var(--brand-primary) / 0.12);
   box-shadow:
-    0 0 0 1px rgb(var(--brand-primary)/0.08),
+    0 0 0 1px rgb(var(--brand-primary) / 0.08),
     0 30px 80px -12px rgba(15, 23, 42, 0.35),
-    0 10px 30px -10px rgb(var(--brand-primary)/0.25);
+    0 10px 30px -10px rgb(var(--brand-primary) / 0.25);
 }
 
 /* Header strip shared by the standard Modal. */
 [data-modal-header] {
   border-bottom: 1px solid rgb(var(--ui-ink) / 0.08);
-  background: linear-gradient(180deg, rgb(var(--brand-accent)/0.1), transparent);
+  background: linear-gradient(
+    180deg,
+    rgb(var(--brand-accent) / 0.1),
+    transparent
+  );
 }
 [data-modal-header] button {
   border: 1px solid rgb(var(--ui-ink) / 0.1);
 }
 
 @keyframes modal-card-in {
-  from { opacity: 0; transform: translateY(10px) scale(0.97); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  [role="dialog"][aria-modal="true"] { animation: none; }
+  [role="dialog"][aria-modal="true"] {
+    animation: none;
+  }
 }
 
 /* The article and rich-text editor (TipTap): the same structure the website shows, in the admin's colours. */
-.rich-text-editor > * + * { margin-top: 0.75em; }
-.rich-text-editor h2 { font-size: 1.5rem; font-weight: 700; }
-.rich-text-editor h3 { font-size: 1.2rem; font-weight: 700; }
-.rich-text-editor ul { list-style: disc; padding-inline-start: 1.5em; }
-.rich-text-editor ol { list-style: decimal; padding-inline-start: 1.5em; }
-.rich-text-editor a { color: rgb(var(--brand-accent)); text-decoration: underline; }
-.rich-text-editor blockquote { border-inline-start: 3px solid rgb(var(--brand-accent)); padding-inline-start: 1em; font-style: italic; }
-.rich-text-editor img { max-width: 100%; border-radius: 0.75rem; }
-.rich-text-editor figcaption { font-size: 0.75rem; opacity: 0.7; }
-.rich-text-editor table { width: 100%; border-collapse: collapse; }
-.rich-text-editor th, .rich-text-editor td { border: 1px solid rgb(var(--ui-ink) / 0.15); padding: 0.4em 0.6em; min-width: 3em; }
-.rich-text-editor .rt-gallery { display: grid; gap: 0.5rem; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
-.rich-text-editor iframe, .rich-text-editor .rt-embed { width: 100%; min-height: 200px; border-radius: 0.75rem; background: rgb(var(--ui-ink) / 0.05); }
-.rich-text-editor .ProseMirror-selectednode { outline: 2px solid rgb(var(--brand-accent)); }
-.rich-text-editor:focus { outline: none; }
+.rich-text-editor > * + * {
+  margin-top: 0.75em;
+}
+.rich-text-editor h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.rich-text-editor h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+.rich-text-editor ul {
+  list-style: disc;
+  padding-inline-start: 1.5em;
+}
+.rich-text-editor ol {
+  list-style: decimal;
+  padding-inline-start: 1.5em;
+}
+.rich-text-editor a {
+  color: rgb(var(--brand-accent));
+  text-decoration: underline;
+}
+.rich-text-editor blockquote {
+  border-inline-start: 3px solid rgb(var(--brand-accent));
+  padding-inline-start: 1em;
+  font-style: italic;
+}
+.rich-text-editor img {
+  max-width: 100%;
+  border-radius: 0.75rem;
+}
+.rich-text-editor figcaption {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+.rich-text-editor table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.rich-text-editor th,
+.rich-text-editor td {
+  border: 1px solid rgb(var(--ui-ink) / 0.15);
+  padding: 0.4em 0.6em;
+  min-width: 3em;
+}
+.rich-text-editor .rt-gallery {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+}
+.rich-text-editor iframe,
+.rich-text-editor .rt-embed {
+  width: 100%;
+  min-height: 200px;
+  border-radius: 0.75rem;
+  background: rgb(var(--ui-ink) / 0.05);
+}
+.rich-text-editor .ProseMirror-selectednode {
+  outline: 2px solid rgb(var(--brand-accent));
+}
+.rich-text-editor:focus {
+  outline: none;
+}
 
 @media (max-width: 639px) {
-  [data-modal-card] { border-end-start-radius: 0; border-end-end-radius: 0; }
+  [data-modal-card] {
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+  }
 }

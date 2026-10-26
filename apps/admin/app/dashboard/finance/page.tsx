@@ -1,10 +1,10 @@
 import { requirePagePermission } from "../../../lib/auth";
 import {
-getFinancialSummary,
-getMonthlyCashflow,
-getExpenseCategoryTotals,
-getExpenseCategories,
-getReceivablesInsight,
+  getFinancialSummary,
+  getMonthlyCashflow,
+  getExpenseCategoryTotals,
+  getExpenseCategories,
+  getReceivablesInsight,
 } from "@platform/database";
 import { FinancialAnalyticsView } from "../../../components/finance/FinancialAnalyticsView";
 

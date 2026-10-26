@@ -1,4 +1,8 @@
-import { serverTemplates, formatMessage, serverMessages } from "@platform/locales";
+import {
+  serverTemplates,
+  formatMessage,
+  serverMessages,
+} from "@platform/locales";
 
 import { db } from "../db";
 import { ProfileChangeRequest } from "../types";
@@ -45,9 +49,7 @@ export async function requestProfileChange(
       where: { email: proposed.email.toLowerCase().trim() },
     });
     if (existing) {
-      throw new Error(
-        serverMessages.theProposedEmailIsAlreadyInUse,
-      );
+      throw new Error(serverMessages.theProposedEmailIsAlreadyInUse);
     }
   }
 
@@ -108,7 +110,10 @@ export async function approveProfileChange(
   if (!req) throw new Error(serverMessages.profileChangeRequestNotFound);
   if (req.status !== "pending") {
     throw new Error(
-      formatMessage(serverTemplates.profileChangeRequestCannotBeApprovedCurrent, { 0: req.status }),
+      formatMessage(
+        serverTemplates.profileChangeRequestCannotBeApprovedCurrent,
+        { 0: req.status },
+      ),
     );
   }
 
@@ -121,9 +126,7 @@ export async function approveProfileChange(
         where: { email: newVals.email, id: { not: req.userId } },
       });
       if (emailConflict) {
-        throw new Error(
-          serverMessages.emailConflictTheProposedEmailWasClaimed,
-        );
+        throw new Error(serverMessages.emailConflictTheProposedEmailWasClaimed);
       }
     }
 
@@ -182,7 +185,8 @@ export async function rejectProfileChange(
   });
 
   if (!req) throw new Error(serverMessages.profileChangeRequestNotFound);
-  if (req.status !== "pending") throw new Error(serverMessages.requestIsNotPending);
+  if (req.status !== "pending")
+    throw new Error(serverMessages.requestIsNotPending);
 
   const updated = await db.profileChangeRequest.update({
     where: { id: requestId },

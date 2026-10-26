@@ -3,7 +3,7 @@ import { cn } from "./utils";
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?:
-    "default" | "emerald" | "amber" | "blue" | "rose" | "purple" | "outline";
+  "default" | "emerald" | "amber" | "blue" | "rose" | "purple" | "outline";
 }
 
 export function Badge({

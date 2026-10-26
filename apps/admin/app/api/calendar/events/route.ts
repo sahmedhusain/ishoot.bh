@@ -16,9 +16,15 @@ export async function GET(request: NextRequest) {
   return measureOperation("admin:calendar/events:GET", async () => {
     const user = await getCurrentUser();
     if (!user)
-      return NextResponse.json({ error: serverMessages.unauthorized }, { status: 401 });
+      return NextResponse.json(
+        { error: serverMessages.unauthorized },
+        { status: 401 },
+      );
     if (!(await hasPermission("calendar", "read")))
-      return NextResponse.json({ error: serverMessages.runtimeForbidden }, { status: 403 });
+      return NextResponse.json(
+        { error: serverMessages.runtimeForbidden },
+        { status: 403 },
+      );
     const params = request.nextUrl.searchParams;
     const day = (value: string | null) =>
       value && /^\d{4}-\d{2}-\d{2}$/.test(value)
@@ -32,7 +38,10 @@ export async function GET(request: NextRequest) {
       end < start ||
       end.getTime() - start.getTime() > 400 * 86_400_000
     )
-      return NextResponse.json({ error: serverMessages.runtimeInvalidRange }, { status: 400 });
+      return NextResponse.json(
+        { error: serverMessages.runtimeInvalidRange },
+        { status: 400 },
+      );
     end.setUTCHours(23, 59, 59, 999);
     const layers = (
       params.get("layers")?.split(",") ?? [...CALENDAR_LAYERS]

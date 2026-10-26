@@ -61,7 +61,7 @@ export function ProofUploader({
   };
 
   const handleRemove = (id: string) => {
-    const removed = value.find(f=>f.id===id); if(removed?.url.startsWith("blob:")) URL.revokeObjectURL(removed.url);
+    const removed = value.find(f => f.id === id); if (removed?.url.startsWith("blob:")) URL.revokeObjectURL(removed.url);
     const updated = value.filter((f) => f.id !== id);
     onChange?.(updated);
   };

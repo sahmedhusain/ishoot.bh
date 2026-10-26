@@ -5,7 +5,7 @@ import type { Faq } from "@platform/database/types";
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
 import { ChevronDown } from "lucide-react";
-import { motion,AnimatePresence,useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
 export function FAQSection({ faqs }: { faqs: Faq[] }) {
   const { t, isRTL: ar } = useTranslation();
@@ -49,11 +49,10 @@ export function FAQSection({ faqs }: { faqs: Faq[] }) {
                   duration: reduced ? 0 : 0.4,
                   delay: reduced ? 0 : Math.min(idx * 0.06, 0.18),
                 }}
-                className={`rounded-2xl border transition-colors duration-150 overflow-hidden ${
-                  isOpen
-                    ? "bg-brand-surface border-accent/50 shadow-lg shadow-accent/10"
-                    : "bg-white/[0.02] border-white/5 hover:border-white/15"
-                }`}
+                className={`rounded-2xl border transition-colors duration-150 overflow-hidden ${isOpen
+                  ? "bg-brand-surface border-accent/50 shadow-lg shadow-accent/10"
+                  : "bg-white/[0.02] border-white/5 hover:border-white/15"
+                  }`}
               >
                 <button
                   type="button"
@@ -66,11 +65,10 @@ export function FAQSection({ faqs }: { faqs: Faq[] }) {
                     {ar ? faq.questionAr : faq.questionEn}
                   </span>
                   <div
-                    className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-transform duration-300 ${
-                      isOpen
-                        ? "bg-accent/20 text-mint rotate-180"
-                        : "bg-white/5 text-ink-muted"
-                    }`}
+                    className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-transform duration-300 ${isOpen
+                      ? "bg-accent/20 text-mint rotate-180"
+                      : "bg-white/5 text-ink-muted"
+                      }`}
                   >
                     <ChevronDown className="w-4 h-4" />
                   </div>

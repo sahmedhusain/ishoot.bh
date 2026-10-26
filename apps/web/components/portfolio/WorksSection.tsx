@@ -102,11 +102,10 @@ export function WorksSection({ items }: { items: PortfolioItem[] }) {
                 type="button"
                 aria-pressed={isSelected}
                 onClick={() => setCategory(c.id)}
-                className={`min-h-11 px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors duration-150 cursor-pointer ${
-                  isSelected
-                    ? "bg-[var(--web-accent)] text-white border border-[var(--web-accent)]"
-                    : "bg-white text-slate-600 hover:text-slate-950 border border-slate-300 hover:border-slate-400"
-                }`}
+                className={`min-h-11 px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors duration-150 cursor-pointer ${isSelected
+                  ? "bg-[var(--web-accent)] text-white border border-[var(--web-accent)]"
+                  : "bg-white text-slate-600 hover:text-slate-950 border border-slate-300 hover:border-slate-400"
+                  }`}
               >
                 {ar ? c.nameAr : c.nameEn}
               </button>

@@ -7,10 +7,7 @@
     "companyNameEn": "Northwind Studio W.L.L.",
     "companyNameAr": "استوديو نورثويند ذ.م.م",
     "businessActivity": "media",
-    "contentLanguages": [
-      "ar",
-      "en"
-    ],
+    "contentLanguages": ["ar", "en"],
     "primaryLanguage": "ar",
     "crNumber": "CR-000000-0",
     "vatId": "000000000000000",

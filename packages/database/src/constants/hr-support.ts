@@ -16,7 +16,8 @@ export function addMonths(month: string, count: number): string {
 
 /** The three yearly Tamkeen support entries (70%, 50%, 30%) starting from the first supported month. */
 export function tamkeenSupports(startMonth: string) {
-  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(startMonth)) throw new Error(serverMessages.chooseTheFirstSupportedMonth);
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(startMonth))
+    throw new Error(serverMessages.chooseTheFirstSupportedMonth);
   return TAMKEEN_SCHEDULE.map((value, year) => ({
     provider: TAMKEEN_PROVIDER,
     mode: "percentage" as const,

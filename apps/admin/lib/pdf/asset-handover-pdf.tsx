@@ -180,9 +180,9 @@ function HandoverBody({
       ) : null}
 
       {h.accessories ||
-      h.damage_notes ||
-      h.damage_charge !== undefined ||
-      h.notes ? (
+        h.damage_notes ||
+        h.damage_charge !== undefined ||
+        h.notes ? (
         <View style={{ marginBottom: 12 }} wrap={false}>
           {h.accessories ? (
             <Field label={a.handover.accessories} value={h.accessories} />

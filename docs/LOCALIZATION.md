@@ -4,14 +4,14 @@ Both apps are fully bilingual (Arabic right-to-left, English left-to-right) and 
 
 ## Where text lives
 
-| Text | Location |
-|---|---|
-| Website copy | `packages/locales/src/en.json`, `ar.json` (media wording) |
-| Website wording per activity | `packages/locales/src/website-activities.json`: a shared layer for every non-media activity, then each activity's own; the company's catalogue names from the website settings go on top |
-| Admin interface, including the setup wizard | `packages/locales/src/admin/en.json`, `ar.json` |
-| Server error messages | `serverErrors` in the admin dictionaries, used through `serverMessages` and `serverTemplates` from `@platform/locales` |
-| Shared component defaults | `packages/ui/src/copy` |
-| Company name, address, contacts, logos, legal numbers | Company settings in the database, never the locale files |
+| Text                                                  | Location                                                                                                                                                                                 |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Website copy                                          | `packages/locales/src/en.json`, `ar.json` (media wording)                                                                                                                                |
+| Website wording per activity                          | `packages/locales/src/website-activities.json`: a shared layer for every non-media activity, then each activity's own; the company's catalogue names from the website settings go on top |
+| Admin interface, including the setup wizard           | `packages/locales/src/admin/en.json`, `ar.json`                                                                                                                                          |
+| Server error messages                                 | `serverErrors` in the admin dictionaries, used through `serverMessages` and `serverTemplates` from `@platform/locales`                                                                   |
+| Shared component defaults                             | `packages/ui/src/copy`                                                                                                                                                                   |
+| Company name, address, contacts, logos, legal numbers | Company settings in the database, never the locale files                                                                                                                                 |
 
 ## Content languages
 
@@ -29,6 +29,7 @@ A company writes its content in Arabic, English or both (`contentLanguages`, cho
 ## Checks
 
 `pnpm test:copy` checks:
+
 - key and placeholder parity between the languages;
 - hardcoded display text in JSX, attributes, component defaults and messages;
 - that every server message is translated;

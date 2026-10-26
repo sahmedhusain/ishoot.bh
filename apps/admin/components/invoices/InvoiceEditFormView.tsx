@@ -10,25 +10,25 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type {
-Invoice,
-CRMContact,
-CompanySettings,
-InvoiceLineItem,
-DiscountType,
-SupportedCurrency,
-ServiceItem,
+  Invoice,
+  CRMContact,
+  CompanySettings,
+  InvoiceLineItem,
+  DiscountType,
+  SupportedCurrency,
+  ServiceItem,
 } from "@platform/database/types";
 import {
-CURRENCY_CONFIGS,
-calculateInvoiceTotals,
-getCurrencyDisplayLabel,
+  CURRENCY_CONFIGS,
+  calculateInvoiceTotals,
+  getCurrencyDisplayLabel,
 } from "@platform/database/types";
 import {
-Card,
-Input,
-Select,
-Button,
-ConfirmDialog,
+  Card,
+  Input,
+  Select,
+  Button,
+  ConfirmDialog,
 } from "@platform/ui";
 import {
   Plus,
@@ -50,7 +50,7 @@ import {
   voidInvoiceAction,
 } from "../../app/actions/finance";
 import { ClientAutocomplete } from "../crm/ClientAutocomplete";
-import { EditConfirmModal,type FieldChange } from "../shared/EditConfirmModal";
+import { EditConfirmModal, type FieldChange } from "../shared/EditConfirmModal";
 
 interface InvoiceEditFormViewProps {
   invoice: Invoice;
@@ -108,14 +108,14 @@ export function InvoiceEditFormView({
     invoice.line_items && invoice.line_items.length > 0
       ? invoice.line_items
       : [
-          {
-            description_en: "",
-            description_ar: "",
-            quantity: 1,
-            unit_price: 0,
-            line_total: 0,
-          },
-        ],
+        {
+          description_en: "",
+          description_ar: "",
+          quantity: 1,
+          unit_price: 0,
+          line_total: 0,
+        },
+      ],
   );
 
   const [discountType, setDiscountType] = React.useState<DiscountType>(

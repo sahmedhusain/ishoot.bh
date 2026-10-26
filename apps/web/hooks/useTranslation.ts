@@ -2,7 +2,12 @@
 
 import * as React from "react";
 import { useLocale } from "./useLocale";
-import { getWebsiteTranslations, getNestedTranslation, formatMessage, type MessageValues } from "@platform/locales";
+import {
+  getWebsiteTranslations,
+  getNestedTranslation,
+  formatMessage,
+  type MessageValues,
+} from "@platform/locales";
 import { useSite } from "../components/site/SiteProvider";
 import { siteCopyOverrides } from "../lib/site-copy";
 
@@ -11,7 +16,12 @@ export function useTranslation() {
   const { locale, isRTL } = useLocale();
   const site = useSite();
   const translations = React.useMemo(
-    () => getWebsiteTranslations(locale, site?.activity, site ? siteCopyOverrides(site, locale) : undefined),
+    () =>
+      getWebsiteTranslations(
+        locale,
+        site?.activity,
+        site ? siteCopyOverrides(site, locale) : undefined,
+      ),
     [locale, site],
   );
 

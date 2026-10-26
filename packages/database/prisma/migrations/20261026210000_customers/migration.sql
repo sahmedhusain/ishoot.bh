@@ -13,7 +13,6 @@ CREATE TABLE "Customer" (
     "crmContactId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-
     CONSTRAINT "Customer_pkey" PRIMARY KEY ("id")
 );
 
@@ -25,7 +24,6 @@ CREATE TABLE "CustomerSession" (
     "expiresAt" TIMESTAMP(3) NOT NULL,
     "userAgent" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
     CONSTRAINT "CustomerSession_pkey" PRIMARY KEY ("id")
 );
 
@@ -44,7 +42,6 @@ CREATE TABLE "CustomerAddress" (
     "postalCode" TEXT,
     "isDefault" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
     CONSTRAINT "CustomerAddress_pkey" PRIMARY KEY ("id")
 );
 
@@ -57,7 +54,6 @@ CREATE TABLE "CustomerAuthCode" (
     "expiresAt" TIMESTAMP(3) NOT NULL,
     "usedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
     CONSTRAINT "CustomerAuthCode_pkey" PRIMARY KEY ("id")
 );
 
@@ -67,48 +63,55 @@ CREATE TABLE "WishlistItem" (
     "customerId" TEXT NOT NULL,
     "catalogueItemId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
     CONSTRAINT "WishlistItem_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Customer_email_key" ON "Customer"("email");
+CREATE UNIQUE INDEX "Customer_email_key" ON "Customer" ("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Customer_googleSub_key" ON "Customer"("googleSub");
+CREATE UNIQUE INDEX "Customer_googleSub_key" ON "Customer" ("googleSub");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Customer_appleSub_key" ON "Customer"("appleSub");
+CREATE UNIQUE INDEX "Customer_appleSub_key" ON "Customer" ("appleSub");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Customer_crmContactId_key" ON "Customer"("crmContactId");
+CREATE UNIQUE INDEX "Customer_crmContactId_key" ON "Customer" ("crmContactId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "CustomerSession_tokenHash_key" ON "CustomerSession"("tokenHash");
+CREATE UNIQUE INDEX "CustomerSession_tokenHash_key" ON "CustomerSession" ("tokenHash");
 
 -- CreateIndex
-CREATE INDEX "CustomerSession_customerId_idx" ON "CustomerSession"("customerId");
+CREATE INDEX "CustomerSession_customerId_idx" ON "CustomerSession" ("customerId");
 
 -- CreateIndex
-CREATE INDEX "CustomerAddress_customerId_idx" ON "CustomerAddress"("customerId");
+CREATE INDEX "CustomerAddress_customerId_idx" ON "CustomerAddress" ("customerId");
 
 -- CreateIndex
-CREATE INDEX "CustomerAuthCode_email_createdAt_idx" ON "CustomerAuthCode"("email", "createdAt");
+CREATE INDEX "CustomerAuthCode_email_createdAt_idx" ON "CustomerAuthCode" ("email", "createdAt");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "WishlistItem_customerId_catalogueItemId_key" ON "WishlistItem"("customerId", "catalogueItemId");
+CREATE UNIQUE INDEX "WishlistItem_customerId_catalogueItemId_key" ON "WishlistItem" (
+    "customerId",
+    "catalogueItemId"
+);
 
 -- AddForeignKey
-ALTER TABLE "Customer" ADD CONSTRAINT "Customer_crmContactId_fkey" FOREIGN KEY ("crmContactId") REFERENCES "CrmContact"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Customer"
+ADD CONSTRAINT "Customer_crmContactId_fkey" FOREIGN KEY ("crmContactId") REFERENCES "CrmContact" ("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "CustomerSession" ADD CONSTRAINT "CustomerSession_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "CustomerSession"
+ADD CONSTRAINT "CustomerSession_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "CustomerAddress" ADD CONSTRAINT "CustomerAddress_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "CustomerAddress"
+ADD CONSTRAINT "CustomerAddress_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "WishlistItem" ADD CONSTRAINT "WishlistItem_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "WishlistItem"
+ADD CONSTRAINT "WishlistItem_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "WishlistItem" ADD CONSTRAINT "WishlistItem_catalogueItemId_fkey" FOREIGN KEY ("catalogueItemId") REFERENCES "PortfolioItem"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "WishlistItem"
+ADD CONSTRAINT "WishlistItem_catalogueItemId_fkey" FOREIGN KEY ("catalogueItemId") REFERENCES "PortfolioItem" ("id") ON DELETE CASCADE ON UPDATE CASCADE;

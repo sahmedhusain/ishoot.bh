@@ -22,7 +22,10 @@ export async function getSocialLinks(onlyActive = true): Promise<SocialLink[]> {
     });
     return links.map(mapSocialLink);
   } catch (e) {
-    console.error("Error fetching social links from DB:", e instanceof Error ? e.message : e);
+    console.error(
+      "Error fetching social links from DB:",
+      e instanceof Error ? e.message : e,
+    );
     throw e;
   }
 }
@@ -48,7 +51,7 @@ export async function createSocialLink(data: {
 
 export async function updateSocialLink(
   id: string,
-  data: Partial<Omit<SocialLink, "id" | "created_at" | "updated_at">>
+  data: Partial<Omit<SocialLink, "id" | "created_at" | "updated_at">>,
 ): Promise<SocialLink | null> {
   try {
     const updateData: any = {};
@@ -56,7 +59,8 @@ export async function updateSocialLink(
     if (data.url !== undefined) updateData.url = data.url;
     if (data.icon !== undefined) updateData.icon = data.icon;
     if (data.is_active !== undefined) updateData.isActive = data.is_active;
-    if (data.display_order !== undefined) updateData.displayOrder = data.display_order;
+    if (data.display_order !== undefined)
+      updateData.displayOrder = data.display_order;
 
     const updated = await db.socialLink.update({
       where: { id },
@@ -64,7 +68,10 @@ export async function updateSocialLink(
     });
     return mapSocialLink(updated);
   } catch (e) {
-    console.error(`Error updating social link ${id}:`, e instanceof Error ? e.message : e);
+    console.error(
+      `Error updating social link ${id}:`,
+      e instanceof Error ? e.message : e,
+    );
     throw e;
   }
 }
@@ -74,7 +81,10 @@ export async function deleteSocialLink(id: string): Promise<boolean> {
     await db.socialLink.delete({ where: { id } });
     return true;
   } catch (e) {
-    console.error(`Error deleting social link ${id}:`, e instanceof Error ? e.message : e);
+    console.error(
+      `Error deleting social link ${id}:`,
+      e instanceof Error ? e.message : e,
+    );
     throw e;
   }
 }

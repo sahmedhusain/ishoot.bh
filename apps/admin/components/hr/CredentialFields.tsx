@@ -80,10 +80,10 @@ export function CredentialFields({
     !Number.isNaN(value.cost_amount);
   const perMonth = hasCost
     ? monthlyCost(
-        value.cost_amount,
-        value.cost_frequency,
-        value.cost_term_months,
-      )
+      value.cost_amount,
+      value.cost_frequency,
+      value.cost_term_months,
+    )
     : 0;
 
   return (
@@ -166,8 +166,8 @@ export function CredentialFields({
         />
       </Field>
       {value.kind === "visa" ||
-      value.kind === "work_permit" ||
-      value.kind === "residence_permit" ? (
+        value.kind === "work_permit" ||
+        value.kind === "residence_permit" ? (
         <Field label={c.fields.sponsor}>
           <Input
             value={value.sponsor ?? ""}
@@ -249,10 +249,10 @@ export function CredentialFields({
           upload={
             employeeId
               ? (file) =>
-                  uploadForClaim(file, {
-                    entityType: "employee",
-                    entityId: employeeId,
-                  })
+                uploadForClaim(file, {
+                  entityType: "employee",
+                  entityId: employeeId,
+                })
               : undefined
           }
         />

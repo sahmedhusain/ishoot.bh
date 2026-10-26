@@ -3,7 +3,7 @@ import { errorMessage } from "../../lib/error-text";
 import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import { getCurrencyLabel } from "@platform/config/currency";
 import { ROUTES } from "../../constants/routes";
-import {EntityLookup} from "../shared/EntityLookup";
+import { EntityLookup } from "../shared/EntityLookup";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -26,7 +26,7 @@ interface DealEditFormViewProps {
 
 export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFormViewProps) {
   const router = useRouter();
-  const {t, locale } = useAdminLocale();
+  const { t, locale } = useAdminLocale();
   const bhd = getCurrencyLabel("BHD", locale === "ar");
 
   const [title, setTitle] = React.useState(deal.title || "");
@@ -197,7 +197,7 @@ export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFor
                     href={ROUTES.crm.customer(selectedContact.id)}
                     className="text-[11px] text-primary dark:text-accent hover:underline font-semibold flex items-center gap-1"
                     target="_blank"
-                  rel="noopener noreferrer"
+                    rel="noopener noreferrer"
                   >
                     <span>{t.crm.customerDossier}</span>
                     <ExternalLink className="w-3.5 h-3.5" />

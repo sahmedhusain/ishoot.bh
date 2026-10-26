@@ -167,10 +167,8 @@ async function normalize(
   const titleAr = input.title_ar?.trim().slice(0, 200);
   const bodyEn = input.body_en?.trim().slice(0, 20000);
   const bodyAr = input.body_ar?.trim().slice(0, 20000);
-  if (!titleEn || !titleAr)
-    throw new Error(serverMessages.communicationError0);
-  if (!bodyEn || !bodyAr)
-    throw new Error(serverMessages.communicationError1);
+  if (!titleEn || !titleAr) throw new Error(serverMessages.communicationError0);
+  if (!bodyEn || !bodyAr) throw new Error(serverMessages.communicationError1);
   if (!(ANNOUNCEMENT_CATEGORIES as readonly string[]).includes(input.category))
     throw new Error(serverMessages.communicationError2);
   if (!(ANNOUNCEMENT_PRIORITIES as readonly string[]).includes(input.priority))
@@ -179,8 +177,7 @@ async function normalize(
     throw new Error(serverMessages.communicationError4);
   if (!rights.createAny && input.audience !== "team")
     throw new Error(serverMessages.communicationError5);
-  if (!rights.createTeam)
-    throw new Error(serverMessages.communicationError6);
+  if (!rights.createTeam) throw new Error(serverMessages.communicationError6);
   const list = (v?: string[]) =>
     Array.from(new Set((v ?? []).filter((x) => typeof x === "string"))).slice(
       0,

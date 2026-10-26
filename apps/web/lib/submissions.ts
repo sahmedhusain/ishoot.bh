@@ -2,9 +2,15 @@ import { serverMessages } from "@platform/locales";
 import { NextRequest } from "next/server";
 
 import { consumeAbuseLimit, trustedClientIp } from "@platform/database";
-export async function readSubmission(req: NextRequest): Promise<Record<string, unknown>> {
+export async function readSubmission(
+  req: NextRequest,
+): Promise<Record<string, unknown>> {
   const ip = trustedClientIp(req.headers);
-  await consumeAbuseLimit("public-intake", ip || "untrusted-ingress", ip ? 12 : 300);
+  await consumeAbuseLimit(
+    "public-intake",
+    ip || "untrusted-ingress",
+    ip ? 12 : 300,
+  );
   if (Number(req.headers.get("content-length")) > 24000)
     throw new Error(serverMessages.invalidInput);
   const reader = req.body?.getReader();
@@ -48,6 +54,7 @@ export function textField(
 }
 export function submissionKey(body: Record<string, unknown>) {
   const key = textField(body, "submissionKey", 80, true);
-  if (!/^[a-zA-Z0-9-]{16,80}$/.test(key)) throw new Error(serverMessages.invalidInput);
+  if (!/^[a-zA-Z0-9-]{16,80}$/.test(key))
+    throw new Error(serverMessages.invalidInput);
   return key;
 }

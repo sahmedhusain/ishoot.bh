@@ -89,9 +89,8 @@ export function UserPermissionOverrides({ user, roleGrants, onClose }: { user: {
                               onClick={() => cycle(key)}
                               aria-label={`${labels.resources[resource] ?? resource} · ${labels.actions[action] ?? action}: ${o.cells[cell]} (${on ? o.on : o.off})`}
                               title={o.cells[cell]}
-                              className={`h-6 w-9 rounded-md text-[10px] font-bold ${
-                                cell === "allow" ? "bg-emerald-500 text-white" : cell === "deny" ? "bg-rose-500 text-white" : on ? "border border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "border border-ink/15 bg-ink/5 text-ink-muted"
-                              }`}
+                              className={`h-6 w-9 rounded-md text-[10px] font-bold ${cell === "allow" ? "bg-emerald-500 text-white" : cell === "deny" ? "bg-rose-500 text-white" : on ? "border border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "border border-ink/15 bg-ink/5 text-ink-muted"
+                                }`}
                             >
                               {on ? "✓" : "–"}
                             </button>

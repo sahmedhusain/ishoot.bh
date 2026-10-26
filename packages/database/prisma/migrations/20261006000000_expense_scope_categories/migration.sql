@@ -1,17 +1,41 @@
 -- Expense categories: kind, system flag and soft-hide for custom category management.
-ALTER TABLE "ExpenseCategory" ADD COLUMN "kind" TEXT NOT NULL DEFAULT 'operating';
-ALTER TABLE "ExpenseCategory" ADD COLUMN "isSystem" BOOLEAN NOT NULL DEFAULT false;
-ALTER TABLE "ExpenseCategory" ADD COLUMN "isActive" BOOLEAN NOT NULL DEFAULT true;
-ALTER TABLE "ExpenseCategory" ADD CONSTRAINT "ExpenseCategory_kind_check" CHECK ("kind" IN ('cost_of_sales', 'operating', 'payroll'));
+ALTER TABLE "ExpenseCategory"
+ADD COLUMN "kind" TEXT NOT NULL DEFAULT 'operating';
+
+ALTER TABLE "ExpenseCategory"
+ADD COLUMN "isSystem" BOOLEAN NOT NULL DEFAULT false;
+
+ALTER TABLE "ExpenseCategory"
+ADD COLUMN "isActive" BOOLEAN NOT NULL DEFAULT true;
+
+ALTER TABLE "ExpenseCategory"
+ADD CONSTRAINT "ExpenseCategory_kind_check" CHECK (
+    "kind" IN (
+        'cost_of_sales',
+        'operating',
+        'payroll'
+    )
+);
 
 -- Expenses record who they were incurred for: a deal (and its client), a client, or the business itself.
 ALTER TABLE "Expense" ADD COLUMN "clientId" TEXT;
-ALTER TABLE "Expense" ADD COLUMN "scope" TEXT NOT NULL DEFAULT 'internal';
+
+ALTER TABLE "Expense"
+ADD COLUMN "scope" TEXT NOT NULL DEFAULT 'internal';
+
 ALTER TABLE "Expense" ADD COLUMN "paymentMethod" TEXT;
+
 UPDATE "Expense" e SET "scope" = 'deal', "clientId" = d."contactId" FROM "CrmDeal" d WHERE e."dealId" = d."id";
-ALTER TABLE "Expense" ADD CONSTRAINT "Expense_scope_check" CHECK ("scope" IN ('deal', 'client', 'internal'));
-ALTER TABLE "Expense" ADD CONSTRAINT "Expense_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "CrmContact"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-CREATE INDEX "Expense_clientId_idx" ON "Expense"("clientId");
+
+ALTER TABLE "Expense"
+ADD CONSTRAINT "Expense_scope_check" CHECK (
+    "scope" IN ('deal', 'client', 'internal')
+);
+
+ALTER TABLE "Expense"
+ADD CONSTRAINT "Expense_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "CrmContact" ("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+CREATE INDEX "Expense_clientId_idx" ON "Expense" ("clientId");
 
 -- Built-in category catalogue (project costs, overheads and payroll). Existing rows keep their names.
 INSERT INTO "ExpenseCategory" ("id", "slug", "nameEn", "nameAr", "color", "displayOrder", "kind", "isSystem", "isActive") VALUES

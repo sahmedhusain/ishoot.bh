@@ -45,30 +45,30 @@ export default async function HrRequestsPage({
   const [leave, docs, claims] = await Promise.all([
     wantLeave
       ? db.leaveRequest.findMany({
-          where: { ...(employeeId ? { employeeId } : {}), ...(status !== "all" ? { status } : {}), ...(leaveScope ? { employee: { userId: { in: leaveScope } } } : {}) },
-          include: { employee: employeeInclude, leaveType: true },
-          orderBy: { createdAt: "desc" },
-          take: TAKE,
-        })
+        where: { ...(employeeId ? { employeeId } : {}), ...(status !== "all" ? { status } : {}), ...(leaveScope ? { employee: { userId: { in: leaveScope } } } : {}) },
+        include: { employee: employeeInclude, leaveType: true },
+        orderBy: { createdAt: "desc" },
+        take: TAKE,
+      })
       : [],
     wantDocs
       ? db.salaryDocument.findMany({
-          where: { ...(employeeId ? { employeeId } : {}), ...(status !== "all" ? { status } : {}) },
-          include: { employee: employeeInclude },
-          orderBy: { createdAt: "desc" },
-          take: TAKE,
-        })
+        where: { ...(employeeId ? { employeeId } : {}), ...(status !== "all" ? { status } : {}) },
+        include: { employee: employeeInclude },
+        orderBy: { createdAt: "desc" },
+        take: TAKE,
+      })
       : [],
     wantClaims
       ? db.expenseClaim.findMany({
-          where: {
-            ...(filterEmployee?.userId ? { claimantId: filterEmployee.userId } : claimScope ? { claimantId: { in: claimScope } } : {}),
-            ...(status !== "all" ? { status: status === "pending" ? "submitted" : status } : {}),
-          },
-          include: { claimant: { select: { fullName: true, employee: { select: { firstNameAr: true, lastNameAr: true } } } } },
-          orderBy: { createdAt: "desc" },
-          take: TAKE,
-        })
+        where: {
+          ...(filterEmployee?.userId ? { claimantId: filterEmployee.userId } : claimScope ? { claimantId: { in: claimScope } } : {}),
+          ...(status !== "all" ? { status: status === "pending" ? "submitted" : status } : {}),
+        },
+        include: { claimant: { select: { fullName: true, employee: { select: { firstNameAr: true, lastNameAr: true } } } } },
+        orderBy: { createdAt: "desc" },
+        take: TAKE,
+      })
       : [],
   ]);
 

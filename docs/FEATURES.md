@@ -13,6 +13,7 @@ What the admin system does, by area, and the rules behind it. The exact routes a
   6. **Review**.
 
   Choosing an activity applies its recommended style, website, modules, sales pipeline stages and departments until the person changes those by hand. Beside the Website and Colours steps a **live preview** shows the real website at desktop or phone width while it is edited (nothing is saved until the step is). Steps slide in the reading direction; with "reduce motion" they only fade.
+
 - **Content languages**: with a single language every bilingual form shows one field, and the text is stored on both sides of each English/Arabic pair, so documents, emails and both apps read it whatever their interface language.
 - **Settings → Company**: general information, tax and VAT, bank details, document numbering, sales discounts, brand files (text logos, icons, stamp, signature, letterhead) and **Colours & fonts**. Changing the theme re-colours both apps, PDFs and emails immediately.
 - **Settings → Modules**: switch optional modules on or off: deals, invoicing, calendar, equipment, website content, reviews, tasks and projects (on by default), and, off until a company needs them, products, purchasing, online store, delivery, marketing, public relations and legal. A module that is off hides its pages, its reports and its permissions.
@@ -108,6 +109,7 @@ What the admin system does, by area, and the rules behind it. The exact routes a
 - Each report has a date range with presets, a comparison with the period before, a bar chart and totals, and exports as **CSV**, **Excel** and **PDF** (company letterhead). Reports can be **e-mailed on a schedule** (daily, weekly or monthly) to up to 20 addresses, with what the owner may see at that moment.
 
 ## Website hero banners, the catalogue, services, equipment, client logos, reviews, FAQs and statistics. It serves only the company's content languages; any other language redirects to the main one.
+
 - **Website type** (`packages/database/src/website-presets.ts`): media and production, marketing agency, products and retail, restaurant and café, professional services, real estate, construction and engineering, education and training, health and clinics, events and hospitality, or other. The type sets the wording (`packages/locales/src/website-activities.json`), the catalogue's name, address and card style (video projects, products with prices, listings with details, case studies), the item details the admin asks for (client and year, price and price note, location, labelled details, external link, video, gallery), the homepage opening (full-screen media, text and image, centred headline), the homepage sections, the quote-request questions and the equipment list. Everything stays editable in **Website** in the admin.
 - The catalogue lives at `/<language>/<address>` (for example `/en/products`); old `/works` links redirect to it. Items open on their own page with price, details and a quote request about that item.
 - With the website module off, the address shows a holding page with the company's name and contacts.

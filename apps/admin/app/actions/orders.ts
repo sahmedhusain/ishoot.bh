@@ -20,7 +20,10 @@ import {
   type OrderAddress,
   type StoreSettingsInput,
 } from "@platform/database";
-import { ORDER_CHANNELS, type OrderStatus } from "@platform/database/constants/store";
+import {
+  ORDER_CHANNELS,
+  type OrderStatus,
+} from "@platform/database/constants/store";
 import { ROUTES } from "../../constants/routes";
 import { requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
@@ -32,13 +35,23 @@ const refresh = (id?: string) => {
 };
 
 /** Moves an order on (packing, shipped, delivered…), with the stock that goes with it. */
-export async function moveOrderAction(id: string, status: string, note: string) {
+export async function moveOrderAction(
+  id: string,
+  status: string,
+  note: string,
+) {
   return measureOperation("action:moveOrderAction", async () => {
     await requireFeatureEnabled("store");
     const user = await requirePermission("orders", "edit");
     validateActionArguments("moveOrderAction", { id, status, note });
     const low = await moveOrder(id, status as OrderStatus, user.id, note);
-    await createActivityLog({ user_id: user.id, action: "update", entity_type: "sales_order", entity_id: id, details: { status } });
+    await createActivityLog({
+      user_id: user.id,
+      action: "update",
+      entity_type: "sales_order",
+      entity_id: id,
+      details: { status },
+    });
     await notifyLowStock(low);
     refresh(id);
     revalidatePath(ROUTES.inventory.stock);
@@ -46,33 +59,76 @@ export async function moveOrderAction(id: string, status: string, note: string) 
   });
 }
 
-export async function recordOrderPaymentAction(id: string, input: { amount: string; method: string; reference: string; proofUrl?: string }) {
+export async function recordOrderPaymentAction(
+  id: string,
+  input: {
+    amount: string;
+    method: string;
+    reference: string;
+    proofUrl?: string;
+  },
+) {
   return measureOperation("action:recordOrderPaymentAction", async () => {
     await requireFeatureEnabled("store");
     const user = await requirePermission("orders", "edit");
     validateActionArguments("recordOrderPaymentAction", { id, input });
-    if (!["cash", "card", "bank_transfer"].includes(input.method)) throw new Error(serverMessages.storePaymentMethodInvalid);
+    if (!["cash", "card", "bank_transfer"].includes(input.method))
+      throw new Error(serverMessages.storePaymentMethodInvalid);
     // The customer's proof of a bank transfer (uploaded beforehand) is kept on the order as a private file.
     if (input.proofUrl) {
       await db.$transaction(async (tx) => {
         const upload = await claimUpload(tx, input.proofUrl!, user.id);
-        await tx.attachment.create({ data: { fileName: upload.fileName.slice(0, 200), fileUrl: upload.fileUrl, fileSize: upload.fileSize, mimeType: upload.mimeType, entityType: "sales_order", entityId: id, uploadedById: user.id } });
+        await tx.attachment.create({
+          data: {
+            fileName: upload.fileName.slice(0, 200),
+            fileUrl: upload.fileUrl,
+            fileSize: upload.fileSize,
+            mimeType: upload.mimeType,
+            entityType: "sales_order",
+            entityId: id,
+            uploadedById: user.id,
+          },
+        });
       });
     }
-    await recordOrderPayment(id, { amount: Number(input.amount), method: input.method as "cash" | "card" | "bank_transfer", reference: input.reference }, user.id);
-    await createActivityLog({ user_id: user.id, action: "payment", entity_type: "sales_order", entity_id: id, details: { amount: input.amount, method: input.method } });
+    await recordOrderPayment(
+      id,
+      {
+        amount: Number(input.amount),
+        method: input.method as "cash" | "card" | "bank_transfer",
+        reference: input.reference,
+      },
+      user.id,
+    );
+    await createActivityLog({
+      user_id: user.id,
+      action: "payment",
+      entity_type: "sales_order",
+      entity_id: id,
+      details: { amount: input.amount, method: input.method },
+    });
     refresh(id);
     return { success: true };
   });
 }
 
-export async function recordOrderRefundAction(id: string, amount: string, reason: string) {
+export async function recordOrderRefundAction(
+  id: string,
+  amount: string,
+  reason: string,
+) {
   return measureOperation("action:recordOrderRefundAction", async () => {
     await requireFeatureEnabled("store");
     const user = await requirePermission("orders", "approve");
     validateActionArguments("recordOrderRefundAction", { id, amount, reason });
     await refundOrder(id, Number(amount), reason, user.id);
-    await createActivityLog({ user_id: user.id, action: "refund", entity_type: "sales_order", entity_id: id, details: { amount } });
+    await createActivityLog({
+      user_id: user.id,
+      action: "refund",
+      entity_type: "sales_order",
+      entity_id: id,
+      details: { amount },
+    });
     refresh(id);
     return { success: true };
   });
@@ -96,7 +152,13 @@ export async function issueOrderInvoiceAction(id: string) {
     await requirePermission("invoices", "create");
     validateActionArguments("issueOrderInvoiceAction", { id });
     const invoiceId = await issueOrderInvoice(id, user.id);
-    await createActivityLog({ user_id: user.id, action: "create", entity_type: "invoice", entity_id: invoiceId, details: { orderId: id } });
+    await createActivityLog({
+      user_id: user.id,
+      action: "create",
+      entity_type: "invoice",
+      entity_id: invoiceId,
+      details: { orderId: id },
+    });
     refresh(id);
     return { success: true, invoiceId };
   });
@@ -123,18 +185,30 @@ export async function createStaffOrderAction(input: StaffOrderInput) {
     await requireFeatureEnabled("store");
     const user = await requirePermission("orders", "create");
     validateActionArguments("createStaffOrderAction", { input });
-    if (!(ORDER_CHANNELS as readonly string[]).includes(input.channel) || input.channel === "website") throw new Error(serverMessages.orderStatusInvalid);
+    if (
+      !(ORDER_CHANNELS as readonly string[]).includes(input.channel) ||
+      input.channel === "website"
+    )
+      throw new Error(serverMessages.orderStatusInvalid);
     const paidNow = input.paidWith === "cash" || input.paidWith === "card";
     const order = await placeOrder({
-      lines: input.lines.map((l) => ({ productId: l.productId, variantId: l.variantId || undefined, quantity: Number(l.quantity) })),
+      lines: input.lines.map((l) => ({
+        productId: l.productId,
+        variantId: l.variantId || undefined,
+        quantity: Number(l.quantity),
+      })),
       couponCode: input.couponCode,
       fulfilment: input.fulfilment === "delivery" ? "delivery" : "pickup",
-      address: input.fulfilment === "delivery" ? input.address ?? null : null,
+      address: input.fulfilment === "delivery" ? (input.address ?? null) : null,
       name: input.name,
       email: input.email,
       phone: input.phone,
       // Cash on delivery: the driver collects it (delivery orders only).
-      paymentMethod: paidNow ? input.paidWith : input.paidWith === "cod" && input.fulfilment === "delivery" ? "cod" : "pay_later",
+      paymentMethod: paidNow
+        ? input.paidWith
+        : input.paidWith === "cod" && input.fulfilment === "delivery"
+          ? "cod"
+          : "pay_later",
       note: input.note,
       locale: "ar",
       channel: input.channel as "phone" | "whatsapp" | "pos",
@@ -142,7 +216,14 @@ export async function createStaffOrderAction(input: StaffOrderInput) {
       createdById: user.id,
     });
     if (paidNow) {
-      await recordOrderPayment(order.id, { amount: Number(order.total), method: input.paidWith as "cash" | "card" }, user.id);
+      await recordOrderPayment(
+        order.id,
+        {
+          amount: Number(order.total),
+          method: input.paidWith as "cash" | "card",
+        },
+        user.id,
+      );
       // A counter sale leaves with the customer.
       if (input.channel === "pos") {
         await notifyLowStock(await moveOrder(order.id, "packing", user.id));
@@ -150,7 +231,13 @@ export async function createStaffOrderAction(input: StaffOrderInput) {
         await moveOrder(order.id, "delivered", user.id);
       }
     }
-    await createActivityLog({ user_id: user.id, action: "create", entity_type: "sales_order", entity_id: order.id, details: { channel: input.channel, number: order.number } });
+    await createActivityLog({
+      user_id: user.id,
+      action: "create",
+      entity_type: "sales_order",
+      entity_id: order.id,
+      details: { channel: input.channel, number: order.number },
+    });
     refresh();
     return { success: true, id: order.id, number: order.number };
   });
@@ -162,7 +249,13 @@ export async function saveStoreSettingsAction(input: StoreSettingsInput) {
     const user = await requirePermission("settings", "edit");
     validateActionArguments("saveStoreSettingsAction", { input });
     await saveStoreSettings(input);
-    await createActivityLog({ user_id: user.id, action: "update", entity_type: "settings", entity_id: "store", details: {} });
+    await createActivityLog({
+      user_id: user.id,
+      action: "update",
+      entity_type: "settings",
+      entity_id: "store",
+      details: {},
+    });
     revalidatePath(ROUTES.orders.settings);
     return { success: true };
   });
@@ -174,25 +267,46 @@ export async function saveCouponAction(input: CouponInput) {
     const user = await requirePermission("orders", "approve");
     validateActionArguments("saveCouponAction", { input });
     const coupon = await saveCoupon(input);
-    await createActivityLog({ user_id: user.id, action: input.id ? "update" : "create", entity_type: "coupon", entity_id: coupon.id, details: { code: coupon.code } });
+    await createActivityLog({
+      user_id: user.id,
+      action: input.id ? "update" : "create",
+      entity_type: "coupon",
+      entity_id: coupon.id,
+      details: { code: coupon.code },
+    });
     revalidatePath(ROUTES.orders.settings);
     return { success: true };
   });
 }
 
-
 /** Reconciles a previously started payment using the gateway's stored session, never a browser-supplied payment ID. */
-export async function recheckOrderPaymentAction(orderId: string, attemptId: string) {
+export async function recheckOrderPaymentAction(
+  orderId: string,
+  attemptId: string,
+) {
   return measureOperation("action:recheckOrderPaymentAction", async () => {
     await requireFeatureEnabled("store");
     const user = await requirePermission("orders", "edit");
-    validateActionArguments("recheckOrderPaymentAction", { orderId, attemptId });
-    const attempt = await db.paymentAttempt.findFirst({ where: { id: attemptId, orderId }, select: { id: true } });
+    validateActionArguments("recheckOrderPaymentAction", {
+      orderId,
+      attemptId,
+    });
+    const attempt = await db.paymentAttempt.findFirst({
+      where: { id: attemptId, orderId },
+      select: { id: true },
+    });
     if (!attempt) throw new Error(serverMessages.procurementDocumentMissing);
     const result = await confirmReturn(attemptId, {});
     if (!result) throw new Error(serverMessages.procurementDocumentMissing);
-    if ("unavailable" in result && result.unavailable) throw new Error(serverMessages.paymentGatewayUnavailable);
-    await createActivityLog({ user_id: user.id, action: "update", entity_type: "sales_order", entity_id: orderId, details: { checkedPaymentAttempt: attemptId, state: result.state } });
+    if ("unavailable" in result && result.unavailable)
+      throw new Error(serverMessages.paymentGatewayUnavailable);
+    await createActivityLog({
+      user_id: user.id,
+      action: "update",
+      entity_type: "sales_order",
+      entity_id: orderId,
+      details: { checkedPaymentAttempt: attemptId, state: result.state },
+    });
     refresh(orderId);
     return { success: true, state: result.state };
   });

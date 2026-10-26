@@ -6,31 +6,31 @@ import { formatMessage } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
-import type { CompanySettings,SocialLink } from "@platform/database/types";
-import { Card,Input,Textarea } from "@platform/ui";
+import type { CompanySettings, SocialLink } from "@platform/database/types";
+import { Card, Input, Textarea } from "@platform/ui";
 import {
-Globe,
-ExternalLink,
-RefreshCw,CheckCircle2,
-Film,
-Building2,
-Share2,User,Phone,
-Mail,
-MapPin,Layers,
-Star,
-HelpCircle,Camera,
-FolderOpen,
-Users,
-Shield,
-Save,
-Loader2
+  Globe,
+  ExternalLink,
+  RefreshCw, CheckCircle2,
+  Film,
+  Building2,
+  Share2, User, Phone,
+  Mail,
+  MapPin, Layers,
+  Star,
+  HelpCircle, Camera,
+  FolderOpen,
+  Users,
+  Shield,
+  Save,
+  Loader2
 } from "lucide-react";
 import {
-updateWebSettingsAction,
-revalidateEntireSiteAction,
-createSocialLinkAction,
-updateSocialLinkAction,
-deleteSocialLinkAction,
+  updateWebSettingsAction,
+  revalidateEntireSiteAction,
+  createSocialLinkAction,
+  updateSocialLinkAction,
+  deleteSocialLinkAction,
 } from "../../app/actions/settings";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { usePermissions } from "../../hooks/usePermissions";
@@ -58,7 +58,7 @@ export function WebSettingsView({
   cmsCounts,
   socialLinks = [],
 }: WebSettingsViewProps) {
-  const {t} = useAdminLocale();
+  const { t } = useAdminLocale();
   const { can } = usePermissions();
   const [settings, setSettings] =
     React.useState<CompanySettings>(initialSettings);
@@ -92,7 +92,7 @@ export function WebSettingsView({
           display_order: 0,
         });
       }
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const handleToggleSocialLink = async (id: string, current: boolean) => {
@@ -101,14 +101,14 @@ export function WebSettingsView({
       if (res.success) {
         setLinks(links.map((l) => (l.id === id ? res.link : l)));
       }
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const handleDeleteSocialLink = async (id: string) => {
     try {
       await deleteSocialLinkAction(id);
       setLinks(links.filter((l) => l.id !== id));
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -117,7 +117,7 @@ export function WebSettingsView({
     setSaveSuccess(false);
 
     try {
-      const res = await updateWebSettingsAction({company_name_en:settings.company_name_en,company_name_ar:settings.company_name_ar,address_en:settings.address_en,address_ar:settings.address_ar,phone:settings.phone,whatsapp_phone:settings.whatsapp_phone,email:settings.email,website:settings.website,instagram_url:settings.instagram_url,linkedin_url:settings.linkedin_url,youtube_url:settings.youtube_url,ceo_name_en:settings.ceo_name_en,ceo_name_ar:settings.ceo_name_ar,ceo_title_en:settings.ceo_title_en,ceo_title_ar:settings.ceo_title_ar,ceo_quote_en:settings.ceo_quote_en,ceo_quote_ar:settings.ceo_quote_ar,mission_en:settings.mission_en,mission_ar:settings.mission_ar,vision_en:settings.vision_en,vision_ar:settings.vision_ar,about_text_en:settings.about_text_en,about_text_ar:settings.about_text_ar,terms_en:settings.terms_en,terms_ar:settings.terms_ar,rules_en:settings.rules_en,rules_ar:settings.rules_ar});
+      const res = await updateWebSettingsAction({ company_name_en: settings.company_name_en, company_name_ar: settings.company_name_ar, address_en: settings.address_en, address_ar: settings.address_ar, phone: settings.phone, whatsapp_phone: settings.whatsapp_phone, email: settings.email, website: settings.website, instagram_url: settings.instagram_url, linkedin_url: settings.linkedin_url, youtube_url: settings.youtube_url, ceo_name_en: settings.ceo_name_en, ceo_name_ar: settings.ceo_name_ar, ceo_title_en: settings.ceo_title_en, ceo_title_ar: settings.ceo_title_ar, ceo_quote_en: settings.ceo_quote_en, ceo_quote_ar: settings.ceo_quote_ar, mission_en: settings.mission_en, mission_ar: settings.mission_ar, vision_en: settings.vision_en, vision_ar: settings.vision_ar, about_text_en: settings.about_text_en, about_text_ar: settings.about_text_ar, terms_en: settings.terms_en, terms_ar: settings.terms_ar, rules_en: settings.rules_en, rules_ar: settings.rules_ar });
       if (res.success && res.settings) {
         setSettings(res.settings);
         setSaveSuccess(true);
@@ -210,11 +210,10 @@ export function WebSettingsView({
         <button
           type="button"
           onClick={() => setActiveTab("hero")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
-            activeTab === "hero"
-              ? "bg-primary text-white shadow-xs"
-              : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
-          }`}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === "hero"
+            ? "bg-primary text-white shadow-xs"
+            : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
+            }`}
         >
           <Film className="w-4 h-4 text-accent" />
           <span>{t.webSettingsView.tabHero}</span>
@@ -223,11 +222,10 @@ export function WebSettingsView({
         <button
           type="button"
           onClick={() => setActiveTab("narrative")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
-            activeTab === "narrative"
-              ? "bg-primary text-white shadow-xs"
-              : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
-          }`}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === "narrative"
+            ? "bg-primary text-white shadow-xs"
+            : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
+            }`}
         >
           <Building2 className="w-4 h-4 text-accent" />
           <span>{t.webSettingsView.tabNarrative}</span>
@@ -236,11 +234,10 @@ export function WebSettingsView({
         <button
           type="button"
           onClick={() => setActiveTab("legal")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
-            activeTab === "legal"
-              ? "bg-primary text-white shadow-xs"
-              : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
-          }`}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === "legal"
+            ? "bg-primary text-white shadow-xs"
+            : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
+            }`}
         >
           <Shield className="w-4 h-4 text-accent" />
           <span>{t.webSettings.termsAndPrivacy}</span>
@@ -249,11 +246,10 @@ export function WebSettingsView({
         <button
           type="button"
           onClick={() => setActiveTab("social")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
-            activeTab === "social"
-              ? "bg-primary text-white shadow-xs"
-              : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
-          }`}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === "social"
+            ? "bg-primary text-white shadow-xs"
+            : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
+            }`}
         >
           <Share2 className="w-4 h-4 text-accent" />
           <span>{t.webSettingsView.tabSocial}</span>
@@ -262,11 +258,10 @@ export function WebSettingsView({
         <button
           type="button"
           onClick={() => setActiveTab("cms")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
-            activeTab === "cms"
-              ? "bg-primary text-white shadow-xs"
-              : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
-          }`}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === "cms"
+            ? "bg-primary text-white shadow-xs"
+            : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
+            }`}
         >
           <Layers className="w-4 h-4 text-accent" />
           <span>{t.webSettingsView.tabCms}</span>
@@ -382,7 +377,7 @@ export function WebSettingsView({
               </div>
 
               <div className="grid sm:grid-cols-2 gap-4">
-                {(["about_text_en","about_text_ar"] as const).map(key=><label key={key} className="text-sm">{t.webSettings.studioStory} ({key === "about_text_ar" ? t.websiteEditor.inArabic : t.websiteEditor.inEnglish})<textarea rows={5} maxLength={20000} className="w-full border rounded p-3 bg-transparent" dir={key.endsWith("ar")?"rtl":"ltr"} value={settings[key]||""} onChange={e=>setSettings({...settings,[key]:e.target.value})}/></label>)}
+                {(["about_text_en", "about_text_ar"] as const).map(key => <label key={key} className="text-sm">{t.webSettings.studioStory} ({key === "about_text_ar" ? t.websiteEditor.inArabic : t.websiteEditor.inEnglish})<textarea rows={5} maxLength={20000} className="w-full border rounded p-3 bg-transparent" dir={key.endsWith("ar") ? "rtl" : "ltr"} value={settings[key] || ""} onChange={e => setSettings({ ...settings, [key]: e.target.value })} /></label>)}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">

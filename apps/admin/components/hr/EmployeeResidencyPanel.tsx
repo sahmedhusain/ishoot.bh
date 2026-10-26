@@ -517,8 +517,8 @@ export function EmployeeResidencyPanel({
                         {[
                           cred.visa_type
                             ? c.visaTypes[
-                                cred.visa_type as keyof typeof c.visaTypes
-                              ]
+                            cred.visa_type as keyof typeof c.visaTypes
+                            ]
                             : null,
                           cred.sponsor,
                           countryName(cred.issuing_country, t.countries),
@@ -548,8 +548,8 @@ export function EmployeeResidencyPanel({
                             {cred.cost_frequency === "term"
                               ? formatMessage(c.frequencyTerm, { months: String(cred.cost_term_months) })
                               : c.frequencies[
-                                  cred.cost_frequency as keyof typeof c.frequencies
-                                ]}
+                              cred.cost_frequency as keyof typeof c.frequencies
+                              ]}
                             {cred.paid_by === "employee"
                               ? ` · ${c.paidBy.employee}`
                               : ""}

@@ -323,7 +323,7 @@ async function main() {
           const detail = await assets.getAssetHandover(issue.id);
           assert.ok(
             detail.approval.decisions.length >= 1 &&
-              detail.approval.decisions.every((d) => d.decision === "approved"),
+            detail.approval.decisions.every((d) => d.decision === "approved"),
           );
           const held = await assets.getEmployeeAssets(employee.id);
           assert.ok(held.held.some((a) => a.id === asset.id));
@@ -556,7 +556,7 @@ async function main() {
           const linkedDetail = await assets.getAssetHandover(viaLink.id);
           assert.ok(
             linkedDetail.signed_by_link &&
-              linkedDetail.approval.decisions.every((d) => d.signed_now),
+            linkedDetail.approval.decisions.every((d) => d.signed_now),
             "approvals carry the signatures drawn when approving",
           );
           await tx.asset.update({

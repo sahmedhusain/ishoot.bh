@@ -1,5 +1,8 @@
-import { serverMessages, getTranslations, formatMessage } from "@platform/locales";
-
+import {
+  serverMessages,
+  getTranslations,
+  formatMessage,
+} from "@platform/locales";
 
 import { getCompanySettings } from "@platform/database";
 import { measureOperation, getCalendarFor } from "@platform/database";
@@ -12,7 +15,8 @@ import { publicOrigin } from "../../../../lib/public-origin";
 export async function GET() {
   return measureOperation("admin:calendar/feed:GET", async () => {
     const user = await getCurrentUser();
-    if (!user) return new NextResponse(serverMessages.unauthorized, { status: 401 });
+    if (!user)
+      return new NextResponse(serverMessages.unauthorized, { status: 401 });
     if (!(await hasPermission("calendar", "read")))
       return new NextResponse(serverMessages.runtimeForbidden, { status: 403 });
     try {
@@ -25,7 +29,9 @@ export async function GET() {
       const company = await getCompanySettings();
       return new NextResponse(
         buildIcs(events, {
-          name: formatMessage(getTranslations("en").admin.copy.calendarName, { companyName: company.company_name_en }),
+          name: formatMessage(getTranslations("en").admin.copy.calendarName, {
+            companyName: company.company_name_en,
+          }),
           language: "en",
           origin: await publicOrigin(),
         }),

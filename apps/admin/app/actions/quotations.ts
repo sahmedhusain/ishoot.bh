@@ -44,7 +44,9 @@ export async function createQuotationAction(data: {
     const actor = await requirePermission("quotations", "create");
     validateActionArguments("createQuotationAction", { data });
 
-    const validUntilDate = new Date(Date.now() + (data.validUntilDays || 30) * 24 * 60 * 60 * 1000);
+    const validUntilDate = new Date(
+      Date.now() + (data.validUntilDays || 30) * 24 * 60 * 60 * 1000,
+    );
 
     const { quotation } = await runAtomicMutation(async () => {
       const quotation = await createQuotation(
@@ -72,7 +74,10 @@ export async function createQuotationAction(data: {
         action: "create",
         entity_type: "quotation",
         entity_id: quotation.id,
-        details: { quotationNumber: quotation.quotationNumber, totalAmount: quotation.totalAmount },
+        details: {
+          quotationNumber: quotation.quotationNumber,
+          totalAmount: quotation.totalAmount,
+        },
       });
 
       return { quotation };
@@ -116,7 +121,9 @@ export async function updateQuotationAction(
         id,
         {
           ...data,
-          validUntilDate: data.validUntilDate ? new Date(data.validUntilDate) : undefined,
+          validUntilDate: data.validUntilDate
+            ? new Date(data.validUntilDate)
+            : undefined,
         },
         actor.id,
       );
@@ -126,7 +133,12 @@ export async function updateQuotationAction(
         action: "update",
         entity_type: "quotation",
         entity_id: quotation.id,
-        details: { quotationNumber: quotation.quotationNumber, revision: quotation.revision, before, after: quotation },
+        details: {
+          quotationNumber: quotation.quotationNumber,
+          revision: quotation.revision,
+          before,
+          after: quotation,
+        },
       });
 
       return { quotation };
@@ -138,30 +150,43 @@ export async function updateQuotationAction(
   });
 }
 
-export async function submitQuotationForApprovalAction(id: string, discountReason?: string) {
-  return measureOperation("action:submitQuotationForApprovalAction", async () => {
-    const actor = await requirePermission("quotations", "edit");
-    validateActionArguments("submitQuotationForApprovalAction", { id, discountReason });
-
-    const { approvalRequest } = await runAtomicMutation(async () => {
-      const approvalRequest = await submitQuotationForApproval(id, actor.id, discountReason);
-
-      await createActivityLog({
-        user_id: actor.id,
-        action: "submit_approval",
-        entity_type: "quotation",
-        entity_id: id,
-        details: { approvalRequestId: approvalRequest.approvalRequestId },
+export async function submitQuotationForApprovalAction(
+  id: string,
+  discountReason?: string,
+) {
+  return measureOperation(
+    "action:submitQuotationForApprovalAction",
+    async () => {
+      const actor = await requirePermission("quotations", "edit");
+      validateActionArguments("submitQuotationForApprovalAction", {
+        id,
+        discountReason,
       });
 
-      return { approvalRequest };
-    });
+      const { approvalRequest } = await runAtomicMutation(async () => {
+        const approvalRequest = await submitQuotationForApproval(
+          id,
+          actor.id,
+          discountReason,
+        );
 
-    revalidatePath(ROUTES.quotations.list);
-    revalidatePath(ROUTES.quotations.detail(id));
-    revalidatePath(ROUTES.approvals());
-    return { success: true, approvalRequest };
-  });
+        await createActivityLog({
+          user_id: actor.id,
+          action: "submit_approval",
+          entity_type: "quotation",
+          entity_id: id,
+          details: { approvalRequestId: approvalRequest.approvalRequestId },
+        });
+
+        return { approvalRequest };
+      });
+
+      revalidatePath(ROUTES.quotations.list);
+      revalidatePath(ROUTES.quotations.detail(id));
+      revalidatePath(ROUTES.approvals());
+      return { success: true, approvalRequest };
+    },
+  );
 }
 
 export async function issueQuotationAction(
@@ -245,27 +270,33 @@ export async function rejectQuotationAction(id: string, reason?: string) {
 }
 
 export async function convertQuotationToInvoiceAction(id: string) {
-  return measureOperation("action:convertQuotationToInvoiceAction", async () => {
-    const actor = await requirePermission("quotations", "edit");
-    validateActionArguments("convertQuotationToInvoiceAction", { id });
+  return measureOperation(
+    "action:convertQuotationToInvoiceAction",
+    async () => {
+      const actor = await requirePermission("quotations", "edit");
+      validateActionArguments("convertQuotationToInvoiceAction", { id });
 
-    const { invoice } = await runAtomicMutation(async () => {
-      const invoice = await convertQuotationToInvoice(id, actor.id);
+      const { invoice } = await runAtomicMutation(async () => {
+        const invoice = await convertQuotationToInvoice(id, actor.id);
 
-      await createActivityLog({
-        user_id: actor.id,
-        action: "convert_to_invoice",
-        entity_type: "quotation",
-        entity_id: id,
-        details: { invoiceId: invoice.invoiceId, invoiceNumber: invoice.invoiceNumber },
+        await createActivityLog({
+          user_id: actor.id,
+          action: "convert_to_invoice",
+          entity_type: "quotation",
+          entity_id: id,
+          details: {
+            invoiceId: invoice.invoiceId,
+            invoiceNumber: invoice.invoiceNumber,
+          },
+        });
+
+        return { invoice };
       });
 
-      return { invoice };
-    });
-
-    revalidatePath(ROUTES.quotations.list);
-    revalidatePath(ROUTES.quotations.detail(id));
-    revalidatePath(ROUTES.invoices.list);
-    return { success: true, invoice };
-  });
+      revalidatePath(ROUTES.quotations.list);
+      revalidatePath(ROUTES.quotations.detail(id));
+      revalidatePath(ROUTES.invoices.list);
+      return { success: true, invoice };
+    },
+  );
 }

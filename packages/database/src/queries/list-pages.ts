@@ -14,12 +14,25 @@ export type ListParameters = {
 };
 export function listParameters(input: ListParameters = {}) {
   return {
-    dealId: typeof input.dealId === "string" && input.dealId.length <= 150 ? input.dealId : "",
-    contactId: typeof input.contactId === "string" && input.contactId.length <= 150 ? input.contactId : "",
-    clientId: typeof input.clientId === "string" && input.clientId.length <= 150 ? input.clientId : "",
+    dealId:
+      typeof input.dealId === "string" && input.dealId.length <= 150
+        ? input.dealId
+        : "",
+    contactId:
+      typeof input.contactId === "string" && input.contactId.length <= 150
+        ? input.contactId
+        : "",
+    clientId:
+      typeof input.clientId === "string" && input.clientId.length <= 150
+        ? input.clientId
+        : "",
     q: typeof input.q === "string" ? input.q.trim().slice(0, 200) : "",
-    status: typeof input.status === "string" ? input.status.slice(0, 50) : "all",
-    page: Math.min(1000000, Math.max(1, Number.parseInt(input.page || "1", 10) || 1)),
+    status:
+      typeof input.status === "string" ? input.status.slice(0, 50) : "all",
+    page: Math.min(
+      1000000,
+      Math.max(1, Number.parseInt(input.page || "1", 10) || 1),
+    ),
   };
 }
 const contains = (q: string) => ({ contains: q, mode: "insensitive" as const });
@@ -78,7 +91,11 @@ async function pageQuery<T>(
   );
 }
 /** `scope`: the staff accounts whose deals the viewer may see (data scope); null or missing for all of them. */
-export async function getDealsPage(input: ListParameters, batch?: ExportBatch, scope?: string[] | null) {
+export async function getDealsPage(
+  input: ListParameters,
+  batch?: ExportBatch,
+  scope?: string[] | null,
+) {
   const f = listParameters(input);
   const where = {
     ...(scope ? { assignedTo: { in: scope } } : {}),
@@ -314,7 +331,15 @@ export async function getCalendarPage(
       ...(f.dealId ? { dealId: f.dealId } : {}),
       ...(f.contactId ? { deal: { contactId: f.contactId } } : {}),
       ...(f.clientId ? { deal: { contactId: f.clientId } } : {}),
-      ...(f.q ? { OR: [{ title: contains(f.q) }, { titleAr: contains(f.q) }, { description: contains(f.q) }] } : {}),
+      ...(f.q
+        ? {
+            OR: [
+              { title: contains(f.q) },
+              { titleAr: contains(f.q) },
+              { description: contains(f.q) },
+            ],
+          }
+        : {}),
     };
     const result = await pageQuery<any>(
       "calendarEvent",
@@ -355,10 +380,7 @@ export async function getCalendarPage(
   }, "RepeatableRead");
 }
 
-export async function getMomsPage(
-  input: ListParameters,
-  batch?: ExportBatch,
-) {
+export async function getMomsPage(input: ListParameters, batch?: ExportBatch) {
   return runAtomicMutation(async () => {
     const { mapPrismaMom } = await import("./moms");
     const f = listParameters(input);
@@ -367,12 +389,16 @@ export async function getMomsPage(
       ...(f.contactId ? { clientId: f.contactId } : {}),
       ...(f.clientId ? { clientId: f.clientId } : {}),
       ...(f.status !== "all" ? { status: f.status } : {}),
-      ...(f.q ? { OR: [
-        { momNumber: contains(f.q) },
-        { title: contains(f.q) },
-        { titleAr: contains(f.q) },
-        { agenda: contains(f.q) },
-      ]} : {}),
+      ...(f.q
+        ? {
+            OR: [
+              { momNumber: contains(f.q) },
+              { title: contains(f.q) },
+              { titleAr: contains(f.q) },
+              { agenda: contains(f.q) },
+            ],
+          }
+        : {}),
     };
     const result = await pageQuery<any>(
       "minuteOfMeeting",
@@ -402,7 +428,9 @@ export async function getMomsPage(
         createdAt: true,
         updatedAt: true,
         deal: { select: { title: true } },
-        client: { select: { firstName: true, lastName: true, companyName: true } },
+        client: {
+          select: { firstName: true, lastName: true, companyName: true },
+        },
         createdBy: { select: { fullName: true } },
         approvedBy: { select: { fullName: true } },
       },
@@ -429,11 +457,15 @@ export async function getCompanyDocumentsPage(
     const f = listParameters(input);
     const where = {
       ...(f.status !== "all" ? { category: f.status } : {}),
-      ...(f.q ? { OR: [
-        { titleEn: contains(f.q) },
-        { titleAr: contains(f.q) },
-        { documentNumber: contains(f.q) },
-      ]} : {}),
+      ...(f.q
+        ? {
+            OR: [
+              { titleEn: contains(f.q) },
+              { titleAr: contains(f.q) },
+              { documentNumber: contains(f.q) },
+            ],
+          }
+        : {}),
     };
     const result = await pageQuery<any>(
       "companyDocument",
@@ -469,7 +501,11 @@ export async function getCompanyDocumentsPage(
 }
 
 export const listDomains = {
-  contacts: (input: ListParameters, batch?: ExportBatch, _scope?: string[] | null) => getClientsPage(input as ClientListParameters, batch),
+  contacts: (
+    input: ListParameters,
+    batch?: ExportBatch,
+    _scope?: string[] | null,
+  ) => getClientsPage(input as ClientListParameters, batch),
   deals: getDealsPage,
   invoices: getInvoicesPage,
   payments: getPaymentsPage,
@@ -488,7 +524,13 @@ export async function* iterateListExport(
 ) {
   let after: string | undefined;
   while (true) {
-    const result = await (listDomains[domain] as (input: ListParameters, batch: ExportBatch, scope?: string[] | null) => ReturnType<(typeof listDomains)[typeof domain]>)(input, { after, batchSize: 500 }, scope);
+    const result = await (
+      listDomains[domain] as (
+        input: ListParameters,
+        batch: ExportBatch,
+        scope?: string[] | null,
+      ) => ReturnType<(typeof listDomains)[typeof domain]>
+    )(input, { after, batchSize: 500 }, scope);
     if (!result.items.length) return;
     yield result.items;
     after = result.items[result.items.length - 1].id;
@@ -575,7 +617,9 @@ export async function getExpensesPage(
         paymentMethod: true,
         receiptUrl: true,
         inputVatAmount: true,
-        client: { select: { firstName: true, lastName: true, companyName: true } },
+        client: {
+          select: { firstName: true, lastName: true, companyName: true },
+        },
         deal: { select: { title: true } },
         descriptionEn: true,
         descriptionAr: true,
@@ -612,7 +656,9 @@ export async function getExpensesPage(
         ]);
     return {
       ...result,
-      scopeCounts: Object.fromEntries(byScope.map((g) => [g.scope, g._count._all])) as Record<string, number>,
+      scopeCounts: Object.fromEntries(
+        byScope.map((g) => [g.scope, g._count._all]),
+      ) as Record<string, number>,
       items: result.rows.map(mapExpense),
       rows: undefined,
       filters: f,

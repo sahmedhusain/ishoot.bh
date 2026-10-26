@@ -1,4 +1,8 @@
-import { serverTemplates, formatMessage, serverMessages } from "@platform/locales";
+import {
+  serverTemplates,
+  formatMessage,
+  serverMessages,
+} from "@platform/locales";
 
 import { db } from "../db";
 import {
@@ -9,12 +13,25 @@ import {
   calculateInvoiceTotals,
 } from "../types";
 
-import { amountDue as computeAmountDue, lineTotal, sumMoney } from "../finance/money";
+import {
+  amountDue as computeAmountDue,
+  lineTotal,
+  sumMoney,
+} from "../finance/money";
 import { allocateDocumentNumber } from "../finance/numbering";
 import { resolveSalesOwner } from "./sales-attribution";
-import { INVOICE_STATUS_TRANSITIONS, assertSupportedCurrency } from "../constants/finance";
+import {
+  INVOICE_STATUS_TRANSITIONS,
+  assertSupportedCurrency,
+} from "../constants/finance";
 import { advanceDealForEvent } from "./crm";
-import { companyTaxes, companyVat, documentTaxRows, frozenTaxes, mapDocumentTaxLines } from "../finance/vat";
+import {
+  companyTaxes,
+  companyVat,
+  documentTaxRows,
+  frozenTaxes,
+  mapDocumentTaxLines,
+} from "../finance/vat";
 
 export { calculateInvoiceTotals };
 
@@ -26,7 +43,10 @@ function mapPrismaInvoiceToInvoice(inv: any): Invoice {
   const totalAmount = Number(inv.totalAmount);
 
   const currencyCode = inv.currency || "BHD";
-  const amountPaid = sumMoney((inv.payments || []).map((p: any) => p.amount), currencyCode);
+  const amountPaid = sumMoney(
+    (inv.payments || []).map((p: any) => p.amount),
+    currencyCode,
+  );
   const amountDue = computeAmountDue(totalAmount, amountPaid, currencyCode);
   const contactObj = inv.client || inv.deal?.contact;
 
@@ -272,8 +292,10 @@ export async function createInvoice(data: {
   assertSupportedCurrency(currency);
   const issueDate = new Date(data.issue_date);
   const dueDate = new Date(data.due_date);
-  if (Number.isNaN(issueDate.getTime()) || Number.isNaN(dueDate.getTime())) throw new Error(serverMessages.invalidInvoiceDates);
-  if (dueDate < issueDate) throw new Error(serverMessages.theDueDateCannotBeBeforeThe);
+  if (Number.isNaN(issueDate.getTime()) || Number.isNaN(dueDate.getTime()))
+    throw new Error(serverMessages.invalidInvoiceDates);
+  if (dueDate < issueDate)
+    throw new Error(serverMessages.theDueDateCannotBeBeforeThe);
   const vat = await companyVat();
   const otherTaxes = await companyTaxes("invoice");
   const totals = calculateInvoiceTotals(
@@ -296,17 +318,30 @@ export async function createInvoice(data: {
       await tx.$queryRaw`SELECT id FROM "Quotation" WHERE id = ${data.quotation_id} FOR UPDATE`;
       const quotation = await tx.quotation.findUnique({
         where: { id: data.quotation_id },
-        select: { status: true, invoiceId: true, dealId: true, clientId: true, currency: true, salesOwnerId: true },
+        select: {
+          status: true,
+          invoiceId: true,
+          dealId: true,
+          clientId: true,
+          currency: true,
+          salesOwnerId: true,
+        },
       });
       if (!quotation) throw new Error(serverMessages.quotationNotFound);
       if (quotation.invoiceId || quotation.status === "converted")
         throw new Error(serverMessages.thisQuotationHasAlreadyBeenInvoiced);
-      if (quotation.status !== "accepted") throw new Error(serverMessages.onlyAcceptedQuotationsCanBeInvoiced);
-      if (quotation.currency !== currency) throw new Error(serverMessages.invoiceCurrencyMustMatchTheQuotation);
+      if (quotation.status !== "accepted")
+        throw new Error(serverMessages.onlyAcceptedQuotationsCanBeInvoiced);
+      if (quotation.currency !== currency)
+        throw new Error(serverMessages.invoiceCurrencyMustMatchTheQuotation);
       dealId = dealId || quotation.dealId;
       quotationOwner = quotation.salesOwnerId;
     }
-    const invoiceNumber = await allocateDocumentNumber("invoice", issueDate, tx);
+    const invoiceNumber = await allocateDocumentNumber(
+      "invoice",
+      issueDate,
+      tx,
+    );
 
     const invoice = await tx.invoice.create({
       data: {
@@ -331,7 +366,10 @@ export async function createInvoice(data: {
         notesEn: data.notes_en || null,
         notesAr: data.notes_ar || null,
         createdById: data.created_by || null,
-        salesOwnerId: await resolveSalesOwner(data.sales_owner_id || quotationOwner, data.created_by),
+        salesOwnerId: await resolveSalesOwner(
+          data.sales_owner_id || quotationOwner,
+          data.created_by,
+        ),
         lineItems: {
           create: data.line_items.map((li, idx) => ({
             serviceId: li.service_id || null,
@@ -354,11 +392,26 @@ export async function createInvoice(data: {
       },
     });
     if (data.quotation_id) {
-      await tx.quotation.update({ where: { id: data.quotation_id }, data: { invoiceId: invoice.id, status: "converted" } });
+      await tx.quotation.update({
+        where: { id: data.quotation_id },
+        data: { invoiceId: invoice.id, status: "converted" },
+      });
       // Crediting the invoice to someone other than the quotation's salesperson is a reassignment: keep the history.
-      if (quotationOwner && invoice.salesOwnerId && invoice.salesOwnerId !== quotationOwner && data.created_by) {
+      if (
+        quotationOwner &&
+        invoice.salesOwnerId &&
+        invoice.salesOwnerId !== quotationOwner &&
+        data.created_by
+      ) {
         await tx.salesAttributionChange.create({
-          data: { entityType: "invoice", entityId: invoice.id, fromUserId: quotationOwner, toUserId: invoice.salesOwnerId, changedById: data.created_by, reason: "Credited differently when invoicing the quotation" },
+          data: {
+            entityType: "invoice",
+            entityId: invoice.id,
+            fromUserId: quotationOwner,
+            toUserId: invoice.salesOwnerId,
+            changedById: data.created_by,
+            reason: "Credited differently when invoicing the quotation",
+          },
         });
       }
     }
@@ -397,7 +450,11 @@ export async function updateInvoice(
       await tx.$queryRaw`SELECT id FROM "Invoice" WHERE id = ${id} FOR UPDATE`;
       const existing = await tx.invoice.findUnique({
         where: { id },
-        include: { lineItems: true, payments: true, taxes: { orderBy: { displayOrder: "asc" } } },
+        include: {
+          lineItems: true,
+          payments: true,
+          taxes: { orderBy: { displayOrder: "asc" } },
+        },
       });
       if (!existing) return null;
       if (existing.status === "void" || existing.payments.length > 0)
@@ -406,9 +463,14 @@ export async function updateInvoice(
       const currency =
         data.currency || (existing.currency as SupportedCurrency) || "BHD";
       if (data.currency) assertSupportedCurrency(data.currency);
-      const nextIssue = data.issue_date ? new Date(data.issue_date) : existing.issueDate;
-      const nextDue = data.due_date ? new Date(data.due_date) : existing.dueDate;
-      if (nextDue < nextIssue) throw new Error(serverMessages.theDueDateCannotBeBeforeThe);
+      const nextIssue = data.issue_date
+        ? new Date(data.issue_date)
+        : existing.issueDate;
+      const nextDue = data.due_date
+        ? new Date(data.due_date)
+        : existing.dueDate;
+      if (nextDue < nextIssue)
+        throw new Error(serverMessages.theDueDateCannotBeBeforeThe);
       const lineItemsToCalc =
         data.line_items ||
         existing.lineItems.map((li) => ({
@@ -420,11 +482,18 @@ export async function updateInvoice(
         }));
 
       // Drafts follow the company VAT rule; an issued invoice keeps the VAT it was issued with.
-      const vat = existing.status === "draft"
-        ? await companyVat(tx)
-        : { vatEnabled: existing.vatEnabled, vatPercentage: Number(existing.vatPercentage) };
+      const vat =
+        existing.status === "draft"
+          ? await companyVat(tx)
+          : {
+              vatEnabled: existing.vatEnabled,
+              vatPercentage: Number(existing.vatPercentage),
+            };
       // Likewise for the other taxes: drafts follow the registry, issued invoices keep their frozen taxes.
-      const otherTaxes = existing.status === "draft" ? await companyTaxes("invoice", tx) : frozenTaxes(existing.taxes);
+      const otherTaxes =
+        existing.status === "draft"
+          ? await companyTaxes("invoice", tx)
+          : frozenTaxes(existing.taxes);
       const totals = calculateInvoiceTotals(
         lineItemsToCalc.map((li) => ({
           ...li,
@@ -438,7 +507,12 @@ export async function updateInvoice(
         otherTaxes,
       );
       await tx.documentTax.deleteMany({ where: { invoiceId: id } });
-      await tx.documentTax.createMany({ data: documentTaxRows(otherTaxes, totals.taxes).map((row) => ({ ...row, invoiceId: id })) });
+      await tx.documentTax.createMany({
+        data: documentTaxRows(otherTaxes, totals.taxes).map((row) => ({
+          ...row,
+          invoiceId: id,
+        })),
+      });
 
       if (data.line_items) {
         await tx.invoiceLineItem.deleteMany({ where: { invoiceId: id } });
@@ -520,15 +594,30 @@ export async function updateInvoiceStatus(
           "Paid invoices require a credit adjustment before voiding",
         );
       if (!(INVOICE_STATUS_TRANSITIONS[invoice.status] ?? []).includes(status))
-        throw new Error(formatMessage(serverTemplates.anInvoiceCannotMoveFrom0To, { 0: invoice.status, 1: status }));
+        throw new Error(
+          formatMessage(serverTemplates.anInvoiceCannotMoveFrom0To, {
+            0: invoice.status,
+            1: status,
+          }),
+        );
       // Approved, then signed and stamped, before it goes to the client.
       if (status === "sent" && invoice.status === "draft" && !invoice.signedAt)
-        throw new Error(invoice.approvalStatus === "approved" ? "Sign and stamp this invoice before sending it to the client" : "Get this invoice approved, then sign and stamp it, before sending it");
+        throw new Error(
+          invoice.approvalStatus === "approved"
+            ? "Sign and stamp this invoice before sending it to the client"
+            : "Get this invoice approved, then sign and stamp it, before sending it",
+        );
       await tx.invoice.update({
         where: { id },
-        data: { status, ...(status === "sent" && !invoice.deliveredAt ? { deliveredAt: new Date() } : {}) },
+        data: {
+          status,
+          ...(status === "sent" && !invoice.deliveredAt
+            ? { deliveredAt: new Date() }
+            : {}),
+        },
       });
-      if (status === "sent") await advanceDealForEvent(tx, invoice.dealId, "invoice_issued");
+      if (status === "sent")
+        await advanceDealForEvent(tx, invoice.dealId, "invoice_issued");
     });
     return true;
   } catch (e) {
@@ -548,10 +637,17 @@ export async function deleteInvoice(id: string): Promise<boolean> {
 }
 
 /** Marks issued invoices past their due date as overdue. Run daily by the maintenance worker. */
-export async function markOverdueInvoices(asOf: Date = new Date()): Promise<number> {
-  const startOfDay = new Date(Date.UTC(asOf.getUTCFullYear(), asOf.getUTCMonth(), asOf.getUTCDate()));
+export async function markOverdueInvoices(
+  asOf: Date = new Date(),
+): Promise<number> {
+  const startOfDay = new Date(
+    Date.UTC(asOf.getUTCFullYear(), asOf.getUTCMonth(), asOf.getUTCDate()),
+  );
   const result = await db.invoice.updateMany({
-    where: { status: { in: ["sent", "partially_paid"] }, dueDate: { lt: startOfDay } },
+    where: {
+      status: { in: ["sent", "partially_paid"] },
+      dueDate: { lt: startOfDay },
+    },
     data: { status: "overdue" },
   });
   return result.count;

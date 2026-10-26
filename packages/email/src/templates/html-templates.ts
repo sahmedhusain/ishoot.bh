@@ -1,6 +1,5 @@
 import { formatMessage, getTranslations, type Locale } from "@platform/locales";
 
-
 export function escapeEmailHtml(value: unknown): string {
   return String(value ?? "").replace(
     /[&<>"']/g,
@@ -27,8 +26,12 @@ const alpha = (hex: string, a: number) => {
 
 /** Fills the colour placeholders of a rendered email with the company's colours on neutral dark surfaces. */
 function applyEmailPalette(companyInfo: BrandEmailCompanyInfo, html: string) {
-  const primary = HEX.test(companyInfo.primary ?? "") ? companyInfo.primary! : "#1E3A8A";
-  const accent = HEX.test(companyInfo.accent ?? "") ? companyInfo.accent! : "#2563EB";
+  const primary = HEX.test(companyInfo.primary ?? "")
+    ? companyInfo.primary!
+    : "#1E3A8A";
+  const accent = HEX.test(companyInfo.accent ?? "")
+    ? companyInfo.accent!
+    : "#2563EB";
   const palette: Record<string, string> = {
     PRIMARY: primary,
     ACCENT: accent,
@@ -44,7 +47,10 @@ function applyEmailPalette(companyInfo: BrandEmailCompanyInfo, html: string) {
     FAINT: "#9CA3AF",
     FAINTER: "#6B7280",
   };
-  return html.replace(/%%([A-Z_0-9]+)%%/g, (token, key: string) => palette[key] ?? token);
+  return html.replace(
+    /%%([A-Z_0-9]+)%%/g,
+    (token, key: string) => palette[key] ?? token,
+  );
 }
 
 export interface BrandEmailCompanyInfo {
@@ -74,7 +80,11 @@ export function renderBrandEmailLayout(
     );
   const dir = isRtl ? "rtl" : "ltr";
   const textAlign = isRtl ? "right" : "left";
-  const fontFamily = [companyInfo.fontFamily && `'${companyInfo.fontFamily.replace(/['";<>]/g, "")}'`, "-apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, Arial, sans-serif"]
+  const fontFamily = [
+    companyInfo.fontFamily &&
+      `'${companyInfo.fontFamily.replace(/['";<>]/g, "")}'`,
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, Arial, sans-serif",
+  ]
     .filter(Boolean)
     .join(", ");
 
@@ -94,7 +104,9 @@ export function renderBrandEmailLayout(
   const localeKey: Locale = isRtl ? "ar" : "en";
   const t = getTranslations(localeKey);
 
-  return applyEmailPalette(companyInfo, `
+  return applyEmailPalette(
+    companyInfo,
+    `
 <!DOCTYPE html>
 <html dir="${dir}" lang="${localeKey}">
 <head>
@@ -152,7 +164,8 @@ export function renderBrandEmailLayout(
   </table>
 </body>
 </html>
-  `);
+  `,
+  );
 }
 
 export function createInquiryConfirmationEmail(
@@ -176,13 +189,17 @@ export function createInquiryConfirmationEmail(
     )
     .join("");
 
-  const subject = formatMessage(t.email.confirmation.subject, { companyName: compName });
+  const subject = formatMessage(t.email.confirmation.subject, {
+    companyName: compName,
+  });
   const title = formatMessage(t.email.confirmation.title, { name: name });
   const receivedMsg = t.email.confirmation.receivedMessage;
   const servicesTitle = t.email.confirmation.servicesRequested;
   const urgentInquiries = t.email.confirmation.urgentInquiries;
   const warmRegards = t.email.confirmation.warmRegards;
-  const prodTeam = formatMessage(t.email.confirmation.productionTeam, { companyName: compName });
+  const prodTeam = formatMessage(t.email.confirmation.productionTeam, {
+    companyName: compName,
+  });
 
   const content = `
     <h2 style="color: #FFFFFF; font-size: 22px; font-weight: 700; margin-top: 0; margin-bottom: 16px;">${escapeEmailHtml(title)}</h2>
@@ -228,8 +245,12 @@ export function createInquiryNotificationEmail(inquiry: {
     .join("");
 
   const badgeText = t.email.notification.badge;
-  const titleText = formatMessage(t.email.notification.title, { fullName: inquiry.fullName });
-  const subjectText = formatMessage(t.email.notification.subject, { fullName: inquiry.fullName });
+  const titleText = formatMessage(t.email.notification.title, {
+    fullName: inquiry.fullName,
+  });
+  const subjectText = formatMessage(t.email.notification.subject, {
+    fullName: inquiry.fullName,
+  });
 
   const content = `
     <div style="display: inline-block; background-color: %%ACCENT_15%%; border: 1px solid %%ACCENT%%; color: %%ACCENT%%; font-size: 11px; font-weight: 700; padding: 5px 14px; border-radius: 999px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 18px;">
@@ -296,10 +317,17 @@ export function createInvoiceDeliveryEmail(params: {
     ? (params.companyInfo?.nameAr ?? "")
     : (params.companyInfo?.nameEn ?? "");
 
-  const subject = formatMessage(t.email.invoiceDelivery.subject, { invoiceNumber: params.invoiceNumber, companyName: compName });
+  const subject = formatMessage(t.email.invoiceDelivery.subject, {
+    invoiceNumber: params.invoiceNumber,
+    companyName: compName,
+  });
 
-  const greeting = formatMessage(t.email.invoiceDelivery.greeting, { clientName: params.clientName });
-  const body = formatMessage(t.email.invoiceDelivery.body, { invoiceNumber: params.invoiceNumber });
+  const greeting = formatMessage(t.email.invoiceDelivery.greeting, {
+    clientName: params.clientName,
+  });
+  const body = formatMessage(t.email.invoiceDelivery.body, {
+    invoiceNumber: params.invoiceNumber,
+  });
 
   const content = `
     <h2 style="color: #FFFFFF; font-size: 22px; font-weight: 700; margin-top: 0; margin-bottom: 16px;">${escapeEmailHtml(greeting)}</h2>
@@ -359,15 +387,22 @@ export function createPaymentReceiptEmail(params: {
     ? (params.companyInfo?.nameAr ?? "")
     : (params.companyInfo?.nameEn ?? "");
 
-  const subject = formatMessage(t.email.paymentReceipt.subject, { receiptNumber: params.receiptNumber, companyName: compName });
+  const subject = formatMessage(t.email.paymentReceipt.subject, {
+    receiptNumber: params.receiptNumber,
+    companyName: compName,
+  });
 
   const badgeText = params.isPaidInFull
     ? t.email.paymentReceipt.badgePaidInFull
     : t.email.paymentReceipt.badgePartial;
 
   const title = t.email.paymentReceipt.title;
-  const greeting = formatMessage(t.email.paymentReceipt.greeting, { clientName: params.clientName });
-  const body = formatMessage(t.email.paymentReceipt.body, { invoiceNumber: params.invoiceNumber });
+  const greeting = formatMessage(t.email.paymentReceipt.greeting, {
+    clientName: params.clientName,
+  });
+  const body = formatMessage(t.email.paymentReceipt.body, {
+    invoiceNumber: params.invoiceNumber,
+  });
 
   const content = `
     <div style="display: inline-block; background-color: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; color: #10B981; font-size: 11px; font-weight: 700; padding: 5px 14px; border-radius: 999px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 18px;">

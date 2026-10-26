@@ -21,7 +21,8 @@ export const DEPARTMENT_CATALOGUE = [
 export type DepartmentKey = (typeof DEPARTMENT_CATALOGUE)[number];
 
 export const isDepartmentKey = (value: unknown): value is DepartmentKey =>
-  typeof value === "string" && (DEPARTMENT_CATALOGUE as readonly string[]).includes(value);
+  typeof value === "string" &&
+  (DEPARTMENT_CATALOGUE as readonly string[]).includes(value);
 
 /** Short codes for catalogue departments (Department.code is unique). */
 export const DEPARTMENT_CODES: Record<DepartmentKey, string> = {
@@ -41,15 +42,44 @@ export const DEPARTMENT_CODES: Record<DepartmentKey, string> = {
   administration: "ADMIN",
 };
 
-const CORE: DepartmentKey[] = ["management", "finance", "hr", "sales", "marketing", "operations", "administration"];
-const STORE: DepartmentKey[] = ["management", "finance", "hr", "sales", "marketing", "procurement", "warehouse", "delivery", "customer_service", "it"];
+const CORE: DepartmentKey[] = [
+  "management",
+  "finance",
+  "hr",
+  "sales",
+  "marketing",
+  "operations",
+  "administration",
+];
+const STORE: DepartmentKey[] = [
+  "management",
+  "finance",
+  "hr",
+  "sales",
+  "marketing",
+  "procurement",
+  "warehouse",
+  "delivery",
+  "customer_service",
+  "it",
+];
 
 /** Departments each business activity starts with (website-presets.ts BUSINESS_ACTIVITIES). */
 export const ACTIVITY_DEPARTMENTS: Record<string, readonly DepartmentKey[]> = {
   media: [...CORE, "pr"],
   agency: [...CORE, "pr", "it"],
   products: STORE,
-  food: ["management", "finance", "hr", "operations", "procurement", "warehouse", "delivery", "customer_service", "marketing"],
+  food: [
+    "management",
+    "finance",
+    "hr",
+    "operations",
+    "procurement",
+    "warehouse",
+    "delivery",
+    "customer_service",
+    "marketing",
+  ],
   services: [...CORE, "customer_service"],
   real_estate: [...CORE, "legal", "customer_service"],
   construction: [...CORE, "procurement", "warehouse", "legal"],
@@ -57,21 +87,75 @@ export const ACTIVITY_DEPARTMENTS: Record<string, readonly DepartmentKey[]> = {
   healthcare: [...CORE, "procurement", "warehouse", "customer_service"],
   events: [...CORE, "pr", "procurement"],
   online_store: STORE,
-  beauty: ["management", "finance", "hr", "sales", "marketing", "operations", "customer_service", "procurement"],
-  fitness: ["management", "finance", "hr", "sales", "marketing", "operations", "customer_service"],
+  beauty: [
+    "management",
+    "finance",
+    "hr",
+    "sales",
+    "marketing",
+    "operations",
+    "customer_service",
+    "procurement",
+  ],
+  fitness: [
+    "management",
+    "finance",
+    "hr",
+    "sales",
+    "marketing",
+    "operations",
+    "customer_service",
+  ],
   automotive: [...CORE, "procurement", "warehouse", "customer_service"],
-  logistics: ["management", "finance", "hr", "sales", "operations", "delivery", "warehouse", "customer_service", "it"],
+  logistics: [
+    "management",
+    "finance",
+    "hr",
+    "sales",
+    "operations",
+    "delivery",
+    "warehouse",
+    "customer_service",
+    "it",
+  ],
   travel: [...CORE, "customer_service"],
   hotel: [...CORE, "procurement", "customer_service"],
-  law_firm: ["management", "finance", "hr", "legal", "marketing", "administration", "it"],
-  nonprofit: ["management", "finance", "hr", "pr", "marketing", "operations", "administration"],
-  pharmacy: ["management", "finance", "hr", "sales", "procurement", "warehouse", "delivery", "customer_service"],
+  law_firm: [
+    "management",
+    "finance",
+    "hr",
+    "legal",
+    "marketing",
+    "administration",
+    "it",
+  ],
+  nonprofit: [
+    "management",
+    "finance",
+    "hr",
+    "pr",
+    "marketing",
+    "operations",
+    "administration",
+  ],
+  pharmacy: [
+    "management",
+    "finance",
+    "hr",
+    "sales",
+    "procurement",
+    "warehouse",
+    "delivery",
+    "customer_service",
+  ],
   manufacturing: [...CORE, "procurement", "warehouse", "delivery", "it"],
   it_software: [...CORE, "customer_service", "it"],
   other: CORE,
 };
 
-export function activityDepartments(activity: string | null | undefined): readonly DepartmentKey[] {
+export function activityDepartments(
+  activity: string | null | undefined,
+): readonly DepartmentKey[] {
   return ACTIVITY_DEPARTMENTS[activity ?? ""] ?? ACTIVITY_DEPARTMENTS.other;
 }
 
@@ -94,4 +178,9 @@ export const DEPARTMENT_ROLES: Record<DepartmentKey, readonly string[]> = {
 };
 
 /** Roles every company has, whatever its departments. */
-export const BASE_ROLES = ["super_admin", "admin", "employee", "viewer"] as const;
+export const BASE_ROLES = [
+  "super_admin",
+  "admin",
+  "employee",
+  "viewer",
+] as const;

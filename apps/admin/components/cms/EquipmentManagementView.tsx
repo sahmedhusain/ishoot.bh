@@ -3,18 +3,18 @@
 import * as React from "react";
 import type { StudioEquipment } from "@platform/database/types";
 import {
-Button,Badge,
-Modal,
-Input,
-Select,
-ConfirmDialog
+  Button, Badge,
+  Modal,
+  Input,
+  Select,
+  ConfirmDialog
 } from "@platform/ui";
-import { Plus,Trash2,CheckCircle2,Filter,Pencil } from "lucide-react";
+import { Plus, Trash2, CheckCircle2, Filter, Pencil } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
-deleteEquipmentAction,
-createEquipmentAction,
-updateEquipmentAction,
+  deleteEquipmentAction,
+  createEquipmentAction,
+  updateEquipmentAction,
 } from "../../app/actions/cms";
 
 interface EquipmentManagementViewProps {
@@ -137,11 +137,10 @@ export function EquipmentManagementView({
           <button
             key={c.value}
             onClick={() => setSelectedCategory(c.value)}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
-              selectedCategory === c.value
-                ? "bg-accent text-white shadow-lg shadow-accent/20"
-                : "bg-surface border border-ink/10 text-ink-muted hover:text-ink hover:border-ink/20"
-            }`}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${selectedCategory === c.value
+              ? "bg-accent text-white shadow-lg shadow-accent/20"
+              : "bg-surface border border-ink/10 text-ink-muted hover:text-ink hover:border-ink/20"
+              }`}
           >
             {c.label}
           </button>

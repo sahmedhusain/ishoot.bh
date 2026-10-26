@@ -124,7 +124,7 @@ function IntegrationCard({
       field.secret
         ? !!values[field.key]?.trim()
         : (values[field.key] ?? "").trim() !==
-          (view.values[field.key] ?? "").trim(),
+        (view.values[field.key] ?? "").trim(),
     );
   const markSaved = useUnsavedChanges({ isActive, values });
   const resetEditing = () => {
@@ -400,8 +400,8 @@ function IntegrationCard({
             {!links.length && (
               <p>
                 {provider.kind === "payments" ||
-                provider.kind === "sign_in" ||
-                provider.id === "resend"
+                  provider.kind === "sign_in" ||
+                  provider.id === "resend"
                   ? c.setup.missingOrigin
                   : c.setup.noCallback}
               </p>
@@ -480,8 +480,8 @@ function IntegrationCard({
                       <option key={value} value={value}>
                         {field.key === "environment"
                           ? c.setup.environments[
-                              value as keyof typeof c.setup.environments
-                            ]
+                          value as keyof typeof c.setup.environments
+                          ]
                           : value}
                       </option>
                     ))}
@@ -560,8 +560,8 @@ function IntegrationCard({
                       field.secret && secret?.set
                         ? formatMessage(c.secretSet, { hint: secret.hint })
                         : c.placeholders[
-                            field.key as keyof typeof c.placeholders
-                          ]
+                        field.key as keyof typeof c.placeholders
+                        ]
                     }
                     onChange={(event) => {
                       setValues((v) => ({

@@ -374,7 +374,7 @@ export function SalaryDocumentsView({
                         .map(
                           (language) =>
                             t.salaryDocumentLanguages.names[
-                              language as "ar" | "en"
+                            language as "ar" | "en"
                             ],
                         )
                         .join(t.salaryDocumentLanguages.separator)}
@@ -395,115 +395,115 @@ export function SalaryDocumentsView({
               )}
               {((item.status === "pending" && decidableIds.includes(item.id)) ||
                 item.status === "issued") && (
-                <div className="flex flex-wrap gap-2">
-                  {item.status === "pending" &&
-                    decidableIds.includes(item.id) && (
-                      // Issued from its own approval page, where the signer reviews it (and signs on the spot when required).
-                      <Link
-                        href={ROUTES.approvalItem("salary_document", item.id)}
-                        className="inline-flex items-center gap-1.5 h-9 rounded-full bg-primary px-4 text-xs font-semibold text-white hover:bg-primary/90"
-                      >
-                        <Check className="w-3.5 h-3.5" aria-hidden />{" "}
-                        {t.approvals.reviewAndDecide}
-                      </Link>
-                    )}
-                  {item.status === "issued" && (
-                    <div className="w-full space-y-2">
-                      {item.languages.map((language) => (
-                        <div
-                          key={language}
-                          className="flex flex-wrap items-center gap-2"
+                  <div className="flex flex-wrap gap-2">
+                    {item.status === "pending" &&
+                      decidableIds.includes(item.id) && (
+                        // Issued from its own approval page, where the signer reviews it (and signs on the spot when required).
+                        <Link
+                          href={ROUTES.approvalItem("salary_document", item.id)}
+                          className="inline-flex items-center gap-1.5 h-9 rounded-full bg-primary px-4 text-xs font-semibold text-white hover:bg-primary/90"
                         >
-                          {item.languages.length > 1 && (
-                            <span className="w-16 shrink-0 text-[11px] font-bold text-ink-muted">
-                              {
-                                t.salaryDocumentLanguages.names[
+                          <Check className="w-3.5 h-3.5" aria-hidden />{" "}
+                          {t.approvals.reviewAndDecide}
+                        </Link>
+                      )}
+                    {item.status === "issued" && (
+                      <div className="w-full space-y-2">
+                        {item.languages.map((language) => (
+                          <div
+                            key={language}
+                            className="flex flex-wrap items-center gap-2"
+                          >
+                            {item.languages.length > 1 && (
+                              <span className="w-16 shrink-0 text-[11px] font-bold text-ink-muted">
+                                {
+                                  t.salaryDocumentLanguages.names[
                                   language as "ar" | "en"
-                                ]
+                                  ]
+                                }
+                              </span>
+                            )}
+                            <a
+                              className={action}
+                              href={pdfUrl(item.id, language)}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              <Eye className="w-3.5 h-3.5" aria-hidden /> {h.pdf}
+                            </a>
+                            <a
+                              className={action}
+                              href={salaryDocumentPdfUrl(item.id, language, true)}
+                            >
+                              <Download className="w-3.5 h-3.5" aria-hidden />{" "}
+                              {h.download}
+                            </a>
+                            <button
+                              disabled={busy}
+                              className={action}
+                              onClick={() =>
+                                printPdfUrl(pdfUrl(item.id, language)).catch(() =>
+                                  toast.error(t.pdfActions.failed),
+                                )
                               }
-                            </span>
-                          )}
-                          <a
-                            className={action}
-                            href={pdfUrl(item.id, language)}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            <Eye className="w-3.5 h-3.5" aria-hidden /> {h.pdf}
-                          </a>
-                          <a
-                            className={action}
-                            href={salaryDocumentPdfUrl(item.id, language, true)}
-                          >
-                            <Download className="w-3.5 h-3.5" aria-hidden />{" "}
-                            {h.download}
-                          </a>
-                          <button
-                            disabled={busy}
-                            className={action}
-                            onClick={() =>
-                              printPdfUrl(pdfUrl(item.id, language)).catch(() =>
-                                toast.error(t.pdfActions.failed),
-                              )
-                            }
-                          >
-                            <Printer className="w-3.5 h-3.5" aria-hidden />{" "}
-                            {t.pdfActions.print}
-                          </button>
-                          {item.shareable && (
-                            <>
-                              <button
-                                disabled={busy}
-                                className={action}
-                                onClick={() =>
-                                  run(async () => {
-                                    const result =
-                                      await emailSalaryDocumentAction(
-                                        item.id,
-                                        language as "ar" | "en",
+                            >
+                              <Printer className="w-3.5 h-3.5" aria-hidden />{" "}
+                              {t.pdfActions.print}
+                            </button>
+                            {item.shareable && (
+                              <>
+                                <button
+                                  disabled={busy}
+                                  className={action}
+                                  onClick={() =>
+                                    run(async () => {
+                                      const result =
+                                        await emailSalaryDocumentAction(
+                                          item.id,
+                                          language as "ar" | "en",
+                                        );
+                                      if (result.status === "failed")
+                                        throw new Error(h.emailFailed);
+                                      toast.info(
+                                        result.status === "accepted"
+                                          ? h.saved
+                                          : h.emailQueued,
                                       );
-                                    if (result.status === "failed")
-                                      throw new Error(h.emailFailed);
-                                    toast.info(
-                                      result.status === "accepted"
-                                        ? h.saved
-                                        : h.emailQueued,
-                                    );
-                                  })
-                                }
-                              >
-                                <Mail className="w-3.5 h-3.5" aria-hidden />{" "}
-                                {h.email}
-                              </button>
-                              <button
-                                disabled={busy}
-                                className={action}
-                                onClick={() =>
-                                  run(async () => {
-                                    const result =
-                                      await whatsappSalaryDocumentAction(
-                                        item.id,
-                                        language as "ar" | "en",
-                                      );
-                                    if (result.fallback)
-                                      await share(item.id, language);
-                                  })
-                                }
-                              >
-                                <MessageCircle
-                                  className="w-3.5 h-3.5"
-                                  aria-hidden
-                                />{" "}
-                                {h.whatsapp}
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+                                    })
+                                  }
+                                >
+                                  <Mail className="w-3.5 h-3.5" aria-hidden />{" "}
+                                  {h.email}
+                                </button>
+                                <button
+                                  disabled={busy}
+                                  className={action}
+                                  onClick={() =>
+                                    run(async () => {
+                                      const result =
+                                        await whatsappSalaryDocumentAction(
+                                          item.id,
+                                          language as "ar" | "en",
+                                        );
+                                      if (result.fallback)
+                                        await share(item.id, language);
+                                    })
+                                  }
+                                >
+                                  <MessageCircle
+                                    className="w-3.5 h-3.5"
+                                    aria-hidden
+                                  />{" "}
+                                  {h.whatsapp}
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
             </li>
           ))}
         </ul>

@@ -240,9 +240,9 @@ export function EmployeesListView({
                   );
                   const totalSalary = currentComp
                     ? Number(currentComp.basicSalary) +
-                      Number(currentComp.housingAllowance) +
-                      Number(currentComp.transportAllowance) +
-                      Number(currentComp.otherAllowances)
+                    Number(currentComp.housingAllowance) +
+                    Number(currentComp.transportAllowance) +
+                    Number(currentComp.otherAllowances)
                     : 0;
 
                   return (
@@ -279,9 +279,8 @@ export function EmployeesListView({
 
                       <td className="py-3.5 px-4">
                         <span
-                          className={`inline-flex items-center gap-1 text-[11px] font-mono uppercase px-2.5 py-0.5 rounded-full border ${
-                            statusColors[emp.status] || statusColors.active
-                          }`}
+                          className={`inline-flex items-center gap-1 text-[11px] font-mono uppercase px-2.5 py-0.5 rounded-full border ${statusColors[emp.status] || statusColors.active
+                            }`}
                         >
                           {emp.status === "on_leave" && (
                             <AlertCircle className="w-3 h-3 text-amber-600" />

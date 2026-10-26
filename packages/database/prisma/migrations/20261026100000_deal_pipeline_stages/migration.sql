@@ -14,18 +14,100 @@ CREATE TABLE "DealPipelineStage" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "DealPipelineStage_pkey" PRIMARY KEY ("id")
 );
-CREATE INDEX "DealPipelineStage_sortOrder_idx" ON "DealPipelineStage"("sortOrder");
 
-INSERT INTO "DealPipelineStage" ("id", "sortOrder", "probability", "kind", "color", "isSystem", "updatedAt") VALUES
-  ('lead', 0, 20, 'open', '#3B82F6', true, CURRENT_TIMESTAMP),
-  ('proposal_sent', 1, 40, 'open', '#F59E0B', true, CURRENT_TIMESTAMP),
-  ('contract_signed', 2, 70, 'open', '#8B5CF6', true, CURRENT_TIMESTAMP),
-  ('production', 3, 80, 'open', NULL, false, CURRENT_TIMESTAMP),
-  ('post_production', 4, 90, 'open', '#A855F7', false, CURRENT_TIMESTAMP),
-  ('delivered', 5, 95, 'open', '#10B981', false, CURRENT_TIMESTAMP),
-  ('invoiced', 6, 98, 'open', '#0D9488', true, CURRENT_TIMESTAMP),
-  ('closed_won', 7, 100, 'won', '#059669', true, CURRENT_TIMESTAMP),
-  ('closed_lost', 8, 0, 'lost', '#E11D48', true, CURRENT_TIMESTAMP);
+CREATE INDEX "DealPipelineStage_sortOrder_idx" ON "DealPipelineStage" ("sortOrder");
+
+INSERT INTO
+    "DealPipelineStage" (
+        "id",
+        "sortOrder",
+        "probability",
+        "kind",
+        "color",
+        "isSystem",
+        "updatedAt"
+    )
+VALUES (
+        'lead',
+        0,
+        20,
+        'open',
+        '#3B82F6',
+        true,
+        CURRENT_TIMESTAMP
+    ),
+    (
+        'proposal_sent',
+        1,
+        40,
+        'open',
+        '#F59E0B',
+        true,
+        CURRENT_TIMESTAMP
+    ),
+    (
+        'contract_signed',
+        2,
+        70,
+        'open',
+        '#8B5CF6',
+        true,
+        CURRENT_TIMESTAMP
+    ),
+    (
+        'production',
+        3,
+        80,
+        'open',
+        NULL,
+        false,
+        CURRENT_TIMESTAMP
+    ),
+    (
+        'post_production',
+        4,
+        90,
+        'open',
+        '#A855F7',
+        false,
+        CURRENT_TIMESTAMP
+    ),
+    (
+        'delivered',
+        5,
+        95,
+        'open',
+        '#10B981',
+        false,
+        CURRENT_TIMESTAMP
+    ),
+    (
+        'invoiced',
+        6,
+        98,
+        'open',
+        '#0D9488',
+        true,
+        CURRENT_TIMESTAMP
+    ),
+    (
+        'closed_won',
+        7,
+        100,
+        'won',
+        '#059669',
+        true,
+        CURRENT_TIMESTAMP
+    ),
+    (
+        'closed_lost',
+        8,
+        0,
+        'lost',
+        '#E11D48',
+        true,
+        CURRENT_TIMESTAMP
+    );
 
 -- Any other stage value already stored stays visible on the board.
 INSERT INTO "DealPipelineStage" ("id", "sortOrder", "probability", "updatedAt")

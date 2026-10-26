@@ -13,12 +13,14 @@ function load(file, mocks, jsx = false) {
   const code = ts.transpileModule(fs.readFileSync(file, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
   }).outputText;
-  vm.runInNewContext(code, { module, exports: module.exports, require(id) {
-    if (jsx && id === 'react/jsx-runtime') return appRequire(id);
-    id = ((i,m)=>i in m?i:(i.startsWith('@platform/database/')&&'@platform/database' in m?'@platform/database':i))(id, mocks);
-    if (!(id in mocks)) { const real = realConstants(file, id); if (real) return real; throw Error('Unmocked dependency: ' + id); }
-    return mocks[id];
-  }, console, Date, Intl, Set, Map, URLSearchParams });
+  vm.runInNewContext(code, {
+    module, exports: module.exports, require(id) {
+      if (jsx && id === 'react/jsx-runtime') return appRequire(id);
+      id = ((i, m) => i in m ? i : (i.startsWith('@platform/database/') && '@platform/database' in m ? '@platform/database' : i))(id, mocks);
+      if (!(id in mocks)) { const real = realConstants(file, id); if (real) return real; throw Error('Unmocked dependency: ' + id); }
+      return mocks[id];
+    }, console, Date, Intl, Set, Map, URLSearchParams
+  });
   return module.exports;
 }
 async function main() {
@@ -85,10 +87,14 @@ async function main() {
   let aggregations = 0, listReads = 0;
   const { getCRMDealOverview } = load('packages/database/src/queries/crm.ts', {
     './company-settings': {}, '../services/lead-resolver': {},
-    '../db': { db: { crmDeal: {
-      groupBy: async () => { aggregations++; return [{ dealStage: 'qualified', currency: 'BHD', _count: { _all: 2 }, _sum: { dealValue: 300 } }]; },
-      findMany: async (args) => { listReads++; assert.equal(args.take, 5); return []; },
-    } } },
+    '../db': {
+      db: {
+        crmDeal: {
+          groupBy: async () => { aggregations++; return [{ dealStage: 'qualified', currency: 'BHD', _count: { _all: 2 }, _sum: { dealValue: 300 } }]; },
+          findMany: async (args) => { listReads++; assert.equal(args.take, 5); return []; },
+        }
+      }
+    },
   });
   const scoped = await getCRMDealOverview(false);
   assert.equal(aggregations, 0, 'The viewer dashboard must omit pipeline analytics queries');

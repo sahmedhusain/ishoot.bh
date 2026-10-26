@@ -17,15 +17,23 @@ import { getCurrentPermissions, requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
 
 /** What the importer may do: set pay, create accounts, and which roles (never one with more access than their own). */
-async function importOptions(actor: { role: string }): Promise<PeopleImportOptions> {
+async function importOptions(actor: {
+  role: string;
+}): Promise<PeopleImportOptions> {
   const own = await getCurrentPermissions();
-  const roles = await db.role.findMany({ where: { id: { not: "super_admin" } }, select: { id: true } });
+  const roles = await db.role.findMany({
+    where: { id: { not: "super_admin" } },
+    select: { id: true },
+  });
   const assignable: string[] = [];
   for (const role of roles) {
     if (actor.role === "super_admin") assignable.push(role.id);
     else {
       const grants = await getEffectivePermissions(role.id);
-      if (Object.entries(grants).every(([key, granted]) => !granted || own[key])) assignable.push(role.id);
+      if (
+        Object.entries(grants).every(([key, granted]) => !granted || own[key])
+      )
+        assignable.push(role.id);
     }
   }
   return {
@@ -37,14 +45,25 @@ async function importOptions(actor: { role: string }): Promise<PeopleImportOptio
 
 /** Rows arrive as cells in PEOPLE_IMPORT_COLUMNS order (compact, and the file's own text is checked by the import). */
 const toRows = (cells: string[][]): PeopleImportRow[] =>
-  cells.slice(0, PEOPLE_IMPORT_LIMIT).map((row) => Object.fromEntries(PEOPLE_IMPORT_COLUMNS.map((column, index) => [column, row[index] ?? ""])));
+  cells
+    .slice(0, PEOPLE_IMPORT_LIMIT)
+    .map((row) =>
+      Object.fromEntries(
+        PEOPLE_IMPORT_COLUMNS.map((column, index) => [
+          column,
+          row[index] ?? "",
+        ]),
+      ),
+    );
 
 /** HR → Employees → Import: checks the rows and reports every problem, saving nothing. */
 export async function previewPeopleImportAction(rows: string[][]) {
   return measureOperation("action:previewPeopleImportAction", async () => {
     const actor = await requirePermission("employees", "create");
     validateActionArguments("previewPeopleImportAction", { rows });
-    return { checks: await checkPeopleImport(toRows(rows), await importOptions(actor)) };
+    return {
+      checks: await checkPeopleImport(toRows(rows), await importOptions(actor)),
+    };
   });
 }
 
@@ -56,7 +75,13 @@ export async function importPeopleAction(rows: string[][]) {
     const options = await importOptions(actor);
     // Each person is saved on their own (a long file must not hold one transaction open); the log records the totals.
     const result = await importPeople(toRows(rows), actor.id, options);
-    await createActivityLog({ user_id: actor.id, action: "create", entity_type: "employee", entity_id: "import", details: result });
+    await createActivityLog({
+      user_id: actor.id,
+      action: "create",
+      entity_type: "employee",
+      entity_id: "import",
+      details: result,
+    });
     revalidatePath(ROUTES.hr.employees);
     revalidatePath(ROUTES.users.list);
     revalidatePath(ROUTES.directory);

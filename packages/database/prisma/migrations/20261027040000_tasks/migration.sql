@@ -13,7 +13,6 @@ CREATE TABLE "Project" (
     "createdById" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-
     CONSTRAINT "Project_pkey" PRIMARY KEY ("id")
 );
 
@@ -38,7 +37,6 @@ CREATE TABLE "Task" (
     "remindedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-
     CONSTRAINT "Task_pkey" PRIMARY KEY ("id")
 );
 
@@ -49,52 +47,97 @@ CREATE TABLE "TaskComment" (
     "authorId" TEXT,
     "body" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
     CONSTRAINT "TaskComment_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Project_code_key" ON "Project"("code");
+CREATE UNIQUE INDEX "Project_code_key" ON "Project" ("code");
 
 -- CreateIndex
-CREATE INDEX "Project_status_idx" ON "Project"("status");
+CREATE INDEX "Project_status_idx" ON "Project" ("status");
 
 -- CreateIndex
-CREATE INDEX "Project_departmentId_idx" ON "Project"("departmentId");
+CREATE INDEX "Project_departmentId_idx" ON "Project" ("departmentId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Task_number_key" ON "Task"("number");
+CREATE UNIQUE INDEX "Task_number_key" ON "Task" ("number");
 
 -- CreateIndex
-CREATE INDEX "Task_assigneeId_status_idx" ON "Task"("assigneeId", "status");
+CREATE INDEX "Task_assigneeId_status_idx" ON "Task" ("assigneeId", "status");
 
 -- CreateIndex
-CREATE INDEX "Task_projectId_status_idx" ON "Task"("projectId", "status");
+CREATE INDEX "Task_projectId_status_idx" ON "Task" ("projectId", "status");
 
 -- CreateIndex
-CREATE INDEX "Task_departmentId_status_idx" ON "Task"("departmentId", "status");
+CREATE INDEX "Task_departmentId_status_idx" ON "Task" ("departmentId", "status");
 
 -- CreateIndex
-CREATE INDEX "Task_status_dueDate_idx" ON "Task"("status", "dueDate");
+CREATE INDEX "Task_status_dueDate_idx" ON "Task" ("status", "dueDate");
 
 -- CreateIndex
-CREATE INDEX "Task_linkType_linkId_idx" ON "Task"("linkType", "linkId");
+CREATE INDEX "Task_linkType_linkId_idx" ON "Task" ("linkType", "linkId");
 
 -- CreateIndex
-CREATE INDEX "TaskComment_taskId_createdAt_idx" ON "TaskComment"("taskId", "createdAt");
+CREATE INDEX "TaskComment_taskId_createdAt_idx" ON "TaskComment" ("taskId", "createdAt");
 
 -- AddForeignKey
-ALTER TABLE "Task" ADD CONSTRAINT "Task_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Task"
+ADD CONSTRAINT "Task_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project" ("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "TaskComment" ADD CONSTRAINT "TaskComment_taskId_fkey" FOREIGN KEY ("taskId") REFERENCES "Task"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
+ALTER TABLE "TaskComment"
+ADD CONSTRAINT "TaskComment_taskId_fkey" FOREIGN KEY ("taskId") REFERENCES "Task" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- Integrity
-ALTER TABLE "Project" ADD CONSTRAINT "Project_status_check" CHECK ("status" IN ('active', 'on_hold', 'done', 'archived'));
-ALTER TABLE "Project" ADD CONSTRAINT "Project_color_check" CHECK ("color" ~ '^#[0-9A-Fa-f]{6}$');
-ALTER TABLE "Project" ADD CONSTRAINT "Project_dates_check" CHECK ("startDate" IS NULL OR "dueDate" IS NULL OR "startDate" <= "dueDate");
-ALTER TABLE "Task" ADD CONSTRAINT "Task_status_check" CHECK ("status" IN ('todo', 'in_progress', 'review', 'done', 'cancelled'));
-ALTER TABLE "Task" ADD CONSTRAINT "Task_priority_check" CHECK ("priority" IN ('low', 'normal', 'high', 'urgent'));
-ALTER TABLE "Task" ADD CONSTRAINT "Task_dates_check" CHECK ("startDate" IS NULL OR "dueDate" IS NULL OR "startDate" <= "dueDate");
-ALTER TABLE "Task" ADD CONSTRAINT "Task_link_check" CHECK (("linkType" IS NULL) = ("linkId" IS NULL));
+ALTER TABLE "Project"
+ADD CONSTRAINT "Project_status_check" CHECK (
+    "status" IN (
+        'active',
+        'on_hold',
+        'done',
+        'archived'
+    )
+);
+
+ALTER TABLE "Project"
+ADD CONSTRAINT "Project_color_check" CHECK ("color" ~ '^#[0-9A-Fa-f]{6}$');
+
+ALTER TABLE "Project"
+ADD CONSTRAINT "Project_dates_check" CHECK (
+    "startDate" IS NULL
+    OR "dueDate" IS NULL
+    OR "startDate" <= "dueDate"
+);
+
+ALTER TABLE "Task"
+ADD CONSTRAINT "Task_status_check" CHECK (
+    "status" IN (
+        'todo',
+        'in_progress',
+        'review',
+        'done',
+        'cancelled'
+    )
+);
+
+ALTER TABLE "Task"
+ADD CONSTRAINT "Task_priority_check" CHECK (
+    "priority" IN (
+        'low',
+        'normal',
+        'high',
+        'urgent'
+    )
+);
+
+ALTER TABLE "Task"
+ADD CONSTRAINT "Task_dates_check" CHECK (
+    "startDate" IS NULL
+    OR "dueDate" IS NULL
+    OR "startDate" <= "dueDate"
+);
+
+ALTER TABLE "Task"
+ADD CONSTRAINT "Task_link_check" CHECK (
+    ("linkType" IS NULL) = ("linkId" IS NULL)
+);

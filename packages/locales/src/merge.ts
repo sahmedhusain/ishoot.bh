@@ -1,7 +1,16 @@
-export type DeepPartial<T> = { [K in keyof T]?: T[K] extends readonly unknown[] ? T[K] : T[K] extends object ? DeepPartial<T[K]> : T[K] };
+export type DeepPartial<T> = {
+  [K in keyof T]?: T[K] extends readonly unknown[]
+    ? T[K]
+    : T[K] extends object
+      ? DeepPartial<T[K]>
+      : T[K];
+};
 
 /** Layers partial dictionaries over a base; empty strings leave the base wording in place. */
-export function deepMerge<T>(base: T, ...layers: (DeepPartial<T> | undefined)[]): T {
+export function deepMerge<T>(
+  base: T,
+  ...layers: (DeepPartial<T> | undefined)[]
+): T {
   const out = { ...base } as Record<string, unknown>;
   for (const layer of layers) {
     if (!layer) continue;
@@ -9,7 +18,12 @@ export function deepMerge<T>(base: T, ...layers: (DeepPartial<T> | undefined)[])
       if (value === undefined || value === "") continue;
       const current = out[key];
       out[key] =
-        value && typeof value === "object" && !Array.isArray(value) && current && typeof current === "object" && !Array.isArray(current)
+        value &&
+        typeof value === "object" &&
+        !Array.isArray(value) &&
+        current &&
+        typeof current === "object" &&
+        !Array.isArray(current)
           ? deepMerge(current, value as never)
           : value;
     }

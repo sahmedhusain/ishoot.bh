@@ -17,7 +17,7 @@ async function main() {
       const tag = `zz-check-${Date.now()}`;
       // ---- validation per client type
       await rejects(cp.createClientProfile({ client_kind: "company", company: `${tag} Co`, company_origin: "local", contact_persons: [{ full_name: "A" }] }), "Enter the commercial registration (CR) number, e.g. 12345-1");
-      await rejects(cp.createClientProfile({ client_kind: "company", company: `${tag} Co`, company_origin: "local", cr_number: "12345" , contact_persons: [{ full_name: "A" }] }), "Enter the commercial registration (CR) number, e.g. 12345-1");
+      await rejects(cp.createClientProfile({ client_kind: "company", company: `${tag} Co`, company_origin: "local", cr_number: "12345", contact_persons: [{ full_name: "A" }] }), "Enter the commercial registration (CR) number, e.g. 12345-1");
       await rejects(cp.createClientProfile({ client_kind: "company", company: `${tag} Co`, company_origin: "local", cr_number: "9912345-1" }), "Add at least one point of contact");
       await rejects(cp.createClientProfile({ client_kind: "company", company: `${tag} Co`, company_origin: "foreign", registration_country: "BH", registration_number: "X", contact_persons: [{ full_name: "A" }] }), "Choose the country where the company is registered");
       await rejects(cp.createClientProfile({ client_kind: "company", company: `${tag} Co`, company_origin: "foreign", registration_country: "AE", contact_persons: [{ full_name: "A" }] }), "Enter the company's registration number");

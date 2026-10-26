@@ -137,10 +137,9 @@ export async function signDocument(
     const doc = await load(type, id);
     if (!doc) throw new Error(serverMessages.documentNotFound);
     if (!doc.approved)
-      throw new Error(
-        serverMessages.thisDocumentMustBeApprovedBeforeIt,
-      );
-    if (doc.signedAt) throw new Error(serverMessages.thisDocumentIsAlreadySigned);
+      throw new Error(serverMessages.thisDocumentMustBeApprovedBeforeIt);
+    if (doc.signedAt)
+      throw new Error(serverMessages.thisDocumentIsAlreadySigned);
     const signer = await db.user.findUniqueOrThrow({
       where: { id: actorId },
       select: { isActive: true },
@@ -208,7 +207,5 @@ export async function assertSigned(type: SignableDocument, id: string) {
   const doc = await load(type, id);
   if (!doc) throw new Error(serverMessages.documentNotFound);
   if (!doc.signedAt)
-    throw new Error(
-      serverMessages.signAndStampThisDocumentBeforeSending,
-    );
+    throw new Error(serverMessages.signAndStampThisDocumentBeforeSending);
 }

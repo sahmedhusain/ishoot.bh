@@ -1,7 +1,7 @@
 "use client";
 
 import { useDroppable } from "@dnd-kit/core";
-import type { CRMDeal,DealStage } from "@platform/database/types";
+import type { CRMDeal, DealStage } from "@platform/database/types";
 import { DealCard } from "./DealCard";
 import { CurrencyDisplay } from "@platform/ui";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -29,11 +29,10 @@ export function KanbanColumn({
   return (
     <div
       ref={setNodeRef}
-      className={`w-72 shrink-0 bg-slate-100/70 dark:bg-tone-5 rounded-2xl border flex flex-col max-h-[calc(100vh-210px)] transition-colors shadow-sm ${
-        isOver
-          ? "border-accent bg-accent/5"
-          : "border-slate-200/80 dark:border-white/10"
-      }`}
+      className={`w-72 shrink-0 bg-slate-100/70 dark:bg-tone-5 rounded-2xl border flex flex-col max-h-[calc(100vh-210px)] transition-colors shadow-sm ${isOver
+        ? "border-accent bg-accent/5"
+        : "border-slate-200/80 dark:border-white/10"
+        }`}
     >
       <div className="p-4 border-b border-slate-200/80 dark:border-white/10 space-y-1">
         <div className="flex items-center justify-between">

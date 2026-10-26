@@ -7,6 +7,15 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   return measureOperation("admin:health:GET", async () => {
     const installation = await installationFingerprint().catch(() => null);
-    return NextResponse.json({ ok: installation !== null, app: "admin", installation }, { status: installation ? 200 : 503, headers: { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" } });
+    return NextResponse.json(
+      { ok: installation !== null, app: "admin", installation },
+      {
+        status: installation ? 200 : 503,
+        headers: {
+          "Cache-Control": "no-store",
+          "Access-Control-Allow-Origin": "*",
+        },
+      },
+    );
   });
 }

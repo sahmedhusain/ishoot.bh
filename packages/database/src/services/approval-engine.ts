@@ -1,5 +1,9 @@
-import { serverTemplates, getTranslations, formatMessage, serverMessages } from "@platform/locales";
-
+import {
+  serverTemplates,
+  getTranslations,
+  formatMessage,
+  serverMessages,
+} from "@platform/locales";
 
 import crypto from "node:crypto";
 import { db, runAtomicMutation } from "../db";
@@ -94,11 +98,17 @@ export async function approvalMetrics(
 ): Promise<ApprovalMetrics> {
   switch (targetType) {
     case "purchase_requisition": {
-      const r = await db.purchaseRequisition.findUnique({ where: { id: targetId }, select: { estimatedTotal: true } });
+      const r = await db.purchaseRequisition.findUnique({
+        where: { id: targetId },
+        select: { estimatedTotal: true },
+      });
       return r ? { amount: Number(r.estimatedTotal) } : {};
     }
     case "purchase_order": {
-      const o = await db.purchaseOrder.findUnique({ where: { id: targetId }, select: { total: true } });
+      const o = await db.purchaseOrder.findUnique({
+        where: { id: targetId },
+        select: { total: true },
+      });
       return o ? { amount: Number(o.total) } : {};
     }
     case "quotation": {
@@ -239,7 +249,9 @@ const finalizers: Partial<Record<ApprovalTargetType, Finalizer>> = {
         where: { id },
       });
       if (document.status !== "pending")
-        throw new Error(serverMessages.salaryDocumentRequestHasAlreadyBeenReviewed);
+        throw new Error(
+          serverMessages.salaryDocumentRequestHasAlreadyBeenReviewed,
+        );
       const snapshot = await salaryDocumentSnapshot(
         document.employeeId,
         document.kind,
@@ -306,7 +318,9 @@ const finalizers: Partial<Record<ApprovalTargetType, Finalizer>> = {
       });
       if (claim.status !== "submitted")
         throw new Error(
-          formatMessage(serverTemplates.claimIs0ItCanNoLonger, { 0: claim.status }),
+          formatMessage(serverTemplates.claimIs0ItCanNoLonger, {
+            0: claim.status,
+          }),
         );
       await db.expenseClaim.update({
         where: { id },
@@ -320,7 +334,9 @@ const finalizers: Partial<Record<ApprovalTargetType, Finalizer>> = {
       });
       if (claim.status !== "submitted")
         throw new Error(
-          formatMessage(serverTemplates.claimIs0ItCanNoLonger2, { 0: claim.status }),
+          formatMessage(serverTemplates.claimIs0ItCanNoLonger2, {
+            0: claim.status,
+          }),
         );
       await db.expenseClaim.update({
         where: { id },
@@ -360,7 +376,9 @@ const finalizers: Partial<Record<ApprovalTargetType, Finalizer>> = {
       });
       if (run.status !== "submitted")
         throw new Error(
-          formatMessage(serverTemplates.payrollRunIs0ItCanNo, { 0: run.status }),
+          formatMessage(serverTemplates.payrollRunIs0ItCanNo, {
+            0: run.status,
+          }),
         );
       await db.payrollRun.update({
         where: { id },
@@ -378,7 +396,9 @@ const finalizers: Partial<Record<ApprovalTargetType, Finalizer>> = {
       });
       if (run.status !== "submitted")
         throw new Error(
-          formatMessage(serverTemplates.payrollRunIs0ItCanNo2, { 0: run.status }),
+          formatMessage(serverTemplates.payrollRunIs0ItCanNo2, {
+            0: run.status,
+          }),
         );
       await db.payrollRun.update({
         where: { id },
@@ -399,7 +419,11 @@ export function registerApprovalFinalizer(
 function finalizerFor(targetType: string): Finalizer {
   const finalizer = finalizers[targetType as ApprovalTargetType];
   if (!finalizer)
-    throw new Error(formatMessage(serverTemplates.noApprovalHandlerRegisteredFor0, { 0: targetType }));
+    throw new Error(
+      formatMessage(serverTemplates.noApprovalHandlerRegisteredFor0, {
+        0: targetType,
+      }),
+    );
   return finalizer;
 }
 
@@ -426,9 +450,13 @@ async function resolveStep(
       // The requester's department head and deputy; a department without either goes to its parent's.
       const account = await db.user.findUnique({
         where: { id: requester.id },
-        select: { departmentId: true, employee: { select: { departmentId: true } } },
+        select: {
+          departmentId: true,
+          employee: { select: { departmentId: true } },
+        },
       });
-      let departmentId = account?.departmentId ?? account?.employee?.departmentId ?? null;
+      let departmentId =
+        account?.departmentId ?? account?.employee?.departmentId ?? null;
       for (let level = 0; departmentId && level < 8; level++) {
         const department = await db.department.findUnique({
           where: { id: departmentId },
@@ -705,8 +733,20 @@ export async function submitForApproval(
     }
 
     await notify(approverIds, {
-      title: getTranslations("en").admin.approvals.notifications.awaitingYou.title,
-      message: formatMessage(getTranslations("en").admin.approvals.notifications.awaitingYou.message, { type: (getTranslations("en").admin.approvals.types as Record<string, string>)[input.targetType] ?? input.targetType }),
+      title:
+        getTranslations("en").admin.approvals.notifications.awaitingYou.title,
+      message: formatMessage(
+        getTranslations("en").admin.approvals.notifications.awaitingYou.message,
+        {
+          type:
+            (
+              getTranslations("en").admin.approvals.types as Record<
+                string,
+                string
+              >
+            )[input.targetType] ?? input.targetType,
+        },
+      ),
       messageKey: "approvals.notifications.awaitingYou",
       targetType: input.targetType,
       targetId: input.targetId,
@@ -762,7 +802,11 @@ export async function decideApprovalRequest(
     });
     if (!request) throw new Error(serverMessages.approvalRequestNotFound);
     if (request.status !== "pending")
-      throw new Error(formatMessage(serverTemplates.thisRequestIsAlready0, { 0: request.status }));
+      throw new Error(
+        formatMessage(serverTemplates.thisRequestIsAlready0, {
+          0: request.status,
+        }),
+      );
     const actor = await db.user.findUniqueOrThrow({
       where: { id: actorId },
       select: { id: true, role: true, isActive: true },
@@ -785,9 +829,7 @@ export async function decideApprovalRequest(
         validateSignatureImage(signature);
         signatureData = signature;
       } else if ((await getSignatureMode(request.targetType)) === "live") {
-        throw new Error(
-          serverMessages.thisDocumentMustBeSignedNowDraw,
-        );
+        throw new Error(serverMessages.thisDocumentMustBeSignedNowDraw);
       }
     }
 
@@ -832,8 +874,22 @@ export async function decideApprovalRequest(
           },
         });
         await notify(next.approverIds, {
-          title: getTranslations("en").admin.approvals.notifications.awaitingYou.title,
-      message: formatMessage(getTranslations("en").admin.approvals.notifications.awaitingYou.message, { type: (getTranslations("en").admin.approvals.types as Record<string, string>)[request.targetType] ?? request.targetType }),
+          title:
+            getTranslations("en").admin.approvals.notifications.awaitingYou
+              .title,
+          message: formatMessage(
+            getTranslations("en").admin.approvals.notifications.awaitingYou
+              .message,
+            {
+              type:
+                (
+                  getTranslations("en").admin.approvals.types as Record<
+                    string,
+                    string
+                  >
+                )[request.targetType] ?? request.targetType,
+            },
+          ),
           messageKey: "approvals.notifications.awaitingYou",
           targetType: request.targetType,
           targetId: request.targetId,
@@ -962,8 +1018,20 @@ export async function processApprovalTimeouts(
         },
       });
       await notify(added, {
-        title: getTranslations("en").admin.approvals.notifications.escalated.title,
-      message: formatMessage(getTranslations("en").admin.approvals.notifications.escalated.message, { type: (getTranslations("en").admin.approvals.types as Record<string, string>)[request.targetType] ?? request.targetType }),
+        title:
+          getTranslations("en").admin.approvals.notifications.escalated.title,
+        message: formatMessage(
+          getTranslations("en").admin.approvals.notifications.escalated.message,
+          {
+            type:
+              (
+                getTranslations("en").admin.approvals.types as Record<
+                  string,
+                  string
+                >
+              )[request.targetType] ?? request.targetType,
+          },
+        ),
         messageKey: "approvals.notifications.escalated",
         targetType: request.targetType,
         targetId: request.targetId,
@@ -992,8 +1060,20 @@ export async function processApprovalTimeouts(
         data: { remindedAt: now },
       });
       await notify(request.approverIds, {
-        title: getTranslations("en").admin.approvals.notifications.reminder.title,
-      message: formatMessage(getTranslations("en").admin.approvals.notifications.reminder.message, { type: (getTranslations("en").admin.approvals.types as Record<string, string>)[request.targetType] ?? request.targetType }),
+        title:
+          getTranslations("en").admin.approvals.notifications.reminder.title,
+        message: formatMessage(
+          getTranslations("en").admin.approvals.notifications.reminder.message,
+          {
+            type:
+              (
+                getTranslations("en").admin.approvals.types as Record<
+                  string,
+                  string
+                >
+              )[request.targetType] ?? request.targetType,
+          },
+        ),
         messageKey: "approvals.notifications.reminder",
         targetType: request.targetType,
         targetId: request.targetId,

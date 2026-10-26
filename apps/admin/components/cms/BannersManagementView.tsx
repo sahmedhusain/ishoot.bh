@@ -1,7 +1,7 @@
 "use client";
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
-import {ContentImage} from "../shared/ContentImage";
+import { ContentImage } from "../shared/ContentImage";
 import Link from "next/link";
 
 import * as React from "react";
@@ -45,7 +45,7 @@ export function BannersManagementView({
   initialBanners,
   languages,
 }: BannersManagementViewProps) {
-  const {t, locale} = useAdminLocale();
+  const { t, locale } = useAdminLocale();
   const [banners, setBanners] = React.useState<HeroBanner[]>(initialBanners);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(

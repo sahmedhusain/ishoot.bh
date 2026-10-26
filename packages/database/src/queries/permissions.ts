@@ -38,7 +38,10 @@ async function resourceEnabled(resource: PermissionResource) {
   const moduleKey = RESOURCE_FEATURES[resource];
   if (!moduleKey) return true;
   try {
-    const feature = await db.featureToggle.findUnique({ where: { moduleKey }, select: { isEnabled: true } });
+    const feature = await db.featureToggle.findUnique({
+      where: { moduleKey },
+      select: { isEnabled: true },
+    });
     return feature ? feature.isEnabled : moduleOnByDefault(moduleKey);
   } catch {
     return false;
@@ -66,7 +69,12 @@ export async function hasPermission(
       where: { role, resource, action: { in: [action, "write"] } },
       select: { action: true, allowed: true },
     });
-    return resolveGrant(role, resource, action, (_resource, act) => rows.find((row) => row.action === act)?.allowed);
+    return resolveGrant(
+      role,
+      resource,
+      action,
+      (_resource, act) => rows.find((row) => row.action === act)?.allowed,
+    );
   } catch (err) {
     console.error("Error checking permission from DB:", err);
     return false;
@@ -162,17 +170,27 @@ export async function getEffectivePermissions(
   }
   // Stored denials and user overrides can never restrict Super Admin.
   if (role === "super_admin") return permissions;
-  const features = await db.featureToggle.findMany({ select: { moduleKey: true, isEnabled: true } });
+  const features = await db.featureToggle.findMany({
+    select: { moduleKey: true, isEnabled: true },
+  });
   const known = new Map(features.map((f) => [f.moduleKey, f.isEnabled]));
-  const moduleOn = (moduleKey: string) => known.get(moduleKey) ?? moduleOnByDefault(moduleKey);
+  const moduleOn = (moduleKey: string) =>
+    known.get(moduleKey) ?? moduleOnByDefault(moduleKey);
   const records = await db.permission.findMany({
     where: { role },
     select: { resource: true, action: true, allowed: true },
   });
-  const stored = new Map(records.map((r) => [`${r.resource}:${r.action}`, r.allowed]));
+  const stored = new Map(
+    records.map((r) => [`${r.resource}:${r.action}`, r.allowed]),
+  );
   for (const resource of ALL_RESOURCES) {
     for (const action of ALL_ACTIONS) {
-      permissions[`${resource}:${action}`] = resolveGrant(role, resource, action, (res, act) => stored.get(`${res}:${act}`));
+      permissions[`${resource}:${action}`] = resolveGrant(
+        role,
+        resource,
+        action,
+        (res, act) => stored.get(`${res}:${act}`),
+      );
     }
   }
   for (const [key, allowed] of Object.entries(userOverrides || {})) {
@@ -182,7 +200,8 @@ export async function getEffectivePermissions(
   for (const resource of ALL_RESOURCES) {
     const moduleKey = RESOURCE_FEATURES[resource];
     if (moduleKey && !moduleOn(moduleKey)) {
-      for (const action of ALL_ACTIONS) permissions[`${resource}:${action}`] = false;
+      for (const action of ALL_ACTIONS)
+        permissions[`${resource}:${action}`] = false;
     }
   }
   return permissions;
@@ -194,21 +213,38 @@ export async function getEffectivePermissions(
  * default. Grants that are already stored, including a company's own changes, are never touched.
  */
 export async function ensureRoleTemplates() {
-  const existing = new Set((await db.role.findMany({ select: { id: true } })).map((role) => role.id));
+  const existing = new Set(
+    (await db.role.findMany({ select: { id: true } })).map((role) => role.id),
+  );
   const missing = ALL_ROLES.filter((role) => !existing.has(role));
   if (missing.length) {
     const en = getTranslations("en").admin.roles as Record<string, string>;
     const ar = getTranslations("ar").admin.roles as Record<string, string>;
     await db.role.createMany({
-      data: missing.map((id) => ({ id, nameEn: en[id] ?? id, nameAr: ar[id] ?? id, isSystem: true })),
+      data: missing.map((id) => ({
+        id,
+        nameEn: en[id] ?? id,
+        nameAr: ar[id] ?? id,
+        isSystem: true,
+      })),
       skipDuplicates: true,
     });
   }
-  const stored = await db.permission.count({ where: { role: { in: [...ALL_ROLES] } } });
-  if (stored >= ALL_ROLES.length * ALL_RESOURCES.length * ALL_ACTIONS.length) return;
+  const stored = await db.permission.count({
+    where: { role: { in: [...ALL_ROLES] } },
+  });
+  if (stored >= ALL_ROLES.length * ALL_RESOURCES.length * ALL_ACTIONS.length)
+    return;
   await db.permission.createMany({
     data: ALL_ROLES.flatMap((role) =>
-      ALL_RESOURCES.flatMap((resource) => ALL_ACTIONS.map((action) => ({ role, resource, action, allowed: isDefaultAllowed(role, resource, action) }))),
+      ALL_RESOURCES.flatMap((resource) =>
+        ALL_ACTIONS.map((action) => ({
+          role,
+          resource,
+          action,
+          allowed: isDefaultAllowed(role, resource, action),
+        })),
+      ),
     ),
     skipDuplicates: true,
   });

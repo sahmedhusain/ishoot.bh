@@ -1,9 +1,21 @@
 import { serverMessages } from "@platform/locales";
 import { ROUTES } from "../constants/routes";
-import { DEAL_STAGE_DEFAULTS, DEAL_STAGE_ON_EVENT, isActiveDealStage, type DealProgressEvent } from "../constants/crm";
+import {
+  DEAL_STAGE_DEFAULTS,
+  DEAL_STAGE_ON_EVENT,
+  isActiveDealStage,
+  type DealProgressEvent,
+} from "../constants/crm";
 import { getCompanySettings } from "./company-settings";
 import { db } from "../db";
-import { ClientAddress, ClientProfileInput, CRMContact, CRMDeal, DealStage, SupportedCurrency } from "../types";
+import {
+  ClientAddress,
+  ClientProfileInput,
+  CRMContact,
+  CRMDeal,
+  DealStage,
+  SupportedCurrency,
+} from "../types";
 
 function mapAddress(c: any): ClientAddress | undefined {
   const address: ClientAddress = {
@@ -43,7 +55,9 @@ export function mapContact(c: any): CRMContact {
     company_name_ar: c.companyNameAr || undefined,
     legal_form: c.legalForm || undefined,
     cr_number: c.crNumber || undefined,
-    cr_expiry_date: c.crExpiryDate ? c.crExpiryDate.toISOString().slice(0, 10) : undefined,
+    cr_expiry_date: c.crExpiryDate
+      ? c.crExpiryDate.toISOString().slice(0, 10)
+      : undefined,
     registration_number: c.registrationNumber || undefined,
     registration_country: c.registrationCountry || undefined,
     government_type: c.governmentType || undefined,
@@ -114,7 +128,10 @@ export async function getCRMContactById(
   try {
     const contact = await db.crmContact.findUnique({
       where: { id },
-      include: { deals: true, contactPersons: { orderBy: { displayOrder: "asc" } } },
+      include: {
+        deals: true,
+        contactPersons: { orderBy: { displayOrder: "asc" } },
+      },
     });
     return contact ? mapContact(contact) : null;
   } catch (e) {
@@ -164,47 +181,240 @@ export async function getCustomerDossier(
     if (!contactRaw) return null;
 
     const contact = mapContact(contactRaw);
-    const search = typeof options.q === "string" ? options.q.trim().slice(0,200) : "";
-    const whereByDomain: Record<string, any> = { inquiries: { AND: [{
-              intent: { in: ["inquiry", "quote_request"] },
-              OR: [
-                { customerId: id },
-
-              ],
-            }, ...(search ? [{ OR: [{ name: { contains: search, mode: "insensitive" } },{ message: { contains: search, mode: "insensitive" } },{ reference: { contains: search, mode: "insensitive" } }]}] : [])] },
-deals: { AND: [{ contactId: id }, ...(search ? [{ OR: [{ title: { contains: search, mode: "insensitive" } }]}] : [])] },
-invoices: { AND: [{
+    const search =
+      typeof options.q === "string" ? options.q.trim().slice(0, 200) : "";
+    const whereByDomain: Record<string, any> = {
+      inquiries: {
+        AND: [
+          {
+            intent: { in: ["inquiry", "quote_request"] },
+            OR: [{ customerId: id }],
+          },
+          ...(search
+            ? [
+                {
+                  OR: [
+                    { name: { contains: search, mode: "insensitive" } },
+                    { message: { contains: search, mode: "insensitive" } },
+                    { reference: { contains: search, mode: "insensitive" } },
+                  ],
+                },
+              ]
+            : []),
+        ],
+      },
+      deals: {
+        AND: [
+          { contactId: id },
+          ...(search
+            ? [{ OR: [{ title: { contains: search, mode: "insensitive" } }] }]
+            : []),
+        ],
+      },
+      invoices: {
+        AND: [
+          {
+            OR: [{ clientId: id }, { deal: { contactId: id } }],
+          },
+          ...(search
+            ? [
+                {
+                  OR: [
+                    {
+                      invoiceNumber: { contains: search, mode: "insensitive" },
+                    },
+                  ],
+                },
+              ]
+            : []),
+        ],
+      },
+      payments: {
+        AND: [
+          {
+            invoice: {
               OR: [{ clientId: id }, { deal: { contactId: id } }],
-            }, ...(search ? [{ OR: [{ invoiceNumber: { contains: search, mode: "insensitive" } }]}] : [])] },
-payments: { AND: [{
-              invoice: {
-                OR: [{ clientId: id }, { deal: { contactId: id } }],
-              },
-            }, ...(search ? [{ OR: [{ receiptNumber: { contains: search, mode: "insensitive" } }]}] : [])] },
-contracts: { AND: [{
-              OR: [{ contactId: id }, { deal: { contactId: id } }],
-            }, ...(search ? [{ OR: [{ titleEn: { contains: search, mode: "insensitive" } },{ contractNumber: { contains: search, mode: "insensitive" } }]}] : [])] },
-attachments: { AND: [{
-          OR: [
-            { entityType: "contact", entityId: id },
-            { entityType: "customer_vault", entityId: id },
-          ],
-        }, ...(search ? [{ OR: [{ fileName: { contains: search, mode: "insensitive" } }]}] : [])] },
-activities: { AND: [{ entityId: id }, ...(search ? [{ OR: [{ action: { contains: search, mode: "insensitive" } },{ entityType: { contains: search, mode: "insensitive" } }]}] : [])] } };
-    const counts = await Promise.all([access?.leads === false ? 0 : db.inquiry.count({where:whereByDomain.inquiries}),
-access?.deals === false ? 0 : db.crmDeal.count({where:whereByDomain.deals}),
-access?.invoices === false ? 0 : db.invoice.count({where:whereByDomain.invoices}),
-access?.payments === false ? 0 : db.payment.count({where:whereByDomain.payments}),
-access?.contracts === false ? 0 : db.contract.count({where:whereByDomain.contracts}),
-db.attachment.count({where:whereByDomain.attachments}),
-access?.audit === false ? 0 : db.activityLog.count({where:whereByDomain.activities})]);
-    const pagination = {inquiries: {total: counts[0], page: Math.min(Math.max(1, Math.min(1000000, Number.parseInt(options.pages?.inquiries || "1",10) || 1)), Math.max(1, Math.ceil(counts[0]/50)))},
-deals: {total: counts[1], page: Math.min(Math.max(1, Math.min(1000000, Number.parseInt(options.pages?.deals || "1",10) || 1)), Math.max(1, Math.ceil(counts[1]/50)))},
-invoices: {total: counts[2], page: Math.min(Math.max(1, Math.min(1000000, Number.parseInt(options.pages?.invoices || "1",10) || 1)), Math.max(1, Math.ceil(counts[2]/50)))},
-payments: {total: counts[3], page: Math.min(Math.max(1, Math.min(1000000, Number.parseInt(options.pages?.payments || "1",10) || 1)), Math.max(1, Math.ceil(counts[3]/50)))},
-contracts: {total: counts[4], page: Math.min(Math.max(1, Math.min(1000000, Number.parseInt(options.pages?.contracts || "1",10) || 1)), Math.max(1, Math.ceil(counts[4]/50)))},
-attachments: {total: counts[5], page: Math.min(Math.max(1, Math.min(1000000, Number.parseInt(options.pages?.attachments || "1",10) || 1)), Math.max(1, Math.ceil(counts[5]/50)))},
-activities: {total: counts[6], page: Math.min(Math.max(1, Math.min(1000000, Number.parseInt(options.pages?.activities || "1",10) || 1)), Math.max(1, Math.ceil(counts[6]/50)))}};
+            },
+          },
+          ...(search
+            ? [
+                {
+                  OR: [
+                    {
+                      receiptNumber: { contains: search, mode: "insensitive" },
+                    },
+                  ],
+                },
+              ]
+            : []),
+        ],
+      },
+      contracts: {
+        AND: [
+          {
+            OR: [{ contactId: id }, { deal: { contactId: id } }],
+          },
+          ...(search
+            ? [
+                {
+                  OR: [
+                    { titleEn: { contains: search, mode: "insensitive" } },
+                    {
+                      contractNumber: { contains: search, mode: "insensitive" },
+                    },
+                  ],
+                },
+              ]
+            : []),
+        ],
+      },
+      attachments: {
+        AND: [
+          {
+            OR: [
+              { entityType: "contact", entityId: id },
+              { entityType: "customer_vault", entityId: id },
+            ],
+          },
+          ...(search
+            ? [
+                {
+                  OR: [{ fileName: { contains: search, mode: "insensitive" } }],
+                },
+              ]
+            : []),
+        ],
+      },
+      activities: {
+        AND: [
+          { entityId: id },
+          ...(search
+            ? [
+                {
+                  OR: [
+                    { action: { contains: search, mode: "insensitive" } },
+                    { entityType: { contains: search, mode: "insensitive" } },
+                  ],
+                },
+              ]
+            : []),
+        ],
+      },
+    };
+    const counts = await Promise.all([
+      access?.leads === false
+        ? 0
+        : db.inquiry.count({ where: whereByDomain.inquiries }),
+      access?.deals === false
+        ? 0
+        : db.crmDeal.count({ where: whereByDomain.deals }),
+      access?.invoices === false
+        ? 0
+        : db.invoice.count({ where: whereByDomain.invoices }),
+      access?.payments === false
+        ? 0
+        : db.payment.count({ where: whereByDomain.payments }),
+      access?.contracts === false
+        ? 0
+        : db.contract.count({ where: whereByDomain.contracts }),
+      db.attachment.count({ where: whereByDomain.attachments }),
+      access?.audit === false
+        ? 0
+        : db.activityLog.count({ where: whereByDomain.activities }),
+    ]);
+    const pagination = {
+      inquiries: {
+        total: counts[0],
+        page: Math.min(
+          Math.max(
+            1,
+            Math.min(
+              1000000,
+              Number.parseInt(options.pages?.inquiries || "1", 10) || 1,
+            ),
+          ),
+          Math.max(1, Math.ceil(counts[0] / 50)),
+        ),
+      },
+      deals: {
+        total: counts[1],
+        page: Math.min(
+          Math.max(
+            1,
+            Math.min(
+              1000000,
+              Number.parseInt(options.pages?.deals || "1", 10) || 1,
+            ),
+          ),
+          Math.max(1, Math.ceil(counts[1] / 50)),
+        ),
+      },
+      invoices: {
+        total: counts[2],
+        page: Math.min(
+          Math.max(
+            1,
+            Math.min(
+              1000000,
+              Number.parseInt(options.pages?.invoices || "1", 10) || 1,
+            ),
+          ),
+          Math.max(1, Math.ceil(counts[2] / 50)),
+        ),
+      },
+      payments: {
+        total: counts[3],
+        page: Math.min(
+          Math.max(
+            1,
+            Math.min(
+              1000000,
+              Number.parseInt(options.pages?.payments || "1", 10) || 1,
+            ),
+          ),
+          Math.max(1, Math.ceil(counts[3] / 50)),
+        ),
+      },
+      contracts: {
+        total: counts[4],
+        page: Math.min(
+          Math.max(
+            1,
+            Math.min(
+              1000000,
+              Number.parseInt(options.pages?.contracts || "1", 10) || 1,
+            ),
+          ),
+          Math.max(1, Math.ceil(counts[4] / 50)),
+        ),
+      },
+      attachments: {
+        total: counts[5],
+        page: Math.min(
+          Math.max(
+            1,
+            Math.min(
+              1000000,
+              Number.parseInt(options.pages?.attachments || "1", 10) || 1,
+            ),
+          ),
+          Math.max(1, Math.ceil(counts[5] / 50)),
+        ),
+      },
+      activities: {
+        total: counts[6],
+        page: Math.min(
+          Math.max(
+            1,
+            Math.min(
+              1000000,
+              Number.parseInt(options.pages?.activities || "1", 10) || 1,
+            ),
+          ),
+          Math.max(1, Math.ceil(counts[6] / 50)),
+        ),
+      },
+    };
 
     const [
       inquiriesRaw,
@@ -220,47 +430,63 @@ activities: {total: counts[6], page: Math.min(Math.max(1, Math.min(1000000, Numb
         : db.inquiry.findMany({
             where: whereByDomain.inquiries,
             orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-          take: 50, skip: (pagination.inquiries.page - 1) * 50,
-}),
+            take: 50,
+            skip: (pagination.inquiries.page - 1) * 50,
+          }),
 
       access?.deals === false
         ? Promise.resolve([])
         : db.crmDeal.findMany({
             where: whereByDomain.deals,
             orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-          take: 50, skip: (pagination.deals.page - 1) * 50,
-}),
+            take: 50,
+            skip: (pagination.deals.page - 1) * 50,
+          }),
 
       access?.invoices === false
         ? Promise.resolve([])
         : db.invoice.findMany({
             where: whereByDomain.invoices,
             orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-          take: 50, skip: (pagination.invoices.page - 1) * 50,
-}),
+            take: 50,
+            skip: (pagination.invoices.page - 1) * 50,
+          }),
 
       access?.payments === false
         ? Promise.resolve([])
         : db.payment.findMany({
             where: whereByDomain.payments,
             orderBy: [{ paymentDate: "desc" }, { id: "desc" }],
-          take: 50, skip: (pagination.payments.page - 1) * 50,
-}),
+            take: 50,
+            skip: (pagination.payments.page - 1) * 50,
+          }),
 
       access?.contracts === false
         ? Promise.resolve([])
         : db.contract.findMany({
             where: whereByDomain.contracts,
-            select: {id:true,contractNumber:true,titleEn:true,titleAr:true,status:true,validFrom:true,validUntil:true,createdAt:true,updatedAt:true},
+            select: {
+              id: true,
+              contractNumber: true,
+              titleEn: true,
+              titleAr: true,
+              status: true,
+              validFrom: true,
+              validUntil: true,
+              createdAt: true,
+              updatedAt: true,
+            },
             orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-          take: 50, skip: (pagination.contracts.page - 1) * 50,
-}),
+            take: 50,
+            skip: (pagination.contracts.page - 1) * 50,
+          }),
 
       db.attachment.findMany({
         where: whereByDomain.attachments,
         orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-      take: 50, skip: (pagination.attachments.page - 1) * 50,
-}),
+        take: 50,
+        skip: (pagination.attachments.page - 1) * 50,
+      }),
 
       access?.audit === false
         ? Promise.resolve([])
@@ -280,41 +506,134 @@ activities: {total: counts[6], page: Math.min(Math.max(1, Math.min(1000000, Numb
             },
             orderBy: [{ createdAt: "desc" }, { id: "desc" }],
 
-          take: 50, skip: (pagination.activities.page - 1) * 50,
-}),
+            take: 50,
+            skip: (pagination.activities.page - 1) * 50,
+          }),
     ]);
 
-    const paidOnPage = invoicesRaw.length ? await db.payment.groupBy({ by: ["invoiceId", "currency"], where: { invoiceId: { in: invoicesRaw.map(i => i.id) } }, _sum: { amount: true } }) : [];
-    for (const invoice of invoicesRaw as any[]) invoice.payments = paidOnPage.filter(p => p.invoiceId === invoice.id && p.currency === invoice.currency).map(p => ({ amount: Number(p._sum.amount), currency: p.currency }));
-    const balancesByCurrency: Record<string, {totalLtv:number;totalPaid:number;totalOutstanding:number}> = {};
+    const paidOnPage = invoicesRaw.length
+      ? await db.payment.groupBy({
+          by: ["invoiceId", "currency"],
+          where: { invoiceId: { in: invoicesRaw.map((i) => i.id) } },
+          _sum: { amount: true },
+        })
+      : [];
+    for (const invoice of invoicesRaw as any[])
+      invoice.payments = paidOnPage
+        .filter(
+          (p) => p.invoiceId === invoice.id && p.currency === invoice.currency,
+        )
+        .map((p) => ({ amount: Number(p._sum.amount), currency: p.currency }));
+    const balancesByCurrency: Record<
+      string,
+      { totalLtv: number; totalPaid: number; totalOutstanding: number }
+    > = {};
     if (access?.invoices !== false) {
-      const balances = await db.$queryRaw<Array<{currency:string;ltv:unknown;paid:unknown;outstanding:unknown}>>`
+      const balances = await db.$queryRaw<
+        Array<{
+          currency: string;
+          ltv: unknown;
+          paid: unknown;
+          outstanding: unknown;
+        }>
+      >`
         WITH target AS (SELECT i.* FROM "Invoice" i WHERE (i."clientId"=${id} OR EXISTS(SELECT 1 FROM "CrmDeal" d WHERE d.id=i."dealId" AND d."contactId"=${id})) AND i.status NOT IN ('draft','void')),
         paid AS (SELECT p."invoiceId",SUM(p.amount) amount FROM "Payment" p JOIN target i ON i.id=p."invoiceId" AND p.currency=i.currency GROUP BY p."invoiceId"),
         issued AS (SELECT i.currency,i."totalAmount",COALESCE(p.amount,0) paid FROM target i LEFT JOIN paid p ON p."invoiceId"=i.id)
         SELECT currency,SUM("totalAmount") ltv,SUM(paid) paid,SUM(GREATEST(0,"totalAmount"-paid)) outstanding FROM issued GROUP BY currency
       `;
-      for(const b of balances) balancesByCurrency[b.currency]={totalLtv:Number(b.ltv),totalPaid:access?.payments===false?0:Number(b.paid),totalOutstanding:Number(b.outstanding)};
+      for (const b of balances)
+        balancesByCurrency[b.currency] = {
+          totalLtv: Number(b.ltv),
+          totalPaid: access?.payments === false ? 0 : Number(b.paid),
+          totalOutstanding: Number(b.outstanding),
+        };
     }
-    const { totalLtv=0,totalPaid=0,totalOutstanding=0 }=balancesByCurrency.BHD||{};
-    const stages = access?.deals === false ? [] : await db.crmDeal.groupBy({by:["dealStage","currency"],where:{contactId:id},_sum:{dealValue:true},_count:true});
-    const activeDealsCount=stages.filter(s=>isActiveDealStage(s.dealStage)).reduce((n,s)=>n+s._count,0);
+    const {
+      totalLtv = 0,
+      totalPaid = 0,
+      totalOutstanding = 0,
+    } = balancesByCurrency.BHD || {};
+    const stages =
+      access?.deals === false
+        ? []
+        : await db.crmDeal.groupBy({
+            by: ["dealStage", "currency"],
+            where: { contactId: id },
+            _sum: { dealValue: true },
+            _count: true,
+          });
+    const activeDealsCount = stages
+      .filter((s) => isActiveDealStage(s.dealStage))
+      .reduce((n, s) => n + s._count, 0);
     // Win rate is measured over decided deals only; open deals have not been won or lost yet.
-    const wonCount=stages.filter(s=>s.dealStage==="closed_won").reduce((n,s)=>n+s._count,0);
-    const decidedCount=stages.filter(s=>!isActiveDealStage(s.dealStage)).reduce((n,s)=>n+s._count,0);
-    const winRate=decidedCount?Math.round(wonCount/decidedCount*100):0;
-    const bhd=stages.filter(s=>s.currency==="BHD"),bhdCount=bhd.reduce((n,s)=>n+s._count,0);
-    const avgDealSize=bhdCount?bhd.reduce((n,s)=>n+Number(s._sum.dealValue),0)/bhdCount:0;
-    const [invoiceCount,paymentCount] = await Promise.all([access?.invoices===false?0:db.invoice.count({where:{OR:[{clientId:id},{deal:{contactId:id}}]}}),access?.payments===false?0:db.payment.count({where:{invoice:{OR:[{clientId:id},{deal:{contactId:id}}]}}})]);
+    const wonCount = stages
+      .filter((s) => s.dealStage === "closed_won")
+      .reduce((n, s) => n + s._count, 0);
+    const decidedCount = stages
+      .filter((s) => !isActiveDealStage(s.dealStage))
+      .reduce((n, s) => n + s._count, 0);
+    const winRate = decidedCount
+      ? Math.round((wonCount / decidedCount) * 100)
+      : 0;
+    const bhd = stages.filter((s) => s.currency === "BHD"),
+      bhdCount = bhd.reduce((n, s) => n + s._count, 0);
+    const avgDealSize = bhdCount
+      ? bhd.reduce((n, s) => n + Number(s._sum.dealValue), 0) / bhdCount
+      : 0;
+    const [invoiceCount, paymentCount] = await Promise.all([
+      access?.invoices === false
+        ? 0
+        : db.invoice.count({
+            where: { OR: [{ clientId: id }, { deal: { contactId: id } }] },
+          }),
+      access?.payments === false
+        ? 0
+        : db.payment.count({
+            where: {
+              invoice: { OR: [{ clientId: id }, { deal: { contactId: id } }] },
+            },
+          }),
+    ]);
     // Global maxima must not depend on a related list's filter or current page.
     const latest = await Promise.all([
-      access?.audit === false ? null : db.activityLog.aggregate({where:{entityId:id},_max:{createdAt:true}}).then(r=>r._max.createdAt),
-      access?.payments === false ? null : db.payment.aggregate({where:{invoice:{OR:[{clientId:id},{deal:{contactId:id}}]}},_max:{paymentDate:true}}).then(r=>r._max.paymentDate),
-      access?.invoices === false ? null : db.invoice.aggregate({where:{OR:[{clientId:id},{deal:{contactId:id}}]},_max:{issueDate:true}}).then(r=>r._max.issueDate),
-      access?.leads === false ? null : db.inquiry.aggregate({where:{customerId:id},_max:{createdAt:true}}).then(r=>r._max.createdAt),
+      access?.audit === false
+        ? null
+        : db.activityLog
+            .aggregate({ where: { entityId: id }, _max: { createdAt: true } })
+            .then((r) => r._max.createdAt),
+      access?.payments === false
+        ? null
+        : db.payment
+            .aggregate({
+              where: {
+                invoice: {
+                  OR: [{ clientId: id }, { deal: { contactId: id } }],
+                },
+              },
+              _max: { paymentDate: true },
+            })
+            .then((r) => r._max.paymentDate),
+      access?.invoices === false
+        ? null
+        : db.invoice
+            .aggregate({
+              where: { OR: [{ clientId: id }, { deal: { contactId: id } }] },
+              _max: { issueDate: true },
+            })
+            .then((r) => r._max.issueDate),
+      access?.leads === false
+        ? null
+        : db.inquiry
+            .aggregate({ where: { customerId: id }, _max: { createdAt: true } })
+            .then((r) => r._max.createdAt),
     ]);
-    const timestamps = latest.filter((d): d is Date => d !== null).map(d=>d.getTime());
-    const lastActivityDate = timestamps.length ? new Date(Math.max(...timestamps)).toISOString() : contact.updated_at || contact.created_at;
+    const timestamps = latest
+      .filter((d): d is Date => d !== null)
+      .map((d) => d.getTime());
+    const lastActivityDate = timestamps.length
+      ? new Date(Math.max(...timestamps)).toISOString()
+      : contact.updated_at || contact.created_at;
 
     return {
       contact,
@@ -452,12 +771,17 @@ activities: {total: counts[6], page: Math.min(Math.max(1, Math.min(1000000, Numb
   }
 }
 
-export async function createCRMContact(data: ClientProfileInput): Promise<CRMContact> {
+export async function createCRMContact(
+  data: ClientProfileInput,
+): Promise<CRMContact> {
   const { createClientProfile } = await import("./client-profiles");
   return createClientProfile(data);
 }
 
-export async function updateCRMContact(id: string, data: ClientProfileInput): Promise<CRMContact | null> {
+export async function updateCRMContact(
+  id: string,
+  data: ClientProfileInput,
+): Promise<CRMContact | null> {
   const { updateClientProfile } = await import("./client-profiles");
   return updateClientProfile(id, data);
 }
@@ -544,7 +868,17 @@ export async function createCRMDeal(data: {
 
 export async function updateCRMDeal(
   id: string,
-  data: Partial<Omit<CRMDeal, "shoot_date" | "target_close_date" | "assigned_to" | "lost_reason">> & { shoot_date?: string | null; target_close_date?: string | null; assigned_to?: string | null; lost_reason?: string | null },
+  data: Partial<
+    Omit<
+      CRMDeal,
+      "shoot_date" | "target_close_date" | "assigned_to" | "lost_reason"
+    >
+  > & {
+    shoot_date?: string | null;
+    target_close_date?: string | null;
+    assigned_to?: string | null;
+    lost_reason?: string | null;
+  },
 ): Promise<CRMDeal | null> {
   try {
     const updateData: any = {};
@@ -613,13 +947,22 @@ export async function advanceDealForEvent(
   if (!dealId) return false;
   const target = DEAL_STAGE_ON_EVENT[event];
   // The company's own pipeline decides what "before" means: every open stage ordered ahead of the target.
-  const stages = await client.dealPipelineStage.findMany({ select: { id: true, sortOrder: true, kind: true, probability: true } });
+  const stages = await client.dealPipelineStage.findMany({
+    select: { id: true, sortOrder: true, kind: true, probability: true },
+  });
   const goal = stages.find((stage) => stage.id === target);
   if (!goal) return false;
-  const before = stages.filter((stage) => stage.kind === "open" && stage.sortOrder < goal.sortOrder).map((stage) => stage.id);
+  const before = stages
+    .filter(
+      (stage) => stage.kind === "open" && stage.sortOrder < goal.sortOrder,
+    )
+    .map((stage) => stage.id);
   const { count } = await client.crmDeal.updateMany({
     where: { id: dealId, dealStage: { in: before } },
-    data: { dealStage: target, probability: goal.probability ?? DEAL_STAGE_DEFAULTS[target].probability },
+    data: {
+      dealStage: target,
+      probability: goal.probability ?? DEAL_STAGE_DEFAULTS[target].probability,
+    },
   });
   return count > 0;
 }
@@ -670,7 +1013,18 @@ export async function searchCRMContacts(
 }
 
 export interface GlobalSearchResult {
-  category: "customers" | "invoices" | "deals" | "people" | "orders" | "products" | "shipments" | "tasks" | "purchase_orders" | "legal" | "campaigns";
+  category:
+    | "customers"
+    | "invoices"
+    | "deals"
+    | "people"
+    | "orders"
+    | "products"
+    | "shipments"
+    | "tasks"
+    | "purchase_orders"
+    | "legal"
+    | "campaigns";
   id: string;
   title: string;
   subtitle: string;
@@ -826,10 +1180,23 @@ export async function globalAdminSearch(
               { fullName: { contains: clean, mode: "insensitive" } },
               { email: { contains: clean, mode: "insensitive" } },
               { phone: { contains: clean } },
-              { employee: { OR: [{ firstNameAr: { contains: clean } }, { lastNameAr: { contains: clean } }] } },
+              {
+                employee: {
+                  OR: [
+                    { firstNameAr: { contains: clean } },
+                    { lastNameAr: { contains: clean } },
+                  ],
+                },
+              },
             ],
           },
-          select: { id: true, fullName: true, email: true, role: true, employee: { select: { jobTitleEn: true } } },
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            role: true,
+            employee: { select: { jobTitleEn: true } },
+          },
           orderBy: { fullName: "asc" },
           take: limit,
         })
@@ -851,15 +1218,21 @@ export async function globalAdminSearch(
   return results;
 }
 
-export async function getCRMDealOverview(includeAnalytics = true, /** Owners whose deals count; null or missing for all. */ scope?: string[] | null) {
+export async function getCRMDealOverview(
+  includeAnalytics = true,
+  /** Owners whose deals count; null or missing for all. */ scope?:
+    string[] | null,
+) {
   const where = scope ? { assignedTo: { in: scope } } : {};
   const [groups, recent] = await Promise.all([
-    includeAnalytics ? db.crmDeal.groupBy({
-      where,
-      by: ["dealStage", "currency"],
-      _count: { _all: true },
-      _sum: { dealValue: true },
-    }) : Promise.resolve([]),
+    includeAnalytics
+      ? db.crmDeal.groupBy({
+          where,
+          by: ["dealStage", "currency"],
+          _count: { _all: true },
+          _sum: { dealValue: true },
+        })
+      : Promise.resolve([]),
     db.crmDeal.findMany({
       where,
       take: 5,

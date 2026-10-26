@@ -1,7 +1,7 @@
 "use client";
 import { formatMessage } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
-import {ContentImage} from "./ContentImage";
+import { ContentImage } from "./ContentImage";
 
 import * as React from "react";
 import Link from "next/link";
@@ -91,7 +91,7 @@ export function DocumentLetterhead({
               }
               alt={isAr ? company.company_name_ar : company.company_name_en}
               className="h-10 w-auto object-contain shrink-0"
-             width={40} height={40} />
+              width={40} height={40} />
             <ContentImage
               src={
                 company.dark_logo_url ||
@@ -99,7 +99,7 @@ export function DocumentLetterhead({
               }
               alt={isAr ? company.company_name_ar : company.company_name_en}
               className="h-7 w-auto object-contain"
-             fallbackText={(isAr ? company.company_name_ar : company.company_name_en)}  width={240} height={60} />
+              fallbackText={(isAr ? company.company_name_ar : company.company_name_en)} width={240} height={60} />
           </div>
 
           <div className="text-xs text-white/80 font-medium">
@@ -280,7 +280,7 @@ export function DocumentFooter({
                   src={effectiveStamp}
                   alt={t.sealAlt}
                   className="w-full h-full object-contain select-none"
-                 width={40} height={40} />
+                  width={40} height={40} />
               </div>
             )}
             <div className="text-center sm:text-end space-y-1.5 min-w-[180px]">
@@ -290,7 +290,7 @@ export function DocumentFooter({
                     src={effectiveSignature}
                     alt={t.signatureAlt}
                     className="max-h-12 w-auto object-contain select-none"
-                   width={40} height={40} />
+                    width={40} height={40} />
                 ) : (
                   <div className="h-10 w-full border-b border-gray-300 border-dashed" />
                 )}

@@ -26,7 +26,12 @@ const config: Omit<Config, "content"> = {
         },
         mint: brand("--brand-mint"),
         // Tonal palette of the accent (Material-style): tone-5 near black … tone-95 near white.
-        tone: Object.fromEntries([5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 95].map((t) => [t, brand(`--brand-tone-${t}`)])),
+        tone: Object.fromEntries(
+          [5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 95].map((t) => [
+            t,
+            brand(`--brand-tone-${t}`),
+          ]),
+        ),
         brand: {
           base: brand("--brand-bg-base"),
           surface: brand("--brand-bg-surface"),
@@ -84,7 +89,10 @@ const config: Omit<Config, "content"> = {
       },
       keyframes: {
         fadeUp: {
-          from: { opacity: "0", transform: "translateY(var(--motion-distance))" },
+          from: {
+            opacity: "0",
+            transform: "translateY(var(--motion-distance))",
+          },
           to: { opacity: "1", transform: "none" },
         },
         scaleIn: {
@@ -130,7 +138,13 @@ const config: Omit<Config, "content"> = {
           "--ease-exit": "cubic-bezier(0.3, 0, 1, 1)",
         },
         "@media (prefers-reduced-motion: reduce)": {
-          ":root": { "--motion-fast": "0.01ms", "--motion-base": "0.01ms", "--motion-slow": "0.01ms", "--motion-stagger": "0ms", "--motion-distance": "0px" },
+          ":root": {
+            "--motion-fast": "0.01ms",
+            "--motion-base": "0.01ms",
+            "--motion-slow": "0.01ms",
+            "--motion-stagger": "0ms",
+            "--motion-distance": "0px",
+          },
           "*, *::before, *::after": {
             animationDuration: "0.01ms !important",
             animationIterationCount: "1 !important",
@@ -142,17 +156,29 @@ const config: Omit<Config, "content"> = {
       });
       addUtilities({
         // Children enter one after another (the first twelve; later ones with the twelfth).
-        ".stagger-children > *": { animation: "fadeUp var(--motion-slow) var(--ease-emphasized) both" },
-        ...Object.fromEntries(Array.from({ length: 12 }, (_, i) => [`.stagger-children > *:nth-child(${i + 1})`, { animationDelay: `calc(var(--motion-stagger) * ${i})` }])),
-        ".stagger-children > *:nth-child(n + 13)": { animationDelay: "calc(var(--motion-stagger) * 12)" },
+        ".stagger-children > *": {
+          animation: "fadeUp var(--motion-slow) var(--ease-emphasized) both",
+        },
+        ...Object.fromEntries(
+          Array.from({ length: 12 }, (_, i) => [
+            `.stagger-children > *:nth-child(${i + 1})`,
+            { animationDelay: `calc(var(--motion-stagger) * ${i})` },
+          ]),
+        ),
+        ".stagger-children > *:nth-child(n + 13)": {
+          animationDelay: "calc(var(--motion-stagger) * 12)",
+        },
         // Placeholder blocks while content loads.
         ".skeleton": {
-          backgroundImage: "linear-gradient(90deg, rgb(var(--ui-ink, 15 23 42) / 0.06) 25%, rgb(var(--ui-ink, 15 23 42) / 0.12) 37%, rgb(var(--ui-ink, 15 23 42) / 0.06) 63%)",
+          backgroundImage:
+            "linear-gradient(90deg, rgb(var(--ui-ink, 15 23 42) / 0.06) 25%, rgb(var(--ui-ink, 15 23 42) / 0.12) 37%, rgb(var(--ui-ink, 15 23 42) / 0.06) 63%)",
           backgroundSize: "400% 100%",
           animation: "shimmer 1.6s linear infinite",
         },
         // Pressed state for clickable cards and tiles.
-        ".press": { transition: "transform var(--motion-fast) var(--ease-standard)" },
+        ".press": {
+          transition: "transform var(--motion-fast) var(--ease-standard)",
+        },
         ".press:active": { transform: "scale(0.98)" },
       });
     }),

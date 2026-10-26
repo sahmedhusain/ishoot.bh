@@ -230,7 +230,10 @@ async function transitionRequest(
     !input.notes?.trim()
   )
     throw new Error(serverMessages.notesAreRequired);
-  if (input.team !== undefined && !(REQUEST_TEAMS as readonly string[]).includes(input.team))
+  if (
+    input.team !== undefined &&
+    !(REQUEST_TEAMS as readonly string[]).includes(input.team)
+  )
     throw new Error(serverMessages.invalidTeam);
   return db.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT "id" FROM "Inquiry" WHERE "id" = ${id} FOR UPDATE`;

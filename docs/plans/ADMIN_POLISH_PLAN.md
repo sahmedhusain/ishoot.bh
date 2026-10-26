@@ -1381,7 +1381,6 @@ All input-like elements without a placeholder are listed for review. Checkboxes,
 - Runtime sweep currently has 199 route visits across EN/light and EN/dark, with 19 missing dynamic fixtures. It observed mobile overflow on archive, banners, contacts/customer/deal details, employees, GOSI, new invoice and departments, plus unlabelled website-editor fields. Remaining modes, roles, drawers and mutating actions are pending. Raw output: tests/.results/admin-polish-inventory.json (local test artifact).
 - Concurrent calendar rename and plan-formatting edits were detected in the shared checkout and are being left outside this implementation commit.
 
-
 ### G4–G5 execution evidence: analytics provenance and UI (one compatible vertical slice)
 
 - Removed the volume seed's synthetic social series. Added forward migration `20261027110000_social_metric_provenance`: nullable post counters, provider/account provenance, post snapshot history, and numeric storage that supports counts above PostgreSQL's 32-bit integer range. No old rows are deleted or retroactively called verified.
@@ -1392,7 +1391,6 @@ All input-like elements without a placeholder are listed for review. Checkboxes,
 - Verification: 143 unit/static tests, type-check, lint, copy, brand, action schemas and knip passed; the social database check passed and rolled back on the disposable database. All nine focused browser tests passed, including disconnected EN/AR × light/dark, phone widths, connected-without-data, a verified zero, and confirmation behavior. The additive migration was applied to the disposable and local development databases.
 - Remaining: owner-only Insights APIs (reach, impressions/profile views and full engagement where the current public APIs do not supply them), OAuth refresh flows, provider-specific timezone/range contracts and external sandbox acceptance. Do not mark those requirements complete based on these fixtures. Meta's current Insights/changelog pages returned HTTP 429 during official-doc research; no speculative Insights metric names were added.
 - Official research additions: [LinkedIn organization lookup](https://learn.microsoft.com/en-us/linkedin/marketing/community-management/organizations/organization-lookup-api), [LinkedIn follower statistics](https://learn.microsoft.com/en-us/linkedin/marketing/community-management/organizations/follower-statistics), [TikTok access/refresh token contract](https://developers.tiktok.com/docs/en/oauth-user-access-token-management) (24-hour access / 365-day refresh at issuance), [X rate limits](https://docs.x.com/x-api/fundamentals/rate-limits), [YouTube Analytics query](https://developers.google.com/youtube/analytics/reference/reports/query) and [YouTube day timezone](https://developers.google.com/youtube/analytics/dimensions) (Pacific calendar days, distinct from the UI's UTC publication-date filter).
-
 
 ### G6a execution evidence: connection checks fail closed (P1)
 
@@ -1416,7 +1414,6 @@ Source review found that the Resend settings card stores and tests encrypted cre
 ### G8a added scope before implementation (P2)
 
 The eight-combination route sweep reached narrow-role denials and found nested `main` landmarks: the dashboard provides `main`, and shared `ForbiddenView` adds another `main` inside it. This also caused strict-locator errors in the collector, so those entries are unverified denials rather than product render failures. All ForbiddenView callers were checked (root/dashboard forbidden boundaries and six direct dashboard denials). Change the shared denial body to a section, retain the standalone root landmark, and add one narrow-role e2e assertion before rerunning the affected inventory cells.
-
 
 ### G8a execution evidence
 

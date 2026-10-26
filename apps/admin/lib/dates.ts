@@ -3,7 +3,12 @@ const BUSINESS_TIME_ZONE = "Asia/Bahrain";
 
 /** YYYY-MM-DD for `date` in the business timezone (not UTC, which is a day behind after midnight Bahrain time). */
 export function businessDateString(date: Date = new Date()): string {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: BUSINESS_TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: BUSINESS_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
 }
 
 export function addDays(date: Date, days: number): Date {

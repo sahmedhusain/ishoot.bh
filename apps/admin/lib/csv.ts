@@ -5,7 +5,10 @@
 export function parseCsv(text: string): string[][] {
   const source = text.replace(/^﻿/, "");
   const firstLine = source.slice(0, source.search(/\r?\n/) >>> 0);
-  const delimiter = (firstLine.match(/;/g)?.length ?? 0) > (firstLine.match(/,/g)?.length ?? 0) ? ";" : ",";
+  const delimiter =
+    (firstLine.match(/;/g)?.length ?? 0) > (firstLine.match(/,/g)?.length ?? 0)
+      ? ";"
+      : ",";
   const rows: string[][] = [];
   let row: string[] = [];
   let cell = "";
@@ -37,4 +40,9 @@ export function parseCsv(text: string): string[][] {
 
 /** One CSV line, quoting cells that need it. Cells that would start a spreadsheet formula are prefixed with '. */
 export const csvLine = (cells: string[]) =>
-  cells.map((cell) => (/^[=+\-@]/.test(cell) ? `'${cell}` : cell)).map((cell) => (/[",\n\r;]/.test(cell) ? `"${cell.replaceAll('"', '""')}"` : cell)).join(",");
+  cells
+    .map((cell) => (/^[=+\-@]/.test(cell) ? `'${cell}` : cell))
+    .map((cell) =>
+      /[",\n\r;]/.test(cell) ? `"${cell.replaceAll('"', '""')}"` : cell,
+    )
+    .join(",");

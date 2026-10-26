@@ -2,7 +2,7 @@
 import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../../lib/error-text";
 import { uploadFileDirectly } from "../../../lib/upload-client";
-import {ContentImage} from "../../shared/ContentImage";
+import { ContentImage } from "../../shared/ContentImage";
 
 import * as React from "react";
 import type { CompanySettings } from "@platform/database/types";
@@ -152,7 +152,7 @@ export function BrandAssetsTab({
 
     try {
       const data = await uploadFileDirectly(file, { entityType: "company_asset", entityId: slot.key, customName: `${slot.key}-${file.name}`, documentType: "branding_asset" });
-        const res = { ok: true }; // polyfill for following code
+      const res = { ok: true }; // polyfill for following code
       if (!res.ok || !data.success) {
         throw new Error(data.error || t.brandAssetsTab.uploadFailed);
       }

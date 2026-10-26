@@ -4,7 +4,7 @@ import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import type { FinancialSummary, Quotation } from "@platform/database/types";
-import { Button,StatusBadge,CurrencyDisplay } from "@platform/ui";
+import { Button, StatusBadge, CurrencyDisplay } from "@platform/ui";
 import { Plus, Eye, ExternalLink, FileCheck, ArrowRight, ArrowLeft } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
@@ -129,11 +129,10 @@ export function InvoicesListView({
             {t.kpi.overdueAlert}
           </div>
           <div
-            className={`text-xl font-bold  ${
-              finance.overdue > 0
-                ? "text-rose-500 dark:text-rose-400"
-                : "text-emerald-600 dark:text-emerald-400"
-            }`}
+            className={`text-xl font-bold  ${finance.overdue > 0
+              ? "text-rose-500 dark:text-rose-400"
+              : "text-emerald-600 dark:text-emerald-400"
+              }`}
           >
             <CurrencyDisplay amount={finance.overdue} currency="BHD" />
           </div>

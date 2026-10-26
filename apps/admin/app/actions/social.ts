@@ -31,16 +31,31 @@ export async function refreshSocialAnalyticsAction() {
   return measureOperation("admin:refreshSocialAnalytics", async () => {
     await requirePermission("social", "write");
     const active = await db.integrationSetting.findMany({
-      where: { isActive: true, provider: { in: INTEGRATION_PROVIDERS.filter((p) => p.kind === "social").map((p) => p.id) } },
+      where: {
+        isActive: true,
+        provider: {
+          in: INTEGRATION_PROVIDERS.filter((p) => p.kind === "social").map(
+            (p) => p.id,
+          ),
+        },
+      },
       select: { provider: true },
     });
-    const results: Array<{ provider: string; ok: boolean; error: string | null }> = [];
+    const results: Array<{
+      provider: string;
+      ok: boolean;
+      error: string | null;
+    }> = [];
     for (const { provider } of active) {
       try {
         await syncSocialIntegration(provider);
         results.push({ provider, ok: true, error: null });
       } catch (error) {
-        results.push({ provider, ok: false, error: error instanceof Error ? error.message : "Sync failed" });
+        results.push({
+          provider,
+          ok: false,
+          error: error instanceof Error ? error.message : "Sync failed",
+        });
       }
     }
     revalidatePath(ROUTES.analytics);
@@ -48,15 +63,23 @@ export async function refreshSocialAnalyticsAction() {
   });
 }
 
-export async function saveSocialPlanAction(id: string | null, input: PlanInput) {
+export async function saveSocialPlanAction(
+  id: string | null,
+  input: PlanInput,
+) {
   validateActionArguments("saveSocialPlanAction", { id, input });
   return measureOperation("admin:saveSocialPlan", async () => {
     const user = await requirePermission("social", id ? "edit" : "create");
     if (input.assigneeId) {
-      const assignee = await db.user.findFirst({ where: { id: input.assigneeId, isActive: true }, select: { id: true } });
+      const assignee = await db.user.findFirst({
+        where: { id: input.assigneeId, isActive: true },
+        select: { id: true },
+      });
       if (!assignee) throw new Error(serverMessages.chooseAnActiveTeamMember);
     }
-    const plan = id ? await updateSocialPlan(id, input) : await createSocialPlan(input, user.id);
+    const plan = id
+      ? await updateSocialPlan(id, input)
+      : await createSocialPlan(input, user.id);
     revalidatePath(ROUTES.analytics);
     return plan;
   });

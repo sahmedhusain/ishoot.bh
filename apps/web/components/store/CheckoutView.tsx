@@ -122,7 +122,7 @@ export function CheckoutView({ locale, settings, customer, addresses, country }:
       writeCart([]);
       try {
         window.localStorage.removeItem(COUPON_KEY);
-      } catch {}
+      } catch { }
       // Paying online continues on the order's payment page, which takes the customer to the gateway.
       router.push(data.payToken ? `/${locale}/pay/${data.payToken}?start=1` : `/${locale}/checkout/done?number=${encodeURIComponent(data.number)}`);
     } catch (err) {

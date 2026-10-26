@@ -19,7 +19,10 @@ export async function POST(req: NextRequest) {
     try {
       const user = await getCurrentUser();
       if (!user)
-        return NextResponse.json({ error: serverMessages.unauthorized }, { status: 401 });
+        return NextResponse.json(
+          { error: serverMessages.unauthorized },
+          { status: 401 },
+        );
 
       const input: unknown = await req.json();
       if (!input || typeof input !== "object" || Array.isArray(input))
@@ -41,7 +44,10 @@ export async function POST(req: NextRequest) {
         typeof entityId !== "string" ||
         (customName !== undefined && typeof customName !== "string")
       ) {
-        return NextResponse.json({ error: serverMessages.runtimeMissingFileUrl }, { status: 400 });
+        return NextResponse.json(
+          { error: serverMessages.runtimeMissingFileUrl },
+          { status: 400 },
+        );
       }
 
       try {
@@ -72,7 +78,9 @@ export async function POST(req: NextRequest) {
         );
       } catch {
         return NextResponse.json(
-          { error: serverMessages.runtimeTheFileDidNotArriveIntactUploadItAgain },
+          {
+            error: serverMessages.runtimeTheFileDidNotArriveIntactUploadItAgain,
+          },
           { status: 422 },
         );
       }
@@ -90,7 +98,9 @@ export async function POST(req: NextRequest) {
           },
         });
         if (claimed.count !== 1)
-          throw new Error(serverMessages.runtimeUploadIsAlreadyClaimedOrExpired);
+          throw new Error(
+            serverMessages.runtimeUploadIsAlreadyClaimedOrExpired,
+          );
         if (!entityId || entityId === "pending") return null;
 
         const attachment = await tx.attachment.create({

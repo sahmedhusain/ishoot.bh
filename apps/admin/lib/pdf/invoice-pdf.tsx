@@ -166,11 +166,11 @@ function InvoicePDF(props: InvoicePDFProps) {
       author={company.company_name_en}
       language={isAr ? "ar" : "en"}
     >
-        <Page size="A4" style={pageStyle}>
-          <Letterhead brand={props.brand} />
-          <InvoiceBody k={k} {...props} />
-          <k.Footer brand={props.brand} reference={props.invoice.invoice_number} />
-        </Page>
+      <Page size="A4" style={pageStyle}>
+        <Letterhead brand={props.brand} />
+        <InvoiceBody k={k} {...props} />
+        <k.Footer brand={props.brand} reference={props.invoice.invoice_number} />
+      </Page>
     </Document>
   );
 }

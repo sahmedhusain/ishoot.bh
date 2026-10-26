@@ -6,12 +6,8 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@platform/config/currency": [
-        "../config/src/constants/currency.d.cts"
-      ]
+      "@platform/config/currency": ["../config/src/constants/currency.d.cts"]
     }
   },
-  "include": [
-    "prisma/check-integrity.ts"
-  ]
+  "include": ["prisma/check-integrity.ts"]
 }

@@ -290,9 +290,9 @@ export function ApprovalItemView({ item }: { item: ApprovalItemDetail }) {
                         {formatMessage(a.step, { step: String(d.step) })}
                       </div>
                       {d.reason &&
-                      !/^(super_admin|below_threshold|policy_auto|no_alternate_approver)$/.test(
-                        d.reason,
-                      ) ? (
+                        !/^(super_admin|below_threshold|policy_auto|no_alternate_approver)$/.test(
+                          d.reason,
+                        ) ? (
                         <div className="mt-1 italic text-ink-muted">
                           “{d.reason}”
                         </div>

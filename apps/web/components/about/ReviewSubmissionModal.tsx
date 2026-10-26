@@ -204,11 +204,10 @@ export function ReviewSubmissionModal({
                       className="min-w-11 min-h-11 flex items-center justify-center transition-transform motion-safe:hover:scale-110"
                     >
                       <Star
-                        className={`w-7 h-7 transition-colors ${
-                          active
-                            ? "text-amber-400 fill-amber-400"
-                            : "text-neutral-600 stroke-1"
-                        }`}
+                        className={`w-7 h-7 transition-colors ${active
+                          ? "text-amber-400 fill-amber-400"
+                          : "text-neutral-600 stroke-1"
+                          }`}
                       />
                     </button>
                   );

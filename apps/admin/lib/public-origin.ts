@@ -7,17 +7,22 @@ import { domainOrigin } from "@platform/database/constants/domains";
  * domain from the company settings, else the address staff are using right now, else the local development server.
  */
 export async function publicOrigin(): Promise<string> {
-  const configured = process.env.ADMIN_APP_URL || process.env.ADMIN_URL || process.env.NEXT_PUBLIC_ADMIN_URL;
+  const configured =
+    process.env.ADMIN_APP_URL ||
+    process.env.ADMIN_URL ||
+    process.env.NEXT_PUBLIC_ADMIN_URL;
   if (configured) return configured.replace(/\/$/, "");
-  const domain = await getCompanySettings().then((company) => domainOrigin(company.admin_domain)).catch(() => "");
+  const domain = await getCompanySettings()
+    .then((company) => domainOrigin(company.admin_domain))
+    .catch(() => "");
   if (domain) return domain;
   try {
     const h = await headers();
     const host = h.get("x-forwarded-host") ?? h.get("host");
-    if (host) return `${h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https")}://${host}`;
+    if (host)
+      return `${h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https")}://${host}`;
   } catch {
     // Outside a request (workers): fall through.
   }
   return "http://localhost:3001";
 }
-

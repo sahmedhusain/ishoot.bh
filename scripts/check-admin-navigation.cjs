@@ -91,7 +91,7 @@ for (const locale of ["en", "ar"]) {
         }),
       },
       "./SidebarContext": {
-        useSidebar: () => ({ isMobileOpen: false, setIsMobileOpen() {} }),
+        useSidebar: () => ({ isMobileOpen: false, setIsMobileOpen() { } }),
       },
       "../../hooks/useAdminLocale": { useAdminLocale: () => ({ t, locale }) },
       "../../hooks/useFeatureToggles": {
@@ -135,7 +135,7 @@ for (const locale of ["en", "ar"]) {
   const finance = render("accountant", () => true);
   assert.ok(
     finance.indexOf(t.nav.finance.replaceAll("&", "&amp;")) <
-      finance.indexOf(t.navigationGroups.sales.replaceAll("&", "&amp;")),
+    finance.indexOf(t.navigationGroups.sales.replaceAll("&", "&amp;")),
   );
   const customized = render("sales", (resource) => resource === "payroll");
   assert.ok(

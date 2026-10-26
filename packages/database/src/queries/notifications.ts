@@ -77,7 +77,7 @@ export async function createNotification(data: {
   entity_type?: string;
   entity_id?: string;
   message_key?: string;
-  message_params?: Record<string,string>;
+  message_params?: Record<string, string>;
 }): Promise<Notification> {
   const created = await db.notification.create({
     data: {

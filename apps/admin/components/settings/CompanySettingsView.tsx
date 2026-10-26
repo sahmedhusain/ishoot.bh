@@ -9,12 +9,12 @@ import type { TaxRateRecord } from "@platform/database";
 import type { CompanyAssetItem } from "@platform/database";
 import { Button, ConfirmDialog } from "@platform/ui";
 import {
-Building2,
-Percent,
-Landmark,
-CheckCircle2,
-Hash,
-Sparkles,
+  Building2,
+  Percent,
+  Landmark,
+  CheckCircle2,
+  Hash,
+  Sparkles,
   BadgePercent,
   Palette,
 } from "lucide-react";
@@ -207,7 +207,7 @@ export function CompanySettingsView({
       setSaveDiffs(diffs);
       setIsSaveConfirmOpen(true);
     } else {
-      void executeSave().catch(() => {});
+      void executeSave().catch(() => { });
     }
   };
 
@@ -323,16 +323,14 @@ export function CompanySettingsView({
               key={tab.key}
               type="button"
               onClick={() => { if (tab.key === "theme") setThemeVisited(true); setActiveTab(tab.key); }}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-150 ${
-                isActive
-                  ? "bg-white dark:bg-[#282a2d] text-primary dark:text-mint shadow-xs border border-slate-200/80 dark:border-neutral-700"
-                  : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white"
-              }`}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-150 ${isActive
+                ? "bg-white dark:bg-[#282a2d] text-primary dark:text-mint shadow-xs border border-slate-200/80 dark:border-neutral-700"
+                : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white"
+                }`}
             >
               <Icon
-                className={`w-3.5 h-3.5 ${
-                  isActive ? "text-accent" : "text-slate-400 dark:text-neutral-500"
-                }`}
+                className={`w-3.5 h-3.5 ${isActive ? "text-accent" : "text-slate-400 dark:text-neutral-500"
+                  }`}
               />
               <span>{tab.label}</span>
             </button>
@@ -419,57 +417,56 @@ export function CompanySettingsView({
       {/* Save Confirmation Modal with Diff Summary */}
       {saveError && !isSaveConfirmOpen && <p role="alert" className="text-sm text-rose-700 dark:text-rose-300">{saveError}</p>}
       <ConfirmDialog isOpen={isSaveConfirmOpen} onClose={() => setIsSaveConfirmOpen(false)} title={t.companySettingsView.diffModalTitle} variant="warning" loading={saving} confirmLabel={t.companySettingsView.confirmChanges} cancelLabel={t.companySettingsView.cancel} errorLabel={saveError || t.companySettingsView.saveFailed} onConfirm={executeSave} description={<div className="space-y-4"><p>{saveDiffs.length} {t.companySettingsView.diffDetected}</p>
-              <p className="text-xs text-slate-600 dark:text-neutral-300">
-                {t.companySettingsView.diffNotice}
-              </p>
+        <p className="text-xs text-slate-600 dark:text-neutral-300">
+          {t.companySettingsView.diffNotice}
+        </p>
 
-              <div className="space-y-2">
-                {saveDiffs.map((diff) => {
-                  const fieldKey = diff.key as keyof typeof t.companySettingsView.fields;
-                  const label = t.companySettingsView.fields[fieldKey] ?? diff.key;
+        <div className="space-y-2">
+          {saveDiffs.map((diff) => {
+            const fieldKey = diff.key as keyof typeof t.companySettingsView.fields;
+            const label = t.companySettingsView.fields[fieldKey] ?? diff.key;
 
-                  return (
-                    <div
-                      key={diff.key}
-                      className={`p-3 rounded-xl border text-xs space-y-1.5 ${
-                        diff.isVat
-                          ? "bg-amber-50/60 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800"
-                          : "bg-slate-50 dark:bg-neutral-800/40 border-slate-200 dark:border-neutral-700"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between font-bold text-[11px] text-slate-700 dark:text-neutral-300">
-                        <span>{label}</span>
-                        {diff.isVat ? (
-                          <span className="px-1.5 py-0.5 rounded text-[9px] bg-amber-200 text-amber-900 ">
-                            {t.companySettingsView.vatActiveBadge}
-                          </span>
-                        ) : null}
-                      </div>
+            return (
+              <div
+                key={diff.key}
+                className={`p-3 rounded-xl border text-xs space-y-1.5 ${diff.isVat
+                  ? "bg-amber-50/60 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800"
+                  : "bg-slate-50 dark:bg-neutral-800/40 border-slate-200 dark:border-neutral-700"
+                  }`}
+              >
+                <div className="flex items-center justify-between font-bold text-[11px] text-slate-700 dark:text-neutral-300">
+                  <span>{label}</span>
+                  {diff.isVat ? (
+                    <span className="px-1.5 py-0.5 rounded text-[9px] bg-amber-200 text-amber-900 ">
+                      {t.companySettingsView.vatActiveBadge}
+                    </span>
+                  ) : null}
+                </div>
 
-                      <div className="grid grid-cols-2 gap-2 text-[11px] items-center">
-                        <div className="p-2 rounded-lg bg-white/70 dark:bg-neutral-900/60 border border-slate-200/80 dark:border-neutral-700/60 text-slate-500 dark:text-neutral-400">
-                          <span className="block text-[9px] uppercase  tracking-wider text-slate-400">
-                            {t.companySettingsView.currentVal}
-                          </span>
-                          <span className="truncate block font-medium mt-0.5">
-                            {diff.oldValue}
-                          </span>
-                        </div>
+                <div className="grid grid-cols-2 gap-2 text-[11px] items-center">
+                  <div className="p-2 rounded-lg bg-white/70 dark:bg-neutral-900/60 border border-slate-200/80 dark:border-neutral-700/60 text-slate-500 dark:text-neutral-400">
+                    <span className="block text-[9px] uppercase  tracking-wider text-slate-400">
+                      {t.companySettingsView.currentVal}
+                    </span>
+                    <span className="truncate block font-medium mt-0.5">
+                      {diff.oldValue}
+                    </span>
+                  </div>
 
-                        <div className="p-2 rounded-lg bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200">
-                          <span className="block text-[9px] uppercase  tracking-wider text-emerald-600 dark:text-emerald-400">
-                            {t.companySettingsView.newVal}
-                          </span>
-                          <span className="truncate block font-bold mt-0.5">
-                            {diff.newValue}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                  <div className="p-2 rounded-lg bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200">
+                    <span className="block text-[9px] uppercase  tracking-wider text-emerald-600 dark:text-emerald-400">
+                      {t.companySettingsView.newVal}
+                    </span>
+                    <span className="truncate block font-bold mt-0.5">
+                      {diff.newValue}
+                    </span>
+                  </div>
+                </div>
               </div>
-                  </div>} />
+            );
+          })}
+        </div>
+      </div>} />
     </div>
   );
 }

@@ -31,7 +31,10 @@ export async function createServiceAction(data: {
   return measureOperation("action:createServiceAction", async () => {
     const user = await requirePermission("invoices", "write");
     validateActionArguments("createServiceAction", { data });
-    data = mirrorBilingual(data, (await getCompanySettings()).content_languages);
+    data = mirrorBilingual(
+      data,
+      (await getCompanySettings()).content_languages,
+    );
     const { service } = await runAtomicMutation(async () => {
       const service = await createService(data);
       await createActivityLog({
@@ -68,7 +71,10 @@ export async function updateServiceAction(
   return measureOperation("action:updateServiceAction", async () => {
     const user = await requirePermission("invoices", "write");
     validateActionArguments("updateServiceAction", { id, data });
-    data = mirrorBilingual(data, (await getCompanySettings()).content_languages);
+    data = mirrorBilingual(
+      data,
+      (await getCompanySettings()).content_languages,
+    );
     const { service } = await runAtomicMutation(async () => {
       const service = await updateService(id, data);
       await createActivityLog({

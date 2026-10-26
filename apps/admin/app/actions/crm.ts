@@ -7,38 +7,53 @@ import type { ClientProfileInput } from "@platform/database";
 import { validateActionArguments } from "../../lib/action-input";
 
 import {
-updateDealStage,
-createCRMDeal,
-updateCRMDeal,
-createCRMContact,
-updateCRMContact,
-deleteCRMContact,
-updateInquiryStatus,createActivityLog,
-lookupCRMContactByEmailOrPhone,
-searchCRMContacts,
-globalAdminSearch,
-hasPermission,
-DealStage,
-InquiryStatus,
-assertDealStage,
-db
+  updateDealStage,
+  createCRMDeal,
+  updateCRMDeal,
+  createCRMContact,
+  updateCRMContact,
+  deleteCRMContact,
+  updateInquiryStatus,
+  createActivityLog,
+  lookupCRMContactByEmailOrPhone,
+  searchCRMContacts,
+  globalAdminSearch,
+  hasPermission,
+  DealStage,
+  InquiryStatus,
+  assertDealStage,
+  db,
 } from "@platform/database";
 import { requireInquiryAccess } from "../../lib/inquiry-access";
 import { REQUEST_PRIORITIES } from "@platform/database/constants/requests";
 import { revalidatePath } from "next/cache";
-import { getCurrentPermissions, requireAuth, requirePermission } from "../../lib/auth";
+import {
+  getCurrentPermissions,
+  requireAuth,
+  requirePermission,
+} from "../../lib/auth";
 import { assertRecordInScope, dataScope } from "../../lib/data-scope";
 
 /** A deal outside the person's data scope cannot be changed, even by someone who knows its id. */
 async function requireDealInScope(id: string) {
-  const deal = await db.crmDeal.findUnique({ where: { id }, select: { assignedTo: true } });
+  const deal = await db.crmDeal.findUnique({
+    where: { id },
+    select: { assignedTo: true },
+  });
   if (deal) await assertRecordInScope("deals", deal.assignedTo);
 }
-import { employeeIdForUser, isFeatureEnabled, requireFeatureEnabled, searchRecords, type RecordSearchCategory } from "@platform/database";
+import {
+  employeeIdForUser,
+  isFeatureEnabled,
+  requireFeatureEnabled,
+  searchRecords,
+  type RecordSearchCategory,
+} from "@platform/database";
 
 export async function updateDealStageAction(id: string, stage: DealStage) {
   return measureOperation("action:updateDealStageAction", async () => {
-    await requireFeatureEnabled("crm_deals"); const user = await requirePermission("deals", "write");
+    await requireFeatureEnabled("crm_deals");
+    const user = await requirePermission("deals", "write");
     validateActionArguments("updateDealStageAction", { id, stage });
     await requireDealInScope(id);
     await assertDealStage(stage);
@@ -74,7 +89,8 @@ export async function createCRMDealAction(data: {
   notes?: string;
 }) {
   return measureOperation("action:createCRMDealAction", async () => {
-    await requireFeatureEnabled("crm_deals"); const user = await requirePermission("deals", "write");
+    await requireFeatureEnabled("crm_deals");
+    const user = await requirePermission("deals", "write");
     validateActionArguments("createCRMDealAction", { data });
     if (data.stage) await assertDealStage(data.stage);
     if (data.contact_id) await requirePermission("contacts", "read");
@@ -113,7 +129,8 @@ export async function updateDealAction(
   }>,
 ) {
   return measureOperation("action:updateDealAction", async () => {
-    await requireFeatureEnabled("crm_deals"); const user = await requirePermission("deals", "write");
+    await requireFeatureEnabled("crm_deals");
+    const user = await requirePermission("deals", "write");
     validateActionArguments("updateDealAction", { id, data });
     await requireDealInScope(id);
     if (data.assigned_to) await assertRecordInScope("deals", data.assigned_to);
@@ -142,7 +159,8 @@ export async function updateDealAction(
 
 export async function createContactAction(data: ClientProfileInput) {
   return measureOperation("action:createContactAction", async () => {
-    await requireFeatureEnabled("crm_deals"); const user = await requirePermission("contacts", "write");
+    await requireFeatureEnabled("crm_deals");
+    const user = await requirePermission("contacts", "write");
     validateActionArguments("createContactAction", { data });
     const { contact } = await runAtomicMutation(async () => {
       const contact = await createCRMContact(data);
@@ -151,7 +169,11 @@ export async function createContactAction(data: ClientProfileInput) {
         action: "create",
         entity_type: "contact",
         entity_id: contact.id,
-        details: { name: contact.company || contact.full_name, kind: contact.client_kind, email: contact.email },
+        details: {
+          name: contact.company || contact.full_name,
+          kind: contact.client_kind,
+          email: contact.email,
+        },
       });
       return { contact };
     });
@@ -166,7 +188,8 @@ export async function updateContactAction(
   data: ClientProfileInput,
 ) {
   return measureOperation("action:updateContactAction", async () => {
-    await requireFeatureEnabled("crm_deals"); const user = await requirePermission("contacts", "write");
+    await requireFeatureEnabled("crm_deals");
+    const user = await requirePermission("contacts", "write");
     validateActionArguments("updateContactAction", { id, data });
     const { contact } = await runAtomicMutation(async () => {
       const contact = await updateCRMContact(id, data);
@@ -189,7 +212,8 @@ export async function updateContactAction(
 
 export async function deleteContactAction(id: string) {
   return measureOperation("action:deleteContactAction", async () => {
-    await requireFeatureEnabled("crm_deals"); const user = await requirePermission("contacts", "delete");
+    await requireFeatureEnabled("crm_deals");
+    const user = await requirePermission("contacts", "delete");
     validateActionArguments("deleteContactAction", { id });
     await runAtomicMutation(async () => {
       if (!(await deleteCRMContact(id)))
@@ -210,7 +234,8 @@ export async function deleteContactAction(id: string) {
 
 export async function lookupClientAction(term: string) {
   return measureOperation("action:lookupClientAction", async () => {
-    await requireFeatureEnabled("crm_deals"); await requirePermission("contacts", "read");
+    await requireFeatureEnabled("crm_deals");
+    await requirePermission("contacts", "read");
     validateActionArguments("lookupClientAction", { term });
     const contact = await lookupCRMContactByEmailOrPhone(term);
     return { success: !!contact, contact };
@@ -219,7 +244,8 @@ export async function lookupClientAction(term: string) {
 
 export async function searchContactsAction(query: string) {
   return measureOperation("action:searchContactsAction", async () => {
-    await requireFeatureEnabled("crm_deals"); await requirePermission("contacts", "read");
+    await requireFeatureEnabled("crm_deals");
+    await requirePermission("contacts", "read");
     validateActionArguments("searchContactsAction", { query });
     const contacts = await searchCRMContacts(query, 12);
     return { success: true, contacts };
@@ -249,7 +275,12 @@ export async function globalSearchAction(query: string) {
     }
     // Everyone can find colleagues (the directory is open to all staff); deals follow the data scope.
     allowed.add("people");
-    const results = await globalAdminSearch(query, 8, allowed, allowed.has("deals") ? await dataScope("deals") : null);
+    const results = await globalAdminSearch(
+      query,
+      8,
+      allowed,
+      allowed.has("deals") ? await dataScope("deals") : null,
+    );
     // Commerce, work and department records: each needs its module on and read access; tasks and shipments
     // follow the same visibility as their own pages.
     const grants = await getCurrentPermissions();
@@ -263,16 +294,30 @@ export async function globalSearchAction(query: string) {
       ["legal", "legal:read", "legal"],
       ["campaigns", "marketing:read", "marketing"],
     ];
-    for (const [category, grant, module] of recordSources) if (grants[grant] === true && (await isFeatureEnabled(module))) records.add(category);
+    for (const [category, grant, module] of recordSources)
+      if (grants[grant] === true && (await isFeatureEnabled(module)))
+        records.add(category);
     const more = records.size
       ? await searchRecords(query, 5, records, {
-          tasks: records.has("tasks") ? { userId: user.id, departmentId: user.department_id ?? null, all: grants["tasks:assign"] === true } : null,
-          driverId: records.has("shipments") && grants["deliveries:assign"] !== true ? ((await employeeIdForUser(user.id)) ?? "-") : null,
+          tasks: records.has("tasks")
+            ? {
+                userId: user.id,
+                departmentId: user.department_id ?? null,
+                all: grants["tasks:assign"] === true,
+              }
+            : null,
+          driverId:
+            records.has("shipments") && grants["deliveries:assign"] !== true
+              ? ((await employeeIdForUser(user.id)) ?? "-")
+              : null,
         })
       : [];
     return {
       success: true,
-      results: [...results.filter((result) => allowed.has(result.category)), ...more],
+      results: [
+        ...results.filter((result) => allowed.has(result.category)),
+        ...more,
+      ],
     };
   });
 }
@@ -282,7 +327,8 @@ export async function updateInquiryStatusAction(
   status: InquiryStatus,
 ) {
   return measureOperation("action:updateInquiryStatusAction", async () => {
-    await requireFeatureEnabled("crm_deals"); const user = await requireInquiryAccess(id, "write");
+    await requireFeatureEnabled("crm_deals");
+    const user = await requireInquiryAccess(id, "write");
     validateActionArguments("updateInquiryStatusAction", { id, status });
     if (
       ![
@@ -324,7 +370,8 @@ export async function updateInquiryStatusAction(
 
 export async function convertInquiryToClientAction(inquiryId: string) {
   return measureOperation("action:convertInquiryToClientAction", async () => {
-    await requireFeatureEnabled("crm_deals"); const user = await requireInquiryAccess(inquiryId, "write");
+    await requireFeatureEnabled("crm_deals");
+    const user = await requireInquiryAccess(inquiryId, "write");
     validateActionArguments("convertInquiryToClientAction", { inquiryId });
     await requirePermission("contacts", "write");
     await requirePermission("deals", "write");
@@ -483,16 +530,31 @@ export async function convertInquiryToClientAction(inquiryId: string) {
 
 export async function manageInquiryAction(
   id: string,
-  data: { priority?: string; claim?: boolean; note?: string; slaDueDate?: string | null },
+  data: {
+    priority?: string;
+    claim?: boolean;
+    note?: string;
+    slaDueDate?: string | null;
+  },
 ) {
   return measureOperation("action:manageInquiryAction", async () => {
-    await requireFeatureEnabled("crm_deals"); const user = await requireInquiryAccess(id, "write");
+    await requireFeatureEnabled("crm_deals");
+    const user = await requireInquiryAccess(id, "write");
     validateActionArguments("manageInquiryAction", { id, data });
     const { db } = await import("@platform/database");
-    if (data.priority && !(REQUEST_PRIORITIES as readonly string[]).includes(data.priority))
+    if (
+      data.priority &&
+      !(REQUEST_PRIORITIES as readonly string[]).includes(data.priority)
+    )
       throw new Error(serverMessages.invalidPriority);
-    const slaDueDate = data.slaDueDate === undefined ? undefined : data.slaDueDate === null || data.slaDueDate === "" ? null : new Date(data.slaDueDate);
-    if (slaDueDate && Number.isNaN(slaDueDate.getTime())) throw new Error(serverMessages.invalidSlaDate);
+    const slaDueDate =
+      data.slaDueDate === undefined
+        ? undefined
+        : data.slaDueDate === null || data.slaDueDate === ""
+          ? null
+          : new Date(data.slaDueDate);
+    if (slaDueDate && Number.isNaN(slaDueDate.getTime()))
+      throw new Error(serverMessages.invalidSlaDate);
     if (
       data.note !== undefined &&
       (typeof data.note !== "string" ||
@@ -542,7 +604,8 @@ export async function linkInquiryCustomerAction(
   customerId: string,
 ) {
   return measureOperation("action:linkInquiryCustomerAction", async () => {
-    await requireFeatureEnabled("crm_deals"); const user = await requireInquiryAccess(inquiryId, "write");
+    await requireFeatureEnabled("crm_deals");
+    const user = await requireInquiryAccess(inquiryId, "write");
     validateActionArguments("linkInquiryCustomerAction", {
       inquiryId,
       customerId,
