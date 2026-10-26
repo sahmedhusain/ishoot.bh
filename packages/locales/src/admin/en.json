@@ -5898,7 +5898,9 @@
       "broadcastNoRecipients": "Nobody in that segment has agreed to receive marketing e-mail.",
       "mediaContactInvalid": "A media contact needs a name and an outlet.",
       "coverageInvalid": "Coverage needs a headline, an outlet, a date and a sentiment; the link must be a web address.",
-      "legalMatterInvalid": "A matter needs a title, a type and a status; the amount cannot be negative."
+      "legalMatterInvalid": "A matter needs a title, a type and a status; the amount cannot be negative.",
+      "reportNotFound": "That report is not there or not yours to run.",
+      "reportScheduleInvalid": "A schedule needs a frequency, a format and 1 to 20 valid e-mail addresses."
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",
@@ -10531,6 +10533,199 @@
         "title": "Coming up: {title}",
         "message": "{number} \"{title}\" has a hearing or deadline on {date}."
       }
+    }
+  },
+  "reports": {
+    "nav": "Reports",
+    "title": "Reports",
+    "subtitle": "Sales, stock, purchasing, delivery, money, marketing and people, for any period, to compare, export or receive by e-mail.",
+    "none": "There are no reports for your role yet.",
+    "open": "Open",
+    "areas": {
+      "sales": "Sales",
+      "stock": "Stock",
+      "procurement": "Purchasing",
+      "delivery": "Delivery",
+      "finance": "Receivables and payables",
+      "marketing": "Marketing",
+      "people": "People"
+    },
+    "catalog": {
+      "sales_by_product": {
+        "title": "Sales by product",
+        "description": "Quantity, revenue, cost of goods and margin per product."
+      },
+      "sales_by_category": {
+        "title": "Sales by category",
+        "description": "Revenue and margin per product category."
+      },
+      "sales_by_channel": {
+        "title": "Sales by channel",
+        "description": "Orders and revenue from the website, phone, WhatsApp and the counter."
+      },
+      "sales_by_customer": {
+        "title": "Sales by customer",
+        "description": "Who bought, how often and how much."
+      },
+      "sales_by_salesperson": {
+        "title": "Sales by salesperson",
+        "description": "Orders taken by each member of staff (website orders apart)."
+      },
+      "order_funnel": {
+        "title": "Order funnel",
+        "description": "How many orders were paid, shipped, delivered, cancelled or returned."
+      },
+      "stock_on_hand": {
+        "title": "Stock on hand and value",
+        "description": "On hand, held for orders, available and valued at average cost, now."
+      },
+      "stock_movers": {
+        "title": "Fast and slow movers",
+        "description": "What sold in the period against what is left: days of stock at that pace."
+      },
+      "count_variance": {
+        "title": "Stock-count differences",
+        "description": "Lines where approved counts differed from the books, with their value."
+      },
+      "spend_by_supplier": {
+        "title": "Spend by supplier",
+        "description": "Approved supplier bills, paid and still owed."
+      },
+      "open_purchase_orders": {
+        "title": "Open purchase orders",
+        "description": "Orders not yet fully received, with what is still to come."
+      },
+      "purchase_price_changes": {
+        "title": "Purchase price changes",
+        "description": "Products whose latest purchase price differs from the one before."
+      },
+      "delivery_performance": {
+        "title": "Delivery performance",
+        "description": "Delivered on time, failed attempts, cost per delivery and cash still with drivers, by zone or agency."
+      },
+      "receivables_aging": {
+        "title": "Receivables aging",
+        "description": "What customers owe, by days past due, now."
+      },
+      "payables_aging": {
+        "title": "Payables aging",
+        "description": "What is owed to suppliers, by days past due, now."
+      },
+      "marketing_roi": {
+        "title": "Marketing return",
+        "description": "Spend against the orders and revenue each campaign brought."
+      },
+      "headcount_by_department": {
+        "title": "Headcount by department",
+        "description": "People now, and who joined or left in the period."
+      }
+    },
+    "columns": {
+      "name": "Name",
+      "sku": "Code",
+      "quantity": "Quantity",
+      "revenue": "Revenue",
+      "cost": "Cost",
+      "margin": "Margin",
+      "margin_rate": "Margin %",
+      "orders": "Orders",
+      "average": "Average order",
+      "email": "E-mail",
+      "last_order": "Last order",
+      "share": "Share",
+      "on_hand": "On hand",
+      "reserved": "Held",
+      "available": "Available",
+      "average_cost": "Average cost",
+      "value": "Value",
+      "sold": "Sold",
+      "days_of_cover": "Days of stock",
+      "count": "Count",
+      "expected": "Expected",
+      "counted": "Counted",
+      "variance": "Difference",
+      "variance_value": "Value of difference",
+      "bills": "Bills",
+      "spend": "Spend",
+      "paid": "Paid",
+      "owed": "Owed",
+      "supplier": "Supplier",
+      "status": "Status",
+      "total": "Total",
+      "open_value": "Still to receive",
+      "previous_price": "Previous price",
+      "latest_price": "Latest price",
+      "change": "Change",
+      "shipments": "Shipments",
+      "delivered": "Delivered",
+      "on_time": "On time",
+      "failed_attempts": "Failed attempts",
+      "cost_per_delivery": "Cost per delivery",
+      "cod_outstanding": "Cash with drivers",
+      "current": "Not yet due",
+      "d1_30": "1–30 days",
+      "d31_60": "31–60 days",
+      "d61_90": "61–90 days",
+      "d90_plus": "Over 90 days",
+      "channel": "Channel",
+      "return_on_spend": "Return ×",
+      "headcount": "Headcount",
+      "joined": "Joined",
+      "left": "Left",
+      "expected_date": "Expected"
+    },
+    "labels": {
+      "website": "Website",
+      "ownFleet": "Own drivers",
+      "noDepartment": "No department",
+      "uncategorised": "No category"
+    },
+    "view": {
+      "back": "All reports",
+      "from": "From",
+      "to": "To",
+      "presets": {
+        "thisMonth": "This month",
+        "lastMonth": "Last month",
+        "last30": "Last 30 days",
+        "thisYear": "This year"
+      },
+      "compare": "Compare with the period before",
+      "previous": "Previous period {from} – {to}",
+      "change": "Change",
+      "total": "Total",
+      "empty": "Nothing in this period.",
+      "snapshot": "As of now",
+      "run": "Show",
+      "export": "Export",
+      "formats": {
+        "csv": "CSV",
+        "xlsx": "Excel",
+        "pdf": "PDF"
+      },
+      "period": "{from} – {to}"
+    },
+    "schedules": {
+      "title": "E-mail this report",
+      "hint": "Sent after each day, week or month with the period that just ended, as you would see it.",
+      "frequency": "Every",
+      "frequencies": {
+        "daily": "Day",
+        "weekly": "Week",
+        "monthly": "Month"
+      },
+      "format": "As",
+      "recipients": "To (e-mail addresses, separated by commas)",
+      "language": "Language",
+      "compare": "Include the period before",
+      "add": "Add schedule",
+      "remove": "Stop",
+      "next": "Next: {time}",
+      "lastSent": "Last sent {time}",
+      "none": "Not scheduled.",
+      "saved": "Saved.",
+      "emailSubject": "{report}: {period}",
+      "emailBody": "The {report} report for {period} is attached."
     }
   }
 }

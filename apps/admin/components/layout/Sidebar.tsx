@@ -15,6 +15,7 @@ import {
   Package,
   FolderTree,
   ShoppingBag,
+  FileBarChart,
   Scale,
   Users2,
   Timer,
@@ -525,12 +526,11 @@ export function Sidebar() {
       {
         id: "workspace",
         title: t.navigationGroups.workspace,
-        items: take([
-          ROUTES.home,
-          ROUTES.approvals(),
-          ROUTES.calendar,
-          ROUTES.team,
-        ]),
+        items: [
+          ...take([ROUTES.home, ROUTES.approvals(), ROUTES.calendar, ROUTES.team]),
+          // Everyone sees Reports; the page lists only the reports their role may run.
+          { href: ROUTES.reports.list, label: t.reports.nav, icon: FileBarChart },
+        ],
       },
       {
         id: "sales",
@@ -539,6 +539,7 @@ export function Sidebar() {
           ROUTES.crm.deals,
           ROUTES.crm.contacts,
           ROUTES.requests.list,
+          ROUTES.requests.settings,
           ROUTES.quotations.list,
           ROUTES.services,
         ]),

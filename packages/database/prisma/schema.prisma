@@ -4080,3 +4080,26 @@ model LegalMatterEvent {
 
   @@index([matterId, at])
 }
+
+/// A report e-mailed on a schedule, as its owner would see it.
+model ReportSchedule {
+  id         String    @id @default(uuid())
+  reportKey  String
+  /// daily | weekly | monthly
+  frequency  String
+  /// csv | xlsx | pdf
+  format     String    @default("xlsx")
+  recipients String[]
+  /// en | ar
+  locale     String    @default("ar")
+  compare    Boolean   @default(false)
+  ownerId    String
+  isActive   Boolean   @default(true)
+  nextRunAt  DateTime
+  lastSentAt DateTime?
+  lastError  String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([isActive, nextRunAt])
+}

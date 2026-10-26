@@ -716,3 +716,27 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
   agreed, the scheduled job processes it and the unsubscribe link works while a forged one is refused; a press
   release, coverage with its summary and the website press page; a legal matter with a note, one reminder per
   date and closing with an outcome); navigation crawl and website pages.
+
+### Phase 9: reporting (done)
+
+- One report catalogue (`constants/reports.ts`): 17 reports, each guarded by the permission of the data it shows
+  and its module. Sales by product (with cost of goods from the stock ledger and margin), category, channel,
+  customer and salesperson, and the order funnel; stock on hand and value, fast and slow movers (days of stock),
+  stock-count differences; spend by supplier, open purchase orders, purchase price changes; delivery performance
+  (on time, failed attempts, cost per delivery, cash still with drivers) by zone or agency; receivables and
+  payables aging; marketing return; headcount by department with joiners and leavers.
+- Reports page (Workspace → Reports, visible to everyone; it lists only the reports the role may run) and a report
+  page with date range and presets, comparison with the period before (total and per-row change), a bar chart of
+  the report's measure, the table with totals, and exports as **CSV**, **Excel** (a dependency-free `.xlsx`
+  writer) and **PDF** (in the company letterhead, landscape when wide) through `/api/reports/<key>`.
+- Scheduled e-mail delivery (migration `20261027070000_report_schedules`): daily, weekly or monthly, as CSV,
+  Excel or PDF, to up to 20 addresses; the scheduled job sends the period that just ended, with what the owner
+  may see at that moment (a schedule whose owner lost access stops sending and notes why).
+- The 8b "Service settings" link was in the sidebar's source list but not taken into its group; it shows now.
+- Removed iCloud sync-conflict copies ("… 2" files: older copies of the schema, two constants files and a stale
+  Phase 4b migration draft) that had appeared in the working tree; none had been committed.
+- Tested: unit (previous period, change, schedule periods and next runs, every report's permission, copy and
+  columns in both languages, the Excel archive); e2e (catalogue, sales by product with comparison and chart, CSV /
+  Excel / PDF exports, a schedule run by the scheduled job, and a driver seeing only the delivery report and being
+  refused another report's export).
+- Stopped here at the user's request: Phases 10 (dashboard v2) and 11 (motion polish) are not started.

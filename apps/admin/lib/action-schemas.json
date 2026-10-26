@@ -10165,6 +10165,54 @@
       }
     }
   },
+  "saveReportScheduleAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "reportKey": {
+            "kind": "string",
+            "optional": false
+          },
+          "frequency": {
+            "kind": "string",
+            "optional": false
+          },
+          "format": {
+            "kind": "string",
+            "optional": false
+          },
+          "recipients": {
+            "kind": "string",
+            "optional": false
+          },
+          "locale": {
+            "kind": "string",
+            "optional": false
+          },
+          "compare": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "stopReportScheduleAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "reportKey": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
   "assignRequestAction": {
     "kind": "object",
     "fields": {

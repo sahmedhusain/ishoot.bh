@@ -99,6 +99,11 @@ export const ROUTES = {
     detail: (id: string) => `/dashboard/orders/${encodeURIComponent(id)}`,
     settings: "/dashboard/orders/settings",
   },
+  reports: {
+    list: "/dashboard/reports",
+    report: (key: string) => `/dashboard/reports/${encodeURIComponent(key)}`,
+    export: (key: string) => `/api/reports/${encodeURIComponent(key)}`,
+  },
   marketing: {
     campaigns: "/dashboard/marketing",
     audience: "/dashboard/marketing/audience",
