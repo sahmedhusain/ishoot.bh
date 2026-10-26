@@ -113,3 +113,47 @@ describe("payment gateways", () => {
     vi.unstubAllEnvs();
   });
 });
+
+describe("current provider request contracts", () => {
+  test("Checkout.com uses the account API prefix and rejects host injection", async () => {
+    const credentials = { environment: "test", apiPrefix: "account123", secretKey: "sk_test_key", processingChannelId: "pc_1", billingCountry: "BH", webhookSecret: "secret" };
+    const calls = stubFetch({});
+    await checkoutCom.check(credentials);
+    expect(calls[0].url).toBe("https://account123.api.sandbox.checkout.com/payments?reference=connection-check");
+    await expect(checkoutCom.check({ ...credentials, apiPrefix: "attacker.example/" })).rejects.toThrow(/prefix/);
+    expect(calls).toHaveLength(1);
+  });
+  test("Moyasar does not send invoice notifications to a browser-return handler", async () => {
+    const calls = stubFetch({ id: "invoice", url: "https://checkout.example.test/invoice" });
+    await moyasar.start({ secretKey: "sk_test_key" }, { attemptId: "attempt", orderNumber: "order", amount: 10, currency: "SAR", customer: { name: "Customer", email: "buyer@example.test", phone: "" }, locale: "en", returnUrl: "https://shop.example.test/return", cancelUrl: "https://shop.example.test/cancel", webhookUrl: "https://shop.example.test/webhook" });
+    const body = JSON.parse(String(calls[0].init.body));
+    expect(body.success_url).toBe("https://shop.example.test/return");
+    expect(body).not.toHaveProperty("callback_url");
+  });
+  test("HyperPay propagates unavailable or malformed state rather than fabricating pending", async () => {
+    stubFetch({ result: { description: "Temporarily unavailable" } }, 503);
+    await expect(hyperpay.status({ entityId: "entity", accessToken: "token" }, "checkout", {})).rejects.toThrow("Temporarily unavailable");
+    stubFetch({});
+    await expect(hyperpay.status({ entityId: "entity", accessToken: "token" }, "checkout", {})).rejects.toThrow("Invalid provider response");
+  });
+  test.each([["KWT", "secure-kuwait.paytabs.com"], ["MAR", "secure-morocco.paytabs.com"], ["QAT", "secure-doha.paytabs.com"]])("PayTabs supports documented %s regional host", async (region, host) => {
+    const calls = stubFetch({ tran_ref: "transaction" });
+    await paytabs.check({ region, profileId: "1", serverKey: "test_key" });
+    expect(new URL(calls[0].url).hostname).toBe(host);
+  });
+  test("DHL API keys are masked in integration settings", () => {
+    expect(INTEGRATION_PROVIDERS.find(provider => provider.id === "dhl_express")?.fields.find(field => field.key === "apiKey")?.secret).toBe(true);
+  });
+});
+
+
+test("HyperPay rejects precision loss before creating a checkout or refund", async () => {
+  const calls = stubFetch({ id: "checkout" });
+  const credentials = { entityId: "entity", accessToken: "token", brands: "VISA" };
+  const input = { attemptId: "attempt", orderNumber: "order", amount: 12.345, currency: "BHD", customer: { name: "Customer", email: "buyer@example.test", phone: "" }, locale: "en" as const, returnUrl: "https://shop.example.test/return", cancelUrl: "https://shop.example.test/cancel", webhookUrl: "https://shop.example.test/webhook" };
+  await expect(hyperpay.start(credentials, input)).rejects.toThrow(/two decimal places/);
+  await expect(hyperpay.refund(credentials, { paymentId: "payment", amount: 12.345, currency: "BHD", reason: "Return", attemptId: "attempt" })).rejects.toThrow(/two decimal places/);
+  expect(calls).toHaveLength(0);
+  await hyperpay.start(credentials, { ...input, amount: 12.34 });
+  expect(new URLSearchParams(String(calls[0].init.body)).get("amount")).toBe("12.34");
+});

@@ -1409,3 +1409,19 @@ The eight-combination route sweep reached narrow-role denials and found nested `
 ### G8a execution evidence
 
 - Shared ForbiddenView now renders a section inside dashboard pages; the standalone root boundary retains a single main landmark. This fixes the repeated narrow-role audit collector failures without changing permissions. The new driver denial e2e passed: one main, visible access-denied heading, no user table. Focused lint passed.
+
+### G6c added scope before implementation: current payment contracts (P1/P2)
+
+Official-doc comparison found that Moyasar invoice `callback_url` is a server notification, but the adapter sets it to the browser return URL. The platform already has a separately configured verified payment-webhook path, so remove the incorrect optional invoice callback. HyperPay payment-state reads currently turn every provider/network error into a synthetic pending result; propagate unknown failures instead. Checkout.com documents account-prefixed API hosts for current accounts: add an optional validated prefix while retaining the existing legacy host. PayTabs documents Kuwait, Morocco and Qatar hosts absent from the regional catalogue. DHL's API key is currently marked non-secret in the settings catalogue and reaches the browser in full; mask it like other API keys.
+
+Unresolved courier contract risk: MyDHL booking supplies fixed package dimensions because the shipment input has no dimensions. Real shipping acceptance needs actual package dimensions and a corresponding input/form audit before live use. HyperPay currency precision also needs an account/API contract check before live multi-currency acceptance. These are open implementation items, not credential-only completion claims.
+
+Additional caller review found that payment expiry converts status-read errors to pending, then expires them after a second timeout. A provider outage could therefore cancel an order whose remote payment state was never verified. Keep such attempts open until a provider result is available. Also remove raw provider error bodies from payment/courier logs and persisted payment-start failures; connection tests retain safely redacted provider errors for operators.
+
+HyperPay precision decision: [current COPYandPAY parameter reference](https://hyperpay.docs.oppwa.com/reference/parameters) specifies `N10.N2` for `amount`. Preserve that contract and reject, before any request, charges/refunds whose third decimal would be rounded away. Do not silently change 12.345 BHD into 12.35 BHD. A two-decimal amount such as 12.340 BHD remains representable. Real merchant/currency approval is still required.
+
+### G6c execution: current payment contracts and safe reconciliation
+
+Implemented the contract changes above, masked DHL keys, rejected HyperPay precision loss for both checkout/refund, kept unknown remote payment attempts open on status outages or disconnected credentials, and removed raw provider errors from payment/courier operation logs and persisted start failures. Existing provider connection health still supplies redacted operator diagnostics. Unknown attempts may hold an order/reservation until reconnection or manual reconciliation; this deliberately preserves funds/stock consistency during an outage.
+
+Verification: all 8 workspace type checks, lint, locale/copy checks and 166 unit/static cases passed. Added current-host/notification/precision tests and three expiry regressions proving outages/disconnection cannot cancel old unverified payments, while verified failed payments can still release unpaid orders. No real payment or shipment was created; merchant sandbox, refunds, wallet enablement and actual carrier contracts still need account-backed acceptance.

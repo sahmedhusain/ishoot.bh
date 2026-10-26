@@ -374,7 +374,11 @@ function paypalOrder(order: Record<string, unknown>): GatewayPayment {
 
 // ---------- Checkout.com: Hosted Payments Page ----------
 
-const ckoBase = (c: Credentials) => base("checkout_com", live(c) ? "https://api.checkout.com" : "https://api.sandbox.checkout.com");
+const ckoBase = (c: Credentials) => {
+  const prefix = c.apiPrefix?.trim() ?? "";
+  if (prefix && !/^[a-z0-9]+$/.test(prefix)) throw new GatewayError(serverMessages.paymentApiPrefixInvalid);
+  return base("checkout_com", `https://${prefix ? `${prefix}.` : ""}api${live(c) ? "" : ".sandbox"}.checkout.com`);
+};
 
 export const checkoutCom: PaymentGateway = {
   id: "checkout_com",
@@ -459,6 +463,9 @@ const PAYTABS_REGIONS: Record<string, string> = {
   JOR: "https://secure-jordan.paytabs.com",
   EGY: "https://secure-egypt.paytabs.com",
   IRQ: "https://secure-iraq.paytabs.com",
+  KWT: "https://secure-kuwait.paytabs.com",
+  MAR: "https://secure-morocco.paytabs.com",
+  QAT: "https://secure-doha.paytabs.com",
   GLOBAL: "https://secure-global.paytabs.com",
 };
 const paytabsBase = (c: Credentials) => base("paytabs", PAYTABS_REGIONS[(c.region ?? "").trim().toUpperCase()] ?? PAYTABS_REGIONS.GLOBAL);
@@ -536,7 +543,7 @@ export const moyasar: PaymentGateway = {
     need(c, "secretKey");
     const invoice = await call<{ id: string; url?: string }>(
       `${base("moyasar", "https://api.moyasar.com")}/v1/invoices`,
-      json(moyasarAuth(c), { amount: toMinorUnits(input.amount, input.currency), currency: input.currency.toUpperCase(), description: input.orderNumber, callback_url: input.returnUrl, success_url: input.returnUrl, back_url: input.cancelUrl, metadata: { attempt: input.attemptId } }),
+      json(moyasarAuth(c), { amount: toMinorUnits(input.amount, input.currency), currency: input.currency.toUpperCase(), description: input.orderNumber, success_url: input.returnUrl, back_url: input.cancelUrl, metadata: { attempt: input.attemptId } }),
     );
     if (!invoice.url) throw new GatewayError("Moyasar did not return a payment page");
     return { sessionId: invoice.id, redirectUrl: invoice.url };
@@ -576,6 +583,13 @@ const HYPERPAY_PAID = /^(000\.000\.|000\.100\.1|000\.[36])/;
 const HYPERPAY_PENDING = /^(000\.200|800\.400\.5|100\.400\.500)/;
 const hyperpayResult = (code: string): GatewayPaymentState => (HYPERPAY_PAID.test(code) ? "paid" : HYPERPAY_PENDING.test(code) ? "pending" : "failed");
 
+// COPYandPAY accepts two decimal places; reject amounts it cannot represent without rounding.
+const hyperpayAmount = (amount: number) => {
+  const value = amount.toFixed(2);
+  if (amount <= 0 || !/^[0-9]{1,10}\.[0-9]{2}$/.test(value) || Number(value) !== amount) throw new GatewayError(serverMessages.paymentAmountPrecisionInvalid);
+  return value;
+};
+
 export const hyperpay: PaymentGateway = {
   id: "hyperpay",
   testMode: (c) => !live(c),
@@ -588,7 +602,7 @@ export const hyperpay: PaymentGateway = {
         { Authorization: `Bearer ${c.accessToken}` },
         {
           entityId: c.entityId,
-          amount: Number(input.amount).toFixed(2),
+          amount: hyperpayAmount(input.amount),
           currency: input.currency.toUpperCase(),
           paymentType: "DB",
           merchantTransactionId: input.attemptId,
@@ -604,12 +618,9 @@ export const hyperpay: PaymentGateway = {
   },
   async status(c, sessionId) {
     type HyperPayment = { id?: string; amount?: string; currency?: string; result?: { code?: string } };
-    const payment = await call<HyperPayment>(`${hyperpayBase(c)}/v1/checkouts/${encodeURIComponent(sessionId)}/payment?entityId=${encodeURIComponent(c.entityId)}`, { headers: { Authorization: `Bearer ${c.accessToken}` } }).catch((error) => {
-      // A checkout the customer has not paid yet answers with an error code; it is still pending.
-      if (error instanceof GatewayError) return { result: { code: "000.200.000" } } as HyperPayment;
-      throw error;
-    });
-    return { state: hyperpayResult(payment.result?.code ?? ""), paymentId: payment.id, amount: Number(payment.amount) || undefined, currency: payment.currency };
+    const payment = await call<HyperPayment>(`${hyperpayBase(c)}/v1/checkouts/${encodeURIComponent(sessionId)}/payment?entityId=${encodeURIComponent(c.entityId)}`, { headers: { Authorization: `Bearer ${c.accessToken}` } });
+    if (!payment?.result?.code) throw new GatewayError(serverMessages.providerInvalidResponse);
+    return { state: hyperpayResult(payment.result.code), paymentId: payment.id, amount: Number(payment.amount) || undefined, currency: payment.currency };
   },
   async webhook(c, request) {
     need(c, "webhookKey");
@@ -631,7 +642,7 @@ export const hyperpay: PaymentGateway = {
     return { state: hyperpayResult(code), paymentId: str(payload.id), amount: Number(payload.amount) || undefined, currency: str(payload.currency) || undefined, eventId: `${str(payload.id)}:${code}`, sessionId: str(payload.ndc) || undefined, attemptId: str(payload.merchantTransactionId) || str(obj(payload.customParameters).attempt) || undefined };
   },
   async refund(c, input) {
-    const refund = await call<{ id: string; result?: { code?: string; description?: string } }>(`${hyperpayBase(c)}/v1/payments/${encodeURIComponent(input.paymentId)}`, form({ Authorization: `Bearer ${c.accessToken}` }, { entityId: c.entityId, amount: Number(input.amount).toFixed(2), currency: input.currency.toUpperCase(), paymentType: "RF" }));
+    const refund = await call<{ id: string; result?: { code?: string; description?: string } }>(`${hyperpayBase(c)}/v1/payments/${encodeURIComponent(input.paymentId)}`, form({ Authorization: `Bearer ${c.accessToken}` }, { entityId: c.entityId, amount: hyperpayAmount(input.amount), currency: input.currency.toUpperCase(), paymentType: "RF" }));
     if (hyperpayResult(refund.result?.code ?? "") !== "paid") throw new GatewayError(refund.result?.description ?? "HyperPay refused the refund");
     return { refundId: refund.id };
   },

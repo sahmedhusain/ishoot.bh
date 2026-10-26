@@ -53,9 +53,9 @@ export async function startOrderPayment(orderId: string, site: { url: string; lo
     await db.paymentAttempt.update({ where: { id: attempt.id }, data: { sessionId: started.sessionId, status: "pending" } });
     return { ...started, attemptId: attempt.id, testMode: active.testMode };
   } catch (error) {
-    const reason = error instanceof Error ? error.message.slice(0, 300) : "error";
+    const reason = serverMessages.paymentGatewayUnavailable;
     await db.paymentAttempt.update({ where: { id: attempt.id }, data: { status: "failed", failureReason: reason } });
-    console.error(`Payment gateway ${active.id} refused to start a payment: ${reason}`);
+    console.error(`Payment gateway ${active.id} refused to start a payment`);
     throw new Error(serverMessages.paymentGatewayUnavailable);
   }
 }
@@ -118,7 +118,7 @@ export async function confirmReturn(attemptId: string, params: Record<string, st
     if (payment.state === "pending" && params.cancelled === "1") return settleAttempt(attemptId, { state: "failed" });
     return settleAttempt(attemptId, payment);
   } catch (error) {
-    console.error(`Payment gateway ${attempt.gateway} status check failed: ${error instanceof Error ? error.message : "error"}`);
+    console.error(`Payment gateway ${attempt.gateway} status check failed`);
     return { state: "pending" as const, order: attempt.order };
   }
 }
@@ -168,7 +168,7 @@ export async function refundOrder(orderId: string, amountInput: number, reason: 
     try {
       await active.gateway.refund(active.credentials, { paymentId: attempt.gatewayPaymentId!, amount: part, currency: attempt.currency, reason, attemptId: attempt.id });
     } catch (error) {
-      console.error(`Payment gateway ${attempt.gateway} refused a refund: ${error instanceof Error ? error.message : "error"}`);
+      console.error(`Payment gateway ${attempt.gateway} refused a refund`);
       throw new Error(serverMessages.paymentRefundFailed);
     }
     await db.paymentAttempt.update({ where: { id: attempt.id }, data: { amountRefunded: { increment: part } } });
@@ -194,15 +194,15 @@ export async function expireOnlinePayments(now = new Date()) {
   let expired = 0;
   let cancelled = 0;
   for (const attempt of stale) {
-    let state: GatewayPayment["state"] = "failed";
+    let state: GatewayPayment["state"] | "unknown" = attempt.sessionId ? "unknown" : "failed";
     if (attempt.sessionId && isPaymentGateway(attempt.gateway)) {
       const active = await gatewayWithCredentials(attempt.gateway as PaymentGatewayId);
       if (active) state = await active.gateway.status(active.credentials, attempt.sessionId, {}).then((p) => {
         if (p.state === "paid") return settleAttempt(attempt.id, p).then(() => "paid" as const);
         return p.state;
-      }).catch(() => "pending" as const);
+      }).catch(() => "unknown" as const);
     }
-    if (state === "paid") continue;
+    if (state === "paid" || state === "unknown") continue;
     // A payment still in progress at the gateway gets one more timeout before giving up.
     if (state === "pending" && attempt.createdAt > new Date(cutoff.getTime() - ONLINE_PAYMENT_TIMEOUT_MINUTES * 60_000)) continue;
     const changed = await db.paymentAttempt.updateMany({ where: { id: attempt.id, status: { in: OPEN } }, data: { status: "expired" } });

@@ -471,7 +471,8 @@
       "accountPin": "الرقم السري للحساب",
       "accountEntity": "كيان الحساب",
       "accountCountryCode": "رمز بلد الحساب",
-      "apiSecret": "سرّ الواجهة"
+      "apiSecret": "سرّ الواجهة",
+      "apiPrefix": "بادئة حساب API (اختياري)"
     },
     "status": {
       "healthy": "متصل",
@@ -5911,7 +5912,9 @@
       "providerChannelNotFound": "لم يُعثر على القناة",
       "providerConnectionFailed": "تعذر اختبار الاتصال",
       "providerUnreachable": "تعذر الوصول إلى مزود الخدمة",
-      "providerTimeout": "لم يستجب مزود الخدمة في الوقت المحدد"
+      "providerTimeout": "لم يستجب مزود الخدمة في الوقت المحدد",
+      "paymentApiPrefixInvalid": "يجب أن تتكون بادئة حساب Checkout.com من حروف إنجليزية صغيرة وأرقام فقط.",
+      "paymentAmountPrecisionInvalid": "تقبل هذه البوابة مبالغ موجبة بمنزلتين عشريتين كحد أقصى. اختر طريقة دفع أخرى لهذا المبلغ."
     },
     "templates": {
       "0MustBeZeroOrMore": "يجب أن تكون قيمة {0} صفراً أو أكثر",

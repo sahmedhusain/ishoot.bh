@@ -471,7 +471,8 @@
       "accountPin": "Account PIN",
       "accountEntity": "Account entity",
       "accountCountryCode": "Account country code",
-      "apiSecret": "API secret"
+      "apiSecret": "API secret",
+      "apiPrefix": "API account prefix (optional)"
     },
     "status": {
       "healthy": "Connected",
@@ -5911,7 +5912,9 @@
       "providerChannelNotFound": "Channel not found",
       "providerConnectionFailed": "Connection check failed",
       "providerUnreachable": "Could not reach the provider",
-      "providerTimeout": "The provider did not respond in time"
+      "providerTimeout": "The provider did not respond in time",
+      "paymentApiPrefixInvalid": "The Checkout.com API account prefix must contain only lowercase letters and digits.",
+      "paymentAmountPrecisionInvalid": "This provider accepts positive amounts with at most two decimal places. Choose another payment method for this amount."
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",

@@ -154,6 +154,7 @@ export const INTEGRATION_PROVIDERS: readonly IntegrationProvider[] = [
     platforms: [],
     fields: [
       { key: "environment", required: true },
+      { key: "apiPrefix" },
       { key: "secretKey", secret: true, required: true },
       { key: "processingChannelId", required: true },
       { key: "billingCountry", required: true },
@@ -217,7 +218,7 @@ export const INTEGRATION_PROVIDERS: readonly IntegrationProvider[] = [
     platforms: [],
     fields: [
       { key: "environment", required: true },
-      { key: "apiKey", required: true },
+      { key: "apiKey", secret: true, required: true },
       { key: "apiSecret", secret: true, required: true },
       { key: "accountNumber", required: true },
     ],

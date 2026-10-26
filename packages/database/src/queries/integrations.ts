@@ -90,6 +90,7 @@ export async function saveIntegrationSettings(providerId: string, input: SaveInt
     const value = field.secret && !incoming ? current[field.key] ?? "" : incoming;
     if (value) next[field.key] = value;
   }
+  if (provider.id === "checkout_com" && next.apiPrefix && !/^[a-z0-9]+$/.test(next.apiPrefix)) throw new Error(serverMessages.paymentApiPrefixInvalid);
   if (provider.id === "resend" && next.fromEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(next.fromEmail))
     throw new Error(serverMessages.enterAValidSenderEMail);
   if (input.isActive) {

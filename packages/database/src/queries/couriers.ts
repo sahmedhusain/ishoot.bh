@@ -106,7 +106,7 @@ export async function handToAgency(shipmentId: string, input: HandToAgencyInput,
       if (booked.label && "url" in booked.label && /^https:\/\//.test(booked.label.url)) labelUrl = booked.label.url;
       else if (booked.label && "pdfBase64" in booked.label) labelUrl = await storeLabel(shipmentId, booked.label.pdfBase64, byId);
     } catch (error) {
-      console.error(`Courier ${agency.kind} refused a booking: ${error instanceof Error ? error.message : "error"}`);
+      console.error(`Courier ${agency.kind} refused a booking`);
       throw new Error(serverMessages.courierBookingFailed);
     }
   }
@@ -148,7 +148,7 @@ export async function syncAgencyTracking(limit = 100) {
         moved++;
       }
     } catch (error) {
-      console.error(`Courier tracking for ${s.number} failed: ${error instanceof Error ? error.message : "error"}`);
+      console.error(`Courier tracking for ${s.number} failed`);
     }
     await db.shipment.update({ where: { id: s.id }, data: { trackedAt: new Date() } });
   }
