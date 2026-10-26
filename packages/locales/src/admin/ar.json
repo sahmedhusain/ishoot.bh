@@ -2959,7 +2959,10 @@
     "clientDeclined": "رفضه العميل",
     "declineReasonPrompt": "لماذا رفض العميل؟ (اختياري)",
     "declined": "تم تعليم عرض السعر كمرفوض",
-    "failed": "تعذر تنفيذ الإجراء"
+    "failed": "تعذر تنفيذ الإجراء",
+    "markDeclined": "تسجيل رفض العميل",
+    "declineConfirmBody": "تسجيل رفض العميل لهذا العرض مع السبب الاختياري.",
+    "declineReasonPlaceholder": "مثلًا: الموعد المقترح لم يناسب العميل"
   },
   "websitePublication": {
     "pending": "هذه التعديلات غير منشورة بعد. يتم تحديث الموقع العام عند نشر الموقع.",
@@ -4269,7 +4272,8 @@
     "failedToUploadDocument": "تعذر رفع المستند",
     "viewLinkedInvoice": "عرض الفاتورة المرتبطة",
     "viewClientDossierInCrm": "عرض ملف العميل في إدارة العملاء",
-    "viewDownload": "عرض / تنزيل"
+    "viewDownload": "عرض / تنزيل",
+    "clientUnavailable": "العميل غير محدد"
   },
   "servicesManagement": {
     "active": "نشط",
@@ -7579,7 +7583,9 @@
     "addDocument": "إضافة المستند",
     "orLink": "أو الصق رابط الإيصال (مثل الإيصال الإلكتروني)",
     "addLink": "أو أضف رابطًا",
-    "useLink": "إضافة"
+    "useLink": "إضافة",
+    "urlLabel": "رابط المستند",
+    "linkFailed": "تعذرت إضافة رابط المستند"
   },
   "handoverSigning": {
     "eyebrow": "محضر تسليم عهدة الشركة",
@@ -7735,7 +7741,10 @@
     "exempt": "معفى",
     "saveRegistration": "حفظ التسجيل",
     "delete": "حذف",
-    "deleteConfirm": "حذف هذا التسجيل؟ يستمر التسجيل السابق مكانه."
+    "deleteConfirm": "حذف هذا التسجيل؟ يستمر التسجيل السابق مكانه.",
+    "endTitle": "إنهاء بند الاشتراك",
+    "endDateLabel": "آخر يوم للسريان",
+    "endBeforeStart": "اختر تاريخ انتهاء صالحًا يساوي تاريخ بدء البند أو يأتي بعده."
   },
   "supports": {
     "title": "دعم الأجور",
@@ -9398,7 +9407,25 @@
     "embedPresetPrompt": "ما الذي تريد تضمينه",
     "embedUrlPrompt": "رابط المشاركة",
     "embedInvalid": "لا يمكن تضمين هذا الرابط.",
-    "uploadFailed": "تعذر رفع الصورة."
+    "uploadFailed": "تعذر رفع الصورة.",
+    "apply": "تطبيق",
+    "insertImage": "إدراج صورة",
+    "captionPlaceholder": "صف الصورة أو اتركه فارغًا",
+    "captionHelp": "يظهر التعليق أسفل الصورة.",
+    "linkHelp": "استخدم رابط http(s) كاملًا أو عنوان mailto: أو رقم tel: أو مسار /page أو مرساة #anchor.",
+    "linkInvalid": "أدخل عنوان رابط صالحًا دون اسم مستخدم أو كلمة مرور.",
+    "videoPlaceholder": "https://www.youtube.com/watch?v=…",
+    "videoHelp": "ألصق رابط مشاركة من يوتيوب أو فيميو.",
+    "embedHelp": "اختر الخدمة وألصق رابط المشاركة أو التضمين الخاص بها.",
+    "uploadImages": "رفع صورة أو معرض",
+    "embedNames": {
+      "google_maps": "خرائط Google",
+      "youtube": "يوتيوب",
+      "vimeo": "فيميو",
+      "instagram": "إنستغرام",
+      "calendly": "كاليندلي",
+      "typeform": "تايب فورم"
+    }
   },
   "cmsMenus": {
     "title": "القوائم",

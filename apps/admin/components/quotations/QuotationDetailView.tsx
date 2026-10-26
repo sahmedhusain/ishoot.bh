@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import type { Quotation, ApprovalRequest } from "@platform/database/types";
 import {
   Card,
-  Button, formatDate } from "@platform/ui";
+  Button, Textarea, formatDate } from "@platform/ui";
 import {
   ArrowLeft,
   ArrowRight,
@@ -104,6 +104,11 @@ export function QuotationDetailView({
   const [showIssueModal, setShowIssueModal] = React.useState(false);
   const [deliveryChannel, setDeliveryChannel] = React.useState<"email" | "portal" | "whatsapp" | "manual">("email");
 
+  const [showDeclineModal, setShowDeclineModal] = React.useState(false);
+  const [declineReason, setDeclineReason] = React.useState("");
+  const [declineError, setDeclineError] = React.useState("");
+  const declining = React.useRef(false);
+  const declineId = React.useId();
   const [showAcceptModal, setShowAcceptModal] = React.useState(false);
   const [acceptanceEvidence, setAcceptanceEvidence] = React.useState("");
 
@@ -235,16 +240,19 @@ export function QuotationDetailView({
   };
 
   const handleClientDeclined = async () => {
-    const reason = window.prompt(t.quotationLifecycle.declineReasonPrompt) ?? undefined;
+    if (declining.current) return;
+    declining.current = true; setDeclineError("");
     setLoadingAction("decline");
     try {
-      await rejectQuotationAction(quotation.id, reason?.trim() || undefined);
+      await rejectQuotationAction(quotation.id, declineReason.trim() || undefined);
+      setShowDeclineModal(false);
       toast.success(t.quotationLifecycle.declined);
       router.refresh();
     } catch (err: unknown) {
-      toast.error(errorMessage(err, t, t.quotationLifecycle.failed));
+      const message = errorMessage(err, t, t.quotationLifecycle.failed);
+      setDeclineError(message); toast.error(message);
     } finally {
-      setLoadingAction(null);
+      declining.current = false; setLoadingAction(null);
     }
   };
 
@@ -403,7 +411,7 @@ export function QuotationDetailView({
               </Button>
               <Button
                 variant="outline"
-                onClick={handleClientDeclined}
+                onClick={() => { setDeclineReason(""); setDeclineError(""); setShowDeclineModal(true); }}
                 disabled={loadingAction === "decline"}
                 className="text-xs"
               >
@@ -684,8 +692,14 @@ export function QuotationDetailView({
         </div>
       </div>
 
+      <QuotationActionDialog open={showDeclineModal} onClose={() => setShowDeclineModal(false)} title={t.quotationLifecycle.markDeclined} description={t.quotationLifecycle.declineConfirmBody} confirmLabel={t.quotationLifecycle.markDeclined} confirmVariant="danger" busy={loadingAction === "decline"} onConfirm={handleClientDeclined}>
+        <label htmlFor={declineId} className="block text-sm font-medium">{t.quotationLifecycle.declineReasonPrompt}</label>
+        <Textarea id={declineId} value={declineReason} onChange={event => { setDeclineReason(event.target.value); setDeclineError(""); }} disabled={loadingAction === "decline"} maxLength={1000} placeholder={t.quotationLifecycle.declineReasonPlaceholder} aria-invalid={!!declineError} aria-describedby={declineError ? `${declineId}-error` : undefined} />
+        {declineError && <p id={`${declineId}-error`} role="alert" className="text-sm text-rose-700 dark:text-rose-300">{declineError}</p>}
+      </QuotationActionDialog>
       <QuotationActionDialog
         open={showSubmitModal}
+        busy={loadingAction === "submit"}
         onClose={() => setShowSubmitModal(false)}
         title={t.quotationDetail.commercialDiscountJustificationRequired}
         description={
@@ -698,7 +712,7 @@ export function QuotationDetailView({
           </>
         }
         confirmLabel={t.quotationDetail.submitForApproval2}
-        confirmClassName="bg-primary hover:bg-primary-hover"
+        confirmVariant="primary"
         confirmDisabled={!discountReason.trim() || loadingAction === "submit"}
         onConfirm={handleSubmitForApproval}
       >
@@ -717,11 +731,12 @@ export function QuotationDetailView({
 
       <QuotationActionDialog
         open={showIssueModal}
+        busy={loadingAction === "issue"}
         onClose={() => setShowIssueModal(false)}
         title={t.quotationDetail.issueQuotationToClient}
         description={t.quotationDetail.selectTheDeliveryMethodOnce}
         confirmLabel={t.quotationDetail.confirmIssue}
-        confirmClassName="bg-blue-600 hover:bg-blue-700"
+        confirmVariant="primary"
         confirmDisabled={loadingAction === "issue"}
         onConfirm={handleIssue}
       >
@@ -742,6 +757,7 @@ export function QuotationDetailView({
 
       <QuotationActionDialog
         open={showApproveModal}
+        busy={loadingAction === "approve"}
         onClose={() => setShowApproveModal(false)}
         title={t.quotationDetail.confirmSuperAdminApproval}
         description={
@@ -751,18 +767,19 @@ export function QuotationDetailView({
           </>
         }
         confirmLabel={t.quotationDetail.confirmApproval}
-        confirmClassName="bg-primary hover:bg-primary-hover"
+        confirmVariant="primary"
         confirmDisabled={loadingAction === "approve"}
         onConfirm={handleApprove}
       />
 
       <QuotationActionDialog
         open={showRejectModal}
+        busy={loadingAction === "reject"}
         onClose={() => setShowRejectModal(false)}
         title={t.quotationDetail.rejectQuotation}
         description={t.quotationDetail.provideFeedbackOnWhyThis}
         confirmLabel={t.quotationDetail.confirmRejection}
-        confirmClassName="bg-red-600 hover:bg-red-700"
+        confirmVariant="danger"
         confirmDisabled={!rejectReason.trim() || loadingAction === "reject"}
         onConfirm={handleReject}
       >
@@ -781,11 +798,12 @@ export function QuotationDetailView({
 
       <QuotationActionDialog
         open={showAcceptModal}
+        busy={loadingAction === "accept"}
         onClose={() => setShowAcceptModal(false)}
         title={t.quotationDetail.recordClientAcceptance}
         description={t.quotationDetail.enterReferenceEvidenceOfClient}
         confirmLabel={t.quotationDetail.recordAcceptance}
-        confirmClassName="bg-teal-700 hover:bg-teal-800"
+        confirmVariant="primary"
         confirmDisabled={loadingAction === "accept"}
         onConfirm={handleAccept}
       >

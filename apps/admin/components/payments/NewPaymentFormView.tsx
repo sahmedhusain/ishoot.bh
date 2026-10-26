@@ -116,8 +116,7 @@ export function NewPaymentFormView({
       else if (type === "bank_receipt") setBankReceiptFile(fileData);
       else setGeneralProofFile(fileData);
     } catch (err: any) {
-      console.error("Upload error:", err);
-      alert(errorMessage(err, t, t.newPaymentForm.failedToUploadDocument));
+      setFormError(errorMessage(err, t, t.newPaymentForm.failedToUploadDocument));
     } finally {
       if (type === "cheque") setUploadingCheque(false);
       else if (type === "bank_receipt") setUploadingBankReceipt(false);
@@ -732,7 +731,7 @@ export function NewPaymentFormView({
 
           {/* Form Error Banner */}
           {formError && (
-            <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 flex items-center gap-2.5 text-rose-800 dark:text-rose-200 text-xs font-semibold animate-fade-in">
+            <div role="alert" className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 flex items-center gap-2.5 text-rose-800 dark:text-rose-200 text-xs font-semibold animate-fade-in">
               <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400" />
               <span>{formError}</span>
             </div>

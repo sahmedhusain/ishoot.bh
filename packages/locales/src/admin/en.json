@@ -2959,7 +2959,10 @@
     "clientDeclined": "Client declined",
     "declineReasonPrompt": "Why did the client decline? (optional)",
     "declined": "Quotation marked as declined",
-    "failed": "Action failed"
+    "failed": "Action failed",
+    "markDeclined": "Record client decline",
+    "declineConfirmBody": "Record the client’s rejection and optional reason for this quotation.",
+    "declineReasonPlaceholder": "For example, the proposed timing did not suit the client"
   },
   "websitePublication": {
     "pending": "These changes are not live yet. The public website updates when the website is published.",
@@ -4269,7 +4272,8 @@
     "failedToUploadDocument": "Failed to upload document",
     "viewLinkedInvoice": "View Linked Invoice",
     "viewClientDossierInCrm": "View Client Dossier in CRM",
-    "viewDownload": "View / Download"
+    "viewDownload": "View / Download",
+    "clientUnavailable": "Client not specified"
   },
   "servicesManagement": {
     "active": "Active",
@@ -7579,7 +7583,9 @@
     "addDocument": "Add document",
     "orLink": "Or paste a link to the receipt (e.g. an e-receipt)",
     "addLink": "Or add a link",
-    "useLink": "Add"
+    "useLink": "Add",
+    "urlLabel": "Document link",
+    "linkFailed": "The document link could not be added"
   },
   "handoverSigning": {
     "eyebrow": "Company asset handover",
@@ -7735,7 +7741,10 @@
     "exempt": "Exempt",
     "saveRegistration": "Save registration",
     "delete": "Delete",
-    "deleteConfirm": "Delete this registration? The one before it runs on in its place."
+    "deleteConfirm": "Delete this registration? The one before it runs on in its place.",
+    "endTitle": "End contribution component",
+    "endDateLabel": "Last effective day",
+    "endBeforeStart": "Choose a valid end date on or after the component start date."
   },
   "supports": {
     "title": "Wage support",
@@ -9398,7 +9407,25 @@
     "embedPresetPrompt": "What to embed",
     "embedUrlPrompt": "Its share link",
     "embedInvalid": "That link cannot be embedded.",
-    "uploadFailed": "The image could not be uploaded."
+    "uploadFailed": "The image could not be uploaded.",
+    "apply": "Apply",
+    "insertImage": "Insert image",
+    "captionPlaceholder": "Describe the image or leave this empty",
+    "captionHelp": "The caption appears below the image.",
+    "linkHelp": "Use a full http(s) link, mailto: address, tel: number, /page path or #anchor.",
+    "linkInvalid": "Enter a valid link address without a username or password.",
+    "videoPlaceholder": "https://www.youtube.com/watch?v=…",
+    "videoHelp": "Paste a YouTube or Vimeo share link.",
+    "embedHelp": "Choose the service and paste its share or embed URL.",
+    "uploadImages": "Upload an image or gallery",
+    "embedNames": {
+      "google_maps": "Google Maps",
+      "youtube": "YouTube",
+      "vimeo": "Vimeo",
+      "instagram": "Instagram",
+      "calendly": "Calendly",
+      "typeform": "Typeform"
+    }
   },
   "cmsMenus": {
     "title": "Menus",

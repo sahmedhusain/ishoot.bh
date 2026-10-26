@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { Button, Input, Modal, Select } from "@platform/ui";
+import { errorMessage } from "../../lib/error-text";
 import { EditorContent, useEditor, useEditorState, type Editor } from "@tiptap/react";
 import {
   AlignCenter,
@@ -72,6 +74,10 @@ function Toolbar({ editor, imageResource }: { editor: Editor; imageResource: Ima
   const { t } = useAdminLocale();
   const copy = t.richText;
   const files = React.useRef<HTMLInputElement>(null);
+  const [dialog, setDialog] = React.useState<({ kind: "link" | "video" | "embed"; value: string } | { kind: "image"; value: string; image: { src: string; alt: string } }) | null>(null);
+  const [preset, setPreset] = React.useState<EmbedPreset>("instagram");
+  const [error, setError] = React.useState("");
+  const formId = React.useId();
   const [uploading, setUploading] = React.useState<"image" | "gallery" | null>(null);
   const state = useEditorState({
     editor,
@@ -98,7 +104,7 @@ function Toolbar({ editor, imageResource }: { editor: Editor; imageResource: Ima
 
   const upload = async (list: FileList | null, mode: "image" | "gallery") => {
     if (!list?.length) return;
-    setUploading(mode);
+    setError(""); setUploading(mode);
     try {
       const uploaded: { src: string; alt: string }[] = [];
       for (const file of Array.from(list).slice(0, mode === "image" ? 1 : 24)) {
@@ -106,43 +112,45 @@ function Toolbar({ editor, imageResource }: { editor: Editor; imageResource: Ima
         uploaded.push({ src: result.fileUrl, alt: file.name.replace(/\.[^.]+$/, "") });
       }
       if (mode === "image") {
-        const caption = window.prompt(copy.captionPrompt) ?? "";
-        chain().setFigure({ ...uploaded[0], caption }).run();
+        setDialog({ kind: "image", value: "", image: uploaded[0] });
       } else chain().setGallery(uploaded).run();
     } catch (error) {
-      window.alert(error instanceof Error && error.message ? error.message : copy.uploadFailed);
+      setError(errorMessage(error, t, copy.uploadFailed));
     } finally {
       setUploading(null);
       if (files.current) files.current.value = "";
     }
   };
 
-  const link = () => {
-    const previous = editor.getAttributes("link").href as string | undefined;
-    const href = window.prompt(copy.linkPrompt, previous ?? "https://");
-    if (href === null) return;
-    if (!href.trim()) return void chain().extendMarkRange("link").unsetLink().run();
-    chain().extendMarkRange("link").setLink({ href: href.trim() }).run();
-  };
-
-  const video = () => {
-    const url = window.prompt(copy.videoPrompt);
-    if (!url) return;
-    if (embedSource("youtube", url)) chain().setYoutubeVideo({ src: url }).run();
-    else if (embedSource("vimeo", url)) chain().setEmbed({ preset: "vimeo", src: url }).run();
-    else window.alert(copy.videoInvalid);
-  };
-
-  const embed = () => {
-    const preset = window.prompt(`${copy.embedPresetPrompt} (${EMBED_PRESETS.join(", ")})`, "instagram") as EmbedPreset | null;
-    if (!preset || !(EMBED_PRESETS as readonly string[]).includes(preset)) return;
-    const url = window.prompt(copy.embedUrlPrompt);
-    if (!url) return;
-    if (!embedSource(preset, url)) return void window.alert(copy.embedInvalid);
-    chain().setEmbed({ preset, src: url }).run();
+  const link = () => { setError(""); setDialog({ kind: "link", value: (editor.getAttributes("link").href as string | undefined) ?? "" }); };
+  const video = () => { setError(""); setDialog({ kind: "video", value: "" }); };
+  const embed = () => { setError(""); setPreset("instagram"); setDialog({ kind: "embed", value: "" }); };
+  const applyDialog = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!dialog) return;
+    const value = dialog.value.trim();
+    if (dialog.kind === "link") {
+      if (value) {
+        try {
+          const url = new URL(value, window.location.origin);
+          if (!/^(https?:\/\/|mailto:|tel:|\/(?!\/)|#)/i.test(value) || !["http:", "https:", "mailto:", "tel:"].includes(url.protocol) || url.username || url.password) throw new Error();
+        } catch { setError(copy.linkInvalid); return; }
+      }
+      const changed = value ? chain().extendMarkRange("link").setLink({ href: value }).run() : chain().extendMarkRange("link").unsetLink().run();
+      if (!changed) { setError(copy.linkInvalid); return; }
+    } else if (dialog.kind === "video") {
+      if (embedSource("youtube", value)) chain().setYoutubeVideo({ src: value }).run();
+      else if (embedSource("vimeo", value)) chain().setEmbed({ preset: "vimeo", src: value }).run();
+      else { setError(copy.videoInvalid); return; }
+    } else if (dialog.kind === "embed") {
+      if (!embedSource(preset, value)) { setError(copy.embedInvalid); return; }
+      chain().setEmbed({ preset, src: value }).run();
+    } else if (dialog.kind === "image") chain().setFigure({ ...dialog.image, caption: value }).run();
+    setDialog(null); setError("");
   };
 
   return (
+    <>
     <div role="toolbar" aria-label={copy.toolbar} className="flex flex-wrap items-center gap-0.5 border-b border-ink/10 bg-surface-sunken/60 px-2 py-1.5 sticky top-0 z-10">
       <ToolButton label={copy.paragraph} active={!state.h2 && !state.h3} onClick={() => chain().setParagraph().run()}><Pilcrow className="w-4 h-4" /></ToolButton>
       <ToolButton label={copy.heading2} active={state.h2} onClick={() => chain().toggleHeading({ level: 2 }).run()}><Heading2 className="w-4 h-4" /></ToolButton>
@@ -185,8 +193,18 @@ function Toolbar({ editor, imageResource }: { editor: Editor; imageResource: Ima
       <ToolButton label={copy.clear} onClick={() => chain().unsetAllMarks().clearNodes().run()}><RemoveFormatting className="w-4 h-4" /></ToolButton>
       <ToolButton label={copy.undo} disabled={!state.undo} onClick={() => chain().undo().run()}><Undo2 className="w-4 h-4" /></ToolButton>
       <ToolButton label={copy.redo} disabled={!state.redo} onClick={() => chain().redo().run()}><Redo2 className="w-4 h-4" /></ToolButton>
-      <input ref={files} type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" onChange={(e) => upload(e.target.files, (e.target.getAttribute("data-mode") as "image" | "gallery") ?? "image")} />
+      <input ref={files} type="file" accept="image/png,image/jpeg,image/webp" aria-label={copy.uploadImages} tabIndex={-1} className="hidden" onChange={(e) => upload(e.target.files, (e.target.getAttribute("data-mode") as "image" | "gallery") ?? "image")} />
     </div>
+    {error && !dialog && <p role="alert" className="px-3 py-2 text-sm text-rose-700 dark:text-rose-300">{error}</p>}
+    <Modal isOpen={dialog !== null} onClose={() => { setDialog(null); setError(""); }} title={dialog ? copy[dialog.kind] : undefined} className="max-w-lg" footer={<div className="flex justify-end gap-3"><Button type="button" variant="ghost" onClick={() => { setDialog(null); setError(""); }}>{t.actions.cancel}</Button><Button type="submit" form={formId}>{dialog?.kind === "image" ? copy.insertImage : copy.apply}</Button></div>}>
+      <form id={formId} noValidate onSubmit={applyDialog} className="space-y-3">
+        {dialog?.kind === "embed" && <div className="space-y-1"><label htmlFor={`${formId}-preset`} className="text-sm font-medium">{copy.embedPresetPrompt}</label><Select id={`${formId}-preset`} value={preset} onChange={event => { setPreset(event.target.value as EmbedPreset); setError(""); }}>{EMBED_PRESETS.map(value => <option key={value} value={value}>{copy.embedNames[value]}</option>)}</Select></div>}
+        <div className="space-y-1"><label htmlFor={`${formId}-value`} className="text-sm font-medium">{dialog?.kind === "image" ? copy.captionPrompt : dialog?.kind === "link" ? copy.linkPrompt : dialog?.kind === "video" ? copy.videoPrompt : copy.embedUrlPrompt}</label><Input id={`${formId}-value`} value={dialog?.value ?? ""} dir={dialog?.kind === "image" ? undefined : "ltr"} placeholder={dialog?.kind === "image" ? copy.captionPlaceholder : dialog?.kind === "video" ? copy.videoPlaceholder : t.copy.urlExample} onChange={event => { setDialog(current => current ? { ...current, value: event.target.value } : null); setError(""); }} aria-invalid={!!error} aria-describedby={`${formId}-help${error ? ` ${formId}-error` : ""}`} /></div>
+        <p id={`${formId}-help`} className="text-xs text-ink-muted">{dialog?.kind === "link" ? copy.linkHelp : dialog?.kind === "image" ? copy.captionHelp : dialog?.kind === "video" ? copy.videoHelp : copy.embedHelp}</p>
+        {error && <p id={`${formId}-error`} role="alert" className="text-sm text-rose-700 dark:text-rose-300">{error}</p>}
+      </form>
+    </Modal>
+    </>
   );
 }
 

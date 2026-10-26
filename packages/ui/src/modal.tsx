@@ -2,6 +2,7 @@
 import { useUiCopy } from "./copy/use-ui-copy";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { cn } from "./utils";
 
 export interface ModalProps {
@@ -113,11 +114,13 @@ export function Modal({
   const titleId = React.useId();
   const descriptionId = React.useId();
   const close = () => { if (!busy) onClose(); };
-  const dialog = useDialog(isOpen, close);
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+  const dialog = useDialog(isOpen && mounted, close);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
+  return createPortal(
     <div
       data-modal-container
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 modal-scrim"
@@ -158,6 +161,7 @@ export function Modal({
         </div>
         {footer && <div className="shrink-0 border-t border-ink/10 px-6 py-4">{footer}</div>}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

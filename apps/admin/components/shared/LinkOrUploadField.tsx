@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Button, Input } from "@platform/ui";
 import {
   ExternalLink,
   FileText,
@@ -244,77 +245,34 @@ export function LinkOrUploadField({
 }
 
 /** A small "or add a link" control placed next to an existing upload button. */
-export function AddLinkInline({
-  onLink,
-  disabled,
-}: {
-  onLink: (url: string) => void | Promise<void>;
-  disabled?: boolean;
-}) {
+export function AddLinkInline({ onLink, disabled }: { onLink: (url: string) => void | Promise<void>; disabled?: boolean }) {
   const { t } = useAdminLocale();
   const f = t.linkOrUpload;
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState("");
   const [error, setError] = React.useState("");
-  if (!open)
-    return (
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1 text-[11px] font-semibold text-accent hover:underline disabled:opacity-50"
-      >
-        <Link2 className="h-3 w-3" aria-hidden /> {f.addLink}
-      </button>
-    );
+  const [busy, setBusy] = React.useState(false);
+  const pending = React.useRef(false);
+  const id = React.useId();
   const submit = async () => {
+    if (pending.current || disabled) return;
     const url = value.trim();
     if (!isHttpsLink(url)) return setError(f.invalidLink);
-    setError("");
-    await onLink(url);
-    setValue("");
-    setOpen(false);
+    pending.current = true; setBusy(true); setError("");
+    try { await onLink(url); setValue(""); setOpen(false); }
+    catch (failure) { setError(errorMessage(failure, t, f.linkFailed)); }
+    finally { pending.current = false; setBusy(false); }
   };
+  if (!open) return <Button type="button" size="sm" variant="ghost" disabled={disabled} onClick={() => setOpen(true)}><Link2 className="h-3.5 w-3.5" aria-hidden />{f.addLink}</Button>;
   return (
     <div className="w-full space-y-1">
-      <div className="flex items-stretch gap-1.5">
-        <input
-          type="url"
-          inputMode="url"
-          dir="ltr"
-          autoFocus
-          placeholder={t.copy.urlExample}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              void submit();
-            }
-          }}
-          className="h-8 min-w-0 flex-1 rounded-lg border border-ink/15 bg-white px-2 text-xs text-ink dark:bg-surface"
-        />
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={() => void submit()}
-          className="rounded-lg bg-accent px-3 text-[11px] font-semibold text-white disabled:opacity-50"
-        >
-          {f.useLink}
-        </button>
-        <button
-          type="button"
-          aria-label={f.remove}
-          onClick={() => {
-            setOpen(false);
-            setError("");
-          }}
-          className="rounded-lg px-1.5 text-ink-muted hover:text-ink"
-        >
-          <X className="h-3.5 w-3.5" aria-hidden />
-        </button>
+      <label htmlFor={id} className="text-xs font-medium">{f.urlLabel}</label>
+      <div className="flex flex-wrap items-center gap-2">
+        <Input id={id} type="url" inputMode="url" dir="ltr" autoFocus placeholder={t.copy.urlExample} value={value} disabled={busy || disabled} className="min-w-0 flex-1" aria-invalid={!!error} aria-describedby={`${id}-${error ? "error" : "help"}`} onChange={event => { setValue(event.target.value); setError(""); }} onKeyDown={event => { if (event.key === "Enter") { event.preventDefault(); void submit(); } }} />
+        <Button type="button" size="sm" disabled={busy || disabled} onClick={() => void submit()}>{busy ? t.actions.saving : f.useLink}</Button>
+        <Button type="button" size="icon" variant="ghost" aria-label={t.actions.cancel} disabled={busy} onClick={() => { setOpen(false); setError(""); }}><X className="h-3.5 w-3.5" aria-hidden /></Button>
       </div>
-      {error ? <p className="text-[11px] text-rose-600">{error}</p> : null}
+      {error ? <p id={`${id}-error`} role="alert" className="text-xs text-rose-700 dark:text-rose-300">{error}</p> : <p id={`${id}-help`} className="text-xs text-ink-muted">{f.linkHint}</p>}
     </div>
   );
 }

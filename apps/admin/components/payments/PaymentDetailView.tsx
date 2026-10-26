@@ -43,6 +43,7 @@ export function PaymentDetailView({
   const { t, isRTL, locale } = useAdminLocale();
   const BackIcon = isRTL ? ArrowRight : ArrowLeft;
   const [payment, setPayment] = React.useState<Payment>(initialPayment);
+  const [uploadError, setUploadError] = React.useState("");
   const [uploading, setUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -54,19 +55,18 @@ export function PaymentDetailView({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setUploading(true);
+    setUploadError(""); setUploading(true);
     try {
       const data = await uploadFileDirectly(file, {
         entityType: "payment",
         entityId: payment.id,
       });
-      const res = { ok: true }; // polyfill for following code
-      if (!res.ok || !data.success) {
+      if (!data.success || !data.attachment?.id) {
         throw new Error(data.error || t.paymentDetail.uploadFailed);
       }
 
       const newAtt = {
-        id: data.attachment?.id || `att-${Date.now()}`,
+        id: data.attachment.id,
         file_name: data.fileName,
         file_url: data.fileUrl,
         file_size: data.fileSize,
@@ -81,8 +81,7 @@ export function PaymentDetailView({
         proof_attachments: [newAtt, ...(prev.proof_attachments || [])],
       }));
     } catch (err: any) {
-      console.error("Instant upload error:", err);
-      alert(errorMessage(err, t, t.paymentDetail.failedToUploadDocument));
+      setUploadError(errorMessage(err, t, t.paymentDetail.failedToUploadDocument));
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -94,7 +93,7 @@ export function PaymentDetailView({
     invoice?.contact?.company ||
     invoice?.contact?.full_name ||
     invoice?.contact_name ||
-    "Client";
+    t.paymentDetail.clientUnavailable;
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-20">
@@ -243,14 +242,7 @@ export function PaymentDetailView({
                   entityType: "payment",
                   entityId: payment.id,
                 });
-                if (!result.success || !result.attachment)
-                  return alert(
-                    errorMessage(
-                      result.error,
-                      t,
-                      t.paymentDetail.failedToUploadDocument,
-                    ),
-                  );
+                if (!result.success || !result.attachment) throw new Error(errorMessage(result.error, t, t.paymentDetail.failedToUploadDocument));
                 setPayment((prev) => ({
                   ...prev,
                   proof_attachments: [
@@ -270,6 +262,7 @@ export function PaymentDetailView({
           </div>
         </div>
 
+        {uploadError && <p role="alert" className="text-sm text-rose-700 dark:text-rose-300">{uploadError}</p>}
         {attachments.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2">
             {attachments.map((att) => {

@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import {
+  Modal,
   Button,
   Input,
   Select,
@@ -118,6 +119,11 @@ export function GosiView({
   const g = t.gosi;
   const router = useRouter();
   const isAr = locale === "ar";
+  const [ending, setEnding] = React.useState<{ id: string; from: string } | null>(null);
+  const [endDate, setEndDate] = React.useState(today());
+  const [actionError, setActionError] = React.useState("");
+  const endFormId = React.useId();
+  const pending = React.useRef(false);
   const [busy, setBusy] = React.useState(false);
   const [form, setForm] = React.useState<ComponentForm | null>(null);
   const [registering, setRegistering] = React.useState<Registration | null>(
@@ -128,17 +134,19 @@ export function GosiView({
   const money = (v: number) => formatCurrencyValue(v, "BHD", isAr);
 
   const run = async (work: () => Promise<unknown>, done: string) => {
-    setBusy(true);
+    if (pending.current) return false;
+    pending.current = true; setActionError(""); setBusy(true);
     try {
       await work();
       toast.success(done);
       router.refresh();
       return true;
     } catch (error) {
-      toast.error(errorMessage(error, t, g.failed));
+      const message = errorMessage(error, t, g.failed);
+      setActionError(message); toast.error(message);
       return false;
     } finally {
-      setBusy(false);
+      pending.current = false; setBusy(false);
     }
   };
 
@@ -196,6 +204,13 @@ export function GosiView({
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 pb-16">
+      <Modal isOpen={ending !== null} onClose={() => setEnding(null)} title={g.endTitle} description={g.endPrompt} busy={busy} className="max-w-md" footer={<div className="flex justify-end gap-3"><Button type="button" variant="ghost" disabled={busy} onClick={() => setEnding(null)}>{t.actions.cancel}</Button><Button type="submit" form={endFormId} variant="danger" disabled={busy || !endDate}>{busy ? t.actions.saving : g.end}</Button></div>}>
+        <form id={endFormId} noValidate onSubmit={async event => { event.preventDefault(); if (busy || !ending) return; if (!endDate || endDate < ending.from) { setActionError(g.endBeforeStart); return; } if (await run(() => endGosiComponentAction(ending.id, endDate), g.saved)) setEnding(null); }} className="space-y-2">
+          <label htmlFor={`${endFormId}-date`} className="text-sm font-medium">{g.endDateLabel}</label>
+          <Input id={`${endFormId}-date`} type="date" value={endDate} min={ending?.from} onChange={event => { setEndDate(event.target.value); setActionError(""); }} required disabled={busy} aria-invalid={!!actionError} aria-describedby={actionError ? `${endFormId}-error` : undefined} />
+          {actionError && <p id={`${endFormId}-error`} role="alert" className="text-sm text-rose-700 dark:text-rose-300">{actionError}</p>}
+        </form>
+      </Modal>
       <header>
         <h1 className="flex items-center gap-2 text-xl font-bold text-ink sm:text-2xl">
           <ShieldCheck className="h-5 w-5 text-accent" aria-hidden />
@@ -413,16 +428,8 @@ export function GosiView({
                                     disabled={busy}
                                     className="font-semibold text-rose-600 hover:underline"
                                     onClick={() => {
-                                      const end = window.prompt(
-                                        g.endPrompt,
-                                        today(),
-                                      );
-                                      if (end)
-                                        void run(
-                                          () =>
-                                            endGosiComponentAction(v.id, end),
-                                          g.saved,
-                                        );
+                                      setEndDate(today()); setActionError("");
+                                      setEnding({ id: v.id, from: formatDate(v.effectiveFrom, locale, "numeric") });
                                     }}
                                   >
                                     {g.end}

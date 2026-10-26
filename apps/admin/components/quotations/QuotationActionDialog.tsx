@@ -10,7 +10,8 @@ export function QuotationActionDialog({
   title,
   description,
   confirmLabel,
-  confirmClassName,
+  confirmVariant = "primary",
+  busy = false,
   confirmDisabled,
   onConfirm,
   onClose,
@@ -20,35 +21,22 @@ export function QuotationActionDialog({
   title: string;
   description?: React.ReactNode;
   confirmLabel: string;
-  confirmClassName: string;
+  confirmVariant?: "primary" | "danger";
+  busy?: boolean;
   confirmDisabled?: boolean;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>;
   onClose: () => void;
   children?: React.ReactNode;
 }) {
   const { t } = useAdminLocale();
   return (
-    <Modal closeLabel={t.actions.close} isOpen={open} onClose={onClose} title={title} className="max-w-md">
-      <div className="space-y-4">
-        {description && <div className="text-xs text-slate-500 dark:text-neutral-400 leading-relaxed">{description}</div>}
-        {children}
-        <div className="flex justify-end gap-3 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-3 py-1.5 text-xs text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 rounded-md"
-          >
-            {t.actions.cancel}
-          </button>
-          <Button
-            onClick={onConfirm}
-            disabled={confirmDisabled}
-            className={`text-white px-4 py-1.5 text-xs rounded-md ${confirmClassName}`}
-          >
-            {confirmLabel}
-          </Button>
-        </div>
+    <Modal closeLabel={t.actions.close} isOpen={open} onClose={onClose} title={title} description={description} busy={busy} className="max-w-md" footer={
+      <div className="flex justify-end gap-3">
+        <Button type="button" variant="ghost" onClick={onClose} disabled={busy}>{t.actions.cancel}</Button>
+        <Button type="button" onClick={onConfirm} disabled={busy || confirmDisabled} variant={confirmVariant}>{busy ? t.actions.saving : confirmLabel}</Button>
       </div>
+    }>
+      <div className="space-y-4">{children}</div>
     </Modal>
   );
 }
