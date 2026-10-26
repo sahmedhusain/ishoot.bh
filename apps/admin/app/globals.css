@@ -353,7 +353,7 @@ a[href^="tel:"] {
   backdrop-filter: none;
 }
 
-[role="dialog"][aria-modal="true"] {
+[role="dialog"][aria-modal="true"]:not([data-navigation-drawer]) {
   /* Individual dialogs keep their own maximum width. */
   width: 100%;
   min-width: 0;
@@ -368,7 +368,7 @@ a[href^="tel:"] {
     0 10px 30px -10px rgb(var(--brand-primary)/0.4);
   animation: modal-card-in var(--motion-base) var(--ease-emphasized) both;
 }
-html.light [role="dialog"][aria-modal="true"] {
+html.light [role="dialog"][aria-modal="true"]:not([data-navigation-drawer]) {
   background-color: #ffffff;
   border-color: rgb(var(--brand-primary)/0.12);
   box-shadow:

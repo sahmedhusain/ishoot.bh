@@ -101,6 +101,7 @@ assert.equal(errorMessage(new Error("Nothing changed"), ar, "x"), "لم يتغي
 assert.equal(errorMessage(new Error("Nothing changed"), en, "x"), "Nothing changed");
 assert.equal(errorMessage(new Error("Quotation cannot be accepted: current status is draft"), ar), "لا يمكن قبول عرض السعر: الحالة الحالية مسودة", "status words are translated too");
 assert.equal(errorMessage(new Error("Some unexpected English text"), ar, "تعذّر الحفظ"), "تعذّر الحفظ", "unknown English never reaches an Arabic screen");
+assert.equal(errorMessage(new Error("Some unexpected English text"), structuredClone(ar), "تعذّر الحفظ"), "تعذّر الحفظ", "hydrated/cloned Arabic copy keeps the localized fallback");
 assert.equal(errorMessage(new Error("رسالة عربية"), ar, "x"), "رسالة عربية");
 assert.equal(errorMessage("Some provider detail", en, ""), "Some provider detail");
 

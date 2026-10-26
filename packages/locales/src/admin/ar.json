@@ -2116,7 +2116,11 @@
     "noMatches": "لا توجد نتائج مطابقة لـ",
     "navigate": "تنقل",
     "select": "اختيار",
-    "universalSearch": "البحث الشامل في النظام"
+    "universalSearch": "البحث الشامل في النظام",
+    "searchLabel": "البحث في السجلات",
+    "resultsLabel": "نتائج البحث",
+    "searchFailed": "تعذّر البحث. حاول مرة أخرى.",
+    "searching": "جارٍ البحث…"
   },
   "pdfInvoice": {
     "taxInvoiceTitle": "فاتورة ضريبية",
@@ -4074,7 +4078,8 @@
     "governance": "الموافقات",
     "approvalCenter": "مركز الموافقات",
     "myProfile": "الملف الشخصي",
-    "websitePublishing": "تحرير ونشر الموقع"
+    "websitePublishing": "تحرير ونشر الموقع",
+    "mobileNavigation": "التنقّل"
   },
   "usersManagement": {
     "reportsTo": "المسؤول المباشر",
@@ -8228,7 +8233,8 @@
     "loading": "جارٍ تحميل الإشعارات",
     "noUnread": "قرأت جميع الإشعارات",
     "caughtUp": "لا توجد إشعارات غير مقروءة.",
-    "viewAll": "فتح صندوق الإشعارات"
+    "viewAll": "فتح صندوق الإشعارات",
+    "markAllReadConfirm": "هل تريد وضع علامة مقروء على جميع الإشعارات غير المقروءة البالغ عددها {count}؟"
   },
   "profileWorkspace": {
     "subtitle": "أدر بياناتك وتوقيعك وأمان حسابك، وتابع التعديلات التي تحتاج إلى اعتماد.",

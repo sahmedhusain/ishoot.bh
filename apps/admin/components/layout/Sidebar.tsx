@@ -2,6 +2,7 @@
 
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
+import { Button, useDialog } from "@platform/ui";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -69,6 +70,7 @@ import {
   Newspaper,
   Menu,
   Code2,
+  X,
 } from "lucide-react";
 import { usePermissions, PermissionResource } from "../../hooks/usePermissions";
 import { useSidebar } from "./SidebarContext";
@@ -104,6 +106,13 @@ export function Sidebar() {
   const { can, managesTeam, role, user } = usePermissions();
   const { isMobileOpen, setIsMobileOpen } = useSidebar();
   const { t } = useAdminLocale();
+  const mobileDialog = useDialog(isMobileOpen, () => setIsMobileOpen(false));
+  React.useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const close = () => { if (desktop.matches) setIsMobileOpen(false); };
+    close(); desktop.addEventListener("change", close);
+    return () => desktop.removeEventListener("change", close);
+  }, [setIsMobileOpen]);
   const { isFeatureEnabled } = useFeatureToggles();
   const [folded, setFolded] = React.useState<Record<string, boolean>>({});
   const storageKey = `platform_navigation_${user?.id ?? "guest"}`;
@@ -855,10 +864,15 @@ export function Sidebar() {
       {isMobileOpen && (
         <div className="lg:hidden fixed inset-0 top-14 z-50 flex">
           <div
-            className="fixed inset-0 top-14 modal-scrim animate-in fade-in duration-base"
+            aria-hidden="true"
+            className="fixed inset-0 modal-scrim animate-in fade-in duration-base"
             onClick={() => setIsMobileOpen(false)}
           />
-          <div className="relative w-64 max-w-[80vw] h-full bg-white dark:bg-surface-raised border-e border-ink/15 dark:border-ink/15 shadow-xl flex flex-col z-10 animate-in slide-in-from-start duration-base ease-emphasized">
+          <div {...mobileDialog} data-navigation-drawer aria-label={t.sidebar.mobileNavigation} className="relative w-64 max-w-[80vw] h-full bg-white dark:bg-surface-raised border-e border-ink/15 dark:border-ink/15 shadow-xl flex flex-col z-10 animate-in slide-in-from-start duration-base ease-emphasized">
+            <div className="flex shrink-0 items-center justify-between border-b border-ink/10 px-3 py-2">
+              <span className="text-sm font-semibold">{t.sidebar.mobileNavigation}</span>
+              <Button type="button" size="icon" variant="ghost" onClick={() => setIsMobileOpen(false)} aria-label={t.actions.close}><X aria-hidden className="h-4 w-4" /></Button>
+            </div>
             {navContent}
           </div>
         </div>

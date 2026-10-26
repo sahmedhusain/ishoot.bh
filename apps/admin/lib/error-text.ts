@@ -40,7 +40,7 @@ export function errorMessage(error: unknown, t: Translations, fallback?: string)
     });
   }
   // Already in the interface language (e.g. validation written in Arabic), or an English UI.
-  const isArabicUi = t === (adminTranslations.ar as unknown as Translations);
+  const isArabicUi = errors.generic === adminTranslations.ar.serverErrors.generic;
   if (message && (!isArabicUi || /[؀-ۿ]/.test(message))) return message;
   return fallback ?? errors.generic;
 }

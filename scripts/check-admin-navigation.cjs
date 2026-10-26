@@ -73,6 +73,10 @@ for (const locale of ["en", "ar"]) {
       "next/link": ({ children, ...props }) =>
         React.createElement("a", props, children),
       "next/navigation": { usePathname: () => pathname },
+      "@platform/ui": {
+        useDialog: () => ({}),
+        Button: ({ children, ...props }) => React.createElement("button", props, children),
+      },
       "lucide-react": new Proxy(
         {},
         { get: () => () => React.createElement("svg") },

@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import Link from "next/link";
@@ -30,6 +31,7 @@ import {
 export function NotificationCenter() {
   const { t, locale } = useAdminLocale();
   const p = t.notificationMenu;
+  const confirmAction = useConfirmation();
   const menu = useHeaderPopover("notifications");
   const [items, setItems] = React.useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = React.useState(0);
@@ -104,8 +106,9 @@ export function NotificationCenter() {
       const result = await markAllNotificationsReadAction();
       if (!result.success) throw Error();
       window.dispatchEvent(new Event("platform:notifications-changed"));
-    } catch {
+    } catch (failure) {
       toast.error(p.failed);
+      throw failure;
     } finally {
       setBusy(null);
     }
@@ -149,7 +152,7 @@ export function NotificationCenter() {
             <button
               type="button"
               disabled={busy !== null || unreadCount === 0}
-              onClick={allRead}
+              onClick={() => { menu.setOpen(false); menu.triggerRef.current?.focus(); confirmAction({ description: formatMessage(p.markAllReadConfirm, { count: unreadCount }), variant: "warning", onConfirm: allRead }); }}
               title={t.notificationsCenter.markAllRead}
               aria-label={t.notificationsCenter.markAllRead}
               className="rounded-lg p-2 text-ink-muted hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-30"

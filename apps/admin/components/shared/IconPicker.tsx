@@ -1,4 +1,5 @@
 "use client";
+import { useHeaderPopover } from "../../hooks/useHeaderPopover";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 import * as React from "react";
@@ -17,23 +18,13 @@ const POPULAR_ICONS: readonly string[] = POPULAR_ICON_NAMES;
 
 export function IconPicker({ value, onChange, placeholder, initialOpen=false }: IconPickerProps) {
   const { t } = useAdminLocale();
-  const [isOpen, setIsOpen] = React.useState(initialOpen);
+
   const [page,setPage]=React.useState(0);
   const menuId=React.useId();
+  const menu = useHeaderPopover(`icons-${menuId}`, initialOpen);
+  const { open: isOpen, setOpen: setIsOpen } = menu;
   const [search, setSearch] = React.useState("");
   const [tab, setTab] = React.useState<"popular" | "all">("popular");
-  const dropdownRef = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   const matches = React.useMemo(()=>search.trim() ? ALL_ICON_NAMES.filter(name=>name.toLowerCase().includes(search.toLowerCase().trim())) : tab === "popular" ? POPULAR_ICONS : ALL_ICON_NAMES,[search,tab]);
   const displayedIcons=matches.slice(page*ICON_PAGE_SIZE,(page+1)*ICON_PAGE_SIZE);
   React.useEffect(()=>setPage(0),[search,tab]);
@@ -41,9 +32,11 @@ export function IconPicker({ value, onChange, placeholder, initialOpen=false }: 
   const SelectedIcon = value ? PICKABLE_ICONS[value] ?? null : null;
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative" ref={menu.containerRef}>
       <button
         type="button"
+        ref={menu.triggerRef}
+        aria-label={value ? `${t.iconPicker.selectIcon}: ${value}` : t.iconPicker.selectIcon}
         aria-expanded={isOpen}
         aria-controls={menuId}
         aria-haspopup="dialog"
@@ -66,7 +59,7 @@ export function IconPicker({ value, onChange, placeholder, initialOpen=false }: 
       </button>
 
       {isOpen && (
-          <div id={menuId} role="dialog" aria-label={t.iconPicker.selectIcon} onKeyDown={e=>{if(e.key==="Escape"){e.stopPropagation();setIsOpen(false);}}}
+          <div ref={menu.panelRef} id={menuId} role="dialog" aria-label={t.iconPicker.selectIcon} onKeyDown={e=>{if(e.key==="Escape"){e.preventDefault();e.stopPropagation();setIsOpen(false);menu.triggerRef.current?.focus();}}}
             className="absolute z-50 top-full start-0 end-0 mt-2 bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col w-[320px] max-w-[90vw]"
           >
             {/* Search Header */}
@@ -128,6 +121,7 @@ export function IconPicker({ value, onChange, placeholder, initialOpen=false }: 
                     onClick={() => {
                       onChange(iconName);
                       setIsOpen(false);
+                      menu.triggerRef.current?.focus();
                       setSearch("");
                     }}
                     className={`p-2.5 flex flex-col items-center justify-center rounded-xl border transition-all group/btn ${

@@ -2116,7 +2116,11 @@
     "noMatches": "No matches found for",
     "navigate": "Navigate",
     "select": "Select",
-    "universalSearch": "Universal Operations Search"
+    "universalSearch": "Universal Operations Search",
+    "searchLabel": "Search records",
+    "resultsLabel": "Search results",
+    "searchFailed": "Could not search. Try again.",
+    "searching": "Searching…"
   },
   "pdfInvoice": {
     "taxInvoiceTitle": "Tax Invoice",
@@ -4074,7 +4078,8 @@
     "governance": "Governance",
     "approvalCenter": "Approval Center",
     "myProfile": "My Profile",
-    "websitePublishing": "Website publishing"
+    "websitePublishing": "Website publishing",
+    "mobileNavigation": "Navigation"
   },
   "usersManagement": {
     "reportsTo": "Reports To",
@@ -8228,7 +8233,8 @@
     "loading": "Loading notifications",
     "noUnread": "You’re all caught up",
     "caughtUp": "No unread notifications.",
-    "viewAll": "Open notification inbox"
+    "viewAll": "Open notification inbox",
+    "markAllReadConfirm": "Mark all {count} unread notifications as read?"
   },
   "profileWorkspace": {
     "subtitle": "Manage your details, signature and account security. Track edits that need approval.",

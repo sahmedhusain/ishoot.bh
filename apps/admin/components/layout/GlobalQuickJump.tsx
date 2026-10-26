@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { Input, Modal } from "@platform/ui";
+import { errorMessage } from "../../lib/error-text";
 import { useRouter } from "next/navigation";
 import {
 Search,Users,
@@ -8,7 +10,7 @@ FileText,
 Briefcase,
 ArrowRight,
 Loader2,
-X, UserRound, ShoppingBag, Package, Truck, CheckSquare, ClipboardList, Gavel, Megaphone } from "lucide-react";
+UserRound, ShoppingBag, Package, Truck, CheckSquare, ClipboardList, Gavel, Megaphone } from "lucide-react";
 import { globalSearchAction } from "../../app/actions/crm";
 import type { GlobalSearchResult } from "@platform/database";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -23,6 +25,8 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
   const [selectedIndex, setSelectedIndex] = React.useState(0);
 
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const resultsId = React.useId();
+  const [error, setError] = React.useState("");
 
   // Keyboard shortcut listener (Cmd+K / Ctrl+K)
   React.useEffect(() => {
@@ -31,50 +35,37 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
         e.preventDefault();
         setIsOpen((prev) => !prev);
       }
-      if (e.key === "Escape" && isOpen) {
-        setIsOpen(false);
-      }
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  React.useEffect(() => {
+    if (!isOpen) { setQuery(""); setResults([]); setSelectedIndex(0); }
   }, [isOpen]);
 
-  // Focus input when modal opens
   React.useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 50);
-    } else {
-      setQuery("");
-      setResults([]);
-      setSelectedIndex(0);
-    }
-  }, [isOpen]);
-
-  // Debounced search query
-  React.useEffect(() => {
-    if (!query.trim() || query.trim().length < 2) {
-      setResults([]);
-      return;
-    }
-
+    let active = true;
+    setError(""); setResults([]); setSelectedIndex(0);
+    if (!isOpen || query.trim().length < 2) { setLoading(false); return; }
+    setLoading(true);
     const timer = setTimeout(async () => {
-      setLoading(true);
       try {
         const res = await globalSearchAction(query);
-        if (res.success && res.results) {
-          setResults(res.results);
-          setSelectedIndex(0);
-        }
-      } catch (err) {
-        console.error("Global search error:", err);
+        if (active && res.success) setResults(res.results);
+      } catch (failure) {
+        if (active) setError(errorMessage(failure, t, t.quickJump.searchFailed));
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     }, 200);
+    return () => { active = false; clearTimeout(timer); };
+  }, [isOpen, query, t]);
 
-    return () => clearTimeout(timer);
-  }, [query]);
+  React.useEffect(() => {
+    document.getElementById(`${resultsId}-${selectedIndex}`)?.scrollIntoView({ block: "nearest" });
+  }, [resultsId, selectedIndex, results]);
 
   const handleSelect = (result: GlobalSearchResult) => {
     setIsOpen(false);
@@ -82,6 +73,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!results.length) return;
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setSelectedIndex((prev) => (prev < results.length - 1 ? prev + 1 : 0));
@@ -135,6 +127,9 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
       {/* Topbar Trigger Button */}
       <button
         type="button"
+        aria-haspopup="dialog"
+        aria-expanded={isOpen}
+        aria-label={t.quickJump.universalSearch}
         onClick={() => setIsOpen(true)}
         className={
           className ||
@@ -150,44 +145,67 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
       </button>
 
       {/* Modal Dialog */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 modal-scrim animate-fade-in">
-          <div className="fixed inset-0" onClick={() => setIsOpen(false)} />
-
-          <div className="relative w-full max-w-xl bg-white dark:bg-surface-raised rounded-2xl border border-slate-200 dark:border-white/15 shadow-2xl overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-150">
+      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={t.quickJump.universalSearch}
+        className="max-w-xl" footer={<>
+            {/* Footer */}
+            <div className=" flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+              <span className="flex items-center gap-3">
+                <span>
+                  <kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">
+                    ↑↓
+                  </kbd>{" "}
+                  {t.quickJump.navigate}
+                </span>
+                <span>
+                  <kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">
+                    ↵
+                  </kbd>{" "}
+                  {t.quickJump.select}
+                </span>
+                <span>
+                  <kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">
+                    {t.copy.escape}</kbd>{" "}
+                  {t.actions.cancel}
+                </span>
+              </span>
+              <span className=" text-[10px] text-accent font-semibold">
+                {t.quickJump.universalSearch}
+              </span>
+            </div>        </>}>
             {/* Input Header */}
-            <div className="p-4 border-b border-slate-100 dark:border-white/10 flex items-center gap-3">
+            <div className="flex items-center gap-3">
               <Search className="w-5 h-5 text-slate-400 shrink-0" />
-              <input
+              <Input
+                role="combobox"
+                aria-label={t.quickJump.searchLabel}
+                aria-autocomplete="list"
+                aria-expanded={isOpen}
+                aria-controls={resultsId}
+                aria-activedescendant={results[selectedIndex] ? `${resultsId}-${selectedIndex}` : undefined}
                 ref={inputRef}
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder={t.quickJump.placeholder}
-                className="w-full bg-transparent text-sm sm:text-base text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
+                className="w-full min-w-0 bg-transparent text-sm sm:text-base text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
               />
               {loading && (
-                <Loader2 className="w-4 h-4 text-accent animate-spin shrink-0" />
+                <Loader2 role="status" aria-label={t.quickJump.searching} className="w-4 h-4 text-accent animate-spin shrink-0" />
               )}
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white shrink-0"
-              >
-                <X className="w-4 h-4" />
-              </button>
+
             </div>
 
+            {error && <p role="alert" className="py-3 text-sm text-rose-700 dark:text-rose-300">{error}</p>}
             {/* Results Body */}
-            <div className="max-h-80 overflow-y-auto p-2 divide-y divide-slate-100 dark:divide-white/5">
-              {!query.trim() && (
+            <div id={resultsId} role="listbox" aria-busy={loading} aria-label={t.quickJump.resultsLabel} className="max-h-80 overflow-y-auto p-2 divide-y divide-slate-100 dark:divide-white/5">
+              {query.trim().length < 2 && (
                 <div className="py-8 text-center text-xs text-slate-400 dark:text-slate-500">
                   {t.quickJump.helper}
                 </div>
               )}
 
-              {query.trim().length >= 2 && results.length === 0 && !loading && (
+              {query.trim().length >= 2 && results.length === 0 && !loading && !error && (
                 <div className="py-8 text-center text-xs text-slate-500 dark:text-slate-400">
                   {t.quickJump.noMatches}{" "}
                   <span className="font-semibold text-slate-700 dark:text-slate-300">
@@ -201,6 +219,9 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
                 return (
                   <div
                     key={`${result.category}-${result.id}`}
+                    id={`${resultsId}-${idx}`}
+                    role="option"
+                    aria-selected={isSelected}
                     onClick={() => handleSelect(result)}
                     onMouseEnter={() => setSelectedIndex(idx)}
                     className={`p-3 rounded-xl cursor-pointer flex items-center justify-between gap-3 text-xs transition-colors ${
@@ -236,34 +257,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
               })}
             </div>
 
-            {/* Footer */}
-            <div className="px-4 py-2.5 bg-slate-50 dark:bg-tone-5 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-              <span className="flex items-center gap-3">
-                <span>
-                  <kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">
-                    ↑↓
-                  </kbd>{" "}
-                  {t.quickJump.navigate}
-                </span>
-                <span>
-                  <kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">
-                    ↵
-                  </kbd>{" "}
-                  {t.quickJump.select}
-                </span>
-                <span>
-                  <kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">
-                    {t.copy.escape}</kbd>{" "}
-                  {t.actions.cancel}
-                </span>
-              </span>
-              <span className=" text-[10px] text-accent font-semibold">
-                {t.quickJump.universalSearch}
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
+      </Modal>
     </>
   );
 }
