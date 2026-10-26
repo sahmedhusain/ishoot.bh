@@ -396,17 +396,18 @@
         "name": "YouTube",
         "description": "Channel subscribers, views and video performance through the YouTube Data API.",
         "guide": {
-          "prerequisites": "A Google Cloud project with YouTube Data API v3 enabled and the public channel ID.",
-          "permissions": "A restricted API key authorized for YouTube Data API. Keep server/IP restrictions compatible with this installation.",
-          "environment": "The Data API has no separate sandbox. Test with an owned channel and monitor its project quota.",
+          "prerequisites": "A Google Cloud project with YouTube Data API v3 enabled, the public channel ID, and YouTube Analytics API enabled for owner activity.",
+          "permissions": "The public channel test uses a restricted Data API key. Private owner reports require the channel owner’s OAuth consent for youtube.readonly and yt-analytics.readonly. For automatic refresh, supply the OAuth client ID, client secret and offline refresh token together.",
           "steps": [
-            "Create the API key and find the channel ID beginning with UC.",
-            "Save the channel ID and key, enable and run Test connection.",
-            "Run Sync now to import available channel counters and uploaded videos."
+            "Create a restricted Data API key and find the channel ID beginning with UC.",
+            "For owner activity, authorize the channel owner through Google’s documented OAuth flow with both read scopes and offline access. A provider-issued owner access token works until it expires; the complete client ID/secret/refresh-token bundle refreshes during sync.",
+            "Save the channel ID and key, optionally add the owner credentials, enable and run Test connection. This connector accepts issued tokens; it does not provide a YouTube OAuth callback route.",
+            "Run Sync now. Check the separate owner-activity panel, its reported date range, timezone and last update. Owner consent must belong to the configured channel."
           ],
-          "verify": "Test connection reads one channel. Hidden subscriber totals remain unavailable; public subscriber totals can be rounded by YouTube.",
-          "errors": "Channel not found: use its channel ID rather than a handle. Forbidden/quota errors: check enabled API, key restrictions and project quota.",
-          "limits": "Owner Analytics, watch time and impressions require a separate owner OAuth integration and are not implemented. Published-date filters use UTC and do not turn lifetime video counters into period insights."
+          "verify": "Test connection reads one public channel. Sync verifies private owner access when supplied. Hidden subscriber totals remain unavailable; public subscriber totals can be rounded by YouTube. Actual zeroes are kept; empty or invalid reports are not replaced with zeroes.",
+          "errors": "Invalid key: check Data API enablement and key restrictions. Owner 401/invalid_grant: check credentials or reconnect; 403 insufficientPermissions: enable Analytics API, grant both scopes and verify channel ownership. Google quotaExceeded can be HTTP 403; wait for the shown backoff and check project quota. Provider errors are redacted before display.",
+          "limits": "Owner reports collect views, likes, comments, shares and subscribers gained/lost for 7/30/90/365-day windows ending at the latest reported day. Dates use Pacific time and may lag. Daily observations and period snapshots are retained. Reach, channel impressions, profile views and watch time are not collected by this connector; ad/card impressions are not substitutes. Published-date post filters still use UTC and lifetime counters.",
+          "environment": "These APIs have no separate sandbox. Start with an owned test channel and a Google OAuth test user; public apps can require verification. Monitor the project quota."
         }
       },
       "tiktok": {
@@ -719,7 +720,9 @@
       "accountEntity": "Account entity",
       "accountCountryCode": "Account country code",
       "apiSecret": "API secret",
-      "apiPrefix": "API account prefix (optional)"
+      "apiPrefix": "API account prefix (optional)",
+      "ownerAccessToken": "Owner analytics access token (optional)",
+      "refreshToken": "OAuth refresh token (optional)"
     },
     "status": {
       "healthy": "Connected",
@@ -831,7 +834,9 @@
       "accountPin": "Paste the account PIN",
       "accountEntity": "Account entity code issued by Aramex",
       "accountCountryCode": "Two-letter account country code, such as BH",
-      "apiSecret": "Paste the MyDHL API secret"
+      "apiSecret": "Paste the MyDHL API secret",
+      "ownerAccessToken": "Owner OAuth token with youtube.readonly and yt-analytics.readonly",
+      "refreshToken": "Refresh token issued with offline owner consent"
     }
   },
   "audit": {
@@ -3087,9 +3092,40 @@
       "unscheduled": "Not scheduled",
       "all": "All"
     },
-    "snapshotScope": "Cumulative readings from synced posts published in the selected period. Days use UTC. — means the metric is unavailable.",
-    "partial": "Sync reached its page limit. These readings may not include every post; earlier snapshots are retained.",
-    "reconnect": "Reconnect account"
+    "snapshotScope": "Post charts use cumulative counters on posts published in the selected UTC calendar window. Available owner activity appears separately with its own reporting dates and timezone.",
+    "partial": "Some readings were unavailable or limited by the provider. Other verified readings and earlier snapshots are retained. Check report status, permissions and provider limits.",
+    "reconnect": "Reconnect account",
+    "owner": {
+      "title": "Owner activity — {platform}",
+      "scope": "Activity reported by the owner analytics API, separate from lifetime post counters. Reporting days follow Pacific time and can lag behind today. Reach, impressions and profile views are not collected by this YouTube connector.",
+      "period": "Reporting period:",
+      "pacific": "Pacific time",
+      "unavailable": "Not available with this connection",
+      "checked": "Last checked",
+      "configure": "Configure owner access",
+      "metrics": {
+        "views": "Views",
+        "reach": "Reach",
+        "impressions": "Impressions",
+        "profile_views": "Profile views",
+        "likes": "Likes",
+        "comments": "Comments",
+        "shares": "Shares",
+        "followers_gained": "Subscribers gained",
+        "followers_lost": "Subscribers lost"
+      },
+      "statuses": {
+        "auth_required": "Owner analytics needs an owner OAuth access token, or a complete client ID, client secret and refresh token bundle. Public API-key statistics remain separate.",
+        "ready": "Owner activity is available.",
+        "no_data": "The owner API has not returned activity for this period yet. No zeroes are assumed.",
+        "permission_required": "Owner analytics permission is missing. Check the channel owner and consent scopes.",
+        "reconnect": "Owner authorization needs attention. Check the OAuth credentials or reconnect the owner account.",
+        "rate_limited": "The owner API rate limit was reached. Wait before refreshing again.",
+        "error": "Owner activity could not be refreshed. Your public statistics remain separate."
+      },
+      "providerResponse": "Provider response:",
+      "retryAfter": "Refresh after"
+    }
   },
   "adminLoginForm": {
     "forgotPassword": "Forgot password?",
@@ -6262,7 +6298,11 @@
       "courierBookingUncertain": "The carrier booking needs reconciliation. Check the shipment reference with the original carrier and record its tracking number. Do not create another booking unless the carrier confirms none exists.",
       "paymentNeedsReview": "The gateway payment needs review. Its captured reference, amount and currency must match this attempt before crediting the order. Do not charge the customer again; check the provider record and recheck the payment.",
       "paymentReferenceAlreadyUsed": "This gateway payment reference is already associated with another payment attempt. Reconcile it before changing the order.",
-      "paymentCurrencyPrecisionInvalid": "This amount has more decimal places than the payment currency supports. Choose a supported amount or another payment method."
+      "paymentCurrencyPrecisionInvalid": "This amount has more decimal places than the payment currency supports. Choose a supported amount or another payment method.",
+      "ownerRefreshCredentialsRequired": "For automatic owner analytics refresh, enter the OAuth client ID, client secret and refresh token together.",
+      "socialSyncInProgress": "This integration is already syncing. Try again shortly.",
+      "socialSyncConfigurationChanged": "The integration settings changed. Retry using the current configuration.",
+      "socialSyncFailed": "Could not sync this integration."
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",

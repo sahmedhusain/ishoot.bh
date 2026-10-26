@@ -46,3 +46,18 @@ test.each([
   await expect(saveIntegrationSettings(provider, { isActive: provider === "google_signin", values }, "actor")).rejects.toThrow();
   expect(storage.upsert).not.toHaveBeenCalled();
 });
+
+test("YouTube owner refresh bundles are complete when active and tokens stay bounded", async () => {
+  vi.stubEnv("ENCRYPTION_KEY", "01234567890123456789012345678901");
+  try {
+    const base = { channelId: "UC1234567890123456789012", apiKey: "test-key" };
+    await expect(saveIntegrationSettings("youtube", { isActive: true, values: { ...base, clientId: "client" } }, "actor")).rejects.toThrow(/client ID, client secret and refresh token/);
+    expect(storage.upsert).not.toHaveBeenCalled();
+    await saveIntegrationSettings("youtube", { isActive: false, values: { clientId: "client" } }, "actor");
+    await saveIntegrationSettings("youtube", { isActive: true, values: { ...base, ownerAccessToken: "a".repeat(4096) } }, "actor");
+    expect(storage.upsert).toHaveBeenCalledTimes(2);
+    expect(storage.upsert.mock.calls[1][0].create.credentials).not.toContain("a".repeat(4096));
+    await expect(saveIntegrationSettings("youtube", { isActive: true, values: { ...base, ownerAccessToken: "a".repeat(4097) } }, "actor")).rejects.toThrow();
+    expect(storage.upsert).toHaveBeenCalledTimes(2);
+  } finally { vi.unstubAllEnvs(); }
+});

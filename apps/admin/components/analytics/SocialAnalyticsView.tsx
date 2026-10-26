@@ -26,6 +26,7 @@ import {
   SOCIAL_PLAN_STATUSES,
   sumSocialCounts,
   SOCIAL_PLATFORM_IDS,
+  SOCIAL_OWNER_METRIC_IDS,
   type SocialPlanStatus,
   type SocialPlatformId,
 } from "@platform/database/constants/integrations";
@@ -535,6 +536,36 @@ export function SocialAnalyticsView({
               </Card>
             ))}
           </div>
+
+          {analytics.ownerInsights.map(owner => (
+            <Card key={owner.platform} data-testid={`social-owner-${owner.platform}`} className="space-y-4 p-4 sm:p-5 dark:bg-surface-raised">
+              <h2 className="text-sm font-semibold text-slate-900 dark:text-white">{formatMessage(s.owner.title, { platform: s.platforms[owner.platform] })}</h2>
+              <p className="text-xs text-ink-muted">{s.owner.scope}</p>
+              {owner.snapshot ? <>
+                <p className="flex flex-wrap items-center gap-2 text-xs text-ink-muted" data-testid="owner-period">
+                  {s.owner.period}
+                  <DateDisplay date={`${owner.snapshot.periodStart}T00:00:00`} locale={locale} />
+                  <span aria-hidden>–</span>
+                  <DateDisplay date={`${owner.snapshot.periodEnd}T00:00:00`} locale={locale} />
+                  <span>{owner.snapshot.timeZone === "America/Los_Angeles" ? s.owner.pacific : owner.snapshot.timeZone}</span>
+                </p>
+                <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {SOCIAL_OWNER_METRIC_IDS.map(metric => <div key={metric} className="rounded-xl border border-ink/10 p-3" data-testid={`owner-metric-${metric}`}>
+                    <dt className="text-xs text-ink-muted">{s.owner.metrics[metric]}</dt>
+                    <dd className="mt-1 text-lg font-semibold tabular-nums" dir="ltr">{number.full(owner.snapshot!.metrics[metric] ?? null)}</dd>
+                    {owner.snapshot!.metrics[metric] == null && <p className="mt-1 text-[11px] text-ink-muted">{s.owner.unavailable}</p>}
+                  </div>)}
+                </dl>
+                <p className="text-xs text-ink-muted">{s.updated} <DateDisplay date={owner.snapshot.recordedAt} locale={locale} format="time" /></p>
+              </> : <>
+                <p role="status" className="text-sm text-ink-muted">{s.owner.statuses[owner.status]}</p>
+                {owner.error && <p className="text-xs text-rose-700 dark:text-rose-300">{s.owner.providerResponse} <bdi dir="ltr">{owner.error}</bdi></p>}
+                {owner.retryAfterAt && <p className="text-xs text-ink-muted">{s.owner.retryAfter} <DateDisplay date={owner.retryAfterAt} locale={locale} format="time" /></p>}
+                {owner.checkedAt && <p className="text-xs text-ink-muted">{s.owner.checked} <DateDisplay date={owner.checkedAt} locale={locale} format="time" /></p>}
+                {can("settings", "write") && <Link href={ROUTES.settings.integrations} className="inline-block text-xs font-semibold text-primary underline dark:text-accent">{s.owner.configure}</Link>}
+              </>}
+            </Card>
+          ))}
 
           <div className="grid gap-4 lg:grid-cols-3">
             <Card className="space-y-3 p-4 sm:p-5 lg:col-span-2 dark:bg-surface-raised">

@@ -168,65 +168,67 @@ whatsapp_business_management لبيانات الرقم وwhatsapp_business_messa
 
 **Before you start**
 
-A Google Cloud project with YouTube Data API v3 enabled and the public channel ID.
+A Google Cloud project with YouTube Data API v3 enabled, the public channel ID, and YouTube Analytics API enabled for owner activity.
 
 **Permissions**
 
-A restricted API key authorized for YouTube Data API. Keep server/IP restrictions compatible with this installation.
+The public channel test uses a restricted Data API key. Private owner reports require the channel owner’s OAuth consent for youtube.readonly and yt-analytics.readonly. For automatic refresh, supply the OAuth client ID, client secret and offline refresh token together.
 
 **Test and live environments**
 
-The Data API has no separate sandbox. Test with an owned channel and monitor its project quota.
+These APIs have no separate sandbox. Start with an owned test channel and a Google OAuth test user; public apps can require verification. Monitor the project quota.
 
 **Setup steps**
 
-1. Create the API key and find the channel ID beginning with UC.
-2. Save the channel ID and key, enable and run Test connection.
-3. Run Sync now to import available channel counters and uploaded videos.
+1. Create a restricted Data API key and find the channel ID beginning with UC.
+2. For owner activity, authorize the channel owner through Google’s documented OAuth flow with both read scopes and offline access. A provider-issued owner access token works until it expires; the complete client ID/secret/refresh-token bundle refreshes during sync.
+3. Save the channel ID and key, optionally add the owner credentials, enable and run Test connection. This connector accepts issued tokens; it does not provide a YouTube OAuth callback route.
+4. Run Sync now. Check the separate owner-activity panel, its reported date range, timezone and last update. Owner consent must belong to the configured channel.
 
 **What the test checks**
 
-Test connection reads one channel. Hidden subscriber totals remain unavailable; public subscriber totals can be rounded by YouTube.
+Test connection reads one public channel. Sync verifies private owner access when supplied. Hidden subscriber totals remain unavailable; public subscriber totals can be rounded by YouTube. Actual zeroes are kept; empty or invalid reports are not replaced with zeroes.
 
 **Common errors**
 
-Channel not found: use its channel ID rather than a handle. Forbidden/quota errors: check enabled API, key restrictions and project quota.
+Invalid key: check Data API enablement and key restrictions. Owner 401/invalid_grant: check credentials or reconnect; 403 insufficientPermissions: enable Analytics API, grant both scopes and verify channel ownership. Google quotaExceeded can be HTTP 403; wait for the shown backoff and check project quota. Provider errors are redacted before display.
 
 **Current limits**
 
-Owner Analytics, watch time and impressions require a separate owner OAuth integration and are not implemented. Published-date filters use UTC and do not turn lifetime video counters into period insights.
+Owner reports collect views, likes, comments, shares and subscribers gained/lost for 7/30/90/365-day windows ending at the latest reported day. Dates use Pacific time and may lag. Daily observations and period snapshots are retained. Reach, channel impressions, profile views and watch time are not collected by this connector; ad/card impressions are not substitutes. Published-date post filters still use UTC and lifetime counters.
 
 ### العربية
 
 **قبل البدء**
 
-مشروع Google Cloud مفعّل عليه YouTube Data API v3 ومعرّف القناة العامة.
+مشروع Google Cloud مفعّل عليه YouTube Data API v3 ومعرّف القناة العامة، مع تفعيل YouTube Analytics API لنشاط المالك.
 
 **الصلاحيات**
 
-مفتاح API مقيّد بخدمة YouTube Data API مع قيود خادم أو IP متوافقة مع هذا التثبيت.
+يستخدم اختبار القناة العامة مفتاح Data API مقيّدًا. تتطلب تقارير المالك الخاصة موافقة مالك القناة عبر OAuth لنطاقَي youtube.readonly وyt-analytics.readonly. للتحديث التلقائي، أدخل معرّف عميل OAuth وسرّه ورمز التحديث للوصول دون اتصال معًا.
 
 **بيئتا الاختبار والتشغيل الفعلي**
 
-لا توجد بيئة اختبار منفصلة لـ Data API. ابدأ بقناة تملكها وراقب حصة المشروع.
+لا توجد بيئة اختبار منفصلة لهذه الواجهات. ابدأ بقناة اختبار تملكها ومستخدم اختبار في Google OAuth؛ وقد تحتاج التطبيقات العامة إلى التحقّق. راقب حصة المشروع.
 
 **خطوات الإعداد**
 
-1. أنشئ المفتاح وابحث عن معرّف القناة الذي يبدأ بـ UC.
-2. احفظ المعرّف والمفتاح وفعّل ثم اختبر الاتصال.
-3. زامن الآن لجلب عدادات القناة ومقاطعها المتاحة.
+1. أنشئ مفتاح Data API مقيّدًا وابحث عن معرّف القناة الذي يبدأ بـ UC.
+2. لنشاط المالك، فوّض مالك القناة باتّباع تدفّق OAuth الموثّق من Google مع نطاقَي القراءة والوصول دون اتصال. يعمل رمز الوصول الصادر من المزوّد حتى انتهاء صلاحيته؛ وتتيح بيانات معرّف العميل وسرّه ورمز التحديث معًا التجديد أثناء المزامنة.
+3. احفظ معرّف القناة والمفتاح، وأضف بيانات المالك اختياريًا ثم فعّل واختبر الاتصال. يقبل هذا الموصّل الرموز الصادرة مسبقًا ولا يوفّر مسار ردّ OAuth لـ YouTube.
+4. اختر المزامنة الآن وراجع لوحة نشاط المالك المنفصلة وفترة بياناتها وتوقيتها وآخر تحديث. يجب أن تكون الموافقة لمالك القناة المحدّدة.
 
-**ما الذي يفحصه الاختبار**
+**ما الذي يتحقّق منه الاختبار**
 
-يقرأ الاختبار قناة واحدة. تبقى أعداد المشتركين المخفية غير متاحة، وقد يقرّب يوتيوب الأعداد العامة.
+يقرأ اختبار الاتصال قناة عامة واحدة. وتتحقّق المزامنة من وصول المالك الخاص عند إدخاله. يبقى عدد المشتركين المخفي غير متاح وقد يقرّب YouTube العدد العام. تُحفظ القيم الصفرية الفعلية ولا تُستبدل التقارير الفارغة أو غير الصالحة بأصفار.
 
-**الأخطاء الشائعة**
+**أخطاء شائعة**
 
-القناة غير موجودة: استخدم المعرّف بدل اسم المستخدم. الرفض أو نفاد الحصة: راجع تفعيل الخدمة وقيود المفتاح وحصة المشروع.
+المفتاح غير صالح: تحقّق من تفعيل Data API وقيود المفتاح. خطأ المالك 401 أو invalid_grant: راجع البيانات أو أعد الربط؛ وخطأ 403 insufficientPermissions: فعّل Analytics API وامنح النطاقَين وتحقّق من ملكية القناة. قد يأتي quotaExceeded من Google برمز HTTP 403؛ انتظر المهلة المعروضة وراجع حصة المشروع. تُحجب الأسرار من أخطاء المزوّد قبل عرضها.
 
 **الحدود الحالية**
 
-تحليلات المالك ووقت المشاهدة ومرات الظهور تتطلب OAuth منفصلًا وغير مطبقة. تصفية تاريخ النشر بتوقيت UTC لا تحول عدادات المقطع التراكمية إلى إحصاءات فترة.
+تجمع تقارير المالك المشاهدات والإعجابات والتعليقات والمشاركات والمشتركين الجدد والمفقودين لفترات 7/30/90/365 يومًا تنتهي بآخر يوم مُبلّغ عنه. تتبع التواريخ توقيت المحيط الهادئ وقد تتأخر. تُحفظ القراءات اليومية ولقطات الفترات. لا يجمع هذا الموصّل الوصول ومرّات ظهور القناة وزيارات الملف ووقت المشاهدة؛ ولا تُستخدم مرّات ظهور الإعلانات أو البطاقات بدلًا منها. تبقى مرشّحات تاريخ المنشورات بتوقيت UTC والعدّادات تراكمية.
 
 ## TikTok (`tiktok`)
 

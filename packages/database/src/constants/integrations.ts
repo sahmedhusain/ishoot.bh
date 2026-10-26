@@ -7,6 +7,7 @@ export interface IntegrationField {
   key: string;
   secret?: boolean;
   required?: boolean;
+  maxLength?: number;
 }
 
 export interface IntegrationProvider {
@@ -54,6 +55,10 @@ export const INTEGRATION_PROVIDERS: readonly IntegrationProvider[] = [
     fields: [
       { key: "channelId", required: true },
       { key: "apiKey", secret: true, required: true },
+      { key: "ownerAccessToken", secret: true, maxLength: 4096 },
+      { key: "clientId" },
+      { key: "clientSecret", secret: true },
+      { key: "refreshToken", secret: true, maxLength: 4096 },
     ],
     docsUrl: "https://developers.google.com/youtube/v3/getting-started",
   },
@@ -235,6 +240,9 @@ export const INTEGRATION_PROVIDERS: readonly IntegrationProvider[] = [
     docsUrl: "https://www.smsaexpress.com/",
   },
 ];
+
+export const SOCIAL_OWNER_METRIC_IDS = ["views", "reach", "impressions", "profile_views", "likes", "comments", "shares", "followers_gained", "followers_lost"] as const;
+export type SocialOwnerMetricId = (typeof SOCIAL_OWNER_METRIC_IDS)[number];
 
 export const integrationProvider = (id: string) => INTEGRATION_PROVIDERS.find((provider) => provider.id === id);
 

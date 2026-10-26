@@ -338,6 +338,9 @@ function IntegrationCard({
               )}
             </dl>
           )}
+          {view.isActive && view.config.lastSyncPartial === true && (
+            <p role="status" className="mt-2 text-xs text-amber-700 dark:text-amber-300">{t.socialAnalytics.partial}</p>
+          )}
           {view.lastError && view.isActive && (
             <p
               className="mt-2 rounded-lg bg-rose-500/10 px-2.5 py-1.5 text-[11px] text-rose-700 dark:text-rose-300"
@@ -560,7 +563,7 @@ function IntegrationCard({
                       field.required &&
                       !(field.secret && secret?.set)
                     }
-                    maxLength={2000}
+                    maxLength={field.maxLength ?? 2000}
                     aria-invalid={!!fieldErrors[field.key]}
                     aria-describedby={`${id}-help${fieldErrors[field.key] ? ` ${id}-error` : ""}`}
                     placeholder={

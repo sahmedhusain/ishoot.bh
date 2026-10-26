@@ -1,4 +1,5 @@
 import { serverTemplates, formatMessage, serverMessages } from "@platform/locales";
+import { randomUUID } from "node:crypto";
 
 import { db, runAtomicMutation } from "../db";
 import type { Prisma } from "@prisma/client";
@@ -89,7 +90,7 @@ export async function saveIntegrationSettings(providerId: string, input: SaveInt
   const next: Credentials = {};
   for (const field of provider.fields) {
     const incoming = (input.values[field.key] ?? "").trim();
-    if (incoming.length > 2000) throw new Error(serverMessages.aValueIsTooLong);
+    if (incoming.length > (field.maxLength ?? 2000)) throw new Error(serverMessages.aValueIsTooLong);
     const value = field.secret && !incoming ? current[field.key] ?? "" : incoming;
     if (value) next[field.key] = value;
   }
@@ -108,6 +109,7 @@ export async function saveIntegrationSettings(providerId: string, input: SaveInt
     const missing = provider.fields.filter((field) => field.required && !next[field.key]);
     if (missing.length) throw new Error(formatMessage(serverTemplates.fillIn0BeforeTurningThisOn, { 0: missing.map((field) => field.key).join(", ") }));
   }
+  if (input.isActive && provider.id === "youtube" && [next.clientId, next.clientSecret, next.refreshToken].some(Boolean) && ![next.clientId, next.clientSecret, next.refreshToken].every(Boolean)) throw new Error(serverMessages.ownerRefreshCredentialsRequired);
   if (input.isActive && (provider.id === "google_signin" || provider.id === "apple_signin")) {
     const check = checkSignInCredentials(provider.id === "google_signin" ? "google" : "apple", next);
     if (!check.ok) throw new Error(check.error ?? serverMessages.providerConnectionFailed);
@@ -120,10 +122,14 @@ export async function saveIntegrationSettings(providerId: string, input: SaveInt
       ...((existing?.config as Record<string, unknown>) ?? {}), ...input.config,
       availableMetrics: changed ? {} : (existing?.config as Record<string, unknown> | null)?.availableMetrics ?? {},
       socialAccounts: changed ? {} : (existing?.config as Record<string, unknown> | null)?.socialAccounts ?? {},
+      ownerInsights: changed ? {} : (existing?.config as Record<string, unknown> | null)?.ownerInsights ?? {},
       configuredPlatforms: provider.platforms.filter(platform => platform !== "instagram" || !!next.instagramAccountId),
       needsReconnect: changed ? false : (existing?.config as Record<string, unknown> | null)?.needsReconnect ?? false,
+      retryAfterAt: changed ? null : (existing?.config as Record<string, unknown> | null)?.retryAfterAt ?? null,
+      lastSyncPartial: changed ? false : (existing?.config as Record<string, unknown> | null)?.lastSyncPartial ?? false,
     })) as Prisma.InputJsonObject,
     updatedById: actorId,
+    syncLeaseToken: null, syncLeaseUntil: null,
     // New credentials have not been proven yet.
     ...(changed ? { healthStatus: "unknown", lastError: null, accountName: null } : {}),
   };
@@ -139,7 +145,7 @@ export async function unlinkIntegrationSettings(providerId: string, actorId: str
   if (!provider) throw new Error(serverMessages.unknownIntegration);
   await db.integrationSetting.upsert({
     where: { provider: provider.id },
-    update: { isActive: false, credentials: null, lastSyncedAt: null, config: {}, healthStatus: "unknown", lastError: null, accountName: null, updatedById: actorId },
+    update: { isActive: false, credentials: null, lastSyncedAt: null, config: {}, healthStatus: "unknown", lastError: null, accountName: null, updatedById: actorId, syncLeaseToken: null, syncLeaseUntil: null },
     create: { provider: provider.id, isActive: false, updatedById: actorId },
   });
 }
@@ -151,8 +157,8 @@ export async function testIntegration(providerId: string) {
   const record = await db.integrationSetting.findUnique({ where: { provider: provider.id } });
   if (!record?.credentials) throw new Error(serverMessages.saveTheCredentialsFirst);
   const result = await checkConnection(provider.id, readCredentials(provider.id, record.credentials));
-  await db.integrationSetting.update({
-    where: { provider: provider.id },
+  const stored = await db.integrationSetting.updateMany({
+    where: { provider: provider.id, credentials: record.credentials, isActive: record.isActive },
     data: {
       healthStatus: result.ok ? result.validation === "format" ? "configured" : "healthy" : "error",
       lastError: result.ok ? null : result.error ?? "Connection check failed",
@@ -160,6 +166,7 @@ export async function testIntegration(providerId: string) {
       lastCheckedAt: new Date(),
     },
   });
+  if (!stored.count) throw new Error(serverMessages.socialSyncConfigurationChanged);
   return result;
 }
 
@@ -171,10 +178,32 @@ export async function syncSocialIntegration(providerId: string, now = new Date()
   if (!record?.isActive || !record.credentials) throw new Error(serverMessages.turnThisIntegrationOnFirst);
   const retryAfterAt = (record.config as Record<string, unknown> | null)?.retryAfterAt;
   if (typeof retryAfterAt === "string" && new Date(retryAfterAt) > now) throw new Error(formatMessage(serverTemplates.providerSyncWaiting, { time: retryAfterAt }));
+  const leaseToken = randomUUID();
+  const claimed = await db.integrationSetting.updateMany({
+    where: { provider: provider.id, isActive: true, credentials: record.credentials, OR: [{ syncLeaseUntil: null }, { syncLeaseUntil: { lte: now } }] },
+    data: { syncLeaseToken: leaseToken, syncLeaseUntil: new Date(now.getTime() + 600_000) },
+  });
+  if (!claimed.count) throw new ProviderError(serverMessages.socialSyncInProgress, 409);
   try {
-    const snapshot = await fetchSocialSnapshot(provider.id, readCredentials(provider.id, record.credentials));
+    const credentials = readCredentials(provider.id, record.credentials);
+    const snapshot = await fetchSocialSnapshot(provider.id, credentials, now);
     const config = (record.config as Record<string, unknown> | null) ?? {};
     await runAtomicMutation(async () => {
+      const stored = await db.integrationSetting.updateMany({
+        where: { provider: provider.id, isActive: true, credentials: record.credentials, syncLeaseToken: leaseToken },
+        data: {
+          healthStatus: "healthy", lastError: null, accountName: snapshot.accountName ?? record.accountName, lastSyncedAt: now, lastCheckedAt: now,
+          syncLeaseToken: null, syncLeaseUntil: null,
+          ...(snapshot.refreshedCredentials ? { credentials: encryptIntegrationCredentials({ ...credentials, ...snapshot.refreshedCredentials }) } : {}),
+          config: JSON.parse(JSON.stringify({ ...config, socialAccounts: snapshot.accounts,
+            availableMetrics: Object.fromEntries(Object.keys(snapshot.accounts).map(platform => [platform, snapshot.metrics.filter(metric => metric.platform === platform && metric.value != null).map(metric => metric.metricType)])),
+            ownerInsights: snapshot.ownerInsights ?? {}, needsReconnect: false,
+            retryAfterAt: Object.values(snapshot.ownerInsights ?? {}).map(owner => owner?.retryAfterAt).filter((time): time is string => !!time).sort().at(-1) ?? null,
+            lastSyncPartial: snapshot.partial ?? false,
+          })) as Prisma.InputJsonObject,
+        },
+      });
+      if (!stored.count) throw new ProviderError(serverMessages.socialSyncConfigurationChanged, 409);
       for (const post of snapshot.posts) {
         const sourceAccountId = snapshot.accounts[post.platform];
         if (!sourceAccountId || !Number.isFinite(post.publishedAt.getTime())) continue;
@@ -202,27 +231,32 @@ export async function syncSocialIntegration(providerId: string, now = new Date()
         sourceProvider: provider.id, sourceAccountId: snapshot.accounts[metric.platform]!,
       }]);
       if (readings.length) await db.socialMetric.createMany({ data: readings });
-      await db.integrationSetting.update({
-        where: { provider: provider.id },
-        data: { healthStatus: "healthy", lastError: null, accountName: snapshot.accountName ?? record.accountName, lastSyncedAt: now, lastCheckedAt: now,
-          config: { ...config, socialAccounts: snapshot.accounts, availableMetrics: Object.fromEntries(Object.keys(snapshot.accounts).map(platform => [platform, snapshot.metrics.filter(metric => metric.platform === platform && metric.value != null).map(metric => metric.metricType)])), needsReconnect: false, retryAfterAt: null, lastSyncPartial: snapshot.partial ?? false } as Prisma.InputJsonObject,
-        },
-      });
+      const insights = (snapshot.ownerReadings ?? []).flatMap(reading => snapshot.accounts[reading.platform] ? [{ ...reading, sourceProvider: provider.id, sourceAccountId: snapshot.accounts[reading.platform]!, recordedAt: now.toISOString() }] : []);
+      // One bounded write keeps a year of daily observations inside the transaction timeout.
+      if (insights.length) await db.$executeRaw`
+        INSERT INTO "SocialInsightSnapshot" ("id", "platform", "sourceProvider", "sourceAccountId", "periodDays", "periodStart", "periodEnd", "timeZone", "metrics", "nativeMetrics", "recordedAt")
+        SELECT gen_random_uuid()::text, x.platform, x."sourceProvider", x."sourceAccountId", x."periodDays", x."periodStart", x."periodEnd", x."timeZone", x.metrics, x."nativeMetrics", x."recordedAt"
+        FROM jsonb_to_recordset(${JSON.stringify(insights)}::jsonb) AS x(platform text, "sourceProvider" text, "sourceAccountId" text, "periodDays" integer, "periodStart" date, "periodEnd" date, "timeZone" text, metrics jsonb, "nativeMetrics" jsonb, "recordedAt" timestamp(3))
+        ON CONFLICT ("platform", "sourceProvider", "sourceAccountId", "periodDays", "periodStart", "periodEnd") DO UPDATE
+        SET "metrics" = EXCLUDED."metrics", "nativeMetrics" = EXCLUDED."nativeMetrics", "timeZone" = EXCLUDED."timeZone", "recordedAt" = EXCLUDED."recordedAt"
+      `;
     });
     return { posts: snapshot.posts.length, metrics: snapshot.metrics.length };
   } catch (error) {
-    const message = error instanceof ProviderError ? error.message : "Sync failed";
-    await db.integrationSetting.update({
-      where: { provider: provider.id },
-      data: { healthStatus: "error", lastError: message, lastCheckedAt: now, config: {
-        ...((record.config as Record<string, unknown> | null) ?? {}),
-        needsReconnect: error instanceof ProviderError && error.status === 401,
-        retryAfterAt: error instanceof ProviderError && error.status === 429 ? new Date(now.getTime() + Math.max(60, error.retryAfter ?? 60) * 1000).toISOString() : null,
-      } as Prisma.InputJsonObject },
+    const message = error instanceof ProviderError ? error.message : serverMessages.socialSyncFailed;
+    await runAtomicMutation(async () => {
+      const failed = await db.integrationSetting.updateMany({
+        where: { provider: provider.id, credentials: record.credentials, syncLeaseToken: leaseToken },
+        data: { healthStatus: "error", lastError: message, lastCheckedAt: now, config: {
+          ...((record.config as Record<string, unknown> | null) ?? {}),
+          needsReconnect: error instanceof ProviderError && error.status === 401,
+          retryAfterAt: error instanceof ProviderError && error.status === 429 ? new Date(now.getTime() + Math.max(60, error.retryAfter ?? 60) * 1000).toISOString() : null,
+        } as Prisma.InputJsonObject, syncLeaseToken: null, syncLeaseUntil: null },
+      });
+      // Mark the latest numbers as stale so dashboards do not present them as current.
+      if (failed.count) await db.socialMetric.updateMany({ where: { sourceProvider: provider.id, platform: { in: provider.platforms } }, data: { isStale: true } });
     });
-    // Mark the latest numbers as stale so dashboards do not present them as current.
-    await db.socialMetric.updateMany({ where: { platform: { in: provider.platforms } }, data: { isStale: true } });
-    throw new Error(message);
+    throw error instanceof ProviderError ? error : new Error(message);
   }
 }
 
@@ -235,22 +269,19 @@ export async function syncDueSocialIntegrations(maxAgeHours = 6, now = new Date(
       OR: [{ lastSyncedAt: null }, { lastSyncedAt: { lt: new Date(now.getTime() - maxAgeHours * 3_600_000) } }],
       AND: [{ OR: [{ lastCheckedAt: null }, { lastCheckedAt: { lt: new Date(now.getTime() - 300_000) } }] }],
     },
-    select: { provider: true, config: true, lastCheckedAt: true },
+    select: { provider: true, config: true },
   });
   let synced = 0;
   let failed = 0;
-  for (const { provider, config, lastCheckedAt } of due) {
+  for (const { provider, config } of due) {
     const retryAfterAt = (config as Record<string, unknown> | null)?.retryAfterAt;
     if (typeof retryAfterAt === "string" && new Date(retryAfterAt) > now) continue;
     if ((config as Record<string, unknown> | null)?.needsReconnect === true) continue;
-    // Claim a short lease so cron and the standalone maintenance worker do not sync the same account together.
-    const claimed = await db.integrationSetting.updateMany({ where: { provider, lastCheckedAt }, data: { lastCheckedAt: now } });
-    if (!claimed.count) continue;
     try {
       await syncSocialIntegration(provider, now);
       synced++;
-    } catch {
-      failed++;
+    } catch (error) {
+      if (!(error instanceof ProviderError && error.status === 409)) failed++;
     }
   }
   return { synced, failed };

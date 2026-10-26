@@ -1,5 +1,5 @@
 import { serverTemplates, serverMessages, formatMessage } from "@platform/locales";
-import { integrationProvider, type IntegrationProviderId, type SocialPlatformId } from "../constants/integrations";
+import { integrationProvider, type IntegrationProviderId, type SocialPlatformId, type SocialOwnerMetricId } from "../constants/integrations";
 
 /**
  * Thin clients for each provider's public API. Tokens go in headers only, so URLs and error messages never
@@ -48,6 +48,29 @@ export interface SocialSnapshot {
   partial?: boolean;
   metrics: FetchedMetric[];
   posts: FetchedPost[];
+  ownerInsights?: Partial<Record<SocialPlatformId, OwnerInsightState>>;
+  ownerReadings?: OwnerInsightReading[];
+  /** Server-only; sync persists these encrypted and returns counts, never the snapshot. */
+  refreshedCredentials?: Credentials;
+}
+
+export type OwnerInsightStatus = "auth_required" | "ready" | "no_data" | "permission_required" | "reconnect" | "rate_limited" | "error";
+interface OwnerInsightState {
+  status: OwnerInsightStatus;
+  timeZone: string;
+  availablePeriods: number[];
+  error?: string;
+  retryAfterAt?: string;
+  periodErrors?: Record<string, { status: OwnerInsightStatus; error?: string }>;
+}
+interface OwnerInsightReading {
+  platform: SocialPlatformId;
+  periodDays: number;
+  periodStart: string;
+  periodEnd: string;
+  timeZone: string;
+  metrics: Partial<Record<SocialOwnerMetricId, number>>;
+  nativeMetrics: Partial<Record<SocialOwnerMetricId, string>>;
 }
 
 const GRAPH = "https://graph.facebook.com/v21.0";
@@ -70,18 +93,19 @@ function safeProviderMessage(message: string, credentials: Credentials): string 
 }
 
 const n = (value: unknown) => {
-  if (value == null || typeof value === "boolean" || (typeof value === "string" && !value.trim())) return null;
+  if ((typeof value !== "number" && typeof value !== "string") || (typeof value === "string" && !/^\d+$/.test(value.trim()))) return null;
   const parsed = Number(value);
   return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : null;
 };
 
-async function request<T>(url: string, init: RequestInit & { token?: string } = {}): Promise<T> {
-  const headers = new Headers(init.headers);
-  if (init.token) headers.set("Authorization", `Bearer ${init.token}`);
-  if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+async function request<T>(url: string, init: RequestInit & { token?: string; secrets?: Credentials } = {}): Promise<T> {
+  const { token, secrets, ...options } = init;
+  const headers = new Headers(options.headers);
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  if (options.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
   let response: Response;
   try {
-    response = await fetch(url, { ...init, headers, signal: AbortSignal.timeout(TIMEOUT_MS), cache: "no-store" });
+    response = await fetch(url, { ...options, headers, signal: AbortSignal.timeout(TIMEOUT_MS), cache: "no-store" });
   } catch (error) {
     throw new ProviderError(error instanceof Error && error.name === "TimeoutError" ? serverMessages.providerTimeout : serverMessages.providerUnreachable);
   }
@@ -93,13 +117,14 @@ async function request<T>(url: string, init: RequestInit & { token?: string } = 
     body = null;
   }
   if (!response.ok) {
-    const error = (body as { error?: { code?: number } } | null)?.error;
-    const status = error?.code === 190 ? 401 : response.status;
+    const error = (body as { error?: { code?: number; errors?: Array<{ reason?: string }> } } | null)?.error;
+    const quotaExceeded = response.status === 403 && Array.isArray(error?.errors) && error.errors.some(detail => detail?.reason === "quotaExceeded");
+    const status = error?.code === 190 ? 401 : quotaExceeded ? 429 : response.status;
     const retry = response.headers.get("retry-after");
     const delay = retry ? (/^\d+$/.test(retry) ? Number(retry) : (Date.parse(retry) - Date.now()) / 1000) : NaN;
     const retryAfter = Number.isFinite(delay) ? Math.min(86400, Math.max(0, Math.ceil(delay))) : undefined;
     const message = providerMessage(body) ?? `Provider returned HTTP ${response.status}`;
-    throw new ProviderError(safeProviderMessage(message, { token: init.token ?? "", apiKey: headers.get("X-Goog-Api-Key") ?? "" }), status, retryAfter);
+    throw new ProviderError(safeProviderMessage(message, { ...secrets, token: token ?? "", apiKey: headers.get("X-Goog-Api-Key") ?? "" }), status, retryAfter);
   }
   return body as T;
 }
@@ -109,11 +134,11 @@ function providerMessage(body: unknown): string | null {
   if (!body || typeof body !== "object") return null;
   const b = body as Record<string, unknown>;
   const error = b.error as Record<string, unknown> | string | undefined;
-  if (typeof error === "string") return error.slice(0, 300);
-  if (error && typeof error.message === "string") return error.message.slice(0, 300);
-  if (typeof b.message === "string") return b.message.slice(0, 300);
-  if (typeof b.detail === "string") return b.detail.slice(0, 300);
-  if (Array.isArray(b.errors) && b.errors[0] && typeof b.errors[0].message === "string") return String(b.errors[0].message).slice(0, 300);
+  if (typeof error === "string") return `${error}${typeof b.error_description === "string" ? `: ${b.error_description}` : ""}`;
+  if (error && typeof error.message === "string") return error.message;
+  if (typeof b.message === "string") return b.message;
+  if (typeof b.detail === "string") return b.detail;
+  if (Array.isArray(b.errors) && b.errors[0] && typeof b.errors[0].message === "string") return String(b.errors[0].message);
   return null;
 }
 
@@ -211,7 +236,7 @@ async function metaSnapshot(c: Credentials): Promise<SocialSnapshot> {
 
 // ---------- YouTube ----------
 
-async function youtubeSnapshot(c: Credentials): Promise<SocialSnapshot> {
+async function youtubeSnapshot(c: Credentials, now = new Date()): Promise<SocialSnapshot> {
   need(c, "channelId", "apiKey");
   const channels = await request<{ items?: Array<{ snippet?: { title?: string }; statistics?: { subscriberCount?: string; hiddenSubscriberCount?: boolean; viewCount?: string; videoCount?: string }; contentDetails?: { relatedPlaylists?: { uploads?: string } } }> }>(
     `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics,contentDetails&id=${encodeURIComponent(c.channelId)}`,
@@ -257,7 +282,105 @@ async function youtubeSnapshot(c: Credentials): Promise<SocialSnapshot> {
       if (page === 9) snapshot.partial = true;
     }
   }
+  await youtubeOwnerInsights(c, snapshot, now);
   return snapshot;
+}
+
+const YOUTUBE_OWNER_METRICS = { views: "views", likes: "likes", comments: "comments", shares: "shares", followers_gained: "subscribersGained", followers_lost: "subscribersLost" } as const;
+const OWNER_PERIODS = [7, 30, 90, 365];
+const YOUTUBE_TIME_ZONE = "America/Los_Angeles";
+const offsetDay = (day: string, offset: number) => new Date(Date.parse(`${day}T00:00:00Z`) + offset * 86_400_000).toISOString().slice(0, 10);
+
+function youtubeReport(body: unknown, daily: boolean, start: string, end: string) {
+  const report = body as { columnHeaders?: Array<{ name?: string }>; rows?: unknown[][] } | null;
+  const names = report?.columnHeaders?.map(column => column.name);
+  const expected = [...(daily ? ["day"] : []), ...Object.values(YOUTUBE_OWNER_METRICS)];
+  if (!Array.isArray(names) || names.length !== expected.length || new Set(names).size !== names.length || expected.some(name => !names.includes(name)) || (report?.rows != null && !Array.isArray(report.rows))) throw new ProviderError(serverMessages.providerInvalidResponse);
+  const days = new Set<string>();
+  const rows = report?.rows ?? [];
+  if (rows.length > (daily ? 366 : 1)) throw new ProviderError(serverMessages.providerInvalidResponse);
+  return rows.map(row => {
+    if (!Array.isArray(row) || row.length !== names.length) throw new ProviderError(serverMessages.providerInvalidResponse);
+    const day = daily ? row[names.indexOf("day")] : end;
+    if (typeof day !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(day) || !Number.isFinite(Date.parse(day)) || new Date(day).toISOString().slice(0, 10) !== day || day < start || day > end || days.has(day)) throw new ProviderError(serverMessages.providerInvalidResponse);
+    days.add(day);
+    const metrics: Partial<Record<SocialOwnerMetricId, number>> = {};
+    for (const [key, native] of Object.entries(YOUTUBE_OWNER_METRICS)) {
+      const value = n(row[names.indexOf(native)]);
+      if (value == null) throw new ProviderError(serverMessages.providerInvalidResponse);
+      metrics[key as SocialOwnerMetricId] = value;
+    }
+    return { day, metrics };
+  });
+}
+
+async function youtubeOwnerInsights(c: Credentials, snapshot: SocialSnapshot, now: Date) {
+  const state: OwnerInsightState = { status: "auth_required", timeZone: YOUTUBE_TIME_ZONE, availablePeriods: [] };
+  snapshot.ownerInsights = { youtube: state };
+  snapshot.ownerReadings = [];
+  const refreshBundle = [c.clientId, c.clientSecret, c.refreshToken];
+  if (!c.ownerAccessToken && !refreshBundle.some(Boolean)) return;
+  const failure = (error: unknown): { status: OwnerInsightStatus; error: string } => {
+    const status = error instanceof ProviderError ? error.status : undefined;
+    return { status: status === 401 ? "reconnect" : status === 403 ? "permission_required" : status === 429 ? "rate_limited" : "error", error: error instanceof ProviderError ? safeProviderMessage(error.message, secretCredentials("youtube", c)) : serverMessages.providerInvalidResponse };
+  };
+  try {
+    let accessToken = c.ownerAccessToken;
+    if (refreshBundle.some(Boolean)) {
+      if (!refreshBundle.every(Boolean)) throw new ProviderError(serverMessages.ownerRefreshCredentialsRequired);
+      const token = await request<{ access_token?: string; token_type?: string }>("https://oauth2.googleapis.com/token", {
+        method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        secrets: secretCredentials("youtube", c),
+        body: new URLSearchParams({ client_id: c.clientId, client_secret: c.clientSecret, refresh_token: c.refreshToken, grant_type: "refresh_token" }).toString(),
+      }).catch(error => { throw error instanceof ProviderError && error.status === 400 ? new ProviderError(error.message, 401, error.retryAfter) : error; });
+      if (typeof token?.access_token !== "string" || !/^[\x21-\x7E]{1,4096}$/.test(token.access_token) || token.token_type?.toLowerCase() !== "bearer") throw new ProviderError(serverMessages.providerInvalidResponse);
+      accessToken = token.access_token;
+      snapshot.refreshedCredentials = { ownerAccessToken: accessToken };
+    }
+    if (!accessToken) throw new ProviderError(serverMessages.ownerRefreshCredentialsRequired, 401);
+    const parts = new Intl.DateTimeFormat("en", { timeZone: YOUTUBE_TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(now);
+    const part = (type: Intl.DateTimeFormatPartTypes) => parts.find(value => value.type === type)!.value;
+    const end = offsetDay(`${part("year")}-${part("month")}-${part("day")}`, -1);
+    const start = offsetDay(end, -364);
+    const fetchReport = async (from: string, to: string, daily = false) => {
+      const query = new URLSearchParams({ ids: `channel==${c.channelId}`, startDate: from, endDate: to, metrics: Object.values(YOUTUBE_OWNER_METRICS).join(","), ...(daily ? { dimensions: "day", sort: "day", maxResults: "400" } : { maxResults: "1" }) });
+      return youtubeReport(await request(`https://youtubeanalytics.googleapis.com/v2/reports?${query}`, { token: accessToken }), daily, from, to);
+    };
+    const daily = await fetchReport(start, end, true);
+    if (!daily.length) { state.status = "no_data"; return; }
+    const through = daily.map(row => row.day).sort().at(-1)!;
+    const reading = (periodDays: number, periodStart: string, periodEnd: string, metrics: OwnerInsightReading["metrics"]): OwnerInsightReading => ({ platform: "youtube", periodDays, periodStart, periodEnd, timeZone: YOUTUBE_TIME_ZONE, metrics, nativeMetrics: YOUTUBE_OWNER_METRICS });
+    snapshot.ownerReadings.push(...daily.map(row => reading(1, row.day, row.day, row.metrics)));
+    state.status = "ready";
+    state.periodErrors = {};
+    // Serialize these reads so a rate-limit response stops subsequent report requests.
+    for (const period of OWNER_PERIODS) {
+      const from = offsetDay(through, 1 - period);
+      try {
+        const rows = await fetchReport(from, through);
+        if (!rows.length) { state.periodErrors[period] = { status: "no_data" }; continue; }
+        snapshot.ownerReadings.push(reading(period, from, through, rows[0].metrics));
+        state.availablePeriods.push(period);
+      } catch (error) {
+        const detail = failure(error);
+        state.periodErrors[period] = detail;
+        snapshot.partial = true;
+        if (detail.status === "rate_limited") {
+          state.retryAfterAt = new Date(now.getTime() + Math.max(60, error instanceof ProviderError ? error.retryAfter ?? 60 : 60) * 1000).toISOString();
+          for (const remaining of OWNER_PERIODS.slice(OWNER_PERIODS.indexOf(period) + 1)) state.periodErrors[remaining] = detail;
+          break;
+        }
+        if (detail.status === "reconnect" || detail.status === "permission_required") {
+          for (const remaining of OWNER_PERIODS.slice(OWNER_PERIODS.indexOf(period) + 1)) state.periodErrors[remaining] = detail;
+          break;
+        }
+      }
+    }
+  } catch (error) {
+    Object.assign(state, failure(error));
+    snapshot.partial = true;
+    if (state.status === "rate_limited") state.retryAfterAt = new Date(now.getTime() + Math.max(60, error instanceof ProviderError ? error.retryAfter ?? 60 : 60) * 1000).toISOString();
+  }
 }
 
 // ---------- TikTok ----------
@@ -367,7 +490,7 @@ async function linkedinSnapshot(c: Credentials): Promise<SocialSnapshot> {
   };
 }
 
-const SNAPSHOTS: Partial<Record<IntegrationProviderId, (c: Credentials) => Promise<SocialSnapshot>>> = {
+const SNAPSHOTS: Partial<Record<IntegrationProviderId, (c: Credentials, now: Date) => Promise<SocialSnapshot>>> = {
   meta: metaSnapshot,
   youtube: youtubeSnapshot,
   tiktok: tiktokSnapshot,
@@ -376,11 +499,11 @@ const SNAPSHOTS: Partial<Record<IntegrationProviderId, (c: Credentials) => Promi
 };
 
 /** Fetches follower counts and recent posts for a social provider. */
-export async function fetchSocialSnapshot(provider: IntegrationProviderId, credentials: Credentials): Promise<SocialSnapshot> {
+export async function fetchSocialSnapshot(provider: IntegrationProviderId, credentials: Credentials, now = new Date()): Promise<SocialSnapshot> {
   const fetcher = SNAPSHOTS[provider];
   if (!fetcher) throw new ProviderError("This integration has no social data to sync");
   try {
-    const snapshot = await fetcher(credentials);
+    const snapshot = await fetcher(credentials, now);
     snapshot.metrics = snapshot.metrics.filter(metric => metric.value != null);
     snapshot.posts = Array.from(new Map(snapshot.posts.filter(post => !!post.externalId && Number.isFinite(post.publishedAt.getTime())).map(post => [`${post.platform}:${post.externalId}`, post])).values());
     return snapshot;

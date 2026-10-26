@@ -1228,6 +1228,8 @@ model IntegrationSetting {
   isActive      Boolean   @default(false)
   credentials   String? // Encrypted payload (e.g. aes-256-gcm)
   config        Json? // Cleartext config (e.g. autoSendInvoices)
+  syncLeaseToken String?
+  syncLeaseUntil DateTime?
   healthStatus  String    @default("unknown") // "healthy", "error", "unknown"
   lastCheckedAt DateTime?
   /// Provider message from the last failed check or sync (never contains credentials).
@@ -1237,6 +1239,23 @@ model IntegrationSetting {
   lastSyncedAt  DateTime?
   updatedAt     DateTime  @updatedAt
   updatedById   String?
+}
+
+model SocialInsightSnapshot {
+  id              String   @id @default(uuid())
+  platform        String
+  sourceProvider  String
+  sourceAccountId String
+  periodDays      Int
+  periodStart     DateTime @db.Date
+  periodEnd       DateTime @db.Date
+  timeZone        String
+  metrics         Json
+  nativeMetrics   Json
+  recordedAt      DateTime @default(now())
+
+  @@unique([platform, sourceProvider, sourceAccountId, periodDays, periodStart, periodEnd], name: "account_period", map: "SocialInsightSnapshot_account_period_key")
+  @@index([platform, sourceProvider, sourceAccountId, periodDays, recordedAt], map: "SocialInsightSnapshot_account_period_fetched_idx")
 }
 
 model AuthChallenge {
