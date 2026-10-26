@@ -103,6 +103,7 @@ model User {
   calendarFeed               CalendarFeedToken?
   announcementReceipts       AnnouncementReceipt[]
   cmsArticles                CmsArticle[]           @relation("CmsArticleAuthor")
+  dashboardLayout            DashboardLayout?
 
   @@index([role])
   @@index([departmentId])
@@ -4106,4 +4107,14 @@ model ReportSchedule {
   updatedAt  DateTime  @updatedAt
 
   @@index([isActive, nextRunAt])
+}
+
+/// A person's own dashboard: the widgets they chose, in order, with their sizes. Without a row the role's
+/// default layout is shown.
+model DashboardLayout {
+  userId    String   @id
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// [{ id, size }] from the widget catalogue (constants/dashboard.ts), normalised on every read and write.
+  widgets   Json
+  updatedAt DateTime @updatedAt
 }

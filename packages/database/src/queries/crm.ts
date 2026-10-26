@@ -670,7 +670,7 @@ export async function searchCRMContacts(
 }
 
 export interface GlobalSearchResult {
-  category: "customers" | "invoices" | "deals" | "people";
+  category: "customers" | "invoices" | "deals" | "people" | "orders" | "products" | "shipments" | "tasks" | "purchase_orders" | "legal" | "campaigns";
   id: string;
   title: string;
   subtitle: string;
@@ -851,14 +851,17 @@ export async function globalAdminSearch(
   return results;
 }
 
-export async function getCRMDealOverview(includeAnalytics = true) {
+export async function getCRMDealOverview(includeAnalytics = true, /** Owners whose deals count; null or missing for all. */ scope?: string[] | null) {
+  const where = scope ? { assignedTo: { in: scope } } : {};
   const [groups, recent] = await Promise.all([
     includeAnalytics ? db.crmDeal.groupBy({
+      where,
       by: ["dealStage", "currency"],
       _count: { _all: true },
       _sum: { dealValue: true },
     }) : Promise.resolve([]),
     db.crmDeal.findMany({
+      where,
       take: 5,
       include: { contact: true },
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],

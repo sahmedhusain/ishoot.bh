@@ -139,3 +139,5 @@ export * from "./constants/reports";
 export * from "./queries/reports";
 export { buildXlsx } from "./reports/xlsx";
 export * from "./queries/report-schedules";
+export * from "./constants/dashboard";
+export * from "./queries/dashboard";

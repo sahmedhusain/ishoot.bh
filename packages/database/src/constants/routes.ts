@@ -76,6 +76,7 @@ export const ROUTES = {
     templates: "/dashboard/letters/templates",
   },
   directory: "/dashboard/directory",
+  departmentDashboard: (departmentId?: string) => (departmentId ? `/dashboard/department?d=${encodeURIComponent(departmentId)}` : "/dashboard/department"),
   orgChart: "/dashboard/directory/org",
   team: "/dashboard/team",
   profile: (query?: HighlightQuery) => withQuery("/dashboard/profile", query),

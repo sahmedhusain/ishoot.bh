@@ -26,7 +26,7 @@ db
 import { requireInquiryAccess } from "../../lib/inquiry-access";
 import { REQUEST_PRIORITIES } from "@platform/database/constants/requests";
 import { revalidatePath } from "next/cache";
-import { requireAuth,requirePermission } from "../../lib/auth";
+import { getCurrentPermissions, requireAuth, requirePermission } from "../../lib/auth";
 import { assertRecordInScope, dataScope } from "../../lib/data-scope";
 
 /** A deal outside the person's data scope cannot be changed, even by someone who knows its id. */
@@ -34,7 +34,7 @@ async function requireDealInScope(id: string) {
   const deal = await db.crmDeal.findUnique({ where: { id }, select: { assignedTo: true } });
   if (deal) await assertRecordInScope("deals", deal.assignedTo);
 }
-import { requireFeatureEnabled } from "@platform/database";
+import { employeeIdForUser, isFeatureEnabled, requireFeatureEnabled, searchRecords, type RecordSearchCategory } from "@platform/database";
 
 export async function updateDealStageAction(id: string, stage: DealStage) {
   return measureOperation("action:updateDealStageAction", async () => {
@@ -250,9 +250,29 @@ export async function globalSearchAction(query: string) {
     // Everyone can find colleagues (the directory is open to all staff); deals follow the data scope.
     allowed.add("people");
     const results = await globalAdminSearch(query, 8, allowed, allowed.has("deals") ? await dataScope("deals") : null);
+    // Commerce, work and department records: each needs its module on and read access; tasks and shipments
+    // follow the same visibility as their own pages.
+    const grants = await getCurrentPermissions();
+    const records = new Set<RecordSearchCategory>();
+    const recordSources: [RecordSearchCategory, string, string][] = [
+      ["orders", "orders:read", "store"],
+      ["products", "products:read", "products"],
+      ["shipments", "deliveries:read", "delivery"],
+      ["tasks", "tasks:read", "tasks"],
+      ["purchase_orders", "procurement:read", "procurement"],
+      ["legal", "legal:read", "legal"],
+      ["campaigns", "marketing:read", "marketing"],
+    ];
+    for (const [category, grant, module] of recordSources) if (grants[grant] === true && (await isFeatureEnabled(module))) records.add(category);
+    const more = records.size
+      ? await searchRecords(query, 5, records, {
+          tasks: records.has("tasks") ? { userId: user.id, departmentId: user.department_id ?? null, all: grants["tasks:assign"] === true } : null,
+          driverId: records.has("shipments") && grants["deliveries:assign"] !== true ? ((await employeeIdForUser(user.id)) ?? "-") : null,
+        })
+      : [];
     return {
       success: true,
-      results: results.filter((result) => allowed.has(result.category)),
+      results: [...results.filter((result) => allowed.has(result.category)), ...more],
     };
   });
 }

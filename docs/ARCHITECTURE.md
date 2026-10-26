@@ -50,7 +50,7 @@ The system needs no always-on daemon to stay correct. Work that must survive fai
 
 ## Data model
 
-`packages/database/prisma/schema.prisma` is the source of truth (179 models, 83 migrations). The main groups:
+`packages/database/prisma/schema.prisma` is the source of truth (180 models, 84 migrations). The main groups:
 
 | Area | Models |
 |---|---|
@@ -64,7 +64,7 @@ The system needs no always-on daemon to stay correct. Work that must survive fai
 | Purchasing | requisitions, RFQs and quotes, `PurchaseOrder`, goods receipts, `SupplierBill`, supplier payments |
 | Store and payments | `Customer` (sessions, addresses, wishlist), `StoreSettings`, `Coupon`, `SalesOrder`, lines and events, `PaymentAttempt`, `PaymentWebhookEvent` |
 | Delivery | `DeliverySettings`, `DeliveryZone`, `DeliverySlot`, `Shipment` and events, `Vehicle`, `RouteSheet`, `CodSettlement`, `CourierAgency`, `AgencyInvoice` |
-| Departments' tools | `Project`, `Task`, `TaskComment`, `ServiceSettings`, `CannedReply`, `Campaign`, `CustomerSegment`, `Broadcast`, `MediaContact`, `MediaCoverage`, `LegalMatter`, `ReportSchedule` |
+| Departments' tools | `Project`, `Task`, `TaskComment`, `ServiceSettings`, `CannedReply`, `Campaign`, `CustomerSegment`, `Broadcast`, `MediaContact`, `MediaCoverage`, `LegalMatter`, `ReportSchedule`, `DashboardLayout` |
 | Files | `UploadObject` (every stored file: owner, type, size, public or private, claimed), `Attachment` |
 
 Rules the code relies on are listed in `packages/database/prisma/check-integrity.ts`, and `pnpm db:check-integrity` verifies them on any database.

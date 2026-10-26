@@ -3769,6 +3769,54 @@
       }
     }
   },
+  "saveDashboardLayoutAction": {
+    "kind": "object",
+    "fields": {
+      "widgets": {
+        "kind": "array",
+        "element": {
+          "kind": "object",
+          "fields": {
+            "id": {
+              "kind": "string",
+              "optional": false
+            },
+            "size": {
+              "kind": "union",
+              "variants": [
+                {
+                  "kind": "literal",
+                  "value": "s"
+                },
+                {
+                  "kind": "literal",
+                  "value": "m"
+                },
+                {
+                  "kind": "literal",
+                  "value": "l"
+                },
+                {
+                  "kind": "literal",
+                  "value": "xl"
+                },
+                {
+                  "kind": "literal",
+                  "value": "full"
+                }
+              ],
+              "optional": false
+            }
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "resetDashboardLayoutAction": {
+    "kind": "object",
+    "fields": {}
+  },
   "moveShipmentAction": {
     "kind": "object",
     "fields": {

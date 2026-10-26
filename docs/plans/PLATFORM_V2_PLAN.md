@@ -762,3 +762,25 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
   jobs, gateway and courier sandbox overrides, test variables, docker-compose values); retired variables are named.
 - README and every guide updated for v2 (features, operations, integrations, scheduled job, data model, tests);
   API reference regenerated; MIT licence added.
+
+### Phase 10: dashboard v2 (done)
+- Widget registry (`constants/dashboard.ts`): 22 widgets (figures for finance, pipeline, leads, orders, deliveries
+  and tasks; revenue/expense and pipeline charts; the approvals and requests inbox; my tasks, recent deals, coming
+  up, latest orders, low stock, campaigns, legal dates, company; quick actions; recent activity), each with the
+  grants it needs, its module and the widths it allows. Default layouts per desk (executive, finance, HR, sales,
+  operations, staff) and for narrower roles (warehouse, delivery coordinator, driver, customer service, marketing,
+  PR, legal, procurement, department manager).
+- Per-user layouts (`DashboardLayout`, migration `20261027090000_dashboard_layouts`): Customize to drag or move
+  widgets, change their width, remove and add them, and reset to the role default. Layouts are cleaned on every
+  read and write (unknown, repeated or no-longer-allowed widgets dropped). Only the widgets on the board load data.
+- Widgets respect access: modules off hide them even for Super Admin; deals follow the data scope (the pipeline
+  query gained a scope); drivers count only their own shipments; money is hidden without finance access; the
+  activity feed shows everyone's changes only to people who may read the audit log.
+- Department dashboard (`/dashboard/department`) for heads and deputies (all departments for people who manage
+  every employee): headcount, away today, leave to decide, open and overdue tasks, open requests, per person,
+  including sub-departments.
+- Cmd+K search now also finds orders, products, shipments, tasks, purchase orders, legal matters and campaigns
+  (module on, read access, task and driver visibility).
+- At the user's request this phase was built directly on `main` without new e2e specs; fast checks (types, lint,
+  unit and static checks, copy, brand, action schemas, knip) pass, and a manual browser run on a test database
+  confirmed the board, customizing, reset, the department page and the search.

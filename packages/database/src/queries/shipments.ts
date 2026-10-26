@@ -69,8 +69,9 @@ export async function listShipments(filters: ShipmentFilters = {}, now = new Dat
 }
 
 /** Today's picture for the delivery board: shipments by status and how many are late. */
-export async function shipmentCounts(now = new Date()) {
-  const [byStatus, late] = await Promise.all([db.shipment.groupBy({ by: ["status"], where: { status: { in: OPEN_SHIPMENT_STATUSES } }, _count: { _all: true } }), db.shipment.count({ where: { status: { in: OPEN_SHIPMENT_STATUSES }, promisedBy: { lt: now } } })]);
+export async function shipmentCounts(now = new Date(), /** Only this driver's shipments. */ driverId?: string | null) {
+  const mine = driverId ? { driverId } : {};
+  const [byStatus, late] = await Promise.all([db.shipment.groupBy({ by: ["status"], where: { status: { in: OPEN_SHIPMENT_STATUSES }, ...mine }, _count: { _all: true } }), db.shipment.count({ where: { status: { in: OPEN_SHIPMENT_STATUSES }, promisedBy: { lt: now }, ...mine } })]);
   return { ...Object.fromEntries(byStatus.map((r) => [r.status, r._count._all])), late } as Partial<Record<ShipmentStatus, number>> & { late: number };
 }
 

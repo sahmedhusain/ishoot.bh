@@ -8,7 +8,7 @@ FileText,
 Briefcase,
 ArrowRight,
 Loader2,
-X, UserRound } from "lucide-react";
+X, UserRound, ShoppingBag, Package, Truck, CheckSquare, ClipboardList, Gavel, Megaphone } from "lucide-react";
 import { globalSearchAction } from "../../app/actions/crm";
 import type { GlobalSearchResult } from "@platform/database";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -96,7 +96,8 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
 
   /** Role, stage and status codes read as words. */
   const badgeLabel = (category: string, badge: string) => {
-    const table = (category === "people" ? t.roles : category === "deals" ? t.stages : t.statusLabels) as Record<string, string>;
+    const tables: Record<string, unknown> = { people: t.roles, deals: t.stages, orders: t.orders.statuses, shipments: t.delivery.statuses, tasks: t.tasks.statuses, purchase_orders: t.procurement.statuses, legal: t.legal.statuses, campaigns: t.marketing.campaigns.statuses };
+    const table = (tables[category] ?? t.statusLabels) as Record<string, string>;
     return table[badge] ?? badge.replaceAll("_", " ");
   };
 
@@ -110,6 +111,20 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
         return <Briefcase className="w-4 h-4 text-emerald-500" />;
       case "people":
         return <UserRound className="w-4 h-4 text-sky-500" />;
+      case "orders":
+        return <ShoppingBag className="w-4 h-4 text-violet-500" />;
+      case "products":
+        return <Package className="w-4 h-4 text-amber-600" />;
+      case "shipments":
+        return <Truck className="w-4 h-4 text-sky-600" />;
+      case "tasks":
+        return <CheckSquare className="w-4 h-4 text-teal-600" />;
+      case "purchase_orders":
+        return <ClipboardList className="w-4 h-4 text-orange-500" />;
+      case "legal":
+        return <Gavel className="w-4 h-4 text-slate-500" />;
+      case "campaigns":
+        return <Megaphone className="w-4 h-4 text-pink-500" />;
       default:
         return <Search className="w-4 h-4 text-slate-400" />;
     }
