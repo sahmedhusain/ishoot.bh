@@ -366,7 +366,7 @@ a[href^="tel:"] {
     0 0 0 1px rgb(var(--ui-ink) / 0.06),
     0 30px 80px -10px rgba(0, 0, 0, 0.45),
     0 10px 30px -10px rgb(var(--brand-primary)/0.4);
-  animation: modal-card-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: modal-card-in var(--motion-base) var(--ease-emphasized) both;
 }
 html.light [role="dialog"][aria-modal="true"] {
   background-color: #ffffff;

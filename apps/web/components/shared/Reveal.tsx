@@ -26,9 +26,10 @@ export function Reveal({
       }}
       viewport={{ once: true, amount: 0.1 }}
       transition={{
-        duration: reduced ? 0 : 0.45,
+        // The shared motion tokens: --motion-slow and --ease-emphasized.
+        duration: reduced ? 0 : 0.32,
         delay: reduced ? 0 : delay,
-        ease: [0.2, 0, 0, 1],
+        ease: [0.16, 1, 0.3, 1],
       }}
       className={className}
     >

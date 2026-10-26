@@ -1,6 +1,7 @@
 "use client";
 import { formatMessage } from "@platform/locales";
 import Link from "next/link";
+import { CountUp } from "@platform/ui";
 import type { ApprovalWorkload, ComplaintWorkload, RequestWorkload, WorkloadRequestRow } from "@platform/database";
 import { approvalTargetUrl, STALE_APPROVAL_DAYS } from "@platform/database/constants/approvals";
 import { ROUTES } from "../../constants/routes";
@@ -173,12 +174,12 @@ function Tile({ label, value, tone = "neutral", href, hint, wide }: { label: str
   const body = (
     <>
       <div className="text-[11px] font-medium text-ink-muted leading-tight">{label}</div>
-      <div className={`text-xl font-bold mt-1 tabular-nums ${tones[tone]}`}>{value}</div>
+      <div className={`text-xl font-bold mt-1 tabular-nums ${tones[tone]}`}>{typeof value === "number" ? <CountUp value={value} /> : value}</div>
       {hint && <div className="text-[10px] text-ink-muted mt-0.5">{hint}</div>}
     </>
   );
   const cls = `block rounded-xl bg-surface-sunken/60 border border-ink/10 p-3 ${wide ? "col-span-2" : ""}`;
-  return href ? <Link href={href} className={`${cls} hover:border-accent/40 transition-colors`}>{body}</Link> : <div className={cls}>{body}</div>;
+  return href ? <Link href={href} className={`${cls} press hover:border-accent/40 transition-[border-color,transform] duration-base ease-standard`}>{body}</Link> : <div className={cls}>{body}</div>;
 }
 
 function Breakdown({ title, data, label, href }: { title: string; data: Record<string, number>; label: (key: string) => string; href?: (key: string) => string | undefined }) {

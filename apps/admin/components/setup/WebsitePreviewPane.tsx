@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { ExternalLink, Loader2, Monitor, Smartphone } from "lucide-react";
+import { ExternalLink, Monitor, Smartphone } from "lucide-react";
+import { Skeleton } from "@platform/ui";
 import type { BrandTheme } from "@platform/database/constants/theme";
 import { setupPreviewAction } from "../../app/actions/setup";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -105,7 +106,7 @@ export function WebsitePreviewPane({ theme, revision }: { theme: BrandTheme; rev
           ) : link && scale ? (
             <iframe ref={frame} src={link} title={copy.title} className="origin-top-left border-0 bg-white rtl:origin-top-right" style={{ width, height, transform: `scale(${scale})` }} />
           ) : (
-            <div className="flex h-full items-center justify-center text-slate-400"><Loader2 className="h-5 w-5 animate-spin" /></div>
+            <div aria-busy="true" className="h-full p-4 space-y-3"><Skeleton className="h-1/3 w-full" /><Skeleton className="h-4 w-2/3" /><Skeleton className="h-4 w-1/2" /><div className="grid grid-cols-3 gap-3"><Skeleton className="h-20" /><Skeleton className="h-20" /><Skeleton className="h-20" /></div></div>
           )}
         </div>
       </div>

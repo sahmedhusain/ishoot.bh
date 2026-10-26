@@ -163,7 +163,7 @@ export function DashboardBoard({ desk, layout, custom, available, data, loaded, 
       ) : null}
 
       {items.length ? (
-        <ul className="grid grid-cols-12 gap-4" data-testid="dashboard-grid">
+        <ul className="grid grid-cols-12 gap-4 stagger-children" data-testid="dashboard-grid">
           {items.map((item, index) => {
             const name = label(item.id);
             const ready = loadedIds.has(item.id);

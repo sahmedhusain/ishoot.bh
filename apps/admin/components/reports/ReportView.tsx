@@ -127,7 +127,7 @@ export function ReportView({ result, locale: dataLocale, compare, schedules, cur
             {top.map((r) => (
               <li key={String(r.key)} className="grid grid-cols-[minmax(0,10rem)_1fr_auto] items-center gap-3 text-xs">
                 <span className="truncate text-ink" title={String(r.name)}>{String(r.name)}</span>
-                <span className="h-3 rounded-full bg-ink/5 overflow-hidden"><span className="block h-full rounded-full bg-accent transition-[width] duration-500" style={{ width: `${((Number(r[measure.key]) || 0) / max) * 100}%` }} /></span>
+                <span className="h-3 rounded-full bg-ink/5 overflow-hidden"><span className="block h-full rounded-full bg-accent transition-[width] duration-slow ease-emphasized" style={{ width: `${((Number(r[measure.key]) || 0) / max) * 100}%` }} /></span>
                 <span className="tabular-nums text-ink-muted">{show(r[measure.key], measure.kind)}</span>
               </li>
             ))}

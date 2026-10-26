@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { DateDisplay, Select } from "@platform/ui";
+import { CountUp, DateDisplay, Select } from "@platform/ui";
 import { ArrowUpRight } from "lucide-react";
 import type { DepartmentDashboard } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
@@ -52,15 +52,15 @@ export function DepartmentDashboardView({ departments, chosenId, summary, canSee
         )}
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 stagger-children">
         {tiles.map((tile) => {
           const body = (
             <div className={`${widgetCard} p-4 space-y-1`}>
               <div className="text-[11px] font-medium text-ink-muted">{tile.label}</div>
-              <div className={`text-xl font-bold tabular-nums ${tile.tone ?? "text-ink"}`}>{tile.value}</div>
+              <div className={`text-xl font-bold tabular-nums ${tile.tone ?? "text-ink"}`}><CountUp value={tile.value} /></div>
             </div>
           );
-          return tile.href ? <Link key={tile.label} href={tile.href} className="block rounded-xl hover:opacity-90">{body}</Link> : <div key={tile.label}>{body}</div>;
+          return tile.href ? <Link key={tile.label} href={tile.href} className="block rounded-xl press hover:opacity-90">{body}</Link> : <div key={tile.label}>{body}</div>;
         })}
       </div>
 
@@ -84,7 +84,7 @@ export function DepartmentDashboardView({ departments, chosenId, summary, canSee
                   <th className="px-5 py-2 text-end font-semibold">{c.requests}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink/10">
+              <tbody className="divide-y divide-ink/10 stagger-children">
                 {summary.people.map((p) => (
                   <tr key={p.id}>
                     <td className="px-5 py-2.5">

@@ -24,10 +24,10 @@ export function ReportsCatalogView({ reports }: { reports: { key: string; area: 
         REPORT_AREAS.filter((area) => reports.some((r) => r.area === area)).map((area) => (
           <section key={area} className="space-y-3" data-testid={`reports-${area}`}>
             <h2 className="text-xs font-bold uppercase tracking-wide text-ink-muted">{copy.areas[area]}</h2>
-            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 stagger-children">
               {reports.filter((r) => r.area === area).map((r) => (
                 <li key={r.key}>
-                  <Link href={ROUTES.reports.report(r.key)} className="flex h-full gap-3 rounded-2xl border border-ink/10 bg-white dark:bg-surface p-4 hover:border-accent" data-testid={`report-${r.key}`}>
+                  <Link href={ROUTES.reports.report(r.key)} className="flex h-full gap-3 rounded-2xl border border-ink/10 bg-white dark:bg-surface p-4 hover:border-accent hover:shadow-sm press transition-[border-color,box-shadow,transform] duration-base ease-standard" data-testid={`report-${r.key}`}>
                     <FileBarChart className="w-5 h-5 shrink-0 text-accent" aria-hidden="true" />
                     <span className="space-y-1">
                       <span className="block font-semibold text-ink">{catalog[r.key]?.title ?? r.key}</span>

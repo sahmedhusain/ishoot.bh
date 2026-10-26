@@ -30,7 +30,7 @@ async function main() {
       'next/link': link,
       '../shared/DeferredCharts': { DeferredCashflowChart: () => React.createElement('div', { 'data-testid': 'cashflow-chart' }) },
       './WorkloadPanels': { WorkloadPanels: () => React.createElement('div', { 'data-testid': 'workload' }) },
-      '@platform/ui': { CurrencyDisplay: ({ amount }) => React.createElement('span', null, 'money:' + amount), DateDisplay: node('span'), StatusBadge: node('span') },
+      '@platform/ui': { CountUp: ({ value, render }) => (render ? render(value) : String(value)), CurrencyDisplay: ({ amount }) => React.createElement('span', null, 'money:' + amount), DateDisplay: node('span'), StatusBadge: node('span') },
       'lucide-react': new Proxy({}, { get: () => () => React.createElement('svg') }),
       '../../hooks/useAdminLocale': { useAdminLocale: () => ({ t, locale }) },
       '../../lib/deal-stages': { dealStageLabel: (stage) => stage.name_en || t.stages[stage.id] || stage.id },
@@ -52,6 +52,7 @@ async function main() {
     assert.ok(render('workload', { workload: {} }).includes('data-testid="workload"'));
     const { WorkloadPanels } = load('apps/admin/components/dashboard/WorkloadPanels.tsx', {
       'next/link': ({ href, children }) => React.createElement('a', { href }, children),
+      '@platform/ui': { CountUp: ({ value }) => String(value) },
       'lucide-react': new Proxy({}, { get: () => () => React.createElement('svg') }),
       '../../hooks/useAdminLocale': { useAdminLocale: () => ({ t, locale }) },
     }, true);

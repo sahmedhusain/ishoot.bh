@@ -19,6 +19,10 @@ What the admin system does, by area, and the rules behind it. The exact routes a
 - **Settings → Sales pipeline**: the company's deal stages (names per language, order, colour, win %, custom stages). System stages (lead, proposal sent, contract signed, invoiced, won, lost) can be renamed and reordered but not removed.
 - **Domains** (Settings → Website and the wizard): the website and admin domains, the DNS records to add, and **Check domain** (see [OPERATIONS.md](OPERATIONS.md#domains)).
 
+## Motion
+
+- Both apps share motion tokens (durations, easings and distances in the Tailwind preset `packages/config`): pages enter with a short fade and rise, cards and list rows enter one after another, dashboard figures count up, buttons and tiles give a little when pressed, loading pages show skeletons in the shape of their content, and dialogs and the mobile menus ease in. Website sections below the fold rise into view as they are scrolled to. With the system setting "reduce motion", nothing moves and figures show their final value at once. Layouts and colours are unchanged.
+
 ## Navigation and profile
 
 - **Dashboard**: a board of widgets (figures, charts, lists, the approvals and requests inbox, my tasks, quick actions and recent activity) from every module. Each role starts from its own layout (finance, HR, sales, operations, warehouse, delivery, customer service, marketing, legal…); **Customize** lets each person drag widgets into order (or use the arrow buttons), change their width, remove them, add others, and return to the default. A widget appears only when its module is on and the person may read its data, and lists follow the data scope (deals) and task and delivery visibility. Recent activity shows everyone's changes to people who may read the audit log, otherwise their own.
@@ -119,4 +123,3 @@ What the admin system does, by area, and the rules behind it. The exact routes a
 - Inbound email is not implemented.
 - WhatsApp order confirmations and WhatsApp marketing broadcasts need message templates approved by Meta; orders confirm by e-mail and broadcasts are e-mail only.
 - Tap, PayPal, Checkout.com, PayTabs, Moyasar and HyperPay, and the Aramex, DHL Express and SMSA APIs, are built to their published APIs and unit-tested, but have not been run against their sandboxes (they need merchant test accounts). Stripe is tested end to end against a local stand-in.
-- Motion polish across both apps (plan Phase 11) is in progress; see [plans/PLATFORM_V2_PLAN.md](plans/PLATFORM_V2_PLAN.md).

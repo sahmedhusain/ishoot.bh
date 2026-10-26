@@ -855,10 +855,10 @@ export function Sidebar() {
       {isMobileOpen && (
         <div className="lg:hidden fixed inset-0 top-14 z-50 flex">
           <div
-            className="fixed inset-0 top-14 modal-scrim"
+            className="fixed inset-0 top-14 modal-scrim animate-in fade-in duration-base"
             onClick={() => setIsMobileOpen(false)}
           />
-          <div className="relative w-64 max-w-[80vw] h-full bg-white dark:bg-surface-raised border-e border-ink/15 dark:border-ink/15 shadow-xl flex flex-col z-10 animate-in slide-in-from-start duration-150">
+          <div className="relative w-64 max-w-[80vw] h-full bg-white dark:bg-surface-raised border-e border-ink/15 dark:border-ink/15 shadow-xl flex flex-col z-10 animate-in slide-in-from-start duration-base ease-emphasized">
             {navContent}
           </div>
         </div>

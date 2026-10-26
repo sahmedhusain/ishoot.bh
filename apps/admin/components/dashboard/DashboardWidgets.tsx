@@ -2,7 +2,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { formatMessage } from "@platform/locales";
-import { CurrencyDisplay, DateDisplay, StatusBadge } from "@platform/ui";
+import { CountUp, CurrencyDisplay, DateDisplay, StatusBadge } from "@platform/ui";
 import {
   Activity,
   AlertTriangle,
@@ -46,7 +46,7 @@ const ENTITY_LINKS: Record<string, (id: string) => string> = {
 
 function Kpi({ title, icon, tone, value, sub, href }: { title: string; icon: ReactNode; tone: string; value: ReactNode; sub?: ReactNode; href?: string }) {
   const body = (
-    <div className={`${widgetCard} p-4 space-y-1.5 ${href ? "transition-colors hover:border-accent/50" : ""}`}>
+    <div className={`${widgetCard} p-4 space-y-1.5 ${href ? "transition-[border-color,box-shadow] duration-base ease-standard hover:border-accent/50 hover:shadow-sm" : ""}`}>
       <div className="flex items-center justify-between gap-2">
         <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400 truncate">{title}</span>
         <span className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 ${tone}`} aria-hidden="true">{icon}</span>
@@ -55,7 +55,7 @@ function Kpi({ title, icon, tone, value, sub, href }: { title: string; icon: Rea
       {sub ? <div className="text-[10px] font-medium text-ink-muted truncate">{sub}</div> : null}
     </div>
   );
-  return href ? <Link href={href} className="block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">{body}</Link> : body;
+  return href ? <Link href={href} className="block h-full rounded-xl press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">{body}</Link> : body;
 }
 
 function Panel({ title, icon, href, children }: { title: string; icon: ReactNode; href?: string; children: ReactNode }) {
@@ -90,31 +90,34 @@ export function DashboardWidget({ id, data }: { id: string; data: DashboardData 
   const b = t.dashboardBoard;
   const title = (b.widgets as Record<string, string>)[id] ?? id;
   const money = (amount: number) => <CurrencyDisplay amount={amount} currency={data.currency} />;
+  // Headline figures count up when they appear.
+  const countMoney = (amount: number) => <CountUp value={amount} decimals={3} render={money} />;
+  const count = (n: number, message?: string) => <CountUp value={n} render={(v) => (message ? formatMessage(message, { n: String(v) }) : v)} />;
   const name = (en: string, ar: string) => (locale === "ar" ? ar || en : en || ar);
 
   switch (id) {
     case "kpi_revenue":
-      return data.finance && <Kpi title={title} icon={<DollarSign className="w-3.5 h-3.5" />} tone="bg-emerald-500/10 text-emerald-600" value={money(data.finance.revenue)} sub={b.widgetHints.kpi_revenue} href={ROUTES.finance.overview} />;
+      return data.finance && <Kpi title={title} icon={<DollarSign className="w-3.5 h-3.5" />} tone="bg-emerald-500/10 text-emerald-600" value={countMoney(data.finance.revenue)} sub={b.widgetHints.kpi_revenue} href={ROUTES.finance.overview} />;
     case "kpi_receivables":
-      return data.finance && <Kpi title={title} icon={<TrendingUp className="w-3.5 h-3.5" />} tone="bg-amber-500/10 text-amber-500" value={money(data.finance.outstanding)} sub={data.finance.overdue > 0 ? <>{money(data.finance.overdue)} {t.kpi.overdueAlert}</> : t.kpi.allOnTrack} href={ROUTES.invoices.list} />;
+      return data.finance && <Kpi title={title} icon={<TrendingUp className="w-3.5 h-3.5" />} tone="bg-amber-500/10 text-amber-500" value={countMoney(data.finance.outstanding)} sub={data.finance.overdue > 0 ? <>{money(data.finance.overdue)} {t.kpi.overdueAlert}</> : t.kpi.allOnTrack} href={ROUTES.invoices.list} />;
     case "kpi_expenses":
-      return data.finance && <Kpi title={title} icon={<TrendingDown className="w-3.5 h-3.5" />} tone="bg-rose-500/10 text-rose-500" value={money(data.finance.expenses)} sub={t.kpi.expensesDesc} href={ROUTES.expenses.list()} />;
+      return data.finance && <Kpi title={title} icon={<TrendingDown className="w-3.5 h-3.5" />} tone="bg-rose-500/10 text-rose-500" value={countMoney(data.finance.expenses)} sub={t.kpi.expensesDesc} href={ROUTES.expenses.list()} />;
     case "kpi_profit":
-      return data.finance && <Kpi title={title} icon={<span className="text-[10px] font-bold">%</span>} tone="bg-accent/10 text-accent" value={<span className={data.finance.netProfit >= 0 ? "text-primary dark:text-mint" : "text-rose-500"}>{data.finance.profitMargin.toFixed(1)}%</span>} sub={<>{money(data.finance.netProfit)} {t.kpi.netProfit}</>} />;
+      return data.finance && <Kpi title={title} icon={<span className="text-[10px] font-bold">%</span>} tone="bg-accent/10 text-accent" value={<span className={data.finance.netProfit >= 0 ? "text-primary dark:text-mint" : "text-rose-500"}><CountUp value={data.finance.profitMargin} decimals={1} render={(v) => `${v.toFixed(1)}%`} /></span>} sub={<>{money(data.finance.netProfit)} {t.kpi.netProfit}</>} />;
     case "kpi_pipeline":
-      return data.deals && <Kpi title={title} icon={<Briefcase className="w-3.5 h-3.5" />} tone="bg-accent/10 text-accent" value={data.showMoney ? money(data.deals.activePipelineValue) : data.deals.activeCount} sub={formatMessage(b.dealsCount, { n: String(data.deals.activeCount) })} href={ROUTES.crm.deals} />;
+      return data.deals && <Kpi title={title} icon={<Briefcase className="w-3.5 h-3.5" />} tone="bg-accent/10 text-accent" value={data.showMoney ? countMoney(data.deals.activePipelineValue) : count(data.deals.activeCount)} sub={formatMessage(b.dealsCount, { n: String(data.deals.activeCount) })} href={ROUTES.crm.deals} />;
     case "kpi_leads":
-      return data.leads != null && <Kpi title={title} icon={<Inbox className="w-3.5 h-3.5" />} tone="bg-blue-500/10 text-blue-500" value={data.leads} sub={t.kpi.lastSevenDays} href={ROUTES.requests.list} />;
+      return data.leads != null && <Kpi title={title} icon={<Inbox className="w-3.5 h-3.5" />} tone="bg-blue-500/10 text-blue-500" value={count(data.leads)} sub={t.kpi.lastSevenDays} href={ROUTES.requests.list} />;
     case "kpi_orders":
-      return data.orders && <Kpi title={title} icon={<ShoppingBag className="w-3.5 h-3.5" />} tone="bg-violet-500/10 text-violet-500" value={formatMessage(b.openOrders, { n: String(data.orders.open) })} sub={<>{money(data.orders.today_total)} · {formatMessage(b.todaySales, { n: String(data.orders.today_count) })}</>} href={ROUTES.orders.list} />;
+      return data.orders && <Kpi title={title} icon={<ShoppingBag className="w-3.5 h-3.5" />} tone="bg-violet-500/10 text-violet-500" value={count(data.orders.open, b.openOrders)} sub={<>{money(data.orders.today_total)} · {formatMessage(b.todaySales, { n: String(data.orders.today_count) })}</>} href={ROUTES.orders.list} />;
     case "kpi_shipments": {
       if (!data.shipments) return null;
       const { late, ...byStatus } = data.shipments;
       const open = Object.values(byStatus).reduce((sum: number, n) => sum + (n ?? 0), 0);
-      return <Kpi title={title} icon={<Truck className="w-3.5 h-3.5" />} tone="bg-sky-500/10 text-sky-500" value={formatMessage(b.openShipments, { n: String(open) })} sub={late ? <span className="text-rose-500">{formatMessage(b.lateShipments, { n: String(late) })}</span> : b.noLate} href={ROUTES.delivery.shipments} />;
+      return <Kpi title={title} icon={<Truck className="w-3.5 h-3.5" />} tone="bg-sky-500/10 text-sky-500" value={count(open, b.openShipments)} sub={late ? <span className="text-rose-500">{formatMessage(b.lateShipments, { n: String(late) })}</span> : b.noLate} href={ROUTES.delivery.shipments} />;
     }
     case "kpi_tasks":
-      return data.tasks && <Kpi title={title} icon={<CheckSquare className="w-3.5 h-3.5" />} tone="bg-teal-500/10 text-teal-600" value={formatMessage(b.openTasks, { n: String(data.tasks.open) })} sub={data.tasks.overdue ? <span className="text-rose-500">{formatMessage(b.overdueTasks, { n: String(data.tasks.overdue) })}</span> : b.noOverdue} href={ROUTES.tasks.list} />;
+      return data.tasks && <Kpi title={title} icon={<CheckSquare className="w-3.5 h-3.5" />} tone="bg-teal-500/10 text-teal-600" value={count(data.tasks.open, b.openTasks)} sub={data.tasks.overdue ? <span className="text-rose-500">{formatMessage(b.overdueTasks, { n: String(data.tasks.overdue) })}</span> : b.noOverdue} href={ROUTES.tasks.list} />;
 
     case "cashflow": {
       if (!data.cashflow) return null;
@@ -175,7 +178,7 @@ export function DashboardWidget({ id, data }: { id: string; data: DashboardData 
       return data.tasks && (
         <Panel title={title} icon={<CheckSquare className="w-3.5 h-3.5" />} href={ROUTES.tasks.list}>
           {data.tasks.tasks.length ? (
-            <ul className="divide-y divide-ink/10">
+            <ul className="divide-y divide-ink/10 stagger-children">
               {data.tasks.tasks.map((task) => (
                 <li key={task.id} className="py-2 flex items-center justify-between gap-3 text-xs">
                   <Link href={ROUTES.tasks.detail(task.id)} className="min-w-0 hover:text-accent">
@@ -201,7 +204,7 @@ export function DashboardWidget({ id, data }: { id: string; data: DashboardData 
       return data.deals && (
         <Panel title={title} icon={<Briefcase className="w-3.5 h-3.5" />} href={ROUTES.crm.deals}>
           {data.deals.recent.length ? (
-            <ul className="divide-y divide-ink/10">
+            <ul className="divide-y divide-ink/10 stagger-children">
               {data.deals.recent.slice(0, 5).map((deal) => (
                 <li key={deal.id} className="py-2.5 flex items-center justify-between gap-3">
                   <div className="min-w-0">
@@ -225,7 +228,7 @@ export function DashboardWidget({ id, data }: { id: string; data: DashboardData 
       return data.events && (
         <Panel title={title} icon={<CalendarDays className="w-3.5 h-3.5" />} href={ROUTES.calendar}>
           {data.events.length ? (
-            <ul className="space-y-2">
+            <ul className="space-y-2 stagger-children">
               {data.events.map((event) => (
                 <li key={event.id} className="p-2.5 rounded-lg bg-slate-50 dark:bg-neutral-800/40 border border-ink/10 space-y-1">
                   <div className="flex items-center justify-between gap-2">
@@ -248,7 +251,7 @@ export function DashboardWidget({ id, data }: { id: string; data: DashboardData 
       return data.recentOrders && (
         <Panel title={title} icon={<ShoppingBag className="w-3.5 h-3.5" />} href={ROUTES.orders.list}>
           {data.recentOrders.length ? (
-            <ul className="divide-y divide-ink/10">
+            <ul className="divide-y divide-ink/10 stagger-children">
               {data.recentOrders.map((order) => (
                 <li key={order.id} className="py-2 flex items-center justify-between gap-3 text-xs">
                   <Link href={ROUTES.orders.detail(order.id)} className="min-w-0 hover:text-accent">
@@ -273,7 +276,7 @@ export function DashboardWidget({ id, data }: { id: string; data: DashboardData 
         <Panel title={title} icon={<Package className="w-3.5 h-3.5" />} href={`${ROUTES.inventory.stock}?filter=low`}>
           {data.lowStock.rows.length ? (
             <>
-              <ul className="divide-y divide-ink/10">
+              <ul className="divide-y divide-ink/10 stagger-children">
                 {data.lowStock.rows.map((row) => (
                   <li key={`${row.product_id}-${row.variant_id ?? ""}`} className="py-2 flex items-center justify-between gap-3 text-xs">
                     <Link href={ROUTES.products.detail(row.product_id)} className="min-w-0 hover:text-accent">
@@ -299,7 +302,7 @@ export function DashboardWidget({ id, data }: { id: string; data: DashboardData 
       return data.campaigns && (
         <Panel title={title} icon={<Megaphone className="w-3.5 h-3.5" />} href={ROUTES.marketing.campaigns}>
           {data.campaigns.length ? (
-            <ul className="divide-y divide-ink/10">
+            <ul className="divide-y divide-ink/10 stagger-children">
               {data.campaigns.map((c) => (
                 <li key={c.id} className="py-2 flex items-center justify-between gap-3 text-xs">
                   <span className="min-w-0">
@@ -320,7 +323,7 @@ export function DashboardWidget({ id, data }: { id: string; data: DashboardData 
       return data.legal && (
         <Panel title={title} icon={<Gavel className="w-3.5 h-3.5" />} href={ROUTES.legal.matters}>
           {data.legal.length ? (
-            <ul className="divide-y divide-ink/10">
+            <ul className="divide-y divide-ink/10 stagger-children">
               {data.legal.map((m) => (
                 <li key={m.id} className="py-2 flex items-center justify-between gap-3 text-xs">
                   <Link href={ROUTES.legal.matter(m.id)} className="min-w-0 hover:text-accent">
@@ -369,7 +372,7 @@ export function DashboardWidget({ id, data }: { id: string; data: DashboardData 
       return (
         <Panel title={title} icon={<Zap className="w-3.5 h-3.5" />}>
           {data.actions.length ? (
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2 stagger-children">
               {data.actions.map((action) => (
                 <Link key={action.key} href={action.href} className="rounded-lg border border-ink/15 px-3 py-2.5 text-xs font-semibold text-ink hover:border-accent hover:text-accent motion-safe:transition-[color,border-color,transform] motion-safe:active:scale-[0.98]">
                   {(b.actions as Record<string, string>)[action.key] ?? action.key}
@@ -386,7 +389,7 @@ export function DashboardWidget({ id, data }: { id: string; data: DashboardData 
       return data.activity && (
         <Panel title={title} icon={<Activity className="w-3.5 h-3.5" />}>
           {data.activity.length ? (
-            <ol className="space-y-2.5">
+            <ol className="space-y-2.5 stagger-children">
               {data.activity.map((entry) => {
                 const entity = (t.auditDetails.entities as Record<string, string>)[entry.entity_type] ?? entry.entity_type.replaceAll("_", " ");
                 const action = (t.auditDetails.actions as Record<string, string>)[entry.action] ?? entry.action.replaceAll("_", " ");

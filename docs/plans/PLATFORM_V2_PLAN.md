@@ -784,3 +784,29 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
 - At the user's request this phase was built directly on `main` without new e2e specs; fast checks (types, lint,
   unit and static checks, copy, brand, action schemas, knip) pass, and a manual browser run on a test database
   confirmed the board, customizing, reset, the department page and the search.
+
+### Phase 11: motion polish (done)
+- Motion tokens in the shared Tailwind preset (`packages/config/tailwind.config.ts`): `--motion-fast/base/slow`,
+  `--motion-stagger`, `--motion-distance`, `--ease-standard/emphasized/exit` as CSS variables, Tailwind durations
+  and easings (`duration-base`, `ease-emphasized`…), `animate-page-in`, `animate-fade-up`, `animate-scale-in`,
+  `stagger-children`, `skeleton` and `press`. One reduced-motion rule there turns every animation and transition
+  off in both apps (the tokens drop to 0.01 ms and no distance).
+- Page transitions: `app/dashboard/template.tsx` (admin) and `app/[locale]/template.tsx` (website) fade and lift
+  each page in.
+- Staggered entrances: dashboard widgets and their list rows, quick actions, department figures and team rows,
+  the report catalogue, the website's mobile menu links.
+- Count-ups (`CountUp` in `@platform/ui`): dashboard figures (money, percent and counts), workload tiles and the
+  department figures. The server renders the final value; with reduce motion it never moves.
+- Skeletons (`Skeleton` in `@platform/ui`): the dashboard's loading page, the setup wizard's live preview and the
+  sign-in page, instead of spinners. Spinners stay only inside buttons that are working.
+- Micro-interactions: buttons give a little when pressed (`active:scale`), linked figures, tiles and report cards
+  lift their border and shadow and press; inputs and selects ease their focus ring; the admin mobile drawer and
+  its scrim, the website mobile menu and dialogs use the tokens.
+- Website scroll reveals (`ScrollReveal`): sections without an entrance of their own (catalogue, services,
+  testimonials, FAQ, client logos, pillars, equipment on block pages; clients, services, works, reviews and FAQ on
+  the fixed homepage) rise in as they are scrolled to. Only sections that start below the fold are ever hidden,
+  and only by the script, so pages read fully without JavaScript. The existing framer-motion `Reveal` now uses
+  the same duration and easing.
+- No layout or colour changes. As with Phase 10, built directly on `main` without new e2e specs at the user's
+  request; fast checks pass and a browser run on the test servers confirmed the animations, their timing tokens,
+  the reduced-motion behaviour and the reveals.

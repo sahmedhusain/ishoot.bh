@@ -336,8 +336,8 @@ body::-webkit-scrollbar {
   font-size: 0.875rem;
   font-weight: 600;
   transition:
-    background-color 160ms,
-    transform 160ms;
+    background-color var(--motion-fast) var(--ease-standard),
+    transform var(--motion-fast) var(--ease-standard);
 }
 .web-button:hover {
   background: rgb(var(--brand-tone-15));
@@ -420,8 +420,8 @@ html[lang="en"] h2.font-display {
   font-size: 0.875rem;
   font-weight: 500;
   transition:
-    color 150ms,
-    border-color 150ms;
+    color var(--motion-fast) var(--ease-standard),
+    border-color var(--motion-fast) var(--ease-standard);
 }
 .web-hero-secondary:hover {
   color: rgb(var(--brand-mint));
@@ -429,7 +429,8 @@ html[lang="en"] h2.font-display {
 }
 .web-button {
   min-height: 44px;
-  transition-duration: 150ms;
+  transition-duration: var(--motion-fast);
+  transition-timing-function: var(--ease-standard);
 }
 [dir="rtl"] .web-eyebrow {
   letter-spacing: normal;
@@ -798,3 +799,15 @@ html.light { --site-fg: 15 23 42; --brand-mint: var(--brand-accent-pressed); }
 html.light .on-media { --brand-mint: 255 255 255; }
 /* Client logos are usually supplied in white for the dark website; on a light one they show as dark silhouettes. */
 html.light .client-logo-image { filter: brightness(0) opacity(0.75); }
+
+/* Scroll reveals: sections below the fold rise into place once (ScrollReveal; tokens from the shared preset). */
+[data-reveal] {
+  transition:
+    opacity var(--motion-slow) var(--ease-emphasized),
+    transform var(--motion-slow) var(--ease-emphasized);
+}
+[data-reveal][data-reveal-pending] {
+  opacity: 0;
+  transform: translateY(calc(var(--motion-distance) * 2.4));
+}
+

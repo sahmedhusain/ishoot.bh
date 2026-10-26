@@ -11,6 +11,8 @@ export * from "./status-badge";
 export * from "./modal";
 export * from "./confirm-destructive";
 export * from "./separator";
+export * from "./skeleton";
+export * from "./count-up";
 export * from "./proof-uploader";
 export * from "./visual-analytics/cash-flow-chart";
 export * from "./visual-analytics/lead-funnel-chart";

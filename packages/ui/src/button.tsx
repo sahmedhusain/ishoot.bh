@@ -9,8 +9,8 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "primary", size = "md", ...props }, ref) => {
     const baseStyles =
-      // Material 3 Expressive: pill shape that squares off slightly while pressed, visible keyboard focus.
-      "inline-flex items-center justify-center whitespace-nowrap font-medium select-none transition-[background-color,border-color,color,box-shadow,border-radius,transform] duration-200 ease-out disabled:opacity-50 disabled:pointer-events-none rounded-[var(--brand-button-radius,9999px)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-surface";
+      // Material 3 Expressive: pill shape that squares off slightly and gives a little while pressed, visible keyboard focus.
+      "inline-flex items-center justify-center whitespace-nowrap font-medium select-none transition-[background-color,border-color,color,box-shadow,border-radius,transform] duration-base ease-standard active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none rounded-[var(--brand-button-radius,9999px)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-surface";
 
     const variants = {
       primary:

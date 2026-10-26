@@ -15,6 +15,11 @@ import type { WebsiteSection } from "@platform/database/website-config";
 import { notFound } from "next/navigation";
 import { isWebsitePreview } from "../../lib/website";
 import { CmsPageView, findPage } from "../../components/blocks/CmsPageView";
+import { ScrollReveal } from "../../components/shared/ScrollReveal";
+
+/** Sections with no entrance of their own rise into view as a whole (about and stats use Reveal inside). */
+const REVEAL_SECTIONS: readonly WebsiteSection[] = ["clients", "services", "portfolio", "reviews", "faq"];
+
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const [{ website: snapshot, company, info }, reviews, preview] = await Promise.all([getSite(), getReviews(false), isWebsitePreview()]);
@@ -63,10 +68,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <CenteredHero banners={website.banners} title={name} subtitle={tagline} />
       )}
       {sections.map((section) => (
-        <div key={section.id} data-slope={section.slope}>
+        <div key={section.id} data-slope={section.slope} data-reveal={REVEAL_SECTIONS.includes(section.id) ? "" : undefined}>
           {components[section.id]}
         </div>
       ))}
+      <ScrollReveal />
     </div>
   );
 }

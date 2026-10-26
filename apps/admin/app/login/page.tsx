@@ -1,5 +1,6 @@
 import { companyMetadata } from "../../lib/company-metadata";
 import * as React from "react";
+import { Skeleton } from "@platform/ui";
 import { AdminLoginFormView } from "../../components/auth/AdminLoginFormView";
 import { getCachedCompanySettings } from "../../lib/cached-queries";
 import { adminTranslations } from "../../lib/translations-bilingual";
@@ -12,8 +13,13 @@ export default async function LoginPage() {
   return (
     <React.Suspense
       fallback={
-        <div className="min-h-screen bg-brand-base flex items-center justify-center">
-          <div className="w-8 h-8 rounded-full border-2 border-accent border-t-transparent animate-spin" />
+        <div aria-busy="true" className="min-h-screen bg-brand-base flex items-center justify-center p-6">
+          <div className="w-full max-w-sm space-y-4">
+            <Skeleton className="h-10 w-32 mx-auto" />
+            <Skeleton className="h-11 w-full rounded-xl" />
+            <Skeleton className="h-11 w-full rounded-xl" />
+            <Skeleton className="h-11 w-full rounded-full" />
+          </div>
         </div>
       }
     >

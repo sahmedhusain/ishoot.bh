@@ -59,7 +59,7 @@ export function MobileMenu({
         e.preventDefault();
         onClose();
       }}
-      className="fixed inset-0 m-0 w-full max-w-none h-[100dvh] max-h-none z-50 flex flex-col justify-between bg-brand-base text-white p-6 sm:p-10"
+      className="fixed inset-0 m-0 w-full max-w-none h-[100dvh] max-h-none z-50 flex flex-col justify-between bg-brand-base text-white p-6 sm:p-10 animate-in fade-in duration-base ease-emphasized"
       data-lenis-prevent
     >
       <div className="flex items-center justify-between">
@@ -94,7 +94,7 @@ export function MobileMenu({
         </div>
       </div>
 
-      <nav className="flex flex-col gap-6 my-auto py-8">
+      <nav className="flex flex-col gap-6 my-auto py-8 stagger-children">
         {navLinks.map((link) => (
           <Link
             key={link.href}

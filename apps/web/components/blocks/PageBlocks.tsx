@@ -19,6 +19,7 @@ import { PillarsOfCraft } from "../about/PillarsOfCraft";
 import { EquipmentGrid } from "../about/EquipmentGrid";
 import { ArticleCards } from "../articles/ArticleCards";
 import { CodeBlock } from "./CodeBlock";
+import { ScrollReveal } from "../shared/ScrollReveal";
 import {
   BlockTitle,
   ColumnsBlock,
@@ -49,6 +50,9 @@ export interface BlockContext {
   articlesBase: string;
 }
 
+/** Data blocks with no entrance of their own rise into view as a whole (the others use Reveal inside). */
+const REVEAL_HERE: readonly BlockType[] = ["catalogue", "services", "testimonials", "faq", "clients", "pillars", "equipment"];
+
 /** Light sections alternate the slanted edge, as the fixed homepage did. */
 const LIGHT: readonly BlockType[] = ["about", "catalogue", "testimonials"];
 
@@ -65,11 +69,12 @@ export function PageBlocks({ blocks, context }: { blocks: Block[]; context: Bloc
           const slope = light % 2 === 0 && light > 0 ? "right" : "left";
           const node = renderBlock(block, context);
           return node ? (
-            <div key={block.id} data-slope={slope} data-block={block.type}>
+            <div key={block.id} data-slope={slope} data-block={block.type} data-reveal={REVEAL_HERE.includes(block.type) ? "" : undefined}>
               {node}
             </div>
           ) : null;
         })}
+      <ScrollReveal />
     </>
   );
 
