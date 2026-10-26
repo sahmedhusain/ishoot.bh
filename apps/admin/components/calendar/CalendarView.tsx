@@ -103,7 +103,7 @@ interface Props {
 }
 
 /** Month, week and day views of everything on the person's calendar, filtered by layer. */
-export function OdooCalendarView({
+export function CalendarView({
   initialEvents,
   people,
   departments,

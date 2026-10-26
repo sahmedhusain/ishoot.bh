@@ -1,6 +1,6 @@
 import { db, getCalendarFeedInfo, getCalendarFor } from "@platform/database";
 import { requirePagePermission } from "../../../lib/auth";
-import { OdooCalendarView } from "../../../components/calendar/OdooCalendarView";
+import { CalendarView } from "../../../components/calendar/CalendarView";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +32,7 @@ export default async function CalendarPage() {
     getCalendarFeedInfo(user.id),
   ]);
   return (
-    <OdooCalendarView
+    <CalendarView
       initialEvents={events}
       currentUserId={user.id}
       people={people.map((p) => ({ id: p.id, name: p.fullName }))}
