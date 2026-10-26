@@ -229,7 +229,7 @@ export async function handToAgencyAction(id: string, input: HandToAgencyInput) {
     const user = await requirePermission("deliveries", "assign");
     validateActionArguments("handToAgencyAction", { id, input });
     const result = await handToAgency(id, input, user.id);
-    await createActivityLog({ user_id: user.id, action: "assign", entity_type: "shipment", entity_id: id, details: { agencyId: input.agencyId, trackingNumber: result.trackingNumber } });
+    await createActivityLog({ user_id: user.id, action: "assign", entity_type: "shipment", entity_id: id, details: { agencyId: input.agencyId, trackingNumber: result.trackingNumber, weightKg: input.weightKg, lengthCm: input.lengthCm, widthCm: input.widthCm, heightCm: input.heightCm, reconciledRetry: !!input.confirmNoBooking } });
     refreshShipment(id);
     return { success: true, ...result };
   });

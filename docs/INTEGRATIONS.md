@@ -18,7 +18,7 @@ Implemented address patterns (use the in-app copy buttons for actual origins):
 
 Social adapters store attributable provider/account snapshots and nullable counters. Missing readings remain unavailable; measured zero remains zero. Lifetime post counters and UTC publication filters are labeled accordingly. Owner-only reach, impressions, profile views and OAuth renewal are incomplete and are not replaced with fabricated values. LinkedIn currently imports followers only. Google/Outlook calendar links are read-only ICS subscriptions, not two-way OAuth synchronization.
 
-Courier booking currently has fixed parcel defaults and needs measured parcel inputs before live use. SMSA’s issued account contract/label flow needs verification. PayTabs test mode is controlled by the merchant profile and cannot be inferred from its server key. HyperPay rejects amounts needing a third decimal rather than changing the charged/refunded amount.
+Automatic courier booking supports one measured parcel; DHL also requires its measured dimensions. Multi-parcel consignments can be booked in the carrier portal and their confirmed tracking number recorded here. A persisted claim prevents automatic duplicate purchases. Uncertain outcomes pause dispatch changes until reconciliation; an aged attempt can only be retried after an operator types the shipment reference and confirms the carrier has no existing booking. Tracking is preserved before optional label storage; a label-storage failure must not trigger another booking. Markers protect new booking attempts; reconcile outstanding historical carrier requests before starting another automatic booking. SMSA’s issued account contract/label flow needs verification. PayTabs test mode is controlled by the merchant profile and cannot be inferred from its server key. HyperPay rejects amounts needing a third decimal rather than changing the charged/refunded amount.
 
 Other requested providers and capabilities (GA4 reporting, additional social/scheduling platforms, SMS/WhatsApp gateways, Oman wallets, accounting/banking/AI/document/design services, hardware and two-way calendars) are inventoried with explicit missing/partial status in [the admin polish plan](plans/ADMIN_POLISH_PLAN.md). They are not represented as working connections here.
 
@@ -1140,11 +1140,11 @@ The connection check sends a non-booking tracking query. Account and internal se
 
 **Common errors**
 
-ERR01: credentials. ERR02: account. ERR03: blocked account. ERR00: provider/internal failure; retry after resolving the service issue.
+ERR01: credentials. ERR02: account. ERR03: blocked account. ERR00: provider/internal failure; retry after resolving the service issue. If a booking outcome is uncertain, reconcile the shipment reference with the original carrier before recording tracking or approving a retry.
 
 **Current limits**
 
-Current shipment booking still uses fixed package weight/piece defaults and needs actual parcel measurements before live acceptance. Tracking is polled; there is no inbound courier callback.
+Automatic booking supports one measured parcel. For several parcels, book in the carrier portal and record its tracking number here. Account/product acceptance still needs Aramex verification. Tracking is polled; no inbound courier callback is implemented.
 
 ### العربية
 
@@ -1172,11 +1172,11 @@ Current shipment booking still uses fixed package weight/piece defaults and need
 
 **الأخطاء الشائعة**
 
-ERR01: بيانات الدخول. ERR02: الحساب. ERR03: حساب محظور. ERR00: عطل داخلي؛ أعد المحاولة بعد معالجة الخدمة.
+ERR01: بيانات الدخول. ERR02: الحساب. ERR03: حساب محظور. ERR00: عطل داخلي؛ أعد المحاولة بعد معالجة الخدمة. عند عدم تأكد نتيجة الحجز تحقق من مرجع الشحنة مع الشركة الأصلية قبل تسجيل التتبع أوالموافقة على إعادة المحاولة.
 
 **الحدود الحالية**
 
-الحجز الحالي يستخدم افتراضات ثابتة لوزن الطرد وعدد القطع، ويلزم إدخال القياسات الفعلية قبل قبول التشغيل الفعلي. يُحدّث التتبع دوريًا دون عنوان إشعار وارد.
+يدعم الحجز التلقائي طردًا واحدًا بوزن مقاس. لعدة طرود احجز عبر بوابة الشركة وسجل رقم التتبع هنا. يلزم تحقق Aramex من قبول الحساب والمنتج. التتبع دوري ولا يوجد عنوان إشعار وارد.
 
 ## DHL Express (`dhl_express`)
 
@@ -1208,11 +1208,11 @@ Test connection calls a non-booking endpoint. It does not establish label purcha
 
 **Common errors**
 
-401: check key/secret and endpoint. Account/product errors: confirm the DHL account entitlement and shipping lane.
+401: check key/secret and endpoint. Account/product errors: confirm the DHL account entitlement and shipping lane. If a booking outcome is uncertain, reconcile the shipment reference with the original carrier before recording tracking or approving a retry.
 
 **Current limits**
 
-Current booking uses fixed package dimensions and weight defaults; actual parcel input is required before live acceptance. Tracking is polled, with no inbound DHL webhook.
+Automatic booking requires the measured weight, length, width and height of one parcel. For several parcels, use the DHL portal and record its tracking number. Account/product acceptance needs DHL verification. Tracking is polled; no inbound DHL webhook is implemented.
 
 ### العربية
 
@@ -1240,11 +1240,11 @@ Current booking uses fixed package dimensions and weight defaults; actual parcel
 
 **الأخطاء الشائعة**
 
-401: راجع المفتاح والسر والعنوان. أخطاء الحساب أوالمنتج: تحقق من صلاحيات الحساب ومسار الشحن.
+401: راجع المفتاح والسر والعنوان. أخطاء الحساب أوالمنتج: تحقق من صلاحيات الحساب ومسار الشحن. عند عدم تأكد نتيجة الحجز تحقق من مرجع الشحنة مع الشركة الأصلية قبل تسجيل التتبع أوالموافقة على إعادة المحاولة.
 
 **الحدود الحالية**
 
-الحجز الحالي يستخدم أبعادًا وأوزانًا افتراضية ثابتة؛ يلزم إدخال القياسات الفعلية قبل قبول التشغيل الفعلي. يُحدّث التتبع دوريًا ولا يوجد إشعار DHL وارد.
+يتطلب الحجز التلقائي وزن طرد واحد وطوله وعرضه وارتفاعه المقاسة فعليًا. لعدة طرود استخدم بوابة DHL وسجل رقم التتبع. يلزم تحقق DHL من قبول الحساب والمنتج. التتبع دوري ولا يوجد إشعار وارد.
 
 ## SMSA Express (`smsa`)
 
@@ -1276,11 +1276,11 @@ The test sends a non-booking tracking query and validates its response. Network 
 
 **Common errors**
 
-Unauthorized: check the key and environment. No-record errors do not prove authentication; confirm the account using an agreed test tracking number.
+Unauthorized: check the key and environment. No-record errors do not prove authentication; confirm the account using an agreed test tracking number. If a booking outcome is uncertain, reconcile the shipment reference with the original carrier before recording tracking or approving a retry.
 
 **Current limits**
 
-The issued SMSA contract and label flow still need account-backed acceptance. Current package defaults need actual measurements; tracking is polled and no inbound webhook is implemented.
+Automatic booking requires the measured weight of one parcel. For several parcels, use the carrier portal and record its tracking number. The issued SMSA contract and label flow still need account-backed acceptance. Tracking is polled; no inbound webhook is implemented.
 
 ### العربية
 
@@ -1308,8 +1308,8 @@ The issued SMSA contract and label flow still need account-backed acceptance. Cu
 
 **الأخطاء الشائعة**
 
-رفض التصريح: راجع المفتاح والبيئة. عدم وجود سجل لا يثبت المصادقة؛ تحقق برقم تتبع تجريبي متفق عليه.
+رفض التصريح: راجع المفتاح والبيئة. عدم وجود سجل لا يثبت المصادقة؛ تحقق برقم تتبع تجريبي متفق عليه. عند عدم تأكد نتيجة الحجز تحقق من مرجع الشحنة مع الشركة الأصلية قبل تسجيل التتبع أوالموافقة على إعادة المحاولة.
 
 **الحدود الحالية**
 
-عقد SMSA الصادر وتدفق الملصق يحتاجان قبولًا بحساب فعلي. افتراضات الطرد تحتاج قياسات حقيقية؛ التتبع دوري ولا يوجد عنوان إشعار وارد.
+يتطلب الحجز التلقائي وزن طرد واحد مقاسًا. لعدة طرود استخدم بوابة الشركة وسجل رقم التتبع. عقد SMSA وتدفق الملصق يحتاجان قبولًا بحساب فعلي. التتبع دوري ولا يوجد إشعار وارد.

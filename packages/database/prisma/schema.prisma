@@ -3684,65 +3684,70 @@ model DeliverySlot {
 
 /// Goods on their way to a customer: where, when, who carries them and what happened.
 model Shipment {
-  id              String          @id @default(uuid())
+  id                      String          @id @default(uuid())
   /// DL-YYYY-NNNNNN
-  number          String          @unique
-  orderId         String
-  order           SalesOrder      @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  number                  String          @unique
+  orderId                 String
+  order                   SalesOrder      @relation(fields: [orderId], references: [id], onDelete: Restrict)
   /// pending | assigned | out_for_delivery | delivered | failed | returned | cancelled
-  status          String          @default("pending")
+  status                  String          @default("pending")
   /// own | agency
-  method          String          @default("own")
-  zoneId          String?
-  zone            DeliveryZone?   @relation(fields: [zoneId], references: [id], onDelete: SetNull)
-  slotId          String?
-  slotDate        DateTime?       @db.Date
-  slotStart       String?
-  slotEnd         String?
+  method                  String          @default("own")
+  zoneId                  String?
+  zone                    DeliveryZone?   @relation(fields: [zoneId], references: [id], onDelete: SetNull)
+  slotId                  String?
+  slotDate                DateTime?       @db.Date
+  slotStart               String?
+  slotEnd                 String?
   /// When it was promised: the slot's end, else the order time plus the delivery promise.
-  promisedBy      DateTime
-  recipientName   String
-  recipientPhone  String
-  address         Json
+  promisedBy              DateTime
+  recipientName           String
+  recipientPhone          String
+  address                 Json
   /// Cash to collect on delivery.
-  codAmount       Decimal         @default(0) @db.Decimal(12, 3)
-  codCollected    Decimal         @default(0) @db.Decimal(12, 3)
+  codAmount               Decimal         @default(0) @db.Decimal(12, 3)
+  codCollected            Decimal         @default(0) @db.Decimal(12, 3)
   /// Opens the customer's tracking page.
-  trackingToken   String          @unique
-  attempts        Int             @default(0)
-  failureReason   String?
-  outAt           DateTime?
-  deliveredAt     DateTime?
+  trackingToken           String          @unique
+  attempts                Int             @default(0)
+  failureReason           String?
+  outAt                   DateTime?
+  deliveredAt             DateTime?
   /// The employee driving it (own fleet).
-  driverId        String?
-  driver          Employee?       @relation("ShipmentDriver", fields: [driverId], references: [id], onDelete: SetNull)
-  vehicleId       String?
-  vehicle         Vehicle?        @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
-  routeSheetId    String?
-  routeSheet      RouteSheet?     @relation(fields: [routeSheetId], references: [id], onDelete: SetNull)
+  driverId                String?
+  driver                  Employee?       @relation("ShipmentDriver", fields: [driverId], references: [id], onDelete: SetNull)
+  vehicleId               String?
+  vehicle                 Vehicle?        @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  routeSheetId            String?
+  routeSheet              RouteSheet?     @relation(fields: [routeSheetId], references: [id], onDelete: SetNull)
   /// Stop number on the route sheet.
-  routeStop       Int?
+  routeStop               Int?
   /// Proof of delivery: a photo (a private file) and/or the recipient's drawn signature (PNG data URL).
-  proofPhotoUrl   String?
-  proofSignature  String?
+  proofPhotoUrl           String?
+  proofSignature          String?
   /// The cash handover that settled the cash collected on it.
-  codSettlementId String?
-  codSettlement   CodSettlement?  @relation(fields: [codSettlementId], references: [id], onDelete: SetNull)
+  codSettlementId         String?
+  codSettlement           CodSettlement?  @relation(fields: [codSettlementId], references: [id], onDelete: SetNull)
   /// Courier agency carrying it (method "agency").
-  agencyId        String?
-  agency          CourierAgency?  @relation(fields: [agencyId], references: [id], onDelete: SetNull)
-  trackingNumber  String?
+  agencyId                String?
+  agency                  CourierAgency?  @relation(fields: [agencyId], references: [id], onDelete: SetNull)
+  trackingNumber          String?
+  /// pending | unknown | confirmed | review; unresolved bookings must be reconciled before another dispatch.
+  /// The attempted carrier, separate from a confirmed agency assignment.
+  courierBookingAgencyId  String?
+  courierBookingStatus    String?
+  courierBookingStartedAt DateTime?
   /// The agency's shipping label (a private file), when its API provides one.
-  labelUrl        String?
+  labelUrl                String?
   /// What the agency charges for it, for checking its invoice.
-  agencyFee       Decimal?        @db.Decimal(12, 3)
-  agencyInvoiceId String?
-  agencyInvoice   AgencyInvoice?  @relation(fields: [agencyInvoiceId], references: [id], onDelete: SetNull)
+  agencyFee               Decimal?        @db.Decimal(12, 3)
+  agencyInvoiceId         String?
+  agencyInvoice           AgencyInvoice?  @relation(fields: [agencyInvoiceId], references: [id], onDelete: SetNull)
   /// When the agency's tracking was last read.
-  trackedAt       DateTime?
-  events          ShipmentEvent[]
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  trackedAt               DateTime?
+  events                  ShipmentEvent[]
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
 
   @@index([orderId])
   @@index([status, promisedBy])

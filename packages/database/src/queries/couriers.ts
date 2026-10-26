@@ -1,9 +1,9 @@
 import crypto from "node:crypto";
 import { getTranslations, serverMessages } from "@platform/locales";
 import { db } from "../db";
-import { courierAdapter, countryCode, isApiCourier, type CourierParty } from "../couriers/adapters";
+import { courierAdapter, countryCode, isApiCourier, type CourierParty, type BookedCourier } from "../couriers/adapters";
 import { getActiveIntegrationCredentials } from "./integrations";
-import { COURIER_KINDS } from "../constants/delivery";
+import { COURIER_KINDS, measuredCourierParcel, UNRESOLVED_COURIER_BOOKINGS } from "../constants/delivery";
 import { moveShipment } from "./shipments";
 import type { OrderAddress } from "./store";
 import { storeFileBytes } from "../services/uploads";
@@ -71,6 +71,12 @@ export interface HandToAgencyInput {
   /** For agencies without an API (or to record a booking made elsewhere). */
   trackingNumber?: string;
   fee?: string;
+  weightKg?: string;
+  lengthCm?: string;
+  widthCm?: string;
+  heightCm?: string;
+  /** An operator verified the carrier has no booking under this shipment reference. */
+  confirmNoBooking?: string;
 }
 
 /**
@@ -82,43 +88,78 @@ export async function handToAgency(shipmentId: string, input: HandToAgencyInput,
     db.shipment.findUnique({ where: { id: shipmentId }, include: { order: { select: { currency: true, total: true, lines: { select: { description: true, quantity: true } } } } } }),
     db.courierAgency.findUnique({ where: { id: input.agencyId } }),
   ]);
-  if (!shipment || !["pending", "assigned", "failed"].includes(shipment.status)) throw new Error(serverMessages.shipmentStatusInvalid);
+  const manualReconciliation = shipment && !!input.trackingNumber?.trim() && UNRESOLVED_COURIER_BOOKINGS.some(status => status === shipment.courierBookingStatus);
+  if (!shipment || (!["pending", "assigned", "failed"].includes(shipment.status) && !manualReconciliation)) throw new Error(serverMessages.shipmentStatusInvalid);
   if (!agency?.isActive) throw new Error(serverMessages.courierAgencyInvalid);
+  if (input.confirmNoBooking && input.confirmNoBooking !== shipment.number) throw new Error(serverMessages.courierBookingUncertain);
   let trackingNumber = input.trackingNumber?.trim().slice(0, 60) ?? "";
   let labelUrl: string | null = null;
+  let bookedLabel: BookedCourier["label"];
+  const fee = input.fee?.trim() ? round3(Number(input.fee)) : numOrNull(agency.feePerShipment);
+  if (fee !== null && (!Number.isFinite(fee) || fee < 0 || fee > 99_999)) throw new Error(serverMessages.productAmountInvalid);
+  if (shipment.courierBookingStatus === "pending" && shipment.courierBookingStartedAt && shipment.courierBookingStartedAt.getTime() > Date.now() - 120_000) throw new Error(serverMessages.courierBookingPending);
   const credentials = !trackingNumber && isApiCourier(agency.kind) ? await getActiveIntegrationCredentials(agency.kind) : null;
   if (credentials && isApiCourier(agency.kind)) {
+    const parcel = measuredCourierParcel(input, agency.kind === "dhl_express");
+    if (!parcel) throw new Error(serverMessages.courierParcelRequired);
     const address = shipment.address as Partial<OrderAddress>;
     const shipper = await shipperParty();
+    const recipientCountry = countryCode(address.country);
+    if (!shipper.countryCode || !recipientCountry) throw new Error(serverMessages.courierCountryInvalid);
+    if (![shipper.name, shipper.phone, shipper.line1, shipper.city, shipment.recipientName, shipment.recipientPhone, address.line1, address.city].every(value => value?.trim())) throw new Error(serverMessages.courierAddressIncomplete);
+    // shortcut: automatic booking supports one measured parcel; upgrade when multi-parcel booking is needed.
+    const reconciled = input.confirmNoBooking === shipment.number && shipment.courierBookingStartedAt && shipment.courierBookingStartedAt.getTime() <= Date.now() - 120_000;
+    const claimed = await db.shipment.updateMany({ where: { id: shipmentId, updatedAt: shipment.updatedAt, status: { in: ["pending", "assigned", "failed"] }, OR: [{ courierBookingStatus: null }, ...(reconciled ? [{ courierBookingStatus: { in: ["unknown", "pending"] }, courierBookingStartedAt: { lte: new Date(Date.now() - 120_000) } }] : [])], trackingNumber: null }, data: { courierBookingStatus: "pending", courierBookingStartedAt: new Date(), courierBookingAgencyId: agency.id } });
+    if (!claimed.count) throw new Error(serverMessages.courierBookingUncertain);
     try {
       const booked = await courierAdapter(agency.kind).book(credentials, {
         reference: shipment.number,
         shipper,
-        recipient: { name: shipment.recipientName, phone: shipment.recipientPhone, line1: address.line1 ?? "", line2: [address.line2, address.area].filter(Boolean).join(", "), city: address.city ?? "", countryCode: countryCode(address.country, shipper.countryCode), postalCode: address.postalCode },
+        recipient: { name: shipment.recipientName, phone: shipment.recipientPhone, line1: address.line1 ?? "", line2: [address.line2, address.area].filter(Boolean).join(", "), city: address.city ?? "", countryCode: recipientCountry, postalCode: address.postalCode },
         description: shipment.order.lines.map((l) => l.description).join(", ").slice(0, 100),
-        pieces: 1,
-        weightKg: 1,
-        codAmount: num(shipment.codAmount),
-        declaredValue: num(shipment.order.total),
-        currency: shipment.order.currency,
+        pieces: 1, ...parcel,
+        codAmount: num(shipment.codAmount), declaredValue: num(shipment.order.total), currency: shipment.order.currency,
       });
       trackingNumber = booked.trackingNumber;
-      if (booked.label && "url" in booked.label && /^https:\/\//.test(booked.label.url)) labelUrl = booked.label.url;
-      else if (booked.label && "pdfBase64" in booked.label) labelUrl = await storeLabel(shipmentId, booked.label.pdfBase64, byId);
-    } catch (error) {
-      console.error(`Courier ${agency.kind} refused a booking`);
-      throw new Error(serverMessages.courierBookingFailed);
+      bookedLabel = booked.label;
+    } catch {
+      await db.shipment.update({ where: { id: shipmentId }, data: { courierBookingStatus: "unknown" } }).catch(() => undefined);
+      console.error(`Courier ${agency.kind} booking needs reconciliation`);
+      throw new Error(serverMessages.courierBookingUncertain);
     }
   }
   if (!trackingNumber) throw new Error(serverMessages.courierTrackingRequired);
-  const fee = input.fee?.trim() ? round3(Number(input.fee)) : numOrNull(agency.feePerShipment);
-  if (fee !== null && (!Number.isFinite(fee) || fee < 0)) throw new Error(serverMessages.productAmountInvalid);
-  const status = shipment.status === "pending" ? "assigned" : shipment.status;
-  await db.$transaction([
-    db.shipment.update({ where: { id: shipmentId }, data: { method: "agency", agencyId: agency.id, trackingNumber, labelUrl, agencyFee: fee, driverId: null, vehicleId: null, routeSheetId: null, routeStop: null, status } }),
-    db.shipmentEvent.create({ data: { shipmentId, status, note: `${agency.name} · ${trackingNumber}`, byId } }),
-  ]);
-  return { trackingNumber, labelUrl };
+  let needsAttention = false;
+  try {
+    await db.$transaction(async tx => {
+      await tx.$queryRaw`SELECT id FROM "Shipment" WHERE id = ${shipmentId} FOR UPDATE`;
+      const current = await tx.shipment.findUniqueOrThrow({ where: { id: shipmentId }, select: { status: true, courierBookingStatus: true, courierBookingStartedAt: true, courierBookingAgencyId: true, agencyId: true, trackingNumber: true, labelUrl: true } });
+      if (!credentials && current.courierBookingStatus === "pending" && current.courierBookingStartedAt && current.courierBookingStartedAt.getTime() > Date.now() - 120_000) throw new Error(serverMessages.courierBookingPending);
+      if (!credentials && UNRESOLVED_COURIER_BOOKINGS.some(status => status === current.courierBookingStatus) && current.courierBookingAgencyId && current.courierBookingAgencyId !== agency.id) throw new Error(serverMessages.courierBookingUncertain);
+      labelUrl = current.agencyId === agency.id && current.trackingNumber === trackingNumber ? current.labelUrl : null;
+      needsAttention = !["pending", "assigned", "failed"].includes(current.status);
+      const status = current.status === "pending" ? "assigned" : current.status;
+      await tx.shipment.update({ where: { id: shipmentId }, data: { method: "agency", agencyId: agency.id, trackingNumber, labelUrl, agencyFee: fee, driverId: null, vehicleId: null, routeSheetId: null, routeStop: null, status, ...(shipment.courierBookingStatus || credentials ? { courierBookingStatus: needsAttention && credentials ? "review" : "confirmed" } : {}) } });
+      await tx.shipmentEvent.create({ data: { shipmentId, status, note: `${agency.name} · ${trackingNumber}`, byId } });
+    });
+  } catch (error) {
+    if (!credentials) throw error;
+    await db.shipment.update({ where: { id: shipmentId }, data: { courierBookingStatus: "unknown" } }).catch(() => undefined);
+    throw new Error(serverMessages.courierBookingUncertain);
+  }
+  let labelUnavailable = false;
+  if (bookedLabel) {
+    try {
+      if ("url" in bookedLabel) {
+        const url = new URL(bookedLabel.url);
+        if (url.protocol !== "https:" || url.username || url.password) throw new Error();
+        labelUrl = url.toString();
+      } else labelUrl = await storeLabel(shipmentId, bookedLabel.pdfBase64, byId);
+      if (!labelUrl) throw new Error();
+      await db.shipment.update({ where: { id: shipmentId }, data: { labelUrl } });
+    } catch { labelUnavailable = true; console.error(`Courier label for ${shipment.number} could not be saved`); }
+  }
+  return { trackingNumber, labelUrl, labelUnavailable, needsAttention };
 }
 
 /**

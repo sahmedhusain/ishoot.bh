@@ -141,3 +141,13 @@ export const VEHICLE_KINDS = ["car", "van", "motorbike", "truck", "bicycle", "ot
 /** How a courier agency is reached: tracking numbers entered by hand, or its API. */
 export const COURIER_KINDS = ["manual", "aramex", "dhl_express", "smsa"] as const;
 export type CourierKind = (typeof COURIER_KINDS)[number];
+
+export const UNRESOLVED_COURIER_BOOKINGS = ["pending", "unknown", "review"] as const;
+
+/** Automatic booking handles one measured parcel; DHL also requires all three dimensions in centimetres. */
+export function measuredCourierParcel(input: { weightKg?: string; lengthCm?: string; widthCm?: string; heightCm?: string }, requiresDimensions: boolean) {
+  const weightKg = Number(input.weightKg);
+  const dimensions = requiresDimensions ? { length: Number(input.lengthCm), width: Number(input.widthCm), height: Number(input.heightCm) } : undefined;
+  if (!Number.isFinite(weightKg) || weightKg <= 0 || (dimensions && Object.values(dimensions).some(value => !Number.isFinite(value) || value <= 0))) return null;
+  return { weightKg, dimensions };
+}

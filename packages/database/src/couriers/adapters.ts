@@ -29,13 +29,14 @@ interface BookCourierInput {
   description: string;
   pieces: number;
   weightKg: number;
+  dimensions?: { length: number; width: number; height: number };
   /** Cash the courier collects; 0 for none. */
   codAmount: number;
   declaredValue: number;
   currency: string;
 }
 
-interface BookedCourier {
+export interface BookedCourier {
   trackingNumber: string;
   /** The label as a PDF, or a link to the courier's own copy. */
   label?: { pdfBase64: string } | { url: string };
@@ -171,6 +172,7 @@ export const dhlExpress: CourierAdapter = {
   kind: "dhl_express",
   async book(c, input) {
     need(c, "apiKey", "apiSecret", "accountNumber");
+    if (input.pieces !== 1 || !input.dimensions || Object.values(input.dimensions).some(value => !Number.isFinite(value) || value <= 0)) throw new CourierError(serverMessages.courierParcelRequired);
     const domestic = input.shipper.countryCode === input.recipient.countryCode;
     const body = await call<Record<string, unknown>>(`${dhlBase(c)}/shipments`, json({ ...dhlAuth(c), "Message-Reference": input.reference.padEnd(28, "0").slice(0, 36) }, {
       plannedShippingDateAndTime: new Date(Date.now() + 3_600_000).toISOString().replace(/\.\d{3}Z$/, " GMT+00:00"),
@@ -180,7 +182,7 @@ export const dhlExpress: CourierAdapter = {
       outputImageProperties: { encodingFormat: "pdf", imageOptions: [{ typeCode: "label", templateName: "ECOM26_84_001" }] },
       customerDetails: { shipperDetails: dhlParty(input.shipper), receiverDetails: dhlParty(input.recipient) },
       content: {
-        packages: [{ weight: input.weightKg, dimensions: { length: 20, width: 15, height: 10 } }],
+        packages: [{ weight: input.weightKg, dimensions: input.dimensions }],
         isCustomsDeclarable: !domestic,
         declaredValue: input.declaredValue,
         declaredValueCurrency: input.currency,

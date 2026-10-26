@@ -4,7 +4,8 @@ import { getNextSequenceNumber } from "./sequence";
 import { moveShipment } from "./shipments";
 import { recordOrderPayment, type OrderAddress } from "./store";
 import { validateSignatureImage } from "../services/signature-image";
-import { VEHICLE_KINDS } from "../constants/delivery";
+import { Prisma } from "@prisma/client";
+import { VEHICLE_KINDS, UNRESOLVED_COURIER_BOOKINGS } from "../constants/delivery";
 
 const num = (value: { toString(): string } | null | undefined) => (value == null ? 0 : Number(value.toString()));
 const round3 = (value: number) => Math.round(value * 1000) / 1000;
@@ -65,13 +66,15 @@ async function requireDriver(driverId: string) {
 /** Gives a shipment to a driver (and vehicle). A shipment still being prepared becomes assigned. */
 export async function assignShipment(id: string, input: { driverId: string; vehicleId?: string }, byId: string | null) {
   if (input.driverId) await requireDriver(input.driverId);
-  const shipment = await db.shipment.findUnique({ where: { id }, select: { status: true } });
-  if (!shipment || !["pending", "assigned", "failed"].includes(shipment.status)) throw new Error(serverMessages.shipmentStatusInvalid);
-  const next = input.driverId ? (shipment.status === "pending" ? "assigned" : shipment.status) : "pending";
-  await db.$transaction([
-    db.shipment.update({ where: { id }, data: { driverId: input.driverId || null, vehicleId: input.vehicleId || null, status: next, method: "own" } }),
-    db.shipmentEvent.create({ data: { shipmentId: id, status: next, byId } }),
-  ]);
+  await db.$transaction(async tx => {
+    await tx.$queryRaw`SELECT id FROM "Shipment" WHERE id = ${id} FOR UPDATE`;
+    const shipment = await tx.shipment.findUnique({ where: { id }, select: { status: true, courierBookingStatus: true } });
+    if (!shipment || !["pending", "assigned", "failed"].includes(shipment.status)) throw new Error(serverMessages.shipmentStatusInvalid);
+    if (UNRESOLVED_COURIER_BOOKINGS.some(status => status === shipment.courierBookingStatus)) throw new Error(serverMessages.courierBookingUncertain);
+    const next = input.driverId ? (shipment.status === "pending" ? "assigned" : shipment.status) : "pending";
+    await tx.shipment.update({ where: { id }, data: { driverId: input.driverId || null, vehicleId: input.vehicleId || null, status: next, method: "own" } });
+    await tx.shipmentEvent.create({ data: { shipmentId: id, status: next, byId } });
+  });
 }
 
 // ─── Route sheets ────────────────────────────────────────────────────────────────────────────────────────────────
@@ -93,8 +96,9 @@ export async function createRouteSheet(input: RouteSheetInput, byId: string | nu
   await requireDriver(input.driverId);
   const ids = Array.from(new Set(input.shipmentIds)).slice(0, 200);
   return db.$transaction(async (tx) => {
-    const shipments = await tx.shipment.findMany({ where: { id: { in: ids } }, select: { id: true, status: true, routeSheet: { select: { status: true } } } });
-    if (shipments.length !== ids.length || shipments.some((s) => !ROUTABLE.includes(s.status) || (s.routeSheet && s.routeSheet.status !== "closed"))) throw new Error(serverMessages.routeSheetShipmentUnavailable);
+    await tx.$queryRaw`SELECT id FROM "Shipment" WHERE id IN (${Prisma.join(ids)}) ORDER BY id FOR UPDATE`;
+    const shipments = await tx.shipment.findMany({ where: { id: { in: ids } }, select: { id: true, status: true, courierBookingStatus: true, routeSheet: { select: { status: true } } } });
+    if (shipments.length !== ids.length || shipments.some((s) => UNRESOLVED_COURIER_BOOKINGS.some(status => status === s.courierBookingStatus) || !ROUTABLE.includes(s.status) || (s.routeSheet && s.routeSheet.status !== "closed"))) throw new Error(serverMessages.routeSheetShipmentUnavailable);
     const number = await getNextSequenceNumber("RS", undefined, tx);
     const sheet = await tx.routeSheet.create({ data: { number, date: new Date(`${input.date}T00:00:00Z`), driverId: input.driverId, vehicleId: input.vehicleId || null, note: input.note?.trim().slice(0, 500) || null, createdById: byId } });
     for (let index = 0; index < ids.length; index++) {

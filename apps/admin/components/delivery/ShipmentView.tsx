@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Copy, Loader2, MapPin, Phone } from "lucide-react";
 import { Button, Card, Input, Select, formatCurrencyValue, formatDate } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
-import { FAILURE_REASONS, SHIPMENT_TRANSITIONS, type ShipmentStatus } from "@platform/database/constants/delivery";
+import { UNRESOLVED_COURIER_BOOKINGS, measuredCourierParcel, FAILURE_REASONS, SHIPMENT_TRANSITIONS, type ShipmentStatus } from "@platform/database/constants/delivery";
 import type { CourierAgencyRecord, DriverOption, ShipmentRecord, VehicleRecord } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { assignShipmentAction, handToAgencyAction, moveShipmentAction } from "../../app/actions/delivery";
@@ -29,16 +29,23 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
   const [note, setNote] = React.useState("");
   const [collected, setCollected] = React.useState(String(shipment.cod_amount));
   const [assignee, setAssignee] = React.useState({ driverId: shipment.driver_id, vehicleId: shipment.vehicle_id });
-  const assignable = ["pending", "assigned", "failed"].includes(shipment.status);
+  const bookingBlocked = UNRESOLVED_COURIER_BOOKINGS.some(status => status === shipment.courier_booking);
+  const dispatchable = ["pending", "assigned", "failed"].includes(shipment.status);
+  const handoverAllowed = (dispatchable || (bookingBlocked && !!shipment.courier_booking_agency)) && shipment.courier_booking !== "pending";
+  const assignable = dispatchable && !bookingBlocked;
   const driverName = (d: DriverOption) => (locale === "ar" ? d.name_ar : d.name_en);
-  const [handover, setHandover] = React.useState({ agencyId: shipment.agency?.id ?? agencies[0]?.id ?? "", trackingNumber: "", fee: "" });
+  const [handover, setHandover] = React.useState({ agencyId: shipment.courier_booking_agency?.id ?? shipment.agency?.id ?? agencies[0]?.id ?? "", trackingNumber: "", fee: "", weightKg: "", lengthCm: "", widthCm: "", heightCm: "" });
   const money = (value: number) => formatCurrencyValue(value, shipment.order.currency, locale === "ar");
-  const next = SHIPMENT_TRANSITIONS[shipment.status as ShipmentStatus] ?? [];
+  const next = bookingBlocked ? [] : SHIPMENT_TRANSITIONS[shipment.status as ShipmentStatus] ?? [];
+  const selectedAgency = agencies.find(agency => agency.id === handover.agencyId);
+  const automaticBooking = dispatchable && !!selectedAgency && selectedAgency.kind !== "manual" && !handover.trackingNumber.trim();
+  const pending = React.useRef(false);
   const address = shipment.address;
   const addressText = [address.line1, address.line2, address.area, address.city, address.country, address.postalCode].filter(Boolean).join(", ");
 
   const run = async (task: () => Promise<unknown>) => {
-    setBusy(true);
+    if (pending.current) return false;
+    pending.current = true; setBusy(true);
     setMessage(null);
     try {
       await task();
@@ -49,8 +56,27 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
       setMessage({ tone: "error", text: errorMessage(err, t) });
       return false;
     } finally {
-      setBusy(false);
+      pending.current = false; setBusy(false); router.refresh();
     }
+  };
+  const handoverToAgency = (retry = false) => {
+    if (automaticBooking && !measuredCourierParcel(handover, selectedAgency?.kind === "dhl_express")) {
+      setMessage({ tone: "error", text: t.serverErrors.messages.courierParcelRequired }); return;
+    }
+    confirmAction({
+      title: retry ? t.delivery.handover.retryTitle : t.delivery.handover.confirmTitle,
+      description: formatMessage(retry ? t.delivery.handover.retryBody : t.delivery.handover.confirmBody, { number: shipment.number }),
+      confirmMatchText: retry || bookingBlocked || shipment.agency?.tracking_number ? shipment.number : undefined,
+      onConfirm: async () => {
+        let warning = "";
+        const ok = await run(async () => {
+          const result = await handToAgencyAction(shipment.id, { ...handover, ...(retry ? { confirmNoBooking: shipment.number } : {}) });
+          warning = result.needsAttention ? t.delivery.handover.needsReview : result.labelUnavailable ? t.delivery.handover.labelUnavailable : "";
+        });
+        if (!ok) throw new Error();
+        if (warning) setMessage({ tone: "error", text: warning });
+      },
+    });
   };
   const move = async (
     to: string,
@@ -78,7 +104,7 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
             {copy.back}
           </Link>
           <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex flex-wrap items-center gap-3">
-            <span dir="ltr">{shipment.number}</span>
+            <span dir="ltr" className="break-all">{shipment.number}</span>
             <ShipmentStatusPill status={shipment.status} />
             {shipment.late && <LatePill />}
           </h1>
@@ -101,6 +127,7 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
           </div>
         )}
       </div>
+      {bookingBlocked && <div role="status" data-testid="courier-booking-warning" className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-800 dark:text-amber-200">{shipment.courier_booking === "pending" ? t.delivery.handover.bookingPending : shipment.courier_booking === "review" ? t.delivery.handover.needsReview : t.delivery.handover.bookingUncertain}{shipment.courier_booking_agency && <span className="ms-1 font-semibold">{shipment.courier_booking_agency.name}</span>}</div>}
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
 
       {canEdit && (failing || (next.includes("delivered") && shipment.cod_amount > 0)) && (
@@ -191,20 +218,20 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
         </Card>
       )}
 
-      {(shipment.agency || (canAssign && assignable && agencies.length > 0)) && (
+      {(shipment.agency || (canAssign && handoverAllowed && agencies.length > 0)) && (
         <Card className="p-5 space-y-3" data-testid="shipment-agency">
           <h2 className="font-bold text-ink">{t.delivery.handover.title}</h2>
           {shipment.agency && (
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
               <span className="font-semibold">{shipment.agency.name}</span>
-              <span className="font-mono text-xs" dir="ltr" data-testid="shipment-tracking-number">{shipment.agency.tracking_number}</span>
+              <span className="font-mono text-xs break-all" dir="ltr" data-testid="shipment-tracking-number">{shipment.agency.tracking_number}</span>
               {shipment.agency.tracking_link && <a href={shipment.agency.tracking_link} target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary dark:text-mint">{t.delivery.handover.track}</a>}
               {shipment.agency.label_url && <a href={shipment.agency.label_url} target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary dark:text-mint">{t.delivery.handover.label}</a>}
               {shipment.agency.fee != null && <span className="text-xs text-ink-muted">{formatCurrencyValue(shipment.agency.fee, currency, locale === "ar")}</span>}
               {shipment.agency.invoice && <span className="text-xs text-ink-muted">{formatMessage(t.delivery.handover.invoiced, { reference: shipment.agency.invoice })}</span>}
             </div>
           )}
-          {canAssign && assignable && agencies.length > 0 && (
+          {canAssign && handoverAllowed && agencies.length > 0 && (
             <div className="grid sm:grid-cols-4 gap-3 items-end">
               <Field label={t.delivery.handover.agency}>
                 {(id) => (
@@ -215,7 +242,9 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
               </Field>
               <Field label={t.delivery.handover.trackingNumber} hint={agencies.find((a) => a.id === handover.agencyId)?.kind !== "manual" ? t.delivery.handover.trackingHint : undefined}>{(id) => <Input id={id} name="trackingNumber" dir="ltr" maxLength={60} value={handover.trackingNumber} onChange={(e) => setHandover({ ...handover, trackingNumber: e.target.value })} className="rounded-lg" />}</Field>
               <Field label={formatMessage(t.delivery.handover.fee, { currency })}>{(id) => <Input id={id} name="agencyFee" type="number" min={0} step="0.001" placeholder={agencies.find((a) => a.id === handover.agencyId)?.fee?.toString() ?? ""} value={handover.fee} onChange={(e) => setHandover({ ...handover, fee: e.target.value })} className="rounded-lg" />}</Field>
-              <Button type="button" size="sm" variant="primary" className="rounded-full" disabled={busy || !handover.agencyId} onClick={() => void run(() => handToAgencyAction(shipment.id, handover))} data-testid="shipment-handover">{t.delivery.handover.save}</Button>
+              {automaticBooking && <div className="sm:col-span-4 space-y-3"><p className="text-xs text-ink-muted">{t.delivery.handover.parcelHint}</p><div className="grid grid-cols-2 sm:grid-cols-4 gap-3"><Field label={t.delivery.handover.weightKg}>{id => <Input id={id} name="weightKg" type="number" min="0.001" step="0.001" inputMode="decimal" placeholder={t.delivery.handover.weightPlaceholder} value={handover.weightKg} onChange={event => setHandover({ ...handover, weightKg: event.target.value })} required disabled={busy} />}</Field>{selectedAgency?.kind === "dhl_express" && (["lengthCm", "widthCm", "heightCm"] as const).map(key => <Field key={key} label={t.delivery.handover[key]}>{id => <Input id={id} name={key} type="number" min="0.1" step="0.1" inputMode="decimal" placeholder={t.delivery.handover.dimensionPlaceholder} value={handover[key]} onChange={event => setHandover({ ...handover, [key]: event.target.value })} required disabled={busy} />}</Field>)}</div></div>}
+              <Button type="button" size="sm" variant="primary" className="rounded-full" disabled={busy || !handover.agencyId || (bookingBlocked && !handover.trackingNumber.trim())} onClick={() => handoverToAgency()} data-testid="shipment-handover">{t.delivery.handover.save}</Button>
+              {dispatchable && shipment.courier_booking === "unknown" && !handover.trackingNumber.trim() && <div className="sm:col-span-4 space-y-2"><p className="text-xs text-ink-muted">{t.delivery.handover.retryHint}</p><Button type="button" size="sm" variant="outline" disabled={busy || !shipment.courier_booking_retry_allowed} onClick={() => handoverToAgency(true)} data-testid="courier-booking-retry">{t.delivery.handover.retryTitle}</Button></div>}
             </div>
           )}
         </Card>

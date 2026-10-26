@@ -4204,6 +4204,26 @@
           "fee": {
             "kind": "string",
             "optional": true
+          },
+          "weightKg": {
+            "kind": "string",
+            "optional": true
+          },
+          "lengthCm": {
+            "kind": "string",
+            "optional": true
+          },
+          "widthCm": {
+            "kind": "string",
+            "optional": true
+          },
+          "heightCm": {
+            "kind": "string",
+            "optional": true
+          },
+          "confirmNoBooking": {
+            "kind": "string",
+            "optional": true
           }
         },
         "optional": false

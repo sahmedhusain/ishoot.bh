@@ -643,8 +643,8 @@
             "Verify a controlled booking, returned tracking/label and tracking updates with Aramex before using live shipments."
           ],
           "verify": "The connection check sends a non-booking tracking query. Account and internal service errors are reported as failures.",
-          "errors": "ERR01: credentials. ERR02: account. ERR03: blocked account. ERR00: provider/internal failure; retry after resolving the service issue.",
-          "limits": "Current shipment booking still uses fixed package weight/piece defaults and needs actual parcel measurements before live acceptance. Tracking is polled; there is no inbound courier callback."
+          "errors": "ERR01: credentials. ERR02: account. ERR03: blocked account. ERR00: provider/internal failure; retry after resolving the service issue. If a booking outcome is uncertain, reconcile the shipment reference with the original carrier before recording tracking or approving a retry.",
+          "limits": "Automatic booking supports one measured parcel. For several parcels, book in the carrier portal and record its tracking number here. Account/product acceptance still needs Aramex verification. Tracking is polled; no inbound courier callback is implemented."
         }
       },
       "dhl_express": {
@@ -660,8 +660,8 @@
             "Before live use, validate a measured parcel, address, product, label and tracking flow against your DHL contract."
           ],
           "verify": "Test connection calls a non-booking endpoint. It does not establish label purchase or product/country eligibility.",
-          "errors": "401: check key/secret and endpoint. Account/product errors: confirm the DHL account entitlement and shipping lane.",
-          "limits": "Current booking uses fixed package dimensions and weight defaults; actual parcel input is required before live acceptance. Tracking is polled, with no inbound DHL webhook."
+          "errors": "401: check key/secret and endpoint. Account/product errors: confirm the DHL account entitlement and shipping lane. If a booking outcome is uncertain, reconcile the shipment reference with the original carrier before recording tracking or approving a retry.",
+          "limits": "Automatic booking requires the measured weight, length, width and height of one parcel. For several parcels, use the DHL portal and record its tracking number. Account/product acceptance needs DHL verification. Tracking is polled; no inbound DHL webhook is implemented."
         }
       },
       "smsa": {
@@ -677,8 +677,8 @@
             "Verify controlled booking, tracking response and label behavior with SMSA before live use."
           ],
           "verify": "The test sends a non-booking tracking query and validates its response. Network errors and unsupported response shapes fail.",
-          "errors": "Unauthorized: check the key and environment. No-record errors do not prove authentication; confirm the account using an agreed test tracking number.",
-          "limits": "The issued SMSA contract and label flow still need account-backed acceptance. Current package defaults need actual measurements; tracking is polled and no inbound webhook is implemented."
+          "errors": "Unauthorized: check the key and environment. No-record errors do not prove authentication; confirm the account using an agreed test tracking number. If a booking outcome is uncertain, reconcile the shipment reference with the original carrier before recording tracking or approving a retry.",
+          "limits": "Automatic booking requires the measured weight of one parcel. For several parcels, use the carrier portal and record its tracking number. The issued SMSA contract and label flow still need account-backed acceptance. Tracking is polled; no inbound webhook is implemented."
         }
       }
     },
@@ -6238,7 +6238,12 @@
       "paymentApiPrefixInvalid": "The Checkout.com API account prefix must contain only lowercase letters and digits.",
       "paymentAmountPrecisionInvalid": "This provider accepts positive amounts with at most two decimal places. Choose another payment method for this amount.",
       "integrationEnvironmentInvalid": "Choose test, sandbox or live for the environment.",
-      "integrationRegionInvalid": "Choose the PayTabs region issued for your merchant profile."
+      "integrationRegionInvalid": "Choose the PayTabs region issued for your merchant profile.",
+      "courierParcelRequired": "Enter the measured weight for one parcel and all three DHL dimensions. Values must be greater than zero.",
+      "courierCountryInvalid": "Enter a recognized sender and recipient country or a two-letter country code before booking.",
+      "courierAddressIncomplete": "Complete the sender and recipient name, phone, street address and city before booking.",
+      "courierBookingPending": "A carrier booking is in progress. Wait for its result before changing this shipment.",
+      "courierBookingUncertain": "The carrier booking needs reconciliation. Check the shipment reference with the original carrier and record its tracking number. Do not create another booking unless the carrier confirms none exists."
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",
@@ -10501,12 +10506,28 @@
       "title": "Courier agency",
       "agency": "Agency",
       "trackingNumber": "Tracking number",
-      "trackingHint": "Leave empty to book through the agency's API.",
+      "trackingHint": "Leave empty for automatic booking only when this agency’s API connection is enabled; otherwise enter a confirmed tracking number.",
       "fee": "Fee ({currency})",
       "save": "Hand to agency",
       "label": "Shipping label",
       "track": "Track at the agency",
-      "invoiced": "Invoiced ({reference})"
+      "invoiced": "Invoiced ({reference})",
+      "weightKg": "Measured parcel weight (kg)",
+      "lengthCm": "Length (cm)",
+      "widthCm": "Width (cm)",
+      "heightCm": "Height (cm)",
+      "weightPlaceholder": "Measured kg, e.g. 1.250",
+      "dimensionPlaceholder": "Measured cm",
+      "parcelHint": "Automatic booking supports one measured parcel. For several parcels, book in the carrier portal and enter its tracking number here. A booking may be billed to the connected carrier account.",
+      "confirmTitle": "Hand shipment to this agency?",
+      "confirmBody": "Check the agency, tracking number and measurements for {number}. Automatic booking may create a billable shipment; changing the agency does not void an existing carrier label.",
+      "bookingPending": "A carrier request is in progress. Dispatch changes are paused until its outcome is known.",
+      "bookingUncertain": "The booking outcome is unverified. Check the original carrier using this shipment reference, then record the confirmed tracking number. Dispatch changes are paused.",
+      "retryTitle": "Retry after reconciliation",
+      "retryBody": "Only retry {number} after the original carrier confirms its request has finished and no shipment exists. A new request may create a second billable label if a previous booking exists.",
+      "retryHint": "Confirm the original carrier has finished processing and has no booking. Refresh this page after at least two minutes to enable a typed, operator-approved retry.",
+      "needsReview": "The carrier returned a tracking number, but the shipment state changed. Reconcile the label with the carrier before dispatch.",
+      "labelUnavailable": "The shipment is booked and its tracking number is saved, but its label could not be stored. Retrieve the label from the carrier; do not book it again."
     }
   },
   "tasks": {

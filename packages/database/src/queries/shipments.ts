@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { serverMessages } from "@platform/locales";
 import { db } from "../db";
-import { FAILURE_REASONS, OPEN_SHIPMENT_STATUSES, SHIPMENT_STATUSES, canMoveShipment, type ShipmentStatus } from "../constants/delivery";
+import { UNRESOLVED_COURIER_BOOKINGS, FAILURE_REASONS, OPEN_SHIPMENT_STATUSES, SHIPMENT_STATUSES, canMoveShipment, type ShipmentStatus } from "../constants/delivery";
 import { moveOrderIn, type OrderAddress } from "./store";
 
 /** The agency's public tracking page for a number, when the agency has one. */
@@ -53,6 +53,7 @@ export async function listShipments(filters: ShipmentFilters = {}, now = new Dat
       order_number: s.order.number,
       status: s.status,
       method: s.method,
+
       recipient: s.recipientName,
       phone: s.recipientPhone,
       area: [(s.address as Partial<OrderAddress>)?.area, (s.address as Partial<OrderAddress>)?.city].filter(Boolean).join(", "),
@@ -78,12 +79,17 @@ export async function shipmentCounts(now = new Date(), /** Only this driver's sh
 export async function getShipment(id: string, now = new Date()) {
   const s = await db.shipment.findUnique({ where: { id }, include: { order: { select: { id: true, number: true, status: true, total: true, currency: true, locale: true, paymentMethod: true, paymentStatus: true, lines: { orderBy: { sortOrder: "asc" }, select: { description: true, sku: true, quantity: true } } } }, zone: { select: { nameEn: true, nameAr: true } }, events: { orderBy: { at: "asc" } }, routeSheet: { select: { id: true, number: true } }, codSettlement: { select: { number: true } }, agency: { select: { id: true, name: true, trackingUrl: true } }, agencyInvoice: { select: { reference: true } } } });
   if (!s) return null;
+  const bookingAgency = s.courierBookingAgencyId ? await db.courierAgency.findUnique({ where: { id: s.courierBookingAgencyId }, select: { id: true, name: true } }) : null;
   const people = await db.user.findMany({ where: { id: { in: s.events.map((e) => e.byId).filter((v): v is string => !!v) } }, select: { id: true, fullName: true } });
   return {
     id: s.id,
     number: s.number,
     status: s.status,
     method: s.method,
+    courier_booking_agency: bookingAgency,
+    courier_booking_started_at: s.courierBookingStartedAt?.toISOString() ?? null,
+    courier_booking_retry_allowed: !!s.courierBookingStartedAt && s.courierBookingStartedAt.getTime() <= now.getTime() - 120_000 && !s.trackingNumber,
+    courier_booking: s.courierBookingStatus === "pending" && s.courierBookingStartedAt && s.courierBookingStartedAt.getTime() <= now.getTime() - 120_000 ? "unknown" : s.courierBookingStatus,
     order: { id: s.order.id, number: s.order.number, status: s.order.status, locale: s.order.locale === "en" ? "en" : "ar", total: num(s.order.total), currency: s.order.currency, payment_method: s.order.paymentMethod, payment_status: s.order.paymentStatus, lines: s.order.lines.map((l) => ({ description: l.description, sku: l.sku, quantity: num(l.quantity) })) },
     recipient: s.recipientName,
     phone: s.recipientPhone,
@@ -151,6 +157,7 @@ export async function moveShipment(id: string, input: MoveShipmentInput, byId: s
     await tx.$queryRaw`SELECT id FROM "Shipment" WHERE id = ${id} FOR UPDATE`;
     const shipment = await tx.shipment.findUnique({ where: { id } });
     if (!shipment) throw new Error(serverMessages.procurementDocumentMissing);
+    if (UNRESOLVED_COURIER_BOOKINGS.some(status => status === shipment.courierBookingStatus)) throw new Error(serverMessages.courierBookingUncertain);
     if (!canMoveShipment(shipment.status, to)) throw new Error(serverMessages.shipmentStatusInvalid);
     const reason = to === "failed" ? input.reason ?? "" : "";
     if (to === "failed" && !(FAILURE_REASONS as readonly string[]).includes(reason)) throw new Error(serverMessages.shipmentReasonRequired);

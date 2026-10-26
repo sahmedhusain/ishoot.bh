@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { getTranslations } from "../../packages/locales/src";
-import { COURIER_KINDS } from "../../packages/database/src/constants/delivery";
+import { COURIER_KINDS, measuredCourierParcel } from "../../packages/database/src/constants/delivery";
 import { INTEGRATION_PROVIDERS } from "../../packages/database/src/constants/integrations";
 import { aramex, countryCode, courierStateFrom, dhlExpress, smsa } from "../../packages/database/src/couriers/adapters";
 
@@ -16,7 +16,7 @@ function stubFetch(answer: unknown, status = 200) {
 }
 
 const party = { name: "Shop", phone: "+97317000000", line1: "Road 1", city: "Manama", countryCode: "BH" };
-const input = { reference: "DL-2026-000001", shipper: party, recipient: { ...party, name: "Amal", city: "Muharraq" }, description: "Shoes", pieces: 1, weightKg: 1, codAmount: 12.5, declaredValue: 12.5, currency: "BHD" };
+const input = { reference: "DL-2026-000001", shipper: party, recipient: { ...party, name: "Amal", city: "Muharraq" }, description: "Shoes", pieces: 1, weightKg: 1.75, dimensions: { length: 31, width: 22, height: 14 }, codAmount: 12.5, declaredValue: 12.5, currency: "BHD" };
 
 describe("couriers", () => {
   test("addresses' countries become the two-letter codes couriers want", () => {
@@ -49,6 +49,7 @@ describe("couriers", () => {
     const calls = stubFetch({ shipmentTrackingNumber: "1234567890", documents: [{ typeCode: "label", imageFormat: "PDF", content: "JVBERi0xLjQ=" }] });
     expect(await dhlExpress.book({ environment: "test", apiKey: "k", apiSecret: "s", accountNumber: "9" }, input)).toEqual({ trackingNumber: "1234567890", label: { pdfBase64: "JVBERi0xLjQ=" } });
     expect(calls[0].url).toBe("https://express.api.dhl.com/mydhlapi/test/shipments");
+    expect(JSON.parse(String(calls[0].init.body)).content.packages).toEqual([{ weight: 1.75, dimensions: { length: 31, width: 22, height: 14 } }]);
     expect(new Headers(calls[0].init.headers).get("Authorization")).toBe(`Basic ${Buffer.from("k:s").toString("base64")}`);
     stubFetch({ sawb: "290077665544", waybills: [{ awb: "290077665544", awbFile: "JVBERi0=" }] });
     expect(await smsa.book({ environment: "test", apiKey: "k" }, input)).toEqual({ trackingNumber: "290077665544", label: { pdfBase64: "JVBERi0=" } });
@@ -66,4 +67,13 @@ describe("couriers", () => {
       for (const kind of COURIER_KINDS) expect(admin.delivery.agencies.kinds[kind]).toBeTruthy();
     }
   });
+});
+
+
+test("automatic parcel measurements never substitute defaults for missing or invalid values", () => {
+  expect(measuredCourierParcel({}, false)).toBeNull();
+  expect(measuredCourierParcel({ weightKg: "-1" }, false)).toBeNull();
+  expect(measuredCourierParcel({ weightKg: "Infinity" }, false)).toBeNull();
+  expect(measuredCourierParcel({ weightKg: "1.75", lengthCm: "31", widthCm: "22" }, true)).toBeNull();
+  expect(measuredCourierParcel({ weightKg: "1.75", lengthCm: "31", widthCm: "22", heightCm: "14" }, true)).toEqual({ weightKg: 1.75, dimensions: { length: 31, width: 22, height: 14 } });
 });
