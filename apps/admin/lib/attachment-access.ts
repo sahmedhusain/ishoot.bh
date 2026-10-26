@@ -22,6 +22,8 @@ const resources: Record<string, PermissionResource> = {
   company_font: "settings",
   company_document: "settings",
   general: "settings",
+  supplier_bill: "procurement",
+  sales_order: "orders",
 };
 
 /** Public website media (client logos, banners, portfolio, gear photos): the entity id names the CMS resource. */
@@ -91,6 +93,10 @@ export async function requireAttachmentAccess(
                 })
             : entityType === "quotation"
               ? await db.quotation.findUnique({ where: { id: entityId }, select: { id: true } })
+              : entityType === "sales_order"
+                ? await db.salesOrder.findUnique({ where: { id: entityId }, select: { id: true } })
+              : entityType === "supplier_bill"
+                ? await db.supplierBill.findUnique({ where: { id: entityId }, select: { id: true } })
               : entityType === "contact" || entityType === "customer_vault"
                 ? await db.crmContact.findUnique({
                     where: { id: entityId },

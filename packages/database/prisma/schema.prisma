@@ -3783,16 +3783,19 @@ model RouteSheet {
 
 /// A driver handing over the cash collected on deliveries.
 model CodSettlement {
-  id          String     @id @default(uuid())
+  id          String         @id @default(uuid())
   /// CS-YYYY-NNNNNN
-  number      String     @unique
-  driverId    String
-  driver      Employee   @relation("CodSettlementDriver", fields: [driverId], references: [id], onDelete: Restrict)
-  expected    Decimal    @db.Decimal(12, 3)
-  received    Decimal    @db.Decimal(12, 3)
+  number      String         @unique
+  /// Who handed the cash over: a driver, or a courier agency remitting what it collected.
+  driverId    String?
+  driver      Employee?      @relation("CodSettlementDriver", fields: [driverId], references: [id], onDelete: Restrict)
+  agencyId    String?
+  agency      CourierAgency? @relation(fields: [agencyId], references: [id], onDelete: Restrict)
+  expected    Decimal        @db.Decimal(12, 3)
+  received    Decimal        @db.Decimal(12, 3)
   note        String?
   settledById String?
-  settledAt   DateTime   @default(now())
+  settledAt   DateTime       @default(now())
   shipments   Shipment[]
 
   @@index([driverId, settledAt])
@@ -3815,6 +3818,7 @@ model CourierAgency {
   invoices       AgencyInvoice[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+  CodSettlement  CodSettlement[]
 }
 
 /// An agency's bill for the shipments it carried, recorded as an expense.

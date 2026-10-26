@@ -134,6 +134,12 @@ test("goods are received into stock, a bill that differs is approved with a reas
   expect(Number(expense.amount)).toBe(15);
   expect(Number((await db.purchaseOrderLine.findUniqueOrThrow({ where: { id: line.id } })).billedQuantity)).toBe(6);
 
+  // The supplier's invoice is kept on the bill (and its expense).
+  await page.getByTestId("bill-file").locator('input[name="billFile"]').setInputFiles({ name: "supplier-invoice.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n") });
+  await expect(page.getByTestId("bill-file").getByRole("link")).toBeVisible();
+  expect(await db.attachment.count({ where: { entityType: "supplier_bill", entityId: bill.id } })).toBe(1);
+  expect((await db.supplierBill.findUniqueOrThrow({ where: { id: bill.id } })).attachmentUrl).toMatch(/^\/api\/files\//);
+
   const pay = page.getByTestId("bill-payment");
   await pay.locator('input[name="paymentAmount"]').fill("5");
   await page.getByTestId("bill-pay").click();

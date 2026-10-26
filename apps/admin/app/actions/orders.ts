@@ -3,6 +3,8 @@ import { revalidatePath } from "next/cache";
 import { serverMessages } from "@platform/locales";
 import {
   addOrderNote,
+  claimUpload,
+  db,
   createActivityLog,
   issueOrderInvoice,
   measureOperation,
@@ -43,12 +45,19 @@ export async function moveOrderAction(id: string, status: string, note: string) 
   });
 }
 
-export async function recordOrderPaymentAction(id: string, input: { amount: string; method: string; reference: string }) {
+export async function recordOrderPaymentAction(id: string, input: { amount: string; method: string; reference: string; proofUrl?: string }) {
   return measureOperation("action:recordOrderPaymentAction", async () => {
     await requireFeatureEnabled("store");
     const user = await requirePermission("orders", "edit");
     validateActionArguments("recordOrderPaymentAction", { id, input });
     if (!["cash", "card", "bank_transfer"].includes(input.method)) throw new Error(serverMessages.storePaymentMethodInvalid);
+    // The customer's proof of a bank transfer (uploaded beforehand) is kept on the order as a private file.
+    if (input.proofUrl) {
+      await db.$transaction(async (tx) => {
+        const upload = await claimUpload(tx, input.proofUrl!, user.id);
+        await tx.attachment.create({ data: { fileName: upload.fileName.slice(0, 200), fileUrl: upload.fileUrl, fileSize: upload.fileSize, mimeType: upload.mimeType, entityType: "sales_order", entityId: id, uploadedById: user.id } });
+      });
+    }
     await recordOrderPayment(id, { amount: Number(input.amount), method: input.method as "cash" | "card" | "bank_transfer", reference: input.reference }, user.id);
     await createActivityLog({ user_id: user.id, action: "payment", entity_type: "sales_order", entity_id: id, details: { amount: input.amount, method: input.method } });
     refresh(id);

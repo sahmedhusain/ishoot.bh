@@ -335,6 +335,8 @@ export async function getOrder(id: string) {
   if (!o) return null;
   const people = await db.user.findMany({ where: { id: { in: o.events.map((e) => e.byId).filter((v): v is string => !!v) } }, select: { id: true, fullName: true } });
   const invoice = o.invoiceId ? await db.invoice.findUnique({ where: { id: o.invoiceId }, select: { id: true, invoiceNumber: true } }) : null;
+  // Files kept on the order, such as the customer's proof of a bank transfer.
+  const files = await db.attachment.findMany({ where: { entityType: "sales_order", entityId: id }, orderBy: { createdAt: "asc" }, select: { id: true, fileName: true, fileUrl: true, createdAt: true } });
   return {
     id: o.id,
     number: o.number,
@@ -364,6 +366,7 @@ export async function getOrder(id: string) {
     placed_at: o.placedAt.toISOString(),
     lines: o.lines.map((l) => ({ id: l.id, product_id: l.productId, variant_key: l.variantKey, sku: l.sku, description: l.description, quantity: num(l.quantity), unit_price: num(l.unitPrice), line_total: num(l.lineTotal), returned: num(l.returnedQuantity) })),
     events: o.events.map((e) => ({ id: e.id, kind: e.kind, status: e.status, note: e.note, amount: numOrNull(e.amount), by: people.find((p) => p.id === e.byId)?.fullName ?? null, at: e.createdAt.toISOString() })),
+    files: files.map((f) => ({ id: f.id, name: f.fileName, url: f.fileUrl, at: f.createdAt.toISOString() })),
   };
 }
 export type OrderRecord = NonNullable<Awaited<ReturnType<typeof getOrder>>>;

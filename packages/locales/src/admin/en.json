@@ -9663,7 +9663,10 @@
       "reference": "Reference",
       "paymentSaved": "Payment recorded.",
       "allStatuses": "All bills",
-      "empty": "No supplier bills yet."
+      "empty": "No supplier bills yet.",
+      "attachFile": "Attach the supplier's bill",
+      "replaceFile": "Replace the file",
+      "fileAttached": "File attached."
     },
     "performance": {
       "title": "Performance",
@@ -9791,7 +9794,10 @@
         "failed": "Not completed",
         "expired": "Timed out"
       },
-      "refundOnline": "Paid online: the refund goes back through {gateway}."
+      "refundOnline": "Paid online: the refund goes back through {gateway}.",
+      "addProof": "Attach proof of transfer",
+      "proofAdded": "Proof attached",
+      "files": "Files"
     },
     "pos": {
       "title": "New sale",

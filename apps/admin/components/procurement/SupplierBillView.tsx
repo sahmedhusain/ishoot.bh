@@ -3,13 +3,14 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, ArrowLeft, CheckCircle2, Loader2, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle2, Loader2, Paperclip, Plus, Trash2 } from "lucide-react";
 import { Button, Card, CurrencyDisplay, Input, Select, formatDate } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import type { SupplierBillRecord } from "@platform/database";
 import { SUPPLIER_PAYMENT_METHODS, documentTotals } from "@platform/database/constants/procurement";
 import { ROUTES } from "../../constants/routes";
-import { approveSupplierBillAction, cancelSupplierBillAction, recordSupplierPaymentAction, saveSupplierBillAction } from "../../app/actions/procurement";
+import { approveSupplierBillAction, attachSupplierBillFileAction, cancelSupplierBillAction, recordSupplierPaymentAction, saveSupplierBillAction } from "../../app/actions/procurement";
+import { uploadForClaim } from "../../lib/upload-client";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { Field } from "../setup/LanguageFields";
@@ -134,9 +135,28 @@ export function SupplierBillView({ bill, fromOrder, suppliers, currency, rights 
             {(id) => <Input id={id} name="vatAmount" type="number" min={0} step="0.001" value={form.vatAmount} onChange={(e) => set({ vatAmount: e.target.value })} className="rounded-lg" />}
           </Field>
         </fieldset>
-        {bill?.attachment_url ? (
-          <a href={bill.attachment_url} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-accent hover:underline">{copy.attachment}</a>
-        ) : null}
+        {bill && (
+          <div className="flex flex-wrap items-center gap-3" data-testid="bill-file">
+            {bill.attachment_url ? <a href={bill.attachment_url} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-accent hover:underline">{copy.attachment}</a> : null}
+            {bill.status !== "cancelled" && (
+              <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-ink/15 px-3 h-8 text-xs font-semibold hover:border-accent">
+                <Paperclip className="w-3.5 h-3.5" aria-hidden="true" />
+                {bill.attachment_url ? copy.replaceFile : copy.attachFile}
+                <input
+                  type="file"
+                  name="billFile"
+                  accept="application/pdf,image/jpeg,image/png,image/webp"
+                  className="sr-only"
+                  disabled={busy}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) void run(async () => attachSupplierBillFileAction(bill.id, (await uploadForClaim(file, { entityType: "supplier_bill", entityId: bill.id })).fileUrl), copy.fileAttached);
+                  }}
+                />
+              </label>
+            )}
+          </div>
+        )}
 
         <h2 className="font-bold text-ink">{t.procurement.lines.title}</h2>
         {editable ? (

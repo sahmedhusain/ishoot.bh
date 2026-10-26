@@ -8,7 +8,9 @@ import {
   cancelRfq,
   createActivityLog,
   createRfq,
+  claimUpload,
   db,
+  setSupplierBillFile,
   getCompanySettings,
   getPurchaseOrder,
   markPurchaseOrderSent,
@@ -267,6 +269,23 @@ export async function saveSupplierBillAction(input: SupplierBillInput) {
     revalidatePath(ROUTES.procurement.bills);
     revalidatePath(ROUTES.procurement.bill(bill.id));
     return { success: true, id: bill.id };
+  });
+}
+
+/** Attaches the supplier's own bill (uploaded beforehand, claimed here as a private file of the bill). */
+export async function attachSupplierBillFileAction(id: string, fileUrl: string) {
+  return measureOperation("action:attachSupplierBillFileAction", async () => {
+    await requireFeatureEnabled("procurement");
+    const user = await requirePermission("procurement", "edit");
+    validateActionArguments("attachSupplierBillFileAction", { id, fileUrl });
+    await db.$transaction(async (tx) => {
+      const upload = await claimUpload(tx, fileUrl, user.id);
+      await tx.attachment.create({ data: { fileName: upload.fileName.slice(0, 200), fileUrl: upload.fileUrl, fileSize: upload.fileSize, mimeType: upload.mimeType, entityType: "supplier_bill", entityId: id, uploadedById: user.id } });
+    });
+    await setSupplierBillFile(id, fileUrl);
+    await log(user.id, "attach", "supplier_bill", id, {});
+    revalidatePath(ROUTES.procurement.bill(id));
+    return { success: true };
   });
 }
 

@@ -340,3 +340,14 @@ export async function purchasePriceHistory(productId: string, limit = 10) {
   });
   return lines.map((l) => ({ order_id: l.purchaseOrder.id, number: l.purchaseOrder.number, date: isoDay(l.purchaseOrder.orderDate)!, supplier: supplierName(l.purchaseOrder.supplier), variant_key: l.variantKey, quantity: num(l.quantity), unit_price: num(l.unitPrice) }));
 }
+
+/**
+ * Keeps the supplier's own bill (a scan or PDF) on the bill as a private file; an approved bill's expense gets it
+ * as its receipt too. The upload is claimed by the caller (it verifies the stored bytes and who uploaded them).
+ */
+export async function setSupplierBillFile(id: string, fileUrl: string) {
+  const bill = await db.supplierBill.findUnique({ where: { id }, select: { status: true, expenseId: true } });
+  if (!bill || bill.status === "cancelled") throw new Error(serverMessages.procurementDocumentMissing);
+  await db.supplierBill.update({ where: { id }, data: { attachmentUrl: fileUrl } });
+  if (bill.expenseId) await db.expense.update({ where: { id: bill.expenseId }, data: { receiptUrl: fileUrl } });
+}

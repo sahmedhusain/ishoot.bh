@@ -18,7 +18,8 @@ test.beforeAll(async () => {
   await enableStore(db);
   await enableDelivery(db);
   const old = await db.courierAgency.findMany({ where: { name: AGENCY }, select: { id: true } });
-  await db.shipment.updateMany({ where: { agencyId: { in: old.map((a) => a.id) } }, data: { agencyId: null, agencyInvoiceId: null } });
+  await db.shipment.updateMany({ where: { agencyId: { in: old.map((a) => a.id) } }, data: { agencyId: null, agencyInvoiceId: null, codSettlementId: null } });
+  await db.codSettlement.deleteMany({ where: { agencyId: { in: old.map((a) => a.id) } } });
   await db.agencyInvoice.deleteMany({ where: { agencyId: { in: old.map((a) => a.id) } } });
   await db.courierAgency.deleteMany({ where: { name: AGENCY } });
   productId = (await freshStockedProduct(db, { sku: "E2E-AGENCY", nameEn: "E2E Agency Item", nameAr: "صنف شركة الشحن", price: 7, onHand: 5 })).id;
@@ -80,5 +81,22 @@ test("a shipment handed to a courier agency is tracked at the agency and invoice
   expect(Number(expense.amount)).toBe(1.5);
   expect(expense.category.slug).toBe("delivery");
   await expect(page.getByTestId("agency-invoices").first()).toContainText(copy.agencies.difference);
+  errors.assertClean();
+});
+
+test("the agency remits the cash it collected, paying the order", async ({ page }) => {
+  const errors = watchErrors(page);
+  const shipment = await db.shipment.findUniqueOrThrow({ where: { id: shipmentId } });
+  expect(Number(shipment.codCollected)).toBeGreaterThan(0);
+  await page.goto("/dashboard/delivery/cash");
+  const card = page.getByTestId("cash-agency").filter({ hasText: AGENCY }).first();
+  await card.locator('input[name="cashReceived"]').fill(String(Number(shipment.codCollected)));
+  await card.getByTestId("cash-settle").click();
+  await expect(page.getByTestId("cash-history").first()).toContainText(AGENCY);
+  const settlement = await db.codSettlement.findFirstOrThrow({ where: { agencyId: shipment.agencyId }, orderBy: { settledAt: "desc" } });
+  expect(settlement.driverId).toBeNull();
+  expect(Number(settlement.received)).toBe(Number(shipment.codCollected));
+  const order = await db.salesOrder.findUniqueOrThrow({ where: { id: shipment.orderId } });
+  expect(order.paymentStatus).toBe("paid");
   errors.assertClean();
 });

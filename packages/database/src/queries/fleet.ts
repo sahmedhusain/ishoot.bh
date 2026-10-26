@@ -180,48 +180,60 @@ export async function saveDeliveryProof(id: string, proof: { photoUrl?: string |
 
 // ─── Cash on delivery ────────────────────────────────────────────────────────────────────────────────────────────
 
-/** Per driver: cash collected on delivered shipments and not yet handed over. */
+/**
+ * Cash collected on delivered shipments and not yet handed over: per driver, and per courier agency (which remits
+ * what it collected on the company's behalf).
+ */
 export async function cashToSettle() {
-  const rows = await db.shipment.findMany({ where: { status: "delivered", codCollected: { gt: 0 }, codSettlementId: null, driverId: { not: null } }, orderBy: { deliveredAt: "asc" }, include: { driver: { select: { id: true, ...NAME } }, order: { select: { number: true, currency: true } } } });
-  const drivers = new Map<string, { driver_id: string; name_en: string; name_ar: string; total: number; currency: string; shipments: { id: string; number: string; order_number: string; amount: number; delivered_at: string }[] }>();
+  const rows = await db.shipment.findMany({
+    where: { status: "delivered", codCollected: { gt: 0 }, codSettlementId: null, OR: [{ driverId: { not: null } }, { agencyId: { not: null }, method: "agency" }] },
+    orderBy: { deliveredAt: "asc" },
+    include: { driver: { select: { id: true, ...NAME } }, agency: { select: { id: true, name: true } }, order: { select: { number: true, currency: true } } },
+  });
+  const sources = new Map<string, { source: string; kind: "driver" | "agency"; name_en: string; name_ar: string; total: number; currency: string; shipments: { id: string; number: string; order_number: string; amount: number; delivered_at: string }[] }>();
   for (const s of rows) {
-    const entry = drivers.get(s.driverId!) ?? { driver_id: s.driverId!, name_en: nameEn(s.driver!), name_ar: nameAr(s.driver!), total: 0, currency: s.order.currency, shipments: [] };
-    entry.total = round3(entry.total + num(s.codCollected));
-    entry.shipments.push({ id: s.id, number: s.number, order_number: s.order.number, amount: num(s.codCollected), delivered_at: s.deliveredAt?.toISOString() ?? "" });
-    drivers.set(s.driverId!, entry);
+    const agency = s.method === "agency" && s.agency;
+    const source = agency ? `agency:${s.agency!.id}` : `driver:${s.driverId}`;
+    const entry = sources.get(source) ?? (agency ? { source, kind: "agency" as const, name_en: s.agency!.name, name_ar: s.agency!.name } : { source, kind: "driver" as const, name_en: nameEn(s.driver!), name_ar: nameAr(s.driver!) });
+    const full = { total: 0, currency: s.order.currency, shipments: [] as { id: string; number: string; order_number: string; amount: number; delivered_at: string }[], ...entry };
+    full.total = round3(full.total + num(s.codCollected));
+    full.shipments.push({ id: s.id, number: s.number, order_number: s.order.number, amount: num(s.codCollected), delivered_at: s.deliveredAt?.toISOString() ?? "" });
+    sources.set(source, full);
   }
-  return Array.from(drivers.values());
+  return Array.from(sources.values());
 }
 export type CashToSettle = Awaited<ReturnType<typeof cashToSettle>>[number];
 
 /**
- * A driver hands over the cash: the shipments are settled, and each order is paid (cash) with what was collected on
- * it. A shortfall or excess is kept on the settlement as the difference.
+ * A driver hands over the cash, or an agency remits what it collected: the shipments are settled, and each order is
+ * paid with what was collected on it (cash from a driver, a transfer from an agency). A shortfall or excess is kept
+ * on the settlement as the difference.
  */
-export async function settleCash(input: { driverId: string; shipmentIds: string[]; received: number; note?: string }, byId: string | null) {
+export async function settleCash(input: { source: string; shipmentIds: string[]; received: number; note?: string }, byId: string | null) {
   const received = round3(input.received);
-  if (!Number.isFinite(received) || received < 0) throw new Error(serverMessages.codSettlementInvalid);
+  const [kind, sourceId] = input.source.split(":");
+  if (!Number.isFinite(received) || received < 0 || !sourceId || (kind !== "driver" && kind !== "agency")) throw new Error(serverMessages.codSettlementInvalid);
   const ids = Array.from(new Set(input.shipmentIds));
-  const shipments = await db.shipment.findMany({ where: { id: { in: ids }, driverId: input.driverId, status: "delivered", codSettlementId: null, codCollected: { gt: 0 } } });
+  const shipments = await db.shipment.findMany({ where: { id: { in: ids }, ...(kind === "driver" ? { driverId: sourceId } : { agencyId: sourceId, method: "agency" }), status: "delivered", codSettlementId: null, codCollected: { gt: 0 } } });
   if (!ids.length || shipments.length !== ids.length) throw new Error(serverMessages.codSettlementInvalid);
   const expected = round3(shipments.reduce((sum, s) => sum + num(s.codCollected), 0));
   const settlement = await db.$transaction(async (tx) => {
     const number = await getNextSequenceNumber("CS", undefined, tx);
-    const created = await tx.codSettlement.create({ data: { number, driverId: input.driverId, expected, received, note: input.note?.trim().slice(0, 500) || null, settledById: byId } });
+    const created = await tx.codSettlement.create({ data: { number, ...(kind === "driver" ? { driverId: sourceId } : { agencyId: sourceId }), expected, received, note: input.note?.trim().slice(0, 500) || null, settledById: byId } });
     const claimed = await tx.shipment.updateMany({ where: { id: { in: ids }, codSettlementId: null }, data: { codSettlementId: created.id } });
     if (claimed.count !== ids.length) throw new Error(serverMessages.codSettlementInvalid);
     return created;
   });
-  // The money is the company's now: each order takes the cash collected on it (up to what it still owes).
+  // The money is the company's now: each order takes what was collected on it (up to what it still owes).
   for (const s of shipments) {
     const order = await db.salesOrder.findUniqueOrThrow({ where: { id: s.orderId }, select: { total: true, amountPaid: true } });
     const amount = round3(Math.min(num(s.codCollected), num(order.total) - num(order.amountPaid)));
-    if (amount > 0) await recordOrderPayment(s.orderId, { amount, method: "cash", reference: settlement.number }, byId);
+    if (amount > 0) await recordOrderPayment(s.orderId, { amount, method: kind === "agency" ? "bank_transfer" : "cash", reference: settlement.number }, byId);
   }
   return { id: settlement.id, number: settlement.number, expected, received, difference: round3(received - expected) };
 }
 
 export async function listCodSettlements() {
-  const rows = await db.codSettlement.findMany({ orderBy: { settledAt: "desc" }, take: 50, include: { driver: { select: NAME }, _count: { select: { shipments: true } } } });
-  return rows.map((r) => ({ id: r.id, number: r.number, driver_en: nameEn(r.driver), driver_ar: nameAr(r.driver), expected: num(r.expected), received: num(r.received), difference: round3(num(r.received) - num(r.expected)), shipments: r._count.shipments, settled_at: r.settledAt.toISOString(), note: r.note ?? "" }));
+  const rows = await db.codSettlement.findMany({ orderBy: { settledAt: "desc" }, take: 50, include: { driver: { select: NAME }, agency: { select: { name: true } }, _count: { select: { shipments: true } } } });
+  return rows.map((r) => ({ id: r.id, number: r.number, driver_en: r.driver ? nameEn(r.driver) : r.agency?.name ?? "", driver_ar: r.driver ? nameAr(r.driver) : r.agency?.name ?? "", expected: num(r.expected), received: num(r.received), difference: round3(num(r.received) - num(r.expected)), shipments: r._count.shipments, settled_at: r.settledAt.toISOString(), note: r.note ?? "" }));
 }

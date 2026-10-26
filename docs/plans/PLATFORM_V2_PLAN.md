@@ -740,3 +740,15 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
   Excel / PDF exports, a schedule run by the scheduled job, and a driver seeing only the delivery report and being
   refused another report's export).
 - Stopped here at the user's request: Phases 10 (dashboard v2) and 11 (motion polish) are not started.
+
+### Deferred items closed (before Phases 10–11) — done
+- Supplier bills keep the supplier's invoice file (private attachment on the bill, also set as its expense's
+  receipt).
+- A bank transfer recorded on an order can carry the transfer receipt; the order shows its files.
+- Courier agencies remit the cash they collected (migration `20261027080000_agency_remittance`: a cash
+  settlement is from a driver or an agency, never both); the order is paid by transfer with the settlement number.
+- Still dependent on outside approval: WhatsApp order confirmations and WhatsApp broadcasts need Meta-approved
+  message templates; non-Stripe gateways and the courier APIs still need live credentials to be confirmed.
+- Tested: e2e (bill file, transfer receipt, agency remittance, and the procurement, payments, fleet and agencies
+  journeys around them).
+- Phases 10 (dashboard v2) and 11 (motion polish) are not started, at the user's request.

@@ -9,6 +9,7 @@ const copy = t.orders;
 const db = testDatabase();
 const SKU = "E2E-PAYLINK";
 let stripe: StandIn;
+const PDF = Buffer.from("%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n");
 
 test.describe.configure({ mode: "serial" });
 
@@ -76,3 +77,30 @@ test("a phone order is paid from a payment link and refunded through the gateway
   expect(stripe.refunds).toEqual([{ payment_intent: attempt.gatewayPaymentId, amount: 1000 }]);
   errors.assertClean();
 });
+
+test("a bank transfer is recorded on a phone order with the transfer receipt kept on the order", async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto("/dashboard/orders/new");
+  await expect(page.getByTestId("sale-search")).toHaveCount(1, { timeout: 30_000 });
+  await page.getByTestId("sale-search").fill(SKU);
+  await page.getByTestId("sale-search").press("Enter");
+  await page.getByLabel(copy.pos.channel).selectOption("phone");
+  await page.locator('input[name="saleName"]').fill("Transfer Buyer");
+  await page.getByTestId("sale-paid-with").selectOption("");
+  await page.getByTestId("sale-create").click();
+  await expect(page).toHaveURL(/\/dashboard\/orders\/[0-9a-f-]{36}$/, { timeout: 60_000 });
+  const id = page.url().split("/").pop()!;
+  await page.waitForLoadState("networkidle");
+  const card = page.getByTestId("order-payment").first();
+  const order = await db.salesOrder.findUniqueOrThrow({ where: { id } });
+  await card.locator('input[name="paymentAmount"]').fill(String(Number(order.total)));
+  await card.locator("select").selectOption("bank_transfer");
+  await card.locator('input[name="transferProof"]').setInputFiles({ name: "transfer.pdf", mimeType: "application/pdf", buffer: PDF });
+  await expect(card.getByText(copy.detail.proofAdded).first()).toBeVisible();
+  await card.getByTestId("order-pay").click();
+  await expect.poll(async () => (await db.salesOrder.findUniqueOrThrow({ where: { id } })).paymentStatus).toBe("paid");
+  await expect(page.getByTestId("order-files").first()).toContainText("transfer.pdf");
+  expect(await db.attachment.count({ where: { entityType: "sales_order", entityId: id } })).toBe(1);
+  errors.assertClean();
+});
+

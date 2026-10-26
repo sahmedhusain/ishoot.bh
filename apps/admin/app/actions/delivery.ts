@@ -195,14 +195,14 @@ export async function closeRouteSheetAction(id: string) {
   });
 }
 
-/** A driver hands over the cash collected; each order is marked paid with what was collected on it. */
-export async function settleCashAction(input: { driverId: string; shipmentIds: string[]; received: string; note: string }) {
+/** A driver hands over (or an agency remits) the cash collected; each order is marked paid with what was collected on it. */
+export async function settleCashAction(input: { source: string; shipmentIds: string[]; received: string; note: string }) {
   return measureOperation("action:settleCashAction", async () => {
     await requireFeatureEnabled("delivery");
     const user = await requirePermission("deliveries", "assign");
     await requirePermission("payments", "create");
     validateActionArguments("settleCashAction", { input });
-    const result = await settleCash({ driverId: input.driverId, shipmentIds: input.shipmentIds, received: Number(input.received), note: input.note }, user.id);
+    const result = await settleCash({ source: input.source, shipmentIds: input.shipmentIds, received: Number(input.received), note: input.note }, user.id);
     await createActivityLog({ user_id: user.id, action: "payment", entity_type: "cod_settlement", entity_id: result.id, details: { number: result.number, expected: result.expected, received: result.received } });
     revalidatePath(ROUTES.delivery.cash);
     revalidatePath(ROUTES.orders.list);

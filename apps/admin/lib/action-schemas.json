@@ -4068,7 +4068,7 @@
       "input": {
         "kind": "object",
         "fields": {
-          "driverId": {
+          "source": {
             "kind": "string",
             "optional": false
           },
@@ -7814,6 +7814,10 @@
           "reference": {
             "kind": "string",
             "optional": false
+          },
+          "proofUrl": {
+            "kind": "string",
+            "optional": true
           }
         },
         "optional": false
@@ -9276,6 +9280,19 @@
             "optional": false
           }
         },
+        "optional": false
+      }
+    }
+  },
+  "attachSupplierBillFileAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "fileUrl": {
+        "kind": "string",
         "optional": false
       }
     }

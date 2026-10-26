@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Copy, CreditCard, Link2, Loader2 } from "lucide-react";
+import { ArrowLeft, Copy, CreditCard, Link2, Loader2, Paperclip } from "lucide-react";
 import { Button, Card, CurrencyDisplay, Input, Select, formatCurrencyValue, formatDate } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import type { OrderRecord, orderPaymentAttempts, requestsForOrder } from "@platform/database";
@@ -12,6 +12,7 @@ import { ROUTES } from "../../constants/routes";
 import { addOrderNoteAction, issueOrderInvoiceAction, moveOrderAction, recordOrderPaymentAction, recordOrderRefundAction } from "../../app/actions/orders";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
+import { uploadForClaim } from "../../lib/upload-client";
 import { Field } from "../setup/LanguageFields";
 import { OrderStatusPill, PaymentStatusPill } from "./OrderPills";
 
@@ -24,7 +25,7 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
   const copy = t.orders.detail;
   const router = useRouter();
   const [note, setNote] = React.useState("");
-  const [payment, setPayment] = React.useState({ amount: String(Math.max(0, Math.round((order.total - order.amount_paid) * 1000) / 1000)), method: "cash", reference: "" });
+  const [payment, setPayment] = React.useState({ amount: String(Math.max(0, Math.round((order.total - order.amount_paid) * 1000) / 1000)), method: "cash", reference: "", proofUrl: "" });
   const [refund, setRefund] = React.useState({ amount: "", reason: "" });
   const [busy, setBusy] = React.useState(false);
   const [message, setMessage] = React.useState<{ tone: "ok" | "error"; text: string } | null>(null);
@@ -139,7 +140,24 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
               </Field>
               <Field label={copy.reference} wide>{(id) => <Input id={id} maxLength={100} value={payment.reference} onChange={(e) => setPayment({ ...payment, reference: e.target.value })} className="rounded-lg" />}</Field>
             </div>
-            <Button type="button" variant="primary" size="sm" className="rounded-full" disabled={busy || !payment.amount} onClick={() => run(() => recordOrderPaymentAction(order.id, payment))} data-testid="order-pay">{copy.recordPayment}</Button>
+            {payment.method === "bank_transfer" && (
+              <label className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 h-8 text-xs font-semibold ${payment.proofUrl ? "border-emerald-500 text-emerald-700 dark:text-emerald-300" : "border-ink/15 hover:border-accent"}`}>
+                <Paperclip className="w-3.5 h-3.5" aria-hidden="true" />
+                {payment.proofUrl ? copy.proofAdded : copy.addProof}
+                <input
+                  type="file"
+                  name="transferProof"
+                  accept="application/pdf,image/jpeg,image/png,image/webp"
+                  className="sr-only"
+                  disabled={busy}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) void run(async () => setPayment({ ...payment, proofUrl: (await uploadForClaim(file, { entityType: "sales_order", entityId: order.id })).fileUrl }), copy.proofAdded);
+                  }}
+                />
+              </label>
+            )}
+            <Button type="button" variant="primary" size="sm" className="rounded-full" disabled={busy || !payment.amount} onClick={() => run(async () => { await recordOrderPaymentAction(order.id, { ...payment, proofUrl: payment.proofUrl || undefined }); setPayment({ ...payment, proofUrl: "" }); })} data-testid="order-pay">{copy.recordPayment}</Button>
           </Card>
         )}
         {rights.refund && order.amount_paid > order.amount_refunded && (
@@ -195,6 +213,21 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
               <li key={r.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2">
                 <Link href={ROUTES.requests.detail(r.id)} className="font-mono text-xs font-semibold hover:text-accent" dir="ltr">{r.reference}</Link>
                 <span className="text-xs text-ink-muted">{formatDate(r.created_at, locale, "time")}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
+      {order.files.length > 0 && (
+        <Card className="p-5 space-y-2" data-testid="order-files">
+          <h2 className="font-bold text-ink">{copy.files}</h2>
+          <ul className="space-y-1 text-sm">
+            {order.files.map((f) => (
+              <li key={f.id} className="flex items-center gap-2">
+                <Paperclip className="w-3.5 h-3.5 text-ink-muted" aria-hidden="true" />
+                <a href={f.url} target="_blank" rel="noopener noreferrer" className="hover:text-accent">{f.name}</a>
+                <span className="text-xs text-ink-muted">{formatDate(f.at, locale, "time")}</span>
               </li>
             ))}
           </ul>

@@ -33,7 +33,7 @@ export function CashSettlementView({ pending, history, currency, canSettle }: { 
         {pending.length === 0 ? (
           <Card className="p-6 text-center text-sm text-ink-muted">{copy.nothing}</Card>
         ) : (
-          pending.map((p) => <DriverCash key={p.driver_id} entry={p} money={money} currency={currency} canSettle={canSettle} onDone={(text) => { setMessage({ tone: "ok", text }); router.refresh(); }} onError={(text) => setMessage({ tone: "error", text })} />)
+          pending.map((p) => <DriverCash key={p.source} entry={p} money={money} currency={currency} canSettle={canSettle} onDone={(text) => { setMessage({ tone: "ok", text }); router.refresh(); }} onError={(text) => setMessage({ tone: "error", text })} />)
         )}
       </section>
       <Card className="p-5 space-y-3">
@@ -69,7 +69,7 @@ function DriverCash({ entry, money, currency, canSettle, onDone, onError }: { en
   const settle = async () => {
     setBusy(true);
     try {
-      await settleCashAction({ driverId: entry.driver_id, shipmentIds: entry.shipments.map((s) => s.id), received, note });
+      await settleCashAction({ source: entry.source, shipmentIds: entry.shipments.map((s) => s.id), received, note });
       onDone(copy.saved);
     } catch (err) {
       onError(errorMessage(err, t));
@@ -78,7 +78,7 @@ function DriverCash({ entry, money, currency, canSettle, onDone, onError }: { en
     }
   };
   return (
-    <Card className="p-5 space-y-3" data-testid="cash-driver">
+    <Card className="p-5 space-y-3" data-testid={entry.kind === "agency" ? "cash-agency" : "cash-driver"}>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
         <Coins className="w-4 h-4 text-accent" aria-hidden="true" />
         <span className="font-semibold text-ink">{locale === "ar" ? entry.name_ar : entry.name_en}</span>
