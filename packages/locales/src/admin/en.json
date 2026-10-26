@@ -2700,7 +2700,7 @@
     },
     "kpi": {
       "followers": "Total followers",
-      "posts": "Posts published",
+      "posts": "Synced posts",
       "interactions": "Interactions",
       "views": "Views",
       "engagementRate": "Avg. engagement rate",
@@ -2752,7 +2752,10 @@
       "overdue": "Overdue",
       "unscheduled": "Not scheduled",
       "all": "All"
-    }
+    },
+    "snapshotScope": "Cumulative readings from synced posts published in the selected period. Days use UTC. — means the metric is unavailable.",
+    "partial": "Sync reached its page limit. These readings may not include every post; earlier snapshots are retained.",
+    "reconnect": "Reconnect account"
   },
   "adminLoginForm": {
     "forgotPassword": "Forgot password?",
@@ -5902,7 +5905,13 @@
       "coverageInvalid": "Coverage needs a headline, an outlet, a date and a sentiment; the link must be a web address.",
       "legalMatterInvalid": "A matter needs a title, a type and a status; the amount cannot be negative.",
       "reportNotFound": "That report is not there or not yours to run.",
-      "reportScheduleInvalid": "A schedule needs a frequency, a format and 1 to 20 valid e-mail addresses."
+      "reportScheduleInvalid": "A schedule needs a frequency, a format and 1 to 20 valid e-mail addresses.",
+      "providerInvalidResponse": "Invalid provider response",
+      "providerAccountNotFound": "Account not found",
+      "providerChannelNotFound": "Channel not found",
+      "providerConnectionFailed": "Connection check failed",
+      "providerUnreachable": "Could not reach the provider",
+      "providerTimeout": "The provider did not respond in time"
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",
@@ -5961,7 +5970,9 @@
       "senderDomainNotAdded": "The sender domain {0} is not added in Resend",
       "senderDomainStatus": "The sender domain {0} is {1}",
       "maximumFileSize": "Maximum file size is {0} MB",
-      "paymentRegionInvalid": "The region must be one of {0}."
+      "paymentRegionInvalid": "The region must be one of {0}.",
+      "providerMissingField": "Missing {field}",
+      "providerSyncWaiting": "Wait until {time} before retrying the sync."
     },
     "generic": "Something went wrong. Please try again."
   },

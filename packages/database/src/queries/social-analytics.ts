@@ -5,6 +5,7 @@ import {
   SOCIAL_PLAN_STATUSES,
   SOCIAL_PLATFORM_IDS,
   engagementRate,
+  sumSocialCounts,
   type SocialPlanStatus,
   type SocialPlatformId,
 } from "../constants/integrations";
@@ -17,6 +18,7 @@ export interface SocialAccountSummary {
   isStale: boolean;
   lastSyncedAt: string | null;
   lastError: string | null;
+  needsReconnect: boolean;
 }
 
 export interface SocialPostView {
@@ -27,33 +29,34 @@ export interface SocialPostView {
   permalink: string | null;
   thumbnailUrl: string | null;
   publishedAt: string;
-  likes: number;
-  comments: number;
-  shares: number;
-  views: number;
-  saves: number;
-  interactions: number;
+  likes: number | null;
+  comments: number | null;
+  shares: number | null;
+  views: number | null;
+  saves: number | null;
+  interactions: number | null;
   engagementRate: number | null;
 }
 
 export interface SocialAnalytics {
   periodDays: number;
+  partial: boolean;
   accounts: SocialAccountSummary[];
-  totals: { posts: number; likes: number; comments: number; shares: number; views: number; interactions: number; avgEngagementRate: number | null };
-  previousTotals: { posts: number; interactions: number; views: number };
+  totals: { posts: number; likes: number | null; comments: number | null; shares: number | null; views: number | null; interactions: number | null; avgEngagementRate: number | null };
+  previousTotals: { posts: number; interactions: number | null; views: number | null };
   /** One point per day of the period: interactions on posts published that day. */
-  daily: Array<{ date: string; posts: number; interactions: number; views: number }>;
-  byPlatform: Array<{ platform: SocialPlatformId; posts: number; interactions: number; views: number }>;
+  daily: Array<{ date: string; posts: number; interactions: number | null; views: number | null }>;
+  byPlatform: Array<{ platform: SocialPlatformId; posts: number; interactions: number | null; views: number | null }>;
   topPosts: SocialPostView[];
   recentPosts: SocialPostView[];
 }
 
 const DAY = 86_400_000;
-const interactionsOf = (p: { likes: number; comments: number; shares: number; saves: number }) => p.likes + p.comments + p.shares + p.saves;
+const interactionsOf = (p: { likes: number | null; comments: number | null; shares: number | null; saves: number | null }) => sumSocialCounts([p.likes, p.comments, p.shares, p.saves]);
 
 function toView(post: {
   id: string; platform: string; caption: string | null; mediaType: string | null; permalink: string | null; thumbnailUrl: string | null;
-  publishedAt: Date; likes: number; comments: number; shares: number; views: number; reach: number; saves: number;
+  publishedAt: Date; likes: number | null; comments: number | null; shares: number | null; views: number | null; reach: number | null; saves: number | null;
 }): SocialPostView {
   return {
     id: post.id,
@@ -76,86 +79,66 @@ function toView(post: {
 export async function getSocialAnalytics(options: { days?: number; platform?: string | null; now?: Date } = {}): Promise<SocialAnalytics> {
   const periodDays = [7, 30, 90, 365].includes(options.days ?? 30) ? options.days ?? 30 : 30;
   const now = options.now ?? new Date();
-  const since = new Date(now.getTime() - periodDays * DAY);
+  // UTC calendar days, including today. The UI names the timezone explicitly.
+  const until = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+  const since = new Date(until.getTime() - periodDays * DAY);
   const previousSince = new Date(since.getTime() - periodDays * DAY);
-  const platform = (SOCIAL_PLATFORM_IDS as readonly string[]).includes(options.platform ?? "") ? (options.platform as SocialPlatformId) : null;
-  const platformWhere = platform ? { platform } : {};
-
-  const [posts, previous, integrations, followerRows] = await Promise.all([
-    db.socialPost.findMany({ where: { ...platformWhere, publishedAt: { gte: since, lte: now } }, orderBy: { publishedAt: "desc" } }),
-    db.socialPost.findMany({
-      where: { ...platformWhere, publishedAt: { gte: previousSince, lt: since } },
-      select: { likes: true, comments: true, shares: true, saves: true, views: true },
-    }),
-    db.integrationSetting.findMany({ select: { provider: true, isActive: true, lastSyncedAt: true, lastError: true } }),
-    db.socialMetric.findMany({
-      where: { metricType: "followers", recordedAt: { gte: previousSince } },
-      orderBy: { recordedAt: "asc" },
-      select: { platform: true, value: true, recordedAt: true, isStale: true },
-    }),
+  const platform = (SOCIAL_PLATFORM_IDS as readonly string[]).includes(options.platform ?? "") ? options.platform as SocialPlatformId : null;
+  const integrations = await db.integrationSetting.findMany({ select: { provider: true, isActive: true, lastSyncedAt: true, lastError: true, config: true } });
+  const sources = SOCIAL_PLATFORM_IDS.filter(id => !platform || platform === id).map(id => {
+    const provider = INTEGRATION_PROVIDERS.find(p => p.platforms.includes(id))!;
+    const integration = integrations.find(i => i.provider === provider.id);
+    const config = (integration?.config as Record<string, unknown> | null) ?? {};
+    const accountId = (config.socialAccounts as Record<string, unknown> | undefined)?.[id];
+    const configured = id !== "instagram" || (Array.isArray(config.configuredPlatforms) && config.configuredPlatforms.includes(id)) || typeof accountId === "string";
+    return { platform: id, provider: provider.id, accountId: typeof accountId === "string" ? accountId : null, connected: !!integration?.isActive && configured, integration, config };
+  });
+  const trusted = sources.filter(source => source.connected && source.accountId).map(source => ({ platform: source.platform, sourceProvider: source.provider, sourceAccountId: source.accountId! }));
+  const [posts, previous, readings] = await Promise.all([
+    db.socialPost.findMany({ where: { OR: trusted, publishedAt: { gte: since, lte: now } }, orderBy: { publishedAt: "desc" } }),
+    db.socialPost.findMany({ where: { OR: trusted, publishedAt: { gte: previousSince, lt: since } }, select: { likes: true, comments: true, shares: true, saves: true, views: true } }),
+    Promise.all(sources.map(async source => {
+      const available = (source.config.availableMetrics as Record<string, unknown> | undefined)?.[source.platform];
+      if (!source.connected || !source.accountId || !Array.isArray(available) || !available.includes("followers")) return { latest: null, baseline: null };
+      const where = { platform: source.platform, sourceProvider: source.provider, sourceAccountId: source.accountId, metricType: "followers" };
+      const [latest, baseline] = await Promise.all([
+        db.socialMetric.findFirst({ where: { ...where, recordedAt: { lte: now } }, orderBy: { recordedAt: "desc" } }),
+        db.socialMetric.findFirst({ where: { ...where, recordedAt: { lte: since } }, orderBy: { recordedAt: "desc" } }),
+      ]);
+      return { latest, baseline };
+    })),
   ]);
-  // Latest follower count ever recorded, even if older than the window.
-  const latestFollowers = await db.$queryRaw<Array<{ platform: string; value: number; isStale: boolean }>>`
-    SELECT DISTINCT ON ("platform") "platform", "value", "isStale"
-    FROM "SocialMetric" WHERE "metricType" = 'followers'
-    ORDER BY "platform", "recordedAt" DESC`;
-
-  const accounts: SocialAccountSummary[] = SOCIAL_PLATFORM_IDS.map((id) => {
-    const provider = INTEGRATION_PROVIDERS.find((p) => p.platforms.includes(id));
-    const integration = integrations.find((i) => i.provider === provider?.id);
-    const latest = latestFollowers.find((row) => row.platform === id);
-    const history = followerRows.filter((row) => row.platform === id);
-    const baseline = history.find((row) => row.recordedAt >= since) ?? history[0];
+  const accounts: SocialAccountSummary[] = sources.map((source, i) => {
+    const { latest, baseline } = readings[i];
     return {
-      platform: id,
-      connected: !!integration?.isActive,
-      followers: latest ? Number(latest.value) : null,
-      followersChange: latest && baseline ? Number(latest.value) - baseline.value : null,
-      isStale: latest?.isStale ?? false,
-      lastSyncedAt: integration?.lastSyncedAt?.toISOString() ?? null,
-      lastError: integration?.lastError ?? null,
+      platform: source.platform, connected: source.connected, followers: latest?.value ?? null,
+      followersChange: latest && baseline ? latest.value - baseline.value : null,
+      isStale: !!latest && (latest.isStale || now.getTime() - latest.recordedAt.getTime() > 6 * 3_600_000),
+      lastSyncedAt: source.connected ? source.integration?.lastSyncedAt?.toISOString() ?? null : null,
+      lastError: source.connected ? source.integration?.lastError ?? null : null,
+      needsReconnect: source.connected && source.config.needsReconnect === true,
     };
   });
-
   const views = posts.map(toView);
-  const sum = (key: "likes" | "comments" | "shares" | "views" | "interactions") => views.reduce((total, post) => total + post[key], 0);
-  const rates = views.map((post) => post.engagementRate).filter((rate): rate is number => rate != null);
-
+  const sum = (key: "likes" | "comments" | "shares" | "views" | "interactions") => sumSocialCounts(views.map(post => post[key]));
+  const rates = views.map(post => post.engagementRate).filter((rate): rate is number => rate != null);
   const daily = Array.from({ length: periodDays }, (_, i) => {
-    const day = new Date(since.getTime() + (i + 1) * DAY);
-    const key = day.toISOString().slice(0, 10);
-    const onDay = views.filter((post) => post.publishedAt.slice(0, 10) === key);
-    return {
-      date: key,
-      posts: onDay.length,
-      interactions: onDay.reduce((total, post) => total + post.interactions, 0),
-      views: onDay.reduce((total, post) => total + post.views, 0),
-    };
+    const key = new Date(since.getTime() + i * DAY).toISOString().slice(0, 10);
+    const onDay = views.filter(post => post.publishedAt.slice(0, 10) === key);
+    return { date: key, posts: onDay.length, interactions: sumSocialCounts(onDay.map(post => post.interactions)), views: sumSocialCounts(onDay.map(post => post.views)) };
   });
-
   return {
     periodDays,
+    partial: sources.some(source => source.connected && source.config.lastSyncPartial === true),
     accounts,
-    totals: {
-      posts: views.length,
-      likes: sum("likes"),
-      comments: sum("comments"),
-      shares: sum("shares"),
-      views: sum("views"),
-      interactions: sum("interactions"),
-      avgEngagementRate: rates.length ? Math.round((rates.reduce((a, b) => a + b, 0) / rates.length) * 100) / 100 : null,
-    },
-    previousTotals: {
-      posts: previous.length,
-      interactions: previous.reduce((total, post) => total + interactionsOf(post), 0),
-      views: previous.reduce((total, post) => total + post.views, 0),
-    },
+    totals: { posts: views.length, likes: sum("likes"), comments: sum("comments"), shares: sum("shares"), views: sum("views"), interactions: sum("interactions"), avgEngagementRate: rates.length ? Math.round(rates.reduce((a, b) => a + b, 0) / rates.length * 100) / 100 : null },
+    previousTotals: { posts: previous.length, interactions: sumSocialCounts(previous.map(interactionsOf)), views: sumSocialCounts(previous.map(post => post.views)) },
     daily,
-    byPlatform: SOCIAL_PLATFORM_IDS.map((id) => {
-      const mine = views.filter((post) => post.platform === id);
-      return { platform: id, posts: mine.length, interactions: mine.reduce((t, p) => t + p.interactions, 0), views: mine.reduce((t, p) => t + p.views, 0) };
-    }).filter((row) => row.posts > 0),
-    topPosts: [...views].sort((a, b) => b.interactions - a.interactions || b.views - a.views).slice(0, 10),
+    byPlatform: sources.map(({ platform: id }) => {
+      const mine = views.filter(post => post.platform === id);
+      return { platform: id, posts: mine.length, interactions: sumSocialCounts(mine.map(post => post.interactions)), views: sumSocialCounts(mine.map(post => post.views)) };
+    }).filter(row => row.posts > 0),
+    topPosts: [...views].sort((a, b) => (b.interactions ?? -1) - (a.interactions ?? -1) || (b.views ?? -1) - (a.views ?? -1)).slice(0, 10),
     recentPosts: views.slice(0, 50),
   };
 }

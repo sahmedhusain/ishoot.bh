@@ -24,6 +24,7 @@ import {
 import { Button, Card, ConfirmDialog, DateDisplay, Modal } from "@platform/ui";
 import {
   SOCIAL_PLAN_STATUSES,
+  sumSocialCounts,
   SOCIAL_PLATFORM_IDS,
   type SocialPlanStatus,
   type SocialPlatformId,
@@ -53,13 +54,13 @@ function useNumber() {
   return React.useMemo(() => {
     const full = new Intl.NumberFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-BH");
     const compact = new Intl.NumberFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-BH", { notation: "compact", maximumFractionDigits: 1 });
-    return { full: (n: number) => full.format(n), compact: (n: number) => (Math.abs(n) >= 10_000 ? compact.format(n) : full.format(n)) };
+    return { full: (n: number | null) => n == null ? "—" : full.format(n), compact: (n: number | null) => n == null ? "—" : (Math.abs(n) >= 10_000 ? compact.format(n) : full.format(n)) };
   }, [locale]);
 }
 
-function Delta({ current, previous }: { current: number; previous: number }) {
+function Delta({ current, previous }: { current: number | null; previous: number | null }) {
   const { t } = useAdminLocale();
-  if (!previous) return null;
+  if (current == null || !previous) return null;
   const change = Math.round(((current - previous) / previous) * 100);
   const up = change >= 0;
   return (
@@ -90,14 +91,14 @@ function InteractionsChart({ daily }: { daily: SocialAnalytics["daily"] }) {
   const number = useNumber();
   const bucket = daily.length > 90 ? 7 : 1;
   const points = React.useMemo(() => {
-    const out: Array<{ date: string; interactions: number; posts: number }> = [];
+    const out: Array<{ date: string; interactions: number | null; posts: number }> = [];
     for (let i = 0; i < daily.length; i += bucket) {
       const slice = daily.slice(i, i + bucket);
-      out.push({ date: slice[0].date, interactions: slice.reduce((s, d) => s + d.interactions, 0), posts: slice.reduce((s, d) => s + d.posts, 0) });
+      out.push({ date: slice[0].date, interactions: sumSocialCounts(slice.map(d => d.interactions)), posts: slice.reduce((s, d) => s + d.posts, 0) });
     }
     return out;
   }, [daily, bucket]);
-  const max = Math.max(1, ...points.map((p) => p.interactions));
+  const max = Math.max(1, ...points.map((p) => p.interactions ?? 0));
   const fmt = new Intl.DateTimeFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-BH", { day: "numeric", month: "short" });
   const labelEvery = Math.max(1, Math.ceil(points.length / 6));
   return (
@@ -107,7 +108,7 @@ function InteractionsChart({ daily }: { daily: SocialAnalytics["daily"] }) {
           <div key={point.date} className="group relative flex h-full flex-1 items-end">
             <div
               className={`w-full rounded-t-sm ${point.interactions ? "bg-accent/80 group-hover:bg-accent" : "bg-ink/10"}`}
-              style={{ height: `${Math.max(2, (point.interactions / max) * 100)}%` }}
+              style={{ height: `${Math.max(2, ((point.interactions ?? 0) / max) * 100)}%` }}
             />
             <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[11px] text-white shadow group-hover:block dark:bg-white dark:text-slate-900">
               {fmt.format(new Date(point.date))} · {number.full(point.interactions)} · {point.posts} {t.socialAnalytics.chartPosts}
@@ -150,7 +151,7 @@ function PostRow({ post }: { post: SocialPostView }) {
           <span className="inline-flex items-center gap-1" title={s.likes}><Heart className="w-3 h-3" />{number.compact(post.likes)}</span>
           <span className="inline-flex items-center gap-1" title={s.comments}><MessageCircle className="w-3 h-3" />{number.compact(post.comments)}</span>
           <span className="inline-flex items-center gap-1" title={s.shares}><Repeat2 className="w-3 h-3" />{number.compact(post.shares)}</span>
-          {post.views > 0 && <span className="inline-flex items-center gap-1" title={t.socialAnalytics.kpi.views}><Eye className="w-3 h-3" />{number.compact(post.views)}</span>}
+          {post.views != null && <span className="inline-flex items-center gap-1" title={t.socialAnalytics.kpi.views}><Eye className="w-3 h-3" />{number.compact(post.views)}</span>}
           {post.engagementRate != null && <span className="font-medium text-primary dark:text-accent">{s.rate} <bdi dir="ltr">{post.engagementRate}%</bdi></span>}
         </div>
       </div>
@@ -400,11 +401,11 @@ export function SocialAnalyticsView({
   const [tab, setTab] = React.useState<Tab>("overview");
   const [refreshing, setRefreshing] = React.useState(false);
   const connected = analytics.accounts.filter((account) => account.connected);
-  const totalFollowers = analytics.accounts.reduce((sum, a) => sum + (a.followers ?? 0), 0);
-  const followersChange = analytics.accounts.reduce((sum, a) => sum + (a.followersChange ?? 0), 0);
-  const hasData = totalFollowers > 0 || analytics.totals.posts > 0 || analytics.previousTotals.posts > 0;
+  const totalFollowers = sumSocialCounts(connected.map(a => a.followers));
+  const followersChange = sumSocialCounts(connected.map(a => a.followersChange));
+  const hasData = connected.some(account => account.followers != null) || analytics.totals.posts > 0;
   const lastSynced = connected.map((a) => a.lastSyncedAt).filter(Boolean).sort().at(-1) ?? null;
-  const maxPlatform = Math.max(1, ...analytics.byPlatform.map((row) => row.interactions));
+  const maxPlatform = Math.max(1, ...analytics.byPlatform.map((row) => row.interactions ?? 0));
 
   const setParam = (key: string, value: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -434,9 +435,11 @@ export function SocialAnalyticsView({
         <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{s.title}</h1>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{s.subtitle}</p>
+          <p className="mt-1 text-xs text-slate-500">{s.snapshotScope}</p>
+          {analytics.partial && <p role="status" className="mt-1 text-xs text-amber-700 dark:text-amber-400">{s.partial}</p>}
           {lastSynced && (
             <p className="mt-1 flex flex-wrap items-center gap-1 text-xs text-slate-500">
-              {s.updated} <DateDisplay date={lastSynced} locale={locale} />
+              {s.updated} <DateDisplay date={lastSynced} locale={locale} format="time" />
             </p>
           )}
         </div>
@@ -475,8 +478,8 @@ export function SocialAnalyticsView({
       {tab === "overview" && (
         <div className="space-y-6">
           {!hasData && (
-            <Card className="flex flex-col items-center gap-3 p-8 text-center dark:bg-surface-raised">
-              <p className="max-w-md text-sm text-slate-600 dark:text-slate-300">{s.empty}</p>
+            <Card data-testid="social-empty" className="flex flex-col items-center gap-3 p-8 text-center dark:bg-surface-raised">
+              <p className="max-w-md text-sm text-slate-600 dark:text-slate-300">{connected.length ? s.noData : s.empty}</p>
               {can("settings", "write") && (
                 <Link href={ROUTES.settings.integrations} className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primary-light">
                   {s.connect}
@@ -485,12 +488,12 @@ export function SocialAnalyticsView({
             </Card>
           )}
 
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          {hasData && <div data-testid="social-kpis" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
             <Kpi
               icon={<Users className="w-4 h-4" />}
               label={s.kpi.followers}
               value={number.compact(totalFollowers)}
-              footer={followersChange !== 0 && (
+              footer={followersChange != null && followersChange !== 0 && (
                 <span className={`text-[11px] font-medium ${followersChange > 0 ? "text-emerald-700 dark:text-emerald-400" : "text-rose-700 dark:text-rose-400"}`}>
                   {formatMessage(s.followersGained, { n: `${followersChange > 0 ? "+" : ""}${number.full(followersChange)}` })}
                 </span>
@@ -500,11 +503,11 @@ export function SocialAnalyticsView({
             <Kpi icon={<Heart className="w-4 h-4" />} label={s.kpi.interactions} value={number.compact(analytics.totals.interactions)} footer={<Delta current={analytics.totals.interactions} previous={analytics.previousTotals.interactions} />} />
             <Kpi icon={<Eye className="w-4 h-4" />} label={s.kpi.views} value={number.compact(analytics.totals.views)} footer={<Delta current={analytics.totals.views} previous={analytics.previousTotals.views} />} />
             <Kpi icon={<TrendingUp className="w-4 h-4" />} label={s.kpi.engagementRate} value={analytics.totals.avgEngagementRate != null ? `${analytics.totals.avgEngagementRate}%` : "—"} />
-          </div>
+          </div>}
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {analytics.accounts.map((account) => (
-              <Card key={account.platform} className="flex items-center gap-3 p-4 dark:bg-surface-raised">
+              <Card key={account.platform} data-testid={`social-account-${account.platform}`} className="flex items-center gap-3 p-4 dark:bg-surface-raised">
                 <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${account.connected ? "bg-primary/10 text-primary dark:bg-white/10 dark:text-white" : "bg-slate-100 text-slate-400 dark:bg-white/5"}`}>
                   <SocialBrandIcon name={account.platform} className="w-5 h-5" />
                 </span>
@@ -523,7 +526,10 @@ export function SocialAnalyticsView({
                     ) : account.connected ? s.noData : s.notConnected}
                   </p>
                   {account.connected && (account.isStale || account.lastError) && (
-                    <p className="truncate text-[11px] text-amber-700 dark:text-amber-400" title={account.lastError ?? undefined}>{s.stale}</p>
+                    <p className="truncate text-[11px] text-amber-700 dark:text-amber-400" title={account.lastError ?? undefined}>{account.needsReconnect ? s.reconnect : s.stale}</p>
+                  )}
+                  {(!account.connected || account.needsReconnect) && can("settings", "write") && (
+                    <Link href={ROUTES.settings.integrations} className="mt-1 inline-block text-xs font-semibold text-primary dark:text-accent underline">{account.needsReconnect ? s.reconnect : s.connect}</Link>
                   )}
                 </div>
               </Card>
@@ -533,7 +539,7 @@ export function SocialAnalyticsView({
           <div className="grid gap-4 lg:grid-cols-3">
             <Card className="space-y-3 p-4 sm:p-5 lg:col-span-2 dark:bg-surface-raised">
               <h2 className="text-sm font-semibold text-slate-900 dark:text-white">{s.chartTitle}</h2>
-              <InteractionsChart daily={analytics.daily} />
+              {analytics.daily.some(day => day.interactions != null) ? <InteractionsChart daily={analytics.daily} /> : <p className="text-xs text-slate-500">{s.noData}</p>}
             </Card>
             <Card className="space-y-3 p-4 sm:p-5 dark:bg-surface-raised">
               <h2 className="text-sm font-semibold text-slate-900 dark:text-white">{s.byPlatform}</h2>
@@ -549,7 +555,7 @@ export function SocialAnalyticsView({
                         <span className="ms-auto text-slate-600 dark:text-slate-400"><bdi dir="ltr">{number.compact(row.interactions)}</bdi> · {row.posts} {s.chartPosts}</span>
                       </div>
                       <div className="h-2 overflow-hidden rounded-full bg-ink/10">
-                        <div className="h-full rounded-full bg-accent" style={{ width: `${(row.interactions / maxPlatform) * 100}%` }} />
+                        <div className="h-full rounded-full bg-accent" style={{ width: `${((row.interactions ?? 0) / maxPlatform) * 100}%` }} />
                       </div>
                     </li>
                   ))}

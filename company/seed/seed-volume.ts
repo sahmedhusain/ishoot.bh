@@ -707,21 +707,7 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
     }
   }
 
-  // ============================================================ 9. social analytics (daily, 120 days)
-  const metricRows: Array<{ platform: string; metricType: string; value: number; recordedAt: Date; isStale: boolean }> = [];
-  const series: Array<[string, string, number, number]> = [
-    ["instagram", "followers", 18400, 35], ["instagram", "engagement", 4.2, 0], ["instagram", "views", 52000, 0],
-    ["facebook", "followers", 9100, 8], ["facebook", "views", 14000, 0], ["youtube", "followers", 3200, 6], ["youtube", "views", 21000, 0],
-    ["whatsapp", "messages_sent", 120, 0], ["whatsapp", "messages_read", 104, 0],
-  ];
-  for (const [platform, metricType, base, growth] of series) {
-    for (let d = 120; d >= 0; d--) {
-      const value = growth ? Math.round(base + (120 - d) * growth + int(-10, 10)) : Math.round(base * (0.75 + rand() * 0.5));
-      metricRows.push({ platform, metricType, value, recordedAt: new Date(daysAgo(d).getTime() + 6 * 3600_000), isStale: false });
-    }
-  }
-  await prisma.socialMetric.createMany({ data: metricRows });
-  bump("socialMetrics", metricRows.length);
+  // Social analytics are populated only by provider syncs, including in demo companies.
 
   // ============================================================ 10. company assets (every status and condition)
   {

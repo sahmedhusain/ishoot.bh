@@ -242,9 +242,16 @@ export type SocialMetricType = (typeof SOCIAL_METRIC_TYPES)[number];
 export const SOCIAL_PLAN_STATUSES = ["idea", "draft", "scheduled", "published", "cancelled"] as const;
 export type SocialPlanStatus = (typeof SOCIAL_PLAN_STATUSES)[number];
 
-/** Likes + comments + shares + saves, as a share of reach (or views when reach is unknown). */
-export function engagementRate(post: { likes: number; comments: number; shares: number; saves: number; reach: number; views: number }): number | null {
-  const base = post.reach || post.views;
-  if (!base) return null;
-  return Math.round(((post.likes + post.comments + post.shares + post.saves) / base) * 10000) / 100;
+/** Missing readings cannot contribute a fabricated zero to a total. */
+export function sumSocialCounts(values: readonly (number | null)[]): number | null {
+  if (!values.length || values.some(value => value == null)) return null;
+  return values.reduce<number>((sum, value) => sum + value!, 0);
+}
+
+/** Exact interactions as a share of a reported denominator; unavailable inputs stay unavailable. */
+export function engagementRate(post: { likes: number | null; comments: number | null; shares: number | null; saves: number | null; reach: number | null; views: number | null }): number | null {
+  const base = post.reach ?? post.views;
+  const interactions = sumSocialCounts([post.likes, post.comments, post.shares, post.saves]);
+  if (!base || interactions == null) return null;
+  return Math.round((interactions / base) * 10000) / 100;
 }

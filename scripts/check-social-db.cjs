@@ -45,6 +45,9 @@ async function main() {
       await tx.socialMetric.deleteMany({});
       await tx.integrationSetting.deleteMany({ where: { provider: { in: ["meta", "resend"] } } });
 
+      await tx.socialMetric.create({ data: { platform: "facebook", metricType: "followers", value: 999999, recordedAt: now } });
+      const disconnected = await analytics.getSocialAnalytics({ now });
+      assert.equal(disconnected.accounts.find(a => a.platform === "facebook").followers, null, "legacy or seeded readings must not be displayed");
       // Required fields are enforced before an integration can be turned on.
       await assert.rejects(integrations.saveIntegrationSettings("meta", { isActive: true, values: { pageId: "page-1" } }, actor.id), /accessToken/);
       await integrations.saveIntegrationSettings("meta", { isActive: true, values: { pageId: "page-1", instagramAccountId: "ig-1", accessToken: TOKEN } }, actor.id);
@@ -86,7 +89,11 @@ async function main() {
       // Analytics over 30 days: two recent posts, follower totals, engagement maths.
       const report = await analytics.getSocialAnalytics({ days: 30, now: new Date(now.getTime() + 2000) });
       assert.equal(report.totals.posts, 2, "the 45-day-old post is outside the period");
-      assert.equal(report.totals.interactions, 90 + 5 + 3 + 300 + 20);
+      assert.equal(report.totals.likes, 390);
+      assert.equal(report.totals.comments, 25);
+      assert.equal(report.totals.interactions, null, "unsupported share/save counts cannot become measured zero");
+      assert.equal(report.totals.views, null);
+      assert.equal(await tx.socialPostSnapshot.count(), 6, "both post readings survive later syncs");
       assert.equal(report.previousTotals.posts, 1);
       assert.equal(report.accounts.find((a) => a.platform === "facebook").followers, 1200);
       assert.equal(report.accounts.find((a) => a.platform === "instagram").followers, 3400);
@@ -95,6 +102,7 @@ async function main() {
       assert.equal(report.topPosts[0].externalId ?? report.topPosts[0].caption, "Reel");
       const igOnly = await analytics.getSocialAnalytics({ days: 30, platform: "instagram", now: new Date(now.getTime() + 2000) });
       assert.equal(igOnly.totals.posts, 1);
+      assert.deepEqual(igOnly.accounts.map(a => a.platform), ["instagram"], "account totals follow the platform filter");
 
       // A failed sync records the provider's message and marks the numbers stale.
       failNext = true;
@@ -103,7 +111,7 @@ async function main() {
       const failed = await tx.integrationSetting.findUniqueOrThrow({ where: { provider: "meta" } });
       assert.equal(failed.healthStatus, "error");
       assert.match(failed.lastError, /Session has expired/);
-      assert.ok((await analytics.getSocialAnalytics({ days: 30 })).accounts.find((a) => a.platform === "facebook").isStale);
+      assert.ok((await analytics.getSocialAnalytics({ days: 30, now })).accounts.find((a) => a.platform === "facebook").isStale);
 
       // Resend checks that the sender domain is verified.
       await integrations.saveIntegrationSettings("resend", { isActive: true, values: { apiKey: "re_test_123456789", fromEmail: "billing@example.com" } }, actor.id);
@@ -116,6 +124,10 @@ async function main() {
       await integrations.unlinkIntegrationSettings("meta", actor.id);
       assert.equal((await tx.integrationSetting.findUniqueOrThrow({ where: { provider: "meta" } })).credentials, null);
       assert.equal(await integrations.getActiveIntegrationCredentials("meta"), null);
+      const unlinked = await analytics.getSocialAnalytics({ now });
+      assert.equal(unlinked.totals.posts, 0);
+      assert.ok(unlinked.accounts.every(a => a.followers === null));
+      assert.equal(await tx.socialPostSnapshot.count(), 6, "disconnect preserves provider history");
 
       // Content plan validation.
       await assert.rejects(analytics.createSocialPlan({ title: "Launch", platforms: [], status: "idea" }, actor.id), /platform/);

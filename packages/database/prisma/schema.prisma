@@ -1407,25 +1407,41 @@ model MessageAttachment {
 
 /// A post or video fetched from a connected social account, with its latest engagement counts.
 model SocialPost {
-  id           String   @id @default(uuid())
-  platform     String // "facebook", "instagram", "youtube", "tiktok", "x", "linkedin"
-  externalId   String
-  caption      String?  @db.Text
-  mediaType    String? // "image", "video", "carousel", "text", "reel"
-  permalink    String?
-  thumbnailUrl String?
-  publishedAt  DateTime
-  likes        Int      @default(0)
-  comments     Int      @default(0)
-  shares       Int      @default(0)
-  views        Int      @default(0)
-  reach        Int      @default(0)
-  saves        Int      @default(0)
-  fetchedAt    DateTime @default(now())
-  createdAt    DateTime @default(now())
+  id              String               @id @default(uuid())
+  platform        String // "facebook", "instagram", "youtube", "tiktok", "x", "linkedin"
+  externalId      String
+  sourceProvider  String?
+  sourceAccountId String?
+  snapshots       SocialPostSnapshot[]
+  caption         String?              @db.Text
+  mediaType       String? // "image", "video", "carousel", "text", "reel"
+  permalink       String?
+  thumbnailUrl    String?
+  publishedAt     DateTime
+  likes           Float?
+  comments        Float?
+  shares          Float?
+  views           Float?
+  reach           Float?
+  saves           Float?
+  fetchedAt       DateTime             @default(now())
+  createdAt       DateTime             @default(now())
 
   @@unique([platform, externalId])
   @@index([platform, publishedAt])
+}
+
+/// Provider readings retained independently of the latest post counters.
+model SocialPostSnapshot {
+  id              String     @id @default(uuid())
+  postId          String
+  post            SocialPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  sourceAccountId String
+  recordedAt      DateTime   @default(now())
+  counters        Json
+
+  @@unique([postId, recordedAt])
+  @@index([recordedAt])
 }
 
 /// Planned social content: drafted, scheduled and marked published by the marketing team.
@@ -1449,11 +1465,13 @@ model SocialContentPlan {
 }
 
 model SocialMetric {
-  id         String   @id @default(uuid())
-  platform   String // "facebook", "instagram", "youtube", "whatsapp"
-  metricType String // "followers", "views", "engagement", "messages_sent", "messages_read"
-  value      Int
-  recordedAt DateTime @default(now())
+  id              String   @id @default(uuid())
+  platform        String // "facebook", "instagram", "youtube", "whatsapp"
+  metricType      String // "followers", "views", "engagement", "messages_sent", "messages_read"
+  value           Float
+  sourceProvider  String?
+  sourceAccountId String?
+  recordedAt      DateTime @default(now())
 
   // To track freshness and handle unavailable data truthfully
   isStale     Boolean @default(false)
@@ -1463,6 +1481,7 @@ model SocialMetric {
 
   @@index([platform, metricType])
   @@index([recordedAt])
+  @@index([sourceProvider, sourceAccountId, recordedAt])
 }
 
 // ==========================================

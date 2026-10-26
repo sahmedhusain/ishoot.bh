@@ -1,6 +1,6 @@
 import { serverTemplates, formatMessage, serverMessages } from "@platform/locales";
 
-import { db } from "../db";
+import { db, runAtomicMutation } from "../db";
 import type { Prisma } from "@prisma/client";
 import {
   INTEGRATION_PROVIDERS,
@@ -54,7 +54,7 @@ export async function listIntegrationsForAdmin(): Promise<IntegrationAdminView[]
       isActive: record?.isActive ?? false,
       healthStatus: record?.healthStatus ?? "unknown",
       accountName: record?.accountName ?? null,
-      lastError: record?.lastError ?? null,
+      lastError: record?.lastError ? provider.fields.filter(field => field.secret).reduce((message, field) => credentials[field.key] ? message.split(credentials[field.key]).join("[redacted]") : message, record.lastError) : null,
       lastCheckedAt: record?.lastCheckedAt?.toISOString() ?? null,
       lastSyncedAt: record?.lastSyncedAt?.toISOString() ?? null,
       values,
@@ -100,7 +100,13 @@ export async function saveIntegrationSettings(providerId: string, input: SaveInt
   const data = {
     isActive: input.isActive,
     credentials: Object.keys(next).length ? encryptIntegrationCredentials(next) : null,
-    config: JSON.parse(JSON.stringify(input.config ?? existing?.config ?? {})) as Prisma.InputJsonObject,
+    config: JSON.parse(JSON.stringify({
+      ...((existing?.config as Record<string, unknown>) ?? {}), ...input.config,
+      availableMetrics: changed ? {} : (existing?.config as Record<string, unknown> | null)?.availableMetrics ?? {},
+      socialAccounts: changed ? {} : (existing?.config as Record<string, unknown> | null)?.socialAccounts ?? {},
+      configuredPlatforms: provider.platforms.filter(platform => platform !== "instagram" || !!next.instagramAccountId),
+      needsReconnect: changed ? false : (existing?.config as Record<string, unknown> | null)?.needsReconnect ?? false,
+    })) as Prisma.InputJsonObject,
     updatedById: actorId,
     // New credentials have not been proven yet.
     ...(changed ? { healthStatus: "unknown", lastError: null, accountName: null } : {}),
@@ -117,7 +123,7 @@ export async function unlinkIntegrationSettings(providerId: string, actorId: str
   if (!provider) throw new Error(serverMessages.unknownIntegration);
   await db.integrationSetting.upsert({
     where: { provider: provider.id },
-    update: { isActive: false, credentials: null, healthStatus: "unknown", lastError: null, accountName: null, updatedById: actorId },
+    update: { isActive: false, credentials: null, lastSyncedAt: null, config: {}, healthStatus: "unknown", lastError: null, accountName: null, updatedById: actorId },
     create: { provider: provider.id, isActive: false, updatedById: actorId },
   });
 }
@@ -147,44 +153,56 @@ export async function syncSocialIntegration(providerId: string, now = new Date()
   if (!provider || provider.kind !== "social") throw new Error(serverMessages.thisIntegrationHasNoSocialDataTo);
   const record = await db.integrationSetting.findUnique({ where: { provider: provider.id } });
   if (!record?.isActive || !record.credentials) throw new Error(serverMessages.turnThisIntegrationOnFirst);
+  const retryAfterAt = (record.config as Record<string, unknown> | null)?.retryAfterAt;
+  if (typeof retryAfterAt === "string" && new Date(retryAfterAt) > now) throw new Error(formatMessage(serverTemplates.providerSyncWaiting, { time: retryAfterAt }));
   try {
     const snapshot = await fetchSocialSnapshot(provider.id, readCredentials(provider.id, record.credentials));
-    for (const post of snapshot.posts) {
-      if (Number.isNaN(post.publishedAt.getTime())) continue;
-      const counts = {
-        likes: post.likes ?? 0, comments: post.comments ?? 0, shares: post.shares ?? 0,
-        views: post.views ?? 0, reach: post.reach ?? 0, saves: post.saves ?? 0,
-      };
-      const fields = {
-        caption: post.caption?.slice(0, 5000) ?? null,
-        mediaType: post.mediaType ?? null,
-        permalink: post.permalink ?? null,
-        thumbnailUrl: post.thumbnailUrl ?? null,
-        publishedAt: post.publishedAt,
-        fetchedAt: now,
-        ...counts,
-      };
-      await db.socialPost.upsert({
-        where: { platform_externalId: { platform: post.platform, externalId: post.externalId } },
-        update: fields,
-        create: { platform: post.platform, externalId: post.externalId, ...fields },
+    const config = (record.config as Record<string, unknown> | null) ?? {};
+    await runAtomicMutation(async () => {
+      for (const post of snapshot.posts) {
+        const sourceAccountId = snapshot.accounts[post.platform];
+        if (!sourceAccountId || !Number.isFinite(post.publishedAt.getTime())) continue;
+        const counts = {
+          likes: post.likes ?? null, comments: post.comments ?? null, shares: post.shares ?? null,
+          views: post.views ?? null, reach: post.reach ?? null, saves: post.saves ?? null,
+        };
+        const fields = {
+          sourceProvider: provider.id, sourceAccountId,
+          caption: post.caption?.slice(0, 5000) ?? null,
+          mediaType: post.mediaType ?? null, permalink: post.permalink ?? null, thumbnailUrl: post.thumbnailUrl ?? null,
+          publishedAt: post.publishedAt, fetchedAt: now, ...counts,
+        };
+        const stored = await db.socialPost.upsert({
+          where: { platform_externalId: { platform: post.platform, externalId: post.externalId } },
+          update: fields, create: { platform: post.platform, externalId: post.externalId, ...fields },
+        });
+        await db.socialPostSnapshot.upsert({
+          where: { postId_recordedAt: { postId: stored.id, recordedAt: now } },
+          update: {}, create: { postId: stored.id, sourceAccountId, recordedAt: now, counters: counts },
+        });
+      }
+      const readings = snapshot.metrics.flatMap(metric => metric.value == null || !snapshot.accounts[metric.platform] ? [] : [{
+        platform: metric.platform, metricType: metric.metricType, value: metric.value, recordedAt: now,
+        sourceProvider: provider.id, sourceAccountId: snapshot.accounts[metric.platform]!,
+      }]);
+      if (readings.length) await db.socialMetric.createMany({ data: readings });
+      await db.integrationSetting.update({
+        where: { provider: provider.id },
+        data: { healthStatus: "healthy", lastError: null, accountName: snapshot.accountName ?? record.accountName, lastSyncedAt: now, lastCheckedAt: now,
+          config: { ...config, socialAccounts: snapshot.accounts, availableMetrics: Object.fromEntries(Object.keys(snapshot.accounts).map(platform => [platform, snapshot.metrics.filter(metric => metric.platform === platform && metric.value != null).map(metric => metric.metricType)])), needsReconnect: false, retryAfterAt: null, lastSyncPartial: snapshot.partial ?? false } as Prisma.InputJsonObject,
+        },
       });
-    }
-    if (snapshot.metrics.length) {
-      await db.socialMetric.createMany({
-        data: snapshot.metrics.map((metric) => ({ platform: metric.platform, metricType: metric.metricType, value: metric.value, recordedAt: now })),
-      });
-    }
-    await db.integrationSetting.update({
-      where: { provider: provider.id },
-      data: { healthStatus: "healthy", lastError: null, accountName: snapshot.accountName ?? record.accountName, lastSyncedAt: now, lastCheckedAt: now },
     });
     return { posts: snapshot.posts.length, metrics: snapshot.metrics.length };
   } catch (error) {
     const message = error instanceof ProviderError ? error.message : "Sync failed";
     await db.integrationSetting.update({
       where: { provider: provider.id },
-      data: { healthStatus: "error", lastError: message, lastCheckedAt: now },
+      data: { healthStatus: "error", lastError: message, lastCheckedAt: now, config: {
+        ...((record.config as Record<string, unknown> | null) ?? {}),
+        needsReconnect: error instanceof ProviderError && error.status === 401,
+        retryAfterAt: error instanceof ProviderError && error.status === 429 ? new Date(now.getTime() + Math.max(60, error.retryAfter ?? 60) * 1000).toISOString() : null,
+      } as Prisma.InputJsonObject },
     });
     // Mark the latest numbers as stale so dashboards do not present them as current.
     await db.socialMetric.updateMany({ where: { platform: { in: provider.platforms } }, data: { isStale: true } });
@@ -200,11 +218,14 @@ export async function syncDueSocialIntegrations(maxAgeHours = 6, now = new Date(
       provider: { in: INTEGRATION_PROVIDERS.filter((p) => p.kind === "social").map((p) => p.id) },
       OR: [{ lastSyncedAt: null }, { lastSyncedAt: { lt: new Date(now.getTime() - maxAgeHours * 3_600_000) } }],
     },
-    select: { provider: true },
+    select: { provider: true, config: true },
   });
   let synced = 0;
   let failed = 0;
-  for (const { provider } of due) {
+  for (const { provider, config } of due) {
+    const retryAfterAt = (config as Record<string, unknown> | null)?.retryAfterAt;
+    if (typeof retryAfterAt === "string" && new Date(retryAfterAt) > now) continue;
+    if ((config as Record<string, unknown> | null)?.needsReconnect === true) continue;
     try {
       await syncSocialIntegration(provider, now);
       synced++;
