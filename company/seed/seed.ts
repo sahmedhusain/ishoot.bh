@@ -1,15 +1,12 @@
 import dotenv from "dotenv";
 import path from "path";
 
-dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
-dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });
-dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+dotenv.config({ path: path.resolve(__dirname, "../../.env"), quiet: true });
 
 import fs from "fs";
 import crypto from "crypto";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { defaultWebsiteConfig } from "../../packages/database/src/website-config";
 import { workingDaysBetween } from "../../packages/database/src/hr/payroll-engine";
 import { ALL_ACTIONS, ALL_RESOURCES, ALL_ROLES, isDefaultAllowed } from "../../packages/database/src/constants/permissions";
 import { collectWebsiteDraft } from "../../packages/database/src/queries/website";
@@ -23,6 +20,9 @@ import adminEn from "../../packages/locales/src/admin/en.json";
 import adminAr from "../../packages/locales/src/admin/ar.json";
 import demoClients from "./demo-clients.json";
 import { DEFAULT_FEATURE_MODULES } from "../../packages/database/src/constants/features";
+import { demoPreset } from "./demo-presets";
+import { seedPresetWebsite } from "./seed-presets";
+import { seedOperations } from "./seed-operations";
 
 const prisma = new PrismaClient();
 
@@ -64,6 +64,12 @@ async function demoDocument(fileName: string, ownerId: string) {
 
 async function main() {
   if (process.env.NODE_ENV === "production") throw new Error("Demo seed is disabled in production; use pnpm db:bootstrap for initial real accounts and configuration.");
+  const explicitPreset = process.env.SEED_PRESET?.trim();
+  const profile = loadCompanyProfile(explicitPreset ? "demo" : undefined);
+  const preset = demoPreset(explicitPreset || String(profile.company.businessActivity || "media"), process.env.SEED_STYLE?.trim());
+  const websiteConfig = preset.website;
+  profile.company.businessActivity = preset.activity;
+  if (explicitPreset || process.env.SEED_STYLE?.trim()) profile.theme = preset.theme;
   // Demo fixtures must never replace existing business records.
   const existing = await Promise.all([
     prisma.invoice.count(), prisma.payment.count(), prisma.attachment.count(),
@@ -75,15 +81,24 @@ async function main() {
     prisma.documentTemplate.count(), prisma.contract.count(), prisma.minuteOfMeeting.count(),
     prisma.generatedDocument.count(), prisma.companyDocument.count(), prisma.service.count(),
     prisma.socialLink.count(), prisma.quotation.count(), prisma.uploadObject.count(),
+    prisma.product.count(), prisma.productCategory.count(), prisma.warehouse.count(),
+    prisma.stockMovement.count(), prisma.stockCount.count(), prisma.purchaseRequisition.count(),
+    prisma.rfq.count(), prisma.purchaseOrder.count(), prisma.supplierBill.count(),
+    prisma.customer.count(), prisma.salesOrder.count(), prisma.coupon.count(),
+    prisma.deliveryZone.count(), prisma.vehicle.count(), prisma.courierAgency.count(),
+    prisma.project.count(), prisma.task.count(), prisma.campaign.count(),
+    prisma.customerSegment.count(), prisma.broadcast.count(), prisma.mediaContact.count(),
+    prisma.mediaCoverage.count(), prisma.legalMatter.count(), prisma.cmsArticle.count(), prisma.cmsPage.count(),
+    prisma.employee.count(), prisma.payrollRun.count(), prisma.asset.count(), prisma.announcement.count(), prisma.officialLetter.count(),
   ]);
   if (existing.some((count) => count > 0)) throw new Error("Demo seed requires an empty business database. Existing records were preserved. Use pnpm db:bootstrap for initial accounts/settings without replacing data.");
   console.log("🌱 Starting dynamic enterprise database seed...");
 
-  const profile = loadCompanyProfile();
   const BRAND_EN = profile.display.nameEn;
   const BRAND_AR = profile.display.nameAr;
   const INVOICE_PREFIX = String(profile.company.invoicePrefix || "INV");
   console.log(`🏢 Company profile: company/profiles/${profile.name} (${profile.company.companyNameEn})`);
+  console.log(`🎛 Demo preset: ${preset.id}; style: ${explicitPreset || process.env.SEED_STYLE ? preset.style : "company profile"}`);
 
   const superAdminEmail = process.env.SUPER_ADMIN_EMAIL;
   const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD;
@@ -3552,11 +3567,14 @@ async function main() {
 
   console.log("✅ Seeded new features: Sequences, FX Snapshots, HRMS, Payroll, Inquiries (SR/CR) & Quotations lifecycle");
 
+  await seedPresetWebsite(prisma, preset, owner.id);
+
   // Large dataset generated through the app's own domain functions, then a reconcile pass that
   // brings every fixture in line with the app's rules. SEED_VOLUME=off skips the volume stage.
   if (process.env.SEED_VOLUME !== "off") {
     const users = Object.fromEntries(Object.entries(createdUsers).map(([role, user]: [string, any]) => [role, { id: user.id, email: user.email, fullName: user.fullName, role, signatureUrl: user.signatureUrl }]));
-    await seedVolume(prisma, { users, passwordHash, brand: profile.display, sampleSignatureUrl: signatureOf("guest") });
+    await seedVolume(prisma, { users, passwordHash, brand: profile.display, sampleSignatureUrl: signatureOf("guest"), activities: preset.activities });
+    await seedOperations(prisma, preset, { ownerId: owner.id, financeId: createdUsers.finance_manager.id, staffId: createdUsers.operations_manager.id, passwordHash });
   }
   await reconcileSeed(prisma);
 
@@ -3565,13 +3583,13 @@ async function main() {
     new URL(process.env.DATABASE_URL!).hostname,
   );
   const snapshot = localDemo
-    ? JSON.parse(JSON.stringify(await collectWebsiteDraft(defaultWebsiteConfig)))
+    ? JSON.parse(JSON.stringify(await collectWebsiteDraft(websiteConfig)))
     : undefined;
   await prisma.$transaction(async (tx) => {
     await tx.websiteContent.create({
       data: {
         id: "main",
-        draft: JSON.parse(JSON.stringify(defaultWebsiteConfig)),
+        draft: JSON.parse(JSON.stringify(websiteConfig)),
         ...(snapshot ? { published: snapshot, publishedAt: new Date(), revision: 2 } : {}),
       },
     });
@@ -3579,7 +3597,7 @@ async function main() {
       await tx.revalidationJob.create({
         data: {
           eventKey: "website:publish:2",
-          payload: { tags: ["website", "company"], paths: ["/", "/about", "/contact", "/works"] },
+          payload: { tags: ["website", "company"], paths: ["/", "/about", "/contact", `/${websiteConfig.collection!.slug}`] },
         },
       });
     }

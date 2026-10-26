@@ -1,4 +1,4 @@
-// Run: pnpm db:reset [--profile <name>] [--empty] [--light] [--yes]
+// Run: pnpm db:reset [--profile <name> | --demo <preset>] [--style <style>] [--empty] [--light] [--yes]
 // Local development only: wipes the database in DATABASE_URL and the uploaded files, re-applies every migration
 // and fills it again.
 //   (default)  demo business data for COMPANY_PROFILE (or --profile, default "demo"), full volume
@@ -31,7 +31,19 @@ if (process.env.NODE_ENV === "production") {
   process.exit(1);
 }
 
-const profile = option("profile") || process.env.COMPANY_PROFILE || "demo";
+const demo = option("demo") || process.env.SEED_PRESET?.trim();
+const style = option("style") || process.env.SEED_STYLE?.trim();
+if (flag("demo") && (!option("demo") || option("demo").startsWith("--"))) throw new Error("--demo needs a preset; run pnpm db:demo:list");
+if (flag("style") && (!option("style") || option("style").startsWith("--"))) throw new Error("--style needs a style; run pnpm db:demo:list");
+if (demo && flag("profile")) throw new Error("Choose --demo or --profile; demo presets use the shared demo company.");
+if (flag("empty") && (demo || style)) throw new Error("--empty cannot be combined with a demo preset or style.");
+// Validate before the destructive reset, including values inherited from .env.
+if (demo || style) {
+  require("ts-node").register({ project: path.join(root, "company/tsconfig.json") });
+  const { demoPreset } = require("../company/seed/demo-presets.ts");
+  demoPreset(demo || "media", style);
+}
+const profile = demo ? "demo" : option("profile") || process.env.COMPANY_PROFILE || "demo";
 const mode = flag("empty") ? "empty" : flag("light") ? "light" : "full";
 const target = `${url.hostname}:${url.port || 5432}${url.pathname}`;
 
@@ -79,7 +91,7 @@ async function resetUploads() {
 }
 
 async function main() {
-  console.log(`Database: ${target}\nMode: ${mode}${mode === "empty" ? "" : ` (company profile "${profile}")`}`);
+  console.log(`Database: ${target}\nMode: ${mode}${mode === "empty" ? "" : ` (company profile "${profile}"${demo ? `, demo "${demo}"` : ""}${style ? `, style "${style}"` : ""})`}`);
   await confirm();
 
   // Drops every table in the schema and re-applies all migrations from scratch.
@@ -92,7 +104,7 @@ async function main() {
     console.log("\nEmpty database ready. Sign in with SUPER_ADMIN_EMAIL to run the setup wizard.");
     return;
   }
-  run("pnpm", ["db:seed"], { COMPANY_PROFILE: profile, SEED_VOLUME: mode === "light" ? "off" : "on" });
+  run("pnpm", ["db:seed"], { COMPANY_PROFILE: profile, SEED_PRESET: demo || "", SEED_STYLE: style || "", SEED_VOLUME: mode === "light" ? "off" : "on" });
   run("pnpm", ["db:check-integrity"]);
   console.log(`\nDemo database ready for "${profile}". Every demo account uses SUPER_ADMIN_PASSWORD; the super admin is SUPER_ADMIN_EMAIL.`);
 }

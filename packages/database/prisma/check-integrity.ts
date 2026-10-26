@@ -175,6 +175,8 @@ const RULES: Rule[] = [
         WHEN 'final_settlement' THEN EXISTS (SELECT 1 FROM "FinalSettlement" t WHERE t.id = a."targetId" AND t.status = 'submitted')
         WHEN 'announcement' THEN EXISTS (SELECT 1 FROM "Announcement" t WHERE t.id = a."targetId" AND t.status = 'pending_approval')
         WHEN 'official_letter' THEN EXISTS (SELECT 1 FROM "OfficialLetter" t WHERE t.id = a."targetId" AND t.status = 'pending_approval')
+        WHEN 'purchase_requisition' THEN EXISTS (SELECT 1 FROM "PurchaseRequisition" t WHERE t.id = a."targetId" AND t.status = 'pending_approval')
+        WHEN 'purchase_order' THEN EXISTS (SELECT 1 FROM "PurchaseOrder" t WHERE t.id = a."targetId" AND t.status = 'pending_approval')
         ELSE false END` },
   { area: "sales", name: "company and government clients have exactly one primary point of contact; individuals have none",
     sql: `SELECT c.id, c."clientKind", COUNT(p.id) persons, COUNT(p.id) FILTER (WHERE p."isPrimary") primaries
@@ -214,7 +216,9 @@ const RULES: Rule[] = [
       UNION ALL SELECT 'employee_handover',id FROM "EmployeeHandover" WHERE status='pending_approval'
       UNION ALL SELECT 'final_settlement',id FROM "FinalSettlement" WHERE status='submitted'
       UNION ALL SELECT 'announcement',id FROM "Announcement" WHERE status='pending_approval'
-      UNION ALL SELECT 'official_letter',id FROM "OfficialLetter" WHERE status='pending_approval')
+      UNION ALL SELECT 'official_letter',id FROM "OfficialLetter" WHERE status='pending_approval'
+      UNION ALL SELECT 'purchase_requisition',id FROM "PurchaseRequisition" WHERE status='pending_approval'
+      UNION ALL SELECT 'purchase_order',id FROM "PurchaseOrder" WHERE status='pending_approval')
       SELECT t.* FROM targets t WHERE NOT EXISTS (SELECT 1 FROM "ApprovalRequest" a WHERE a."targetType"=t.kind AND a."targetId"=t.id AND a.status='pending')` },
   { area: "hr", name: "final settlement totals match additions and deductions",
     sql: `WITH lines AS (SELECT "settlementId" id,COALESCE(SUM(amount) FILTER(WHERE kind='addition'),0) additions,COALESCE(SUM(amount) FILTER(WHERE kind='deduction'),0) deductions FROM "FinalSettlementLine" GROUP BY 1)

@@ -14,8 +14,7 @@
     }
   },
   "include": [
-    "seed/seed.ts",
-    "seed/seed-volume.ts",
+    "seed/**/*.ts",
     "tools/**/*.ts"
   ]
 }

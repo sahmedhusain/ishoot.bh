@@ -13,6 +13,8 @@
     "build": "turbo run build --concurrency=1",
     "build:clean": "npm run clean && turbo run build --concurrency=1",
     "db:seed": "pnpm --filter @platform/company seed",
+    "db:demo:list": "pnpm --filter @platform/company demos",
+    "db:demo:check": "pnpm --filter @platform/company check:demo",
     "db:check-integrity": "pnpm --filter @platform/database db:check-integrity",
     "db:bootstrap": "node scripts/bootstrap-database.cjs",
     "db:migrate": "prisma migrate deploy --schema=packages/database/prisma/schema.prisma",

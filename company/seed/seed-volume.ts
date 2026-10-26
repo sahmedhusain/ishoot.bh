@@ -30,6 +30,8 @@ import type { ApprovalTargetType } from "../../packages/database/src/constants/a
 import { lineTotal } from "../../packages/database/src/finance/money";
 import { saveAsset } from "../../packages/database/src/queries/assets";
 import { resolveIncomingLead } from "../../packages/database/src/services/lead-resolver";
+import { ACTIVITY_SAMPLES } from "../../packages/database/src/samples/activity-samples";
+import type { BusinessActivity } from "../../packages/database/src/website-presets";
 
 let seedPrisma: PrismaClient;
 /** The demo company's short name, from the company profile. */
@@ -138,7 +140,7 @@ async function submit(targetType: ApprovalTargetType, targetId: string, requeste
 }
 
 // ---------------------------------------------------------------- main entry
-export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<string, SeedUser>; passwordHash: string; brand: { nameEn: string; nameAr: string }; sampleSignatureUrl: string | null }) {
+export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<string, SeedUser>; passwordHash: string; brand: { nameEn: string; nameAr: string }; sampleSignatureUrl: string | null; activities: BusinessActivity[] }) {
   seedPrisma = prisma;
   brand = ctx.brand;
   sampleSignatureUrl = ctx.sampleSignatureUrl;
@@ -218,13 +220,14 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
   await prisma.user.updateMany({ where: { role: "sales" }, data: { discountLimitPercent: 7.5, commissionRatePercent: 5 } });
   await prisma.user.updateMany({ where: { role: "admin" }, data: { commissionRatePercent: 2 } });
   const productionTeam = allStaff.filter((x) => ["project_lead", "operations_manager", "editor"].includes(x.role) && x.id !== u.editor?.id);
+  const projects: readonly (readonly [string, string])[] = ctx.activities.length === 1 && ctx.activities[0] === "media" ? PROJECTS : ctx.activities.flatMap((activity) => ACTIVITY_SAMPLES[activity].items.map((item) => item.title));
 
   // ============================================================ 2. customers
   const companies = shuffle(PLACES.flatMap((p) => SECTORS.map((s) => `${p} ${s}`))).slice(0, 110);
   const contacts: Array<{ id: string; company: string; name: string; email: string }> = [];
   for (const companyName of companies) {
     const first = pick(FIRST), last = pick(LAST);
-    const domain = companyName.toLowerCase().replace(/[^a-z]+/g, "") + ".bh";
+    const domain = companyName.toLowerCase().replace(/[^a-z]+/g, "") + ".example";
     let email = `${first[0]}.${last[0].replace(/^Al-/, "")}@${domain}`.toLowerCase();
     for (let n = 2; usedEmails.has(email); n++) email = email.replace("@", `${n}@`);
     usedEmails.add(email);
@@ -260,7 +263,7 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
 
   for (let i = 0; i < 150; i++) {
     const contact = pick(contacts);
-    const project = pick(PROJECTS);
+    const project = pick(projects);
     const created = daysAgo(chance(0.4) ? int(2, 90) : int(91, 440)); // busier recent quarter
     const shootDate = addDays(created, int(20, 75));
     const lines = lineItemsFor();
