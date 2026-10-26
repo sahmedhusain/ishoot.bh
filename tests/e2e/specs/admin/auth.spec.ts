@@ -1,3 +1,5 @@
+import users from "../../fixtures/users.json";
+import { t } from "../../locale";
 import { expect, test } from "@playwright/test";
 import { admin, alertMessage, demo, login, testDatabase } from "../../helpers";
 
@@ -28,4 +30,13 @@ test("the admin signs in to the company dashboard and the sign-in is audited", a
   } finally {
     await db.$disconnect();
   }
+});
+
+test("a narrow-role denial has one main landmark and does not expose the user directory", async ({ page }) => {
+  await login(page, users.driver.email, users.driver.password);
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await page.goto("/dashboard/users");
+  await expect(page.getByRole("heading", { name: t.forbidden.title })).toBeVisible();
+  await expect(page.getByRole("main")).toHaveCount(1);
+  await expect(page.getByRole("table")).toHaveCount(0);
 });

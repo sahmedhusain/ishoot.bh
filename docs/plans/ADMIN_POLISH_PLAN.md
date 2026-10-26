@@ -1400,3 +1400,12 @@ Source review found that the Resend settings card stores and tests encrypted cre
 - The authenticated cron endpoint now invokes due social syncs, matching the standalone maintenance worker's existing behavior. A compare-and-set lease prevents concurrent maintenance sources from syncing the same due account together; backoff and reconnect exclusions remain in place.
 - Updated worker startup, deployment diagnostics, environment guidance and operations documentation for stored settings. No real messages were sent: mail tests stub the HTTP boundary.
 - Verification: seven email credential/delivery/webhook tests; social database check including concurrent lease passed and rolled back; type-check, lint, 155 unit/static tests, copy and knip passed. Signing secret acceptance is verified locally with real Svix signing/verification, not a provider delivery claim.
+
+### G8a added scope before implementation (P2)
+
+The eight-combination route sweep reached narrow-role denials and found nested `main` landmarks: the dashboard provides `main`, and shared `ForbiddenView` adds another `main` inside it. This also caused strict-locator errors in the collector, so those entries are unverified denials rather than product render failures. All ForbiddenView callers were checked (root/dashboard forbidden boundaries and six direct dashboard denials). Change the shared denial body to a section, retain the standalone root landmark, and add one narrow-role e2e assertion before rerunning the affected inventory cells.
+
+
+### G8a execution evidence
+
+- Shared ForbiddenView now renders a section inside dashboard pages; the standalone root boundary retains a single main landmark. This fixes the repeated narrow-role audit collector failures without changing permissions. The new driver denial e2e passed: one main, visible access-denied heading, no user table. Focused lint passed.
