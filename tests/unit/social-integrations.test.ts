@@ -73,3 +73,22 @@ describe("real-only social adapters", () => {
     await expect(fetchSocialSnapshot("tiktok", { accessToken: token })).rejects.toBeInstanceOf(ProviderError);
   });
 });
+
+describe("connection checks fail closed", () => {
+  const cases = [
+    ["paytabs", { region: "GLOBAL", profileId: "1", serverKey: token }],
+    ["hyperpay", { environment: "test", entityId: "entity", accessToken: token, brands: "VISA", webhookKey: "a".repeat(64) }],
+    ["smsa", { environment: "test", apiKey: token }],
+    ["aramex", { environment: "test", username: "user", password: token, accountNumber: "1", accountPin: token, accountEntity: "BAH", accountCountryCode: "BH" }],
+  ] as const;
+  test.each(cases)("%s never reports a network outage as healthy", async (provider, credentials) => {
+    vi.stubGlobal("fetch", async () => { throw new TypeError("offline"); });
+    expect((await checkConnection(provider, credentials)).ok).toBe(false);
+  });
+  test("Aramex returns its non-authentication error instead of calling the account healthy", async () => {
+    vi.stubGlobal("fetch", async () => response({ HasErrors: true, Notifications: [{ Code: "ERR00", Message: "Internal server error" }] }));
+    const result = await checkConnection("aramex", cases[3][1]);
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain("Internal server error");
+  });
+});

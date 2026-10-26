@@ -1,3 +1,4 @@
+import { serverMessages } from "@platform/locales";
 import type { ConnectionCheck, Credentials } from "../integrations/providers";
 import type { CourierKind } from "../constants/delivery";
 
@@ -154,7 +155,8 @@ export const aramex: CourierAdapter = {
     // Fetching the last update of a made-up waybill proves the sign-in without booking anything.
     const body = await call<Record<string, unknown>>(`${aramexBase(c)}/ShippingAPI.V2/Tracking/Service_1_0.svc/json/TrackShipments`, json({}, { ClientInfo: aramexClient(c), Shipments: ["0"], GetLastTrackingUpdateOnly: true }));
     const problem = aramexErrors(body);
-    if (problem && /(auth|credential|password|account)/i.test(problem)) return { ok: false, error: problem };
+    if (problem) return { ok: false, error: problem };
+    if (!Array.isArray(body.TrackingResults)) return { ok: false, error: serverMessages.providerInvalidResponse };
     return { ok: true, accountName: `${c.accountNumber} · ${live(c) ? "Live" : "Test"}` };
   },
 };
@@ -245,12 +247,8 @@ export const smsa: CourierAdapter = {
   },
   async check(c) {
     need(c, "environment", "apiKey");
-    try {
-      await call(`${smsaBase(c)}/api/track/single/0`, { headers: { apikey: c.apiKey, Accept: "application/json" } });
-    } catch (error) {
-      // An unknown waybill is fine; only a refused key means the credentials are wrong.
-      if (error instanceof CourierError && /(401|403|key|auth)/i.test(error.message)) throw error;
-    }
+    const result = await call<Record<string, unknown>>(`${smsaBase(c)}/api/track/single/0`, { headers: { apikey: c.apiKey, Accept: "application/json" } });
+    if (result.success === false || result.error || !Array.isArray(result.Scans ?? result.scans)) return { ok: false, error: str(result.message) || str(obj(result.error).message) || serverMessages.providerInvalidResponse };
     return { ok: true, accountName: live(c) ? "Live" : "Sandbox" };
   },
 };

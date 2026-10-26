@@ -514,12 +514,8 @@ export const paytabs: PaymentGateway = {
   async check(c) {
     need(c, "region", "profileId", "serverKey");
     if (!PAYTABS_REGIONS[c.region.trim().toUpperCase()]) return { ok: false, error: formatMessage(serverTemplates.paymentRegionInvalid, { 0: Object.keys(PAYTABS_REGIONS).join(", ") }) };
-    try {
-      await call(`${paytabsBase(c)}/payment/query`, json({ authorization: c.serverKey }, { profile_id: Number(c.profileId), tran_ref: "TST0000000000000" }));
-    } catch (error) {
-      // An unknown transaction is fine; only an authentication failure means the keys are wrong.
-      if (error instanceof GatewayError && /auth/i.test(error.message)) throw error;
-    }
+    const result = await call<Record<string, unknown>>(`${paytabsBase(c)}/payment/query`, json({ authorization: c.serverKey }, { profile_id: Number(c.profileId), tran_ref: "TST0000000000000" }));
+    if (result.code != null || !result.tran_ref) return { ok: false, error: message(result) ?? serverMessages.providerInvalidResponse };
     return { ok: true, accountName: c.region.trim().toUpperCase() };
   },
 };
@@ -642,12 +638,8 @@ export const hyperpay: PaymentGateway = {
   async check(c) {
     need(c, "environment", "entityId", "accessToken", "brands", "webhookKey");
     if (!/^[0-9a-fA-F]{64}$/.test(c.webhookKey.trim())) return { ok: false, error: serverMessages.paymentWebhookKeyInvalid };
-    try {
-      await call(`${hyperpayBase(c)}/v1/query?entityId=${encodeURIComponent(c.entityId)}&merchantTransactionId=connection-check`, { headers: { Authorization: `Bearer ${c.accessToken}` } });
-    } catch (error) {
-      // "No transactions found" is a successful sign-in; an invalid token or entity is not.
-      if (error instanceof GatewayError && /(auth|invalid|entity)/i.test(error.message)) throw error;
-    }
+    const result = await call<{ result?: { code?: string; description?: string } }>(`${hyperpayBase(c)}/v1/query?entityId=${encodeURIComponent(c.entityId)}&merchantTransactionId=connection-check`, { headers: { Authorization: `Bearer ${c.accessToken}` } });
+    if (!result.result?.code || !/^000\.000\./.test(result.result.code)) return { ok: false, error: result.result?.description ?? serverMessages.providerInvalidResponse };
     return { ok: true, accountName: live(c) ? "Live" : "Test" };
   },
 };
