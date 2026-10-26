@@ -1,4 +1,6 @@
 "use client";
+import { errorMessage } from "../../lib/error-text";
+import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import { formatMessage } from "@platform/locales";
 import { useCompanyVat } from "../../hooks/useCompanyVat";
 import { getCurrencyLabel } from "@platform/config/currency";
@@ -72,6 +74,7 @@ export function InvoiceEditFormView({
 
   const [contacts, setContacts] = React.useState<CRMContact[]>(initialContacts);
   const [submitting, setSubmitting] = React.useState(false);
+  const [actionError, setActionError] = React.useState("");
   const [voidConfirmOpen, setVoidConfirmOpen] = React.useState(false);
 
   const [selectedContactId, setSelectedContactId] = React.useState(
@@ -128,6 +131,8 @@ export function InvoiceEditFormView({
   const [vatPercentage] = React.useState<number>(
     company?.vat_enabled ? Number(company.vat_percentage ?? 10) : 0,
   );
+
+  const markSaved = useUnsavedChanges({ selectedContactId, currency, language, issueDate, dueDate, notesEn, notesAr, lineItems, discountType, discountValue });
 
   const isLocked = invoice.status === "void";
 
@@ -261,6 +266,7 @@ export function InvoiceEditFormView({
     const validItems = lineItems.filter(
       (item) => item.description_en.trim() !== "",
     );
+    setActionError("");
     setSubmitting(true);
 
     try {
@@ -285,26 +291,34 @@ export function InvoiceEditFormView({
         })),
       });
 
+      if (!markSaved()) return;
+
       router.push(ROUTES.invoices.detail(invoice.id));
     } catch (err) {
-      console.error("Failed to update invoice:", err);
+      setActionError(errorMessage(err, t));
+      throw err;
     } finally {
       setSubmitting(false);
-      setShowConfirmModal(false);
     }
   };
 
   const handleVoid = async () => {
+    setActionError("");
+    setSubmitting(true);
     try {
       await voidInvoiceAction(invoice.id);
+      if (!markSaved()) return;
       router.push(ROUTES.invoices.detail(invoice.id));
     } catch (err) {
-      console.error("Failed to void invoice:", err);
+      setActionError(errorMessage(err, t));
+      throw err;
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-16">
+    <div inert={submitting} aria-busy={submitting} className="space-y-8 max-w-5xl mx-auto pb-16">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -815,6 +829,7 @@ export function InvoiceEditFormView({
         onConfirm={handleVoid}
         title={t.invoiceEdit.voidCheckpointTitle}
         description={t.invoiceEdit.voidCheckpointDesc.replace("invoice", `invoice ${invoice.invoice_number}`)}
+        errorLabel={actionError || undefined}
         confirmLabel={t.invoiceEdit.confirmVoid}
       />
 
@@ -823,6 +838,7 @@ export function InvoiceEditFormView({
         onClose={() => setShowConfirmModal(false)}
         onConfirm={handleConfirmedSave}
         changes={changes}
+        errorLabel={actionError || undefined}
         isSaving={submitting}
         title={formatMessage(t.invoiceEdit.confirmEditTitle, { number: invoice.invoice_number })}
         description={t.invoiceEditForm.reviewTheUpdatedInvoiceValues}

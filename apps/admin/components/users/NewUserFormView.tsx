@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
@@ -35,6 +36,8 @@ export function NewUserFormView({
   const [phone] = React.useState("");
   const [saving, setSaving] = React.useState(false);
 
+  const markSaved = useUnsavedChanges({ employeeId, fullName, email, password, role, phone });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName || !email || !password) return;
@@ -50,6 +53,8 @@ export function NewUserFormView({
         phone: phone || undefined,
       });
 
+      if (!markSaved()) return;
+
       router.push(ROUTES.users.list);
     } catch (err) {
       setError(errorMessage(err, t, t.hrExtensions.failed));
@@ -59,7 +64,7 @@ export function NewUserFormView({
   };
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto pb-16">
+    <div inert={saving} aria-busy={saving} className="space-y-8 max-w-4xl mx-auto pb-16">
       <div className="flex items-center gap-4">
         <Link href={ROUTES.users.list}>
           <Button

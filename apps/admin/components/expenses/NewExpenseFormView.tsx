@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import { errorMessage } from "../../lib/error-text";
 import { useCompanyVat } from "../../hooks/useCompanyVat";
 
@@ -90,6 +91,8 @@ export function NewExpenseFormView({
     items: categories.filter((c) => c.kind === kind),
   })).filter((g) => g.items.length);
 
+  const markSaved = useUnsavedChanges({ scope, deal, client, categoryId, descriptionEn, descriptionAr, amount, currency, inputVat, vatRecoverable, vendorName, paymentMethod, billable, notes, expenseDate, receiptUrl });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!descriptionEn || amount <= 0 || !categoryId) return;
@@ -119,6 +122,8 @@ export function NewExpenseFormView({
         expense_date: expenseDate || undefined,
       });
 
+      if (!markSaved()) return;
+
       router.push(
         scope === "deal" && res.expense.deal_id
           ? ROUTES.crm.deal(res.expense.deal_id)
@@ -136,7 +141,7 @@ export function NewExpenseFormView({
     "w-full rounded-xl border border-ink/15 bg-surface px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/30";
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-16">
+    <div inert={saving} aria-busy={saving} className="space-y-6 max-w-4xl mx-auto pb-16">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Link href={ROUTES.expenses.list()}>

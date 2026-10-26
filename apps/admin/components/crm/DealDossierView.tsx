@@ -1,4 +1,5 @@
 "use client";
+import { formatMessage } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
 import { ListControls } from "../shared/ListControls";
 import type { InvoiceListRow } from "@platform/database";
@@ -67,7 +68,7 @@ export function DealDossierView({
   const isWon = ["delivered", "invoiced", "closed_won"].includes(deal.stage);
   const projectedValue =
     deal.value && Number(deal.value) > 0
-      ? (Number(deal.value) * (deal.probability || 50)) / 100
+      ? (Number(deal.value) * (deal.probability ?? 50)) / 100
       : 0;
 
   return (
@@ -158,8 +159,8 @@ export function DealDossierView({
             />
           </div>
           <span className="text-[11px] text-slate-500 dark:text-slate-400 ">
-            {deal.probability
-              ? `${deal.probability}% Probability`
+            {deal.probability != null
+              ? formatMessage(t.dealDossier.probabilityValue, { value: String(deal.probability) })
               : t.dealDossier.noProbabilitySet}
           </span>
         </Card>
@@ -170,7 +171,7 @@ export function DealDossierView({
             <span>{t.dealDossier.projectedRevenue}</span>
           </div>
           <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 ">
-            <CurrencyDisplay amount={projectedValue} currency={deal.currency} />
+            <span data-testid="deal-forecast"><CurrencyDisplay amount={projectedValue} currency={deal.currency} /></span>
           </div>
           <span className="text-[11px] text-accent ">
             {t.dealDossier.weightedValue}
@@ -190,8 +191,8 @@ export function DealDossierView({
             )}
           </div>
           <span className="text-[11px] text-slate-500 dark:text-slate-400 ">
-            {deal.probability
-              ? `(${(deal.probability / 100).toFixed(1)}x Expected)`
+            {deal.probability != null
+              ? formatMessage(t.dealDossier.expectedMultiplier, { value: (deal.probability / 100).toFixed(1) })
               : t.dealDossier.noEstimate}
           </span>
         </Card>

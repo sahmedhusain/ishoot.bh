@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
@@ -86,6 +87,7 @@ export function QuotationDetailView({
   canEdit = false,
 }: QuotationDetailViewProps) {
   const router = useRouter();
+  const confirmAction = useConfirmation();
   const { isRTL, t, locale } = useAdminLocale();
   const [printing, setPrinting] = React.useState(false);
   const qdT = t.quotationDetail;
@@ -256,28 +258,34 @@ export function QuotationDetailView({
     }
   };
 
-  const handleConvertToInvoice = async () => {
-    setLoadingAction("convert");
-    const toastId = toast.loading(t.quotationDetail.convertingQuotationToTaxInvoice);
-    try {
-      const res = await convertQuotationToInvoiceAction(quotation.id);
-      if (res.success && res.invoice) {
-        toast.success(
-          res.invoice.isExisting
-            ? formatMessage(t.copy.existingInvoice, { number: res.invoice.invoiceNumber })
-            : formatMessage(t.copy.generatedInvoice, { number: res.invoice.invoiceNumber }),
-          { id: toastId },
-        );
-        router.push(ROUTES.invoices.detail(res.invoice.invoiceId));
-      } else {
-        toast.error(t.quotationDetail.failedToConvertQuotation, { id: toastId });
+  const handleConvertToInvoice = () => confirmAction({
+    title: t.newInvoiceForm.convertConfirmTitle,
+    description: t.newInvoiceForm.convertConfirmBody,
+    variant: "warning",
+    onConfirm: async () => {
+      setLoadingAction("convert");
+      const toastId = toast.loading(t.quotationDetail.convertingQuotationToTaxInvoice);
+      try {
+        const res = await convertQuotationToInvoiceAction(quotation.id);
+        if (res.success && res.invoice) {
+          toast.success(
+            res.invoice.isExisting
+              ? formatMessage(t.copy.existingInvoice, { number: res.invoice.invoiceNumber })
+              : formatMessage(t.copy.generatedInvoice, { number: res.invoice.invoiceNumber }),
+            { id: toastId },
+          );
+          router.push(ROUTES.invoices.detail(res.invoice.invoiceId));
+        } else {
+          throw new Error(t.quotationDetail.failedToConvertQuotation);
+        }
+      } catch (err: unknown) {
+        toast.error(errorMessage(err, t, t.quotationDetail.conversionFailed), { id: toastId });
+        throw err;
+      } finally {
+        setLoadingAction(null);
       }
-    } catch (err: unknown) {
-      toast.error(errorMessage(err, t, t.quotationDetail.conversionFailed), { id: toastId });
-    } finally {
-      setLoadingAction(null);
-    }
-  };
+    },
+  });
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-16">

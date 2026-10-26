@@ -1914,7 +1914,9 @@
     "dealCreatedInPipeline": "تم إنشاء الصفقة في المسار",
     "targetCloseDate": "تاريخ الإغلاق المستهدف",
     "scheduledShootDate": "الموعد المجدول",
-    "dealBriefNotes": "ملاحظات موجزة عن الصفقة"
+    "dealBriefNotes": "ملاحظات موجزة عن الصفقة",
+    "probabilityValue": "احتمالية {value}%",
+    "expectedMultiplier": "({value}× المتوقع)"
   },
   "customerEdit": {
     "title": "تعديل ملف العميل",
@@ -3336,7 +3338,9 @@
     "selectAcceptedQuote": "-- اختر عرض سعر مقبول --",
     "n1ClickConvert": "تحويل فوري",
     "importedFromQuotation": "تم استيراد بيانات عرض السعر {number}",
-    "createdWithNumber": "تم إنشاء الفاتورة {number} بنجاح"
+    "createdWithNumber": "تم إنشاء الفاتورة {number} بنجاح",
+    "convertConfirmTitle": "إنشاء فاتورة من عرض السعر؟",
+    "convertConfirmBody": "ستُنشأ مسوّدة فاتورة باستخدام قيم عرض السعر، ويُعلَّم العرض بأنه محوّل."
   },
   "adminProfileDropdown": {
     "accountSecurity": "أمان الحساب"

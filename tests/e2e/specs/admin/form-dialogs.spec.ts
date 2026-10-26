@@ -4,7 +4,7 @@ import en from "../../../../packages/locales/src/admin/en.json";
 import ar from "../../../../packages/locales/src/admin/ar.json";
 import { testDatabase } from "../../helpers";
 
-const db = testDatabase();
+const db = testDatabase() as typeof import("../../../../packages/database/src/db").db;
 let quotationId = "";
 let componentId = "";
 let invoiceId = "";
@@ -15,7 +15,7 @@ test.beforeEach(async () => {
   quotationId = quotation.id;
   const component = await db.gosiComponent.create({ data: { code: `E2E-${randomUUID()}`, nameEn: "E2E dialog component", nameAr: "بند اختبار الحوار", effectiveFrom: new Date("2000-01-01") } });
   componentId = component.id;
-  const invoice = await db.invoice.create({ data: { invoiceNumber: `E2E-${randomUUID()}`, dueDate: new Date("2050-12-31"), subtotal: 1, totalAmount: 1, amountPaid: 1, status: "paid" } });
+  const invoice = await db.invoice.create({ data: { invoiceNumber: `E2E-${randomUUID()}`, dueDate: new Date("2050-12-31"), subtotal: 1, totalAmount: 1, status: "paid" } });
   invoiceId = invoice.id;
   const payment = await db.payment.create({ data: { invoiceId, receiptNumber: `E2E-${randomUUID()}`, amount: 1 } });
   paymentId = payment.id;

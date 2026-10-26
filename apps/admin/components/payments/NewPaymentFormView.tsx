@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import { uploadFileDirectly } from "../../lib/upload-client";
@@ -81,6 +82,8 @@ export function NewPaymentFormView({
   const [uploadingCheque, setUploadingCheque] = React.useState(false);
   const [uploadingBankReceipt, setUploadingBankReceipt] = React.useState(false);
   const [uploadingProof, setUploadingProof] = React.useState(false);
+
+  const markSaved = useUnsavedChanges({ selectedClientId, selectedInvoiceId, amount, paymentDate, paymentMethod, referenceNumber, notes, chequeFile, bankReceiptFile, generalProofFile, uploadingCheque, uploadingBankReceipt, uploadingProof });
 
   const chequeInputRef = React.useRef<HTMLInputElement>(null);
   const bankReceiptInputRef = React.useRef<HTMLInputElement>(null);
@@ -209,6 +212,8 @@ export function NewPaymentFormView({
           attachmentsToSave.length > 0 ? attachmentsToSave : undefined,
       });
 
+      if (!markSaved()) return;
+
       router.push(ROUTES.payments.list);
     } catch (err: any) {
       console.error("Failed to record payment:", err);
@@ -223,7 +228,7 @@ export function NewPaymentFormView({
   const BackIcon = isRTL ? ArrowRight : ArrowLeft;
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto pb-16">
+    <div inert={saving} aria-busy={saving} className="space-y-8 max-w-4xl mx-auto pb-16">
       <div className="flex items-center gap-4">
         <Link href={ROUTES.payments.list}>
           <Button variant="outline" size="sm" className="gap-1.5">

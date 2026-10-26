@@ -166,7 +166,7 @@ export function useNavigationGuard() {
   return guard;
 }
 
-export function useUnsavedChanges(value: unknown) {
+export function useUnsavedChanges(value: unknown, enabled = true) {
   const { register } = useNavigationGuard();
   const current = React.useRef(value);
   const baseline = React.useRef<string | undefined>(undefined);
@@ -175,11 +175,12 @@ export function useUnsavedChanges(value: unknown) {
   current.current = value;
   savedBeforeRender.current = false;
   React.useEffect(() => {
+    if (!enabled) return;
     attached.current = true;
     baseline.current = JSON.stringify(current.current);
     const unregister = register(() => !savedBeforeRender.current && JSON.stringify(current.current) !== baseline.current);
     return () => { attached.current = false; unregister(); };
-  }, [register]);
+  }, [register, enabled]);
   return React.useCallback((saved?: unknown) => {
     if (!attached.current) return false;
     baseline.current = JSON.stringify(saved === undefined ? current.current : saved);

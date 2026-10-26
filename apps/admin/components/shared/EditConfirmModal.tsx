@@ -1,8 +1,8 @@
 "use client";
 import type { AdminTranslations } from "../../lib/translations";
 
-import { Modal,Button } from "@platform/ui";
-import { ArrowRight,CheckCircle2,AlertCircle,Loader2 } from "lucide-react";
+import { ConfirmDialog } from "@platform/ui";
+import { ArrowRight,AlertCircle } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 export interface FieldChange {
@@ -20,6 +20,7 @@ interface EditConfirmModalProps {
   description?: string;
   changes: FieldChange[];
   isSaving?: boolean;
+  errorLabel?: string;
 }
 
 function formatValue(val: unknown, t: AdminTranslations): string {
@@ -37,6 +38,7 @@ export function EditConfirmModal({
   description,
   changes,
   isSaving = false,
+  errorLabel,
 }: EditConfirmModalProps) {
   const { t } = useAdminLocale();
 
@@ -45,15 +47,18 @@ export function EditConfirmModal({
   );
 
   return (
-    <Modal closeLabel={t.actions.close}
+    <ConfirmDialog
       isOpen={isOpen}
       onClose={onClose}
-      title={
-        title ||
-        (t.editConfirmModal.confirmChangesAndUpdate)
-      }
-      className="max-w-xl"
-    >
+      onConfirm={onConfirm}
+      title={title || t.editConfirmModal.confirmChangesAndUpdate}
+      variant="warning"
+      confirmLabel={t.editConfirmModal.confirmAndSaveChanges}
+      cancelLabel={t.editConfirmModal.cancel}
+      loadingLabel={t.editConfirmModal.saving}
+      loading={isSaving}
+      errorLabel={errorLabel}
+      description={
       <div className="space-y-5">
         <p className="text-xs text-slate-500 dark:text-ink-muted">
           {description ||
@@ -73,14 +78,14 @@ export function EditConfirmModal({
 
                 <div className="flex items-center gap-3 text-xs">
                   {/* Old Value */}
-                  <div className="flex-1 p-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-rose-700 dark:text-rose-300 font-mono text-[11px] truncate line-through opacity-80">
+                  <div className="flex-1 p-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-rose-700 dark:text-rose-300 font-mono text-[11px] min-w-0 break-words line-through opacity-80">
                     {formatValue(change.oldValue, t)}
                   </div>
 
                   <ArrowRight className="w-3.5 h-3.5 text-slate-400 shrink-0 rtl:rotate-180" />
 
                   {/* New Value */}
-                  <div className="flex-1 p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 font-mono text-[11px] font-bold truncate">
+                  <div className="flex-1 p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 font-mono text-[11px] font-bold min-w-0 break-words">
                     {formatValue(change.newValue, t)}
                   </div>
                 </div>
@@ -96,37 +101,8 @@ export function EditConfirmModal({
           </div>
         )}
 
-        <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-white/10">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={onClose}
-            disabled={isSaving}
-            className="text-xs"
-          >
-            {t.editConfirmModal.cancel}
-          </Button>
-
-          <Button
-            type="button"
-            variant="primary"
-            onClick={onConfirm}
-            disabled={isSaving}
-            className="gap-2 bg-accent text-white text-xs shadow-lg shadow-accent/20"
-          >
-            {isSaving ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <CheckCircle2 className="w-4 h-4" />
-            )}
-            <span>
-              {isSaving
-                ? t.editConfirmModal.saving
-                : t.editConfirmModal.confirmAndSaveChanges}
-            </span>
-          </Button>
-        </div>
       </div>
-    </Modal>
+      }
+    />
   );
 }

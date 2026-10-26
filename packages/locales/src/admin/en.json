@@ -1914,7 +1914,9 @@
     "dealCreatedInPipeline": "Deal Created in Pipeline",
     "targetCloseDate": "Target Close Date",
     "scheduledShootDate": "Scheduled Date",
-    "dealBriefNotes": "Deal Brief Notes"
+    "dealBriefNotes": "Deal Brief Notes",
+    "probabilityValue": "{value}% probability",
+    "expectedMultiplier": "({value}× expected)"
   },
   "customerEdit": {
     "title": "Edit Customer Dossier",
@@ -3336,7 +3338,9 @@
     "selectAcceptedQuote": "-- Select Accepted Quote --",
     "n1ClickConvert": "1-Click Convert",
     "importedFromQuotation": "Imported scope and client from Quotation {number}",
-    "createdWithNumber": "Invoice {number} created successfully!"
+    "createdWithNumber": "Invoice {number} created successfully!",
+    "convertConfirmTitle": "Create an invoice from this quotation?",
+    "convertConfirmBody": "This creates an invoice draft using the quotation values and marks the quotation as converted."
   },
   "adminProfileDropdown": {
     "accountSecurity": "Account security"

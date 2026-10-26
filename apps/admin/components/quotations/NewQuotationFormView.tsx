@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import { formatMessage } from "@platform/locales";
 import { useCompanyVat } from "../../hooks/useCompanyVat";
 import { getCurrencyLabel } from "@platform/config/currency";
@@ -127,6 +128,7 @@ export function NewQuotationFormView({
 
   // VAT & Discount
   // VAT follows the company registration only; quotations never toggle it.
+
   const vatEnabled = company?.vat_enabled ?? false;
   const vatPercentage = vatEnabled ? Number(company?.vat_percentage ?? 10) : 0;
   const [discountType, setDiscountType] = React.useState<DiscountType>("none");
@@ -151,6 +153,8 @@ export function NewQuotationFormView({
       basePriceBhd: services.length > 0 ? Number(services[0].default_rate) || 0 : null,
     },
   ]);
+
+  const markSaved = useUnsavedChanges({ selectedContactId, currency, language, validUntilDays, salesOwnerId, discountType, discountValue, termsEn, termsAr, lineItems });
 
   // Catalogue prices are in BHD: re-price service lines whenever the currency (and so the rate) changes.
   React.useEffect(() => {
@@ -283,6 +287,7 @@ export function NewQuotationFormView({
           formatMessage(t.newQuotationForm.createdWithNumber, { number: res.quotation.quotationNumber }),
           { id: toastId },
         );
+        if (!markSaved()) return;
         router.push(ROUTES.quotations.detail(res.quotation.id));
       } else {
         toast.error(t.newQuotationForm.failedToCreateQuotation, { id: toastId });
@@ -296,7 +301,7 @@ export function NewQuotationFormView({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-5xl mx-auto space-y-8 pb-16">
+    <form inert={submitting} aria-busy={submitting} onSubmit={handleSubmit} className="max-w-5xl mx-auto space-y-8 pb-16">
       {/* Top Breadcrumb & Action bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-ink/10 pb-5">
         <div className="flex items-center gap-3">

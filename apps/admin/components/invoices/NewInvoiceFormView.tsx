@@ -1,4 +1,6 @@
 "use client";
+import { useUnsavedChanges, useNavigationGuard } from "../../hooks/useUnsavedChanges";
+import { useConfirmation } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { useCompanyVat } from "../../hooks/useCompanyVat";
 
@@ -72,6 +74,8 @@ export function NewInvoiceFormView({
   dealId,
 }: NewInvoiceFormViewProps) {
   const router = useRouter();
+  const confirmAction = useConfirmation();
+  const { requestNavigation } = useNavigationGuard();
   const { t, locale, isRTL } = useAdminLocale();
 
   const [contacts, setContacts] = React.useState<CRMContact[]>(initialContacts);
@@ -131,6 +135,10 @@ export function NewInvoiceFormView({
     },
   ]);
 
+  const [quoteInitializing, setQuoteInitializing] = React.useState(!!preselectedQuotation);
+  const initializedQuote = React.useRef<string | null>(null);
+  const markSaved = useUnsavedChanges({ selectedContactId, selectedQuotationId, currency, salesOwnerId, language, issueDate, dueDate, selectedDealId, notesEn, notesAr, discountType, discountValue, lineItems }, !quoteInitializing);
+
   // Apply quotation items to the invoice form
   const applyQuotation = React.useCallback(
     (q: any) => {
@@ -184,36 +192,46 @@ export function NewInvoiceFormView({
 
   // Initialize from preselected quotation if given
   React.useEffect(() => {
-    if (preselectedQuotation) {
+    if (preselectedQuotation && initializedQuote.current !== preselectedQuotation.id) {
+      initializedQuote.current = preselectedQuotation.id;
       applyQuotation(preselectedQuotation);
+      setQuoteInitializing(false);
     }
   }, [preselectedQuotation, applyQuotation]);
 
-  const handle1ClickConvert = async (quoteId: string) => {
-    setConvertingQuoteId(quoteId);
-    const toastId = toast.loading(
-      t.newInvoiceForm.convertingQuotationToTaxInvoice,
-    );
-    try {
-      const res = await convertQuotationToInvoiceAction(quoteId);
-      if (res.success && res.invoice) {
-        toast.success(
-          formatMessage(t.newInvoiceForm.createdWithNumber, { number: res.invoice.invoiceNumber }),
+  const handle1ClickConvert = (quoteId: string) => confirmAction({
+    title: t.newInvoiceForm.convertConfirmTitle,
+    description: t.newInvoiceForm.convertConfirmBody,
+    variant: "warning",
+    onConfirm: async () => {
+      if (!(await requestNavigation())) return;
+      setConvertingQuoteId(quoteId);
+      const toastId = toast.loading(
+        t.newInvoiceForm.convertingQuotationToTaxInvoice,
+      );
+      try {
+        const res = await convertQuotationToInvoiceAction(quoteId);
+        if (res.success && res.invoice) {
+          toast.success(
+            formatMessage(t.newInvoiceForm.createdWithNumber, { number: res.invoice.invoiceNumber }),
+            { id: toastId },
+          );
+          if (!markSaved()) return;
+          router.push(ROUTES.invoices.detail(res.invoice.invoiceId));
+        } else {
+          throw new Error(t.newInvoiceForm.failedToConvertQuotation);
+        }
+      } catch (err: unknown) {
+        toast.error(
+          errorMessage(err, t, t.newInvoiceForm.conversionFailed),
           { id: toastId },
         );
-        router.push(ROUTES.invoices.detail(res.invoice.invoiceId));
-      } else {
-        toast.error(t.newInvoiceForm.failedToConvertQuotation, { id: toastId });
+        throw err;
+      } finally {
+        setConvertingQuoteId(null);
       }
-    } catch (err: unknown) {
-      toast.error(
-        errorMessage(err, t, t.newInvoiceForm.conversionFailed),
-        { id: toastId },
-      );
-    } finally {
-      setConvertingQuoteId(null);
-    }
-  };
+    },
+  });
 
   const addLineItem = () => {
     setLineItems((prev) => [
@@ -301,6 +319,7 @@ export function NewInvoiceFormView({
 
       if (res.invoice?.id) {
         toast.success(t.newInvoiceForm.invoiceCreatedSuccessfully, { id: toastId });
+        if (!markSaved()) return;
         router.push(ROUTES.invoices.detail(res.invoice.id));
       } else {
         toast.error(t.newInvoiceForm.failedToCreateInvoice, { id: toastId });
@@ -316,7 +335,7 @@ export function NewInvoiceFormView({
   const BackIcon = isRTL ? ArrowRight : ArrowLeft;
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-16">
+    <div inert={submitting || convertingQuoteId !== null || quoteInitializing} aria-busy={submitting || convertingQuoteId !== null || quoteInitializing} className="space-y-8 max-w-5xl mx-auto pb-16">
       <div>
         <Link
           href={ROUTES.invoices.list}

@@ -1,4 +1,6 @@
 "use client";
+import { errorMessage } from "../../lib/error-text";
+import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import { getCurrencyLabel } from "@platform/config/currency";
 import { ROUTES } from "../../constants/routes";
 import {EntityLookup} from "../shared/EntityLookup";
@@ -35,7 +37,7 @@ export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFor
   const [dealValue, setDealValue] = React.useState<number>(
     Number(deal.value) || 0,
   );
-  const [probability, setProbability] = React.useState(deal.probability || 50);
+  const [probability, setProbability] = React.useState(deal.probability ?? 50);
   const [expectedCloseDate, setExpectedCloseDate] = React.useState(
     deal.target_close_date
       ? new Date(deal.target_close_date).toISOString().split("T")[0]
@@ -52,6 +54,8 @@ export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFor
   const [error, setError] = React.useState("");
   const [saving, setSaving] = React.useState(false);
   const [showConfirmModal, setShowConfirmModal] = React.useState(false);
+
+  const markSaved = useUnsavedChanges({ title, contactId, dealStage, dealValue, probability, expectedCloseDate, shootDate, notes, assignedTo, lostReason });
 
   const selectedContact = contacts.find((c) => c.id === contactId);
 
@@ -117,20 +121,21 @@ export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFor
         lost_reason: lostReason.trim() || null,
       });
 
+      if (!markSaved()) return;
+
       router.push(ROUTES.crm.deal(deal.id));
     } catch (err) {
-      setError(t.dealEditForm.couldNotSaveTheDeal);
-      console.error("Failed to update deal:", err);
+      setError(errorMessage(err, t, t.dealEditForm.couldNotSaveTheDeal));
+      throw err;
     } finally {
       setSaving(false);
-      setShowConfirmModal(false);
     }
   };
 
   const stageOptions = stages.map((stage) => ({ value: stage.id, label: dealStageLabel(stage, t, locale) }));
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto pb-16">
+    <div inert={saving} aria-busy={saving} className="space-y-8 max-w-4xl mx-auto pb-16">
       <div className="flex items-center gap-4">
         <Link href={ROUTES.crm.deal(deal.id)}>
           <Button
@@ -313,6 +318,7 @@ export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFor
           t.dealEditForm.pleaseReviewTheChangesBelow
         }
         changes={changes}
+        errorLabel={error || undefined}
         isSaving={saving}
       />
     </div>

@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
@@ -75,6 +76,8 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false }
   const [transportAllowance, setTransportAllowance] = React.useState(50);
   const [otherAllowances, setOtherAllowances] = React.useState(0);
 
+  const markSaved = useUnsavedChanges({ payrollSettings, firstNameEn, lastNameEn, firstNameAr, lastNameAr, email, phone, cprNumber, identity, visa, jobTitleEn, jobTitleAr, departmentId, hireDate, contractType, basicSalary, housingAllowance, transportAllowance, otherAllowances });
+
   const totalMonthlyGross =
     basicSalary + housingAllowance + transportAllowance + otherAllowances;
 
@@ -110,6 +113,7 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false }
 
       if (res.success && res.employee) {
         toast.success(formatMessage(t.employeeResidency.created, { number: res.employee.employeeNumber }), { id: toastId });
+        if (!markSaved()) return;
         router.push(ROUTES.hr.employee(res.employee.id));
       } else {
         toast.error(t.newEmployeeForm.failedToOnboardEmployee, { id: toastId });
@@ -124,7 +128,7 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-8 pb-16">
+    <form inert={submitting} aria-busy={submitting} onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-8 pb-16">
       {/* Editorial Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-ink/10 pb-5">
         <div className="flex items-center gap-3">

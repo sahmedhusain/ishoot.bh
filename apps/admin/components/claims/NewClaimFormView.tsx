@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
@@ -63,6 +64,8 @@ export function NewClaimFormView({
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState("");
 
+  const markSaved = useUnsavedChanges({ amount, currency, expenseDate, reason, categoryId, dealId, invoiceId, meetingId, receipt, uploading });
+
   const upload = async (file: File) => {
     setUploading(true);
     setError("");
@@ -103,6 +106,7 @@ export function NewClaimFormView({
         calendarEventId: meetingId || null,
         receiptUrl: receipt.url,
       });
+      if (!markSaved()) return;
       router.push(ROUTES.claims.list({ highlight: res.claim.id }));
     } catch (err) {
       setError(errorMessage(err, t, c.submitFailed));
@@ -115,7 +119,7 @@ export function NewClaimFormView({
     "w-full rounded-xl border border-ink/15 bg-surface px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/30";
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto pb-16">
+    <div inert={saving} aria-busy={saving} className="space-y-6 max-w-3xl mx-auto pb-16">
       <div className="flex items-center gap-4">
         <Link href={ROUTES.claims.list()}>
           <Button
