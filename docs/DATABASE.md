@@ -2,19 +2,21 @@
 
 The apps use PostgreSQL through Prisma. The schema of record is `packages/database/prisma/schema.prisma`, and every change ships as a migration in `packages/database/prisma/migrations/`. Demo data and company profiles live in [`company/`](../company/README.md).
 
-Run every command from the repository root.
+Run every command from the repository root. Each step below has a `./run.sh` shortcut (`./run.sh help` lists them); the `pnpm` scripts it calls work on their own too.
 
 ## 1. Start a local database
 
 The recommended setup is the local Supabase stack, which gives you Postgres on port **54322** plus file storage on **54321**.
 
 ```bash
-pnpm dlx supabase start -x studio,postgres-meta,logflare,vector,supavisor,edge-runtime,realtime,imgproxy,mailpit
+./run.sh services up
 ```
 
 ```bash
-pnpm dlx supabase status
+./run.sh services status
 ```
+
+(These run `pnpm dlx supabase start -x studio,postgres-meta,logflare,vector,supavisor,edge-runtime,realtime,imgproxy,mailpit` and `pnpm dlx supabase status`.)
 
 Copy the values from `supabase status` into `.env` (start from `.env.example`):
 
@@ -26,7 +28,7 @@ Copy the values from `supabase status` into `.env` (start from `.env.example`):
 | `SUPER_ADMIN_EMAIL`, `SUPER_ADMIN_PASSWORD` | Your first administrator (password ≥ 12 characters) |
 | `COMPANY_PROFILE` | `demo`, or another folder in `company/profiles/` |
 
-You can also run without Supabase. If `SUPABASE_URL` is left empty, uploads are stored on disk under `apps/admin/private/uploads` (or `UPLOAD_ROOT`). The plain `docker compose up -d db` Postgres on port 5432 works in that mode.
+You can also run without Supabase. If `SUPABASE_URL` is left empty, uploads are stored on disk under `apps/admin/private/uploads` (or `UPLOAD_ROOT`). The plain Postgres from `docker-compose.yml` (`./run.sh services docker`, with pgAdmin on port 5050; set `POSTGRES_PASSWORD` and `PGADMIN_DEFAULT_PASSWORD` in `.env`) works in that mode.
 
 ## 2. First run
 
@@ -38,7 +40,7 @@ pnpm install
 pnpm db:reset
 ```
 
-`db:reset` applies every migration to an empty database, creates the storage buckets, seeds the demo company from `COMPANY_PROFILE` and checks the 70 integrity rules. Then start the apps:
+`db:reset` applies every migration to an empty database, creates the storage buckets, seeds the demo company from `COMPANY_PROFILE` and checks the integrity rules. Then start the apps:
 
 ```bash
 pnpm dev
@@ -115,6 +117,10 @@ Never edit a migration that has already been applied anywhere; add a new one. Th
 | `pnpm db:status` | Show applied and pending migrations |
 | `pnpm db:generate` | Regenerate the Prisma client |
 | `pnpm db:studio` | Browse and edit data at http://localhost:5555 |
+| `./run.sh db new <name>` | Same as `pnpm db:migrate:new --name <name>` |
+| `./run.sh db psql` | A `psql` session on `DIRECT_URL` (uses the Supabase container when `psql` is not installed) |
+
+Prisma's generated SQL does not include CHECK constraints: add them to the migration by hand, as the existing migrations do for statuses, amounts and quantities.
 
 ## 6. Production
 
@@ -122,6 +128,14 @@ Never edit a migration that has already been applied anywhere; add a new one. Th
 - `db:seed` and `db:reset` refuse to run in production.
 - Create the storage buckets `public-assets` (public: logos, icons, fonts, website media) and `private-assets` (private: everything else), with a 10 MiB limit. Allowed types: PDF, PNG, JPEG, WebP, plus WOFF2 for `public-assets`.
 - Back up the database and both buckets together; uploaded file URLs are stored in the database.
+
+### Backups and restores
+
+```bash
+./run.sh db backup
+```
+
+writes a `pg_dump` custom-format file to `backups/<database>-<time>.dump` (ignored by git), or to the path given. `./run.sh db restore <file>` restores one into the configured database after a confirmation; it refuses a remote database unless `--force` is added. Both use the installed `pg_dump`/`pg_restore`, the local Supabase container, or a throwaway `postgres:15` container, in that order.
 
 ## 7. Test databases
 
@@ -131,6 +145,7 @@ Automated tests never use your development database. They create their own datab
 |---|---|
 | `pnpm test:e2e:prepare` | `platform_e2e_test` (seeded) and `platform_e2e_blank_test` (blank, setup wizard) |
 | `node tests/e2e/prepare-db.cjs <seeded\|blank\|bare> <name_test>` | Any disposable database |
+| `./run.sh db test-list` / `./run.sh db test-drop <name_test\|--all>` | List or drop disposable databases (only names ending in `_test`) |
 
 See [TESTING.md](TESTING.md).
 
@@ -138,7 +153,8 @@ See [TESTING.md](TESTING.md).
 
 | Symptom | Fix |
 |---|---|
-| `P1001: Can't reach database server` | Start the stack (`pnpm dlx supabase start …`) and check the port in `DATABASE_URL` |
+| `P1001: Can't reach database server` | Start the stack (`./run.sh services up`) and check the port in `DATABASE_URL` |
+| Pages fail after pulling new work | Apply the new migrations: `./run.sh db migrate` (`./run.sh doctor` shows how many are pending) |
 | `Demo seed requires an empty business database` | Use `pnpm db:reset` instead of `pnpm db:seed` |
 | `Too many database connections` | Stop extra dev or test servers, or add `?connection_limit=5` to `DATABASE_URL` |
 | Logos or images missing after a reset | Files and database must be reset together. Use `db:reset`, which does both, rather than resetting only one. |

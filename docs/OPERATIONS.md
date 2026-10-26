@@ -2,31 +2,44 @@
 
 ## Environment variables
 
-Copy `.env.example` to `.env`. Both apps, the workers and the scripts read the root `.env`.
+`.env.example` lists every variable the code reads, grouped and commented. Both apps, the workers, the scripts and the tests read the root `.env`.
+
+```bash
+./run.sh env init
+```
+
+creates `.env` and generates every secret; on an existing `.env`, `./run.sh env sync` adds the variables that are new in `.env.example` without touching your values, `./run.sh env secrets` fills any empty secret, `./run.sh env check` validates the values (add `--production` for a live installation) and `./run.sh env keys` lists what is set, empty, missing or retired, without printing values.
 
 | Variable | Required | Purpose |
 |---|---|---|
-| `DATABASE_URL` | yes | Postgres for the apps. In production use the provider's connection pooler (for example port 6543) and set `connection_limit` and `pool_timeout` |
+| `DATABASE_URL` | yes | Postgres for the apps. In production use the provider's connection pooler (for example port 6543) and set `connection_limit`, `pool_timeout` and `sslmode=require` |
 | `DIRECT_URL` | yes | Direct Postgres connection, used for migrations |
-| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | production | Server-side file storage. If empty, files are stored on disk under `UPLOAD_ROOT` (development or a single server only) |
-| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | | Public Supabase values |
-| `UPLOAD_ROOT` | disk mode | Absolute upload folder; defaults to `apps/admin/private/uploads` in development |
-| `COMPANY_PROFILE` | | Profile loaded by `db:seed`, `db:reset` and `db:bootstrap`. Leave empty in production to use the setup wizard |
+| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | production | Server-side file storage. If either is empty, files are stored on disk under `UPLOAD_ROOT` (development or a single server only) |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | | Public Supabase values (the apps do not need the anon key today) |
+| `UPLOAD_ROOT` | disk mode | Absolute upload folder; defaults to `apps/admin/private/uploads` |
+| `POSTGRES_*`, `PGADMIN_*` | docker | Only for the plain Postgres and pgAdmin in `docker-compose.yml` |
+| `COMPANY_PROFILE`, `COMPANY_PROFILE_OVERWRITE`, `SEED_VOLUME` | | Profile loaded by `db:seed`, `db:reset` and `db:bootstrap` (empty in production to use the setup wizard); `1` re-applies a profile; `off` seeds less demo data |
 | `SUPER_ADMIN_EMAIL`, `SUPER_ADMIN_PASSWORD`, `SUPER_ADMIN_NAME`, `SUPER_ADMIN_PHONE` | bootstrap | First administrator (password 12 to 72 bytes) |
-| `WEB_URL`, `ADMIN_URL`, `NEXT_PUBLIC_WEB_URL`, `NEXT_PUBLIC_ADMIN_URL` | yes | Public addresses of each app; the admin previews website media from `NEXT_PUBLIC_WEB_URL` |
-| `NEXT_PUBLIC_DEFAULT_LOCALE` | | `ar` or `en` |
-| `JWT_SECRET` | yes | Session signing, at least 32 bytes |
-| `REVALIDATION_SECRET` | yes | Shared by the admin and website for publishing website changes |
-| `MFA_ENCRYPTION_KEY` | yes | Exactly 32 random bytes, base64 encoded. Keep it stable: changing it invalidates every authenticator |
-| `ENCRYPTION_KEY` | yes | 32 bytes, encrypts saved integration credentials |
-| `RESEND_API_KEY`, `FROM_EMAIL`, `NOTIFICATION_EMAIL` | email | Outbound email through Resend |
+| `WEB_URL`, `ADMIN_URL`, `NEXT_PUBLIC_WEB_URL`, `NEXT_PUBLIC_ADMIN_URL` | yes | Public addresses of each app. Payment returns, tracking links, unsubscribe links and broadcasts use them; the website accepts live-preview messages only from `ADMIN_URL` |
+| `ADMIN_APP_URL` | | Address clients open admin links and QR codes on, when it differs from `ADMIN_URL` |
+| `JWT_SECRET` | yes | Staff session signing, at least 32 bytes |
+| `REVALIDATION_SECRET` | yes | Shared by the admin, the website and the worker for publishing website changes |
+| `MFA_ENCRYPTION_KEY` | yes | Exactly 32 random bytes, base64. Keep it stable: changing it invalidates every authenticator |
+| `ENCRYPTION_KEY` | yes | Exactly 32 characters; encrypts saved integration credentials (gateways, couriers, WhatsApp, sign-in). Keep it stable |
+| `CUSTOMER_AUTH_SECRET` | | Website customer accounts: Google and Apple sign-in state and payment links. Falls back to `REVALIDATION_SECRET` |
+| `CRON_SECRET` | production | Authenticates the scheduled job (`/api/cron`) |
+| `RESEND_API_KEY`, `FROM_EMAIL` | email | Outbound email through Resend; without them email stays queued |
+| `NOTIFICATION_EMAIL` | | Receives website enquiries (default: the company email) |
 | `RESEND_WEBHOOK_SECRET` | email | Verifies delivery webhooks |
-| `CRON_SECRET` | production | Authenticates the scheduled maintenance route |
-| `WHATSAPP_API_TOKEN`, `WHATSAPP_PHONE_ID`, `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET` | | Optional defaults for integrations (normally saved, encrypted, in Settings → Integrations) |
-| `FX_API_URL`, `FX_LIVE_DISABLED` | | Live exchange rates for BHD (defaults to open.er-api.com) |
-| `OBSERVABILITY_ENABLED`, `TRUSTED_CLIENT_IP_HEADER` | | Operation timing logs; the header your proxy sets with the real client IP |
+| `FX_API_URL`, `FX_LIVE_DISABLED` | | Live exchange rates for BHD (defaults to open.er-api.com); `1` uses stored rates only |
+| `OBSERVABILITY_ENABLED`, `TRUSTED_CLIENT_IP_HEADER` | | Operation timing logs; the header your proxy overwrites with the client IP |
+| `WORKER_ALERT_AFTER_SECONDS` | | `check:workers` flags queues older than this (default 300) |
+| `PAYMENT_GATEWAY_BASE_URL_<GATEWAY>`, `COURIER_BASE_URL_<COURIER>` | never in production | Point a gateway (`STRIPE`, `TAP`, `PAYPAL`, `CHECKOUT_COM`, `PAYTABS`, `MOYASAR`, `HYPERPAY`) or courier (`ARAMEX`, `DHL_EXPRESS`, `SMSA`) at a local stand-in |
+| `E2E_*`, `CHECKS_*_DATABASE_URL` | tests | Test databases and server mode (see [TESTING.md](TESTING.md)) |
 
-Generate secrets with `openssl rand -base64 32`.
+Older `.env` files may still hold `NEXT_PUBLIC_DEFAULT_LOCALE`, `WHATSAPP_API_TOKEN`, `WHATSAPP_PHONE_ID`, `FACEBOOK_APP_ID` and `FACEBOOK_APP_SECRET`. No code reads them: the main language is chosen in the setup wizard, and WhatsApp and Meta are configured in Settings → Integrations. `./run.sh env check` points them out.
+
+Generate a secret by hand with `openssl rand -base64 32` (`openssl rand -hex 16` for `ENCRYPTION_KEY`).
 
 ## Local services
 
@@ -36,7 +49,10 @@ Generate secrets with `openssl rand -base64 32`.
 | Admin | http://localhost:3001 | `pnpm dev:admin` |
 | Postgres (local Supabase) | 127.0.0.1:54322 | See [DATABASE.md](DATABASE.md) |
 | Supabase API and storage | http://127.0.0.1:54321 | `pnpm db:reset` creates the buckets |
-| Prisma Studio | http://localhost:5555 | `pnpm db:studio` |
+| Prisma Studio | http://localhost:5555 | `./run.sh db studio` |
+| Plain Postgres and pgAdmin (optional) | 127.0.0.1:5432, http://localhost:5050 | `./run.sh services docker` (`docker-compose.yml`) |
+
+`./run.sh services up` starts the local Supabase stack, `./run.sh services status` prints its addresses and keys, and `./run.sh urls` lists every local address.
 
 **Testing email without a verified domain:** create a free Resend account and API key, then set `NOTIFICATION_EMAIL` to the address you signed up with. Resend only delivers test mail to that address.
 
@@ -53,6 +69,17 @@ Limit both to 10 MiB, with PDF, PNG, JPEG and WebP, plus WOFF2 on `public-assets
 
 **Resend (email).** Messages are saved as queued before they are sent, so a failure is retried instead of lost. Delivery events arrive at `/api/webhooks/resend`, verified with `svix` signatures and de-duplicated. Inbound email is not implemented.
 
+**Integrations (Settings → Integrations).** Credentials are saved encrypted with `ENCRYPTION_KEY`, each with a **Test connection** health check, and never come from `.env`:
+
+| Group | Providers | Used for |
+|---|---|---|
+| Payment gateways | Stripe, Tap, PayPal, Checkout.com, PayTabs, Moyasar, HyperPay | **Pay online** at checkout and payment links (Online store → Store settings chooses one); refunds |
+| Courier agencies | Aramex, DHL Express, SMSA | Booking, labels and tracking for shipments handed to an agency |
+| Customer sign-in | Google, Apple | Website customer accounts; the integration shows the redirect address to register |
+| Messaging and social | WhatsApp Cloud API, Meta | Salary documents, service replies, purchase orders; social metrics |
+
+Payment webhooks arrive at `<WEB_URL>/api/store/payment/webhook/<gateway>` (verified and stored once) and customers return to `<WEB_URL>/api/store/payment/return`. Register these addresses in each gateway's dashboard. Gateway keys marked test (or a sandbox environment) show "Test mode" on the order.
+
 **WhatsApp and Meta.** Salary documents can be sent as private PDFs through the WhatsApp Cloud API (uploaded by media ID, never as a public link). Social metrics for the dashboard are cached in `SocialMetric` with the time they were recorded, and flagged when stale or failing.
 
 **PDF documents.** `@react-pdf/renderer` builds invoices, quotations, receipts, payslips, certificates, letters and handover forms in Node. It uses the company's colours and its body font: an uploaded WOFF2, or the Google font in TrueType. If neither is available it falls back to Helvetica.
@@ -65,7 +92,18 @@ Limit both to 10 MiB, with PDF, PNG, JPEG and WebP, plus WOFF2 on `public-assets
 | Revalidation worker | `pnpm worker:revalidation` | Pushes published website changes to the website (needs `WEB_URL`, `REVALIDATION_SECRET`) |
 | Maintenance worker | `pnpm worker:maintenance` | Removes expired sessions, abuse windows and unclaimed private uploads |
 
-On serverless hosting, schedule the authenticated maintenance route (`/api/cron`, with `CRON_SECRET`) instead of running the maintenance worker. `pnpm check:workers` verifies the worker configuration.
+`./run.sh worker all` runs the three together. `pnpm check:workers` verifies the worker configuration.
+
+**Scheduled job.** The admin's `/api/cron` (`Authorization: Bearer <CRON_SECRET>`) does everything time-based in one call. Schedule it every 5 to 15 minutes (a Vercel cron, a system cron, or any scheduler); `./run.sh cron` calls it once by hand. Each run:
+
+- sends queued email and website revalidations;
+- removes expired uploads, sessions and abuse windows;
+- marks overdue invoices, sends document-expiry reminders and creates recurring expenses;
+- re-checks online payments left open for 60 minutes, expires them and cancels unpaid online orders (releasing their stock);
+- reads the tracking of shipments booked through a courier API and moves them on;
+- reminds people of tasks due tomorrow and counsel of legal dates a week ahead;
+- sends the next batch of marketing broadcasts;
+- e-mails scheduled reports that are due.
 
 ## Domains
 
@@ -88,14 +126,18 @@ whether the domain reaches this installation.
 
 ## Deploying
 
+Each app is a standard Next.js server (`next build`, `next start`): host them on Vercel (one project per app, root directories `apps/web` and `apps/admin`) or any Node 22 server behind a reverse proxy.
+
 1. Create the database and both storage buckets; configure pooling, TLS and backups.
-2. Set the environment variables above on every app and worker.
-3. Run `pnpm check:deployment` with the production environment. It reports missing pool limits, keys, storage, cron and email settings.
-4. Run `pnpm db:migrate`.
-5. Run `pnpm db:bootstrap` once, without `COMPANY_PROFILE` to use the setup wizard, or with a reviewed profile.
-6. `pnpm build`, then start both apps and the workers.
-7. Sign in and finish setup. Then check Settings → Integrations for email and WhatsApp.
+2. Set the environment variables above on every app and worker (`./run.sh env init` on a server, then edit).
+3. Run `./run.sh deploy check` with the production environment. It validates `.env` and reports missing pool limits, keys, storage, cron, email and sandbox overrides.
+4. Run `./run.sh deploy prepare`: migrations, Prisma client, production build.
+5. Run `./run.sh db bootstrap` once, without a profile to use the setup wizard, or with `--profile <name>` for a reviewed profile.
+6. Start the apps (`./run.sh start`, or `./run.sh deploy vercel all --prod`) and either the workers (`./run.sh worker all`) or a schedule for `/api/cron`.
+7. Sign in and finish setup. Then check Settings → Integrations for email, payment gateways, couriers and WhatsApp, and register the payment webhook and Resend webhook addresses.
+
+**Upgrading an installation:** pull, then `./run.sh upgrade` (install, `env sync`, migrate). Migrations that add permission resources also give existing roles their default grants, so new modules work for existing companies once switched on in Settings → Modules.
 
 **Upgrading an installation from before company profiles:** after migrating, run `COMPANY_PROFILE=<name> COMPANY_PROFILE_OVERWRITE=1 pnpm db:bootstrap`. This restores the company's theme and fonts and moves stored `/brand/...` file paths to uploads (see [GETTING_STARTED.md](GETTING_STARTED.md#re-apply-a-profile-to-an-existing-installation)). Everyone signs in again once, because the session cookie was renamed.
 
-Back up the database and both buckets together; stored file URLs point into storage. Restores, provider quotas, mail-domain verification and production latency need checking against the live environment; the test suites do not certify them.
+Back up the database and both buckets together (`./run.sh db backup` dumps the database); stored file URLs point into storage. Restores, provider quotas, mail-domain verification and production latency need checking against the live environment; the test suites do not certify them.

@@ -6,11 +6,18 @@ Generated from the code by `pnpm docs:api`; do not edit by hand. Input contracts
 
 | Route | Methods | Notes |
 |---|---|---|
+| `/api/account/[action]/callback` | GET, POST | Where Google (GET) and Apple (form POST) send the person back: the state must match the signed cookie, the code |
+| `/api/account/[action]` | POST, GET | Account actions posted from the website's account page. |
 | `/api/files/[folder]/[name]` | GET |  |
+| `/api/health` | GET | Whether this app is up and which installation it belongs to (Settings → Website → Check domain). |
 | `/api/inquiry` | POST |  |
 | `/api/preview` | GET, POST |  |
 | `/api/revalidate` | POST |  |
 | `/api/reviews` | POST |  |
+| `/api/samples/[name]` | GET | Abstract artwork for sample content ("banner-1.svg" … "item-6.svg"), drawn in the company's own colours so a |
+| `/api/store/[action]` | POST | The website's public address, for the gateway's return and notification addresses. |
+| `/api/store/payment/return` |  | Where the payment gateway sends the customer back (some gateways by GET, some by a form POST). The result always |
+| `/api/store/payment/webhook/[gateway]` | POST | A payment gateway's notification: verified against the gateway's signature, applied once however often it comes. |
 
 ## Admin HTTP routes (`apps/admin`)
 
@@ -33,6 +40,7 @@ Generated from the code by `pnpm docs:api`; do not edit by hand. Input contracts
 | `/api/documents/[id]/pdf` | GET |  |
 | `/api/exports/[domain]` | GET | A client row for the spreadsheet: the profile flattened, with every point of contact on one cell. |
 | `/api/files/[folder]/[name]` | GET | The permission that guards a file stored on a record's own field, if any record holds it. |
+| `/api/health` | GET | Whether this app is up and which installation it belongs to (Settings → Website → Check domain). |
 | `/api/hr/documents/[id]/pdf` | GET |  |
 | `/api/hr/settlements/[id]/pdf` | GET | The settlement statement in Arabic or English, for payroll staff, its approvers and the employee it concerns. |
 | `/api/letterhead` | GET |  |
@@ -40,6 +48,8 @@ Generated from the code by `pnpm docs:api`; do not edit by hand. Input contracts
 | `/api/lookups/[domain]` | GET |  |
 | `/api/moms/[id]/pdf` | GET | Minutes of meeting as PDF, in the viewer's language; the same file is printed, downloaded and e-mailed. |
 | `/api/notifications` | GET |  |
+| `/api/procurement/orders/[id]/pdf` | GET | The purchase order PDF, in the company's main language unless another is asked for. |
+| `/api/reports/[key]` | GET | A report as CSV, Excel or PDF, for the period asked, if the person may run it. |
 | `/api/sign/[token]/pdf` | GET | Days a client can still download their signed copy through the link. |
 | `/api/sign/[token]` | POST | Public: the client signs through their one-time link. Errors are returned as codes the page translates. |
 | `/api/upload/finalize` | POST |  |
@@ -47,7 +57,7 @@ Generated from the code by `pnpm docs:api`; do not edit by hand. Input contracts
 | `/api/upload/local/[folder]/[name]` | PUT | Local-disk upload target used when Supabase Storage is not configured. Only the user who started the upload may |
 | `/api/webhooks/resend` | POST |  |
 
-## Server actions (234 in `apps/admin/app/actions`)
+## Server actions (318 in `apps/admin/app/actions`)
 
 Every action checks the caller's permission (`resource:action`) before touching data, validates its input against the generated schema, and runs its writes in one transaction.
 
@@ -125,6 +135,22 @@ Every action checks the caller's permission (`resource:action`) before touching 
 | `revokeSigningLinkAction` | `signatureId` |  |
 | `recordSignedCopyAction` | `type, id, input` |  |
 
+### cms-articles.ts
+
+| Action | Arguments | Permission |
+|---|---|---|
+| `saveCmsArticleAction` | `input` |  |
+| `deleteCmsArticleAction` | `id` | articles:delete |
+
+### cms-pages.ts
+
+| Action | Arguments | Permission |
+|---|---|---|
+| `saveCmsPageAction` | `input` |  |
+| `duplicateCmsPageAction` | `id` | pages:create |
+| `deleteCmsPageAction` | `id` | pages:delete |
+| `updateCmsPagesListAction` | `pages` |  |
+
 ### cms.ts
 
 | Action | Arguments | Permission |
@@ -185,12 +211,47 @@ Every action checks the caller's permission (`resource:action`) before touching 
 | `manageInquiryAction` | `id, data` |  |
 | `linkInquiryCustomerAction` | `inquiryId, customerId` | contacts:write |
 
+### delivery.ts
+
+| Action | Arguments | Permission |
+|---|---|---|
+| `moveShipmentAction` | `id, input` |  |
+| `saveDeliverySettingsAction` | `input` | settings:edit |
+| `saveDeliveryZoneAction` | `input` | settings:edit |
+| `saveDeliverySlotAction` | `input` | settings:edit |
+| `deleteDeliverySlotAction` | `id` | settings:edit |
+| `assignShipmentAction` | `id, input` | deliveries:assign |
+| `completeDeliveryAction` | `id, input` |  |
+| `saveVehicleAction` | `input` | deliveries:assign |
+| `createRouteSheetAction` | `input` | deliveries:assign |
+| `startRouteSheetAction` | `id` | deliveries:assign |
+| `closeRouteSheetAction` | `id` | deliveries:assign |
+| `settleCashAction` | `input` |  |
+| `saveCourierAgencyAction` | `input` | deliveries:assign |
+| `handToAgencyAction` | `id, input` |  |
+| `recordAgencyInvoiceAction` | `input` |  |
+
+### departments.ts
+
+| Action | Arguments | Permission |
+|---|---|---|
+| `saveDepartmentAction` | `input` |  |
+| `deleteDepartmentAction` | `id` | settings:edit |
+| `addCatalogueDepartmentsAction` | `keys` |  |
+
 ### documents.ts
 
 | Action | Arguments | Permission |
 |---|---|---|
 | `createCompanyDocumentAction` | `data` | settings:write |
 | `deleteCompanyDocumentAction` | `id` | settings:delete |
+
+### domains.ts
+
+| Action | Arguments | Permission |
+|---|---|---|
+| `checkDomainAction` | `kind, domain` |  |
+| `saveDomainsAction` | `input` | settings:write |
 
 ### employee-credentials.ts
 
@@ -272,6 +333,21 @@ Every action checks the caller's permission (`resource:action`) before touching 
 | `syncIntegrationAction` | `provider` | social:write |
 | `sendWhatsAppTestAction` | `to, message` | settings:write |
 
+### inventory.ts
+
+| Action | Arguments | Permission |
+|---|---|---|
+| `changeStockAction` | `input` |  |
+| `transferStockAction` | `input` | inventory:edit |
+| `saveReorderPointsAction` | `productId, levels` |  |
+| `saveWarehouseAction` | `input` |  |
+| `saveLocationAction` | `input` |  |
+| `createStockCountAction` | `input` | inventory:create |
+| `saveCountedAction` | `countId, entries` | inventory:edit |
+| `scanCountItemAction` | `countId, code, locationId` |  |
+| `setStockCountStatusAction` | `countId, status` |  |
+| `approveStockCountAction` | `countId` | inventory:approve |
+
 ### leave.ts
 
 | Action | Arguments | Permission |
@@ -298,6 +374,32 @@ Every action checks the caller's permission (`resource:action`) before touching 
 | `markAllNotificationsReadAction` | `userId?` | signed in |
 | `updateNotificationAction` | `id, change` |  |
 
+### orders.ts
+
+| Action | Arguments | Permission |
+|---|---|---|
+| `moveOrderAction` | `id, status, note` |  |
+| `recordOrderPaymentAction` | `id, input` | orders:edit |
+| `recordOrderRefundAction` | `id, amount, reason` | orders:approve |
+| `addOrderNoteAction` | `id, note` | orders:edit |
+| `issueOrderInvoiceAction` | `id` | orders:edit |
+| `createStaffOrderAction` | `input` |  |
+| `saveStoreSettingsAction` | `input` | settings:edit |
+| `saveCouponAction` | `input` | orders:approve |
+
+### outreach.ts
+
+| Action | Arguments | Permission |
+|---|---|---|
+| `saveCampaignAction` | `input` |  |
+| `saveSegmentAction` | `input` |  |
+| `saveBroadcastAction` | `input` |  |
+| `sendBroadcastAction` | `id` |  |
+| `saveMediaContactAction` | `input` |  |
+| `saveCoverageAction` | `input` |  |
+| `saveLegalMatterAction` | `input` |  |
+| `addLegalNoteAction` | `id, body` | legal:edit |
+
 ### payroll.ts
 
 | Action | Arguments | Permission |
@@ -313,11 +415,51 @@ Every action checks the caller's permission (`resource:action`) before touching 
 | `deleteRecurringPayAction` | `recurringId` | payroll:edit |
 | `recordSupportReimbursementAction` | `input` |  |
 
+### people-import.ts
+
+| Action | Arguments | Permission |
+|---|---|---|
+| `previewPeopleImportAction` | `rows` |  |
+| `importPeopleAction` | `rows` |  |
+
 ### permission-overrides.ts
 
 | Action | Arguments | Permission |
 |---|---|---|
 | `setUserPermissionOverridesAction` | `userId, overrides, boolean>` |  |
+
+### pipeline.ts
+
+| Action | Arguments | Permission |
+|---|---|---|
+| `saveDealPipelineAction` | `stages` |  |
+| `resetDealPipelineAction` |  |  |
+
+### procurement.ts
+
+| Action | Arguments | Permission |
+|---|---|---|
+| `saveSupplierAction` | `input` |  |
+| `emailPurchaseOrderAction` | `id` |  |
+| `markPurchaseOrderSentAction` | `id, via` | procurement:edit |
+| `cancelPurchaseOrderAction` | `id` | procurement:edit |
+| `receiveGoodsAction` | `orderId, input` |  |
+| `saveSupplierBillAction` | `input` |  |
+| `attachSupplierBillFileAction` | `id, fileUrl` |  |
+| `approveSupplierBillAction` | `id, overrideReason` |  |
+| `cancelSupplierBillAction` | `id` | procurement:edit |
+| `recordSupplierPaymentAction` | `billId, input` | procurement:edit |
+
+### products.ts
+
+| Action | Arguments | Permission |
+|---|---|---|
+| `saveProductAction` | `input` |  |
+| `deleteProductAction` | `id` | products:delete |
+| `setProductsActiveAction` | `ids, isActive` |  |
+| `setProductOnWebsiteAction` | `id, onWebsite` |  |
+| `saveProductCategoryAction` | `input` |  |
+| `deleteProductCategoryAction` | `id` | products:delete |
 
 ### profile.ts
 
@@ -351,6 +493,13 @@ Every action checks the caller's permission (`resource:action`) before touching 
 | `skipRecurringExpenseAction` | `recurringId` | expenses:write |
 | `deleteRecurringExpenseAction` | `recurringId` | expenses:delete |
 
+### reports.ts
+
+| Action | Arguments | Permission |
+|---|---|---|
+| `saveReportScheduleAction` | `input` |  |
+| `stopReportScheduleAction` | `id, reportKey` |  |
+
 ### requests.ts
 
 | Action | Arguments | Permission |
@@ -370,7 +519,7 @@ Every action checks the caller's permission (`resource:action`) before touching 
 
 | Action | Arguments | Permission |
 |---|---|---|
-| `upsertRoleAction` | `data, boolean>; }` |  |
+| `upsertRoleAction` | `data, boolean>; /** Which records the role sees per area (constants/data-scope.ts` |  |
 | `deleteRoleAction` | `id` | users:delete |
 
 ### salary-documents.ts
@@ -390,6 +539,22 @@ Every action checks the caller's permission (`resource:action`) before touching 
 | `reassignSalesOwnerAction` | `entityType, id, toUserId, reason?` |  |
 | `updateUserCommissionRateAction` | `id, rate` | users:write |
 | `recordCommissionPayoutAction` | `userId, month` |  |
+
+### samples.ts
+
+| Action | Arguments | Permission |
+|---|---|---|
+| `addSampleContentAction` | `activity` |  |
+| `removeSampleContentAction` |  |  |
+| `exampleWebsiteAction` | `activity, locale` |  |
+
+### service-desk.ts
+
+| Action | Arguments | Permission |
+|---|---|---|
+| `replyToRequestAction` | `id, input` |  |
+| `saveServiceSettingsAction` | `input` | settings:edit |
+| `saveCannedReplyAction` | `input` | requests:edit |
 
 ### services.ts
 
@@ -417,11 +582,8 @@ Every action checks the caller's permission (`resource:action`) before touching 
 
 | Action | Arguments | Permission |
 |---|---|---|
-| `saveSetupCompanyAction` | `input` | settings:write |
-| `saveSetupThemeAction` | `theme` | settings:write |
-| `saveSetupConfigAction` | `input` | settings:write |
-| `saveSetupWebsiteAction` | `input` | settings:write |
-| `completeSetupAction` | `options` | settings:write |
+| `setupPreviewAction` | `locale` |  |
+| `saveSetupWebsiteDraftAction` | `config` |  |
 
 ### signatures.ts
 
@@ -465,6 +627,15 @@ Every action checks the caller's permission (`resource:action`) before touching 
 | `saveSocialPlanAction` | `id, input` |  |
 | `deleteSocialPlanAction` | `id` | social:delete |
 
+### tasks.ts
+
+| Action | Arguments | Permission |
+|---|---|---|
+| `saveTaskAction` | `input` |  |
+| `moveTaskAction` | `id, status` |  |
+| `addTaskCommentAction` | `id, body` |  |
+| `saveProjectAction` | `input` | tasks:assign |
+
 ### taxes.ts
 
 | Action | Arguments | Permission |
@@ -484,6 +655,7 @@ Every action checks the caller's permission (`resource:action`) before touching 
 | `archiveUserAction` | `id` | users:write |
 | `deleteUserAction` | `id` | users:delete |
 | `updateUserDiscountLimitAction` | `id, limit` |  |
+| `bulkUpdateUsersAction` | `change` | users:write |
 
 ### website.ts
 
@@ -492,9 +664,11 @@ Every action checks the caller's permission (`resource:action`) before touching 
 | `saveWebsiteDraftAction` | `value, revision` | settings:write |
 | `publishWebsiteAction` | `revision` | settings:write |
 | `restoreWebsiteAction` | `revision` | settings:write |
-| `previewWebsiteAction` | `locale` | settings:read |
+| `previewWebsiteAction` | `locale, path?` |  |
 | `updateWebsiteServiceAction` | `id, isPublic, imageUrl` | settings:write |
+| `saveWebsiteMenusAction` | `menus, articles` |  |
+| `saveWebsiteCodeAction` | `code` |  |
 
-## Database models (116)
+## Database models (179)
 
-`User`, `CompanySetting`, `CompanyAsset`, `HeroBanner`, `PortfolioCategory`, `PortfolioItem`, `ClientLogo`, `StudioEquipment`, `Inquiry`, `InquiryNote`, `WebsiteContent`, `CrmContact`, `ClientContactPerson`, `CrmDeal`, `Invoice`, `InvoiceLineItem`, `Payment`, `ExpenseCategory`, `Expense`, `CalendarEvent`, `ActivityLog`, `Notification`, `Tag`, `Attachment`, `Permission`, `Session`, `DocumentTemplate`, `Contract`, `MinuteOfMeeting`, `GeneratedDocument`, `CompanyDocument`, `Service`, `SocialLink`, `Role`, `FeatureToggle`, `Review`, `Faq`, `Statistic`, `RevalidationJob`, `UploadObject`, `AbuseWindow`, `MfaRecoveryCode`, `EmailJob`, `IntegrationSetting`, `AuthChallenge`, `Quotation`, `QuotationLineItem`, `CommunicationThread`, `CommunicationMessage`, `MessageAttachment`, `SocialPost`, `SocialContentPlan`, `SocialMetric`, `ProfileChangeRequest`, `ApprovalRequest`, `ApprovalDecision`, `ApprovalPolicy`, `ApprovalPolicyStep`, `ReferenceSequence`, `RequestEvent`, `RequestAssignment`, `RequestComment`, `ExchangeRateSnapshot`, `DocumentFx`, `PaymentAllocation`, `BankSettlement`, `Department`, `Employee`, `EmploymentRecord`, `LeaveType`, `LeaveAdjustment`, `HrPolicy`, `PublicHoliday`, `ShiftType`, `LeaveRequest`, `AttendanceEntry`, `BenefitPlan`, `PayrollRun`, `PayrollItem`, `Payslip`, `SalaryDocument`, `ExpenseClaim`, `SalesAttributionChange`, `CommissionPayout`, `SupportReimbursement`, `AccountChangeRequest`, `SignatureChange`, `ClientSignature`, `TaxRate`, `DocumentTax`, `EmployeeCredential`, `PayrollItemLine`, `EmployeeRecurringPay`, `RecurringExpense`, `AssetCategory`, `Asset`, `AssetHandover`, `EmployeeHandover`, `EmployeeHandoverCase`, `SignaturePolicy`, `SignatureRequest`, `GosiSettings`, `GosiComponent`, `EmployeeGosiRecord`, `SupportProgram`, `SupportProgramRule`, `EmployeeSupport`, `EmployeeSupportEvent`, `FinalSettlement`, `FinalSettlementLine`, `CalendarFeedToken`, `CommunicationSettings`, `Announcement`, `AnnouncementReceipt`, `LetterTemplate`, `OfficialLetter`
+`User`, `CompanySetting`, `CompanyAsset`, `HeroBanner`, `PortfolioCategory`, `PortfolioItem`, `ClientLogo`, `StudioEquipment`, `Inquiry`, `InquiryNote`, `WebsiteContent`, `CmsPage`, `CmsArticle`, `CrmContact`, `ClientContactPerson`, `CrmDeal`, `DealPipelineStage`, `Invoice`, `InvoiceLineItem`, `Payment`, `ExpenseCategory`, `Expense`, `CalendarEvent`, `ActivityLog`, `Notification`, `Tag`, `Attachment`, `Permission`, `Session`, `DocumentTemplate`, `Contract`, `MinuteOfMeeting`, `GeneratedDocument`, `CompanyDocument`, `Service`, `SocialLink`, `Role`, `RoleDataScope`, `FeatureToggle`, `Review`, `Faq`, `Statistic`, `RevalidationJob`, `UploadObject`, `AbuseWindow`, `MfaRecoveryCode`, `EmailJob`, `IntegrationSetting`, `AuthChallenge`, `Quotation`, `QuotationLineItem`, `CommunicationThread`, `CommunicationMessage`, `MessageAttachment`, `SocialPost`, `SocialContentPlan`, `SocialMetric`, `ProfileChangeRequest`, `ApprovalRequest`, `ApprovalDecision`, `ApprovalPolicy`, `ApprovalPolicyStep`, `ReferenceSequence`, `RequestEvent`, `RequestAssignment`, `RequestComment`, `ExchangeRateSnapshot`, `DocumentFx`, `PaymentAllocation`, `BankSettlement`, `Department`, `Employee`, `EmploymentRecord`, `LeaveType`, `LeaveAdjustment`, `HrPolicy`, `PublicHoliday`, `ShiftType`, `LeaveRequest`, `AttendanceEntry`, `BenefitPlan`, `PayrollRun`, `PayrollItem`, `Payslip`, `SalaryDocument`, `ExpenseClaim`, `SalesAttributionChange`, `CommissionPayout`, `SupportReimbursement`, `AccountChangeRequest`, `SignatureChange`, `ClientSignature`, `TaxRate`, `DocumentTax`, `EmployeeCredential`, `PayrollItemLine`, `EmployeeRecurringPay`, `RecurringExpense`, `AssetCategory`, `Asset`, `AssetHandover`, `EmployeeHandover`, `EmployeeHandoverCase`, `SignaturePolicy`, `SignatureRequest`, `GosiSettings`, `GosiComponent`, `EmployeeGosiRecord`, `SupportProgram`, `SupportProgramRule`, `EmployeeSupport`, `EmployeeSupportEvent`, `FinalSettlement`, `FinalSettlementLine`, `CalendarFeedToken`, `CommunicationSettings`, `Announcement`, `AnnouncementReceipt`, `LetterTemplate`, `OfficialLetter`, `ProductCategory`, `Product`, `ProductVariant`, `Warehouse`, `StockLocation`, `StockItem`, `StockBatch`, `StockLevel`, `StockMovement`, `StockCount`, `StockCountLine`, `PurchaseRequisition`, `PurchaseRequisitionLine`, `Rfq`, `RfqLine`, `RfqQuote`, `PurchaseOrder`, `PurchaseOrderLine`, `GoodsReceipt`, `GoodsReceiptLine`, `SupplierBill`, `SupplierBillLine`, `SupplierPayment`, `Customer`, `CustomerSession`, `CustomerAddress`, `CustomerAuthCode`, `WishlistItem`, `StoreSettings`, `PaymentAttempt`, `PaymentWebhookEvent`, `Coupon`, `SalesOrder`, `SalesOrderLine`, `SalesOrderEvent`, `DeliverySettings`, `DeliveryZone`, `DeliverySlot`, `Shipment`, `ShipmentEvent`, `Vehicle`, `RouteSheet`, `CodSettlement`, `CourierAgency`, `AgencyInvoice`, `Project`, `Task`, `TaskComment`, `ServiceSettings`, `CannedReply`, `Campaign`, `CustomerSegment`, `Broadcast`, `BroadcastRecipient`, `MediaContact`, `MediaCoverage`, `LegalMatter`, `LegalMatterEvent`, `ReportSchedule`

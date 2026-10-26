@@ -752,3 +752,13 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
 - Tested: e2e (bill file, transfer receipt, agency remittance, and the procurement, payments, fleet and agencies
   journeys around them).
 - Phases 10 (dashboard v2) and 11 (motion polish) are not started, at the user's request.
+
+### Tooling and documentation (before Phases 10–11) — done
+- `run.sh`: one entry point for setup, doctor, `.env`, local services, databases (reset, migrate, backup, restore,
+  test databases), development, builds, tests and CI, workers, the scheduled job and deployment (Vercel or own server).
+- `scripts/env-tool.cjs` (`./run.sh env init|sync|secrets|check|keys`): creates and updates `.env` from
+  `.env.example` without changing existing values, generates secrets and validates them; never prints values.
+- `.env.example` lists every variable the code reads, including the v2 ones (`CUSTOMER_AUTH_SECRET`, `CRON_SECRET`
+  jobs, gateway and courier sandbox overrides, test variables, docker-compose values); retired variables are named.
+- README and every guide updated for v2 (features, operations, integrations, scheduled job, data model, tests);
+  API reference regenerated; MIT licence added.

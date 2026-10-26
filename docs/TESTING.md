@@ -4,12 +4,12 @@ Three layers, all of which run in GitHub Actions (`.github/workflows/ci.yml`) on
 
 | Layer | Command | Needs | What it covers |
 |---|---|---|---|
-| Unit | `pnpm test:unit` | nothing | Theme engine (normalisation, CSS injection safety, WCAG contrast, generated CSS, fonts), validity of every company profile |
+| Unit | `pnpm test:unit` | nothing | Theme engine, company profiles, activities and website presets, CMS blocks, sample content, departments and roles, products, inventory, purchasing, store pricing and orders, payment gateways (webhook verification, amounts), customer sign-in, delivery zones and slots, couriers, tasks, marketing, reports (periods, schedules, the Excel writer) |
 | Static checks | `pnpm test:checks` | nothing | Brand neutrality, copy and language rules, permissions, payroll and approval engines, security boundaries, upload storage, navigation |
 | Database checks | `pnpm test:checks:db` | two `_test` databases | About 35 suites of business rules on real Postgres (finance, payroll, GOSI, approvals, assets, handovers, archive, signatures, website…). Each rolls back its own records. |
-| End-to-end | `pnpm test:e2e` | Postgres, Chromium | First-run setup wizard, admin sign-in and audit, branding, theme editing, every sidebar page, phone layouts, website pages in English and Arabic, 404 |
+| End-to-end | `pnpm test:e2e` | Postgres, Chromium | First-run setup wizard, admin sign-in and audit, branding, theme editing, departments, every sidebar page and link, phone layouts; products, stock, purchasing, orders, payments, delivery, fleet, courier agencies, tasks, customer service, marketing, PR, legal and reports; website pages in English and Arabic, customer accounts, cart and checkout, online payment, delivery tracking, 404 |
 
-`pnpm test` runs the unit tests and static checks together, and needs no database.
+`pnpm test` runs the unit tests and static checks together, and needs no database. `./run.sh check` runs everything the CI static job runs (lint, types, tests, copy, brand, action schemas, knip); `./run.sh test db` prepares both databases and runs the database checks; `./run.sh test e2e [args]` prepares the e2e databases and runs Playwright; `./run.sh test ci` runs all three.
 
 ## Database checks
 
@@ -44,6 +44,9 @@ pnpm test:e2e
 | 3101 | Admin on the seeded database | `admin-login`, `admin`, `admin-mobile` |
 | 3102 | Website on the seeded database | `web`, `web-mobile` |
 | 3103 | Admin on the blank database | `setup-wizard` |
+| 3199 | A local Stripe stand-in, started by the payment specs | (the servers get `PAYMENT_GATEWAY_BASE_URL_STRIPE` and `CRON_SECRET=e2e-cron-secret`) |
+
+Disposable accounts for these runs (administrator, viewer, driver) are in `tests/e2e/fixtures/users.json`; they exist only in the test databases.
 
 Useful variations:
 
@@ -55,7 +58,7 @@ pnpm exec playwright test --project=web
 pnpm exec playwright test --ui
 ```
 
-`pnpm exec playwright test` reuses the prepared databases. Run `pnpm test:e2e:prepare` again after the setup-wizard test, because that test completes the blank company's setup. `E2E_SERVER_MODE=start` serves production builds, as CI does; build them first with `NEXT_DIST_DIR=.next-e2e`. Reports, traces, videos and screenshots go to `tests/.results/`.
+`pnpm exec playwright test` reuses the prepared databases (`E2E_SEEDED_DATABASE` and `E2E_BLANK_DATABASE` choose other `_test` databases). Run `pnpm test:e2e:prepare` again after the setup-wizard test, because that test completes the blank company's setup. `E2E_SERVER_MODE=start` serves production builds, as CI does; build them first with `NEXT_DIST_DIR=.next-e2e`. Reports, traces, videos and screenshots go to `tests/.results/`.
 
 `specs/admin/links.spec.ts` and `specs/web/links.spec.ts` crawl every page (`tests/e2e/crawl.ts`): error statuses,
 broken images and downloads, new-tab links without `rel="noreferrer"`, links into the other language, and who may

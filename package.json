@@ -1,6 +1,7 @@
 {
   "name": "business-platform",
   "version": "1.0.0",
+  "license": "MIT",
   "private": true,
   "packageManager": "pnpm@12.6.0",
   "scripts": {
@@ -65,7 +66,9 @@
     "test:e2e": "pnpm test:e2e:prepare && playwright test",
     "test:e2e:prepare": "node tests/e2e/prepare-db.cjs seeded platform_e2e_test && node tests/e2e/prepare-db.cjs blank platform_e2e_blank_test",
     "test:brand": "node scripts/check-brand-neutral.cjs",
-    "docs:api": "node scripts/generate-api-reference.cjs"
+    "docs:api": "node scripts/generate-api-reference.cjs",
+    "env:check": "node scripts/env-tool.cjs check",
+    "env:sync": "node scripts/env-tool.cjs sync"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.7",
