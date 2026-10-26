@@ -6306,7 +6306,9 @@
       "ownerRefreshCredentialsRequired": "For automatic owner analytics refresh, enter the OAuth client ID, client secret and refresh token together.",
       "socialSyncInProgress": "This integration is already syncing. Try again shortly.",
       "socialSyncConfigurationChanged": "The integration settings changed. Retry using the current configuration.",
-      "socialSyncFailed": "Could not sync this integration."
+      "socialSyncFailed": "Could not sync this integration.",
+      "productOptionsInvalid": "Each option needs a name and distinct nonempty values of up to 40 characters. Use at most 3 options with 20 values each.",
+      "productImagesInvalid": "Use at most 12 valid HTTPS image URLs or uploaded images. URLs cannot include a username or password."
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",
@@ -9638,7 +9640,10 @@
       "websiteOff": "Show this product in the website catalogue, with its pictures, description and price.",
       "addToWebsite": "Show on the website",
       "removeFromWebsite": "Remove from the website",
-      "saveFirst": "Save the product first."
+      "saveFirst": "Save the product first.",
+      "pendingImage": "Add the image URL to the gallery or clear it before saving.",
+      "showConfirm": "Show this product on the website?",
+      "hideConfirm": "Hide this product from the website?"
     },
     "categories": {
       "title": "Product categories",
@@ -9842,7 +9847,10 @@
       "summary": "{counted} of {lines} counted · {differences} with a difference",
       "uncountedNote": "Lines left uncounted are not changed.",
       "createdBy": "Started by {name}",
-      "approvedBy": "Approved by {name}"
+      "approvedBy": "Approved by {name}",
+      "countedPlaceholder": "e.g. 0 or 12.500",
+      "scanPlaceholder": "Barcode or SKU",
+      "pendingReview": "Local quantities have not been saved. Return to counting to save them, or discard the edits before approving."
     },
     "product": {
       "title": "Stock",

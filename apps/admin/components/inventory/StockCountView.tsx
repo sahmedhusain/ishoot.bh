@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
@@ -45,15 +46,22 @@ export function StockCountView({ count, locations, canEdit, canApprove }: StockC
   const [scanLocation, setScanLocation] = React.useState(locations[0]?.id ?? "");
   const [busy, setBusy] = React.useState(false);
   const [message, setMessage] = React.useState<{ tone: "ok" | "error"; text: string } | null>(null);
+  const editedLines = React.useRef(new Set<string>());
+  const pending = React.useRef(false);
+  const scanInput = React.useRef<HTMLInputElement | null>(null);
+  const [focusTarget, setFocusTarget] = React.useState<{ lineId?: string } | null>(null);
+  const markSaved = useUnsavedChanges(Array.from(editedLines.current).sort().map(id => [id, counted[id] ?? ""]));
   const inputs = React.useRef<Record<string, HTMLInputElement | null>>({});
   const open = count.status === "counting" && canEdit;
 
   // New lines (an item scanned that was not on the list) arrive with a refresh.
   React.useEffect(() => {
-    setCounted((current) => ({ ...Object.fromEntries(count.lines.map((l) => [l.id, l.counted == null ? "" : String(l.counted)])), ...current }));
+    setCounted((current) => ({ ...Object.fromEntries(count.lines.map((l) => [l.id, l.counted == null ? "" : String(l.counted)])), ...Object.fromEntries(Object.entries(current).filter(([id]) => editedLines.current.has(id))) }));
   }, [count.lines]);
 
-  const run = async (task: () => Promise<unknown>, done?: string) => {
+  const run = async (task: () => Promise<unknown>, done?: string, rethrow = false) => {
+    if (pending.current) return;
+    pending.current = true;
     setBusy(true);
     setMessage(null);
     try {
@@ -62,15 +70,32 @@ export function StockCountView({ count, locations, canEdit, canApprove }: StockC
       router.refresh();
     } catch (err) {
       setMessage({ tone: "error", text: errorMessage(err, t) });
+      if (rethrow) throw err;
     } finally {
+      pending.current = false;
       setBusy(false);
     }
   };
-  const saveCounts = () => saveCountedAction(count.id, count.lines.map((l) => ({ lineId: l.id, counted: counted[l.id] ?? "" }))).then(() => setDirty(false));
+  const saveCounts = async () => {
+    const lines = Array.from(editedLines.current).map(lineId => ({ lineId, counted: counted[lineId] ?? "" }));
+    if (lines.length) await saveCountedAction(count.id, lines);
+    editedLines.current.clear();
+    markSaved([]);
+    setDirty(false);
+  };
+
+  React.useEffect(() => {
+    if (busy || !focusTarget) return;
+    const input = focusTarget.lineId ? inputs.current[focusTarget.lineId] : scanInput.current;
+    if (input) { input.focus(); input.select(); setFocusTarget(null); }
+  }, [busy, count.lines, focusTarget]);
 
   const scan = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!code.trim()) return;
+    if (!code.trim() || pending.current) return;
+    pending.current = true;
+    setBusy(true);
+    setFocusTarget({});
     setMessage(null);
     try {
       if (dirty) await saveCounts();
@@ -78,12 +103,13 @@ export function StockCountView({ count, locations, canEdit, canApprove }: StockC
       if (!result.success) return setMessage({ tone: "error", text: copy.notFound });
       setCode("");
       const first = result.lineIds[0];
-      if (inputs.current[first]) {
-        inputs.current[first]?.focus();
-        inputs.current[first]?.select();
-      } else router.refresh();
+      setFocusTarget({ lineId: first });
+      if (!inputs.current[first]) router.refresh();
     } catch (err) {
       setMessage({ tone: "error", text: errorMessage(err, t) });
+    } finally {
+      pending.current = false;
+      setBusy(false);
     }
   };
 
@@ -93,7 +119,7 @@ export function StockCountView({ count, locations, canEdit, canApprove }: StockC
   const statusName = (copy.statuses as Record<string, string>)[count.status] ?? count.status;
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-16">
+    <div inert={busy} aria-busy={busy} className="space-y-6 max-w-5xl mx-auto pb-16">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <Link href={ROUTES.inventory.counts} className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent">
@@ -119,13 +145,13 @@ export function StockCountView({ count, locations, canEdit, canApprove }: StockC
             <Button type="button" variant="outline" size="sm" className="rounded-full" disabled={busy} onClick={() => run(() => setStockCountStatusAction(count.id, "counting"))}>{copy.reopen}</Button>
           )}
           {count.status === "review" && canApprove && (
-            <Button type="button" variant="primary" size="sm" className="rounded-full gap-1.5" disabled={busy} onClick={() => confirmAction({ description: copy.approveConfirm, confirmMatchText: count.number, onConfirm: () => run(async () => { const result = await approveStockCountAction(count.id); setMessage({ tone: "ok", text: formatMessage(copy.approved, { count: result.adjusted }) }); }) })} data-testid="count-approve">
+            <Button type="button" variant="primary" size="sm" className="rounded-full gap-1.5" disabled={busy} onClick={() => confirmAction({ description: copy.approveConfirm, confirmMatchText: count.number, onConfirm: () => run(async () => { if (dirty) throw new Error(copy.pendingReview); const result = await approveStockCountAction(count.id); setMessage({ tone: "ok", text: formatMessage(copy.approved, { count: result.adjusted }) }); }, undefined, true) })} data-testid="count-approve">
               <CheckCircle2 className="w-3.5 h-3.5" />
               {copy.approve}
             </Button>
           )}
           {(count.status === "counting" || count.status === "review") && canEdit && (
-            <Button type="button" variant="ghost" size="sm" className="rounded-full text-rose-600" disabled={busy} onClick={() => confirmAction({ description: copy.cancelConfirm, onConfirm: () => run(() => setStockCountStatusAction(count.id, "cancelled")) })}>{copy.cancel}</Button>
+            <Button type="button" variant="ghost" size="sm" className="rounded-full text-rose-600" disabled={busy} onClick={() => confirmAction({ description: copy.cancelConfirm, onConfirm: () => run(async () => { await setStockCountStatusAction(count.id, "cancelled"); editedLines.current.clear(); markSaved([]); setDirty(false); setCounted(Object.fromEntries(count.lines.map(l => [l.id, l.counted == null ? "" : String(l.counted)]))); }, undefined, true) })}>{copy.cancel}</Button>
           )}
           {busy && <Loader2 className="w-4 h-4 animate-spin self-center" aria-hidden="true" />}
         </div>
@@ -140,7 +166,7 @@ export function StockCountView({ count, locations, canEdit, canApprove }: StockC
               {(id) => (
                 <div className="relative">
                   <ScanLine className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted" aria-hidden="true" />
-                  <Input id={id} name="scan" dir="ltr" autoComplete="off" value={code} onChange={(e) => setCode(e.target.value)} className="ps-9 rounded-lg font-mono" />
+                  <Input ref={scanInput} id={id} name="scan" placeholder={copy.scanPlaceholder} dir="ltr" autoComplete="off" value={code} onChange={(e) => setCode(e.target.value)} className="ps-9 rounded-lg font-mono" />
                 </div>
               )}
             </Field>
@@ -190,14 +216,19 @@ export function StockCountView({ count, locations, canEdit, canApprove }: StockC
                             inputs.current[l.id] = el;
                           }}
                           aria-label={formatMessage(copy.countedFor, { name: label })}
+                          placeholder={copy.countedPlaceholder}
                           type="number"
                           min={0}
                           step="0.001"
                           inputMode="decimal"
                           value={value}
                           onChange={(e) => {
-                            setDirty(true);
-                            setCounted((current) => ({ ...current, [l.id]: e.target.value }));
+                            const next = e.target.value;
+                            const saved = l.counted == null ? null : Number(l.counted);
+                            if ((next === "" ? null : Number(next)) === saved) editedLines.current.delete(l.id);
+                            else editedLines.current.add(l.id);
+                            setDirty(editedLines.current.size > 0);
+                            setCounted((current) => ({ ...current, [l.id]: next }));
                           }}
                           className="h-9 w-24 ms-auto rounded-lg text-end"
                         />

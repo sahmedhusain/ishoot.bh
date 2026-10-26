@@ -6,6 +6,7 @@ import {
   SKU_PATTERN,
   isProductUnit,
   normalizeProductOptions,
+  parseProductOptions,
   variantCombinations,
   type ProductOption,
 } from "../constants/products";
@@ -194,7 +195,14 @@ function amount(value: string, optional = false) {
   return Math.round(parsed * 1000) / 1000;
 }
 
-const SAFE_IMAGE = /^(\/api\/files\/|https:\/\/)/;
+function validProductImage(value: string) {
+  if (/[\\\s]/.test(value)) return false;
+  try {
+    const url = new URL(value, "https://localhost");
+    if (value.startsWith("/api/files/")) return /^\/api\/files\/[^/]+\/[^/]+$/.test(url.pathname);
+    return value.startsWith("https://") && url.protocol === "https:" && !url.username && !url.password;
+  } catch { return false; }
+}
 
 /**
  * Creates or updates a product with its variants. SKUs and barcodes are unique across products and variants;
@@ -210,9 +218,10 @@ export async function saveProduct(input: ProductInput, userId: string | null) {
   if (!nameEn || !nameAr) throw new Error(serverMessages.productNameRequired);
   if (!isProductUnit(input.unit)) throw new Error(serverMessages.productUnitInvalid);
   if (barcode && !/^[A-Za-z0-9-]{4,40}$/.test(barcode)) throw new Error(serverMessages.productBarcodeInvalid);
-  const options = normalizeProductOptions(input.options);
-  if (!options) throw new Error(serverMessages.productOptionsTooMany);
-  const imageUrls = input.imageUrls.map((url) => url.trim()).filter((url) => url && SAFE_IMAGE.test(url)).slice(0, 12);
+  const options = parseProductOptions(input.options);
+  if (!options) throw new Error(serverMessages.productOptionsInvalid);
+  const imageUrls = input.imageUrls.map((url) => url.trim());
+  if (imageUrls.length > 12 || imageUrls.some(url => !validProductImage(url))) throw new Error(serverMessages.productImagesInvalid);
   const price = amount(input.price);
   const cost = amount(input.cost);
 

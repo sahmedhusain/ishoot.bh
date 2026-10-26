@@ -53,6 +53,22 @@ export function normalizeProductOptions(input: unknown): ProductOption[] | null 
   return options;
 }
 
+/** Writes must not discard or truncate option rows as tolerant catalogue reads can. */
+export function parseProductOptions(input: unknown): ProductOption[] | null {
+  if (!Array.isArray(input)) return null;
+  const options = normalizeProductOptions(input);
+  if (!options || options.length !== input.length) return null;
+  const text = (value: unknown) => value == null || (typeof value === "string" && value.trim().length <= 40);
+  const valid = input.every((raw, index) => {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return false;
+    const row = raw as Record<string, unknown>;
+    return text(row.nameEn) && text(row.nameAr) && Array.isArray(row.values)
+      && row.values.length === options[index].values.length
+      && row.values.every(value => value && typeof value === "object" && !Array.isArray(value) && text(value.en) && text(value.ar));
+  });
+  return valid ? options : null;
+}
+
 /** Every combination of the options' values, in order: [["S","Red"], ["S","Blue"], ["M","Red"], …]. */
 export function variantCombinations(options: ProductOption[]): string[][] {
   return options.reduce<string[][]>((combos, option) => combos.flatMap((combo) => option.values.map((value) => [...combo, value.en])), options.length ? [[]] : []);

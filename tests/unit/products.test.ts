@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { getTranslations } from "../../packages/locales/src";
-import { MAX_OPTIONS, PRODUCT_UNITS, SKU_PATTERN, normalizeProductOptions, variantCombinations, variantLabel, variantSku } from "../../packages/database/src/constants/products";
+import { MAX_OPTIONS, PRODUCT_UNITS, SKU_PATTERN, parseProductOptions, normalizeProductOptions, variantCombinations, variantLabel, variantSku } from "../../packages/database/src/constants/products";
 import { DEFAULT_FEATURE_MODULES, moduleOnByDefault } from "../../packages/database/src/constants/features";
 import { ACTIVITY_PRESETS } from "../../packages/database/src/website-presets";
 
@@ -50,5 +50,17 @@ describe("products", () => {
     expect(moduleOnByDefault("something_new")).toBe(true);
     expect(ACTIVITY_PRESETS.online_store.modules.products).toBe(true);
     expect(ACTIVITY_PRESETS.media.modules.products).toBeUndefined();
+  });
+});
+
+
+describe("strict option writes", () => {
+  const option = { nameEn: "Size", values: [{ en: "S" }, { ar: "متوسط" }] };
+  test("keeps empty lists and fills missing languages without dropping rows", () => {
+    expect(parseProductOptions([])).toEqual([]);
+    expect(parseProductOptions([option])).toEqual([{ nameEn: "Size", nameAr: "Size", values: [{ en: "S", ar: "S" }, { en: "متوسط", ar: "متوسط" }] }]);
+  });
+  test.each([null, {}, [null], [{ ...option, nameEn: "" }], [{ ...option, nameAr: 4 }], [{ ...option, values: [] }], [{ ...option, values: [{ en: "" }] }], [{ ...option, values: [{ en: "S" }, { en: " s " }] }], [{ ...option, nameEn: "x".repeat(41) }], [{ ...option, values: [{ en: "x".repeat(41) }] }], Array(4).fill(option), [{ ...option, values: Array.from({ length: 21 }, (_, i) => ({ en: String(i) })) }]].map(input => ({ input })))("refuses invalid data without silently removing it (%#)", ({ input }) => {
+    expect(parseProductOptions(input)).toBeNull();
   });
 });

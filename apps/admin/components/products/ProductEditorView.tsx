@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
@@ -9,7 +10,7 @@ import { Button, Card, Input, Select } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import type { ContentLanguage } from "@platform/database/constants/languages";
 import type { ProductCategoryRecord, ProductRecord } from "@platform/database";
-import { MAX_OPTIONS, PRODUCT_UNITS, normalizeProductOptions, variantCombinations, variantLabel, variantSku, type ProductOption } from "@platform/database/constants/products";
+import { MAX_OPTIONS, PRODUCT_UNITS, parseProductOptions, variantCombinations, variantLabel, variantSku, type ProductOption } from "@platform/database/constants/products";
 import { ROUTES } from "../../constants/routes";
 import { deleteProductAction, saveProductAction, setProductOnWebsiteAction } from "../../app/actions/products";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -35,14 +36,15 @@ interface VariantDraft {
 }
 
 const split = (text: string) => text.split(/[,،]/).map((value) => value.trim()).filter(Boolean);
-const toOptions = (drafts: OptionDraft[]): ProductOption[] =>
-  normalizeProductOptions(
+const toOptions = (drafts: OptionDraft[]): ProductOption[] | null =>
+  parseProductOptions(
     drafts.map((draft) => {
       const en = split(draft.valuesEn);
       const ar = split(draft.valuesAr);
+      if (en.length && ar.length && en.length !== ar.length) return null;
       return { nameEn: draft.nameEn, nameAr: draft.nameAr, values: (en.length ? en : ar).map((value, index) => ({ en: en[index] ?? value, ar: ar[index] ?? value })) };
     }),
-  ) ?? [];
+  );
 const comboKey = (values: string[]) => values.join("\u0000");
 const amountText = (value: number | null) => (value == null ? "" : String(value));
 
@@ -95,8 +97,10 @@ export function ProductEditorView({ product, categories, currency, languages, ca
   const [busy, setBusy] = React.useState(false);
   const [message, setMessage] = React.useState<{ tone: "ok" | "error"; text: string } | null>(null);
 
+  const markSaved = useUnsavedChanges({ form, images, nextImage, optionDrafts, variants });
+
   const options = React.useMemo(() => toOptions(optionDrafts), [optionDrafts]);
-  const combos = React.useMemo(() => variantCombinations(options), [options]);
+  const combos = React.useMemo(() => variantCombinations(options ?? []), [options]);
   const variantFor = (values: string[]): VariantDraft => variants[comboKey(values)] ?? { sku: "", barcode: "", price: "", cost: "", isActive: true };
   const setVariant = (values: string[], patch: Partial<VariantDraft>) => setVariants((current) => ({ ...current, [comboKey(values)]: { ...variantFor(values), ...patch } }));
   const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) => setForm((current) => ({ ...current, [key]: value }));
@@ -105,7 +109,7 @@ export function ProductEditorView({ product, categories, currency, languages, ca
   const margin = price > 0 && form.cost !== "" && Number.isFinite(cost) ? Math.round(((price - cost) / price) * 100) : null;
   const name = (en: string, ar: string) => (locale === "ar" ? ar || en : en || ar);
 
-  const run = async (task: () => Promise<unknown>, done?: string) => {
+  const run = async (task: () => Promise<unknown>, done?: string, rethrow = false) => {
     setBusy(true);
     setMessage(null);
     try {
@@ -114,6 +118,7 @@ export function ProductEditorView({ product, categories, currency, languages, ca
       router.refresh();
     } catch (error) {
       setMessage({ tone: "error", text: errorMessage(error, t) });
+      if (rethrow) throw error;
     } finally {
       setBusy(false);
     }
@@ -121,6 +126,8 @@ export function ProductEditorView({ product, categories, currency, languages, ca
 
   const save = () =>
     run(async () => {
+      if (nextImage.trim()) throw new Error(copy.pendingImage);
+      if (!options) throw new Error(t.serverErrors.messages.productOptionsInvalid);
       const result = await saveProductAction({
         id: product?.id,
         ...form,
@@ -128,6 +135,7 @@ export function ProductEditorView({ product, categories, currency, languages, ca
         options,
         variants: combos.map((values) => ({ ...variantFor(values), optionValues: values })),
       });
+      if (!markSaved()) return;
       if (!product) router.replace(ROUTES.products.detail(result.id));
     }, copy.saved);
 
@@ -143,7 +151,7 @@ export function ProductEditorView({ product, categories, currency, languages, ca
 
   const readOnly = !canEdit;
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-16">
+    <div inert={busy} aria-busy={busy} className="space-y-6 max-w-5xl mx-auto pb-16">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <Link href={ROUTES.products.list} className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent">
@@ -154,7 +162,7 @@ export function ProductEditorView({ product, categories, currency, languages, ca
         </div>
         <div className="flex gap-2">
           {product && canDelete && (
-            <Button type="button" variant="outline" size="sm" className="rounded-full gap-1.5 text-rose-600" disabled={busy} onClick={() => confirmAction({ description: copy.deleteConfirm, onConfirm: () => run(async () => { await deleteProductAction(product.id); router.replace(ROUTES.products.list); }) })}>
+            <Button type="button" variant="outline" size="sm" className="rounded-full gap-1.5 text-rose-600" disabled={busy} onClick={() => confirmAction({ description: copy.deleteConfirm, onConfirm: () => run(async () => { await deleteProductAction(product.id); if (!markSaved()) return; router.replace(ROUTES.products.list); }, undefined, true) })}>
               <Trash2 className="w-3.5 h-3.5" />
               {copy.delete}
             </Button>
@@ -310,7 +318,7 @@ export function ProductEditorView({ product, categories, currency, languages, ca
                   <tbody className="divide-y divide-ink/10">
                     {combos.map((values) => {
                       const draft = variantFor(values);
-                      const label = variantLabel(options, values, locale);
+                      const label = variantLabel(options ?? [], values, locale);
                       return (
                         <tr key={comboKey(values)}>
                           <th scope="row" className="px-3 py-2 text-start font-medium whitespace-nowrap">{label}</th>
@@ -339,7 +347,7 @@ export function ProductEditorView({ product, categories, currency, languages, ca
           <p className="text-xs text-ink-muted mt-0.5">{!product ? copy.saveFirst : product.on_website ? copy.websiteOn : copy.websiteOff}</p>
         </div>
         {product && canEdit && canPublish && (
-          <Button type="button" size="sm" variant="outline" className="rounded-full" disabled={busy} onClick={() => run(() => setProductOnWebsiteAction(product.id, !product.on_website))} data-testid="product-website">
+          <Button type="button" size="sm" variant="outline" className="rounded-full" disabled={busy} onClick={() => confirmAction({ description: product.on_website ? copy.hideConfirm : copy.showConfirm, variant: "warning", onConfirm: () => run(() => setProductOnWebsiteAction(product.id, !product.on_website), undefined, true) })} data-testid="product-website">
             {product.on_website ? copy.removeFromWebsite : copy.addToWebsite}
           </Button>
         )}
