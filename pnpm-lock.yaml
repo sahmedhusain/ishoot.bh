@@ -488,6 +488,9 @@ importers:
       '@platform/config':
         specifier: workspace:*
         version: link:../config
+      '@platform/locales':
+        specifier: workspace:*
+        version: link:../locales
       clsx:
         specifier: ^2.1.1
         version: 2.1.1

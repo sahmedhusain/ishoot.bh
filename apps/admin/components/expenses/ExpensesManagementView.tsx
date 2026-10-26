@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import type { Expense, ExpenseCategory } from "@platform/database/types";
-import { Card, CurrencyDisplay, DateDisplay, ConfirmDestructiveModal, StatusBadge } from "@platform/ui";
+import { Card, CurrencyDisplay, DateDisplay, ConfirmDialog, StatusBadge } from "@platform/ui";
 import { Plus, Receipt, Tag, TrendingDown, Trash2, Briefcase, UserRound, Building2, Paperclip, Settings2, Repeat } from "lucide-react";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -199,7 +199,7 @@ export function ExpensesManagementView({ initialExpenses, categories, totals, co
         </table>
       </div>
 
-      <ConfirmDestructiveModal
+      <ConfirmDialog
         isOpen={!!deleteTargetId}
         onClose={() => setDeleteTargetId(null)}
         onConfirm={async () => {

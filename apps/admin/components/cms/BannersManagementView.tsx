@@ -14,7 +14,7 @@ import {
   Modal,
   Input,
   Select,
-  ConfirmDestructiveModal,
+  ConfirmDialog,
 } from "@platform/ui";
 import {
   Plus,
@@ -415,7 +415,7 @@ export function BannersManagementView({
         </form>
       </Modal>
 
-      <ConfirmDestructiveModal
+      <ConfirmDialog
         isOpen={!!deleteTargetId}
         onClose={() => setDeleteTargetId(null)}
         onConfirm={async () => {

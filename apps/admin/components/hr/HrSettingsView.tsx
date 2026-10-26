@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CalendarDays, Clock, Pencil, Plus, Trash2, Wallet } from "lucide-react";
-import { Button, Card, ConfirmDestructiveModal, DateDisplay, Modal } from "@platform/ui";
+import { Button, Card, ConfirmDialog, DateDisplay, Modal } from "@platform/ui";
 import type { HrPolicyRules } from "@platform/database/hr/payroll-engine";
 import { payrollWindow } from "@platform/database/hr/payroll-engine";
 import type { LeaveTypeView, ShiftTypeView } from "@platform/database/queries/hr-settings";
@@ -389,7 +389,7 @@ function Holidays({ holidays, year, editable }: { holidays: Holiday[]; year: num
           ))}
         </ul>
       )}
-      <ConfirmDestructiveModal
+      <ConfirmDialog
         isOpen={deleting !== null}
         onClose={() => setDeleting(null)}
         onConfirm={async () => {

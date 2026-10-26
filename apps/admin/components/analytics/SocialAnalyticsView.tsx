@@ -21,7 +21,7 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
-import { Button, Card, ConfirmDestructiveModal, DateDisplay, Modal } from "@platform/ui";
+import { Button, Card, ConfirmDialog, DateDisplay, Modal } from "@platform/ui";
 import {
   SOCIAL_PLAN_STATUSES,
   SOCIAL_PLATFORM_IDS,
@@ -357,7 +357,7 @@ function Planner({ plans, team, canEdit, canDelete }: { plans: SocialPlanView[];
       <Modal isOpen={editing !== null} onClose={() => setEditing(null)} title={editing === "new" ? p.add : p.edit} closeLabel={p.cancel}>
         {editing !== null && <PlanForm plan={editing === "new" ? null : editing} team={team} onClose={() => setEditing(null)} />}
       </Modal>
-      <ConfirmDestructiveModal
+      <ConfirmDialog
         isOpen={deleting !== null}
         onClose={() => setDeleting(null)}
         onConfirm={async () => {

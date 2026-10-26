@@ -7,5 +7,7 @@
   "close": "Close",
   "loading": "Loading…",
   "inflow": "Inflow (revenue)",
-  "outflow": "Outflow (expenses)"
+  "outflow": "Outflow (expenses)",
+  "typeToConfirm": "Type to confirm",
+  "actionFailed": "The action failed. Please try again."
 }

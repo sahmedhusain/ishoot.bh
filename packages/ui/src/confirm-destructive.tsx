@@ -1,10 +1,11 @@
+"use client";
 import { useUiCopy } from "./copy/use-ui-copy";
 import * as React from "react";
 import { Modal } from "./modal";
 import { Button } from "./button";
 import { Input } from "./input";
 
-export interface ConfirmDestructiveModalProps {
+export interface ConfirmDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => Promise<void> | void;
@@ -17,9 +18,10 @@ export interface ConfirmDestructiveModalProps {
   loadingLabel?: string;
   loading?: boolean;
   variant?: "danger" | "warning";
+  errorLabel?: string;
 }
 
-export function ConfirmDestructiveModal({
+export function ConfirmDialog({
   isOpen,
   onClose,
   onConfirm,
@@ -32,15 +34,21 @@ export function ConfirmDestructiveModal({
   loadingLabel,
   loading = false,
   variant = "danger",
-}: ConfirmDestructiveModalProps) {
+  errorLabel,
+}: ConfirmDialogProps) {
   const copy = useUiCopy();
   confirmLabel ??= copy.confirm; cancelLabel ??= copy.cancel; loadingLabel ??= copy.loading;
+  const inputId = React.useId();
+  const [error, setError] = React.useState(false);
+  const submitting = React.useRef(false);
   const [typedInput, setTypedInput] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   React.useEffect(() => {
     if (isOpen) {
       setTypedInput("");
+      setError(false);
+      submitting.current = false;
       setIsSubmitting(false);
     }
   }, [isOpen]);
@@ -49,12 +57,17 @@ export function ConfirmDestructiveModal({
     !confirmMatchText || typedInput.trim() === confirmMatchText.trim();
 
   const handleConfirm = async () => {
-    if (!canConfirm || isSubmitting || loading) return;
+    if (!canConfirm || submitting.current || loading) return;
+    submitting.current = true;
+    setError(false);
     setIsSubmitting(true);
     try {
       await onConfirm();
       onClose();
+    } catch {
+      setError(true);
     } finally {
+      submitting.current = false;
       setIsSubmitting(false);
     }
   };
@@ -62,25 +75,18 @@ export function ConfirmDestructiveModal({
   const isDanger = variant === "danger";
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title} closeLabel={cancelLabel}>
+    <Modal isOpen={isOpen} onClose={onClose} title={title} closeLabel={cancelLabel} busy={isSubmitting || loading} description={description} className="max-w-lg">
       <div className="space-y-4 text-sm text-ink-muted">
-        <div
-          className={`p-3.5 rounded-xl border ${
-            isDanger
-              ? "bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-300"
-              : "bg-amber-500/10 border-amber-500/30 text-amber-800 dark:text-amber-300"
-          }`}
-        >
-          {description}
-        </div>
-
         {confirmMatchText && (
           <div className="space-y-2">
-            <p className="text-xs text-ink-muted">
-              {typePromptLabel || confirmMatchText}
-            </p>
+            <label htmlFor={inputId} className="block text-xs text-ink-muted">
+              {typePromptLabel || `${copy.typeToConfirm}: ${confirmMatchText}`}
+            </label>
             <Input
+              id={inputId}
               type="text"
+              autoComplete="off"
+              disabled={isSubmitting || loading}
               value={typedInput}
               onChange={(e) => setTypedInput(e.target.value)}
               placeholder={confirmMatchText}
@@ -89,7 +95,8 @@ export function ConfirmDestructiveModal({
           </div>
         )}
 
-        <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
+        {error && <p role="alert" className="text-rose-700 dark:text-rose-300">{errorLabel ?? copy.actionFailed}</p>}
+        <div className="flex flex-wrap items-center justify-end gap-3 pt-3 border-t border-ink/10">
           <Button
             type="button"
             variant="ghost"
@@ -104,6 +111,7 @@ export function ConfirmDestructiveModal({
             variant={isDanger ? "danger" : "primary"}
             size="sm"
             onClick={handleConfirm}
+            aria-busy={isSubmitting || loading}
             disabled={!canConfirm || isSubmitting || loading}
           >
             {isSubmitting || loading ? loadingLabel : confirmLabel}

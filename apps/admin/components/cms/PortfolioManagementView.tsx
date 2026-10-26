@@ -12,7 +12,7 @@ Button,Badge,
 Modal,
 Input,
 Select,
-ConfirmDestructiveModal
+ConfirmDialog
 } from "@platform/ui";
 import {
 Plus,Trash2,
@@ -585,7 +585,7 @@ export function PortfolioManagementView({
         </form>
       </Modal>
 
-      <ConfirmDestructiveModal
+      <ConfirmDialog
         isOpen={!!deleteTargetId}
         onClose={() => setDeleteTargetId(null)}
         onConfirm={async () => {

@@ -14,7 +14,7 @@ import {
   Send,
   Unlink,
 } from "lucide-react";
-import { Button, Card, ConfirmDestructiveModal, DateDisplay } from "@platform/ui";
+import { Button, Card, ConfirmDialog, DateDisplay } from "@platform/ui";
 import {
   INTEGRATION_PROVIDERS,
   type IntegrationKind,
@@ -381,16 +381,21 @@ function IntegrationCard({
         )}
       </div>
 
-      <ConfirmDestructiveModal
+      <ConfirmDialog
         isOpen={confirmUnlink}
         onClose={() => setConfirmUnlink(false)}
         onConfirm={async () => {
-          await run("save", () => unlinkIntegration(provider.id));
-          setConfirmUnlink(false);
-          setIsActive(false);
+          try {
+            await unlinkIntegration(provider.id);
+            setIsActive(false);
+          } catch (error) {
+            toast.error(errorMessage(error, t, c.testFailed));
+            throw error;
+          }
         }}
         title={formatMessage(c.unlinkTitle, { name: copy.name })}
         description={c.unlinkBody}
+        confirmMatchText={copy.name}
         confirmLabel={c.unlink}
       />
     </Card>

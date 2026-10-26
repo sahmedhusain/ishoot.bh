@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ShieldCheck, Smartphone, Download, Copy, Loader2 } from "lucide-react";
-import { Button, Input, ConfirmDestructiveModal } from "@platform/ui";
+import { Button, Input, ConfirmDialog } from "@platform/ui";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 export function SecuritySettingsView({
@@ -254,7 +254,7 @@ export function SecuritySettingsView({
           </Link>
         </div>
       )}
-      <ConfirmDestructiveModal
+      <ConfirmDialog
         isOpen={disableConfirm}
         onClose={() => setDisableConfirm(false)}
         onConfirm={() => submit("disable")}

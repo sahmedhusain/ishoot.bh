@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import {
   Button,
-  ConfirmDestructiveModal,
+  ConfirmDialog,
   Input,
   Select,
   formatDate,
@@ -661,7 +661,7 @@ export function CompanyArchiveView({
         </p>
       ) : null}
 
-      <ConfirmDestructiveModal
+      <ConfirmDialog
         isOpen={!!deleteId}
         title={v.deleteTitle}
         description={v.deleteBody}

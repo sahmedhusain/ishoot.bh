@@ -10,7 +10,7 @@ Card,
 Badge,
 Modal,
 Input,
-ConfirmDestructiveModal,
+ConfirmDialog,
 } from "@platform/ui";
 import { Plus,Trash2,Globe,CheckCircle2,Pencil } from "lucide-react";
 import { AssetUrlInput } from "../shared/AssetUrlInput";
@@ -252,7 +252,7 @@ export function ClientsManagementView({
         </form>
       </Modal>
 
-      <ConfirmDestructiveModal
+      <ConfirmDialog
         isOpen={!!deleteTargetId}
         onClose={() => setDeleteTargetId(null)}
         onConfirm={async () => {

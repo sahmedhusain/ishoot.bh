@@ -22,7 +22,7 @@ import {
   User,
   X,
 } from "lucide-react";
-import { Button, ConfirmDestructiveModal, formatCurrencyValue, formatDate } from "@platform/ui";
+import { Button, ConfirmDialog, formatCurrencyValue, formatDate } from "@platform/ui";
 import type { ClientListRow } from "@platform/database/types";
 import {
   CLIENT_ACTIVITY_FILTERS,
@@ -367,7 +367,7 @@ export function ClientsListView({
         </div>
       </div>
 
-      <ConfirmDestructiveModal
+      <ConfirmDialog
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}

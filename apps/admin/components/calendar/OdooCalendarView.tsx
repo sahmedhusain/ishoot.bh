@@ -21,7 +21,7 @@ import {
   Modal,
   Input,
   Select,
-  ConfirmDestructiveModal,
+  ConfirmDialog,
 } from "@platform/ui";
 import {
   Calendar as CalendarIcon,
@@ -961,7 +961,7 @@ export function OdooCalendarView({
         </form>
       </Modal>
 
-      <ConfirmDestructiveModal
+      <ConfirmDialog
         isOpen={!!deleteTargetId}
         onClose={() => setDeleteTargetId(null)}
         onConfirm={async () => {

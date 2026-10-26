@@ -3,7 +3,7 @@ import type { StatisticItem } from "../../types/cms";
 
 import * as React from "react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-import { Button, Card, Modal, Input, Select, ConfirmDestructiveModal } from "@platform/ui";
+import { Button, Card, Modal, Input, Select, ConfirmDialog } from "@platform/ui";
 import { STATISTIC_PRESETS, type StatisticPreset } from "@platform/database/constants/statistics";
 import { Plus, Edit, Trash2, Activity } from "lucide-react";
 import { createStatisticAction, updateStatisticAction, deleteStatisticAction } from "../../app/actions/cms";
@@ -197,7 +197,7 @@ export function StatsManagementView({ initialStats, languages }: { initialStats:
         </form>
       </Modal>
 
-      <ConfirmDestructiveModal isOpen={!!deleteId} onClose={() => setDeleteId(null)} onConfirm={handleDelete} title={t.statsView.deleteStat} description={t.statsView.deleteConfirm} />
+      <ConfirmDialog isOpen={!!deleteId} onClose={() => setDeleteId(null)} onConfirm={handleDelete} title={t.statsView.deleteStat} description={t.statsView.deleteConfirm} />
     </div>
   );
 }

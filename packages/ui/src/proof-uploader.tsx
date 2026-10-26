@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { useCurrencyLocale } from "./currency-display";
-import en from "./copy/en.json";
-import ar from "./copy/ar.json";
+import en from "@platform/locales/ui/en";
+import ar from "@platform/locales/ui/ar";
 import {
   Upload,
   X,

@@ -7,7 +7,7 @@ Button,Badge,
 Modal,
 Input,
 Select,
-ConfirmDestructiveModal
+ConfirmDialog
 } from "@platform/ui";
 import { Plus,Trash2,CheckCircle2,Filter,Pencil } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -329,7 +329,7 @@ export function EquipmentManagementView({
         </form>
       </Modal>
 
-      <ConfirmDestructiveModal
+      <ConfirmDialog
         isOpen={!!deleteTargetId}
         onClose={() => setDeleteTargetId(null)}
         onConfirm={async () => {

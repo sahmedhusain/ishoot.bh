@@ -19,7 +19,7 @@ import {
   Modal,
   Input,
   Select,
-  ConfirmDestructiveModal,
+  ConfirmDialog,
 } from "@platform/ui";
 import {
   UserPlus,
@@ -667,7 +667,7 @@ export function UsersManagementView({
         />
       )}
 
-      <ConfirmDestructiveModal
+      <ConfirmDialog
         isOpen={!!deleteTargetId}
         onClose={() => setDeleteTargetId(null)}
         onConfirm={async () => {

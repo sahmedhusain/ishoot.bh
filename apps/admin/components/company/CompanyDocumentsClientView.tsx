@@ -8,7 +8,7 @@ Card,
 Button,
 Badge,
 DateDisplay,
-ConfirmDestructiveModal,
+ConfirmDialog,
 } from "@platform/ui";
 import {
 Building2,
@@ -213,7 +213,7 @@ export function CompanyDocumentsClientView({
         </div>
       )}
 
-      <ConfirmDestructiveModal
+      <ConfirmDialog
         isOpen={!!deleteTargetId}
         onClose={() => setDeleteTargetId(null)}
         onConfirm={handleDelete}

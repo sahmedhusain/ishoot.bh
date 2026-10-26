@@ -26,7 +26,7 @@ Card,
 Input,
 Select,
 Button,
-ConfirmDestructiveModal,
+ConfirmDialog,
 } from "@platform/ui";
 import {
   Plus,
@@ -809,7 +809,7 @@ export function InvoiceEditFormView({
         </div>
       </form>
 
-      <ConfirmDestructiveModal
+      <ConfirmDialog
         isOpen={voidConfirmOpen}
         onClose={() => setVoidConfirmOpen(false)}
         onConfirm={handleVoid}

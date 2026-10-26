@@ -40,9 +40,9 @@ Each checkbox is an acceptance criterion. Broad groups are delivered as small pr
 Verification: reconcile route inventory with filesystem and sidebar, inspect matrix output. Dependencies: none. Scope: docs and audit spec.
 
 ### G1 — shared dialog foundation (P1, A04)
-- [ ] Extend existing Modal with description/footer/pending support, mobile sheet and existing motion tokens; preserve callers.
-- [ ] Extend existing confirmation, export ConfirmDialog without a second implementation; typed label, loading, errors, focus trap/restore, Esc, nested overlays, RTL and reduced motion.
-- [ ] E2E uses a real destructive fixture and verifies cancel, typed mismatch, pending, failure and focus return.
+- [x] Extend existing Modal with description/footer/pending support, mobile sheet and existing motion tokens; preserve callers.
+- [x] Extend existing confirmation, export ConfirmDialog without a second implementation; typed label, loading, errors, focus trap/restore, Esc, nested overlays, RTL and reduced motion.
+- [x] E2E uses a real destructive fixture and verifies cancel, typed mismatch, pending, failure and focus return.
 Files: packages/ui modal and confirm, UI copy locales, e2e. Dependencies: G0 plan. Medium scope.
 
 ### G2 — replace native confirmation by page family (P1/P2, A05/A09)
@@ -158,6 +158,8 @@ Research is endpoint-specific. For every kept adapter record auth, expiration/re
 - Meta, X, WhatsApp, Resend, sign-in, seven gateways, three couriers: endpoint-by-endpoint review **open**. All missing integrations: documentation/contracts **open** before implementation.
 
 ## Execution log
+
+- G1: extended the existing Modal/confirmation implementation; renamed all repository callers to canonical `ConfirmDialog` (no duplicate implementation/export), moved shared UI copy into packages/locales, fixed the i18n checker path. Mobile sheets respect max-width and reduced motion. Nested dialogs trap/restore focus and preserve scroll lock; pending confirmations resist Esc/backdrop/header dismissal, and errors stay visible. Integration disconnect requires the provider name and preserves state on failure. Three focused e2e tests passed (desktop/mobile, labels, typed match, cancel, focus return/trap, reduced motion, pending/failure). Fresh pnpm layout exposed ESLint plugin lookup; FlatCompat now resolves Next plugins from the installed Next config. Validation: type-check, lint, 136 unit/static tests, copy, brand, action schemas and knip passed. pnpm 12 auto dependency verification was disabled only on check invocations after the locked install (`--config.verify-deps-before-run=never`); no project configuration changed.
 
 - 2026-10-26: created plan before source changes, inventoried 154 route templates, recorded native dialogs/overlay candidates and fields. Migration preflight passed. Isolated audit database prepared. No browser matrix cell yet marked complete.
 

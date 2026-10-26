@@ -4,7 +4,7 @@ import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import { toast } from "sonner";
 import { Plus, Edit, Trash2, Shield, Users } from "lucide-react";
-import { Button, Card, Badge, Modal, Input, ConfirmDestructiveModal } from "@platform/ui";
+import { Button, Card, Badge, Modal, Input, ConfirmDialog } from "@platform/ui";
 import {
   ALL_ACTIONS,
   PERMISSION_GROUPS,
@@ -250,7 +250,7 @@ export function RolesManagementView({ initialRoles }: { initialRoles: RoleWithGr
         </form>
       </Modal>
 
-      <ConfirmDestructiveModal
+      <ConfirmDialog
         isOpen={!!deleteId}
         onClose={() => setDeleteId(null)}
         onConfirm={handleDelete}

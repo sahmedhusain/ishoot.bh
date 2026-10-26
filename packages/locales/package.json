@@ -14,6 +14,8 @@
     ".": "./src/index.ts",
     "./admin/en": "./src/admin/en.json",
     "./admin/ar": "./src/admin/ar.json",
-    "./admin-activity": "./src/admin-activity.ts"
+    "./admin-activity": "./src/admin-activity.ts",
+    "./ui/en": "./src/ui/en.json",
+    "./ui/ar": "./src/ui/ar.json"
   }
 }

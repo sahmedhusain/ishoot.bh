@@ -4,7 +4,7 @@ import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import type { MinuteOfMeetingItem } from "@platform/database";
-import { Card,Button,ConfirmDestructiveModal } from "@platform/ui";
+import { Card,Button,ConfirmDialog } from "@platform/ui";
 import {
 FileSignature,
 Plus,
@@ -243,7 +243,7 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
 
       {/* Delete Confirmation Modal */}
       {deleteTargetId && (
-        <ConfirmDestructiveModal
+        <ConfirmDialog
           isOpen={true}
           onClose={() => setDeleteTargetId(null)}
           onConfirm={() => handleDelete(deleteTargetId)}
