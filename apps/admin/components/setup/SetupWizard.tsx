@@ -1,4 +1,5 @@
 "use client";
+import { useNavigationGuard } from "../../hooks/useUnsavedChanges";
 import { DomainSettingsCard } from "../settings/DomainSettingsCard";
 import { ShowExampleButton } from "../cms/SampleContentCard";
 import { addSampleContentAction } from "../../app/actions/samples";
@@ -115,6 +116,7 @@ export function SetupWizard(props: SetupWizardProps) {
   const router = useRouter();
   const { t, locale, setLocale } = useAdminLocale();
   const copy = t.setupWizard;
+  const { requestNavigation } = useNavigationGuard();
   const [step, setStep] = React.useState<Step>("company");
   const [company, setCompany] = React.useState(props.company);
   const [theme, setTheme] = React.useState(props.theme);
@@ -139,7 +141,8 @@ export function SetupWizard(props: SetupWizardProps) {
 
   React.useEffect(() => headingRef.current?.focus(), [step]);
 
-  const go = (next: Step) => {
+  const go = async (next: Step) => {
+    if (!(await requestNavigation())) return;
     setError("");
     setDirection(STEPS.indexOf(next) >= STEPS.indexOf(step) ? 1 : -1);
     setStep(next);

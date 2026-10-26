@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import { formatMessage } from "@platform/locales";
 import { useConfirmation } from "@platform/ui";
 import { errorMessage } from "../../lib/error-text";
@@ -56,6 +57,7 @@ export function WebsiteEditor({
   const ar = locale === "ar";
   const router = useRouter();
   const [draft, setDraft] = React.useState(config);
+  const markSaved = useUnsavedChanges(draft);
   const [version, setVersion] = React.useState(revision);
   const [busy, setBusy] = React.useState(false);
   const [message, setMessage] = React.useState("");
@@ -90,12 +92,13 @@ export function WebsiteEditor({
   }
   async function save() {
     const saved = await saveWebsiteDraftAction(draft, version);
+    markSaved(draft);
     setVersion(saved.revision);
     setDirty(false);
     return saved.revision;
   }
   return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-16">
+    <div inert={busy} aria-busy={busy} className="max-w-5xl mx-auto space-y-8 pb-16">
       <header>
         <Link className="text-sm underline" href={ROUTES.settings.web}>
           {t.websiteEditor.websiteSettings}

@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "../../../hooks/useUnsavedChanges";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -15,6 +16,7 @@ export function ThemeSettingsTab({ initialTheme }: { initialTheme: BrandTheme })
   const { t } = useAdminLocale();
   const [theme, setTheme] = React.useState(initialTheme);
   const [saved, setSaved] = React.useState(initialTheme);
+  const markSaved = useUnsavedChanges(theme);
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState("");
   const dirty = JSON.stringify(theme) !== JSON.stringify(saved);
@@ -24,6 +26,7 @@ export function ThemeSettingsTab({ initialTheme }: { initialTheme: BrandTheme })
     setError("");
     try {
       const result = await saveSetupThemeAction(theme);
+      markSaved(result.theme);
       setSaved(result.theme);
       setTheme(result.theme);
       router.refresh();
@@ -35,7 +38,7 @@ export function ThemeSettingsTab({ initialTheme }: { initialTheme: BrandTheme })
   };
 
   return (
-    <Card className="space-y-6 rounded-2xl border border-ink/15 bg-white p-6 shadow-xs dark:bg-surface">
+    <Card inert={saving} aria-busy={saving} className="space-y-6 rounded-2xl border border-ink/15 bg-white p-6 shadow-xs dark:bg-surface">
       <ThemeEditor theme={theme} onChange={setTheme} />
       {error ? <p role="alert" className="rounded-lg bg-rose-500/10 p-3 text-sm text-rose-700 dark:text-rose-300">{error}</p> : null}
       <div className="flex justify-end">

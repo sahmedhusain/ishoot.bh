@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 
 import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
@@ -125,24 +126,16 @@ function IntegrationCard({
         : (values[field.key] ?? "").trim() !==
           (view.values[field.key] ?? "").trim(),
     );
-  React.useEffect(() => {
-    if (!editing || !dirty) return;
-    const guard = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      event.returnValue = "";
-    };
-    window.addEventListener("beforeunload", guard);
-    return () => window.removeEventListener("beforeunload", guard);
-  }, [editing, dirty]);
+  const markSaved = useUnsavedChanges({ isActive, values });
   const resetEditing = () => {
-    setValues(
-      Object.fromEntries(
-        provider.fields.map((field) => [
-          field.key,
-          field.secret ? "" : (view.values[field.key] ?? ""),
-        ]),
-      ),
+    const resetValues = Object.fromEntries(
+      provider.fields.map((field) => [
+        field.key,
+        field.secret ? "" : (view.values[field.key] ?? ""),
+      ]),
     );
+    markSaved({ isActive: view.isActive, values: resetValues });
+    setValues(resetValues);
     setIsActive(view.isActive);
     setFieldErrors({});
     setError("");
@@ -226,14 +219,9 @@ function IntegrationCard({
       await saveIntegration(provider.id, isActive, values);
       toast.success(c.saved);
       setEditing(false);
-      setValues((v) =>
-        Object.fromEntries(
-          Object.entries(v).map(([key, value]) => [
-            key,
-            provider.fields.find((f) => f.key === key)?.secret ? "" : value,
-          ]),
-        ),
-      );
+      const savedValues = Object.fromEntries(Object.entries(values).map(([key, value]) => [key, provider.fields.find(field => field.key === key)?.secret ? "" : value]));
+      markSaved({ isActive, values: savedValues });
+      setValues(savedValues);
     });
   };
 
@@ -277,6 +265,8 @@ function IntegrationCard({
 
   return (
     <Card
+      inert={busy === "save" || readingKey}
+      aria-busy={busy === "save" || readingKey}
       data-testid={`integration-${provider.id}`}
       className="flex flex-col p-0 overflow-hidden dark:bg-surface-raised"
     >
@@ -735,7 +725,11 @@ function IntegrationCard({
         onConfirm={async () => {
           try {
             await unlinkIntegration(provider.id);
+            const clearedValues = Object.fromEntries(provider.fields.map(field => [field.key, ""]));
+            markSaved({ isActive: false, values: clearedValues });
+            setValues(clearedValues);
             setIsActive(false);
+            setEditing(false);
           } catch (error) {
             toast.error(errorMessage(error, t, c.testFailed));
             throw error;

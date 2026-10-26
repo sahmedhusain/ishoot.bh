@@ -10,29 +10,35 @@ type Schema = {
   variants?: Schema[];
   value?: unknown;
 };
+const IDENTIFIER_KEY = /^(id|assetKey|moduleKey|role)$|(?:_id|Id)$/;
 function valid(
   value: unknown,
   schema: Schema,
   key: string,
   depth = 0,
+  action = key,
 ): boolean {
   if (value === undefined) return schema.optional === true;
   if (depth > 12) return false;
   if (schema.kind === "union")
-    return schema.variants!.some((s) => valid(value, s, key, depth + 1));
+    return schema.variants!.some((s) => valid(value, s, key, depth + 1, action));
   if (schema.kind === "literal") return value === schema.value;
   if (schema.kind === "unknown") return true; // WebsiteConfig is separately parsed by validateWebsiteConfig.
   if (schema.kind === "array")
     return (
       Array.isArray(value) &&
       value.length <= 200 &&
-      value.every((v) => valid(v, schema.element!, key, depth + 1))
+      value.every((v) => valid(v, schema.element!, key, depth + 1, action))
     );
   if (schema.kind === "record") {
     if (!value || typeof value !== "object" || Array.isArray(value)) return false;
     const entries = Object.entries(value);
-    return entries.length <= 500 && entries.every(([field, entry]) =>
-      !["__proto__", "constructor", "prototype"].includes(field) && valid(entry, schema.element!, field, depth + 1));
+    return entries.length <= 500 && entries.every(([field, entry]) => {
+      if (["__proto__", "constructor", "prototype"].includes(field)) return false;
+      // External credential IDs use provider validation; other field semantics still apply.
+      const fieldKey = action === "saveIntegration" && key === "values" && IDENTIFIER_KEY.test(field) ? "credential" : field;
+      return valid(entry, schema.element!, fieldKey, depth + 1, action);
+    });
   }
   if (schema.kind === "object") {
     if (
@@ -47,7 +53,7 @@ function valid(
     if (Object.keys(value).some((field) => !Object.hasOwn(fields, field)))
       return false;
     return Object.entries(fields).every(([field, shape]) =>
-      valid((value as Record<string, unknown>)[field], shape, field, depth + 1),
+      valid((value as Record<string, unknown>)[field], shape, field, depth + 1, action),
     );
   }
   if (schema.kind === "boolean") return typeof value === "boolean";
@@ -93,7 +99,7 @@ function valid(
     )
       return false;
     if (
-      /^(id|assetKey|moduleKey|role)$|(?:_id|Id)$/.test(key) &&
+      IDENTIFIER_KEY.test(key) &&
       ((schema.optional !== true && !value.trim()) || value.length > 150)
     )
       return false;

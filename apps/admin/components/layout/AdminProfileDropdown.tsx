@@ -1,4 +1,5 @@
 "use client";
+import { useNavigationGuard } from "../../hooks/useUnsavedChanges";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -19,6 +20,7 @@ export function AdminProfileDropdown() {
   const { t } = useAdminLocale();
   const { user } = usePermissions();
   const router = useRouter();
+  const { requestNavigation, navigateConfirmed } = useNavigationGuard();
   const [busy, setBusy] = useState(false);
   const menu = useHeaderPopover("account");
   const p = t.accountMenu;
@@ -26,12 +28,14 @@ export function AdminProfileDropdown() {
     ? ((t.roles as Record<string, string>)[user.role] ?? user.role)
     : "";
   const signOut = async () => {
+    menu.setOpen(false);
+    if (!(await requestNavigation())) return;
     setBusy(true);
     try {
       const result = await fetch("/api/auth/logout", { method: "POST" });
       if (!result.ok) throw Error();
       menu.setOpen(false);
-      router.replace(ROUTES.login);
+      navigateConfirmed(ROUTES.login, true);
       router.refresh();
     } catch {
       toast.error(p.signOutFailed);

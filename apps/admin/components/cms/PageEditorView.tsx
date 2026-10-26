@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 
 import * as React from "react";
 import Link from "next/link";
@@ -26,6 +27,7 @@ export function PageEditorView({ page, languages, canCode, catalogueSlug }: { pa
   const copy = t.cmsPages;
   const router = useRouter();
   const [draft, setDraft] = React.useState(page);
+  const markSaved = useUnsavedChanges(draft);
   const [open, setOpen] = React.useState<string | null>(null);
   const [adding, setAdding] = React.useState<BlockType | "">("");
   const [saving, setSaving] = React.useState(false);
@@ -58,6 +60,7 @@ export function PageEditorView({ page, languages, canCode, catalogueSlug }: { pa
     try {
       const { id, slug, title_en, title_ar, seo_title_en, seo_title_ar, seo_description_en, seo_description_ar, blocks, is_visible, in_header, in_footer } = draft;
       const saved = await saveCmsPageAction({ id: id || undefined, slug, title_en, title_ar, seo_title_en, seo_title_ar, seo_description_en, seo_description_ar, blocks, is_visible, in_header, in_footer });
+      if (!markSaved(saved.page)) return;
       setMessage({ tone: "ok", text: copy.saved });
       if (!id) return router.replace(ROUTES.cms.page(saved.page.id));
       setDraft(saved.page);
@@ -304,7 +307,7 @@ export function PageEditorView({ page, languages, canCode, catalogueSlug }: { pa
   const available = BLOCK_TYPES.filter((type) => canCode || !CODE_BLOCKS.includes(type));
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-16">
+    <div inert={saving} aria-busy={saving} className="space-y-6 max-w-5xl mx-auto pb-16">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link href={ROUTES.cms.pages} className="inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink">
           <ArrowLeft className="w-4 h-4 rtl:rotate-180" />

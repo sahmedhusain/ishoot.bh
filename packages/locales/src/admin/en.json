@@ -11314,5 +11314,11 @@
       "leave": "Leave requests",
       "back": "Dashboard"
     }
+  },
+  "unsavedChanges": {
+    "title": "Discard unsaved changes?",
+    "body": "Your edits have not been saved. Stay here to keep editing, or discard them and leave.",
+    "stay": "Stay here",
+    "discard": "Discard and leave"
   }
 }

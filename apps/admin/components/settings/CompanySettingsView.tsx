@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import { errorMessage } from "../../lib/error-text";
 import type { AdminTranslations } from "../../lib/translations";
 
@@ -178,10 +179,12 @@ export function CompanySettingsView({
   const { t, locale, isRTL } = useAdminLocale();
 
   const [activeTab, setActiveTab] = React.useState<TabKey>("general");
+  const [themeVisited, setThemeVisited] = React.useState(false);
   const [originalSettings, setOriginalSettings] =
     React.useState<CompanySettings>(initialSettings);
   const [settings, setSettings] =
     React.useState<CompanySettings>(initialSettings);
+  const markSaved = useUnsavedChanges(settings);
   const [assets, setAssets] =
     React.useState<CompanyAssetItem[]>(initialAssets);
   const [saved, setSaved] = React.useState(false);
@@ -214,6 +217,7 @@ export function CompanySettingsView({
     try {
       const res = await updateCompanySettingsAction(settings);
       if (res.success && res.settings) {
+        markSaved(res.settings);
         setOriginalSettings(res.settings);
         setSettings(res.settings);
         setSaved(true);
@@ -266,7 +270,7 @@ export function CompanySettingsView({
   ];
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-16">
+    <div inert={saving} aria-busy={saving} className="space-y-6 max-w-6xl mx-auto pb-16">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -318,7 +322,7 @@ export function CompanySettingsView({
             <button
               key={tab.key}
               type="button"
-              onClick={() => setActiveTab(tab.key)}
+              onClick={() => { if (tab.key === "theme") setThemeVisited(true); setActiveTab(tab.key); }}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-150 ${
                 isActive
                   ? "bg-white dark:bg-[#282a2d] text-primary dark:text-mint shadow-xs border border-slate-200/80 dark:border-neutral-700"
@@ -395,7 +399,7 @@ export function CompanySettingsView({
           />
         )}
 
-        {activeTab === "theme" && <ThemeSettingsTab initialTheme={initialSettings.theme} />}
+        {themeVisited && <div hidden={activeTab !== "theme"}><ThemeSettingsTab initialTheme={initialSettings.theme} /></div>}
 
         {activeTab !== "brandAssets" && activeTab !== "theme" && (
           <div className="flex items-center justify-end gap-4 pt-2">

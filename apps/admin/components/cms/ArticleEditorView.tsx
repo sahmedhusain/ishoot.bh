@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
@@ -29,6 +30,7 @@ export function ArticleEditorView({ article, languages, canPublish, canDelete, a
   const router = useRouter();
   const [draft, setDraft] = React.useState(article);
   const [tags, setTags] = React.useState(article.tags.join(", "));
+  const markSaved = useUnsavedChanges({ draft, tags });
   const [busy, setBusy] = React.useState<"save" | "publish" | null>(null);
   const [message, setMessage] = React.useState<{ tone: "ok" | "error"; text: string } | null>(null);
   const set = <K extends keyof CmsArticleRecord>(key: K, value: CmsArticleRecord[K]) => setDraft((current) => ({ ...current, [key]: value }));
@@ -58,6 +60,7 @@ export function ArticleEditorView({ article, languages, canPublish, canDelete, a
         seo_description_en: draft.seo_description_en,
         seo_description_ar: draft.seo_description_ar,
       });
+      if (!markSaved({ draft: result.article, tags })) return;
       setMessage({ tone: "ok", text: result.published ? copy.savedPublished : copy.saved });
       if (!draft.id) return router.replace(ROUTES.cms.article(result.article.id));
       setDraft(result.article);
@@ -82,13 +85,14 @@ export function ArticleEditorView({ article, languages, canPublish, canDelete, a
       description: copy.deleteConfirm,
       onConfirm: async () => {
         await deleteCmsArticleAction(draft.id);
+        if (!markSaved()) return;
         router.replace(ROUTES.cms.articles);
       },
     });
   };
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-16">
+    <div inert={!!busy} aria-busy={!!busy} className="space-y-6 max-w-5xl mx-auto pb-16">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link href={ROUTES.cms.articles} className="inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink">
           <ArrowLeft className="w-4 h-4 rtl:rotate-180" />

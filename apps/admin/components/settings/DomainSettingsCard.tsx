@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 
 import * as React from "react";
 import { CheckCircle2, CircleAlert, Globe, Loader2, Save, ShieldCheck } from "lucide-react";
@@ -19,6 +20,7 @@ export function DomainSettingsCard({ initialWebsiteDomain, initialAdminDomain, c
   const { t } = useAdminLocale();
   const copy = t.domains;
   const [values, setValues] = React.useState({ website: initialWebsiteDomain ?? "", admin: initialAdminDomain ?? "" });
+  const markSaved = useUnsavedChanges(values);
   const [saved, setSaved] = React.useState({ website: initialWebsiteDomain ?? "", admin: initialAdminDomain ?? "" });
   const [saving, setSaving] = React.useState(false);
   const [message, setMessage] = React.useState<{ tone: "ok" | "error"; text: string } | null>(null);
@@ -31,6 +33,7 @@ export function DomainSettingsCard({ initialWebsiteDomain, initialAdminDomain, c
     try {
       const result = await saveDomainsAction({ websiteDomain: values.website, adminDomain: values.admin });
       const next = { website: result.websiteDomain, admin: result.adminDomain };
+      markSaved(next);
       setValues(next);
       setSaved(next);
       setChecks({});
@@ -126,7 +129,7 @@ export function DomainSettingsCard({ initialWebsiteDomain, initialAdminDomain, c
   };
 
   return (
-    <Card className={compact ? "p-4 space-y-4" : "p-5 space-y-5"}>
+    <Card inert={saving} aria-busy={saving} className={compact ? "p-4 space-y-4" : "p-5 space-y-5"}>
       <div className="flex items-start gap-3">
         <Globe className="w-5 h-5 text-accent shrink-0 mt-0.5" />
         <div>

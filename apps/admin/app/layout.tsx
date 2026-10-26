@@ -5,6 +5,7 @@ import { companyMetadata } from "../lib/company-metadata";
 import { getCachedCompanySettings } from "../lib/cached-queries";
 import { AdminLocaleProvider } from "../hooks/useAdminLocale";
 import { AdminThemeProvider } from "../hooks/useAdminTheme";
+import { UnsavedChangesProvider } from "../hooks/useUnsavedChanges";
 import { Toaster } from "sonner";
 
 export const generateMetadata = () => companyMetadata();
@@ -34,7 +35,7 @@ export default async function RootLayout({
       <body className="min-h-screen bg-brand-base text-slate-800 dark:text-ink antialiased font-sans selection:bg-accent/30 selection:text-white transition-colors duration-200">
         <AdminThemeProvider defaultTheme={theme.defaultMode}>
           <AdminLocaleProvider activity={company?.business_activity}>
-            <ConfirmationProvider>{children}</ConfirmationProvider>
+            <ConfirmationProvider><UnsavedChangesProvider>{children}</UnsavedChangesProvider></ConfirmationProvider>
             <Toaster richColors closeButton position="top-right" />
           </AdminLocaleProvider>
         </AdminThemeProvider>
