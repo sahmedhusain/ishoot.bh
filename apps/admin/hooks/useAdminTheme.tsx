@@ -1,6 +1,13 @@
 "use client";
 
 import * as React from "react";
+import { MotionConfig } from "framer-motion";
+import {
+  APPEARANCE_STORAGE_KEY,
+  DEFAULT_APPEARANCE,
+  normalizeAdminAppearance,
+  type AdminAppearance,
+} from "../lib/admin-appearance";
 
 export type AdminTheme = "light" | "dark" | "system";
 
@@ -10,6 +17,8 @@ interface AdminThemeContextType {
   theme: AdminTheme;
   resolvedTheme: "light" | "dark";
   setTheme: (theme: AdminTheme) => void;
+  appearance: AdminAppearance;
+  setAppearance: (appearance: AdminAppearance) => void;
 }
 
 const AdminThemeContext = React.createContext<
@@ -24,6 +33,31 @@ export function AdminThemeProvider({
   /** The company's default mode, used until a person picks their own. */
   defaultTheme?: AdminTheme;
 }) {
+  const [appearance, setAppearanceState] = React.useState(DEFAULT_APPEARANCE);
+  const applyAppearance = React.useCallback((value: AdminAppearance) => {
+    setAppearanceState(value);
+    for (const [key, entry] of Object.entries(value))
+      document.documentElement.dataset[key] = entry;
+  }, []);
+  React.useEffect(() => {
+    try {
+      applyAppearance(
+        normalizeAdminAppearance(
+          JSON.parse(localStorage.getItem(APPEARANCE_STORAGE_KEY) || "null"),
+        ),
+      );
+    } catch {
+      applyAppearance(DEFAULT_APPEARANCE);
+    }
+  }, [applyAppearance]);
+  const setAppearance = (value: AdminAppearance) => {
+    const normalized = normalizeAdminAppearance(value);
+    applyAppearance(normalized);
+    try {
+      localStorage.setItem(APPEARANCE_STORAGE_KEY, JSON.stringify(normalized));
+    } catch {}
+  };
+
   const [theme, setThemeState] = React.useState<AdminTheme>(defaultTheme);
   const [resolvedTheme, setResolvedTheme] = React.useState<"light" | "dark">(
     "dark",
@@ -65,7 +99,10 @@ export function AdminThemeProvider({
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = () => {
       const current = localStorage.getItem(STORAGE_KEY) as AdminTheme;
-      if (current === "system") {
+      if (
+        current === "system" ||
+        (current !== "light" && current !== "dark" && defaultTheme === "system")
+      ) {
         applyTheme("system");
       }
     };
@@ -80,8 +117,14 @@ export function AdminThemeProvider({
   };
 
   return (
-    <AdminThemeContext.Provider value={{ theme, resolvedTheme, setTheme }}>
-      {children}
+    <AdminThemeContext.Provider
+      value={{ theme, resolvedTheme, setTheme, appearance, setAppearance }}
+    >
+      <MotionConfig
+        reducedMotion={appearance.motion === "system" ? "user" : "always"}
+      >
+        {children}
+      </MotionConfig>
     </AdminThemeContext.Provider>
   );
 }
@@ -92,7 +135,9 @@ export function useAdminTheme() {
     return {
       theme: "dark" as AdminTheme,
       resolvedTheme: "dark" as "light" | "dark",
-      setTheme: () => { },
+      setTheme: () => {},
+      appearance: DEFAULT_APPEARANCE,
+      setAppearance: () => {},
     };
   }
   return context;

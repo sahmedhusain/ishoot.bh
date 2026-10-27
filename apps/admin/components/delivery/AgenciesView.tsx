@@ -44,10 +44,10 @@ export function AgenciesView({ agencies, unbilled, invoices, currency, canInvoic
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{copy.title}</h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
+          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
         </div>
         {!draft && (
           <Button type="button" size="sm" variant="primary" className="rounded-full gap-1.5" onClick={() => setDraft({ name: "", kind: "manual", trackingUrl: "", phone: "", email: "", fee: "", isActive: true })}>
@@ -87,7 +87,7 @@ export function AgenciesView({ agencies, unbilled, invoices, currency, canInvoic
               <Card className={`p-4 space-y-3 ${a.is_active ? "" : "opacity-60"}`}>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                   <Package className="w-4 h-4 text-accent" aria-hidden="true" />
-                  <span className="font-semibold text-ink">{a.name}</span>
+                  <span className="font-semibold text-ink"><bdi dir="auto">{a.name}</bdi></span>
                   <span className="text-xs text-ink-muted">{(copy.kinds as Record<string, string>)[a.kind]}</span>
                   {a.fee != null && <span className="text-xs text-ink-muted">{money(a.fee)}</span>}
                   <span className="text-xs text-ink-muted">{formatMessage(copy.shipments, { count: a.shipments })}</span>
@@ -103,16 +103,16 @@ export function AgenciesView({ agencies, unbilled, invoices, currency, canInvoic
           ))}
         </ul>
       )}
-      <Card className="p-5 space-y-3">
+      <Card className="p-5 space-y-3" data-page-section>
         <h2 className="font-bold text-ink flex items-center gap-2"><Receipt className="w-4 h-4 text-accent" aria-hidden="true" />{copy.invoices}</h2>
         {invoices.length === 0 ? (
           <p className="text-sm text-ink-muted">{copy.noInvoices}</p>
         ) : (
-          <ul className="divide-y divide-ink/10 text-sm" data-testid="agency-invoices">
+          <ul className="divide-y divide-outline-variant text-sm" data-testid="agency-invoices">
             {invoices.map((i) => (
               <li key={i.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2">
                 <span className="font-semibold">{i.agency}</span>
-                <span className="font-mono text-xs" dir="ltr">{i.reference}</span>
+                <span className="font-mono text-xs" dir="ltr"><bdi dir="ltr">{i.reference}</bdi></span>
                 <span className="text-xs text-ink-muted">{formatDate(i.invoice_date, locale)}</span>
                 <span className="text-xs text-ink-muted">{formatMessage(copy.shipments, { count: i.shipments })}</span>
                 <span className="ms-auto font-semibold">{money(i.amount)}</span>

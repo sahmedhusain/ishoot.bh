@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { SettingsNavTabs } from "./SettingsNavTabs";
-import { formatDate } from "@platform/ui";
+import { Select, formatDate } from "@platform/ui";
 
 interface AuditSessionsViewProps {
   initialLogs: ActivityLog[];
@@ -151,7 +151,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
       <SettingsNavTabs />
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
+        <div data-page-header>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">
             {t.audit.title}
           </h1>
@@ -161,7 +161,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
         <div className="flex items-center gap-2">
           <Badge
             variant="outline"
-            className=" text-xs px-3 py-1 bg-ink/5 border-ink/10"
+            className=" text-xs px-3 py-1 bg-ink/5 border-outline-variant"
           >
             {filteredLogs.length} {t.audit.eventsLogged}
           </Badge>
@@ -169,7 +169,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-5 bg-surface border border-ink/10 rounded-2xl flex items-center gap-4">
+        <Card className="p-5 bg-surface border border-outline-variant rounded-2xl flex items-center gap-4">
           <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
             <CheckCircle2 className="w-5 h-5" />
           </div>
@@ -183,7 +183,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
           </div>
         </Card>
 
-        <Card className="p-5 bg-surface border border-ink/10 rounded-2xl flex items-center gap-4">
+        <Card className="p-5 bg-surface border border-outline-variant rounded-2xl flex items-center gap-4">
           <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent">
             <Laptop className="w-5 h-5" />
           </div>
@@ -195,7 +195,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
           </div>
         </Card>
 
-        <Card className="p-5 bg-surface border border-ink/10 rounded-2xl flex items-center gap-4">
+        <Card className="p-5 bg-surface border border-outline-variant rounded-2xl flex items-center gap-4">
           <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
             <Shield className="w-5 h-5" />
           </div>
@@ -208,7 +208,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
         </Card>
       </div>
 
-      <Card className="p-4 bg-surface border border-ink/10 rounded-2xl space-y-4">
+      <Card className="p-4 bg-surface border border-outline-variant rounded-2xl space-y-4">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div className="relative flex-1">
             <Search className="w-4 h-4 absolute top-1/2 -translate-y-1/2 start-3 text-ink-muted" />
@@ -217,14 +217,14 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
               placeholder={t.audit.searchPlaceholder}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="ps-9 bg-surface-sunken border-ink/10 text-xs w-full"
+              className="ps-9 bg-surface-sunken border-outline-variant text-xs w-full"
             />
           </div>
 
-          <select
+          <Select
             value={selectedAction}
             onChange={(e) => setSelectedAction(e.target.value)}
-            className="px-3 py-2 rounded-xl bg-surface-sunken border border-ink/10 text-xs text-ink focus:outline-none focus:border-accent"
+            className="px-3 py-2 rounded-xl bg-surface-sunken border border-outline-variant text-xs text-ink focus:outline-none focus:border-accent"
           >
             <option value="all">{t.audit.allActions}</option>
             {Array.from(new Set(logs.map((log) => log.action)))
@@ -234,12 +234,12 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
                   {actionLabel(action)}
                 </option>
               ))}
-          </select>
+          </Select>
 
-          <select
+          <Select
             value={selectedEntity}
             onChange={(e) => setSelectedEntity(e.target.value)}
-            className="px-3 py-2 rounded-xl bg-surface-sunken border border-ink/10 text-xs text-ink focus:outline-none focus:border-accent"
+            className="px-3 py-2 rounded-xl bg-surface-sunken border border-outline-variant text-xs text-ink focus:outline-none focus:border-accent"
           >
             <option value="all">{t.audit.allEntities}</option>
             {Array.from(new Set(logs.map((log) => log.entity_type)))
@@ -249,14 +249,14 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
                   {entityLabel(entity)}
                 </option>
               ))}
-          </select>
+          </Select>
         </div>
       </Card>
 
-      <Card className="bg-surface border border-ink/10 rounded-3xl overflow-hidden shadow-2xl">
+      <Card className="bg-surface border border-outline-variant rounded-3xl overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-start">
-            <thead className="bg-surface-sunken border-b border-ink/10 text-ink-muted uppercase  tracking-wider text-[11px]">
+            <thead className="bg-surface-sunken border-b border-outline-variant text-ink-muted uppercase  tracking-wider text-[11px]">
               <tr>
                 <th className="p-4 text-start">{t.audit.userCol}</th>
                 <th className="p-4 text-start">{t.audit.actionCol}</th>
@@ -266,7 +266,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
                 <th className="p-4 text-end">{t.audit.timestampCol}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink/5">
+            <tbody className="divide-y divide-outline-variant">
               {filteredLogs.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-ink-muted">
@@ -281,7 +281,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
                   >
                     <td className="p-4">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-primary border border-accent/40 flex items-center justify-center text-[10px] font-bold text-white  shrink-0">
+                        <div className="w-7 h-7 rounded-lg bg-primary border border-accent/40 flex items-center justify-center text-[10px] font-bold text-primary-foreground  shrink-0">
                           {log.user?.full_name?.slice(0, 2).toUpperCase() ||
                             "SA"}
                         </div>
@@ -290,7 +290,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
                             {log.user?.full_name || t.hrExtensions.unknown}
                           </div>
                           <div className="text-[10px] text-ink-muted ">
-                            {log.user?.email || "—"}
+                            <bdi dir="ltr">{log.user?.email || "—"}</bdi>
                           </div>
                         </div>
                       </div>
@@ -366,7 +366,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
                                   .map((key) => (
                                     <tr
                                       key={key}
-                                      className="align-top border-t border-ink/10"
+                                      className="align-top border-t border-outline-variant"
                                     >
                                       <td className="py-2">
                                         {fieldLabel(key)}
@@ -413,12 +413,12 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
                           )}
                         </details>
                       ) : (
-                        <span className="text-ink-muted/50">—</span>
+                        <span className="text-ink-muted">—</span>
                       )}
                     </td>
 
                     <td className="p-4  text-ink-muted">
-                      <span className="px-2 py-0.5 rounded bg-ink/5 border border-ink/10 text-[11px]">
+                      <span className="px-2 py-0.5 rounded bg-ink/5 border border-outline-variant text-[11px]">
                         {log.ip_address || "—"}
                       </span>
                     </td>

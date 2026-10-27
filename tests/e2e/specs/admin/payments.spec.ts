@@ -1,3 +1,4 @@
+import { selectOption } from "../../select-option";
 import { expect, test } from "@playwright/test";
 import { ports } from "../../../../playwright.config";
 import { testDatabase, watchErrors } from "../../helpers";
@@ -90,9 +91,9 @@ test("a phone order is paid from a payment link and refunded through the gateway
   });
   await page.getByTestId("sale-search").fill(SKU);
   await page.getByTestId("sale-search").press("Enter");
-  await page.getByLabel(copy.pos.channel).selectOption("phone");
+  await selectOption(page.getByLabel(copy.pos.channel), "phone");
   await page.locator('input[name="saleName"]').fill("Link Buyer");
-  await page.getByTestId("sale-paid-with").selectOption("");
+  await selectOption(page.getByTestId("sale-paid-with"), "");
   await page.getByTestId("sale-create").click();
   await expect(page).toHaveURL(/\/dashboard\/orders\/[0-9a-f-]{36}$/, {
     timeout: 60_000,
@@ -158,9 +159,9 @@ test("a bank transfer is recorded on a phone order with the transfer receipt kep
   });
   await page.getByTestId("sale-search").fill(SKU);
   await page.getByTestId("sale-search").press("Enter");
-  await page.getByLabel(copy.pos.channel).selectOption("phone");
+  await selectOption(page.getByLabel(copy.pos.channel), "phone");
   await page.locator('input[name="saleName"]').fill("Transfer Buyer");
-  await page.getByTestId("sale-paid-with").selectOption("");
+  await selectOption(page.getByTestId("sale-paid-with"), "");
   await page.getByTestId("sale-create").click();
   await expect(page).toHaveURL(/\/dashboard\/orders\/[0-9a-f-]{36}$/, {
     timeout: 60_000,
@@ -172,7 +173,7 @@ test("a bank transfer is recorded on a phone order with the transfer receipt kep
   await card
     .locator('input[name="paymentAmount"]')
     .fill(String(Number(order.total)));
-  await card.locator("select").selectOption("bank_transfer");
+  await selectOption(card.locator("select"), "bank_transfer");
   await card.locator('input[name="transferProof"]').setInputFiles({
     name: "transfer.pdf",
     mimeType: "application/pdf",

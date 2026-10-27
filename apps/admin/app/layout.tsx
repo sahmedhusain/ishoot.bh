@@ -1,6 +1,13 @@
 import "./globals.css";
-import { ConfirmationProvider } from "@platform/ui";
-import { googleFontsHref, normalizeTheme, themeStylesheet } from "@platform/database/constants/theme";
+import "./admin-design.css";
+import "./page-regions.css";
+import { appearanceBootstrapScript } from "../lib/admin-appearance";
+import { OverlayScrollbarsProvider, ConfirmationProvider } from "@platform/ui";
+import {
+  googleFontsHref,
+  normalizeTheme,
+  themeStylesheet,
+} from "@platform/database/constants/theme";
 import { companyMetadata } from "../lib/company-metadata";
 import { getCachedCompanySettings } from "../lib/cached-queries";
 import { AdminLocaleProvider } from "../hooks/useAdminLocale";
@@ -21,21 +28,40 @@ export default async function RootLayout({
   const theme = normalizeTheme(company?.theme);
   const fontsHref = googleFontsHref(theme);
   return (
-    <html lang="ar" dir="rtl" className={theme.defaultMode === "light" ? "light" : "dark"}>
+    <html
+      lang="ar"
+      dir="rtl"
+      suppressHydrationWarning
+      className={theme.defaultMode === "light" ? "light" : "dark"}
+    >
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: appearanceBootstrapScript() + `try{var m=localStorage.getItem("platform_admin_theme");if(!["light","dark","system"].includes(m))m=${JSON.stringify(theme.defaultMode)};var d=m==="dark"||(m==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.classList.toggle("light",!d)}catch{}`,
+          }}
+        />
         {fontsHref ? (
           <>
             <link rel="preconnect" href="https://fonts.googleapis.com" />
-            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+            <link
+              rel="preconnect"
+              href="https://fonts.gstatic.com"
+              crossOrigin=""
+            />
             <link rel="stylesheet" href={fontsHref} />
           </>
         ) : null}
-        <style id="company-theme" dangerouslySetInnerHTML={{ __html: themeStylesheet(theme) }} />
+        <style
+          id="company-theme"
+          dangerouslySetInnerHTML={{ __html: themeStylesheet(theme) }}
+        />
       </head>
-      <body className="min-h-screen bg-brand-base text-slate-800 dark:text-ink antialiased font-sans selection:bg-accent/30 selection:text-white transition-colors duration-200">
+      <body data-admin-app className="min-h-screen bg-surface text-ink antialiased font-sans selection:bg-secondary-container selection:text-on-secondary-container transition-colors duration-base ease-standard">
         <AdminThemeProvider defaultTheme={theme.defaultMode}>
           <AdminLocaleProvider activity={company?.business_activity}>
-            <ConfirmationProvider><UnsavedChangesProvider>{children}</UnsavedChangesProvider></ConfirmationProvider>
+            <ConfirmationProvider>
+              <UnsavedChangesProvider><OverlayScrollbarsProvider />{children}</UnsavedChangesProvider>
+            </ConfirmationProvider>
             <Toaster richColors closeButton position="top-right" />
           </AdminLocaleProvider>
         </AdminThemeProvider>

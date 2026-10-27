@@ -4,6 +4,7 @@ import * as React from "react";
 import { Modal } from "./modal";
 import { Button } from "./button";
 import { Input } from "./input";
+import { AlertTriangle, ShieldAlert } from "lucide-react";
 
 export interface ConfirmDialogProps {
   isOpen: boolean;
@@ -75,7 +76,7 @@ export function ConfirmDialog({
   const isDanger = variant === "danger";
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title} busy={isSubmitting || loading} description={description} className="max-w-lg" footer={
+    <Modal kind="confirmation" icon={isDanger ? <ShieldAlert className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />} isOpen={isOpen} onClose={onClose} title={title} busy={isSubmitting || loading} description={description} className="max-w-lg" footer={
       <div className="flex flex-wrap items-center justify-end gap-3">
         <Button
           type="button"

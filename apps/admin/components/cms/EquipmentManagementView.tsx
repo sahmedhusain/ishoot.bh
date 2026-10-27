@@ -24,6 +24,8 @@ interface EquipmentManagementViewProps {
 export function EquipmentManagementView({
   initialEquipment,
 }: EquipmentManagementViewProps) {
+  const modalFormId = React.useId();
+
   const { t, locale } = useAdminLocale();
   const [equipment, setEquipment] =
     React.useState<StudioEquipment[]>(initialEquipment);
@@ -110,7 +112,7 @@ export function EquipmentManagementView({
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">
             {t.cms.equipmentTitle}
@@ -138,8 +140,8 @@ export function EquipmentManagementView({
             key={c.value}
             onClick={() => setSelectedCategory(c.value)}
             className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${selectedCategory === c.value
-              ? "bg-accent text-white shadow-lg shadow-accent/20"
-              : "bg-surface border border-ink/10 text-ink-muted hover:text-ink hover:border-ink/20"
+              ? "bg-accent text-accent-foreground shadow-lg shadow-accent/20"
+              : "bg-surface border border-outline-variant text-ink-muted hover:text-ink hover:border-outline-variant"
               }`}
           >
             {c.label}
@@ -147,9 +149,9 @@ export function EquipmentManagementView({
         ))}
       </div>
 
-      <div className="bg-surface border border-ink/10 rounded-3xl overflow-hidden shadow-xl">
+      <div className="bg-surface border border-outline-variant rounded-3xl overflow-x-auto shadow-sm">
         <table className="w-full text-start text-xs">
-          <thead className="bg-surface-sunken border-b border-ink/10 text-ink-muted uppercase  tracking-wider">
+          <thead className="bg-surface-sunken border-b border-outline-variant text-ink-muted uppercase  tracking-wider">
             <tr>
               <th className="p-4 text-start">{t.equipmentView.category}</th>
               <th className="p-4 text-start">{t.equipmentView.modelName}</th>
@@ -158,7 +160,7 @@ export function EquipmentManagementView({
               <th className="p-4 text-end">{t.equipmentView.actions}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-ink/5">
+          <tbody className="divide-y divide-outline-variant">
             {filteredItems.map((eq) => (
               <tr
                 key={eq.id}
@@ -212,37 +214,56 @@ export function EquipmentManagementView({
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingId ? t.equipmentView.editEquipment : t.actions.addEquipment}
-      >
-        <form onSubmit={handleSave} className="space-y-4">
+       footer={<div className="flex justify-end gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsModalOpen(false)}
+            >
+              {t.actions.cancel}
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              disabled={saving}
+              className="gap-1.5"
+             form={modalFormId}>
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>{t.actions.save}</span>
+            </Button>
+          </div>}>
+        <form onSubmit={handleSave} className="space-y-4" id={modalFormId}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs text-ink mb-1.5 block">
+            <label>
+              <span className="text-xs text-ink mb-1.5 block">
                 {t.equipmentView.modelNameEnLabel}
-              </label>
+              </span>
               <Input
                 value={modelName}
                 onChange={(e) => setModelName(e.target.value)}
                 placeholder={t.equipmentView.modelNamePlaceholder}
                 required
               />
-            </div>
-            <div>
-              <label className="text-xs text-ink mb-1.5 block">
+            </label>
+            <label>
+              <span className="text-xs text-ink mb-1.5 block">
                 {t.equipmentView.itemNameArLabel}
-              </label>
+              </span>
               <Input
                 value={nameAr}
                 onChange={(e) => setNameAr(e.target.value)}
                 placeholder={t.equipmentView.itemNamePlaceholder}
-              />
-            </div>
+               dir="rtl"/>
+            </label>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs text-ink mb-1.5 block">
+            <label>
+              <span className="text-xs text-ink mb-1.5 block">
                 {t.equipmentView.category}
-              </label>
+              </span>
               <Select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as any)}
@@ -266,35 +287,35 @@ export function EquipmentManagementView({
                   {t.equipmentView.categories.drones}
                 </option>
               </Select>
-            </div>
-            <div>
-              <label className="text-xs text-ink mb-1.5 block">
+            </label>
+            <label>
+              <span className="text-xs text-ink mb-1.5 block">
                 {t.equipmentView.brand}
-              </label>
+              </span>
               <Input
                 value={brand}
                 onChange={(e) => setBrand(e.target.value)}
                 placeholder={t.equipmentView.brandPlaceholder}
               />
-            </div>
+            </label>
           </div>
 
-          <div>
-            <label className="text-xs text-ink mb-1.5 block">
+          <label>
+            <span className="text-xs text-ink mb-1.5 block">
               {t.equipmentView.specs}
-            </label>
+            </span>
             <Input
               value={specification}
               onChange={(e) => setSpecification(e.target.value)}
               placeholder={t.equipmentView.specsPlaceholder}
             />
-          </div>
+          </label>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs text-ink mb-1.5 block">
+            <label>
+              <span className="text-xs text-ink mb-1.5 block">
                 {t.equipmentView.availableQty}
-              </label>
+              </span>
               <Input
                 type="number"
                 value={quantity}
@@ -302,29 +323,10 @@ export function EquipmentManagementView({
                 min={1}
                 required
               />
-            </div>
+            </label>
           </div>
 
-          <div className="pt-4 flex justify-end gap-3 border-t border-ink/10">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setIsModalOpen(false)}
-            >
-              {t.actions.cancel}
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              size="sm"
-              disabled={saving}
-              className="gap-1.5"
-            >
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>{t.actions.save}</span>
-            </Button>
-          </div>
+
         </form>
       </Modal>
 

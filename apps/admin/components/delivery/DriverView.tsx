@@ -20,9 +20,9 @@ export function DriverView({ stops, linked }: { stops: DriverStop[]; linked: boo
   const copy = t.delivery.driverView;
   return (
     <div className="space-y-4 max-w-xl mx-auto pb-16">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{copy.title}</h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">{copy.subtitle}</p>
+      <div data-page-header>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
+        <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 leading-relaxed">{copy.subtitle}</p>
       </div>
       {!linked ? (
         <Card className="p-6 text-sm text-ink-muted">{copy.notDriver}</Card>
@@ -93,8 +93,8 @@ function StopCard({ stop }: { stop: DriverStop }) {
           {stop.cod_amount > 0 && <p className="mt-1 text-sm font-bold text-amber-700 dark:text-amber-300">{formatMessage(copy.collect, { amount: money(stop.cod_amount) })}</p>}
         </div>
         <div className="grid grid-cols-2 gap-2">
-          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-1.5 rounded-full border border-ink/15 h-10 text-sm font-medium"><Navigation className="w-4 h-4" aria-hidden="true" />{copy.navigate}</a>
-          <a href={`tel:${stop.phone.replace(/[^\d+]/g, "")}`} className="inline-flex items-center justify-center gap-1.5 rounded-full border border-ink/15 h-10 text-sm font-medium"><Phone className="w-4 h-4" aria-hidden="true" />{copy.call}</a>
+          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-1.5 rounded-full border border-outline-variant h-10 text-sm font-medium"><Navigation className="w-4 h-4" aria-hidden="true" />{copy.navigate}</a>
+          <a href={`tel:${stop.phone.replace(/[^\d+]/g, "")}`} className="inline-flex items-center justify-center gap-1.5 rounded-full border border-outline-variant h-10 text-sm font-medium"><Phone className="w-4 h-4" aria-hidden="true" />{copy.call}</a>
         </div>
         {mode === "idle" && (
           <div className="grid grid-cols-2 gap-2">
@@ -110,7 +110,7 @@ function StopCard({ stop }: { stop: DriverStop }) {
         )}
         {mode === "deliver" && (
           <div className="space-y-3 rounded-xl bg-ink/[0.03] p-3">
-            <label className={`flex items-center justify-center gap-2 rounded-full border h-11 text-sm font-medium cursor-pointer ${photoUrl ? "border-emerald-500 text-emerald-700 dark:text-emerald-300" : "border-ink/15"}`}>
+            <label className={`flex items-center justify-center gap-2 rounded-full border h-11 text-sm font-medium cursor-pointer ${photoUrl ? "border-emerald-500 text-emerald-700 dark:text-emerald-300" : "border-outline-variant"}`}>
               <Camera className="w-4 h-4" aria-hidden="true" />
               {photoUrl ? copy.photoTaken : copy.photo}
               <input type="file" accept="image/jpeg,image/png,image/webp" capture="environment" className="sr-only" name="deliveryPhoto" onChange={(e) => void takePhoto(e.target.files?.[0])} />

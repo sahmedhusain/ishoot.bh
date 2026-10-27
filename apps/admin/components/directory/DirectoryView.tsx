@@ -1,5 +1,6 @@
 "use client";
 
+import { Select } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import Link from "next/link";
@@ -46,10 +47,10 @@ export function DirectoryView({
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
+        <div data-page-header>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display flex items-center gap-2">
             <Users className="w-7 h-7 text-accent" />
-            {d.title}
+            <bdi dir="auto">{d.title}</bdi>
           </h1>
           <p className="text-xs text-ink-muted mt-1">{formatMessage(d.subtitle, { count: String(total) })}</p>
         </div>
@@ -62,15 +63,15 @@ export function DirectoryView({
               aria-label={d.search}
               placeholder={d.search}
               defaultValue={filters.q}
-              className="ps-9 pe-3 py-2 rounded-full border border-ink/15 bg-surface text-sm text-ink w-60"
+              className="ps-9 pe-3 py-2 rounded-full border border-outline-variant bg-surface text-sm text-ink w-60"
             />
           </label>
-          <select name="departmentId" aria-label={d.department} defaultValue={filters.departmentId} className="px-3 py-2 rounded-full border border-ink/15 bg-surface text-sm text-ink">
+          <Select name="departmentId" aria-label={d.department} defaultValue={filters.departmentId} className="px-3 py-2 rounded-full border border-outline-variant bg-surface text-sm text-ink">
             <option value="all">{d.allDepartments}</option>
             {departments.map((dep) => <option key={dep.id} value={dep.id}>{ar ? dep.name_ar : dep.name_en}</option>)}
-          </select>
-          <button type="submit" className="px-4 py-2 rounded-full bg-primary text-white text-sm font-semibold">{t.actions.search}</button>
-          <Link href={ROUTES.orgChart} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-ink/15 text-sm font-semibold text-ink hover:bg-ink/5 transition-colors">
+          </Select>
+          <button type="submit" className="px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-semibold">{t.actions.search}</button>
+          <Link href={ROUTES.orgChart} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-outline-variant text-sm font-semibold text-ink hover:bg-ink/5 transition-colors">
             <Network className="w-4 h-4 text-accent" />
             {d.orgChart}
           </Link>
@@ -78,13 +79,13 @@ export function DirectoryView({
       </div>
 
       {visible.length === 0 ? (
-        <p className="p-12 text-center text-sm text-ink-muted rounded-3xl border border-ink/10 bg-surface">{d.empty}</p>
+        <p className="p-12 text-center text-sm text-ink-muted rounded-3xl border border-outline-variant bg-surface">{d.empty}</p>
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {visible.map((e) => {
             const phone = e.phone?.replace(/[^\d+]/g, "");
             return (
-              <li key={e.id} className="rounded-3xl border border-ink/10 bg-surface p-5 flex flex-col gap-4">
+              <li key={e.id} className="rounded-3xl border border-outline-variant bg-surface p-5 flex flex-col gap-4">
                 <div className="flex items-start gap-3">
                   <div className="w-12 h-12 rounded-full bg-accent/15 text-accent font-bold flex items-center justify-center overflow-hidden shrink-0">
                     {e.avatarUrl ? <ContentImage src={e.avatarUrl} alt="" className="w-full h-full object-cover" /> : initials(e.name)}
@@ -107,7 +108,7 @@ export function DirectoryView({
                 {e.manager && <div className="text-[11px] text-ink-muted">{formatMessage(d.reportsTo, { name: e.manager })}</div>}
                 <div className="flex flex-wrap gap-2 mt-auto">
                   {phone && (
-                    <a href={`tel:${phone}`} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent text-white text-xs font-semibold">
+                    <a href={`tel:${phone}`} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent text-accent-foreground text-xs font-semibold">
                       <Phone className="w-3.5 h-3.5" />
                       {d.call}
                     </a>
@@ -118,9 +119,9 @@ export function DirectoryView({
                       {t.copy.whatsapp}</a>
                   )}
                   {e.email && (
-                    <a href={`mailto:${e.email}`} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-ink/15 text-ink text-xs font-semibold" title={e.email}>
+                    <a href={`mailto:${e.email}`} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-outline-variant text-ink text-xs font-semibold" title={e.email}>
                       <Mail className="w-3.5 h-3.5" />
-                      {d.email}
+                      <bdi dir="ltr">{d.email}</bdi>
                     </a>
                   )}
                 </div>

@@ -84,8 +84,8 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Link href={ROUTES.expenses.list()} aria-label={t.actions.back} className="rounded-full border border-ink/15 p-2 text-ink-muted hover:text-ink">
+        <div className="flex items-center gap-3" data-page-header>
+          <Link href={ROUTES.expenses.list()} aria-label={t.actions.back} className="rounded-full border border-outline-variant p-2 text-ink-muted hover:text-ink">
             <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
           </Link>
           <div>
@@ -105,7 +105,7 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
           [c.stats.yearly, money(monthly * 12)],
           [c.stats.dueSoon, String(dueSoon.length), overdue.length ? "text-rose-600 dark:text-rose-300" : ""],
         ].map(([label, value, tone]) => (
-          <div key={label} className="rounded-2xl border border-ink/10 bg-white dark:bg-surface-raised p-4">
+          <div key={label} className="rounded-2xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-4">
             <div className="text-[11px] text-ink-muted">{label}</div>
             <div className={`mt-1 text-lg font-bold tabular-nums ${tone || "text-ink"}`}>{value}</div>
           </div>
@@ -113,13 +113,13 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
       </div>
 
       {editing ? (
-        <section className="rounded-3xl border border-accent/30 bg-accent/5 p-5 space-y-4">
+        <section className="rounded-3xl border border-accent/30 bg-accent/5 p-5 space-y-4" data-page-section>
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold text-ink">{editing.id ? c.edit : c.add}</h2>
             <button type="button" aria-label={t.actions.cancel} onClick={() => setEditing(null)} className="rounded-lg p-1 text-ink-muted hover:text-ink"><X className="h-4 w-4" /></button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Field label={c.fields.titleEn}><Input value={editing.value.title_en} onChange={(e) => set("title_en", e.target.value)} placeholder={c.fields.titlePlaceholder} /></Field>
+            <Field label={c.fields.titleEn}><Input value={editing.value.title_en} onChange={(e) => set("title_en", e.target.value)} placeholder={c.fields.titlePlaceholder}  dir="ltr"/></Field>
             <Field label={c.fields.titleAr}><Input dir="rtl" value={editing.value.title_ar ?? ""} onChange={(e) => set("title_ar", e.target.value)} /></Field>
             <Field label={c.fields.category}>
               <Select value={editing.value.category_id ?? ""} onChange={(e) => set("category_id", e.target.value)}>
@@ -155,7 +155,7 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
                 type="button"
                 aria-pressed={editing.value.auto_record === auto}
                 onClick={() => set("auto_record", auto)}
-                className={`rounded-2xl border p-3 text-start ${editing.value.auto_record === auto ? "border-accent bg-white dark:bg-surface ring-2 ring-accent/20" : "border-ink/15"}`}
+                className={`rounded-2xl border p-3 text-start ${editing.value.auto_record === auto ? "border-accent bg-surface-raised dark:bg-surface ring-2 ring-accent/20" : "border-outline-variant"}`}
               >
                 <span className="flex items-center gap-2 text-sm font-bold text-ink">{auto ? <Zap className="h-4 w-4 text-accent" /> : <AlarmClock className="h-4 w-4 text-accent" />}{auto ? c.modes.auto : c.modes.manual}</span>
                 <span className="mt-0.5 block text-[11px] text-ink-muted">{auto ? c.modes.autoHint : c.modes.manualHint}</span>
@@ -174,7 +174,7 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
       ) : null}
 
       {items.length === 0 && !editing ? (
-        <div className="rounded-3xl border border-dashed border-ink/15 p-10 text-center">
+        <div className="rounded-3xl border border-dashed border-outline-variant p-10 text-center">
           <CalendarClock className="mx-auto h-8 w-8 text-ink-muted" />
           <p className="mt-2 text-sm font-semibold text-ink">{c.empty}</p>
           <p className="text-xs text-ink-muted">{c.emptyHint}</p>
@@ -182,7 +182,7 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
       ) : null}
 
       {items.length ? (
-        <div className="rounded-3xl border border-ink/10 bg-white dark:bg-surface-raised overflow-hidden">
+        <div className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-ink/[0.03] text-[11px] text-ink-muted">
@@ -194,7 +194,7 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
                   <th className="px-4 py-3"><span className="sr-only">{c.columns.actions}</span></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink/5">
+              <tbody className="divide-y divide-outline-variant">
                 {items.map((r) => (
                   <tr key={r.id} className={`align-top ${r.is_active ? "" : "opacity-60"}`}>
                     <td className="px-4 py-3 min-w-56">
@@ -229,8 +229,8 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
                       {canWrite ? (
                         recording?.id === r.id ? (
                           <span className="inline-flex items-center gap-1.5">
-                            <input aria-label={c.actualAmount} type="number" min={0.001} step="0.001" dir="ltr" className="h-8 w-24 rounded-lg border border-ink/15 bg-surface-sunken/60 px-2 text-xs" value={recording.amount} onChange={(e) => setRecording({ id: r.id, amount: e.target.value })} />
-                            <button type="button" disabled={busy} onClick={() => run(() => recordRecurringExpenseAction(r.id, Number(recording.amount) !== r.amount ? { amount: Number(recording.amount) } : {}), c.recorded, () => setRecording(null))} className="rounded-lg bg-primary px-2.5 py-1.5 text-[11px] font-semibold text-white">{c.confirmRecord}</button>
+                            <input aria-label={c.actualAmount} type="number" min={0.001} step="0.001" dir="ltr" className="h-8 w-24 rounded-lg border border-outline-variant bg-surface-sunken/60 px-2 text-xs" value={recording.amount} onChange={(e) => setRecording({ id: r.id, amount: e.target.value })} />
+                            <button type="button" disabled={busy} onClick={() => run(() => recordRecurringExpenseAction(r.id, Number(recording.amount) !== r.amount ? { amount: Number(recording.amount) } : {}), c.recorded, () => setRecording(null))} className="rounded-lg bg-primary px-2.5 py-1.5 text-[11px] font-semibold text-primary-foreground">{c.confirmRecord}</button>
                             <button type="button" aria-label={t.actions.cancel} onClick={() => setRecording(null)} className="rounded-lg p-1.5 text-ink-muted"><X className="h-3.5 w-3.5" /></button>
                           </span>
                         ) : (
@@ -255,7 +255,7 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
               </tbody>
             </table>
           </div>
-          <p className="border-t border-ink/10 px-4 py-3 text-[11px] text-ink-muted">{c.footnote}</p>
+          <p className="border-t border-outline-variant px-4 py-3 text-[11px] text-ink-muted">{c.footnote}</p>
         </div>
       ) : null}
     </div>

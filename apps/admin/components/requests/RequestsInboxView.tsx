@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, Search, AlarmClock, ChevronRight, Download, SlidersHorizontal, X } from "lucide-react";
-import { Button, Card, DateDisplay } from "@platform/ui";
+import { Select, Button, Card, DateDisplay } from "@platform/ui";
 import type { RequestListRow } from "@platform/database";
 import { REQUEST_DUE_FILTERS, REQUEST_KINDS, REQUEST_PRIORITIES, REQUEST_SORTS, REQUEST_SOURCES, REQUEST_TEAMS } from "@platform/database/constants/requests";
 import { ROUTES } from "../../constants/routes";
@@ -81,18 +81,18 @@ export function RequestsInboxView({
     ["mine", { scope: "mine" }],
     ["resolvedThisMonth", { status: "resolved" }],
   ];
-  const select = "rounded-xl border border-ink/15 bg-surface px-3 py-2 text-xs text-ink";
+  const select = "rounded-xl border border-outline-variant bg-surface px-3 py-2 text-xs text-ink";
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4" data-page-header>
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-ink font-display">{copy.title}</h1>
           <p className="text-sm text-ink-muted mt-1">{copy.subtitle}</p>
         </div>
         <div className="flex items-center gap-2">
           {canExport && (
-            <a href={`/api/exports/requests?${params({}).toString()}`} className="inline-flex items-center gap-1.5 h-9 rounded-full border border-ink/15 px-4 text-xs font-semibold text-ink hover:bg-ink/5">
+            <a href={`/api/exports/requests?${params({}).toString()}`} className="inline-flex items-center gap-1.5 h-9 rounded-full border border-outline-variant px-4 text-xs font-semibold text-ink hover:bg-ink/5">
               <Download className="w-3.5 h-3.5" />
               {copy.export}
             </a>
@@ -107,7 +107,7 @@ export function RequestsInboxView({
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {tiles.map(([key, patch]) => (
-          <Link key={key} href={href({ ...patch, page: 1 })} className="rounded-2xl border border-ink/10 bg-surface p-4 hover:border-accent/50 transition-colors">
+          <Link key={key} href={href({ ...patch, page: 1 })} className="rounded-2xl border border-outline-variant bg-surface p-4 hover:border-accent/50 transition-colors">
             <div className="text-[11px] text-ink-muted">{copy.stats[key]}</div>
             <div className={`text-2xl font-bold ${key === "overdue" && stats.overdue ? "text-rose-500" : "text-ink"}`}>{stats[key]}</div>
           </Link>
@@ -115,7 +115,7 @@ export function RequestsInboxView({
       </div>
 
       <form
-        className="rounded-2xl border border-ink/10 bg-surface p-3 space-y-2"
+        className="rounded-2xl border border-outline-variant bg-surface p-3 space-y-2"
         onSubmit={(e) => {
           e.preventDefault();
           const data = new FormData(e.currentTarget);
@@ -125,33 +125,33 @@ export function RequestsInboxView({
         }}
       >
         {filters.customerId ? <input type="hidden" name="customerId" value={filters.customerId} /> : null}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2" data-page-toolbar>
           <label className="relative flex-1 min-w-[200px]">
             <Search className="w-3.5 h-3.5 absolute start-3 top-2.5 text-ink-muted" />
             <input name="search" defaultValue={filters.search} placeholder={copy.filters.search} aria-label={copy.filters.search} className={`${select} w-full ps-8`} />
           </label>
-          <select name="kind" defaultValue={filters.kind} aria-label={copy.filters.kind} className={select}>
+          <Select name="kind" defaultValue={filters.kind} aria-label={copy.filters.kind} className={select}>
             <option value="all">{copy.kinds.all}</option>
             {REQUEST_KINDS.map((k) => <option key={k} value={k}>{copy.kinds[k]}</option>)}
-          </select>
-          <select name="status" defaultValue={filters.status} aria-label={copy.filters.status} className={select}>
+          </Select>
+          <Select name="status" defaultValue={filters.status} aria-label={copy.filters.status} className={select}>
             <option value="open">{copy.statuses.open}</option>
             <option value="all">{copy.statuses.all}</option>
             {WORKFLOW.map((s) => <option key={s} value={s}>{t.requestLabels.workflow[s]}</option>)}
-          </select>
-          <select name="scope" defaultValue={filters.scope} aria-label={copy.filters.scope} className={select}>
+          </Select>
+          <Select name="scope" defaultValue={filters.scope} aria-label={copy.filters.scope} className={select}>
             {(["all", "mine", "unassigned"] as const).map((s) => <option key={s} value={s}>{copy.scopes[s]}</option>)}
-          </select>
+          </Select>
           <label className="flex items-center gap-1.5 text-xs text-ink-muted">
             <span className="hidden sm:inline">{copy.filters.sort}</span>
-            <select name="sort" defaultValue={filters.sort} aria-label={copy.filters.sort} className={select}>
+            <Select name="sort" defaultValue={filters.sort} aria-label={copy.filters.sort} className={select}>
               {REQUEST_SORTS.map((s) => <option key={s} value={s}>{copy.sorts[s]}</option>)}
-            </select>
+            </Select>
           </label>
           <button type="button" onClick={() => setShowMore((v) => !v)} aria-expanded={showMore} className={`${select} inline-flex items-center gap-1.5 font-semibold`}>
             <SlidersHorizontal className="w-3.5 h-3.5" />
             {copy.filters.more}
-            {activeMore ? <span className="rounded-full bg-accent px-1.5 text-[10px] text-white">{activeMore}</span> : null}
+            {activeMore ? <span className="rounded-full bg-accent px-1.5 text-[10px] text-accent-foreground">{activeMore}</span> : null}
           </button>
           <Button type="submit" size="sm">{copy.filters.apply}</Button>
           {filtered ? (
@@ -161,27 +161,27 @@ export function RequestsInboxView({
           ) : null}
         </div>
         {showMore ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 border-t border-ink/10 pt-2">
-            <select name="team" defaultValue={filters.team} aria-label={copy.filters.team} className={select}>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 border-t border-outline-variant pt-2">
+            <Select name="team" defaultValue={filters.team} aria-label={copy.filters.team} className={select}>
               <option value="all">{t.requestLabels.teams.all}</option>
               {REQUEST_TEAMS.map((team) => <option key={team} value={team}>{t.requestLabels.teams[team]}</option>)}
-            </select>
-            <select name="priority" defaultValue={filters.priority} aria-label={copy.filters.priority} className={select}>
+            </Select>
+            <Select name="priority" defaultValue={filters.priority} aria-label={copy.filters.priority} className={select}>
               <option value="all">{copy.anyPriority}</option>
               {REQUEST_PRIORITIES.map((p) => <option key={p} value={p}>{t.requestLabels.priority[p]}</option>)}
-            </select>
-            <select name="assignee" defaultValue={filters.assignee} aria-label={copy.filters.assignee} className={select}>
+            </Select>
+            <Select name="assignee" defaultValue={filters.assignee} aria-label={copy.filters.assignee} className={select}>
               <option value="all">{copy.filters.anyAssignee}</option>
               {staff.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
-            </select>
-            <select name="source" defaultValue={filters.source} aria-label={copy.filters.source} className={select}>
+            </Select>
+            <Select name="source" defaultValue={filters.source} aria-label={copy.filters.source} className={select}>
               <option value="all">{copy.filters.anySource}</option>
               {REQUEST_SOURCES.map((source) => <option key={source} value={source}>{copy.sources[source]}</option>)}
-            </select>
-            <select name="due" defaultValue={filters.due} aria-label={copy.filters.due} className={select}>
+            </Select>
+            <Select name="due" defaultValue={filters.due} aria-label={copy.filters.due} className={select}>
               <option value="all">{copy.filters.anyDue}</option>
               {REQUEST_DUE_FILTERS.map((d) => <option key={d} value={d}>{copy.dues[d]}</option>)}
-            </select>
+            </Select>
             <label className="flex flex-col gap-0.5 text-[10px] text-ink-muted">
               {copy.filters.from}
               <input type="date" name="from" defaultValue={filters.from} className={select} />
@@ -209,18 +209,18 @@ export function RequestsInboxView({
                 <th className="px-4 py-3" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink/5">
+            <tbody className="divide-y divide-outline-variant">
               {rows.length === 0 && (
                 <tr><td colSpan={8} className="px-4 py-12 text-center text-ink-muted">{copy.empty}</td></tr>
               )}
               {rows.map((row) => (
                 <tr key={row.id} onClick={() => router.push(ROUTES.requests.detail(row.id))} className="cursor-pointer hover:bg-ink/5">
                   <td className="px-4 py-3 align-top">
-                    <div className="font-mono text-xs text-ink">{row.reference}</div>
+                    <div className="font-mono text-xs text-ink"><bdi dir="ltr">{row.reference}</bdi></div>
                     <div className="mt-1"><RequestTypeBadge type={KIND_TO_TYPE[row.kind]} size="sm" /></div>
                   </td>
                   <td className="px-4 py-3 align-top">
-                    <div className="font-medium text-ink">{row.title}</div>
+                    <div className="font-medium text-ink"><bdi dir="auto">{row.title}</bdi></div>
                     <div className="text-xs text-ink-muted">{row.customer}</div>
                   </td>
                   <td className="px-4 py-3 align-top whitespace-nowrap"><RequestPriorityBadge priority={row.priority} /></td>
@@ -252,7 +252,7 @@ export function RequestsInboxView({
           </table>
         </div>
         {pages > 1 && (
-          <div className="flex items-center justify-between border-t border-ink/10 px-4 py-3 text-xs text-ink-muted">
+          <div className="flex items-center justify-between border-t border-outline-variant px-4 py-3 text-xs text-ink-muted">
             <span>{page} / {pages} · {total}</span>
             <span className="flex gap-3">
               {page > 1 && <Link href={href({ page: page - 1 })}>{copy.previous}</Link>}

@@ -71,9 +71,9 @@ export function AdminProfileDropdown() {
         aria-haspopup="menu"
         aria-expanded={menu.open}
         aria-controls="account-menu"
-        className="flex h-9 items-center gap-2 rounded-full px-1.5 text-ink hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="flex h-10 items-center gap-2 rounded-full px-1.5 text-ink hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white">
+        <span aria-hidden className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
           {user?.fullName?.trim().charAt(0) ?? (
             <UserRound className="h-4 w-4" />
           )}
@@ -90,18 +90,18 @@ export function AdminProfileDropdown() {
           aria-label={p.title}
           ref={menu.panelRef}
           onKeyDown={menu.onKeyDown}
-          className="absolute end-0 top-full z-50 mt-3 w-72 overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-xl dark:bg-surface-raised max-sm:fixed max-sm:inset-x-3 max-sm:top-16 max-sm:mt-0 max-sm:w-auto"
+          className="admin-popover absolute end-0 top-full z-50 mt-3 w-80 max-sm:fixed max-sm:inset-x-3 max-sm:mt-0 max-sm:w-auto"
         >
-          <div className="border-b border-ink/10 px-4 py-4">
+          <div data-popup-header className="admin-popover-header">
             <p className="truncate text-sm font-semibold text-ink">
-              {user?.fullName ?? t.profileDropdown.adminUser}
+              <bdi dir="auto">{user?.fullName ?? t.profileDropdown.adminUser}</bdi>
             </p>
             <p className="mt-1 truncate text-xs text-ink-muted" dir="ltr">
-              {user?.email}
+              <bdi dir="ltr">{user?.email}</bdi>
             </p>
             <p className="mt-2 text-xs text-primary dark:text-mint">{role}</p>
           </div>
-          <div className="p-2">
+          <div className="admin-popover-body">
             {links.map(({ href, label, icon: Icon }) => (
               <Link
                 key={href}
@@ -115,7 +115,7 @@ export function AdminProfileDropdown() {
               </Link>
             ))}
           </div>
-          <div className="border-t border-ink/10 p-2">
+          <div data-popup-footer className="admin-popover-footer">
             <button
               role="menuitem"
               type="button"

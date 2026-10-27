@@ -8,6 +8,7 @@ export * from "./select";
 export * from "./currency-display";
 export * from "./date-display";
 export * from "./status-badge";
+export * from "./segmented-button";
 export * from "./modal";
 export * from "./confirm-destructive";
 export * from "./separator";
@@ -16,3 +17,7 @@ export * from "./count-up";
 export * from "./proof-uploader";
 export * from "./visual-analytics/cash-flow-chart";
 export * from "./visual-analytics/lead-funnel-chart";
+
+export * from "./overlay-scrollbars";
+
+export * from "./floating-surface";

@@ -33,12 +33,12 @@ export function ModulesManagementView({ initialToggles }: ModulesManagementViewP
   };
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+    <div className="space-y-6 max-w-5xl mx-auto pb-16" >
+      <div data-page-header>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">
           {t.modulesView.title}
         </h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+        <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 leading-relaxed">
           {t.modulesView.subtitle}
         </p>
       </div>
@@ -58,20 +58,20 @@ export function ModulesManagementView({ initialToggles }: ModulesManagementViewP
           <Card
             key={toggle.id}
             className={`p-5 transition-all ${toggle.isEnabled
-              ? "bg-white dark:bg-surface-raised border-slate-200 dark:border-accent/30"
-              : "bg-slate-50 dark:bg-surface-sunken border-slate-200 dark:border-white/10 opacity-70"
+              ? "bg-surface-raised dark:bg-surface-raised border-outline-variant dark:border-accent/30"
+              : "bg-surface-raised dark:bg-surface-sunken border-outline-variant dark:border-white/10 opacity-70"
               }`}
           >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 className="font-bold text-slate-900 dark:text-white">
+                <h3 className="font-bold text-ink dark:text-ink">
                   {isRTL ? toggle.nameAr : toggle.nameEn}
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-ink-muted  mt-1">
+                <p className="text-xs text-ink-muted dark:text-ink-muted  mt-1">
                   {t.copy.idLabel}{toggle.moduleKey}
                 </p>
                 {toggle.description && (
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
+                  <p className="text-xs text-ink-muted dark:text-ink-muted mt-2">
                     {toggle.description}
                   </p>
                 )}
@@ -82,7 +82,7 @@ export function ModulesManagementView({ initialToggles }: ModulesManagementViewP
                 disabled={loadingId === toggle.moduleKey}
                 className={`p-1 -m-1 transition-colors ${toggle.isEnabled
                   ? "text-accent hover:text-primary"
-                  : "text-slate-300 dark:text-slate-600 hover:text-slate-400 dark:hover:text-slate-500"
+                  : "text-ink dark:text-ink-muted hover:text-ink-muted dark:hover:text-ink-muted"
                   }`}
               >
                 {loadingId === toggle.moduleKey ? (

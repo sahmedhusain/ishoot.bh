@@ -44,11 +44,11 @@ export function ServiceReplyPanel({ requestId, customerLocale, hasEmail, hasPhon
     }
   };
   return (
-    <Card className="p-5 space-y-4 max-w-5xl mx-auto" data-testid="service-reply">
+    <Card className="p-5 space-y-4 max-w-5xl mx-auto" data-testid="service-reply" data-page-section>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-bold text-ink">{copy.title}</h2>
         {order && (
-          <Link href={ROUTES.orders.detail(order.id)} className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-3 py-1 text-xs font-semibold hover:border-accent" data-testid="request-order">
+          <Link href={ROUTES.orders.detail(order.id)} className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant px-3 py-1 text-xs font-semibold hover:border-accent" data-testid="request-order">
             <ShoppingBag className="w-3.5 h-3.5" aria-hidden="true" />
             {formatMessage(copy.order, { number: order.number })}
           </Link>

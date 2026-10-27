@@ -31,10 +31,10 @@ export function DepartmentDashboardView({ departments, chosenId, summary, canSee
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
           <Link href={ROUTES.home} className="text-xs text-ink-muted hover:text-accent">{c.back}</Link>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{c.title}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{c.title}</h1>
           <p className="text-sm text-ink-muted mt-1">{c.subtitle}</p>
         </div>
         {departments.length > 1 ? (
@@ -64,12 +64,12 @@ export function DepartmentDashboardView({ departments, chosenId, summary, canSee
         })}
       </div>
 
-      <section className={`${widgetCard} overflow-hidden`}>
-        <div className="flex items-center justify-between gap-2 px-5 py-3 border-b border-ink/10">
+      <section className={`${widgetCard} overflow-hidden`} data-page-section>
+        <div className="flex items-center justify-between gap-2 px-5 py-3 border-b border-outline-variant">
           <h2 className="text-xs font-bold uppercase tracking-wider text-ink">{c.people}</h2>
           <Link href={ROUTES.orgChart} className="text-xs text-primary dark:text-mint hover:underline font-semibold inline-flex items-center gap-1">
             {c.orgChart}
-            <ArrowUpRight className="w-3.5 h-3.5" aria-hidden="true" />
+            <ArrowUpRight className="w-3.5 h-3.5 rtl:-scale-x-100" aria-hidden="true" />
           </Link>
         </div>
         {summary.people.length ? (
@@ -84,7 +84,7 @@ export function DepartmentDashboardView({ departments, chosenId, summary, canSee
                   <th className="px-5 py-2 text-end font-semibold">{c.requests}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink/10 stagger-children">
+              <tbody className="divide-y divide-outline-variant stagger-children">
                 {summary.people.map((p) => (
                   <tr key={p.id}>
                     <td className="px-5 py-2.5">

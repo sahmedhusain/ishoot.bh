@@ -19,20 +19,20 @@ export function SalesDiscountsTab({ settings, setSettings, t }: SalesDiscountsTa
   const s = t.salesDiscounts;
   return (
     <div className="space-y-6 animate-fade-in">
-      <Card className="p-6 bg-white dark:bg-[#202124] border border-ink/15 shadow-xs rounded-2xl space-y-6">
-        <div className="flex items-center gap-3 pb-3 border-b border-ink/15">
+      <Card className="p-6 bg-surface-raised dark:bg-surface-container-low border border-outline-variant shadow-xs rounded-2xl space-y-6">
+        <div className="flex items-center gap-3 pb-3 border-b border-outline-variant">
           <div className="p-2 rounded-xl bg-primary/10 text-primary dark:text-mint">
             <BadgePercent className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white">{s.title}</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">{s.subtitle}</p>
+            <h2 className="text-sm font-bold text-ink dark:text-ink">{s.title}</h2>
+            <p className="text-xs text-ink-muted dark:text-ink-muted">{s.subtitle}</p>
           </div>
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2">
-          <label className="space-y-1.5 block">
-            <span className="text-xs font-medium text-slate-700 dark:text-slate-300">{s.defaultLimit}</span>
+          <label className="block space-y-1.5 block">
+            <span className="text-xs font-medium text-ink dark:text-ink">{s.defaultLimit}</span>
             <div className="flex items-center gap-2">
               <Input
                 type="number"
@@ -43,12 +43,12 @@ export function SalesDiscountsTab({ settings, setSettings, t }: SalesDiscountsTa
                 onChange={(e) => setSettings({ ...settings, default_discount_limit_percent: Math.min(100, Math.max(0, Number(e.target.value) || 0)) })}
                 className="w-28 rounded-lg"
               />
-              <span className="text-sm text-slate-500">%</span>
+              <span className="text-sm text-ink-muted">%</span>
             </div>
-            <span className="block text-[11px] text-slate-500">{s.defaultLimitHint}</span>
+            <span className="block text-[11px] text-ink-muted">{s.defaultLimitHint}</span>
           </label>
 
-          <label className="flex items-start gap-3 p-4 rounded-xl border border-ink/10 cursor-pointer">
+          <label className="flex items-start gap-3 p-4 rounded-xl border border-outline-variant cursor-pointer">
             <input
               type="checkbox"
               className="mt-0.5 accent-accent"
@@ -56,13 +56,13 @@ export function SalesDiscountsTab({ settings, setSettings, t }: SalesDiscountsTa
               onChange={(e) => setSettings({ ...settings, quotations_always_need_approval: e.target.checked })}
             />
             <span>
-              <span className="block text-xs font-semibold text-slate-800 dark:text-slate-200">{s.alwaysApprove}</span>
-              <span className="block text-[11px] text-slate-500 mt-0.5">{s.alwaysApproveHint}</span>
+              <span className="block text-xs font-semibold text-ink dark:text-ink">{s.alwaysApprove}</span>
+              <span className="block text-[11px] text-ink-muted mt-0.5">{s.alwaysApproveHint}</span>
             </span>
           </label>
         </div>
 
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-ink-muted">
           {s.perUserHint}{" "}
           <Link href={ROUTES.users.list} className="text-accent font-semibold hover:underline">{s.openUsers}</Link>
         </p>

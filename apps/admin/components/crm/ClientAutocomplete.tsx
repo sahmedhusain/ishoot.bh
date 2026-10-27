@@ -1,5 +1,6 @@
 "use client";
 
+import { FloatingSurface } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
@@ -20,7 +21,10 @@ import {
   Building,
   AlertCircle,
 } from "lucide-react";
-import { searchContactsAction, createContactAction } from "../../app/actions/crm";
+import {
+  searchContactsAction,
+  createContactAction,
+} from "../../app/actions/crm";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { toast } from "sonner";
 
@@ -60,10 +64,12 @@ export function ClientAutocomplete({
   const [query, setQuery] = React.useState("");
   const [isOpen, setIsOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
-  const [contacts, setContacts] = React.useState<CRMContact[]>(effectiveInitial);
-  const [selectedContact, setSelectedContact] = React.useState<CRMContact | null>(
-    effectiveInitial.find((c) => c.id === selectedContactId) || null,
-  );
+  const [contacts, setContacts] =
+    React.useState<CRMContact[]>(effectiveInitial);
+  const [selectedContact, setSelectedContact] =
+    React.useState<CRMContact | null>(
+      effectiveInitial.find((c) => c.id === selectedContactId) || null,
+    );
 
   // New Client Form State
   const [newFullName, setNewFullName] = React.useState("");
@@ -76,6 +82,8 @@ export function ClientAutocomplete({
   const [createError, setCreateError] = React.useState<string | null>(null);
 
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const searchRef = React.useRef<HTMLInputElement>(null);
+  const popupId = React.useId();
 
   // Sync external changes
   React.useEffect(() => {
@@ -90,7 +98,10 @@ export function ClientAutocomplete({
   // Click outside or Escape closes the dropdown
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
@@ -162,10 +173,15 @@ export function ClientAutocomplete({
 
       if (res.success && res.contact) {
         const created = res.contact;
-        setContacts((prev) => [created, ...prev.filter((c) => c.id !== created.id)]);
+        setContacts((prev) => [
+          created,
+          ...prev.filter((c) => c.id !== created.id),
+        ]);
         handleSelect(created);
         toast.success(
-          formatMessage(t.clientAutocomplete.addedAndSelected, { name: created.company || created.full_name }),
+          formatMessage(t.clientAutocomplete.addedAndSelected, {
+            name: created.company || created.full_name,
+          }),
         );
         // Reset form
         setNewFullName("");
@@ -180,7 +196,9 @@ export function ClientAutocomplete({
       }
     } catch (err: unknown) {
       console.error("Error creating customer:", err);
-      setCreateError(errorMessage(err, t, t.clientAutocomplete.errorCreatingCustomer));
+      setCreateError(
+        errorMessage(err, t, t.clientAutocomplete.errorCreatingCustomer),
+      );
     } finally {
       setCreatingClient(false);
     }
@@ -189,24 +207,25 @@ export function ClientAutocomplete({
   return (
     <div className={`space-y-2 ${className || ""}`} ref={containerRef}>
       {/* Header with Mode Toggle */}
-      <div className="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
+      <div className="flex items-center justify-between text-xs font-semibold text-ink dark:text-ink">
         <label className="flex items-center gap-1.5">
           <span>{effectiveLabel}</span>
           {required && <span className="text-rose-500">*</span>}
         </label>
 
         {!selectedContact && allowCreate && (
-          <div className="flex items-center bg-slate-100 dark:bg-neutral-800/80 p-0.5 rounded-lg border border-slate-200/60 dark:border-white/10 text-[11px]">
+          <div className="flex items-center bg-surface-sunken dark:bg-surface-raised/80 p-0.5 rounded-lg border border-outline-variant/60 dark:border-white/10 text-[11px]">
             <button
               type="button"
               onClick={() => {
                 setMode("search");
                 setCreateError(null);
               }}
-              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md transition-all font-medium active:scale-[0.98] ${mode === "search"
-                ? "bg-white dark:bg-surface-raised text-primary dark:text-mint shadow-xs"
-                : "text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
-                }`}
+              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md transition-all font-medium active:scale-[0.98] ${
+                mode === "search"
+                  ? "bg-surface-raised dark:bg-surface-raised text-primary dark:text-mint shadow-xs"
+                  : "text-ink-muted hover:text-ink dark:text-ink-muted dark:hover:text-white"
+              }`}
             >
               <Users className="w-3 h-3" />
               <span>{t.clientAutocomplete.existingClient}</span>
@@ -217,10 +236,11 @@ export function ClientAutocomplete({
                 setMode("create");
                 setIsOpen(false);
               }}
-              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md transition-all font-medium active:scale-[0.98] ${mode === "create"
-                ? "bg-white dark:bg-surface-raised text-primary dark:text-mint shadow-xs"
-                : "text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
-                }`}
+              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md transition-all font-medium active:scale-[0.98] ${
+                mode === "create"
+                  ? "bg-surface-raised dark:bg-surface-raised text-primary dark:text-mint shadow-xs"
+                  : "text-ink-muted hover:text-ink dark:text-ink-muted dark:hover:text-white"
+              }`}
             >
               <UserPlus className="w-3 h-3" />
               <span>{t.clientAutocomplete.newClient}</span>
@@ -243,7 +263,7 @@ export function ClientAutocomplete({
 
       {/* State 1: Selected Customer Card */}
       {selectedContact ? (
-        <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-200 dark:bg-tone-10/60 dark:border-white/10 transition-colors">
+        <div className="flex items-center justify-between p-3.5 rounded-xl bg-surface-raised border border-outline-variant dark:bg-tone-10/60 dark:border-white/10 transition-colors">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-full bg-tone-95 dark:bg-tone-15 text-primary dark:text-mint flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
               {selectedContact.company
@@ -251,25 +271,31 @@ export function ClientAutocomplete({
                 : selectedContact.full_name?.charAt(0).toUpperCase() || "C"}
             </div>
             <div className="min-w-0 space-y-0.5">
-              <div className="text-sm font-bold text-slate-900 dark:text-white truncate flex items-center gap-2">
-                <span>{selectedContact.company || selectedContact.full_name}</span>
+              <div className="text-sm font-bold text-ink dark:text-ink truncate flex items-center gap-2">
+                <span>
+                  {selectedContact.company || selectedContact.full_name}
+                </span>
                 {selectedContact.company && selectedContact.full_name && (
-                  <span className="text-xs font-normal text-slate-500 dark:text-neutral-400">
-                    ({selectedContact.full_name})
+                  <span className="text-xs font-normal text-ink-muted dark:text-ink-muted">
+                    (<bdi dir="auto">{selectedContact.full_name}</bdi>)
                   </span>
                 )}
               </div>
-              <div className="text-xs text-slate-500 dark:text-slate-400 truncate flex items-center gap-3">
+              <div className="text-xs text-ink-muted dark:text-ink-muted truncate flex items-center gap-3">
                 {selectedContact.email && (
                   <span className="inline-flex items-center gap-1">
-                    <Mail className="w-3 h-3 text-slate-400" />
-                    <span>{selectedContact.email}</span>
+                    <Mail className="w-3 h-3 text-ink-muted" />
+                    <span>
+                      <bdi dir="ltr">{selectedContact.email}</bdi>
+                    </span>
                   </span>
                 )}
                 {selectedContact.phone && (
                   <span className="inline-flex items-center gap-1">
-                    <Phone className="w-3 h-3 text-slate-400" />
-                    <span dir="ltr">{selectedContact.phone}</span>
+                    <Phone className="w-3 h-3 text-ink-muted" />
+                    <span dir="ltr">
+                      <bdi dir="ltr">{selectedContact.phone}</bdi>
+                    </span>
                   </span>
                 )}
               </div>
@@ -279,7 +305,7 @@ export function ClientAutocomplete({
           <button
             type="button"
             onClick={handleClear}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 dark:hover:text-white dark:hover:bg-white/10 transition-colors shrink-0"
+            className="p-1.5 rounded-lg text-ink-muted hover:text-ink-muted hover:bg-surface-sunken/50 dark:hover:text-white dark:hover:bg-white/10 transition-colors shrink-0"
             title={t.crm.clearSelection}
           >
             <X className="w-4 h-4" />
@@ -287,8 +313,8 @@ export function ClientAutocomplete({
         </div>
       ) : mode === "create" ? (
         /* State 2: Inline "Create New Customer" Flow */
-        <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 space-y-3 animate-fade-in">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-white/10">
+        <div className="p-4 rounded-xl bg-surface-raised dark:bg-white/[0.03] border border-outline-variant dark:border-white/10 space-y-3 animate-fade-in">
+          <div className="flex items-center justify-between pb-2 border-b border-outline-variant/60 dark:border-white/10">
             <div className="flex items-center gap-2 text-xs font-bold text-primary dark:text-mint">
               <UserPlus className="w-4 h-4" />
               <span>{t.clientAutocomplete.createNewCustomerAndAdd}</span>
@@ -299,7 +325,7 @@ export function ClientAutocomplete({
                 setMode("search");
                 setCreateError(null);
               }}
-              className="text-xs text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
+              className="text-xs text-ink-muted hover:text-ink dark:text-ink-muted dark:hover:text-white"
             >
               {t.clientAutocomplete.cancelAndSearch}
             </button>
@@ -313,20 +339,20 @@ export function ClientAutocomplete({
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-neutral-300 mb-1">
+            <label>
+              <span className="block text-[11px] font-semibold text-ink dark:text-ink mb-1">
                 {t.clientAutocomplete.fullNameContactPerson}
-              </label>
+              </span>
               <Input
                 value={newFullName}
                 onChange={(e) => setNewFullName(e.target.value)}
                 placeholder={t.clientAutocomplete.eGAhmedAbdulla}
                 required
               />
-            </div>
+            </label>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-neutral-300 mb-1">
+              <label className="block text-[11px] font-semibold text-ink dark:text-ink mb-1">
                 {t.clientAutocomplete.companyOrganization}
               </label>
               <div className="relative">
@@ -334,30 +360,30 @@ export function ClientAutocomplete({
                   value={newCompany}
                   onChange={(e) => setNewCompany(e.target.value)}
                   placeholder={t.clientAutocomplete.eGGulfMediaCo}
-                  className="pl-8 rtl:pl-3 rtl:pr-8"
+                  className="ps-8 rtl:ps-3 rtl:pe-8"
                 />
-                <Building className="w-3.5 h-3.5 absolute left-2.5 rtl:left-auto rtl:right-2.5 top-3 text-slate-400 pointer-events-none" />
+                <Building className="w-3.5 h-3.5 absolute left-2.5 rtl:left-auto rtl:right-2.5 top-3 text-ink-muted pointer-events-none" />
               </div>
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-neutral-300 mb-1">
+              <label className="block text-[11px] font-semibold text-ink dark:text-ink mb-1">
                 {t.clientAutocomplete.emailAddress}
               </label>
-              <div className="relative">
+              <div className="relative" dir="ltr">
                 <Input
                   type="email"
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
                   placeholder={t.copy.clientEmailExample}
-                  className="pl-8 rtl:pl-3 rtl:pr-8"
+                  className="ps-8 rtl:ps-3 rtl:pe-8"
                 />
-                <Mail className="w-3.5 h-3.5 absolute left-2.5 rtl:left-auto rtl:right-2.5 top-3 text-slate-400 pointer-events-none" />
+                <Mail className="w-3.5 h-3.5 absolute left-2.5 rtl:left-auto rtl:right-2.5 top-3 text-ink-muted pointer-events-none" />
               </div>
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-neutral-300 mb-1">
+              <label className="block text-[11px] font-semibold text-ink dark:text-ink mb-1">
                 {t.clientAutocomplete.phoneWhatsapp}
               </label>
               <div className="relative">
@@ -366,25 +392,25 @@ export function ClientAutocomplete({
                   onChange={(e) => setNewPhone(e.target.value)}
                   placeholder="+973 3900 0000"
                   dir="ltr"
-                  className="pl-8 rtl:pl-3 rtl:pr-8 text-start"
+                  className="ps-8 rtl:ps-3 rtl:pe-8 text-start"
                 />
-                <Phone className="w-3.5 h-3.5 absolute left-2.5 rtl:left-auto rtl:right-2.5 top-3 text-slate-400 pointer-events-none" />
+                <Phone className="w-3.5 h-3.5 absolute left-2.5 rtl:left-auto rtl:right-2.5 top-3 text-ink-muted pointer-events-none" />
               </div>
             </div>
 
-            <div className="sm:col-span-2">
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-neutral-300 mb-1">
+            <label className="sm:col-span-2">
+              <span className="block text-[11px] font-semibold text-ink dark:text-ink mb-1">
                 {t.clientAutocomplete.jobTitleNotes}
-              </label>
+              </span>
               <Input
                 value={newJobTitle}
                 onChange={(e) => setNewJobTitle(e.target.value)}
                 placeholder={t.clientAutocomplete.eGMarketingDirector}
               />
-            </div>
+            </label>
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200/60 dark:border-white/10">
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-outline-variant/60 dark:border-white/10">
             <Button
               type="button"
               variant="secondary"
@@ -402,7 +428,7 @@ export function ClientAutocomplete({
               size="sm"
               disabled={creatingClient || !newFullName.trim()}
               onClick={handleCreateNewClient}
-              className="bg-primary hover:bg-primary-hover text-white text-xs font-semibold gap-1.5 shadow-xs active:scale-[0.98] transition-all"
+              className="bg-primary hover:bg-primary-hover text-primary-foreground text-xs font-semibold gap-1.5 shadow-xs active:scale-[0.98] transition-all"
             >
               {creatingClient ? (
                 <>
@@ -423,6 +449,37 @@ export function ClientAutocomplete({
         <div className="relative">
           <div className="relative">
             <Input
+              ref={searchRef}
+              role="combobox"
+              aria-expanded={isOpen}
+              aria-controls={isOpen ? popupId : undefined}
+              aria-haspopup="dialog"
+              aria-label={effectivePlaceholder}
+              onClick={() => setIsOpen(true)}
+              onBlur={(event) => {
+                if (
+                  !document
+                    .getElementById(popupId)
+                    ?.contains(event.relatedTarget as Node)
+                )
+                  setIsOpen(false);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Escape" && isOpen) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setIsOpen(false);
+                }
+                if (event.key === "ArrowDown" && isOpen) {
+                  event.preventDefault();
+                  document
+                    .getElementById(popupId)
+                    ?.querySelector<HTMLButtonElement>(
+                      "[data-popup-body] button",
+                    )
+                    ?.focus();
+                }
+              }}
               type="text"
               value={query}
               onChange={(e) => {
@@ -433,72 +490,93 @@ export function ClientAutocomplete({
               placeholder={effectivePlaceholder}
               className="ps-9 pe-9"
             />
-            <Search className="w-4 h-4 absolute start-3 top-3.5 text-slate-400 pointer-events-none" />
+            <Search className="w-4 h-4 absolute start-3 top-3.5 text-ink-muted pointer-events-none" />
             {loading && (
               <Loader2 className="w-4 h-4 absolute end-3 top-3.5 text-accent animate-spin" />
             )}
           </div>
 
           {isOpen && (
-            <div className="absolute z-50 mt-1.5 w-full bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-white/5 animate-fade-in">
-              {contacts.length === 0 ? (
-                <div className="p-4 text-center text-xs text-slate-500 dark:text-slate-400 space-y-2">
-                  <p>{loading ? t.crm.searchingClients : t.crm.noMatchingClients}</p>
-                  {allowCreate && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMode("create");
-                        setIsOpen(false);
-                      }}
-                      className="inline-flex items-center gap-1.5 text-xs text-primary dark:text-mint font-semibold hover:underline"
-                    >
-                      <UserPlus className="w-3.5 h-3.5" />
-                      <span>{t.clientAutocomplete.createAsNewClientNow}</span>
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <>
-                  {allowCreate && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMode("create");
-                        setIsOpen(false);
-                      }}
-                      className="w-full text-start p-3 bg-slate-50/70 dark:bg-white/[0.02] hover:bg-tone-95 dark:hover:bg-tone-15/40 text-primary dark:text-mint font-semibold text-xs flex items-center gap-2 border-b border-slate-100 dark:border-white/5 transition-colors"
-                    >
-                      <UserPlus className="w-3.5 h-3.5 shrink-0" />
-                      <span>{t.clientAutocomplete.createNewClientNotIn}</span>
-                    </button>
-                  )}
-                  {contacts.map((contact) => (
+            <FloatingSurface
+              id={popupId}
+              role="dialog"
+              aria-label={effectivePlaceholder}
+              anchor={searchRef.current}
+              onClose={() => setIsOpen(false)}
+              className="m3-region-surface"
+            >
+              <header className="m3-surface-header" data-popup-header>
+                <strong>{effectivePlaceholder}</strong>
+                <button
+                  type="button"
+                  aria-label={t.actions.close}
+                  onClick={() => setIsOpen(false)}
+                >
+                  ×
+                </button>
+              </header>
+              <div
+                className="m3-surface-body divide-y divide-outline-variant"
+                data-popup-body
+                data-overlay-scroll
+              >
+                {contacts.length === 0 ? (
+                  <p className="p-5 text-center text-sm text-ink-muted">
+                    {loading ? t.crm.searchingClients : t.crm.noMatchingClients}
+                  </p>
+                ) : (
+                  contacts.map((contact) => (
                     <button
                       key={contact.id}
                       type="button"
                       onClick={() => handleSelect(contact)}
-                      className="w-full text-start p-3 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors flex items-center justify-between gap-3 text-xs"
+                      className="w-full text-start p-3 hover:bg-surface-raised dark:hover:bg-white/5 transition-colors flex items-center justify-between gap-3 text-xs"
                     >
                       <div className="min-w-0">
-                        <div className="font-bold text-slate-900 dark:text-white truncate">
+                        <div className="font-bold text-ink dark:text-ink truncate">
                           {contact.company ? `${contact.company} - ` : ""}
-                          {contact.full_name}
+                          <bdi dir="auto">{contact.full_name}</bdi>
                         </div>
-                        <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5 flex items-center gap-2">
-                          {contact.email && <span>{contact.email}</span>}
+                        <div className="text-[11px] text-ink-muted dark:text-ink-muted truncate mt-0.5 flex items-center gap-2">
+                          {contact.email && (
+                            <span>
+                              <bdi dir="ltr">{contact.email}</bdi>
+                            </span>
+                          )}
                           {contact.email && contact.phone && <span>•</span>}
-                          {contact.phone && <span dir="ltr">{contact.phone}</span>}
+                          {contact.phone && (
+                            <span dir="ltr">
+                              <bdi dir="ltr">{contact.phone}</bdi>
+                            </span>
+                          )}
                         </div>
                       </div>
                       {selectedContactId === contact.id && (
                         <Check className="w-4 h-4 text-accent shrink-0" />
                       )}
                     </button>
-                  ))}
-                </>
-              )}
-            </div>
+                  ))
+                )}
+              </div>
+              <footer className="m3-surface-footer" data-popup-footer>
+                {allowCreate && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode("create");
+                      setIsOpen(false);
+                    }}
+                    className="flex min-h-10 items-center gap-2 text-sm text-primary"
+                  >
+                    <UserPlus aria-hidden className="h-4 w-4" />
+                    {t.clientAutocomplete.createAsNewClientNow}
+                  </button>
+                )}
+                <button type="button" onClick={() => setIsOpen(false)}>
+                  {t.actions.close}
+                </button>
+              </footer>
+            </FloatingSurface>
           )}
         </div>
       )}

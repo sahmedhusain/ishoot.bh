@@ -1506,7 +1506,15 @@
       "November",
       "December"
     ],
-    "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "weekdays": [
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat"
+    ],
     "more": "more",
     "upcomingAgenda": "Upcoming Event Agenda",
     "googleCalendar": "Google Calendar",
@@ -8812,6 +8820,7 @@
       "getFont": "Get the font files",
       "uploadHint": "WOFF2, WOFF, TTF or OTF. The weight is read from each file name (Light, Regular, Bold…); otherwise the weight chosen here is used.",
       "typography": "Type & shape",
+      "adminShapeHint": "Company colours, fonts, text size, corners and button shapes apply to the admin and website. Personal workspace choices can override the admin layout and shapes in Appearance & Language.",
       "buttonShape": "Button shape",
       "buttonShapes": {
         "square": "Square",
@@ -10439,7 +10448,15 @@
         "Friday",
         "Saturday"
       ],
-      "weekdaysShort": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+      "weekdaysShort": [
+        "Sun",
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat"
+      ]
     },
     "kinds": {
       "car": "Car",
@@ -11318,5 +11335,68 @@
     "body": "Your edits have not been saved. Stay here to keep editing, or discard them and leave.",
     "stay": "Stay here",
     "discard": "Discard and leave"
+  },
+  "appearance": {
+    "title": "Make this workspace yours",
+    "subtitle": "Choose the layout, surfaces and motion that help you work comfortably.",
+    "reset": "Reset design",
+    "modeTitle": "Language & appearance",
+    "modeDescription": "Choose your language and how the workspace follows light or dark mode.",
+    "workspaceTitle": "Workspace design",
+    "workspaceDescription": "Start with a preset, then adjust the details. Your company colours and fonts stay part of every design.",
+    "overlaysTitle": "Dialogs & motion",
+    "overlaysDescription": "Keep forms, decisions and floating panels comfortable to read and use.",
+    "personalHint": "These display choices apply automatically in this browser. Company colours, fonts and shape presets are managed in company settings.",
+    "custom": "Custom design",
+    "density": "Display density",
+    "corners": "Component corners",
+    "borders": "Surface borders",
+    "motion": "Motion",
+    "dialogPlacement": "Form dialog placement",
+    "backdrop": "Dialog background",
+    "collapseNavigation": "Collapse navigation",
+    "expandNavigation": "Expand navigation",
+    "presets": {
+      "balanced": {
+        "name": "Balanced",
+        "description": "Company shapes, clear spacing and quiet surfaces."
+      },
+      "spacious": {
+        "name": "Soft",
+        "description": "Rounded shapes with comfortable spacing and calm surfaces."
+      },
+      "focused": {
+        "name": "Focused",
+        "description": "Compact rows and defined edges for detailed work."
+      }
+    },
+    "options": {
+      "density": {
+        "comfortable": "Comfortable",
+        "compact": "Compact"
+      },
+      "corners": {
+        "brand": "Company preset",
+        "rounded": "Rounded",
+        "square": "Straight"
+      },
+      "borders": {
+        "subtle": "Subtle",
+        "defined": "Defined"
+      },
+      "motion": {
+        "system": "Follow device",
+        "reduced": "Subtle",
+        "none": "Off"
+      },
+      "dialogPlacement": {
+        "center": "Centered",
+        "side": "Side panel"
+      },
+      "backdrop": {
+        "blur": "Soft blur",
+        "dim": "Dimmed"
+      }
+    }
   }
 }

@@ -1,7 +1,8 @@
 "use client";
 import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
-import { useState } from "react";
+import { useState, useId } from "react";
+import { ModalFooter } from "@platform/ui";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -65,6 +66,7 @@ export function SalaryDocumentsView({
   /** Rendered inside another page (employee record): no page header. */
   embedded?: boolean;
 }) {
+  const modalFormId = useId();
   const { t, locale } = useAdminLocale();
   const { can } = usePermissions();
   // Your own documents need self-service access; requesting for others needs payroll issuing rights.
@@ -134,7 +136,7 @@ export function SalaryDocumentsView({
       timeZone: "UTC",
     }).format(new Date(`${month}-01T00:00:00Z`));
   const action =
-    "inline-flex items-center gap-1.5 h-9 rounded-full border border-ink/15 px-3.5 text-xs font-semibold text-ink hover:bg-ink/5 disabled:opacity-50 transition-colors";
+    "inline-flex items-center gap-1.5 h-9 rounded-full border border-outline-variant px-3.5 text-xs font-semibold text-ink hover:bg-ink/5 disabled:opacity-50 transition-colors";
   const requestDisabled = busy || (kind === "payslip" && months.length === 0);
 
   return (
@@ -149,7 +151,7 @@ export function SalaryDocumentsView({
           >
             <FileText className="w-6 h-6" />
           </span>
-          <div className="space-y-1">
+          <div className="space-y-1" data-page-header>
             <h1 className="text-2xl font-bold tracking-tight text-ink">
               {h.salaryDocuments}
             </h1>
@@ -163,12 +165,12 @@ export function SalaryDocumentsView({
       {employeeId && canRequest && (
         <section
           aria-labelledby="salary-request"
-          className="rounded-3xl border border-ink/10 bg-white dark:bg-surface-raised p-5 sm:p-6 shadow-xs space-y-5"
-        >
+          className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-5 sm:p-6 shadow-xs space-y-5"
+         data-page-section>
           <h2 id="salary-request" className="text-base font-bold text-ink">
             {h.requestTitle}
           </h2>
-          <form
+          <form id={modalFormId}
             className="space-y-5"
             onSubmit={(e) => {
               e.preventDefault();
@@ -185,7 +187,7 @@ export function SalaryDocumentsView({
             <div
               role="radiogroup"
               aria-label={h.documentType}
-              className="inline-flex flex-wrap gap-1 p-1 rounded-full bg-surface-sunken border border-ink/10"
+              className="inline-flex flex-wrap gap-1 p-1 rounded-full bg-surface-sunken border border-outline-variant"
             >
               {(["payslip", "salary_certificate"] as const).map((option) => (
                 <button
@@ -194,7 +196,7 @@ export function SalaryDocumentsView({
                   role="radio"
                   aria-checked={kind === option}
                   onClick={() => setKind(option)}
-                  className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold transition-colors ${kind === option ? "bg-accent text-white shadow-sm" : "text-ink-muted hover:text-ink hover:bg-ink/5"}`}
+                  className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold transition-colors ${kind === option ? "bg-accent text-accent-foreground shadow-sm" : "text-ink-muted hover:text-ink hover:bg-ink/5"}`}
                 >
                   {option === "payslip" ? (
                     <Receipt className="w-3.5 h-3.5" aria-hidden />
@@ -213,7 +215,7 @@ export function SalaryDocumentsView({
               <div
                 role="radiogroup"
                 aria-label={h.documentLanguage}
-                className="inline-flex flex-wrap gap-1 p-1 rounded-full bg-surface-sunken border border-ink/10"
+                className="inline-flex flex-wrap gap-1 p-1 rounded-full bg-surface-sunken border border-outline-variant"
               >
                 {(
                   Object.keys(LANGUAGE_CHOICES) as Array<
@@ -226,7 +228,7 @@ export function SalaryDocumentsView({
                     role="radio"
                     aria-checked={languageChoice === option}
                     onClick={() => setLanguageChoice(option)}
-                    className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors ${languageChoice === option ? "bg-accent text-white shadow-sm" : "text-ink-muted hover:text-ink hover:bg-ink/5"}`}
+                    className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors ${languageChoice === option ? "bg-accent text-accent-foreground shadow-sm" : "text-ink-muted hover:text-ink hover:bg-ink/5"}`}
                   >
                     {t.salaryDocumentLanguages.choices[option]}
                   </button>
@@ -259,7 +261,7 @@ export function SalaryDocumentsView({
                   )}
                 </div>
                 {availableMonths.length === 0 ? (
-                  <p className="rounded-2xl border border-dashed border-ink/15 px-4 py-5 text-center text-xs text-ink-muted">
+                  <p className="rounded-2xl border border-dashed border-outline-variant px-4 py-5 text-center text-xs text-ink-muted">
                     {t.hrSelfService.noAvailableMonths}
                   </p>
                 ) : (
@@ -279,7 +281,7 @@ export function SalaryDocumentsView({
                             return (
                               <label
                                 key={month}
-                                className={`cursor-pointer inline-flex items-center gap-1.5 h-9 rounded-full border px-3.5 text-xs font-medium transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent/40 ${selected ? "border-accent bg-accent/10 text-accent" : "border-ink/15 text-ink hover:bg-ink/5"}`}
+                                className={`cursor-pointer inline-flex items-center gap-1.5 h-9 rounded-full border px-3.5 text-xs font-medium transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent/40 ${selected ? "border-accent bg-accent/10 text-accent" : "border-outline-variant text-ink hover:bg-ink/5"}`}
                               >
                                 <input
                                   type="checkbox"
@@ -301,21 +303,21 @@ export function SalaryDocumentsView({
               </fieldset>
             )}
 
-            <button
+            <ModalFooter><button type="submit" form={modalFormId}
               disabled={requestDisabled}
-              className="inline-flex items-center gap-2 h-11 rounded-full bg-primary px-6 text-sm font-semibold text-white shadow-sm hover:bg-primary/90 disabled:opacity-40 disabled:shadow-none transition-colors"
+              className="inline-flex items-center gap-2 h-11 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-40 disabled:shadow-none transition-colors"
             >
               <Send className="w-4 h-4 rtl:-scale-x-100" aria-hidden />
               {busy ? h.working : h.request}
-            </button>
+            </button></ModalFooter>
           </form>
         </section>
       )}
 
       <section
         aria-labelledby="salary-history"
-        className="rounded-3xl border border-ink/10 bg-white dark:bg-surface-raised p-5 sm:p-6 shadow-xs space-y-4"
-      >
+        className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-5 sm:p-6 shadow-xs space-y-4"
+       data-page-section>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 id="salary-history" className="text-base font-bold text-ink">
             {h.historyTitle}
@@ -323,7 +325,7 @@ export function SalaryDocumentsView({
         </div>
 
         {!documents.length && (
-          <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-ink/15 px-6 py-10 text-center">
+          <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-outline-variant px-6 py-10 text-center">
             <FileText className="w-8 h-8 text-ink-muted" aria-hidden />
             <p className="text-sm font-semibold text-ink">{h.empty}</p>
             <p className="text-xs text-ink-muted">{h.emptyHint}</p>
@@ -334,7 +336,7 @@ export function SalaryDocumentsView({
           {documents.map((item) => (
             <li
               key={item.id}
-              className="rounded-2xl border border-ink/10 p-4 space-y-3 hover:border-ink/20 transition-colors"
+              className="rounded-2xl border border-outline-variant p-4 space-y-3 hover:border-outline-variant transition-colors"
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="flex items-start gap-3 min-w-0">
@@ -401,7 +403,7 @@ export function SalaryDocumentsView({
                         // Issued from its own approval page, where the signer reviews it (and signs on the spot when required).
                         <Link
                           href={ROUTES.approvalItem("salary_document", item.id)}
-                          className="inline-flex items-center gap-1.5 h-9 rounded-full bg-primary px-4 text-xs font-semibold text-white hover:bg-primary/90"
+                          className="inline-flex items-center gap-1.5 h-9 rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
                         >
                           <Check className="w-3.5 h-3.5" aria-hidden />{" "}
                           {t.approvals.reviewAndDecide}

@@ -1,3 +1,4 @@
+import { selectOption } from "../../select-option";
 import { expect, test } from "@playwright/test";
 import en from "../../../../packages/locales/src/admin/en.json";
 import ar from "../../../../packages/locales/src/admin/ar.json";
@@ -125,9 +126,8 @@ for (const locale of ["en", "ar"] as const)
         copy.owner.pacific,
       );
       for (const days of periods) {
-        await page
-          .getByRole("combobox", { name: copy.period, exact: true })
-          .selectOption(String(days));
+        await selectOption(page
+          .getByRole("combobox", { name: copy.period, exact: true }), String(days));
         await expect(
           panel.getByTestId("owner-metric-views").locator("dd"),
         ).toHaveText(

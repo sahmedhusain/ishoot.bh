@@ -20,12 +20,12 @@ export function PurchasePricesCard({ rows, currency }: { rows: PriceRow[]; curre
   const { t, locale } = useAdminLocale();
   const copy = t.procurement.performance;
   return (
-    <Card className="p-5 space-y-3" data-testid="purchase-prices">
+    <Card className="p-5 space-y-3" data-testid="purchase-prices" data-page-section>
       <h2 className="font-bold text-ink flex items-center gap-2"><History className="w-4 h-4 text-accent" aria-hidden="true" />{copy.priceHistory}</h2>
       {rows.length === 0 ? (
         <p className="text-sm text-ink-muted">{copy.noHistory}</p>
       ) : (
-        <ul className="divide-y divide-ink/10 text-sm">
+        <ul className="divide-y divide-outline-variant text-sm">
           {rows.map((r) => (
             <li key={`${r.order_id}-${r.unit_price}-${r.quantity}`} className="flex flex-wrap items-center gap-x-3 py-2">
               <span className="text-ink-muted">{formatDate(r.date, locale)}</span>

@@ -1,5 +1,5 @@
 "use client";
-import { formatMessage } from "@platform/locales";
+import { CalendarCanvas } from "./CalendarCanvas";
 import { EntityLookup } from "../shared/EntityLookup";
 
 import * as React from "react";
@@ -16,7 +16,7 @@ import {
 } from "../../app/actions/calendar";
 import { toast } from "sonner";
 import {
-  Card,
+  ModalFooter,
   Button,
   Modal,
   Input,
@@ -24,20 +24,11 @@ import {
   ConfirmDialog,
 } from "@platform/ui";
 import {
-  Calendar as CalendarIcon,
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  Clock,
-  MapPin,
   ExternalLink,
   Trash2,
   Pencil,
-  RefreshCw,
   Users,
-  Lock,
 } from "lucide-react";
-import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 
@@ -110,7 +101,9 @@ export function CalendarView({
   roles,
   feedConnected,
 }: Props) {
-  const { t, locale, isRTL } = useAdminLocale();
+  const modalFormId = React.useId();
+
+  const { t, locale } = useAdminLocale();
   const c = t.calendarSharing;
   const isAr = locale === "ar";
   const [events, setEvents] = React.useState<CalendarEvent[]>(initialEvents);
@@ -208,11 +201,11 @@ export function CalendarView({
     setCurrentDate(d);
   };
 
-  const openCreate = (date?: Date) => {
+  const openCreate = (date?: Date, minute?: number) => {
     const next = blank();
     if (date) {
       const at = new Date(date);
-      at.setHours(9, 0, 0, 0);
+      at.setHours(minute === undefined ? 9 : Math.floor(minute / 60), minute === undefined ? 0 : minute % 60, 0, 0);
       next.start = toLocalInput(at);
       next.end = toLocalInput(at.getTime() + 3 * 3600000);
     }
@@ -294,39 +287,7 @@ export function CalendarView({
 
   const toggle = <T,>(list: T[], value: T) =>
     list.includes(value) ? list.filter((x) => x !== value) : [...list, value];
-  const pill = (ev: CalendarEvent, compact = true) => {
-    const color = ev.layer ? LAYER_COLORS[ev.layer] : ev.color || "rgb(var(--brand-accent))";
-    return (
-      <button
-        key={ev.id}
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          setSelected(ev);
-        }}
-        className={`block w-full truncate rounded-md border px-1.5 py-0.5 text-start text-[10px] font-semibold transition-transform hover:scale-[1.02] ${compact ? "" : "py-1.5 text-xs"}`}
-        style={{
-          backgroundColor: `color-mix(in srgb, ${color} 12%, transparent)`,
-          color,
-          borderColor: `color-mix(in srgb, ${color} 33%, transparent)`,
-        }}
-      >
-        {!ev.all_day && !compact ? (
-          <span className="me-1 tabular-nums opacity-80">
-            {fmtTime(ev.start_date)}
-          </span>
-        ) : null}
-        {ev.visibility === "private" ? (
-          <Lock className="me-0.5 inline h-2.5 w-2.5" aria-hidden />
-        ) : null}
-        {title(ev)}
-      </button>
-    );
-  };
-
   // Month grid starts on Sunday, like the weekday header.
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const firstDayIndex = new Date(year, month, 1).getDay();
   const weekStart = new Date(currentDate);
   weekStart.setDate(currentDate.getDate() - currentDate.getDay());
   const weekDays = Array.from(
@@ -338,7 +299,6 @@ export function CalendarView({
         weekStart.getDate() + i,
       ),
   );
-  const today = dayKey(new Date());
   const heading =
     viewMode === "month"
       ? `${t.calendarView.months[month]} ${year}`
@@ -352,285 +312,11 @@ export function CalendarView({
   );
 
   return (
-    <div className="mx-auto max-w-7xl space-y-5 pb-16">
-      <div className="flex flex-col justify-between gap-4 rounded-3xl border border-ink/10 bg-surface p-5 shadow-xl md:flex-row md:items-center">
-        <div>
-          <div className="flex items-center gap-2">
-            <CalendarIcon className="h-5 w-5 text-accent" aria-hidden />
-            <h1 className="font-display text-xl font-bold tracking-tight text-ink sm:text-2xl">
-              {t.calendar.title}
-            </h1>
-          </div>
-          <p className="mt-1 text-xs text-ink-muted">{c.subtitle}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2.5">
-          <div className="flex items-center gap-1.5 rounded-xl border border-ink/10 bg-surface-sunken p-1">
-            <button
-              aria-label={isRTL ? t.actions.next : t.actions.previous}
-              onClick={() => move(isRTL ? 1 : -1)}
-              className="rounded-lg p-1.5 text-ink-muted hover:bg-ink/10 hover:text-ink"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <span className="min-w-[150px] px-2 text-center text-xs font-bold text-ink">
-              {heading}
-            </span>
-            <button
-              aria-label={isRTL ? t.actions.previous : t.actions.next}
-              onClick={() => move(isRTL ? -1 : 1)}
-              className="rounded-lg p-1.5 text-ink-muted hover:bg-ink/10 hover:text-ink"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentDate(new Date())}
-            className="text-xs"
-          >
-            {t.calendar.today}
-          </Button>
-          <div className="flex items-center rounded-xl border border-ink/10 bg-surface-sunken p-1 text-xs font-semibold">
-            {(["month", "week", "day"] as const).map((m) => (
-              <button
-                key={m}
-                onClick={() => setViewMode(m)}
-                className={`rounded-lg px-3 py-1 transition-all ${viewMode === m ? "bg-accent text-white shadow-sm" : "text-ink-muted hover:text-ink"}`}
-              >
-                {t.calendar[`${m}View` as "monthView" | "weekView" | "dayView"]}
-              </button>
-            ))}
-          </div>
-          {/* Calendar sync lives with the other integrations; this takes the person straight there. */}
-          <Link
-            href={`${ROUTES.settings.integrations}#calendar-sync`}
-            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-accent/40 px-3 text-xs font-semibold text-accent hover:bg-accent/5"
-          >
-            <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-            {feedConnected ? c.syncConnected : c.syncConnect}
-          </Link>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => openCreate()}
-            className="gap-1.5 shadow-lg shadow-accent/20"
-          >
-            <Plus className="h-4 w-4" aria-hidden />
-            <span>{c.newEvent}</span>
-          </Button>
-        </div>
-      </div>
-
-      <div
-        className="flex flex-wrap items-center gap-2"
-        role="group"
-        aria-label={c.layersLabel}
-      >
-        {LAYERS.map((layer) => {
-          const on = layers.has(layer);
-          return (
-            <button
-              key={layer}
-              type="button"
-              aria-pressed={on}
-              onClick={() =>
-                setLayers((prev) => {
-                  const next = new Set(prev);
-                  if (next.has(layer)) next.delete(layer);
-                  else next.add(layer);
-                  return next;
-                })
-              }
-              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-semibold transition-colors ${on ? "text-ink" : "text-ink-muted opacity-60"}`}
-              style={{
-                borderColor: on ? `color-mix(in srgb, ${LAYER_COLORS[layer]} 53%, transparent)` : undefined,
-                backgroundColor: on ? `color-mix(in srgb, ${LAYER_COLORS[layer]} 8%, transparent)` : undefined,
-              }}
-            >
-              <span
-                className="h-2 w-2 rounded-full"
-                style={{ backgroundColor: LAYER_COLORS[layer] }}
-              />
-              {c.layers[layer]}
-            </button>
-          );
-        })}
-        <button
-          type="button"
-          onClick={refresh}
-          aria-label={c.refresh}
-          className="ms-auto rounded-full p-1.5 text-ink-muted hover:bg-ink/5 hover:text-ink"
-        >
-          <RefreshCw
-            className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
-            aria-hidden
-          />
-        </button>
-      </div>
-
-      {viewMode === "month" && (
-        <Card className="overflow-hidden rounded-3xl border border-ink/10 bg-surface p-3 shadow-2xl sm:p-5">
-          <div className="grid grid-cols-7 gap-1 border-b border-ink/10 pb-3 text-center text-xs font-bold uppercase text-ink-muted">
-            {t.calendarView.weekdays.map((d) => (
-              <div key={d} className="py-1">
-                {d}
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7 gap-1 pt-2 sm:gap-2">
-            {Array.from({ length: firstDayIndex }).map((_, i) => (
-              <div
-                key={`blank-${i}`}
-                className="min-h-[90px] rounded-2xl border border-ink/[0.03] bg-ink/[0.01] sm:min-h-[110px]"
-              />
-            ))}
-            {Array.from({ length: daysInMonth }).map((_, i) => {
-              const date = new Date(year, month, i + 1);
-              const items = onDay(date);
-              const isToday = dayKey(date) === today;
-              return (
-                <div
-                  key={i}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => openCreate(date)}
-                  onKeyDown={(e) => e.key === "Enter" && openCreate(date)}
-                  className={`flex min-h-[90px] cursor-pointer flex-col rounded-2xl border p-1.5 transition-all sm:min-h-[110px] ${isToday ? "border-accent bg-primary/10" : "border-ink/5 bg-surface-sunken hover:border-ink/20"}`}
-                >
-                  <span
-                    className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${isToday ? "bg-accent text-white" : "text-ink-muted"}`}
-                  >
-                    {i + 1}
-                  </span>
-                  <div className="mt-1 space-y-1 overflow-hidden">
-                    {items.slice(0, 3).map((ev) => pill(ev))}
-                    {items.length > 3 && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setCurrentDate(date);
-                          setViewMode("day");
-                        }}
-                        className="w-full text-center text-[9px] text-ink-muted hover:text-ink"
-                      >
-                        +{items.length - 3} {t.calendarView.more}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-      )}
-
-      {viewMode === "week" && (
-        <Card className="overflow-x-auto rounded-3xl border border-ink/10 bg-surface p-3 sm:p-5">
-          <div className="grid min-w-[700px] grid-cols-7 gap-2">
-            {weekDays.map((date) => {
-              const items = onDay(date).sort(
-                (a, b) =>
-                  Number(b.all_day) - Number(a.all_day) ||
-                  a.start_date.localeCompare(b.start_date),
-              );
-              return (
-                <div
-                  key={dayKey(date)}
-                  className={`min-h-[320px] rounded-2xl border p-2 ${dayKey(date) === today ? "border-accent bg-primary/5" : "border-ink/5 bg-surface-sunken"}`}
-                >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCurrentDate(date);
-                      setViewMode("day");
-                    }}
-                    className="mb-2 w-full text-start"
-                  >
-                    <div className="text-[10px] font-bold uppercase text-ink-muted">
-                      {t.calendarView.weekdays[date.getDay()]}
-                    </div>
-                    <div className="text-lg font-bold text-ink">
-                      {date.getDate()}
-                    </div>
-                  </button>
-                  <div className="space-y-1">
-                    {items.map((ev) => pill(ev, false))}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => openCreate(date)}
-                    className="mt-2 w-full rounded-lg border border-dashed border-ink/15 py-1 text-[10px] text-ink-muted hover:text-ink"
-                    aria-label={c.newEvent}
-                  >
-                    +
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-      )}
-
-      {viewMode === "day" && (
-        <Card className="space-y-3 rounded-3xl border border-ink/10 bg-surface p-5">
-          {onDay(currentDate).length === 0 ? (
-            <p className="py-10 text-center text-sm text-ink-muted">
-              {c.nothingThisDay}
-            </p>
-          ) : null}
-          {onDay(currentDate)
-            .sort(
-              (a, b) =>
-                Number(b.all_day) - Number(a.all_day) ||
-                a.start_date.localeCompare(b.start_date),
-            )
-            .map((ev) => (
-              <button
-                key={ev.id}
-                type="button"
-                onClick={() => setSelected(ev)}
-                className="flex w-full flex-col gap-1 rounded-2xl border border-ink/5 bg-surface-sunken p-4 text-start hover:border-accent/50 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="rounded px-2 py-0.5 text-[10px] font-bold uppercase"
-                      style={{
-                        backgroundColor: `${LAYER_COLORS[ev.layer ?? "own"]}20`,
-                        color: LAYER_COLORS[ev.layer ?? "own"],
-                      }}
-                    >
-                      {c.layers[ev.layer ?? "own"]}
-                    </span>
-                    <h3 className="text-sm font-bold text-ink">{title(ev)}</h3>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-ink-muted">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5 text-accent" aria-hidden />
-                      {ev.all_day
-                        ? t.calendar.allDay
-                        : `${fmtTime(ev.start_date)} – ${fmtTime(ev.end_date)}`}
-                    </span>
-                    {ev.location ? (
-                      <span className="flex items-center gap-1">
-                        <MapPin
-                          className="h-3.5 w-3.5 text-accent"
-                          aria-hidden
-                        />
-                        {ev.location}
-                      </span>
-                    ) : null}
-                    {ev.created_by_name && ev.layer === "shared" ? (
-                      <span>{formatMessage(c.by, { name: ev.created_by_name })}</span>
-                    ) : null}
-                  </div>
-                </div>
-              </button>
-            ))}
-        </Card>
-      )}
+    <div className="calendar-page">
+      <CalendarCanvas date={currentDate} mode={viewMode} heading={heading} loading={loading} feedConnected={feedConnected}
+        layers={LAYERS.map(layer => ({ id: layer, label: c.layers[layer], color: LAYER_COLORS[layer], enabled: layers.has(layer) }))}
+        setDate={setCurrentDate} setMode={setViewMode} move={move} refresh={refresh} create={openCreate} select={setSelected} title={title} time={fmtTime} onDay={onDay}
+        toggleLayer={layer => setLayers(previous => { const next = new Set(previous); if (next.has(layer)) next.delete(layer); else next.add(layer); return next; })} />
 
       {selected && (
         <Modal
@@ -638,9 +324,9 @@ export function CalendarView({
           isOpen
           onClose={() => setSelected(null)}
           title={title(selected)}
-        >
+         footer={null}>
           <div className="space-y-4 text-xs">
-            <div className="space-y-2 rounded-2xl border border-ink/10 bg-surface-sunken p-4">
+            <div className="space-y-2 rounded-2xl border border-outline-variant bg-surface-sunken p-4">
               <Row label={c.layer} value={c.layers[selected.layer ?? "own"]} />
               <Row
                 label={t.calendarView.startTime}
@@ -679,11 +365,11 @@ export function CalendarView({
               ) : null}
             </div>
             {selected.description ? (
-              <p className="rounded-xl border border-ink/5 bg-surface-sunken p-4 text-sm text-ink-muted">
+              <p className="rounded-xl border border-outline-variant bg-surface-sunken p-4 text-sm text-ink-muted">
                 {selected.description}
               </p>
             ) : null}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ink/10 pt-3">
+            <ModalFooter><div className="flex flex-wrap items-center justify-between gap-3">
               {selected.href ? (
                 <Link
                   href={selected.href}
@@ -729,7 +415,7 @@ export function CalendarView({
                   {t.actions.close}
                 </Button>
               </div>
-            </div>
+            </div></ModalFooter>
           </div>
         </Modal>
       )}
@@ -739,20 +425,33 @@ export function CalendarView({
         isOpen={formOpen}
         onClose={() => setFormOpen(false)}
         title={editingId ? t.calendarView.editEvent : c.newEvent}
-      >
-        <form onSubmit={save} className="space-y-4 text-xs">
+       footer={<div className="flex items-center justify-end gap-3">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setFormOpen(false)}
+            >
+              {t.actions.cancel}
+            </Button>
+            <Button type="submit" variant="primary" size="sm" disabled={saving} form={modalFormId}>
+              {saving ? t.calendarView.saving : t.actions.save}
+            </Button>
+          </div>}>
+        <form onSubmit={save} className="space-y-4 text-xs" id={modalFormId}>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <label className="space-y-1.5">
+            <label className="block space-y-1.5">
               <span className="font-medium text-ink-muted">
                 {t.calendarView.eventTitleEnLabel}
               </span>
               <Input
                 required
+                dir="ltr"
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
               />
             </label>
-            <label className="space-y-1.5">
+            <label className="block space-y-1.5">
               <span className="font-medium text-ink-muted">
                 {t.calendarView.eventTitleArLabel}
               </span>
@@ -762,7 +461,7 @@ export function CalendarView({
                 onChange={(e) => setForm({ ...form, titleAr: e.target.value })}
               />
             </label>
-            <label className="space-y-1.5">
+            <label className="block space-y-1.5">
               <span className="font-medium text-ink-muted">
                 {t.calendarView.startDateTime}
               </span>
@@ -773,7 +472,7 @@ export function CalendarView({
                 onChange={(e) => setForm({ ...form, start: e.target.value })}
               />
             </label>
-            <label className="space-y-1.5">
+            <label className="block space-y-1.5">
               <span className="font-medium text-ink-muted">
                 {t.calendarView.endDateTime}
               </span>
@@ -784,7 +483,7 @@ export function CalendarView({
                 onChange={(e) => setForm({ ...form, end: e.target.value })}
               />
             </label>
-            <label className="space-y-1.5">
+            <label className="block space-y-1.5">
               <span className="font-medium text-ink-muted">
                 {t.calendarView.eventTypeLabel}
               </span>
@@ -834,7 +533,7 @@ export function CalendarView({
             />
           </label>
 
-          <fieldset className="space-y-3 rounded-2xl border border-ink/10 p-3">
+          <fieldset className="space-y-3 rounded-2xl border border-outline-variant p-3">
             <legend className="flex items-center gap-1.5 px-1 text-xs font-bold text-ink">
               <Users className="h-3.5 w-3.5 text-accent" aria-hidden />
               {c.whoSees}
@@ -870,7 +569,7 @@ export function CalendarView({
                   onChange={(e) => setPeopleFilter(e.target.value)}
                   placeholder={c.searchPeople}
                   aria-label={c.searchPeople}
-                  className="h-7 w-40 rounded-lg border border-ink/15 bg-white px-2 text-[11px] dark:bg-surface"
+                  className="h-7 w-40 rounded-lg border border-outline-variant bg-surface-raised px-2 text-[11px] dark:bg-surface"
                 />
               </div>
               <div className="flex max-h-32 flex-wrap gap-1.5 overflow-y-auto">
@@ -882,7 +581,7 @@ export function CalendarView({
                     onClick={() =>
                       setForm({ ...form, users: toggle(form.users, p.id) })
                     }
-                    className={`rounded-full border px-2.5 py-1 text-[11px] ${form.users.includes(p.id) ? "border-accent bg-accent/10 font-semibold text-ink" : "border-ink/15 text-ink-muted"}`}
+                    className={`rounded-full border px-2.5 py-1 text-[11px] ${form.users.includes(p.id) ? "border-accent bg-accent/10 font-semibold text-ink" : "border-outline-variant text-ink-muted"}`}
                   >
                     {p.name}
                   </button>
@@ -909,7 +608,7 @@ export function CalendarView({
                             departmentIds: toggle(form.departmentIds, d.id),
                           })
                         }
-                        className={`rounded-full border px-2.5 py-1 text-[11px] ${form.departmentIds.includes(d.id) ? "border-accent bg-accent/10 font-semibold text-ink" : "border-ink/15 text-ink-muted"}`}
+                        className={`rounded-full border px-2.5 py-1 text-[11px] ${form.departmentIds.includes(d.id) ? "border-accent bg-accent/10 font-semibold text-ink" : "border-outline-variant text-ink-muted"}`}
                       >
                         {isAr ? d.nameAr : d.nameEn}
                       </button>
@@ -933,7 +632,7 @@ export function CalendarView({
                               roleIds: toggle(form.roleIds, r.id),
                             })
                           }
-                          className={`rounded-full border px-2.5 py-1 text-[11px] ${form.roleIds.includes(r.id) ? "border-accent bg-accent/10 font-semibold text-ink" : "border-ink/15 text-ink-muted"}`}
+                          className={`rounded-full border px-2.5 py-1 text-[11px] ${form.roleIds.includes(r.id) ? "border-accent bg-accent/10 font-semibold text-ink" : "border-outline-variant text-ink-muted"}`}
                         >
                           {isAr ? r.nameAr : r.nameEn}
                         </button>
@@ -945,19 +644,7 @@ export function CalendarView({
             )}
           </fieldset>
 
-          <div className="flex items-center justify-end gap-3 border-t border-ink/10 pt-4">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setFormOpen(false)}
-            >
-              {t.actions.cancel}
-            </Button>
-            <Button type="submit" variant="primary" size="sm" disabled={saving}>
-              {saving ? t.calendarView.saving : t.actions.save}
-            </Button>
-          </div>
+
         </form>
       </Modal>
 

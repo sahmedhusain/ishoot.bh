@@ -81,7 +81,7 @@ export function HandoverSigningLinkPanel({
   };
 
   return (
-    <section className="rounded-3xl border border-accent/30 bg-accent/5 p-5 space-y-3">
+    <section className="rounded-3xl border border-accent/30 bg-accent/5 p-5 space-y-3" data-page-section>
       <h2 className="flex items-center gap-2 text-sm font-bold text-ink">
         <Link2 className="h-4 w-4 text-accent" aria-hidden />
         {s.title}
@@ -106,18 +106,18 @@ export function HandoverSigningLinkPanel({
         </Button>
       </div>
       {created ? (
-        <div className="space-y-2 rounded-2xl border border-ink/10 bg-white p-3 dark:bg-surface-raised">
+        <div className="space-y-2 rounded-2xl border border-outline-variant bg-surface-raised p-3 dark:bg-surface-raised">
           <div className="flex items-center gap-2">
             <input
               readOnly
               dir="ltr"
               value={created.url}
-              className="h-9 min-w-0 flex-1 rounded-lg border border-ink/15 bg-surface-sunken/60 px-2 font-mono text-xs"
+              className="h-9 min-w-0 flex-1 rounded-lg border border-outline-variant bg-surface-sunken/60 px-2 font-mono text-xs"
               onFocus={(e) => e.target.select()}
             />
             <button
               type="button"
-              className="inline-flex h-9 items-center gap-1 rounded-lg border border-ink/15 px-3 text-xs font-semibold"
+              className="inline-flex h-9 items-center gap-1 rounded-lg border border-outline-variant px-3 text-xs font-semibold"
               onClick={() =>
                 navigator.clipboard
                   .writeText(created.url)
@@ -157,7 +157,7 @@ export function HandoverSigningLinkPanel({
           {links.map((link) => (
             <li
               key={link.id}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ink/10 bg-white px-3 py-2 text-xs dark:bg-surface-raised"
+              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-outline-variant bg-surface-raised px-3 py-2 text-xs dark:bg-surface-raised"
             >
               <span className="flex flex-wrap items-center gap-2">
                 <span

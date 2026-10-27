@@ -131,13 +131,13 @@ export function StockCountView({ count, locations, canEdit, canApprove }: StockC
 
   return (
     <div inert={busy} aria-busy={busy} className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
           <Link href={ROUTES.inventory.counts} className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent">
             <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" />
             {copy.back}
           </Link>
-          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex flex-wrap items-center gap-3">
+          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink flex flex-wrap items-center gap-3">
             <span dir="ltr">{count.number}</span>
             <span className="rounded-full bg-ink/10 px-2.5 py-0.5 text-xs font-medium text-ink" data-testid="count-status">{statusName}</span>
           </h1>
@@ -193,7 +193,7 @@ export function StockCountView({ count, locations, canEdit, canApprove }: StockC
       )}
 
       <Card className="overflow-hidden">
-        <p className="px-4 py-3 text-xs text-ink-muted border-b border-ink/10" data-testid="count-summary">
+        <p className="px-4 py-3 text-xs text-ink-muted border-b border-outline-variant" data-testid="count-summary">
           {formatMessage(copy.summary, { counted: done, lines: count.lines.length, differences })} · {copy.uncountedNote}
         </p>
         <div className="overflow-x-auto">
@@ -207,7 +207,7 @@ export function StockCountView({ count, locations, canEdit, canApprove }: StockC
                 <th scope="col" className="px-4 py-3 text-end font-semibold">{copy.lineColumns.variance}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink/10">
+            <tbody className="divide-y divide-outline-variant">
               {count.lines.map((l) => {
                 const value = counted[l.id] ?? "";
                 const variance = countVariance(l.expected, value === "" ? null : Number(value));

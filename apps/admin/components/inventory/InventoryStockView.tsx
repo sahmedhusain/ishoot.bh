@@ -50,15 +50,15 @@ export function InventoryStockView({ rows, total, page, pageSize, totalValue, fi
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{copy.title}</h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
+        <div data-page-header>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
+          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
         </div>
         <p className="text-sm font-semibold text-ink" data-testid="stock-value">{formatMessage(copy.totalValue, { value: formatCurrencyValue(totalValue, currency, locale === "ar") })}</p>
       </div>
 
       {expiring.length > 0 && (
-        <Card className="p-4 border-amber-500/30 bg-amber-500/[0.06]">
+        <Card className="p-4 border-amber-500/30 bg-amber-500/[0.06]" data-page-section>
           <h2 className="flex items-center gap-2 text-sm font-bold text-ink"><AlertTriangle className="w-4 h-4 text-amber-600" aria-hidden="true" />{copy.expiring}</h2>
           <ul className="mt-2 space-y-1 text-sm">
             {expiring.map((b) => {
@@ -113,7 +113,7 @@ export function InventoryStockView({ rows, total, page, pageSize, totalValue, fi
                   {canEdit && <th scope="col" className="px-4 py-3"><span className="sr-only">{copy.change}</span></th>}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink/10">
+              <tbody className="divide-y divide-outline-variant">
                 {rows.map((row) => (
                   <tr key={`${row.product_id}-${row.variant_id ?? ""}`} className="hover:bg-ink/[0.02]">
                     <td className="px-4 py-3">
@@ -151,7 +151,7 @@ export function InventoryStockView({ rows, total, page, pageSize, totalValue, fi
             </table>
           </div>
         )}
-        <div className="flex items-center justify-between gap-3 border-t border-ink/10 px-4 py-3 text-xs">
+        <div className="flex items-center justify-between gap-3 border-t border-outline-variant px-4 py-3 text-xs">
           <span className="text-ink-muted">{formatMessage(t.products.showing, { from: total ? (page - 1) * pageSize + 1 : 0, to: Math.min(total, page * pageSize), total })}</span>
           {pages > 1 && (
             <nav aria-label={t.products.pages} className="flex items-center gap-4">

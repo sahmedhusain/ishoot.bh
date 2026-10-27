@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Loader2 } from "lucide-react";
-import { Button, Input, Modal, Select } from "@platform/ui";
+import { ModalFooter, Button, Input, Modal, Select } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { ADJUSTMENT_REASONS, MANUAL_MOVEMENTS } from "@platform/database/constants/inventory";
 import type { WarehouseRecord } from "@platform/database";
@@ -68,11 +68,11 @@ export function StockChangeModal({ target, locations, currency, onClose, onDone 
       }),
     );
   return (
-    <Modal isOpen onClose={onClose} title={formatMessage(t.inventory.stock.changeFor, { name: target.name })} closeLabel={copy.cancel}>
+    <Modal isOpen onClose={onClose} title={formatMessage(t.inventory.stock.changeFor, { name: target.name })} closeLabel={copy.cancel} footer={null}>
       <div className="space-y-4" data-testid="stock-change">
         <div role="radiogroup" aria-label={copy.type} className="grid grid-cols-3 gap-2">
           {MANUAL_MOVEMENTS.map((type) => (
-            <button key={type} type="button" role="radio" aria-checked={form.type === type} onClick={() => set({ type, reason: type === "write_off" ? "damaged" : type === "adjustment" ? "correction" : "" })} className={`rounded-xl border px-3 py-2 text-xs font-semibold transition-colors ${form.type === type ? "border-accent bg-accent/10 text-ink" : "border-ink/15 text-ink-muted hover:border-ink/30"}`}>
+            <button key={type} type="button" role="radio" aria-checked={form.type === type} onClick={() => set({ type, reason: type === "write_off" ? "damaged" : type === "adjustment" ? "correction" : "" })} className={`rounded-xl border px-3 py-2 text-xs font-semibold transition-colors ${form.type === type ? "border-accent bg-accent/10 text-ink" : "border-outline-variant text-ink-muted hover:border-ink/30"}`}>
               {copy.types[type]}
             </button>
           ))}
@@ -127,13 +127,13 @@ export function StockChangeModal({ target, locations, currency, onClose, onDone 
           </Field>
         </div>
         {error && <p role="alert" className="text-sm rounded-xl px-4 py-3 bg-rose-500/10 text-rose-700 dark:text-rose-300">{error}</p>}
-        <div className="flex justify-end gap-2">
+        <ModalFooter><div className="flex justify-end gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={onClose}>{copy.cancel}</Button>
           <Button type="button" variant="primary" size="sm" className="gap-1.5" disabled={busy || !form.quantity || !form.locationId} onClick={save} data-testid="stock-change-save">
             {busy && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
             {busy ? copy.saving : copy.save}
           </Button>
-        </div>
+        </div></ModalFooter>
       </div>
     </Modal>
   );
@@ -156,7 +156,7 @@ export function TransferModal({ target, locations, onClose, onDone }: { target: 
     </Field>
   );
   return (
-    <Modal isOpen onClose={onClose} title={formatMessage(t.inventory.stock.transferFor, { name: target.name })} closeLabel={copy.cancel}>
+    <Modal isOpen onClose={onClose} title={formatMessage(t.inventory.stock.transferFor, { name: target.name })} closeLabel={copy.cancel} footer={null}>
       <div className="space-y-4">
         <div className="grid sm:grid-cols-2 gap-3">
           {select("fromLocationId", copy.from)}
@@ -174,7 +174,7 @@ export function TransferModal({ target, locations, onClose, onDone }: { target: 
           </Field>
         </div>
         {error && <p role="alert" className="text-sm rounded-xl px-4 py-3 bg-rose-500/10 text-rose-700 dark:text-rose-300">{error}</p>}
-        <div className="flex justify-end gap-2">
+        <ModalFooter><div className="flex justify-end gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={onClose}>{copy.cancel}</Button>
           <Button
             type="button"
@@ -187,7 +187,7 @@ export function TransferModal({ target, locations, onClose, onDone }: { target: 
             {busy && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
             {busy ? copy.saving : copy.save}
           </Button>
-        </div>
+        </div></ModalFooter>
       </div>
     </Modal>
   );

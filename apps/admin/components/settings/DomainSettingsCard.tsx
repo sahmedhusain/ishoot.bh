@@ -61,10 +61,10 @@ export function DomainSettingsCard({ initialWebsiteDomain, initialAdminDomain, c
     const invalid = values[kind].trim() !== "" && !normalizeDomain(values[kind]);
     return (
       <div className="space-y-1.5">
-        <label htmlFor={id} className="text-xs font-medium text-slate-700 dark:text-slate-300">
+        <label htmlFor={id} className="text-xs font-medium text-ink dark:text-ink">
           {kind === "website" ? copy.websiteLabel : copy.adminLabel}
         </label>
-        <div className="flex items-center rounded-lg border border-ink/15 bg-surface focus-within:ring-2 focus-within:ring-accent">
+        <div className="flex items-center rounded-lg border border-outline-variant bg-surface focus-within:ring-2 focus-within:ring-accent">
           <span className="ps-3 text-xs text-ink-muted" dir="ltr">{copy.scheme}</span>
           <Input
             id={id}
@@ -77,7 +77,7 @@ export function DomainSettingsCard({ initialWebsiteDomain, initialAdminDomain, c
             className="border-0 focus-visible:ring-0 rounded-lg"
           />
         </div>
-        <p className={`text-[11px] ${invalid ? "text-rose-600" : "text-slate-500 dark:text-ink-muted"}`}>{invalid ? copy.invalid : kind === "website" ? copy.websiteHint : copy.adminHint}</p>
+        <p className={`text-[11px] ${invalid ? "text-rose-600" : "text-ink-muted dark:text-ink-muted"}`}>{invalid ? copy.invalid : kind === "website" ? copy.websiteHint : copy.adminHint}</p>
       </div>
     );
   };
@@ -87,7 +87,7 @@ export function DomainSettingsCard({ initialWebsiteDomain, initialAdminDomain, c
     if (!domain) return null;
     const state = checks[kind];
     return (
-      <div className="rounded-xl border border-ink/10 p-4 space-y-3">
+      <div className="rounded-xl border border-outline-variant p-4 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm font-semibold text-ink" dir="ltr">{domain}</p>
           <Button variant="outline" size="sm" className="gap-1.5 rounded-full" disabled={state === "checking"} onClick={() => check(kind)}>
@@ -108,10 +108,10 @@ export function DomainSettingsCard({ initialWebsiteDomain, initialAdminDomain, c
             </thead>
             <tbody>
               {dnsRecords(domain).map((record) => (
-                <tr key={record.hosting} className="border-t border-ink/5">
+                <tr key={record.hosting} className="border-t border-outline-variant">
                   <td className="py-1.5 pe-3">{record.hosting === "vercel" ? copy.hostingVercel : copy.hostingServer}</td>
                   <td className="py-1.5 pe-3 font-mono" dir="ltr">{record.type}</td>
-                  <td className="py-1.5 pe-3 font-mono" dir="ltr">{record.name}</td>
+                  <td className="py-1.5 pe-3 font-mono" dir="ltr"><bdi dir="auto">{record.name}</bdi></td>
                   <td className="py-1.5 font-mono" dir={record.value ? "ltr" : undefined}>{record.value ?? copy.serverAddress}</td>
                 </tr>
               ))}

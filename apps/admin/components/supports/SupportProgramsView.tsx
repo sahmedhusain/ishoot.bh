@@ -47,7 +47,7 @@ type Program = Awaited<ReturnType<typeof listSupportPrograms>>[number];
 type Employee = { id: string; number: string; nameEn: string; nameAr: string };
 
 const card =
-  "rounded-3xl border border-ink/10 bg-white p-5 dark:bg-surface-raised";
+  "rounded-3xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised";
 const label = "mb-1 block text-xs font-semibold text-ink";
 const thisMonth = () =>
   new Date(Date.now() + 3 * 3600000).toISOString().slice(0, 7);
@@ -199,7 +199,7 @@ export function SupportProgramsView({
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 pb-4">
-      <header className="flex flex-wrap items-end justify-between gap-3">
+      <header className="flex flex-wrap items-end justify-between gap-3" data-page-header>
         <div>
           <h1 className="flex items-center gap-2 text-xl font-bold text-ink sm:text-2xl">
             <HandHeart className="h-5 w-5 text-accent" aria-hidden />
@@ -332,7 +332,7 @@ export function SupportProgramsView({
                       {rule.qualificationCaps.map((q) => (
                         <li
                           key={q.qualification}
-                          className="rounded-lg border border-ink/10 px-2 py-0.5 text-[11px] text-ink"
+                          className="rounded-lg border border-outline-variant px-2 py-0.5 text-[11px] text-ink"
                         >
                           {
                             s.qualifications[
@@ -450,7 +450,7 @@ export function SupportProgramsView({
                 onChange={(e) =>
                   setProgramForm({ ...programForm, name_en: e.target.value })
                 }
-              />
+               dir="ltr"/>
             </label>
             <label>
               <span className={label}>{s.fields.nameAr}</span>
@@ -460,7 +460,7 @@ export function SupportProgramsView({
                 onChange={(e) =>
                   setProgramForm({ ...programForm, name_ar: e.target.value })
                 }
-              />
+               dir="rtl"/>
             </label>
             <label>
               <span className={label}>{s.fields.provider}</span>
@@ -641,7 +641,7 @@ export function SupportProgramsView({
               {ruleFor.schedule.map((x, i) => (
                 <div
                   key={i}
-                  className="flex items-end gap-1 rounded-xl border border-ink/10 p-2"
+                  className="flex items-end gap-1 rounded-xl border border-outline-variant p-2"
                 >
                   <label className="w-16">
                     <span className="text-[10px] text-ink-muted">
@@ -783,7 +783,7 @@ export function SupportProgramsView({
             <h2 className="text-sm font-bold text-ink">{s.enrolmentsTitle}</h2>
             <p className="text-xs text-ink-muted">{s.enrolmentsHint}</p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2" data-page-toolbar>
             <Select
               aria-label={s.fields.program}
               value={filters.program}
@@ -821,11 +821,11 @@ export function SupportProgramsView({
           </div>
         </div>
         {enrolments.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-ink/15 p-6 text-center text-xs text-ink-muted">
+          <p className="rounded-2xl border border-dashed border-outline-variant p-6 text-center text-xs text-ink-muted">
             {s.noEnrolments}
           </p>
         ) : (
-          <div className="overflow-x-auto rounded-2xl border border-ink/10">
+          <div className="overflow-x-auto rounded-2xl border border-outline-variant">
             <table className="w-full text-xs">
               <thead className="bg-ink/[0.03] text-[11px] text-ink-muted">
                 <tr>
@@ -839,7 +839,7 @@ export function SupportProgramsView({
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink/5">
+              <tbody className="divide-y divide-outline-variant">
                 {enrolments.map((e) => (
                   <React.Fragment key={e.id}>
                     <tr className="align-top">
@@ -1120,7 +1120,7 @@ export function SupportProgramsView({
                 />
               </label>
             </div>
-            <fieldset className="rounded-2xl border border-ink/10 p-3">
+            <fieldset className="rounded-2xl border border-outline-variant p-3">
               <legend className="px-1 text-xs font-semibold text-ink">
                 {s.partialTitle}
               </legend>

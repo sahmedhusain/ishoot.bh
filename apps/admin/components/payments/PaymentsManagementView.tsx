@@ -28,13 +28,13 @@ export function PaymentsManagementView({ initialPayments, totals, receiptCount, 
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink">{t.nav.payments}</h1>
           <p className="text-sm text-ink-muted max-w-2xl">{t.paymentsView.subtitle}</p>
         </div>
         <Link
-          className="inline-flex items-center gap-2 self-start sm:self-auto h-11 rounded-full bg-primary px-5 text-sm font-semibold text-white shadow-sm hover:bg-primary/90 transition-colors"
+          className="inline-flex items-center gap-2 self-start sm:self-auto h-11 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors"
           href={ROUTES.payments.create()}
         >
           <Plus className="w-4 h-4" aria-hidden />
@@ -58,7 +58,7 @@ export function PaymentsManagementView({ initialPayments, totals, receiptCount, 
 
       {controls && <div className="[&>div]:mb-0">{controls}</div>}
 
-      <div className="rounded-3xl border border-ink/10 bg-white dark:bg-surface-raised shadow-xs overflow-hidden">
+      <div className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-surface-sunken/70 text-ink-muted">
@@ -68,7 +68,7 @@ export function PaymentsManagementView({ initialPayments, totals, receiptCount, 
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink/10">
+            <tbody className="divide-y divide-outline-variant">
               {initialPayments.map((p) => {
                 const Icon = METHOD_ICONS[p.payment_method] ?? Banknote;
                 return (
@@ -109,7 +109,7 @@ export function PaymentsManagementView({ initialPayments, totals, receiptCount, 
 
 function Kpi({ icon: Icon, tone, label, hint, children }: { icon: typeof Wallet; tone: string; label: string; hint: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-3xl border border-ink/10 bg-white dark:bg-surface-raised p-5 shadow-xs flex items-start gap-4">
+    <div className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-5 shadow-xs flex items-start gap-4">
       <span className={`w-11 h-11 shrink-0 rounded-2xl flex items-center justify-center ${tone}`} aria-hidden>
         <Icon className="w-5 h-5" />
       </span>

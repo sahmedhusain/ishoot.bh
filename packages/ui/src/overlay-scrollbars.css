@@ -1,0 +1,71 @@
+/* Bars overlay content; native scrolling and element dimensions do not change on hover. */
+[data-admin-app]
+  :is(
+    .admin-settings-nav,
+    [role="tablist"],
+    .m3-floating-surface,
+    .m3-surface-body,
+    .admin-main,
+    [data-dialog-body],
+    .admin-popover-body,
+    [data-overlay-scroll],
+    [class*="overflow-auto"],
+    [class*="overflow-y-auto"],
+    [class*="overflow-x-auto"],
+    [class*="overflow-scroll"]
+  ) {
+  scrollbar-width: none;
+}
+[data-admin-app]
+  :is(
+    .admin-settings-nav,
+    [role="tablist"],
+    .m3-floating-surface,
+    .m3-surface-body,
+    .admin-main,
+    [data-dialog-body],
+    .admin-popover-body,
+    [data-overlay-scroll],
+    [class*="overflow-auto"],
+    [class*="overflow-y-auto"],
+    [class*="overflow-x-auto"],
+    [class*="overflow-scroll"]
+  )::-webkit-scrollbar {
+  display: none;
+}
+.os-theme-material {
+  --os-size: 10px;
+  --os-padding-perpendicular: 2px;
+  --os-padding-axis: 4px;
+  --os-track-border-radius: 999px;
+  --os-handle-border-radius: 999px;
+  --os-handle-bg: color-mix(
+    in srgb,
+    var(--md-sys-color-on-surface, #303038) 32%,
+    transparent
+  );
+  --os-handle-bg-hover: color-mix(
+    in srgb,
+    var(--md-sys-color-on-surface, #303038) 52%,
+    transparent
+  );
+  --os-handle-bg-active: var(--md-sys-color-primary, #6750a4);
+  --os-handle-min-size: 40px;
+  --os-handle-perpendicular-size: 65%;
+  --os-handle-perpendicular-size-hover: 100%;
+  --os-handle-perpendicular-size-active: 100%;
+  z-index: 20;
+}
+@media (prefers-reduced-motion: reduce) {
+  .os-scrollbar * {
+    transition: none !important;
+  }
+}
+@media print {
+  .os-scrollbar {
+    display: none !important;
+  }
+  [data-overlayscrollbars-viewport] {
+    overflow: visible !important;
+  }
+}

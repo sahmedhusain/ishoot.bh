@@ -6,7 +6,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Employee, Department } from "@platform/database/types";
-import { Card } from "@platform/ui";
+import { Select, Card } from "@platform/ui";
 import { UserPlus, FileUp, Search, Clock, ArrowRight, AlertCircle } from "lucide-react";
 
 interface EmployeesListViewProps {
@@ -70,23 +70,23 @@ export function EmployeesListView({
     suspended:
       "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300",
     terminated:
-      "bg-slate-100 text-slate-600 dark:bg-neutral-800 dark:text-neutral-400",
+      "bg-surface-sunken text-ink-muted dark:bg-surface-raised dark:text-ink-muted",
   };
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-16">
       {/* Editorial Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-ink/10 pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-outline-variant pb-6" data-page-header>
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono uppercase tracking-widest text-accent bg-[#EDF3EC] dark:bg-tone-15/40 dark:text-mint px-2.5 py-0.5 rounded-full font-medium">
+            <span className="text-xs font-mono uppercase tracking-widest text-accent bg-secondary-container dark:bg-tone-15/40 dark:text-mint px-2.5 py-0.5 rounded-full font-medium">
               {t.employeesList.humanCapitalAndOrganization}
             </span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white mt-1">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-ink dark:text-ink mt-1">
             {t.employeesList.employeesAndTalentDirectory}
           </h1>
-          <p className="text-sm text-slate-500 dark:text-neutral-400 mt-1">
+          <p className="text-sm text-ink-muted dark:text-ink-muted mt-1">
             {t.employeesList.manageOrganizationalRosterCompensationProfiles}
           </p>
         </div>
@@ -94,14 +94,14 @@ export function EmployeesListView({
         <div className="flex items-center gap-3">
           {canCreate && <Link
             href={ROUTES.hr.importEmployees}
-            className="inline-flex items-center gap-2 border border-ink/15 hover:bg-ink/5 text-ink px-4 py-2 rounded-md text-sm font-medium active:scale-[0.98] transition-all"
+            className="inline-flex items-center gap-2 border border-outline-variant hover:bg-ink/5 text-ink px-4 py-2 rounded-md text-sm font-medium active:scale-[0.98] transition-all"
           >
             <FileUp className="w-4 h-4" />
             <span>{t.peopleImport.open}</span>
           </Link>}
           {canCreate && <Link
             href={ROUTES.hr.newEmployee()}
-            className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-md text-sm font-medium active:scale-[0.98] transition-all shadow-xs"
+            className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-primary-foreground px-4 py-2 rounded-md text-sm font-medium active:scale-[0.98] transition-all shadow-xs"
           >
             <UserPlus className="w-4 h-4" />
             <span>{t.employeesList.onboardEmployee}</span>
@@ -113,78 +113,78 @@ export function EmployeesListView({
 
       {/* Metrics Bento Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-surface-raised border border-ink/10 p-5 rounded-lg space-y-1">
-          <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
+        <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
+          <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
             {t.employeesList.totalStaffCount}
           </div>
-          <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white">
+          <div className="text-2xl font-bold font-mono text-ink dark:text-ink">
             {total}
           </div>
-          <div className="text-xs text-slate-400">{t.employeesList.totalRegisteredProfiles}</div>
+          <div className="text-xs text-ink-muted">{t.employeesList.totalRegisteredProfiles}</div>
         </div>
 
-        <div className="bg-white dark:bg-surface-raised border border-ink/10 p-5 rounded-lg space-y-1">
-          <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
+        <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
+          <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
             {t.shared.activeDuty}
           </div>
           <div className="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
             {activeCount}
           </div>
-          <div className="text-xs text-slate-400">{t.employeesList.availableForAssignment}</div>
+          <div className="text-xs text-ink-muted">{t.employeesList.availableForAssignment}</div>
         </div>
 
-        <div className="bg-white dark:bg-surface-raised border border-ink/10 p-5 rounded-lg space-y-1">
-          <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
+        <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
+          <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
             {t.employeesList.onApprovedLeave}
           </div>
           <div className="text-2xl font-bold font-mono text-amber-600 dark:text-amber-400 flex items-center gap-2">
             {onLeaveCount}
             {onLeaveCount > 0 && <Clock className="w-4 h-4" />}
           </div>
-          <div className="text-xs text-slate-400">{t.employeesList.strictlyBlockedFromAllocation}</div>
+          <div className="text-xs text-ink-muted">{t.employeesList.strictlyBlockedFromAllocation}</div>
         </div>
 
-        <div className="bg-white dark:bg-surface-raised border border-ink/10 p-5 rounded-lg space-y-1">
-          <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
+        <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
+          <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
             {t.employeesList.departments}
           </div>
-          <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white">
+          <div className="text-2xl font-bold font-mono text-ink dark:text-ink">
             {departments.length}
           </div>
-          <div className="text-xs text-slate-400">{t.employeesList.functionalUnits}</div>
+          <div className="text-xs text-ink-muted">{t.employeesList.functionalUnits}</div>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-white dark:bg-surface-raised border border-ink/10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-surface-raised dark:bg-surface-raised border border-outline-variant">
         <form
           onSubmit={handleSearch}
           className="flex items-center gap-2 w-full sm:w-80"
         >
           <div className="relative w-full">
-            <Search className="w-4 h-4 absolute start-3 top-2.5 text-slate-400" />
+            <Search className="w-4 h-4 absolute start-3 top-2.5 text-ink-muted" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={t.employeesList.searchByNameEmployeeTitle}
-              className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 ps-9 pe-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent"
+              className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised ps-9 pe-3 py-2 text-ink dark:text-ink focus:outline-none focus:ring-1 focus:ring-accent"
             />
           </div>
           <button
             type="submit"
-            className="px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-xs rounded-md font-medium text-slate-700 dark:text-neutral-300"
+            className="px-3 py-2 bg-surface-sunken hover:bg-surface-sunken dark:bg-surface-raised dark:hover:bg-surface-sunken text-xs rounded-md font-medium text-ink dark:text-ink"
           >
             {t.employeesList.search}
           </button>
         </form>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2" data-page-toolbar>
           {/* Department Filter */}
-          <select
+          <Select
             value={currentDepartment}
             onChange={(e) => updateFilter(e.target.value, currentStatus)}
-            className="text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 px-3 py-2 text-slate-800 dark:text-neutral-200"
+            className="text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised px-3 py-2 text-ink dark:text-ink"
           >
             <option value="all">{t.employeesList.allDepartments}</option>
             {departments.map((d) => (
@@ -192,29 +192,29 @@ export function EmployeesListView({
                 {d.nameEn} / {d.nameAr}
               </option>
             ))}
-          </select>
+          </Select>
 
           {/* Status Filter */}
-          <select
+          <Select
             value={currentStatus}
             onChange={(e) => updateFilter(currentDepartment, e.target.value)}
-            className="text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 px-3 py-2 text-slate-800 dark:text-neutral-200"
+            className="text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised px-3 py-2 text-ink dark:text-ink"
           >
             <option value="all">{t.employeesList.allStatuses}</option>
             <option value="active">{t.shared.activeDuty}</option>
             <option value="on_leave">{t.shared.onLeave}</option>
             <option value="suspended">{t.shared.suspended}</option>
             <option value="terminated">{t.shared.terminated}</option>
-          </select>
+          </Select>
         </div>
       </div>
 
       {/* Employees Table */}
-      <Card className="bg-white dark:bg-surface-raised border border-ink/10 rounded-lg overflow-hidden">
+      <Card className="bg-surface-raised dark:bg-surface-raised border border-outline-variant rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-start text-sm">
             <thead>
-              <tr className="border-b border-ink/10 text-xs font-mono uppercase text-slate-400 bg-slate-50/50 dark:bg-neutral-900/30">
+              <tr className="border-b border-outline-variant text-xs font-mono uppercase text-ink-muted bg-surface-raised/50 dark:bg-surface-raised/30">
                 <th className="py-3 px-4">{t.shared.employee}</th>
                 <th className="py-3 px-4">{t.employeesList.jobTitleAndDept}</th>
                 <th className="py-3 px-4">{t.employeesList.statusAndAvailability}</th>
@@ -223,12 +223,12 @@ export function EmployeesListView({
                 <th className="py-3 px-4 text-end">{t.employeesList.action}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink/10 dark:divide-white/5">
+            <tbody className="divide-y divide-outline-variant dark:divide-white/5">
               {employees.length === 0 ? (
                 <tr>
                   <td
                     colSpan={canViewPay ? 6 : 5}
-                    className="py-12 text-center text-xs text-slate-400"
+                    className="py-12 text-center text-xs text-ink-muted"
                   >
                     {t.employeesList.noEmployeeRecordsFoundMatching}
                   </td>
@@ -248,14 +248,14 @@ export function EmployeesListView({
                   return (
                     <tr
                       key={emp.id}
-                      className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors"
+                      className="hover:bg-surface-raised/50 dark:hover:bg-white/[0.02] transition-colors"
                     >
                       <td className="py-3.5 px-4">
-                        <div className="font-semibold text-slate-900 dark:text-white">
+                        <div className="font-semibold text-ink dark:text-ink">
                           {isRTL ? emp.firstNameAr : emp.firstNameEn}{" "}
                           {isRTL ? emp.lastNameAr : emp.lastNameEn}
                         </div>
-                        <div className="text-xs font-mono text-slate-400 flex items-center gap-1.5 mt-0.5">
+                        <div className="text-xs font-mono text-ink-muted flex items-center gap-1.5 mt-0.5">
                           <span>{emp.employeeNumber}</span>
                           {emp.cprNumber && (
                             <span>
@@ -267,10 +267,10 @@ export function EmployeesListView({
                       </td>
 
                       <td className="py-3.5 px-4">
-                        <div className="text-slate-800 dark:text-neutral-200 font-medium">
+                        <div className="text-ink dark:text-ink font-medium">
                           {emp.jobTitleEn}
                         </div>
-                        <div className="text-xs text-slate-400">
+                        <div className="text-xs text-ink-muted">
                           {emp.department
                             ? `${emp.department.nameEn} (${emp.department.code})`
                             : t.employeesList.generalOperations}
@@ -296,19 +296,19 @@ export function EmployeesListView({
                         )}
                       </td>
 
-                      <td className="py-3.5 px-4 text-end font-mono text-xs text-slate-700 dark:text-neutral-300">
+                      <td className="py-3.5 px-4 text-end font-mono text-xs text-ink dark:text-ink">
                         {Number(emp.leaveBalanceDays).toFixed(1)}
                         {t.shared.days}
                       </td>
 
                       {canViewPay && <td className="py-3.5 px-4 text-end font-mono text-xs">
                         {totalSalary > 0 ? (
-                          <span className="font-semibold text-slate-900 dark:text-white">
+                          <span className="font-semibold text-ink dark:text-ink">
                             {totalSalary.toFixed(3)}
                             {t.shared.bhd}
                           </span>
                         ) : (
-                          <span className="text-slate-400">
+                          <span className="text-ink-muted">
                             {t.employeesList.nA}
                           </span>
                         )}
@@ -320,7 +320,7 @@ export function EmployeesListView({
                           className="inline-flex items-center gap-1 text-xs text-accent hover:text-primary dark:hover:text-mint font-medium"
                         >
                           <span>{t.employeesList.profile}</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
+                          <ArrowRight className="w-3.5 h-3.5 rtl:-scale-x-100" />
                         </Link>
                       </td>
                     </tr>

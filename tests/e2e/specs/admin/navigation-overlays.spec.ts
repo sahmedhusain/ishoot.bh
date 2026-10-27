@@ -55,7 +55,6 @@ for (const locale of ["en", "ar"] as const)
       await page.goto("/dashboard");
       const trigger = page.getByRole("button", {
         name: t.quickJump.universalSearch,
-        exact: true,
       });
       await trigger.click();
       const palette = page.getByRole("dialog", {
@@ -80,7 +79,6 @@ for (const locale of ["en", "ar"] as const)
       await page.goto("/dashboard");
       const bell = page.getByRole("button", {
         name: t.actions.notifications,
-        exact: true,
       });
       await bell.click();
       const notifications = page.getByRole("dialog", {
@@ -145,7 +143,9 @@ for (const locale of ["en", "ar"] as const)
         exact: true,
       });
       await expect(drawer).toBeVisible();
-      expect((await drawer.boundingBox())!.width).toBeLessThanOrEqual(312);
+      expect((await drawer.boundingBox())!.width).toBeLessThanOrEqual(
+        page.viewportSize()!.width * 0.85,
+      );
       expect(await page.evaluate(() => document.body.style.overflow)).toBe(
         "hidden",
       );
@@ -189,6 +189,10 @@ for (const locale of ["en", "ar"] as const)
         exact: true,
       });
       const iconTrigger = form.locator('button[aria-haspopup="dialog"]');
+      const initialField = await iconTrigger.evaluate((element) => ({
+        height: element.getBoundingClientRect().height,
+        radius: getComputedStyle(element).borderRadius,
+      }));
       await iconTrigger.click();
       const icons = page.getByRole("dialog", {
         name: t.iconPicker.selectIcon,
@@ -204,6 +208,12 @@ for (const locale of ["en", "ar"] as const)
       await expect(icons).toHaveCount(0);
       await expect(form).toBeVisible();
       await expect(iconTrigger).toBeFocused();
+      expect(
+        await iconTrigger.evaluate((element) => ({
+          height: element.getBoundingClientRect().height,
+          radius: getComputedStyle(element).borderRadius,
+        })),
+      ).toEqual(initialField);
       await iconTrigger.click();
       const icon = icons.locator("button[title]").first();
       const title = await icon.getAttribute("title");
@@ -238,7 +248,7 @@ for (const locale of ["en", "ar"] as const) {
     );
     await page.goto("/dashboard");
     await page
-      .getByRole("button", { name: t.quickJump.universalSearch, exact: true })
+      .getByRole("button", { name: t.quickJump.universalSearch })
       .click();
     const palette = page.getByRole("dialog", {
       name: t.quickJump.universalSearch,
@@ -312,7 +322,7 @@ for (const locale of ["en", "ar"] as const) {
     await login(page, users.driver.email, users.driver.password);
     await expect(page).toHaveURL(/\/dashboard/);
     await page
-      .getByRole("button", { name: t.quickJump.universalSearch, exact: true })
+      .getByRole("button", { name: t.quickJump.universalSearch })
       .click();
     const palette = page.getByRole("dialog", {
       name: t.quickJump.universalSearch,

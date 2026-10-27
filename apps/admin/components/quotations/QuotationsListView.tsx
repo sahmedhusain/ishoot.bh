@@ -36,14 +36,14 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
   const openValues = Object.entries(summary.openValueByCurrency);
 
   const statusColors: Record<string, string> = {
-    draft: "bg-slate-100 text-slate-700 dark:bg-neutral-800 dark:text-neutral-300",
+    draft: "bg-surface-sunken text-ink dark:bg-surface-raised dark:text-ink",
     submitted: "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300",
     approved: "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300",
     issued: "bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-300",
     accepted: "bg-teal-50 text-teal-800 border border-teal-200 dark:bg-teal-950/40 dark:text-teal-300",
     converted: "bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950/40 dark:text-purple-300",
     rejected: "bg-red-50 text-red-700 border border-red-200 dark:bg-red-950/40 dark:text-red-300",
-    expired: "bg-stone-100 text-stone-600 dark:bg-neutral-800 dark:text-neutral-400",
+    expired: "bg-stone-100 text-stone-600 dark:bg-surface-raised dark:text-ink-muted",
   };
 
   const getStatusLabel = (status: string) => {
@@ -53,17 +53,17 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
   return (
     <div className="p-6 md:p-8 space-y-8 max-w-7xl mx-auto">
       {/* Editorial Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-ink/10 pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-outline-variant pb-6" data-page-header>
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono uppercase tracking-widest text-accent bg-[#EDF3EC] dark:bg-tone-15/40 dark:text-mint px-2.5 py-0.5 rounded-full font-medium">
+            <span className="text-xs font-mono uppercase tracking-widest text-accent bg-secondary-container dark:bg-tone-15/40 dark:text-mint px-2.5 py-0.5 rounded-full font-medium">
               {qListT.commercialBadge}
             </span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-slate-900 dark:text-white mt-1">
-            {qListT.title}
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-ink dark:text-ink mt-1">
+            <bdi dir="auto">{qListT.title}</bdi>
           </h1>
-          <p className="text-sm text-slate-500 dark:text-neutral-400 mt-1 max-w-2xl">
+          <p className="text-sm text-ink-muted dark:text-ink-muted mt-1 max-w-2xl">
             {qListT.subtitle}
           </p>
         </div>
@@ -71,7 +71,7 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
         <div className="flex items-center gap-3">
           <Link
             href={ROUTES.quotations.create()}
-            className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2.5 rounded-lg text-sm font-medium shadow-xs active:scale-[0.98] transition-all duration-150 ease-out"
+            className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-primary-foreground px-4 py-2.5 rounded-lg text-sm font-medium shadow-xs active:scale-[0.98] transition-all duration-150 ease-out"
           >
             <Plus className="w-4 h-4" />
             <span>{qListT.newQuotation}</span>
@@ -81,61 +81,61 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
 
       {/* Metrics Bento Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-surface-raised border border-ink/10 p-5 rounded-xl shadow-xs">
-          <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
+        <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-xl shadow-xs">
+          <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
             {qListT.totalQuotations}
           </div>
-          <div className="text-2xl font-bold text-slate-900 dark:text-white mt-2">
+          <div className="text-2xl font-bold text-ink dark:text-ink mt-2">
             {summary.total}
           </div>
-          <div className="text-xs text-slate-400 mt-1">{qListT.allTimeCreated}</div>
+          <div className="text-xs text-ink-muted mt-1">{qListT.allTimeCreated}</div>
         </div>
 
-        <div className="bg-white dark:bg-surface-raised border border-ink/10 p-5 rounded-xl shadow-xs">
-          <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
+        <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-xl shadow-xs">
+          <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
             {qListT.pipelineVolume}
           </div>
-          <div className="text-2xl font-bold text-slate-900 dark:text-white mt-2 space-y-0.5">
+          <div className="text-2xl font-bold text-ink dark:text-ink mt-2 space-y-0.5">
             {openValues.length === 0 ? (
               <div>0.000</div>
             ) : (
               openValues.map(([currency, amount]) => (
                 <div key={currency}>
-                  {amount.toFixed(3)} <span className="text-xs font-normal text-slate-500">{currency}</span>
+                  {amount.toFixed(3)} <span className="text-xs font-normal text-ink-muted">{currency}</span>
                 </div>
               ))
             )}
           </div>
-          <div className="text-xs text-slate-400 mt-1">{qListT.activeQuoteAmounts}</div>
+          <div className="text-xs text-ink-muted mt-1">{qListT.activeQuoteAmounts}</div>
         </div>
 
-        <div className="bg-white dark:bg-surface-raised border border-ink/10 p-5 rounded-xl shadow-xs">
-          <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
+        <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-xl shadow-xs">
+          <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
             {qListT.pendingApproval}
           </div>
           <div className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-2 flex items-center gap-2">
             {summary.pendingApproval}
-            {summary.pendingApproval > 0 && <Clock className="w-4 h-4 animate-pulse" />}
+            {summary.pendingApproval > 0 && <Clock className="w-4 h-4" />}
           </div>
-          <div className="text-xs text-slate-400 mt-1">{qListT.requiresSuperAdmin}</div>
+          <div className="text-xs text-ink-muted mt-1">{qListT.requiresSuperAdmin}</div>
         </div>
 
-        <div className="bg-white dark:bg-surface-raised border border-ink/10 p-5 rounded-xl shadow-xs">
-          <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
+        <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-xl shadow-xs">
+          <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
             {qListT.acceptedConverted}
           </div>
           <div className="text-2xl font-bold text-teal-600 dark:text-teal-400 mt-2 flex items-center gap-2">
             {summary.acceptedOrConverted}
             <CheckCircle2 className="w-4 h-4" />
           </div>
-          <div className="text-xs text-slate-400 mt-1">{qListT.readyOrInvoiced}</div>
+          <div className="text-xs text-ink-muted mt-1">{qListT.readyOrInvoiced}</div>
         </div>
       </div>
 
       {/* Filter, search and paging run on the server across every quotation */}
       <div className="space-y-3">
         <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          <Filter className="w-4 h-4 text-slate-400 shrink-0" />
+          <Filter className="w-4 h-4 text-ink-muted shrink-0" />
           {[
             { id: "all", label: qListT.allStatuses },
             { id: "draft", label: qListT.statuses.draft },
@@ -149,8 +149,8 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
               key={st.id}
               href={statusHref(st.id)}
               className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap transition-all ${pagination.filters.status === st.id
-                ? "bg-primary text-white shadow-xs"
-                : "bg-slate-100 hover:bg-slate-200 text-slate-600 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "bg-surface-sunken hover:bg-surface-sunken text-ink-muted dark:bg-surface-raised dark:text-ink dark:hover:bg-surface-sunken"
                 }`}
             >
               {st.label}
@@ -161,10 +161,10 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
       </div>
 
       {/* Quotations Table */}
-      <div className="bg-white dark:bg-surface-raised border border-ink/10 rounded-xl overflow-hidden shadow-xs">
+      <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant rounded-xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left rtl:text-right text-sm">
-            <thead className="bg-slate-50/70 dark:bg-white/5 border-b border-ink/10 text-xs font-mono uppercase text-slate-500 dark:text-neutral-400">
+            <thead className="bg-surface-raised/70 dark:bg-white/5 border-b border-outline-variant text-xs font-mono uppercase text-ink-muted dark:text-ink-muted">
               <tr>
                 <th className="py-3 px-4">{qListT.quoteNumber}</th>
                 <th className="py-3 px-4">{qListT.client}</th>
@@ -175,11 +175,11 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
                 <th className="py-3 px-4 text-right rtl:text-left">{qListT.actions}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink/10 dark:divide-white/5">
+            <tbody className="divide-y divide-outline-variant dark:divide-white/5">
               {quotations.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-500 dark:text-neutral-400">
-                    <FileSignature className="w-10 h-10 mx-auto text-slate-300 dark:text-neutral-600 mb-3" />
+                  <td colSpan={7} className="py-12 text-center text-ink-muted dark:text-ink-muted">
+                    <FileSignature className="w-10 h-10 mx-auto text-ink dark:text-ink-muted mb-3" />
                     <p className="text-sm font-medium">{qListT.noQuotationsFound}</p>
                     <Link
                       href={ROUTES.quotations.create()}
@@ -200,9 +200,9 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
                   return (
                     <tr
                       key={q.id}
-                      className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors"
+                      className="hover:bg-surface-raised/50 dark:hover:bg-white/[0.02] transition-colors"
                     >
-                      <td className="py-3.5 px-4 font-mono font-medium text-slate-900 dark:text-white">
+                      <td className="py-3.5 px-4 font-mono font-medium text-ink dark:text-ink">
                         <Link
                           href={ROUTES.quotations.detail(q.id)}
                           className="hover:text-accent transition-colors underline-offset-4 hover:underline"
@@ -210,18 +210,18 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
                           {q.quotationNumber}
                         </Link>
                       </td>
-                      <td className="py-3.5 px-4 text-slate-700 dark:text-neutral-300 font-medium">
+                      <td className="py-3.5 px-4 text-ink dark:text-ink font-medium">
                         {clientDisplay}
                       </td>
-                      <td className="py-3.5 px-4 text-slate-500 font-mono text-xs">
+                      <td className="py-3.5 px-4 text-ink-muted font-mono text-xs">
                         {new Date(q.issueDate).toLocaleDateString("en-GB")}
                       </td>
-                      <td className="py-3.5 px-4 text-slate-500 font-mono text-xs">
+                      <td className="py-3.5 px-4 text-ink-muted font-mono text-xs">
                         {new Date(q.validUntilDate).toLocaleDateString("en-GB")}
                       </td>
-                      <td className="py-3.5 px-4 text-right rtl:text-left font-mono font-semibold text-slate-900 dark:text-white">
+                      <td className="py-3.5 px-4 text-right rtl:text-left font-mono font-semibold text-ink dark:text-ink">
                         {Number(q.totalAmount).toFixed(3)}{" "}
-                        <span className="text-xs text-slate-400 font-normal">{q.currency}</span>
+                        <span className="text-xs text-ink-muted font-normal">{q.currency}</span>
                       </td>
                       <td className="py-3.5 px-4 text-center">
                         <span
@@ -236,7 +236,7 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
                           {q.status === "accepted" && !q.invoiceId && (
                             <Link
                               href={ROUTES.invoices.create({ quotationId: q.id })}
-                              className="inline-flex items-center gap-1 bg-primary hover:bg-primary-hover text-white px-2.5 py-1 rounded-md text-xs font-semibold active:scale-[0.98] transition-all"
+                              className="inline-flex items-center gap-1 bg-primary hover:bg-primary-hover text-primary-foreground px-2.5 py-1 rounded-md text-xs font-semibold active:scale-[0.98] transition-all"
                             >
                               <Receipt className="w-3.5 h-3.5" />
                               <span>{qListT.convertToInvoice}</span>
@@ -253,7 +253,7 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
                           )}
                           <Link
                             href={ROUTES.quotations.detail(q.id)}
-                            className="inline-flex items-center gap-1 text-slate-500 hover:text-slate-900 dark:hover:text-white text-xs font-medium p-1 hover:bg-slate-100 dark:hover:bg-neutral-800 rounded transition-colors"
+                            className="inline-flex items-center gap-1 text-ink-muted hover:text-ink dark:hover:text-white text-xs font-medium p-1 hover:bg-surface-sunken dark:hover:bg-surface-raised rounded transition-colors"
                           >
                             <span>{qListT.viewDetails}</span>
                             {isRTL ? <ArrowLeft className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}

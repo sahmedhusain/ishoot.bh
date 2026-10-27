@@ -47,6 +47,8 @@ export function PortfolioManagementView({
   catalogue,
   languages,
 }: PortfolioManagementViewProps) {
+  const modalFormId = React.useId();
+
   const { t, locale } = useAdminLocale();
   const uses = (field: CollectionField) => catalogue.fields.includes(field);
   const media = catalogue.layout === "media";
@@ -213,7 +215,7 @@ export function PortfolioManagementView({
       >
         {t.portfolioManagement.reviewAndPublishChangesIn}
       </Link>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">
             {(locale === "ar" ? catalogue.nameAr : catalogue.nameEn) || t.cms.portfolioTitle}
@@ -239,8 +241,8 @@ export function PortfolioManagementView({
         <button
           onClick={() => setSelectedCat("all")}
           className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${selectedCat === "all"
-            ? "bg-accent text-white shadow-lg shadow-accent/20"
-            : "bg-surface border border-ink/10 text-ink-muted hover:text-ink"
+            ? "bg-accent text-accent-foreground shadow-lg shadow-accent/20"
+            : "bg-surface border border-outline-variant text-ink-muted hover:text-ink"
             }`}
         >
           {t.actions.all}
@@ -250,8 +252,8 @@ export function PortfolioManagementView({
             key={c.id}
             onClick={() => setSelectedCat(c.id)}
             className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${selectedCat === c.id
-              ? "bg-accent text-white shadow-lg shadow-accent/20"
-              : "bg-surface border border-ink/10 text-ink-muted hover:text-ink"
+              ? "bg-accent text-accent-foreground shadow-lg shadow-accent/20"
+              : "bg-surface border border-outline-variant text-ink-muted hover:text-ink"
               }`}
           >
             {locale === "ar" ? c.name_ar : c.name_en}
@@ -259,9 +261,9 @@ export function PortfolioManagementView({
         ))}
       </div>
 
-      <div className="bg-surface border border-ink/10 rounded-3xl overflow-hidden shadow-xl">
+      <div className="bg-surface border border-outline-variant rounded-3xl overflow-x-auto shadow-sm">
         <table className="w-full text-start text-xs">
-          <thead className="bg-surface-sunken border-b border-ink/10 text-ink-muted uppercase  tracking-wider">
+          <thead className="bg-surface-sunken border-b border-outline-variant text-ink-muted uppercase  tracking-wider">
             <tr>
               <th className="p-4 text-start">
                 {media ? t.portfolioView.projectClient : t.portfolioView.itemColumn}
@@ -273,7 +275,7 @@ export function PortfolioManagementView({
               <th className="p-4 text-end">{t.equipmentView.actions}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-ink/5">
+          <tbody className="divide-y divide-outline-variant">
             {filteredItems.map((item) => (
               <tr
                 key={item.id}
@@ -284,7 +286,7 @@ export function PortfolioManagementView({
                     <ContentImage
                       src={item.thumbnail_url}
                       alt={locale === "ar" ? item.title_ar : item.title_en}
-                      className="w-16 h-10 rounded-xl object-cover bg-black shrink-0 border border-ink/10"
+                      className="w-16 h-10 rounded-xl object-cover bg-black shrink-0 border border-outline-variant"
                     />
                     <div>
                       <div className="font-bold text-ink text-sm">
@@ -310,7 +312,7 @@ export function PortfolioManagementView({
                     }
                     className={`p-1.5 rounded-lg transition-colors ${item.is_featured
                       ? "bg-amber-500/20 text-amber-400"
-                      : "bg-ink/5 text-ink-muted/40 hover:text-ink-muted"
+                      : "bg-ink/5 text-ink-muted hover:text-ink-muted"
                       }`}
                     title={
                       item.is_featured
@@ -346,8 +348,27 @@ export function PortfolioManagementView({
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingId ? t.actions.edit : t.actions.newProject}
-      >
-        <form onSubmit={handleCreate} className="space-y-4">
+       footer={<div className="flex justify-end gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsModalOpen(false)}
+            >
+              {t.actions.cancel}
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              disabled={saving}
+              className="gap-1.5"
+             form={modalFormId}>
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>{t.actions.save}</span>
+            </Button>
+          </div>}>
+        <form onSubmit={handleCreate} className="space-y-4" id={modalFormId}>
           {error && (
             <p role="alert" className="text-red-400 text-sm">
               {error}
@@ -359,22 +380,22 @@ export function PortfolioManagementView({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {uses("client") ? (
-              <div>
-                <label className="text-xs text-ink mb-1.5 block">
-                  {t.portfolioView.clientName}
-                </label>
+              <label>
+                <span className="text-xs text-ink mb-1.5 block">
+                  <bdi dir="auto">{t.portfolioView.clientName}</bdi>
+                </span>
                 <Input
                   value={clientName}
                   onChange={(e) => setClientName(e.target.value)}
                   placeholder={t.portfolioView.clientPlaceholder}
                   required={media}
                 />
-              </div>
-            ) : null}
-            <div>
-              <label className="text-xs text-ink mb-1.5 block">
-                {t.portfolioView.category}
               </label>
+            ) : null}
+            <label>
+              <span className="text-xs text-ink mb-1.5 block">
+                {t.portfolioView.category}
+              </span>
               <Select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
@@ -392,7 +413,7 @@ export function PortfolioManagementView({
                   </option>
                 ))}
               </Select>
-            </div>
+            </label>
           </div>
 
           {uses("subtitle") || uses("price") || uses("location") || uses("externalUrl") ? (
@@ -424,7 +445,7 @@ export function PortfolioManagementView({
           ) : null}
 
           {uses("attributes") ? (
-            <fieldset className="space-y-2 rounded-xl border border-ink/10 p-3">
+            <fieldset className="space-y-2 rounded-xl border border-outline-variant p-3">
               <legend className="px-1 text-xs font-semibold text-ink">{t.portfolioView.attributes}</legend>
               <p className="text-[11px] text-ink-muted">{t.portfolioView.attributesHint}</p>
               {attributes.map((attribute, index) => (
@@ -445,10 +466,10 @@ export function PortfolioManagementView({
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {media ? (
-              <div>
-                <label className="text-xs text-ink mb-1.5 block">
+              <label>
+                <span className="text-xs text-ink mb-1.5 block">
                   {t.portfolioView.aspectRatio}
-                </label>
+                </span>
                 <Select
                   value={aspectRatio}
                   onChange={(e) => setAspectRatio(e.target.value)}
@@ -462,30 +483,30 @@ export function PortfolioManagementView({
                   <option value="4:3" className="bg-surface text-ink">
                     {t.copy.aspectAcademy}</option>
                 </Select>
-              </div>
+              </label>
             ) : null}
             {uses("year") ? (
-              <div>
-                <label className="text-xs text-ink mb-1.5 block">
+              <label>
+                <span className="text-xs text-ink mb-1.5 block">
                   {t.portfolioView.productionYear}
-                </label>
+                </span>
                 <Input
                   type="number"
                   value={year}
                   onChange={(e) => setYear(Number(e.target.value))}
                 />
-              </div>
-            ) : null}
-            <div>
-              <label className="text-xs text-ink mb-1.5 block">
-                {t.portfolioView.slug}
               </label>
+            ) : null}
+            <label>
+              <span className="text-xs text-ink mb-1.5 block">
+                {t.portfolioView.slug}
+              </span>
               <Input
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
                 placeholder={t.portfolioView.slugPlaceholder}
               />
-            </div>
+            </label>
           </div>
 
           <div className="grid grid-cols-1 gap-4">
@@ -502,16 +523,16 @@ export function PortfolioManagementView({
               />
             </div>
             {uses("video") ? (
-              <div>
-                <label className="text-xs text-ink mb-1.5 block">
+              <label>
+                <span className="text-xs text-ink mb-1.5 block">
                   {t.portfolioView.previewVideoUrl}
-                </label>
+                </span>
                 <Input
                   value={previewVideoUrl}
                   onChange={(e) => setPreviewVideoUrl(e.target.value)}
                   placeholder={t.portfolioView.previewVideoPlaceholder}
                 />
-              </div>
+              </label>
             ) : null}
           </div>
 
@@ -538,7 +559,7 @@ export function PortfolioManagementView({
               <label className="text-sm sm:col-span-2">
                 {t.portfolioManagement.galleryImagesOneUrlPer}
                 <textarea
-                  className="w-full rounded-lg bg-ink/5 border border-ink/20 p-3"
+                  className="w-full rounded-lg bg-ink/5 border border-outline-variant p-3"
                   rows={3}
                   value={gallery}
                   onChange={(e) => setGallery(e.target.value)}
@@ -552,33 +573,14 @@ export function PortfolioManagementView({
               id="isFeatured"
               checked={isFeatured}
               onChange={(e) => setIsFeatured(e.target.checked)}
-              className="w-4 h-4 rounded text-accent bg-ink/5 border-ink/10"
+              className="w-4 h-4 rounded text-accent bg-ink/5 border-outline-variant"
             />
             <label htmlFor="isFeatured" className="text-xs text-ink">
               {t.cms.featured}
             </label>
           </div>
 
-          <div className="pt-4 flex justify-end gap-3 border-t border-ink/10">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setIsModalOpen(false)}
-            >
-              {t.actions.cancel}
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              size="sm"
-              disabled={saving}
-              className="gap-1.5"
-            >
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>{t.actions.save}</span>
-            </Button>
-          </div>
+
         </form>
       </Modal>
 

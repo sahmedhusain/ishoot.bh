@@ -1,3 +1,4 @@
+import { selectOption } from "../../select-option";
 import { expect, test } from "@playwright/test";
 import en from "../../../../packages/locales/src/admin/en.json";
 import ar from "../../../../packages/locales/src/admin/ar.json";
@@ -93,9 +94,13 @@ for (const locale of ["en", "ar"] as const)
       await toolbar
         .getByRole("button", { name: copy.embed, exact: true })
         .click();
-      await dialog
-        .getByRole("combobox", { name: copy.embedPresetPrompt, exact: true })
-        .selectOption("calendly");
+      await selectOption(
+        dialog.getByRole("combobox", {
+          name: copy.embedPresetPrompt,
+          exact: true,
+        }),
+        "calendly",
+      );
       const embed = dialog.getByRole("textbox", {
         name: copy.embedUrlPrompt,
         exact: true,

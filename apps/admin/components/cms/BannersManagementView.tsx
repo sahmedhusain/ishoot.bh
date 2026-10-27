@@ -45,6 +45,8 @@ export function BannersManagementView({
   initialBanners,
   languages,
 }: BannersManagementViewProps) {
+  const modalFormId = React.useId();
+
   const { t, locale } = useAdminLocale();
   const [banners, setBanners] = React.useState<HeroBanner[]>(initialBanners);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -162,7 +164,7 @@ export function BannersManagementView({
       >
         {t.bannersManagement.reviewAndPublishChangesIn}
       </Link>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">
             {t.cms.bannersTitle}
@@ -185,17 +187,17 @@ export function BannersManagementView({
 
       <div className="grid grid-cols-1 gap-4">
         {banners.length === 0 ? (
-          <div className="p-12 text-center rounded-3xl bg-surface border border-ink/10 text-ink-muted">
+          <div className="p-12 text-center rounded-3xl bg-surface border border-outline-variant text-ink-muted">
             {t.bannersView.emptyState}
           </div>
         ) : (
           banners.map((banner) => (
             <Card
               key={banner.id}
-              className="p-5 bg-surface border border-ink/10 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-ink/20 transition-all rounded-3xl"
+              className="p-5 bg-surface border border-outline-variant flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-outline-variant transition-all rounded-3xl"
             >
-              <div className="flex items-center gap-4">
-                <div className="relative w-36 aspect-video rounded-xl overflow-hidden bg-black border border-ink/10 shrink-0">
+              <div className="flex min-w-0 flex-col sm:flex-row sm:items-center gap-4">
+                <div className="relative w-36 aspect-video rounded-xl overflow-hidden bg-black border border-outline-variant shrink-0">
                   <ContentImage
                     src={websiteMedia(banner.poster_url || banner.media_url)}
                     alt={locale === "ar" ? banner.title_ar : banner.title_en}
@@ -211,8 +213,8 @@ export function BannersManagementView({
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
+                <div className="min-w-0 space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-base font-bold text-ink">
                       {locale === "ar" ? banner.title_ar : banner.title_en}
                     </h3>
@@ -280,8 +282,27 @@ export function BannersManagementView({
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingId ? t.actions.edit : t.actions.addBanner}
-      >
-        <form onSubmit={handleCreate} className="space-y-4">
+       footer={<div className="flex justify-end gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsModalOpen(false)}
+            >
+              {t.actions.cancel}
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              disabled={saving}
+              className="gap-1.5"
+             form={modalFormId}>
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>{t.actions.save}</span>
+            </Button>
+          </div>}>
+        <form onSubmit={handleCreate} className="space-y-4" id={modalFormId}>
           {error && (
             <p role="alert" className="text-red-400 text-sm">
               {error}
@@ -315,10 +336,10 @@ export function BannersManagementView({
           </div>
 
           <div className="space-y-4">
-            <div className="sm:max-w-xs">
-              <label className="text-xs text-ink mb-1.5 block">
+            <label className="sm:max-w-xs">
+              <span className="text-xs text-ink mb-1.5 block">
                 {t.bannersView.mediaType}
-              </label>
+              </span>
               <Select
                 value={mediaType}
                 onChange={(e) => setMediaType(e.target.value as any)}
@@ -330,7 +351,7 @@ export function BannersManagementView({
                   {t.bannersView.highResImage}
                 </option>
               </Select>
-            </div>
+            </label>
             <div>
               <label className="text-xs text-ink mb-1.5 block">
                 {t.bannersView.mediaUrl}
@@ -392,26 +413,7 @@ export function BannersManagementView({
               />
             </label>
           </div>
-          <div className="pt-4 flex justify-end gap-3 border-t border-ink/10">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setIsModalOpen(false)}
-            >
-              {t.actions.cancel}
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              size="sm"
-              disabled={saving}
-              className="gap-1.5"
-            >
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>{t.actions.save}</span>
-            </Button>
-          </div>
+
         </form>
       </Modal>
 

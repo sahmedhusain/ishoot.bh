@@ -243,17 +243,17 @@ export function CompanyArchiveView({
   };
 
   const chip = (active: boolean) =>
-    `inline-flex items-center gap-1.5 h-9 rounded-full border px-4 text-xs font-semibold transition-colors ${active ? "border-accent bg-accent/10 text-ink" : "border-ink/15 text-ink-muted hover:text-ink"}`;
+    `inline-flex items-center gap-1.5 h-9 rounded-full border px-4 text-xs font-semibold transition-colors ${active ? "border-accent bg-accent/10 text-ink" : "border-outline-variant text-ink-muted hover:text-ink"}`;
   const select =
-    "h-10 rounded-full border border-ink/15 bg-surface-sunken/60 px-4 text-xs text-ink focus:outline-none focus:border-accent";
+    "h-10 rounded-full border border-outline-variant bg-surface-sunken/60 px-4 text-xs text-ink focus:outline-none focus:border-accent";
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-ink flex items-center gap-2">
             <FolderOpen className="h-5 w-5 text-accent" />
-            {v.title}
+            <bdi dir="auto">{v.title}</bdi>
           </h1>
           <p className="text-xs text-ink-muted mt-1">{v.subtitle}</p>
         </div>
@@ -267,7 +267,7 @@ export function CompanyArchiveView({
           {canExport ? (
             <a
               href={exportHref}
-              className="inline-flex items-center gap-1.5 h-9 rounded-full border border-ink/15 px-4 text-xs font-semibold text-ink hover:bg-ink/5"
+              className="inline-flex items-center gap-1.5 h-9 rounded-full border border-outline-variant px-4 text-xs font-semibold text-ink hover:bg-ink/5"
             >
               <Download className="h-3.5 w-3.5" />
               {v.export}
@@ -276,7 +276,7 @@ export function CompanyArchiveView({
           {canUpload ? (
             <Link
               href={ROUTES.company.newDocument}
-              className="inline-flex items-center gap-1.5 h-9 rounded-full border border-ink/15 px-4 text-xs font-semibold text-ink hover:bg-ink/5"
+              className="inline-flex items-center gap-1.5 h-9 rounded-full border border-outline-variant px-4 text-xs font-semibold text-ink hover:bg-ink/5"
             >
               <Plus className="h-3.5 w-3.5" />
               {v.addLegal}
@@ -336,7 +336,7 @@ export function CompanyArchiveView({
             </div>
             <label className="block">
               <span className="text-xs font-semibold text-ink mb-1 block">
-                {v.name}
+                <bdi dir="auto">{v.name}</bdi>
               </span>
               <Input value={name} onChange={(e) => setName(e.target.value)} />
             </label>
@@ -407,7 +407,7 @@ export function CompanyArchiveView({
           <Link
             key={String(label)}
             href={String(link)}
-            className="rounded-2xl border border-ink/10 bg-white dark:bg-surface-raised p-4 hover:border-accent/40"
+            className="rounded-2xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-4 hover:border-accent/40"
           >
             <div className="text-[11px] text-ink-muted">{label}</div>
             <div className={`text-lg font-bold mt-0.5 ${tone}`}>{value}</div>
@@ -450,10 +450,10 @@ export function CompanyArchiveView({
             onChange={(e) => setQ(e.target.value)}
             placeholder={v.search}
             aria-label={v.search}
-            className="h-10 w-full rounded-full border border-ink/15 bg-surface-sunken/60 ps-9 pe-4 text-xs text-ink focus:outline-none focus:border-accent"
+            className="h-10 w-full rounded-full border border-outline-variant bg-surface-sunken/60 ps-9 pe-4 text-xs text-ink focus:outline-none focus:border-accent"
           />
         </div>
-        <select
+        <Select
           aria-label={v.type}
           className={select}
           value={filters.kind}
@@ -466,8 +466,8 @@ export function CompanyArchiveView({
               {counts.byKind[k] ? ` (${counts.byKind[k]})` : ""}
             </option>
           ))}
-        </select>
-        <select
+        </Select>
+        <Select
           aria-label={v.expiry}
           className={select}
           value={filters.expiry}
@@ -478,7 +478,7 @@ export function CompanyArchiveView({
               {v.expiryFilters[x]}
             </option>
           ))}
-        </select>
+        </Select>
         <label className="flex items-center gap-1.5 text-[11px] text-ink-muted">
           {v.from}
           <input
@@ -497,7 +497,7 @@ export function CompanyArchiveView({
             className={select}
           />
         </label>
-        <select
+        <Select
           aria-label={v.sort}
           className={select}
           value={filters.sort}
@@ -508,7 +508,7 @@ export function CompanyArchiveView({
               {v.sorts[s]}
             </option>
           ))}
-        </select>
+        </Select>
         {filtered ? (
           <Link
             href={ROUTES.archive}
@@ -525,10 +525,10 @@ export function CompanyArchiveView({
       </div>
 
       {items.length ? (
-        <div className="overflow-x-auto rounded-3xl border border-ink/10 bg-white dark:bg-surface-raised">
+        <div className="overflow-x-auto rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised">
           <table className="w-full text-sm">
             <thead className="text-[11px] uppercase tracking-wide text-ink-muted">
-              <tr className="border-b border-ink/10">
+              <tr className="border-b border-outline-variant">
                 <th className="px-4 py-3 text-start">{v.columns.document}</th>
                 <th className="px-4 py-3 text-start">{v.columns.relatedTo}</th>
                 <th className="px-4 py-3 text-start">{v.columns.type}</th>
@@ -540,7 +540,7 @@ export function CompanyArchiveView({
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink/5">
+            <tbody className="divide-y divide-outline-variant">
               {items.map((d) => (
                 <tr key={d.id} className="hover:bg-ink/[0.02]">
                   <td className="px-4 py-3">
@@ -623,7 +623,7 @@ export function CompanyArchiveView({
           </table>
         </div>
       ) : (
-        <div className="rounded-3xl border border-dashed border-ink/15 p-10 text-center text-sm text-ink-muted">
+        <div className="rounded-3xl border border-dashed border-outline-variant p-10 text-center text-sm text-ink-muted">
           {filtered ? v.noMatches : v.empty}
         </div>
       )}

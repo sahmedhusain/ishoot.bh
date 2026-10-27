@@ -17,7 +17,7 @@ export function ProfileWorkspace({
   ];
   return (
     <div className="mx-auto max-w-6xl space-y-6 pb-12">
-      <header>
+      <header data-page-header>
         <h1 className="text-2xl font-semibold tracking-tight text-ink">
           {t.sidebar.myProfile}
         </h1>
@@ -25,7 +25,7 @@ export function ProfileWorkspace({
       </header>
       <nav
         aria-label={t.sidebar.myProfile}
-        className="flex flex-wrap gap-2 border-b border-ink/10 pb-4"
+        className="flex flex-wrap gap-2 border-b border-outline-variant pb-4"
       >
         {sections.map(([id, label]) => (
           <a

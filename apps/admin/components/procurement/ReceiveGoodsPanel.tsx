@@ -41,7 +41,7 @@ export function ReceiveGoodsPanel({ order, locations, batchProducts }: { order: 
     }
   };
   return (
-    <Card className="p-5 space-y-4" data-testid="receive-goods">
+    <Card className="p-5 space-y-4" data-testid="receive-goods" data-page-section>
       <h2 className="font-bold text-ink flex items-center gap-2"><PackageCheck className="w-4 h-4 text-accent" aria-hidden="true" />{copy.title}</h2>
       <div className="grid sm:grid-cols-2 gap-4">
         <Field label={copy.location}>
@@ -60,7 +60,7 @@ export function ReceiveGoodsPanel({ order, locations, batchProducts }: { order: 
           const entry = entries[l.id];
           const batch = !!l.product_id && batchProducts.includes(l.product_id);
           return (
-            <div key={l.id} className="grid grid-cols-2 sm:grid-cols-12 gap-2 items-center rounded-xl border border-ink/10 p-3">
+            <div key={l.id} className="grid grid-cols-2 sm:grid-cols-12 gap-2 items-center rounded-xl border border-outline-variant p-3">
               <span className="col-span-2 sm:col-span-4 text-sm text-ink">
                 {l.description}
                 <span className="block text-xs text-ink-muted">{`${copy.remaining}: ${l.remaining}`}</span>

@@ -41,7 +41,7 @@ export function RecurringPayPanel({ employeeId, items, canEdit }: { employeeId: 
   const monthly = (kind: string) => items.filter((i) => i.kind === kind && i.is_active).reduce((sum, i) => sum + i.amount, 0);
 
   return (
-    <section className="rounded-3xl border border-ink/10 bg-white dark:bg-surface-raised p-5 sm:p-6 shadow-xs space-y-4">
+    <section className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-5 sm:p-6 shadow-xs space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="flex items-center gap-2 text-base font-bold text-ink"><Repeat className="h-4 w-4 text-accent" />{c.recurringTitle}</h2>
@@ -99,7 +99,7 @@ export function RecurringPayPanel({ employeeId, items, canEdit }: { employeeId: 
       {items.length === 0 && !editing ? <p className="text-xs text-ink-muted">{c.noRecurring}</p> : null}
       {items.length ? (
         <>
-          <ul className="divide-y divide-ink/10 rounded-2xl border border-ink/10">
+          <ul className="divide-y divide-outline-variant rounded-2xl border border-outline-variant">
             {items.map((r) => (
               <li key={r.id} className={`flex flex-wrap items-center justify-between gap-3 px-3 py-2.5 ${r.is_active ? "" : "opacity-60"}`}>
                 <div className="min-w-0">

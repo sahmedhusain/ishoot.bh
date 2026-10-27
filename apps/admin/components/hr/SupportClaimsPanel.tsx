@@ -24,7 +24,7 @@ export function SupportClaimsPanel({ claims, canRecord }: { claims: SupportClaim
 
   if (claims.length === 0) return null;
   return (
-    <section className="rounded-3xl border border-ink/10 bg-surface overflow-hidden">
+    <section className="rounded-3xl border border-outline-variant bg-surface overflow-hidden">
       <header className="p-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-base font-bold text-ink flex items-center gap-2">
@@ -37,7 +37,7 @@ export function SupportClaimsPanel({ claims, canRecord }: { claims: SupportClaim
           <span className="px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300">{c.claimable}: {bhd} {fmt(sum("claimable"))}</span>
           <span className="px-3 py-1.5 rounded-full bg-sky-500/10 text-sky-700 dark:text-sky-300">{c.accruing}: {bhd} {fmt(sum("accruing"))}</span>
           <span className="px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">{c.received}: {bhd} {fmt(sum("received"))}</span>
-          <button type="button" onClick={() => setFilter(filter === "open" ? "all" : "open")} className="px-3 py-1.5 rounded-full border border-ink/15 text-ink">
+          <button type="button" onClick={() => setFilter(filter === "open" ? "all" : "open")} className="px-3 py-1.5 rounded-full border border-outline-variant text-ink">
             {filter === "open" ? c.showAll : c.showOpen}
           </button>
         </div>
@@ -54,7 +54,7 @@ export function SupportClaimsPanel({ claims, canRecord }: { claims: SupportClaim
               <th className="p-3 pe-5 text-end">{c.status}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-ink/5">
+          <tbody className="divide-y divide-outline-variant">
             {rows.map((r) => (
               <ClaimRow key={`${r.employeeId}-${r.provider}-${r.periodStart}`} row={r} canRecord={canRecord} />
             ))}
@@ -87,13 +87,13 @@ function ClaimRow({ row, canRecord }: { row: SupportClaimRow; canRecord: boolean
       setSaving(false);
     }
   };
-  const field = "rounded-lg border border-ink/15 bg-surface px-2 py-1 text-xs text-ink";
+  const field = "rounded-lg border border-outline-variant bg-surface px-2 py-1 text-xs text-ink";
 
   return (
     <>
       <tr>
         <td className="p-3 ps-5">
-          <div className="font-semibold text-ink">{row.employeeName}</div>
+          <div className="font-semibold text-ink"><bdi dir="auto">{row.employeeName}</bdi></div>
           <div className="text-[10px] text-ink-muted font-mono">{row.employeeNumber}</div>
         </td>
         <td className="p-3 text-ink">{row.provider}</td>

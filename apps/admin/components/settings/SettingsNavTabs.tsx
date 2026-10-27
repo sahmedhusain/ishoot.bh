@@ -47,12 +47,12 @@ export function SettingsNavTabs() {
     },
     ...(role === "super_admin" && can("settings", "read")
       ? [
-        {
-          href: ROUTES.settings.approvals,
-          label: t.settingsTabs.approvals,
-          icon: ShieldCheck,
-        },
-      ]
+          {
+            href: ROUTES.settings.approvals,
+            label: t.settingsTabs.approvals,
+            icon: ShieldCheck,
+          },
+        ]
       : []),
   ];
 
@@ -67,7 +67,10 @@ export function SettingsNavTabs() {
   );
 
   return (
-    <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-surface border border-ink/10 w-fit overflow-x-auto max-w-full">
+    <nav
+      aria-label={t.profileDropdown.appearance}
+      className="admin-settings-nav"
+    >
       {visibleTabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = pathname === tab.href;
@@ -77,18 +80,17 @@ export function SettingsNavTabs() {
             key={tab.href}
             href={tab.href}
             aria-current={isActive ? "page" : undefined}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${isActive
-              ? "bg-primary text-white shadow-md border border-accent/40"
-              : "text-ink-muted hover:text-ink hover:bg-ink/5"
-              }`}
+            className={`relative flex min-h-12 items-center justify-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors duration-base ease-standard m3-state-layer ${
+              isActive
+                ? "text-primary before:absolute before:bottom-0 before:inset-x-4 before:h-[3px] before:rounded-t-full before:bg-primary"
+                : "text-ink-muted hover:text-ink"
+            }`}
           >
-            <Icon
-              className={`w-3.5 h-3.5 ${isActive ? "text-accent" : "text-ink-muted"}`}
-            />
+            <Icon aria-hidden className="w-4 h-4" />
             <span>{tab.label}</span>
           </Link>
         );
       })}
-    </div>
+    </nav>
   );
 }

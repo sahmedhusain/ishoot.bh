@@ -1,5 +1,6 @@
 "use client";
 
+import { Select } from "@platform/ui";
 import * as React from "react";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { PAY_LINE_CATEGORIES, type PayLineKind } from "@platform/database/constants/hr";
@@ -23,7 +24,7 @@ export const toPayLineDraft = (line: { category: string; label: string; amount: 
   note: line.note ?? "",
 });
 
-const field = "h-9 w-full rounded-lg border border-ink/15 bg-surface-sunken/60 px-2.5 text-xs text-ink focus:outline-none focus:border-accent";
+const field = "h-9 w-full rounded-lg border border-outline-variant bg-surface-sunken/60 px-2.5 text-xs text-ink focus:outline-none focus:border-accent";
 
 /** One list of named lines: additions or deductions, never mixed, each with a category, description and amount. */
 export function PayLinesEditor({ kind, lines, onChange }: { kind: PayLineKind; lines: PayLineDraft[]; onChange: (lines: PayLineDraft[]) => void }) {
@@ -44,11 +45,11 @@ export function PayLinesEditor({ kind, lines, onChange }: { kind: PayLineKind; l
       {lines.length === 0 ? <p className="text-[11px] text-ink-muted">{kind === "addition" ? c.noAdditions : c.noDeductions}</p> : null}
       {lines.map((line) => (
         <div key={line.key} className="grid grid-cols-12 gap-2 items-start">
-          <select aria-label={c.category} className={`${field} col-span-12 sm:col-span-3`} value={line.category} onChange={(e) => set(line.key, { category: e.target.value })}>
+          <Select aria-label={c.category} className={`${field} col-span-12 sm:col-span-3`} value={line.category} onChange={(e) => set(line.key, { category: e.target.value })}>
             {PAY_LINE_CATEGORIES[kind].map((category) => (
               <option key={category} value={category}>{(c.categories as Record<string, string>)[category]}</option>
             ))}
-          </select>
+          </Select>
           <input aria-label={c.description} placeholder={c.description} maxLength={120} className={`${field} col-span-12 sm:col-span-5`} value={line.label} onChange={(e) => set(line.key, { label: e.target.value })} />
           <input aria-label={c.amount} type="number" min={0.001} step="0.001" inputMode="decimal" dir="ltr" placeholder="0.000" className={`${field} col-span-9 sm:col-span-3`} value={line.amount} onChange={(e) => set(line.key, { amount: e.target.value })} />
           <button type="button" aria-label={c.remove} title={c.remove} onClick={() => onChange(lines.filter((l) => l.key !== line.key))} className="col-span-3 sm:col-span-1 h-9 rounded-lg text-ink-muted hover:text-rose-500 hover:bg-rose-500/10 flex items-center justify-center">

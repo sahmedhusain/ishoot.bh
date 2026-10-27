@@ -1,3 +1,4 @@
+import { selectOption } from "../../select-option";
 import { acceptConfirmations } from "../../helpers";
 import crypto from "node:crypto";
 import path from "node:path";
@@ -71,7 +72,7 @@ test("a campaign's tracked link brings an order that counts on the campaign", as
   await page.locator('input[name="campaignName"]').fill("E2E Eid");
   await page.locator('input[name="campaignUtm"]').fill(UTM);
   await page.locator('input[name="campaignSpend"]').fill("10");
-  await page.locator('select[name="campaignStatus"]').selectOption("running");
+  await selectOption(page.locator('select[name="campaignStatus"]'), "running");
   await page.getByTestId("campaign-save").click();
   const card = page.getByTestId(`campaign-${UTM}`).first();
   await expect(card).toBeVisible();
@@ -157,9 +158,8 @@ test("a segment of buyers gets a broadcast; only those who agreed, and each can 
   await page.getByTestId("broadcast-new").click();
   const form = page.getByTestId("broadcast-form");
   await form.locator('input[name="broadcastName"]').fill("E2E news");
-  await form
-    .locator('select[name="broadcastSegment"]')
-    .selectOption({ label: "E2E buyers" });
+  await selectOption(form
+    .locator('select[name="broadcastSegment"]'), { label: "E2E buyers" });
   for (const input of await form.locator("input:not([name])").all())
     await input.fill("Our Eid offers");
   for (const area of await form.locator("textarea").all())
@@ -247,9 +247,8 @@ test("press releases, coverage and the website's press page", async ({
     .fill("New branch opens downtown");
   await page.locator('input[name="coverageOutlet"]').fill("E2E Daily");
   await page.locator('input[name="coverageReach"]').fill("12000");
-  await page
-    .locator('select[name="coverageSentiment"]')
-    .selectOption("positive");
+  await selectOption(page
+    .locator('select[name="coverageSentiment"]'), "positive");
   await page.getByTestId("coverage-save").click();
   await expect(page.getByTestId("coverage-list")).toContainText("E2E Daily");
   await expect(page.getByTestId("press-summary")).toContainText("12,000");
@@ -280,10 +279,10 @@ test("a legal matter keeps its history, reminds its counsel before the hearing, 
   await page
     .locator('input[name="matterTitle"]')
     .fill("E2E unpaid invoice claim");
-  await page.locator('select[name="matterKind"]').selectOption("claim");
+  await selectOption(page.locator('select[name="matterKind"]'), "claim");
   await page.locator('input[name="matterCounterparty"]').fill("Late Payer Co.");
   await page.locator('input[name="matterNextDate"]').fill(hearing);
-  await page.locator('select[name="matterAssignee"]').selectOption(me.id);
+  await selectOption(page.locator('select[name="matterAssignee"]'), me.id);
   await page.getByTestId("legal-save").click();
   await expect(page).toHaveURL(/\/dashboard\/legal\/[0-9a-f-]{36}$/, {
     timeout: 60_000,
@@ -321,7 +320,7 @@ test("a legal matter keeps its history, reminds its counsel before the hearing, 
   ).toBe(1);
 
   await page.getByTestId("legal-edit").click();
-  await page.locator('select[name="matterStatus"]').selectOption("closed");
+  await selectOption(page.locator('select[name="matterStatus"]'), "closed");
   await page.locator('textarea[name="matterOutcome"]').fill("Paid in full.");
   await page.getByTestId("legal-save").click();
   await expect(page.getByTestId("legal-status")).toHaveText(

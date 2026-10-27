@@ -38,10 +38,10 @@ export function SiteCodeView({ initialCode, canEdit }: { initialCode: WebsiteCod
   );
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{copy.title}</h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
+          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
         </div>
         {canEdit && (
           <Button type="button" variant="primary" size="sm" className="rounded-full gap-1.5" disabled={busy} onClick={save}>
@@ -51,13 +51,13 @@ export function SiteCodeView({ initialCode, canEdit }: { initialCode: WebsiteCod
         )}
       </div>
       {message && <p role="status" className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
-      <Card className="p-5 grid sm:grid-cols-3 gap-4">
+      <Card className="p-5 grid sm:grid-cols-3 gap-4" data-page-section>
         <h2 className="sm:col-span-3 font-bold text-ink">{copy.analytics}</h2>
         {input("googleAnalyticsId")}
         {input("metaPixelId")}
         {input("tiktokPixelId")}
       </Card>
-      <Card className="p-5 space-y-4">
+      <Card className="p-5 space-y-4" data-page-section>
         <h2 className="font-bold text-ink">{copy.custom}</h2>
         <p className="flex items-start gap-2 text-xs rounded-lg bg-amber-500/10 text-amber-800 dark:text-amber-300 px-3 py-2">
           <ShieldAlert className="w-4 h-4 shrink-0" />

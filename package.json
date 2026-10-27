@@ -73,7 +73,9 @@
     "env:sync": "node scripts/env-tool.cjs sync"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@eslint/eslintrc": "^3.3.7",
+    "@material/material-color-utilities": "^0.3.0",
     "@playwright/test": "^1.64.1",
     "eslint": "9.39.5",
     "eslint-config-next": "15.5.27",

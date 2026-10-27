@@ -66,7 +66,7 @@ export function ApprovalDecisionPanel({
     <section
       aria-labelledby="decide-title"
       className="rounded-3xl border border-sky-500/30 bg-sky-500/5 p-5 space-y-4"
-    >
+     data-page-section>
       <h2 id="decide-title" className="text-sm font-bold text-ink">
         {a.item.decideTitle}
       </h2>
@@ -80,7 +80,7 @@ export function ApprovalDecisionPanel({
         />
       </label>
       {requiresSignature ? (
-        <div className="space-y-2 rounded-2xl border border-ink/10 bg-white p-3 dark:bg-surface-raised">
+        <div className="space-y-2 rounded-2xl border border-outline-variant bg-surface-raised p-3 dark:bg-surface-raised">
           <div className="flex items-center gap-2 text-xs font-semibold text-ink">
             <PenLine className="h-4 w-4 text-accent" aria-hidden />
             {a.item.signNow}
@@ -110,7 +110,7 @@ export function ApprovalDecisionPanel({
           size="sm"
           disabled={busy !== null || (requiresSignature && !signature)}
           onClick={() => decide("approved")}
-          className="gap-1.5 bg-primary text-white"
+          className="gap-1.5 bg-primary text-primary-foreground"
         >
           <CheckCircle2 className="h-4 w-4" aria-hidden />
           {requiresSignature ? a.item.signAndApprove : a.approve}

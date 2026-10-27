@@ -272,12 +272,12 @@ export function CompanySettingsView({
   return (
     <div inert={saving} aria-busy={saving} className="space-y-6 max-w-6xl mx-auto pb-16">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
         <div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white">
+          <h1 className="text-xl font-bold text-ink dark:text-ink">
             {t.settings.companyTitle}
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1">
             {t.companySettingsView.subtitle}
           </p>
         </div>
@@ -313,7 +313,7 @@ export function CompanySettingsView({
       <SettingsNavTabs />
 
       {/* Sub-Tabs for Company Settings */}
-      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-[#f1f3f4] dark:bg-surface-raised border border-slate-200 dark:border-neutral-800 overflow-x-auto">
+      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-surface-container dark:bg-surface-raised border border-outline-variant dark:border-outline-variant overflow-x-auto" role="tablist">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.key;
@@ -324,12 +324,12 @@ export function CompanySettingsView({
               type="button"
               onClick={() => { if (tab.key === "theme") setThemeVisited(true); setActiveTab(tab.key); }}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-150 ${isActive
-                ? "bg-white dark:bg-[#282a2d] text-primary dark:text-mint shadow-xs border border-slate-200/80 dark:border-neutral-700"
-                : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white"
+                ? "bg-surface-raised dark:bg-surface-container text-primary dark:text-mint shadow-xs border border-outline-variant/80 dark:border-outline-variant"
+                : "text-ink-muted dark:text-ink-muted hover:text-ink dark:hover:text-white"
                 }`}
-            >
+             tabIndex={activeTab === tab.key ? 0 : -1} role="tab" aria-selected={activeTab === tab.key}>
               <Icon
-                className={`w-3.5 h-3.5 ${isActive ? "text-accent" : "text-slate-400 dark:text-neutral-500"
+                className={`w-3.5 h-3.5 ${isActive ? "text-accent" : "text-ink-muted dark:text-ink-muted"
                   }`}
               />
               <span>{tab.label}</span>
@@ -417,7 +417,7 @@ export function CompanySettingsView({
       {/* Save Confirmation Modal with Diff Summary */}
       {saveError && !isSaveConfirmOpen && <p role="alert" className="text-sm text-rose-700 dark:text-rose-300">{saveError}</p>}
       <ConfirmDialog isOpen={isSaveConfirmOpen} onClose={() => setIsSaveConfirmOpen(false)} title={t.companySettingsView.diffModalTitle} variant="warning" loading={saving} confirmLabel={t.companySettingsView.confirmChanges} cancelLabel={t.companySettingsView.cancel} errorLabel={saveError || t.companySettingsView.saveFailed} onConfirm={executeSave} description={<div className="space-y-4"><p>{saveDiffs.length} {t.companySettingsView.diffDetected}</p>
-        <p className="text-xs text-slate-600 dark:text-neutral-300">
+        <p className="text-xs text-ink-muted dark:text-ink">
           {t.companySettingsView.diffNotice}
         </p>
 
@@ -431,10 +431,10 @@ export function CompanySettingsView({
                 key={diff.key}
                 className={`p-3 rounded-xl border text-xs space-y-1.5 ${diff.isVat
                   ? "bg-amber-50/60 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800"
-                  : "bg-slate-50 dark:bg-neutral-800/40 border-slate-200 dark:border-neutral-700"
+                  : "bg-surface-raised dark:bg-surface-raised/40 border-outline-variant dark:border-outline-variant"
                   }`}
               >
-                <div className="flex items-center justify-between font-bold text-[11px] text-slate-700 dark:text-neutral-300">
+                <div className="flex items-center justify-between font-bold text-[11px] text-ink dark:text-ink">
                   <span>{label}</span>
                   {diff.isVat ? (
                     <span className="px-1.5 py-0.5 rounded text-[9px] bg-amber-200 text-amber-900 ">
@@ -444,8 +444,8 @@ export function CompanySettingsView({
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-[11px] items-center">
-                  <div className="p-2 rounded-lg bg-white/70 dark:bg-neutral-900/60 border border-slate-200/80 dark:border-neutral-700/60 text-slate-500 dark:text-neutral-400">
-                    <span className="block text-[9px] uppercase  tracking-wider text-slate-400">
+                  <div className="p-2 rounded-lg bg-white/70 dark:bg-surface-raised/60 border border-outline-variant/80 dark:border-outline-variant/60 text-ink-muted dark:text-ink-muted">
+                    <span className="block text-[9px] uppercase  tracking-wider text-ink-muted">
                       {t.companySettingsView.currentVal}
                     </span>
                     <span className="truncate block font-medium mt-0.5">

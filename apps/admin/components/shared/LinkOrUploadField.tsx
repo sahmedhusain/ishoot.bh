@@ -111,7 +111,7 @@ export function LinkOrUploadField({
   };
 
   const tab = (active: boolean) =>
-    `inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${active ? "bg-white text-ink shadow-sm dark:bg-white/10" : "text-ink-muted hover:text-ink"}`;
+    `inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${active ? "bg-surface-raised text-ink shadow-sm dark:bg-white/10" : "text-ink-muted hover:text-ink"}`;
   const hasUpload = value && !isHttpsLink(value);
 
   return (
@@ -141,7 +141,7 @@ export function LinkOrUploadField({
               setMode("upload");
               setError("");
             }}
-          >
+           tabIndex={mode === "upload" ? 0 : -1}>
             <UploadCloud className="h-3.5 w-3.5" aria-hidden /> {f.uploadTab}
           </button>
           <button
@@ -154,7 +154,7 @@ export function LinkOrUploadField({
               setMode("link");
               setError("");
             }}
-          >
+           tabIndex={mode === "link" ? 0 : -1}>
             <Link2 className="h-3.5 w-3.5" aria-hidden /> {f.linkTab}
           </button>
         </div>
@@ -214,7 +214,7 @@ export function LinkOrUploadField({
             placeholder={t.copy.urlExample}
             value={link}
             onChange={(e) => applyLink(e.target.value)}
-            className="h-10 min-w-0 flex-1 rounded-xl border border-ink/15 bg-white px-3 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 dark:bg-surface"
+            className="h-10 min-w-0 flex-1 rounded-xl border border-outline-variant bg-surface-raised px-3 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 dark:bg-surface"
           />
           {link && isHttpsLink(link) ? (
             <a
@@ -222,7 +222,7 @@ export function LinkOrUploadField({
               target="_blank"
               rel="noreferrer noopener"
               aria-label={f.open}
-              className="inline-flex items-center rounded-xl border border-ink/15 px-3 text-ink-muted hover:text-ink"
+              className="inline-flex items-center rounded-xl border border-outline-variant px-3 text-ink-muted hover:text-ink"
             >
               <ExternalLink className="h-4 w-4" aria-hidden />
             </a>

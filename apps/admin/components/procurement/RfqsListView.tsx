@@ -47,10 +47,10 @@ export function RfqsListView({ rows, products, canEdit }: { rows: Row[]; product
   };
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{copy.title}</h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
+          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
         </div>
         {canEdit && !draft && (
           <Button type="button" variant="primary" size="sm" className="rounded-full gap-1.5" onClick={() => setDraft({ title: "", dueDate: "", lines: [emptyLine()] })}>
@@ -87,13 +87,13 @@ export function RfqsListView({ rows, products, canEdit }: { rows: Row[]; product
             <p className="text-sm text-ink-muted">{copy.empty}</p>
           </div>
         ) : (
-          <ul className="divide-y divide-ink/10">
+          <ul className="divide-y divide-outline-variant">
             {rows.map((r) => (
               <li key={r.id}>
                 <Link href={ROUTES.procurement.rfq(r.id)} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 hover:bg-ink/[0.02]">
                   <span className="font-mono text-xs font-semibold text-ink" dir="ltr">{r.number}</span>
                   <StatusPill status={r.status} />
-                  <span className="text-sm text-ink">{r.title}</span>
+                  <span className="text-sm text-ink"><bdi dir="auto">{r.title}</bdi></span>
                   <span className="text-xs text-ink-muted">{formatMessage(copy.suppliers, { count: r.suppliers })}</span>
                   {r.due_date && <span className="ms-auto text-xs text-ink-muted">{`${copy.dueDate}: ${formatDate(r.due_date, locale)}`}</span>}
                 </Link>

@@ -1,3 +1,4 @@
+import { selectOption } from "../../select-option";
 import { acceptConfirmations } from "../../helpers";
 import { expect, test } from "@playwright/test";
 import en from "../../../../packages/locales/src/en.json";
@@ -97,9 +98,8 @@ test("a shipment handed to a courier agency is tracked at the agency and invoice
 
   await page.goto(`/dashboard/delivery/${shipmentId}`);
   const panel = page.getByTestId("shipment-agency").first();
-  await panel
-    .locator('select[name="agencyId"]')
-    .selectOption({ label: AGENCY });
+  await selectOption(panel
+    .locator('select[name="agencyId"]'), { label: AGENCY });
   await panel.locator('input[name="trackingNumber"]').fill("TRK-778899");
   await page.getByTestId("shipment-handover").first().click();
   await expect(page.getByTestId("shipment-tracking-number").first()).toHaveText(

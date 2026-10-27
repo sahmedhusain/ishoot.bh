@@ -225,17 +225,17 @@ export function LeaveManagementView({
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-16">
       {/* Editorial Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-ink/10 pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-outline-variant pb-6" data-page-header>
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono uppercase tracking-widest text-accent bg-[#EDF3EC] dark:bg-tone-15/40 dark:text-mint px-2.5 py-0.5 rounded-full font-medium">
+            <span className="text-xs font-mono uppercase tracking-widest text-accent bg-secondary-container dark:bg-tone-15/40 dark:text-mint px-2.5 py-0.5 rounded-full font-medium">
               {t.leaveManagement.operationalAvailabilityAndHrms}
             </span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white mt-1">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-ink dark:text-ink mt-1">
             {t.leaveManagement.leaveAndAvailabilityManagement}
           </h1>
-          <p className="text-sm text-slate-500 dark:text-neutral-400 mt-1">
+          <p className="text-sm text-ink-muted dark:text-ink-muted mt-1">
             {t.leaveManagement.approvedLeavesStrictlyBlockOperational}
           </p>
         </div>
@@ -244,7 +244,7 @@ export function LeaveManagementView({
           {(myEmployee || canFileForOthers) && (
             <Button
               onClick={() => { setApplyError(""); setShowApplyModal(true); }}
-              className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-md text-xs font-medium active:scale-[0.98] transition-all shadow-xs"
+              className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-primary-foreground px-4 py-2 rounded-md text-xs font-medium active:scale-[0.98] transition-all shadow-xs"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>{t.leaveManagement.applyForLeave}</span>
@@ -258,46 +258,46 @@ export function LeaveManagementView({
       {/* Metrics Bento Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {myEmployee && (
-          <div className="bg-white dark:bg-surface-raised border border-ink/10 p-5 rounded-lg space-y-1">
-            <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
+          <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
+            <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
               {t.leaveManagement.myAnnualLeaveBalance}
             </div>
             <div className="text-2xl font-bold font-mono text-primary dark:text-mint">
               {Number(myBalances.find((b) => b.code === "annual")?.available ?? myEmployee.leaveBalanceDays).toFixed(1)}{" "}
-              <span className="text-xs font-normal text-slate-400">
+              <span className="text-xs font-normal text-ink-muted">
                 {t.shared.days}
               </span>
             </div>
-            <div className="text-xs text-slate-400">{t.leaveManagement.bahrainStatutoryAllowance}</div>
+            <div className="text-xs text-ink-muted">{t.leaveManagement.bahrainStatutoryAllowance}</div>
           </div>
         )}
 
-        <div className="bg-white dark:bg-surface-raised border border-ink/10 p-5 rounded-lg space-y-1">
-          <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
+        <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
+          <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
             {t.leaveManagement.pendingLeaveRequests}
           </div>
           <div className="text-2xl font-bold font-mono text-amber-600 dark:text-amber-400 flex items-center gap-2">
             {pendingCount}
-            {pendingCount > 0 && <Clock className="w-4 h-4 animate-pulse" />}
+            {pendingCount > 0 && <Clock className="w-4 h-4" />}
           </div>
-          <div className="text-xs text-slate-400">{t.leaveManagement.awaitingManagerReview}</div>
+          <div className="text-xs text-ink-muted">{t.leaveManagement.awaitingManagerReview}</div>
         </div>
 
-        <div className="bg-white dark:bg-surface-raised border border-ink/10 p-5 rounded-lg space-y-1">
-          <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
+        <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
+          <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
             {t.leaveManagement.approvedLeaves}
           </div>
           <div className="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
             {approvedCount}
           </div>
-          <div className="text-xs text-slate-400">{t.leaveManagement.activeUpcomingBlockedPeriods}</div>
+          <div className="text-xs text-ink-muted">{t.leaveManagement.activeUpcomingBlockedPeriods}</div>
         </div>
       </div>
 
       {myEmployee && myBalances.length > 0 && <LeaveBalancesCard balances={myBalances} year={new Date().getFullYear()} />}
 
       {/* Status Filter Tabs */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-ink/10 pb-3">
+      <div className="flex flex-wrap items-center gap-2 border-b border-outline-variant pb-3">
         {[
           { id: "all", label: t.leaveManagement.allRequests },
           { id: "pending", label: t.leaveManagement.pendingReview },
@@ -309,8 +309,8 @@ export function LeaveManagementView({
             key={tab.id}
             onClick={() => updateStatusFilter(tab.id)}
             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${currentStatus === tab.id
-              ? "bg-primary text-white"
-              : "bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-400 hover:bg-slate-200 dark:hover:bg-neutral-700"
+              ? "bg-primary text-primary-foreground"
+              : "bg-surface-sunken dark:bg-surface-raised text-ink-muted dark:text-ink-muted hover:bg-surface-sunken dark:hover:bg-surface-sunken"
               }`}
           >
             {tab.label}
@@ -319,11 +319,11 @@ export function LeaveManagementView({
       </div>
 
       {/* Leave Requests Table */}
-      <Card className="bg-white dark:bg-surface-raised border border-ink/10 rounded-lg overflow-hidden">
+      <Card className="bg-surface-raised dark:bg-surface-raised border border-outline-variant rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-start text-sm">
             <thead>
-              <tr className="border-b border-ink/10 text-xs font-mono uppercase text-slate-400 bg-slate-50/50 dark:bg-neutral-900/30">
+              <tr className="border-b border-outline-variant text-xs font-mono uppercase text-ink-muted bg-surface-raised/50 dark:bg-surface-raised/30">
                 <th className="py-3 px-4">{t.shared.employee}</th>
                 <th className="py-3 px-4">{t.leaveManagement.leaveType}</th>
                 <th className="py-3 px-4">{t.leaveManagement.periodAndDuration}</th>
@@ -332,12 +332,12 @@ export function LeaveManagementView({
                 <th className="py-3 px-4 text-end">{t.leaveManagement.actions}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink/10 dark:divide-white/5">
+            <tbody className="divide-y divide-outline-variant dark:divide-white/5">
               {requests.length === 0 ? (
                 <tr>
                   <td
                     colSpan={6}
-                    className="py-12 text-center text-xs text-slate-400"
+                    className="py-12 text-center text-xs text-ink-muted"
                   >
                     {t.leaveManagement.noLeaveRequestsFoundMatching}
                   </td>
@@ -353,28 +353,28 @@ export function LeaveManagementView({
                   return (
                     <tr
                       key={req.id}
-                      className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors"
+                      className="hover:bg-surface-raised/50 dark:hover:bg-white/[0.02] transition-colors"
                     >
                       <td className="py-3.5 px-4">
-                        <div className="font-semibold text-slate-900 dark:text-white">
+                        <div className="font-semibold text-ink dark:text-ink">
                           {locale === "ar" ? req.employee?.firstNameAr : req.employee?.firstNameEn} {locale === "ar" ? req.employee?.lastNameAr : req.employee?.lastNameEn}
                         </div>
-                        <div className="text-xs font-mono text-slate-400">
+                        <div className="text-xs font-mono text-ink-muted">
                           {req.employee?.employeeNumber}
                         </div>
                       </td>
 
                       <td className="py-3.5 px-4">
-                        <span className="text-xs font-medium px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300">
+                        <span className="text-xs font-medium px-2 py-0.5 rounded bg-surface-sunken dark:bg-surface-raised text-ink dark:text-ink">
                           {(locale === "ar" ? req.leaveType?.nameAr : req.leaveType?.nameEn) || t.leaveManagement.generalLeave}
                         </span>
                       </td>
 
                       <td className="py-3.5 px-4 font-mono text-xs">
-                        <div className="text-slate-900 dark:text-white">
+                        <div className="text-ink dark:text-ink">
                           <bdi dir="ltr">{start} → {end}</bdi>
                         </div>
-                        <div className="text-slate-500 dark:text-slate-400 text-[11px]">
+                        <div className="text-ink-muted dark:text-ink-muted text-[11px]">
                           {req.dayPortion === "half_am"
                             ? t.leaveForm.halfAm
                             : req.dayPortion === "half_pm"
@@ -387,11 +387,11 @@ export function LeaveManagementView({
                       </td>
 
                       <td className="py-3.5 px-4 text-xs max-w-xs">
-                        <p dir="auto" className="text-slate-700 dark:text-neutral-300 truncate text-[11px]">
+                        <p dir="auto" className="text-ink dark:text-ink truncate text-[11px]">
                           {req.reason}
                         </p>
                         {req.reviewNotes && (
-                          <div className="text-[10px] text-slate-400 mt-0.5 italic">
+                          <div className="text-[10px] text-ink-muted mt-0.5 italic">
                             {t.leaveManagement.reviewNote}
                             {req.reviewNotes}
                           </div>
@@ -432,7 +432,7 @@ export function LeaveManagementView({
                             <button
                               onClick={() => handleDecision(req.id, "approved")}
                               disabled={loadingId === req.id}
-                              className="px-2.5 py-1 text-xs bg-primary text-white hover:bg-primary-hover rounded"
+                              className="px-2.5 py-1 text-xs bg-primary text-primary-foreground hover:bg-primary-hover rounded"
                             >
                               {t.leaveManagement.approve}
                             </button>
@@ -443,7 +443,7 @@ export function LeaveManagementView({
                           <button
                             onClick={() => confirmAction({ description: formatMessage(t.leaveManagement.cancelConfirmBody, { start: formatDate(req.startDate, locale), end: formatDate(req.endDate, locale) }), onConfirm: () => handleCancel(req.id) })}
                             disabled={loadingId === req.id}
-                            className="px-2.5 py-1 text-xs text-slate-500 hover:text-red-600 border border-slate-200 rounded"
+                            className="px-2.5 py-1 text-xs text-ink-muted hover:text-red-600 border border-outline-variant rounded"
                           >
                             {t.shared.cancel}
                           </button>
@@ -470,13 +470,13 @@ export function LeaveManagementView({
             <div className="space-y-3">
               {canFileForOthers && (
                 <div>
-                  <label htmlFor={`${applyFormId}-employee`} className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
+                  <label htmlFor={`${applyFormId}-employee`} className="block text-xs font-medium text-ink dark:text-ink mb-1">
                     {t.shared.employee}
                   </label>
                   <Select id={`${applyFormId}-employee`}
                     value={targetEmployeeId}
                     onChange={(e) => setTargetEmployeeId(e.target.value)}
-                    className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
+                    className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
                   >
                     {!targetEmployeeId && <option value="" disabled>—</option>}
                     {allEmployees.map((e) => (
@@ -489,13 +489,13 @@ export function LeaveManagementView({
               )}
 
               <div>
-                <label htmlFor={`${applyFormId}-type`} className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
+                <label htmlFor={`${applyFormId}-type`} className="block text-xs font-medium text-ink dark:text-ink mb-1">
                   {t.leaveManagement.leaveType2}
                 </label>
                 <Select id={`${applyFormId}-type`}
                   value={leaveTypeId}
                   onChange={(e) => setLeaveTypeId(e.target.value)}
-                  className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
+                  className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
                 >
                   {leaveTypes.map((lt) => (
                     <option key={lt.id} value={lt.id}>
@@ -507,7 +507,7 @@ export function LeaveManagementView({
               </div>
 
               <fieldset>
-                <legend className="mb-1 text-xs font-medium text-slate-700 dark:text-neutral-300">{t.leaveForm.portion}</legend>
+                <legend className="mb-1 text-xs font-medium text-ink dark:text-ink">{t.leaveForm.portion}</legend>
                 <div className="flex flex-wrap gap-1.5">
                   {([
                     ["full", t.leaveForm.full, true],
@@ -515,23 +515,23 @@ export function LeaveManagementView({
                     ["half_pm", t.leaveForm.halfPm, selectedType?.allowHalfDay !== false],
                     ["hours", t.leaveForm.hours, selectedType?.allowHours === true],
                   ] as const).filter(([, , allowed]) => allowed).map(([value, label]) => (
-                    <label key={value} className={`cursor-pointer rounded-full border px-3 py-1 text-xs focus-within:ring-2 focus-within:ring-accent/40 ${portion === value ? "border-accent bg-accent/10 text-slate-900 dark:text-white" : "border-ink/15 text-slate-600 dark:text-slate-300"}`}>
+                    <label key={value} className={`cursor-pointer rounded-full border px-3 py-1 text-xs focus-within:ring-2 focus-within:ring-accent/40 ${portion === value ? "border-accent bg-accent/10 text-ink dark:text-ink" : "border-outline-variant text-ink-muted dark:text-ink"}`}>
                       <input type="radio" name="leave-portion" className="sr-only" checked={portion === value} onChange={() => setPortion(value)} />
                       {label}
                     </label>
                   ))}
                 </div>
                 {portion === "hours" && (
-                  <label className="mt-2 flex items-center gap-2 text-xs text-slate-700 dark:text-neutral-300">
+                  <label className="mt-2 flex items-center gap-2 text-xs text-ink dark:text-ink">
                     {t.leaveForm.hoursCount}
-                    <Input type="number" min={0.5} max={7.5} step={0.5} dir="ltr" value={hours} onChange={(e) => setHours(Number(e.target.value))} className="w-20 rounded-md border border-ink/15 bg-white dark:bg-surface p-1.5 text-xs font-mono" />
+                    <Input type="number" min={0.5} max={7.5} step={0.5} dir="ltr" value={hours} onChange={(e) => setHours(Number(e.target.value))} className="w-20 rounded-md border border-outline-variant bg-surface-raised dark:bg-surface p-1.5 text-xs font-mono" />
                   </label>
                 )}
               </fieldset>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label htmlFor={`${applyFormId}-start`} className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
+                  <label htmlFor={`${applyFormId}-start`} className="block text-xs font-medium text-ink dark:text-ink mb-1">
                     {t.leaveManagement.startDate}
                   </label>
                   <Input id={`${applyFormId}-start`}
@@ -539,12 +539,12 @@ export function LeaveManagementView({
                     required
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
+                    className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
                   />
                 </div>
                 {portion === "full" && (
                   <div>
-                    <label htmlFor={`${applyFormId}-end`} className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
+                    <label htmlFor={`${applyFormId}-end`} className="block text-xs font-medium text-ink dark:text-ink mb-1">
                       {t.leaveManagement.endDate}
                     </label>
                     <Input id={`${applyFormId}-end`}
@@ -553,22 +553,22 @@ export function LeaveManagementView({
                       min={startDate}
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
-                      className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
+                      className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
                     />
                   </div>
                 )}
               </div>
 
               {selectedType?.requiresAttachment && (
-                <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-neutral-300">
+                <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
                   {t.leaveForm.attachment}
-                  <Input type="url" required dir="ltr" placeholder={t.copy.urlExample} value={attachmentUrl} onChange={(e) => setAttachmentUrl(e.target.value)} className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white" />
+                  <Input type="url" required dir="ltr" placeholder={t.copy.urlExample} value={attachmentUrl} onChange={(e) => setAttachmentUrl(e.target.value)} className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink" />
                 </label>
               )}
               {(() => {
                 const balance = myBalances.find((b) => b.leaveTypeId === leaveTypeId);
                 return balance && targetEmployeeId === myEmployee?.id ? (
-                  <p className="rounded-lg bg-surface-sunken px-3 py-2 text-[11px] text-slate-700 dark:text-slate-300">
+                  <p className="rounded-lg bg-surface-sunken px-3 py-2 text-[11px] text-ink dark:text-ink">
                     {t.leaveForm.available}: <bdi dir="ltr" className="font-semibold">{balance.available == null ? t.leaveForm.unlimited : balance.available}</bdi>
                     {balance.pending ? <> · {t.leaveForm.pending}: <bdi dir="ltr">{balance.pending}</bdi></> : null}
                     {!balance.eligible && balance.eligibleFrom ? <> · {formatMessage(t.leaveForm.eligibleFrom, { date: balance.eligibleFrom })}</> : null}
@@ -577,7 +577,7 @@ export function LeaveManagementView({
               })()}
 
               <div>
-                <label htmlFor={`${applyFormId}-reason`} className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
+                <label htmlFor={`${applyFormId}-reason`} className="block text-xs font-medium text-ink dark:text-ink mb-1">
                   {t.leaveManagement.reasonForAbsence}
                 </label>
                 <Textarea id={`${applyFormId}-reason`}
@@ -586,7 +586,7 @@ export function LeaveManagementView({
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder={t.leaveManagement.eGAnnualSummerFamily}
-                  className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
+                  className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
                 />
               </div>
             </div>

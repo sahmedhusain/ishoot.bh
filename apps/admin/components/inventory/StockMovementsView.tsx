@@ -38,11 +38,11 @@ export function StockMovementsView({ rows, total, page, pageSize, filters, wareh
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{copy.title}</h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
+      <div data-page-header>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
+        <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
       </div>
-      <div className="flex flex-col sm:flex-row flex-wrap gap-2">
+      <div className="flex flex-col sm:flex-row flex-wrap gap-2" data-page-toolbar>
         <Select aria-label={copy.columns.type} value={filters.type} onChange={(e) => router.push(href({ type: e.target.value }))} className="rounded-xl sm:w-48">
           <option value="">{copy.allTypes}</option>
           {MOVEMENT_TYPES.map((type) => <option key={type} value={type}>{typeName(type)}</option>)}
@@ -74,7 +74,7 @@ export function StockMovementsView({ rows, total, page, pageSize, filters, wareh
                   <th scope="col" className="px-4 py-3 text-start font-semibold hidden lg:table-cell">{copy.columns.by}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink/10">
+              <tbody className="divide-y divide-outline-variant">
                 {rows.map((m) => (
                   <tr key={m.id}>
                     <td className="px-4 py-3 whitespace-nowrap text-xs text-ink-muted">{formatDate(m.created_at, locale, "time")}</td>
@@ -96,7 +96,7 @@ export function StockMovementsView({ rows, total, page, pageSize, filters, wareh
             </table>
           </div>
         )}
-        <div className="flex items-center justify-between gap-3 border-t border-ink/10 px-4 py-3 text-xs">
+        <div className="flex items-center justify-between gap-3 border-t border-outline-variant px-4 py-3 text-xs">
           <span className="text-ink-muted">{formatMessage(t.products.showing, { from: total ? (page - 1) * pageSize + 1 : 0, to: Math.min(total, page * pageSize), total })}</span>
           {pages > 1 && (
             <nav aria-label={t.products.pages} className="flex items-center gap-4">

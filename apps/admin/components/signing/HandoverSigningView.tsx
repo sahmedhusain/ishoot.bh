@@ -166,10 +166,10 @@ export function HandoverSigningView({
                 className="h-11 w-11 rounded-xl bg-white object-contain p-1.5 shadow-sm"
               />
             ) : null}
-            <div>
+            <div data-page-header>
               <p className="text-xs text-slate-500">{s.eyebrow}</p>
               <h1 className="text-base font-bold text-primary">
-                {company.name}
+                <bdi dir="auto">{company.name}</bdi>
               </h1>
             </div>
           </div>
@@ -183,7 +183,7 @@ export function HandoverSigningView({
         </header>
 
         {state === "signed" ? (
-          <section className="space-y-3 rounded-3xl bg-white p-8 text-center shadow-sm">
+          <section className="space-y-3 rounded-3xl bg-white p-8 text-center shadow-sm" data-page-section>
             <CheckCircle2
               className="mx-auto h-12 w-12 text-emerald-600"
               aria-hidden
@@ -197,7 +197,7 @@ export function HandoverSigningView({
             ) : null}
           </section>
         ) : state !== "open" || !handover ? (
-          <section className="space-y-2 rounded-3xl bg-white p-8 text-center shadow-sm">
+          <section className="space-y-2 rounded-3xl bg-white p-8 text-center shadow-sm" data-page-section>
             <AlertTriangle
               className="mx-auto h-10 w-10 text-amber-500"
               aria-hidden
@@ -223,7 +223,7 @@ export function HandoverSigningView({
                     className="mt-1 font-mono text-xs text-slate-500"
                     dir="ltr"
                   >
-                    {handover.reference}
+                    <bdi dir="ltr">{handover.reference}</bdi>
                   </p>
                 </div>
                 {pdfLinks}
@@ -348,7 +348,7 @@ export function HandoverSigningView({
               <button
                 type="submit"
                 disabled={busy}
-                className="flex h-12 w-full items-center justify-center rounded-full bg-primary text-sm font-semibold text-white disabled:opacity-60"
+                className="flex h-12 w-full items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground disabled:opacity-60"
               >
                 {busy ? s.signing : s.signButton}
               </button>

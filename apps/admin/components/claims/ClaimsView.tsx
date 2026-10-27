@@ -4,7 +4,7 @@ import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Card } from "@platform/ui";
+import { Select, Card } from "@platform/ui";
 import { CalendarClock, CheckCircle2, HandCoins, Paperclip, Plus, Wallet, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import type { ExpenseCategory } from "@platform/database/types";
@@ -65,7 +65,7 @@ export function ClaimsView({ view, status, data, canProcess, currentUserId, cate
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display flex items-center gap-2">
             <HandCoins className="w-7 h-7 text-accent" />
@@ -73,22 +73,22 @@ export function ClaimsView({ view, status, data, canProcess, currentUserId, cate
           </h1>
           <p className="text-xs text-ink-muted mt-1">{c.subtitle}</p>
         </div>
-        <Link href={ROUTES.claims.create} className="inline-flex items-center gap-1.5 self-start px-4 py-2 rounded-full bg-accent text-white text-xs font-semibold hover:bg-accent-hover">
+        <Link href={ROUTES.claims.create} className="inline-flex items-center gap-1.5 self-start px-4 py-2 rounded-full bg-accent text-accent-foreground text-xs font-semibold hover:bg-accent-hover">
           <Plus className="w-4 h-4" />
           {c.newClaim}
         </Link>
       </div>
 
       {canProcess && (
-        <div role="tablist" className="inline-flex p-1 rounded-full bg-surface-sunken border border-ink/10">
+        <div role="tablist" className="inline-flex p-1 rounded-full bg-surface-sunken border border-outline-variant">
           {(["mine", "finance"] as const).map((v) => (
             <Link
               key={v}
               role="tab"
               aria-selected={view === v}
               href={href({ view: v, status: v === "finance" ? "approved" : "all" })}
-              className={`px-4 py-2 rounded-full text-xs font-semibold ${view === v ? "bg-accent text-white" : "text-ink-muted hover:text-ink"}`}
-            >
+              className={`px-4 py-2 rounded-full text-xs font-semibold ${view === v ? "bg-accent text-accent-foreground" : "text-ink-muted hover:text-ink"}`}
+             tabIndex={view === v ? 0 : -1}>
               {v === "mine" ? c.tabMine : c.tabFinance}
             </Link>
           ))}
@@ -104,7 +104,7 @@ export function ClaimsView({ view, status, data, canProcess, currentUserId, cate
             ["paid", c.statPaidThisMonth, data.stats.paidThisMonth],
           ] as const
         ).map(([key, label, value]) => (
-          <Link key={key} href={href({ status: key })} className={`rounded-3xl border p-5 transition-colors ${status === key ? "border-accent bg-accent/5" : "border-ink/10 bg-surface hover:border-ink/25"}`}>
+          <Link key={key} href={href({ status: key })} className={`rounded-3xl border p-5 transition-colors ${status === key ? "border-accent bg-accent/5" : "border-outline-variant bg-surface hover:border-ink/25"}`}>
             <div className="text-xs text-ink-muted">{label}</div>
             <div className="text-2xl font-bold text-ink mt-1">{value}</div>
           </Link>
@@ -119,14 +119,14 @@ export function ClaimsView({ view, status, data, canProcess, currentUserId, cate
 
       <div className="flex flex-wrap gap-2">
         {(["all", "submitted", "approved", "scheduled", "paid", "rejected", "cancelled"] as const).map((s) => (
-          <Link key={s} href={href({ status: s })} className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${status === s ? "border-accent text-accent bg-accent/10" : "border-ink/10 text-ink-muted hover:text-ink"}`}>
+          <Link key={s} href={href({ status: s })} className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${status === s ? "border-accent text-accent bg-accent/10" : "border-outline-variant text-ink-muted hover:text-ink"}`}>
             {s === "all" ? t.actions.all : c.status[s]}
           </Link>
         ))}
       </div>
 
       {data.items.length === 0 ? (
-        <Card className="p-12 text-center text-sm text-ink-muted rounded-3xl bg-surface border border-ink/10">{c.empty}</Card>
+        <Card className="p-12 text-center text-sm text-ink-muted rounded-3xl bg-surface border border-outline-variant">{c.empty}</Card>
       ) : (
         <div className="space-y-3">
           {data.items.map((claim) => (
@@ -186,10 +186,10 @@ function ClaimCard({
   const [reference, setReference] = React.useState("");
   const [categoryId, setCategoryId] = React.useState(claim.categoryId ?? "");
   const stepIndex = STEPS.indexOf(claim.status);
-  const field = "rounded-xl border border-ink/15 bg-surface px-3 py-2 text-xs text-ink";
+  const field = "rounded-xl border border-outline-variant bg-surface px-3 py-2 text-xs text-ink";
 
   return (
-    <Card id={claim.id} className={`p-0 rounded-3xl bg-surface border overflow-hidden ${expanded ? "border-accent/40" : "border-ink/10"}`}>
+    <Card id={claim.id} className={`p-0 rounded-3xl bg-surface border overflow-hidden ${expanded ? "border-accent/40" : "border-outline-variant"}`}>
       <button type="button" onClick={onToggle} aria-expanded={expanded} className="w-full text-start p-4 sm:p-5 flex flex-wrap items-center gap-3">
         <div className="flex-1 min-w-[200px]">
           <div className="flex items-center gap-2">
@@ -206,12 +206,12 @@ function ClaimCard({
       </button>
 
       {expanded && (
-        <div className="border-t border-ink/10 p-4 sm:p-5 space-y-4">
+        <div className="border-t border-outline-variant p-4 sm:p-5 space-y-4">
           {stepIndex >= 0 && (
             <ol className="flex items-center gap-2 text-[11px]">
               {STEPS.map((step, i) => (
                 <li key={step} className="flex items-center gap-2 flex-1">
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold ${i <= stepIndex ? "bg-accent text-white" : "bg-ink/10 text-ink-muted"}`}>{i + 1}</span>
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold ${i <= stepIndex ? "bg-accent text-accent-foreground" : "bg-ink/10 text-ink-muted"}`}>{i + 1}</span>
                   <span className={i <= stepIndex ? "text-ink font-semibold" : "text-ink-muted"}>{c.status[step]}</span>
                   {i < STEPS.length - 1 && <span className={`flex-1 h-px ${i < stepIndex ? "bg-accent" : "bg-ink/10"}`} />}
                 </li>
@@ -235,7 +235,7 @@ function ClaimCard({
             {claim.meeting && (
               <div>
                 <dt className="text-ink-muted">{c.relatedMeeting}</dt>
-                <dd className="text-ink">{claim.meeting.startDate.slice(0, 10)} · {claim.meeting.title}</dd>
+                <dd className="text-ink">{claim.meeting.startDate.slice(0, 10)} · <bdi dir="auto">{claim.meeting.title}</bdi></dd>
               </div>
             )}
             <div>
@@ -270,7 +270,7 @@ function ClaimCard({
             )}
           </dl>
 
-          <div className="flex flex-wrap items-end gap-3 pt-2 border-t border-ink/5">
+          <div className="flex flex-wrap items-end gap-3 pt-2 border-t border-outline-variant">
             {claim.status === "submitted" && (
               <Link href={ROUTES.approvals({ scope: isOwner ? "mine" : "awaiting" })} className="text-xs font-semibold text-accent hover:underline">
                 {c.openApproval}
@@ -298,18 +298,18 @@ function ClaimCard({
               <div className="flex flex-wrap items-end gap-2">
                 <label className="text-[11px] text-ink-muted space-y-1">
                   <span className="block">{c.category}</span>
-                  <select className={field} value={categoryId} onChange={(e) => setCategoryId(e.target.value)} required>
+                  <Select className={field} value={categoryId} onChange={(e) => setCategoryId(e.target.value)} required>
                     <option value="">{c.chooseCategory}</option>
                     {categories.map((cat) => <option key={cat.id} value={cat.id}>{locale === "ar" ? cat.name_ar : cat.name_en}</option>)}
-                  </select>
+                  </Select>
                 </label>
                 <label className="text-[11px] text-ink-muted space-y-1">
                   <span className="block">{c.paidVia}</span>
-                  <select className={field} value={method} onChange={(e) => setMethod(e.target.value)}>
+                  <Select className={field} value={method} onChange={(e) => setMethod(e.target.value)}>
                     {EXPENSE_PAYMENT_METHODS.filter((m) => m !== "staff_reimbursement").map((m) => (
                       <option key={m} value={m}>{t.expenseMeta.methods[m]}</option>
                     ))}
-                  </select>
+                  </Select>
                 </label>
                 <label className="text-[11px] text-ink-muted space-y-1">
                   <span className="block">{c.reference}</span>

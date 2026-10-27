@@ -113,7 +113,7 @@ export function DeliveryToolbar({
   return (
     <div
       data-delivery-toolbar
-      className={`flex flex-wrap items-center gap-3 p-4 bg-surface border border-ink/10 rounded-2xl shadow-xl ${className}`}
+      className={`flex flex-wrap items-center gap-3 p-4 bg-surface border border-outline-variant rounded-2xl shadow-xl ${className}`}
     >
       <Button
         variant={emailSent ? "secondary" : "primary"}

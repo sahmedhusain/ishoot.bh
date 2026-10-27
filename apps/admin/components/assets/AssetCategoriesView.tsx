@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowLeft, ListChecks, Pencil, Plus, SlidersHorizontal, Trash2, X } from "lucide-react";
-import { Button, Input } from "@platform/ui";
+import { Select, Button, Input } from "@platform/ui";
 import type { AssetCategoryInput, AssetCategoryRecord } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { saveAssetCategoryAction } from "../../app/actions/assets";
@@ -33,7 +33,7 @@ export function AssetCategoriesView({ categories }: { categories: AssetCategoryR
   const [editing, setEditing] = React.useState<{ id?: string; value: AssetCategoryInput } | null>(null);
   const [busy, setBusy] = React.useState(false);
   const patch = (next: Partial<AssetCategoryInput>) => setEditing((e) => (e ? { ...e, value: { ...e.value, ...next } } : e));
-  const input = "h-9 w-full rounded-lg border border-ink/15 bg-surface-sunken/60 px-2.5 text-xs text-ink";
+  const input = "h-9 w-full rounded-lg border border-outline-variant bg-surface-sunken/60 px-2.5 text-xs text-ink";
 
   const save = async () => {
     if (!editing) return;
@@ -53,8 +53,8 @@ export function AssetCategoriesView({ categories }: { categories: AssetCategoryR
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Link href={ROUTES.assets.list()} aria-label={t.actions.back} className="rounded-full border border-ink/15 p-2 text-ink-muted hover:text-ink"><ArrowLeft className="h-4 w-4 rtl:-scale-x-100" /></Link>
+        <div className="flex items-center gap-3" data-page-header>
+          <Link href={ROUTES.assets.list()} aria-label={t.actions.back} className="rounded-full border border-outline-variant p-2 text-ink-muted hover:text-ink"><ArrowLeft className="h-4 w-4 rtl:-scale-x-100" /></Link>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-ink">{a.categories}</h1>
             <p className="text-xs text-ink-muted mt-1">{c.subtitle}</p>
@@ -64,7 +64,7 @@ export function AssetCategoriesView({ categories }: { categories: AssetCategoryR
       </div>
 
       {editing ? (
-        <section className="rounded-3xl border border-accent/30 bg-accent/5 p-5 space-y-5">
+        <section className="rounded-3xl border border-accent/30 bg-accent/5 p-5 space-y-5" data-page-section>
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold text-ink">{editing.id ? c.edit : c.add}</h2>
             <button type="button" aria-label={t.actions.cancel} onClick={() => setEditing(null)} className="rounded-lg p-1 text-ink-muted hover:text-ink"><X className="h-4 w-4" /></button>
@@ -81,9 +81,9 @@ export function AssetCategoriesView({ categories }: { categories: AssetCategoryR
               <div key={i} className="grid grid-cols-12 gap-2 items-center">
                 <input aria-label={c.labelEn} placeholder={c.labelEn} dir="ltr" className={`${input} col-span-12 sm:col-span-4`} value={f.label_en} onChange={(e) => patch({ spec_fields: editing.value.spec_fields.map((x, j) => (j === i ? { ...x, label_en: e.target.value } : x)) })} />
                 <input aria-label={c.labelAr} placeholder={c.labelAr} dir="rtl" className={`${input} col-span-12 sm:col-span-4`} value={f.label_ar} onChange={(e) => patch({ spec_fields: editing.value.spec_fields.map((x, j) => (j === i ? { ...x, label_ar: e.target.value } : x)) })} />
-                <select aria-label={c.type} className={`${input} col-span-6 sm:col-span-2`} value={f.type} onChange={(e) => patch({ spec_fields: editing.value.spec_fields.map((x, j) => (j === i ? { ...x, type: e.target.value } : x)) })}>
+                <Select aria-label={c.type} className={`${input} col-span-6 sm:col-span-2`} value={f.type} onChange={(e) => patch({ spec_fields: editing.value.spec_fields.map((x, j) => (j === i ? { ...x, type: e.target.value } : x)) })}>
                   {TYPES.map((ty) => <option key={ty} value={ty}>{c.types[ty]}</option>)}
-                </select>
+                </Select>
                 <label className="col-span-4 sm:col-span-1 flex items-center gap-1 text-[11px] text-ink">
                   <input type="checkbox" checked={!!f.required} onChange={(e) => patch({ spec_fields: editing.value.spec_fields.map((x, j) => (j === i ? { ...x, required: e.target.checked } : x)) })} />
                   {c.required}
@@ -120,7 +120,7 @@ export function AssetCategoriesView({ categories }: { categories: AssetCategoryR
 
       <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {categories.map((cat) => (
-          <li key={cat.id} className={`rounded-2xl border border-ink/10 bg-white dark:bg-surface-raised p-4 ${cat.is_active ? "" : "opacity-60"}`}>
+          <li key={cat.id} className={`rounded-2xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-4 ${cat.is_active ? "" : "opacity-60"}`}>
             <div className="flex items-start justify-between gap-2">
               <div>
                 <div className="text-sm font-bold text-ink">{isAr ? cat.name_ar : cat.name_en}</div>

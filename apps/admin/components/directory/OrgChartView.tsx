@@ -31,7 +31,7 @@ export function OrgChartView({ departments, unassigned }: { departments: OrgChar
       <li key={node.id} className="relative">
         <details open={depth < 2} className="group">
           <summary className="list-none cursor-pointer">
-            <div className="rounded-2xl border border-ink/10 bg-surface p-4 shadow-xs transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 motion-reduce:transform-none">
+            <div className="rounded-2xl border border-outline-variant bg-surface p-4 shadow-xs transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 motion-reduce:transform-none">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2 min-w-0">
                   <Network className="w-4 h-4 text-accent shrink-0" />
@@ -48,7 +48,7 @@ export function OrgChartView({ departments, unassigned }: { departments: OrgChar
                   <span className="inline-flex items-center gap-2">
                     <Avatar name={node.head.name} url={node.head.avatar_url} />
                     <span className="text-xs">
-                      <span className="flex items-center gap-1 font-semibold text-ink"><Crown className="w-3 h-3 text-amber-500" />{node.head.name}</span>
+                      <span className="flex items-center gap-1 font-semibold text-ink"><Crown className="w-3 h-3 text-amber-500" /><bdi dir="auto">{node.head.name}</bdi></span>
                       <span className="text-ink-muted">{copy.head}</span>
                     </span>
                   </span>
@@ -57,7 +57,7 @@ export function OrgChartView({ departments, unassigned }: { departments: OrgChar
                   <span className="inline-flex items-center gap-2">
                     <Avatar name={node.deputy.name} url={node.deputy.avatar_url} />
                     <span className="text-xs">
-                      <span className="block font-semibold text-ink">{node.deputy.name}</span>
+                      <span className="block font-semibold text-ink"><bdi dir="auto">{node.deputy.name}</bdi></span>
                       <span className="text-ink-muted">{copy.deputy}</span>
                     </span>
                   </span>
@@ -80,7 +80,7 @@ export function OrgChartView({ departments, unassigned }: { departments: OrgChar
             </div>
           </summary>
           {kids.length > 0 && (
-            <ul className="mt-3 ms-6 ps-4 border-s border-dashed border-ink/20 space-y-3">{kids.map((kid) => renderNode(kid, depth + 1))}</ul>
+            <ul className="mt-3 ms-6 ps-4 border-s border-dashed border-outline-variant space-y-3">{kids.map((kid) => renderNode(kid, depth + 1))}</ul>
           )}
         </details>
       </li>
@@ -89,7 +89,7 @@ export function OrgChartView({ departments, unassigned }: { departments: OrgChar
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display flex items-center gap-2">
             <Network className="w-7 h-7 text-accent" />
@@ -97,13 +97,13 @@ export function OrgChartView({ departments, unassigned }: { departments: OrgChar
           </h1>
           <p className="text-xs text-ink-muted mt-1">{copy.subtitle}</p>
         </div>
-        <Link href={ROUTES.directory} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-ink/15 text-sm font-semibold text-ink hover:bg-ink/5">
+        <Link href={ROUTES.directory} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-outline-variant text-sm font-semibold text-ink hover:bg-ink/5">
           <UserRound className="w-4 h-4 text-accent" />
           {t.directory.title}
         </Link>
       </div>
       {departments.length === 0 ? (
-        <p className="p-12 text-center text-sm text-ink-muted rounded-3xl border border-ink/10 bg-surface">{copy.empty}</p>
+        <p className="p-12 text-center text-sm text-ink-muted rounded-3xl border border-outline-variant bg-surface">{copy.empty}</p>
       ) : (
         <ul className="space-y-3">{children(null).map((node) => renderNode(node, 0))}</ul>
       )}

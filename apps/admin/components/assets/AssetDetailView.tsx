@@ -42,10 +42,10 @@ export function AssetDetailView({ asset, handovers, categories, employees, canEd
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Link href={ROUTES.assets.list()} aria-label={t.actions.back} className="rounded-full border border-ink/15 p-2 text-ink-muted hover:text-ink"><ArrowLeft className="h-4 w-4 rtl:-scale-x-100" /></Link>
+        <div className="flex items-center gap-3" data-page-header>
+          <Link href={ROUTES.assets.list()} aria-label={t.actions.back} className="rounded-full border border-outline-variant p-2 text-ink-muted hover:text-ink"><ArrowLeft className="h-4 w-4 rtl:-scale-x-100" /></Link>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-ink">{asset.name}</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-ink"><bdi dir="auto">{asset.name}</bdi></h1>
             <p className="text-xs text-ink-muted mt-1 flex flex-wrap items-center gap-2">
               <bdi dir="ltr">{asset.asset_tag}</bdi>
               <span>· {isAr ? asset.category.name_ar : asset.category.name_en}</span>
@@ -70,12 +70,12 @@ export function AssetDetailView({ asset, handovers, categories, employees, canEd
       ) : null}
 
       {mode === "edit" ? (
-        <div className="rounded-3xl border border-ink/10 bg-white dark:bg-surface-raised p-5"><AssetForm categories={categories} asset={asset} employees={employees} onDone={() => setMode("view")} /></div>
+        <div className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-5"><AssetForm categories={categories} asset={asset} employees={employees} onDone={() => setMode("view")} /></div>
       ) : mode === "issue" || mode === "return" ? (
         <HandoverForm asset={asset} kind={mode} employees={employees} onCancel={() => setMode("view")} />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <section className="lg:col-span-2 rounded-3xl border border-ink/10 bg-white dark:bg-surface-raised p-5 space-y-5">
+          <section className="lg:col-span-2 rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-5 space-y-5">
             <dl className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {item(a.fields.brand, asset.brand)}
               {item(a.fields.model, asset.model)}
@@ -90,22 +90,22 @@ export function AssetDetailView({ asset, handovers, categories, employees, canEd
               {item(a.fields.warrantyUntil, asset.warranty_until ? formatDate(asset.warranty_until, locale) : null)}
             </dl>
             {asset.category.spec_fields.length ? (
-              <div className="border-t border-ink/10 pt-4">
+              <div className="border-t border-outline-variant pt-4">
                 <h2 className="mb-3 text-sm font-bold text-ink">{formatMessage(a.specsTitle, { category: isAr ? asset.category.name_ar : asset.category.name_en })}</h2>
                 <dl className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {asset.category.spec_fields.map((f) => item(isAr ? f.labelAr : f.labelEn, specValue(f.key, f.type), f.type !== "text", f.key))}
                 </dl>
               </div>
             ) : null}
-            {asset.notes ? <p className="border-t border-ink/10 pt-4 text-xs text-ink whitespace-pre-wrap">{asset.notes}</p> : null}
+            {asset.notes ? <p className="border-t border-outline-variant pt-4 text-xs text-ink whitespace-pre-wrap">{asset.notes}</p> : null}
           </section>
-          <section className="rounded-3xl border border-ink/10 bg-white dark:bg-surface-raised p-5 space-y-3">
+          <section className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-5 space-y-3" data-page-section>
             <h2 className="text-sm font-bold text-ink">{a.history}</h2>
             {handovers.length === 0 ? <p className="text-xs text-ink-muted">{a.noHistory}</p> : null}
             <ul className="space-y-2">
               {handovers.map((h) => (
                 <li key={h.id}>
-                  <Link href={ROUTES.assets.handover(h.id)} className="block rounded-2xl border border-ink/10 px-3 py-2 hover:border-accent/50">
+                  <Link href={ROUTES.assets.handover(h.id)} className="block rounded-2xl border border-outline-variant px-3 py-2 hover:border-accent/50">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-xs font-semibold text-ink">{h.kind === "issue" ? a.handover.issued : a.handover.returned} · {isAr ? h.employee.name_ar : h.employee.name_en}</span>
                       <span className="text-[10px] text-ink-muted">{a.handoverStatuses[h.status as keyof typeof a.handoverStatuses]}</span>

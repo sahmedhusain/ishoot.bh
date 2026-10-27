@@ -2,9 +2,12 @@
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 import * as React from "react";
-import { ChevronDown, Link2 } from "lucide-react";
-import { SOCIAL_PLATFORMS, findSocialPlatform } from "@platform/database/constants/social";
-import { Input } from "@platform/ui";
+import { Link2 } from "lucide-react";
+import {
+  SOCIAL_PLATFORMS,
+  findSocialPlatform,
+} from "@platform/database/constants/social";
+import { Select, Input } from "@platform/ui";
 
 interface PlatformOption {
   id: string;
@@ -13,17 +16,34 @@ interface PlatformOption {
 }
 
 const PLATFORM_PRESETS: PlatformOption[] = [
-  ...SOCIAL_PLATFORMS.map((p) => ({ id: p.id, name: p.name, defaultIcon: p.id })),
+  ...SOCIAL_PLATFORMS.map((p) => ({
+    id: p.id,
+    name: p.name,
+    defaultIcon: p.id,
+  })),
   { id: "website", name: "website", defaultIcon: "website" },
   { id: "custom", name: "custom", defaultIcon: "link" },
 ];
 
 /** Brand mark for a stored platform name, falling back to a generic link icon. */
-export function SocialBrandIcon({ name, hint, className = "w-4 h-4" }: { name?: string; hint?: string; className?: string }) {
+export function SocialBrandIcon({
+  name,
+  hint,
+  className = "w-4 h-4",
+}: {
+  name?: string;
+  hint?: string;
+  className?: string;
+}) {
   const platform = findSocialPlatform(name) ?? findSocialPlatform(hint);
   if (!platform) return <Link2 className={className} aria-hidden="true" />;
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className={className}>
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+      className={className}
+    >
       <path d={platform.path} />
     </svg>
   );
@@ -34,13 +54,19 @@ interface PlatformPickerProps {
   onPlatformChange: (platform: string, defaultIcon?: string) => void;
 }
 
-export function PlatformPicker({ platform, onPlatformChange }: PlatformPickerProps) {
+export function PlatformPicker({
+  platform,
+  onPlatformChange,
+}: PlatformPickerProps) {
   const { t } = useAdminLocale();
   const [selectedPreset, setSelectedPreset] = React.useState<string>(() => {
     if (/^website(?:\s*\/\s*blog)?$/i.test(platform)) return "website";
-    const found = PLATFORM_PRESETS.find(
-      (p) => p.name.toLowerCase() === platform.toLowerCase() || p.id === platform.toLowerCase()
-    ) ?? findSocialPlatform(platform);
+    const found =
+      PLATFORM_PRESETS.find(
+        (p) =>
+          p.name.toLowerCase() === platform.toLowerCase() ||
+          p.id === platform.toLowerCase(),
+      ) ?? findSocialPlatform(platform);
     return found ? found.id : "custom";
   });
 
@@ -69,21 +95,29 @@ export function PlatformPicker({ platform, onPlatformChange }: PlatformPickerPro
   return (
     <div className="space-y-2">
       <div className="relative">
-        <span className="absolute start-3 top-1/2 -translate-y-1/2 text-accent pointer-events-none">
+        <span className="absolute z-10 start-3 top-1/2 -translate-y-1/2 text-accent pointer-events-none">
           <SocialBrandIcon name={platform} className="w-4 h-4" />
         </span>
-        <select
+        <Select
+          aria-label={t.webSettings.platform}
           value={selectedPreset}
           onChange={handleSelectChange}
-          className="w-full appearance-none px-3.5 py-2.5 bg-white dark:bg-surface border border-slate-200 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all cursor-pointer shadow-2xs ps-9 pe-8"
+          className="w-full appearance-none px-3.5 py-2.5 bg-surface-raised dark:bg-surface border border-outline-variant dark:border-white/10 rounded-xl text-xs font-semibold text-ink dark:text-ink hover:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all cursor-pointer shadow-2xs ps-9 pe-8"
         >
           {PLATFORM_PRESETS.map((preset) => (
-            <option key={preset.id} value={preset.id} className="bg-white dark:bg-surface-raised text-slate-800 dark:text-white">
-              {preset.id === "website" ? t.platformPicker.website : preset.id === "custom" ? t.platformPicker.custom : preset.name}
+            <option
+              key={preset.id}
+              value={preset.id}
+              className="bg-surface-raised dark:bg-surface-raised text-ink dark:text-ink"
+            >
+              {preset.id === "website"
+                ? t.platformPicker.website
+                : preset.id === "custom"
+                  ? t.platformPicker.custom
+                  : preset.name}
             </option>
           ))}
-        </select>
-        <ChevronDown className="w-4 h-4 text-slate-400 absolute end-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+        </Select>
       </div>
 
       {selectedPreset === "custom" && (

@@ -84,13 +84,13 @@ export function SupplierBillView({ bill, fromOrder, suppliers, currency, rights 
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
           <Link href={ROUTES.procurement.bills} className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent">
             <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" />
             {copy.title}
           </Link>
-          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex flex-wrap items-center gap-3">
+          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink flex flex-wrap items-center gap-3">
             {bill ? <span dir="ltr">{bill.number}</span> : copy.new}
             {bill && <StatusPill status={bill.status} />}
           </h1>
@@ -105,14 +105,14 @@ export function SupplierBillView({ bill, fromOrder, suppliers, currency, rights 
         </div>
         <div className="flex flex-wrap gap-2">
           {editable && <Button type="button" variant="primary" size="sm" className="rounded-full" disabled={busy} onClick={save} data-testid="bill-save">{common.save}</Button>}
-          {bill?.expense_id && <Link href={ROUTES.expenses.list({ highlight: bill.expense_id })} className="inline-flex items-center rounded-full border border-ink/15 px-3 h-9 text-sm hover:border-accent">{copy.expense}</Link>}
+          {bill?.expense_id && <Link href={ROUTES.expenses.list({ highlight: bill.expense_id })} className="inline-flex items-center rounded-full border border-outline-variant px-3 h-9 text-sm hover:border-accent">{copy.expense}</Link>}
           {bill?.status === "draft" && rights.edit && <Button type="button" variant="ghost" size="sm" className="rounded-full text-rose-600" disabled={busy} onClick={() => confirmAction({ description: common.cancelConfirm, onConfirm: () => run(() => cancelSupplierBillAction(bill.id)) })}>{common.cancel}</Button>}
           {busy && <Loader2 className="w-4 h-4 animate-spin self-center" aria-hidden="true" />}
         </div>
       </div>
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
 
-      <Card className="p-5 space-y-4">
+      <Card className="p-5 space-y-4" data-page-section>
         <fieldset disabled={!editable} className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Field label={copy.supplier}>
             {(id) => (
@@ -141,7 +141,7 @@ export function SupplierBillView({ bill, fromOrder, suppliers, currency, rights 
           <div className="flex flex-wrap items-center gap-3" data-testid="bill-file">
             {bill.attachment_url ? <a href={bill.attachment_url} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-accent hover:underline">{copy.attachment}</a> : null}
             {bill.status !== "cancelled" && (
-              <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-ink/15 px-3 h-8 text-xs font-semibold hover:border-accent">
+              <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-outline-variant px-3 h-8 text-xs font-semibold hover:border-accent">
                 <Paperclip className="w-3.5 h-3.5" aria-hidden="true" />
                 {bill.attachment_url ? copy.replaceFile : copy.attachFile}
                 <input
@@ -164,7 +164,7 @@ export function SupplierBillView({ bill, fromOrder, suppliers, currency, rights 
         {editable ? (
           <div className="space-y-2">
             {lines.map((line, index) => (
-              <div key={index} className="grid grid-cols-2 sm:grid-cols-12 gap-2 items-center rounded-xl border border-ink/10 p-3">
+              <div key={index} className="grid grid-cols-2 sm:grid-cols-12 gap-2 items-center rounded-xl border border-outline-variant p-3">
                 <Input aria-label={`${t.procurement.lines.description} ${index + 1}`} maxLength={300} value={line.description} onChange={(e) => setLines(lines.map((l, i) => (i === index ? { ...l, description: e.target.value } : l)))} className="col-span-2 sm:col-span-6 h-10 rounded-lg" />
                 <Input aria-label={`${t.procurement.lines.quantity} ${index + 1}`} type="number" min={0} step="0.001" value={line.quantity} onChange={(e) => setLines(lines.map((l, i) => (i === index ? { ...l, quantity: e.target.value } : l)))} className="sm:col-span-2 h-10 rounded-lg" />
                 <Input aria-label={`${t.procurement.lines.unitPrice} ${index + 1}`} type="number" min={0} step="0.001" value={line.unitPrice} onChange={(e) => setLines(lines.map((l, i) => (i === index ? { ...l, unitPrice: e.target.value } : l)))} className="sm:col-span-3 h-10 rounded-lg" />
@@ -183,7 +183,7 @@ export function SupplierBillView({ bill, fromOrder, suppliers, currency, rights 
               {copy.match}
               {bill.matched ? <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 dark:text-emerald-400"><CheckCircle2 className="w-3.5 h-3.5" />{copy.matched}</span> : <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-700 dark:text-amber-300"><AlertTriangle className="w-3.5 h-3.5" />{copy.mismatched}</span>}
             </h3>
-            <div className="overflow-x-auto rounded-xl border border-ink/10">
+            <div className="overflow-x-auto rounded-xl border border-outline-variant">
               <table className="w-full text-sm" data-testid="bill-match">
                 <thead className="bg-ink/[0.03] text-xs text-ink-muted">
                   <tr>
@@ -196,7 +196,7 @@ export function SupplierBillView({ bill, fromOrder, suppliers, currency, rights 
                     <th scope="col" className="px-3 py-2 text-start font-semibold">{copy.match}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-ink/10">
+                <tbody className="divide-y divide-outline-variant">
                   {bill.lines.map((l) => (
                     <tr key={l.id}>
                       <td className="px-3 py-2">{l.description}</td>
@@ -220,7 +220,7 @@ export function SupplierBillView({ bill, fromOrder, suppliers, currency, rights 
         <dl className="ms-auto w-full sm:w-72 space-y-1 text-sm" data-testid="bill-totals">
           <div className="flex justify-between"><dt className="text-ink-muted">{common.subtotal}</dt><dd><CurrencyDisplay amount={editable ? subtotal : bill?.subtotal ?? 0} currency={currency} /></dd></div>
           <div className="flex justify-between"><dt className="text-ink-muted">{common.vat}</dt><dd><CurrencyDisplay amount={editable ? Number(form.vatAmount) || 0 : bill?.vat_amount ?? 0} currency={currency} /></dd></div>
-          <div className="flex justify-between font-bold border-t border-ink/10 pt-1"><dt>{common.total}</dt><dd><CurrencyDisplay amount={editable ? total : bill?.total ?? 0} currency={currency} /></dd></div>
+          <div className="flex justify-between font-bold border-t border-outline-variant pt-1"><dt>{common.total}</dt><dd><CurrencyDisplay amount={editable ? total : bill?.total ?? 0} currency={currency} /></dd></div>
           {bill && bill.status !== "draft" && (
             <>
               <div className="flex justify-between"><dt className="text-ink-muted">{copy.paid}</dt><dd><CurrencyDisplay amount={bill.amount_paid} currency={currency} /></dd></div>
@@ -245,7 +245,7 @@ export function SupplierBillView({ bill, fromOrder, suppliers, currency, rights 
       )}
 
       {bill && bill.status !== "draft" && bill.status !== "cancelled" && (
-        <Card className="p-5 space-y-3">
+        <Card className="p-5 space-y-3" data-page-section>
           <h2 className="font-bold text-ink">{copy.payments}</h2>
           {bill.payments.map((p) => (
             <p key={p.id} className="text-sm flex flex-wrap justify-between gap-2">

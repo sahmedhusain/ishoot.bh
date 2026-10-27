@@ -60,14 +60,14 @@ export function NewCompanyDocumentFormView() {
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto pb-16">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4" data-page-header>
         <Link href={ROUTES.company.documents}>
           <Button
             variant="outline"
             size="sm"
             className="gap-1.5 text-ink-muted"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
             <span>{t.actions.back}</span>
           </Button>
         </Link>
@@ -82,38 +82,38 @@ export function NewCompanyDocumentFormView() {
         </div>
       </div>
 
-      <Card className="p-8 bg-surface border border-ink/10 rounded-3xl">
+      <Card className="p-8 bg-surface border border-outline-variant rounded-3xl">
         <form onSubmit={handleSubmit} className="space-y-6">
           {error ? <p role="alert">{error}</p> : null}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="text-xs font-semibold text-ink mb-1.5 block">
+            <label>
+              <span className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.companyDocumentsNew.titleEnLabel}
-              </label>
+              </span>
               <Input
                 required
                 placeholder={t.companyDocumentsNew.titleEnPlaceholder}
                 value={titleEn}
                 onChange={(e) => setTitleEn(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-ink mb-1.5 block">
+               dir="ltr"/>
+            </label>
+            <label>
+              <span className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.companyDocumentsNew.titleArLabel}
-              </label>
+              </span>
               <Input
                 placeholder={t.companyDocumentsNew.titleArLabel}
                 value={titleAr}
                 onChange={(e) => setTitleAr(e.target.value)}
-              />
-            </div>
+               dir="rtl"/>
+            </label>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="text-xs font-semibold text-ink mb-1.5 block">
+            <label>
+              <span className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.companyDocumentsNew.categoryLabel}
-              </label>
+              </span>
               <Select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as any)}
@@ -137,43 +137,43 @@ export function NewCompanyDocumentFormView() {
                   {t.companyDocumentsView.categoryStandardContract}
                 </option>
               </Select>
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-ink mb-1.5 block">
+            </label>
+            <label>
+              <span className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.companyDocumentsNew.docNumberLabel}
-              </label>
+              </span>
               <Input
                 placeholder={t.companyDocumentsNew.docNumberPlaceholder}
                 value={documentNumber}
                 onChange={(e) => setDocumentNumber(e.target.value)}
                 className=""
               />
-            </div>
+            </label>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="text-xs font-semibold text-ink mb-1.5 block">
+            <label>
+              <span className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.companyDocumentsNew.validFromLabel}
-              </label>
+              </span>
               <Input
                 type="date"
                 value={validFrom}
                 onChange={(e) => setValidFrom(e.target.value)}
                 className=""
               />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-ink mb-1.5 block">
+            </label>
+            <label>
+              <span className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.companyDocumentsNew.validUntilLabel}
-              </label>
+              </span>
               <Input
                 type="date"
                 value={validUntil}
                 onChange={(e) => setValidUntil(e.target.value)}
                 className=""
               />
-            </div>
+            </label>
           </div>
 
           {/* The document itself, or a link to where it is kept (e.g. the NBR or MOIC portal). */}
@@ -191,18 +191,18 @@ export function NewCompanyDocumentFormView() {
             }
           />
 
-          <div>
-            <label className="text-xs font-semibold text-ink mb-1.5 block">
+          <label>
+            <span className="text-xs font-semibold text-ink mb-1.5 block">
               {t.companyDocumentsNew.notesLabel}
-            </label>
+            </span>
             <Input
               placeholder={t.companyDocumentsNew.notesPlaceholder}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
-          </div>
+          </label>
 
-          <div className="pt-6 border-t border-ink/10 flex items-center justify-end gap-4">
+          <div className="pt-6 border-t border-outline-variant flex items-center justify-end gap-4">
             <Link href={ROUTES.company.documents}>
               <Button type="button" variant="outline" size="sm">
                 {t.actions.cancel}

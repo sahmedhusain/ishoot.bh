@@ -19,10 +19,10 @@ import { Field, LanguageFields, activityIcon } from "./LanguageFields";
 
 function Section({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
   return (
-    <section className="space-y-4 rounded-xl border border-ink/15 p-4 sm:p-5">
+    <section className="space-y-4 rounded-xl border border-outline-variant p-4 sm:p-5">
       <div className="space-y-0.5">
-        <h3 className="text-sm font-bold text-slate-900 dark:text-white">{title}</h3>
-        {hint ? <p className="text-xs text-slate-500 dark:text-ink-muted">{hint}</p> : null}
+        <h3 className="text-sm font-bold text-ink dark:text-ink">{title}</h3>
+        {hint ? <p className="text-xs text-ink-muted dark:text-ink-muted">{hint}</p> : null}
       </div>
       {children}
     </section>
@@ -31,11 +31,11 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
 
 function Toggle({ label, checked, onChange, disabled, hint }: { label: string; checked: boolean; onChange: (value: boolean) => void; disabled?: boolean; hint?: string }) {
   return (
-    <label className={`flex items-start gap-3 rounded-lg border border-ink/15 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-200 ${disabled ? "opacity-60" : "cursor-pointer hover:border-ink/30"}`}>
+    <label className={`flex items-start gap-3 rounded-lg border border-outline-variant px-3 py-2.5 text-sm text-ink dark:text-ink ${disabled ? "opacity-60" : "cursor-pointer hover:border-ink/30"}`}>
       <input type="checkbox" className="mt-0.5 h-4 w-4 accent-accent" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} />
       <span>
         {label}
-        {hint ? <span className="block text-[11px] text-slate-500 dark:text-ink-muted">{hint}</span> : null}
+        {hint ? <span className="block text-[11px] text-ink-muted dark:text-ink-muted">{hint}</span> : null}
       </span>
     </label>
   );
@@ -118,17 +118,17 @@ export function WebsiteSetupFields({ config, onChange, languages, primaryLanguag
                 role="radio"
                 aria-checked={active}
                 onClick={() => apply(activity)}
-                className={`relative flex items-center gap-2 rounded-lg border px-3 py-2.5 text-start text-xs font-medium transition-colors ${active ? "border-accent bg-accent/10 text-slate-900 dark:text-white" : "border-ink/15 text-slate-600 hover:border-ink/30 dark:text-slate-300"}`}
+                className={`relative flex items-center gap-2 rounded-lg border px-3 py-2.5 text-start text-xs font-medium transition-colors ${active ? "border-accent bg-accent/10 text-ink dark:text-ink" : "border-outline-variant text-ink-muted hover:border-ink/30 dark:text-ink"}`}
               >
                 <Icon className="h-4 w-4 shrink-0 text-accent" />
-                <span className="min-w-0 flex-1 truncate">{activities[activity].name}</span>
+                <span className="min-w-0 flex-1 truncate"><bdi dir="auto">{activities[activity].name}</bdi></span>
                 {activity === companyActivity ? <span className="shrink-0 rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] text-brand-text">{copy.recommended}</span> : null}
               </button>
             );
           })}
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <button type="button" onClick={() => apply(config.purpose)} className="inline-flex items-center gap-1.5 rounded-lg border border-ink/20 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-accent hover:text-accent dark:text-slate-200">
+          <button type="button" onClick={() => apply(config.purpose)} className="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant px-3 py-1.5 text-xs font-semibold text-ink hover:border-accent hover:text-accent dark:text-ink">
             <RotateCcw className="h-3.5 w-3.5" />
             {copy.applyRecommended}
           </button>
@@ -136,16 +136,16 @@ export function WebsiteSetupFields({ config, onChange, languages, primaryLanguag
         </div>
         <dl className="grid gap-2 rounded-lg bg-ink/[0.04] p-3 text-xs sm:grid-cols-3">
           <div>
-            <dt className="text-slate-500 dark:text-ink-muted">{copy.summaryAddress}</dt>
-            <dd className="font-mono text-slate-900 dark:text-white" dir="ltr">/{primaryLanguage}/{collection.slug}</dd>
+            <dt className="text-ink-muted dark:text-ink-muted">{copy.summaryAddress}</dt>
+            <dd className="font-mono text-ink dark:text-ink" dir="ltr">/{primaryLanguage}/{collection.slug}</dd>
           </div>
           <div>
-            <dt className="text-slate-500 dark:text-ink-muted">{copy.collectionLayout}</dt>
-            <dd className="text-slate-900 dark:text-white">{copy.layouts[collection.layout]}</dd>
+            <dt className="text-ink-muted dark:text-ink-muted">{copy.collectionLayout}</dt>
+            <dd className="text-ink dark:text-ink">{copy.layouts[collection.layout]}</dd>
           </div>
           <div>
-            <dt className="text-slate-500 dark:text-ink-muted">{copy.heroTitle}</dt>
-            <dd className="text-slate-900 dark:text-white">{copy.heroStyles[config.heroStyle].name}</dd>
+            <dt className="text-ink-muted dark:text-ink-muted">{copy.heroTitle}</dt>
+            <dd className="text-ink dark:text-ink"><bdi dir="auto">{copy.heroStyles[config.heroStyle].name}</bdi></dd>
           </div>
         </dl>
       </Section>
@@ -157,8 +157,8 @@ export function WebsiteSetupFields({ config, onChange, languages, primaryLanguag
           <LanguageFields name="collectionSubtitle" label={copy.collectionSubtitle} languages={languages} multiline maxLength={300} en={collection.subtitleEn} ar={collection.subtitleAr} onChange={(v) => setCollection({ subtitleEn: v.en, subtitleAr: v.ar })} />
           <Field label={copy.collectionSlug}>
             {(id) => (
-              <div className="flex items-center rounded-lg border border-ink/25 bg-white ps-3 dark:border-white/20 dark:bg-surface" dir="ltr">
-                <span className="text-sm text-slate-400">/{primaryLanguage}/</span>
+              <div className="flex items-center rounded-lg border border-ink/25 bg-surface-raised ps-3 dark:border-white/20 dark:bg-surface" dir="ltr">
+                <span className="text-sm text-ink-muted">/{primaryLanguage}/</span>
                 <Input
                   id={id}
                   dir="ltr"
@@ -189,11 +189,11 @@ export function WebsiteSetupFields({ config, onChange, languages, primaryLanguag
               role="radio"
               aria-checked={config.heroStyle === style}
               onClick={() => set({ heroStyle: style })}
-              className={`space-y-2 rounded-xl border p-3 text-start transition-colors ${config.heroStyle === style ? "border-accent bg-accent/10" : "border-ink/15 hover:border-ink/30"}`}
+              className={`space-y-2 rounded-xl border p-3 text-start transition-colors ${config.heroStyle === style ? "border-accent bg-accent/10" : "border-outline-variant hover:border-ink/30"}`}
             >
               <HeroSketch style={style} />
-              <span className="block text-sm font-semibold text-slate-900 dark:text-white">{copy.heroStyles[style].name}</span>
-              <span className="block text-[11px] text-slate-500 dark:text-ink-muted">{copy.heroStyles[style].description}</span>
+              <span className="block text-sm font-semibold text-ink dark:text-ink"><bdi dir="auto">{copy.heroStyles[style].name}</bdi></span>
+              <span className="block text-[11px] text-ink-muted dark:text-ink-muted">{copy.heroStyles[style].description}</span>
             </button>
           ))}
         </div>
@@ -216,8 +216,8 @@ export function WebsiteSetupFields({ config, onChange, languages, primaryLanguag
         <Section title={copy.sectionsTitle} hint={copy.sectionsHint}>
           <ol className="space-y-1.5">
             {sections.map((section, position) => (
-              <li key={section.id} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${section.visible ? "border-ink/15 text-slate-800 dark:text-slate-100" : "border-dashed border-ink/15 text-slate-400"}`}>
-                <span className="w-5 text-xs text-slate-400">{position + 1}</span>
+              <li key={section.id} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${section.visible ? "border-outline-variant text-ink dark:text-ink" : "border-dashed border-outline-variant text-ink-muted"}`}>
+                <span className="w-5 text-xs text-ink-muted">{position + 1}</span>
                 <span className="min-w-0 flex-1 truncate">{sectionName(section.id)}</span>
                 <button
                   type="button"

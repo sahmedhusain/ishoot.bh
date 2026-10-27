@@ -178,7 +178,7 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
   return (
     <form onSubmit={handleSubmit} className="space-y-8 max-w-5xl mx-auto pb-24 text-xs">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-ink/10 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant pb-6" data-page-header>
         <div>
           <button
             type="button"
@@ -199,7 +199,7 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
             type="button"
             variant="outline"
             onClick={() => router.push(ROUTES.moms.list)}
-            className="border-ink/10 text-ink-muted hover:text-ink"
+            className="border-outline-variant text-ink-muted hover:text-ink"
           >
             {t.newMomForm.cancel}
           </Button>
@@ -207,7 +207,7 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
           <Button
             type="submit"
             disabled={saving}
-            className="bg-accent hover:bg-tone-25 text-white flex items-center gap-2 shadow-lg"
+            className="bg-accent hover:bg-tone-25 text-accent-foreground flex items-center gap-2 shadow-lg"
           >
             <Save className="w-4 h-4" />
             <span>{saving ? (t.newMomForm.saving) : t.newMomForm.saveDocument}</span>
@@ -222,71 +222,71 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
       )}
 
       {/* Main Details Card */}
-      <Card className="p-6 bg-surface border border-ink/10 rounded-2xl space-y-6">
-        <h2 className="text-sm font-bold text-ink uppercase tracking-wider border-b border-ink/10 pb-3 flex items-center gap-2">
+      <Card className="p-6 bg-surface border border-outline-variant rounded-2xl space-y-6" data-page-section>
+        <h2 className="text-sm font-bold text-ink uppercase tracking-wider border-b border-outline-variant pb-3 flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-accent" />
           <span>{t.newMomForm.meetingOverview}</span>
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <label className="text-ink-muted font-medium">{t.newMomForm.meetingTitleEnglish} *</label>
+          <label className="block space-y-1.5">
+            <span className="text-ink-muted font-medium">{t.newMomForm.meetingTitleEnglish} *</span>
             <Input
               required
               placeholder={t.newMomForm.eGQ2ProductionAlignment}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
-          </div>
+          </label>
 
-          <div className="space-y-1.5">
-            <label className="text-ink-muted font-medium">{t.newMomForm.meetingTitleArabic}</label>
+          <label className="block space-y-1.5">
+            <span className="text-ink-muted font-medium">{t.newMomForm.meetingTitleArabic}</span>
             <Input
               placeholder={t.newMomForm.titleArPlaceholder}
               value={titleAr}
               onChange={(e) => setTitleAr(e.target.value)}
               dir="rtl"
             />
-          </div>
+          </label>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <div className="space-y-1.5">
-            <label className="text-ink-muted font-medium">{t.newMomForm.date} *</label>
+          <label className="block space-y-1.5">
+            <span className="text-ink-muted font-medium">{t.newMomForm.date} *</span>
             <Input
               type="date"
               required
               value={meetingDate}
               onChange={(e) => setMeetingDate(e.target.value)}
             />
-          </div>
+          </label>
 
-          <div className="space-y-1.5">
-            <label className="text-ink-muted font-medium">{t.newMomForm.startTime}</label>
+          <label className="block space-y-1.5">
+            <span className="text-ink-muted font-medium">{t.newMomForm.startTime}</span>
             <Input
               placeholder={t.copy.timeStartExample}
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
             />
-          </div>
+          </label>
 
-          <div className="space-y-1.5">
-            <label className="text-ink-muted font-medium">{t.newMomForm.endTime}</label>
+          <label className="block space-y-1.5">
+            <span className="text-ink-muted font-medium">{t.newMomForm.endTime}</span>
             <Input
               placeholder={t.copy.timeEndExample}
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
             />
-          </div>
+          </label>
 
-          <div className="space-y-1.5">
-            <label className="text-ink-muted font-medium">{t.newMomForm.location}</label>
+          <label className="block space-y-1.5">
+            <span className="text-ink-muted font-medium">{t.newMomForm.location}</span>
             <Input
               placeholder={t.newMomForm.locationExample}
               value={location}
               onChange={(e) => setLocation(e.target.value)}
             />
-          </div>
+          </label>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
@@ -300,20 +300,20 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
             <EntityLookup domain="deals" value={dealId} onChange={setDealId} />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-ink-muted font-medium">{t.newMomForm.documentStatus}</label>
+          <label className="block space-y-1.5">
+            <span className="text-ink-muted font-medium">{t.newMomForm.documentStatus}</span>
             <Select value={status} onChange={(e) => setStatus(e.target.value)}>
               <option value="draft">{t.newMomForm.draft}</option>
               <option value="in_review">{t.newMomForm.inReview}</option>
               <option value="approved">{t.newMomForm.approved}</option>
             </Select>
-          </div>
+          </label>
         </div>
       </Card>
 
       {/* Attendees Card */}
-      <Card className="p-6 bg-surface border border-ink/10 rounded-2xl space-y-4">
-        <div className="flex items-center justify-between border-b border-ink/10 pb-3">
+      <Card className="p-6 bg-surface border border-outline-variant rounded-2xl space-y-4" data-page-section>
+        <div className="flex items-center justify-between border-b border-outline-variant pb-3">
           <h2 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
             <Users className="w-4 h-4 text-accent" />
             <span>{t.newMomForm.meetingAttendees}</span>
@@ -321,7 +321,7 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
           <Button
             type="button"
             onClick={addAttendee}
-            className="bg-ink/5 hover:bg-ink/10 text-ink border border-ink/10 text-[11px] px-3 py-1 flex items-center gap-1.5"
+            className="bg-ink/5 hover:bg-ink/10 text-ink border border-outline-variant text-[11px] px-3 py-1 flex items-center gap-1.5"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{t.newMomForm.addAttendee}</span>
@@ -332,7 +332,7 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
           {attendees.map((attendee, index) => (
             <div
               key={index}
-              className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center p-3 rounded-xl bg-surface-sunken border border-ink/5"
+              className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center p-3 rounded-xl bg-surface-sunken border border-outline-variant"
             >
               <div className="sm:col-span-3">
                 <Input
@@ -361,7 +361,7 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
                     type="checkbox"
                     checked={attendee.attended}
                     onChange={(e) => updateAttendee(index, "attended", e.target.checked)}
-                    className="rounded border-ink/20 text-accent focus:ring-0"
+                    className="rounded border-outline-variant text-accent focus:ring-0"
                   />
                   <span>{t.newMomForm.attended}</span>
                 </label>
@@ -383,8 +383,8 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
       </Card>
 
       {/* Agenda & Notes */}
-      <Card className="p-6 bg-surface border border-ink/10 rounded-2xl space-y-4">
-        <h2 className="text-sm font-bold text-ink uppercase tracking-wider border-b border-ink/10 pb-3 flex items-center gap-2">
+      <Card className="p-6 bg-surface border border-outline-variant rounded-2xl space-y-4" data-page-section>
+        <h2 className="text-sm font-bold text-ink uppercase tracking-wider border-b border-outline-variant pb-3 flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-accent" />
           <span>{t.newMomForm.meetingAgenda} *</span>
         </h2>
@@ -398,14 +398,14 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
             }
             value={agenda}
             onChange={(e) => setAgenda(e.target.value)}
-            className="w-full p-3.5 text-xs rounded-xl bg-surface-sunken border border-ink/10 text-ink placeholder:text-ink-muted/60 focus:outline-none focus:border-accent font-sans leading-relaxed"
+            className="w-full p-3.5 text-xs rounded-xl bg-surface-sunken border border-outline-variant text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent font-sans leading-relaxed"
           />
         </div>
       </Card>
 
       {/* Discussion Points Card */}
-      <Card className="p-6 bg-surface border border-ink/10 rounded-2xl space-y-4">
-        <div className="flex items-center justify-between border-b border-ink/10 pb-3">
+      <Card className="p-6 bg-surface border border-outline-variant rounded-2xl space-y-4" data-page-section>
+        <div className="flex items-center justify-between border-b border-outline-variant pb-3">
           <h2 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-accent" />
             <span>{t.newMomForm.discussionPoints}</span>
@@ -413,7 +413,7 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
           <Button
             type="button"
             onClick={addDiscussionPoint}
-            className="bg-ink/5 hover:bg-ink/10 text-ink border border-ink/10 text-[11px] px-3 py-1 flex items-center gap-1.5"
+            className="bg-ink/5 hover:bg-ink/10 text-ink border border-outline-variant text-[11px] px-3 py-1 flex items-center gap-1.5"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{t.newMomForm.addTopic}</span>
@@ -424,7 +424,7 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
           {discussionPoints.map((point, index) => (
             <div
               key={index}
-              className="p-4 rounded-xl bg-surface-sunken border border-ink/5 space-y-3"
+              className="p-4 rounded-xl bg-surface-sunken border border-outline-variant space-y-3"
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="w-full sm:w-1/2">
@@ -456,7 +456,7 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
                 placeholder={t.newMomForm.summaryOfDiscussion}
                 value={point.notes}
                 onChange={(e) => updateDiscussionPoint(index, "notes", e.target.value)}
-                className="w-full p-2.5 text-xs rounded-xl bg-black/40 border border-ink/5 text-white placeholder:text-ink-muted/60 focus:outline-none focus:border-accent"
+                className="w-full p-2.5 text-xs rounded-xl bg-black/40 border border-outline-variant text-white placeholder:text-ink-muted focus:outline-none focus:border-accent"
               />
             </div>
           ))}
@@ -464,8 +464,8 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
       </Card>
 
       {/* Action Items & Deadlines Card */}
-      <Card className="p-6 bg-surface border border-ink/10 rounded-2xl space-y-4">
-        <div className="flex items-center justify-between border-b border-ink/10 pb-3">
+      <Card className="p-6 bg-surface border border-outline-variant rounded-2xl space-y-4" data-page-section>
+        <div className="flex items-center justify-between border-b border-outline-variant pb-3">
           <h2 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
             <CheckCircle className="w-4 h-4 text-accent" />
             <span>{t.newMomForm.actionItemsAndDeliverables}</span>
@@ -473,7 +473,7 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
           <Button
             type="button"
             onClick={addActionItem}
-            className="bg-ink/5 hover:bg-ink/10 text-ink border border-ink/10 text-[11px] px-3 py-1 flex items-center gap-1.5"
+            className="bg-ink/5 hover:bg-ink/10 text-ink border border-outline-variant text-[11px] px-3 py-1 flex items-center gap-1.5"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{t.newMomForm.addTask}</span>
@@ -484,7 +484,7 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
           {actionItems.map((item, index) => (
             <div
               key={index}
-              className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center p-3 rounded-xl bg-surface-sunken border border-ink/5"
+              className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center p-3 rounded-xl bg-surface-sunken border border-outline-variant"
             >
               <div className="sm:col-span-5">
                 <Input
@@ -508,15 +508,15 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
                 />
               </div>
               <div className="sm:col-span-1">
-                <select
+                <Select
                   value={item.status}
                   onChange={(e) => updateActionItem(index, "status", e.target.value)}
-                  className="w-full bg-surface border border-ink/10 rounded-lg py-1 px-1.5 text-xs text-ink"
+                  className="w-full bg-surface border border-outline-variant rounded-lg py-1 px-1.5 text-xs text-ink"
                 >
                   <option value="pending">{t.newMomForm.pending}</option>
                   <option value="in_progress">{t.newMomForm.inProgress}</option>
                   <option value="completed">{t.newMomForm.done}</option>
-                </select>
+                </Select>
               </div>
               <div className="sm:col-span-1 text-end">
                 {actionItems.length > 1 && (
@@ -535,8 +535,8 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
       </Card>
 
       {/* Decisions & Approvals */}
-      <Card className="p-6 bg-surface border border-ink/10 rounded-2xl space-y-4">
-        <div className="flex items-center justify-between border-b border-ink/10 pb-3">
+      <Card className="p-6 bg-surface border border-outline-variant rounded-2xl space-y-4" data-page-section>
+        <div className="flex items-center justify-between border-b border-outline-variant pb-3">
           <h2 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-accent" />
             <span>{t.newMomForm.keyDecisionsTaken}</span>
@@ -544,7 +544,7 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
           <Button
             type="button"
             onClick={addDecision}
-            className="bg-ink/5 hover:bg-ink/10 text-ink border border-ink/10 text-[11px] px-3 py-1 flex items-center gap-1.5"
+            className="bg-ink/5 hover:bg-ink/10 text-ink border border-outline-variant text-[11px] px-3 py-1 flex items-center gap-1.5"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{t.newMomForm.addDecision}</span>
@@ -574,12 +574,12 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
       </Card>
 
       {/* Footer Submit */}
-      <div className="flex items-center justify-end gap-3 pt-4 border-t border-ink/10">
+      <div className="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant">
         <Button
           type="button"
           variant="outline"
           onClick={() => router.push(ROUTES.moms.list)}
-          className="border-ink/10 text-ink-muted hover:text-ink"
+          className="border-outline-variant text-ink-muted hover:text-ink"
         >
           {t.newMomForm.cancel}
         </Button>
@@ -587,7 +587,7 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
         <Button
           type="submit"
           disabled={saving}
-          className="bg-accent hover:bg-tone-25 text-white flex items-center gap-2 px-6 py-2.5 text-sm font-bold shadow-xl"
+          className="bg-accent hover:bg-tone-25 text-accent-foreground flex items-center gap-2 px-6 py-2.5 text-sm font-bold shadow-xl"
         >
           <Save className="w-4 h-4" />
           <span>{saving ? (t.newMomForm.saving) : t.newMomForm.saveDocument}</span>

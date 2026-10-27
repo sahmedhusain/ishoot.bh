@@ -23,26 +23,26 @@ export function BankCoordinatesTab({
 }: BankCoordinatesTabProps) {
   return (
     <div className="space-y-6 animate-fade-in">
-      <Card className="p-6 bg-white dark:bg-[#202124] border border-ink/15 dark:border-ink/15 shadow-xs rounded-2xl space-y-5">
-        <div className="flex items-center gap-3 pb-3 border-b border-ink/15 dark:border-ink/15">
+      <Card className="p-6 bg-surface-raised dark:bg-surface-container-low border border-outline-variant dark:border-outline-variant shadow-xs rounded-2xl space-y-5">
+        <div className="flex items-center gap-3 pb-3 border-b border-outline-variant dark:border-outline-variant">
           <div className="p-2 rounded-xl bg-accent/10 text-accent">
             <Landmark className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+            <h2 className="text-sm font-bold text-ink dark:text-ink">
               {t.settings.bankTitle}
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-ink-muted dark:text-ink-muted">
               {t.companySettingsView.bankSubtitle}
             </p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium text-ink dark:text-ink">
               {t.settings.bankName}
-            </label>
+            </span>
             <Input
               value={settings.bank_name || ""}
               onChange={(e) =>
@@ -51,12 +51,12 @@ export function BankCoordinatesTab({
               placeholder={t.companySettingsTabs.bankNamePlaceholder}
               className="rounded-lg"
             />
-          </div>
+          </label>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium text-ink dark:text-ink">
               {t.settings.bankIban}
-            </label>
+            </span>
             <Input
               value={settings.bank_iban || ""}
               onChange={(e) =>
@@ -65,12 +65,12 @@ export function BankCoordinatesTab({
               placeholder={t.companySettingsTabs.ibanPlaceholder}
               className=" rounded-lg"
             />
-          </div>
+          </label>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium text-ink dark:text-ink">
               {t.settings.bankAccount}
-            </label>
+            </span>
             <Input
               value={settings.bank_account_number || ""}
               onChange={(e) =>
@@ -82,12 +82,12 @@ export function BankCoordinatesTab({
               placeholder={t.companySettingsTabs.accountPlaceholder}
               className=" rounded-lg"
             />
-          </div>
+          </label>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium text-ink dark:text-ink">
               {t.settings.bankSwift}
-            </label>
+            </span>
             <Input
               value={settings.bank_swift || ""}
               onChange={(e) =>
@@ -96,12 +96,12 @@ export function BankCoordinatesTab({
               placeholder={t.companySettingsTabs.swiftPlaceholder}
               className=" rounded-lg"
             />
-          </div>
+          </label>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-50 dark:bg-neutral-800/40 border border-slate-200 dark:border-neutral-700/60 flex items-start gap-3">
+        <div className="p-4 rounded-xl bg-surface-raised dark:bg-surface-raised/40 border border-outline-variant dark:border-outline-variant/60 flex items-start gap-3">
           <ShieldCheck className="w-4 h-4 text-accent shrink-0 mt-0.5" />
-          <p className="text-xs text-slate-600 dark:text-neutral-400 leading-relaxed">
+          <p className="text-xs text-ink-muted dark:text-ink-muted leading-relaxed">
             {t.companySettingsTabs.bankingSubtitle}
           </p>
         </div>

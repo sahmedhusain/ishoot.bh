@@ -16,14 +16,14 @@ export function EmployeeHandoversCard({ employeeId, items, canStart }: { employe
   const e = t.employeeHandovers;
   if (!items.length && !canStart) return null;
   return (
-    <section className="rounded-3xl border border-ink/10 bg-white dark:bg-surface-raised p-5 sm:p-6 shadow-xs space-y-4">
+    <section className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-5 sm:p-6 shadow-xs space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h2 className="flex items-center gap-2 text-base font-bold text-ink"><ArrowRightLeft className="h-4 w-4 text-accent" />{e.title}</h2>
+          <h2 className="flex items-center gap-2 text-base font-bold text-ink"><ArrowRightLeft className="h-4 w-4 text-accent" /><bdi dir="auto">{e.title}</bdi></h2>
           <p className="text-xs text-ink-muted mt-0.5">{e.employeeCardHint}</p>
         </div>
         {canStart ? (
-          <Link href={ROUTES.hr.handovers({ employeeId })} className="inline-flex items-center gap-1.5 h-9 rounded-full border border-ink/15 px-4 text-xs font-semibold text-ink hover:bg-ink/5">
+          <Link href={ROUTES.hr.handovers({ employeeId })} className="inline-flex items-center gap-1.5 h-9 rounded-full border border-outline-variant px-4 text-xs font-semibold text-ink hover:bg-ink/5">
             <Plus className="h-3.5 w-3.5" />{e.start}
           </Link>
         ) : null}
@@ -32,7 +32,7 @@ export function EmployeeHandoversCard({ employeeId, items, canStart }: { employe
         <ul className="space-y-2">
           {items.map((h) => (
             <li key={h.id}>
-              <Link href={ROUTES.hr.handover(h.id)} className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-ink/10 px-3 py-2 text-sm hover:bg-ink/[0.03]">
+              <Link href={ROUTES.hr.handover(h.id)} className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-outline-variant px-3 py-2 text-sm hover:bg-ink/[0.03]">
                 <span className="text-ink">
                   <span className="font-mono text-xs text-ink-muted me-2">{h.reference}</span>
                   {e.kinds[h.kind as "exit" | "leave"]} · {formatDate(h.effective_date, locale)}

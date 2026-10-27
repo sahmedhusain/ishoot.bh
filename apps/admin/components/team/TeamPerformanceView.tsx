@@ -5,7 +5,7 @@ import { getCurrencyLabel } from "@platform/config/currency";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Card } from "@platform/ui";
+import { Select, Card } from "@platform/ui";
 import { Gauge, FileText, Receipt, LifeBuoy, ChevronDown, ChevronUp } from "lucide-react";
 import type { TeamHistoryItem, TeamMemberKpis } from "@platform/database/queries/team-performance";
 import { ROUTES } from "../../constants/routes";
@@ -48,24 +48,24 @@ export function TeamPerformanceView({ period, from, to, members, history, manage
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display flex items-center gap-2">
             <Gauge className="w-7 h-7 text-accent" />
-            {k.title}
+            <bdi dir="auto">{k.title}</bdi>
           </h1>
           <p className="text-xs text-ink-muted mt-1">{formatMessage(k.subtitle, { from: from, to: to })}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {managers && managers.length > 0 && (
-            <select aria-label={k.manager} value={managerId ?? ""} onChange={(e) => go({ manager: e.target.value })} className="px-3 py-2 rounded-full border border-ink/15 bg-surface text-sm text-ink">
+            <Select aria-label={k.manager} value={managerId ?? ""} onChange={(e) => go({ manager: e.target.value })} className="px-3 py-2 rounded-full border border-outline-variant bg-surface text-sm text-ink">
               <option value="">{k.everyone}</option>
               {managers.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
-            </select>
+            </Select>
           )}
-          <div role="tablist" className="inline-flex p-1 rounded-full bg-surface-sunken border border-ink/10">
+          <div role="tablist" className="inline-flex p-1 rounded-full bg-surface-sunken border border-outline-variant">
             {PERIODS.map((p) => (
-              <button key={p} type="button" role="tab" aria-selected={period === p} onClick={() => go({ period: p })} className={`px-3 py-1.5 rounded-full text-xs font-semibold ${period === p ? "bg-accent text-white" : "text-ink-muted hover:text-ink"}`}>
+              <button key={p} type="button" role="tab" aria-selected={period === p} onClick={() => go({ period: p })} className={`px-3 py-1.5 rounded-full text-xs font-semibold ${period === p ? "bg-accent text-accent-foreground" : "text-ink-muted hover:text-ink"}`} tabIndex={period === p ? 0 : -1}>
                 {k.periods[p]}
               </button>
             ))}
@@ -80,7 +80,7 @@ export function TeamPerformanceView({ period, from, to, members, history, manage
           [k.srResolved, String(total.resolved)],
           [k.srOverdue, String(total.overdue)],
         ].map(([label, value]) => (
-          <Card key={label} className="p-5 rounded-3xl bg-surface border border-ink/10">
+          <Card key={label} className="p-5 rounded-3xl bg-surface border border-outline-variant">
             <div className="text-xs text-ink-muted">{label}</div>
             <div className="text-2xl font-bold text-ink mt-1">{value}</div>
           </Card>
@@ -88,14 +88,14 @@ export function TeamPerformanceView({ period, from, to, members, history, manage
       </div>
 
       {members.length === 0 ? (
-        <Card className="p-12 text-center text-sm text-ink-muted rounded-3xl bg-surface border border-ink/10">{k.empty}</Card>
+        <Card className="p-12 text-center text-sm text-ink-muted rounded-3xl bg-surface border border-outline-variant">{k.empty}</Card>
       ) : (
         <div className="space-y-3">
           {members.map((m) => (
-            <Card key={m.userId} className="p-0 rounded-3xl bg-surface border border-ink/10 overflow-hidden">
+            <Card key={m.userId} className="p-0 rounded-3xl bg-surface border border-outline-variant overflow-hidden">
               <button type="button" aria-expanded={open === m.userId} onClick={() => setOpen(open === m.userId ? null : m.userId)} className="w-full text-start p-5 grid gap-4 md:grid-cols-[1.2fr_repeat(3,1fr)_auto] items-center">
                 <div>
-                  <div className="font-bold text-ink">{m.name}</div>
+                  <div className="font-bold text-ink"><bdi dir="auto">{m.name}</bdi></div>
                   <div className="text-[11px] text-ink-muted">{m.role.replace("_", " ")} · {formatMessage(k.leaveDays, { days: String(m.leaveDays) })}</div>
                 </div>
                 <div className="text-xs">
@@ -118,18 +118,18 @@ export function TeamPerformanceView({ period, from, to, members, history, manage
                 {open === m.userId ? <ChevronUp className="w-4 h-4 text-ink-muted" /> : <ChevronDown className="w-4 h-4 text-ink-muted" />}
               </button>
               {open === m.userId && (
-                <div className="border-t border-ink/10 overflow-x-auto">
+                <div className="border-t border-outline-variant overflow-x-auto">
                   {(history[m.userId] ?? []).length === 0 ? (
                     <p className="p-5 text-xs text-ink-muted">{k.noHistory}</p>
                   ) : (
                     <table className="w-full text-xs min-w-[560px]">
-                      <tbody className="divide-y divide-ink/5">
+                      <tbody className="divide-y divide-outline-variant">
                         {(history[m.userId] ?? []).map((item) => (
                           <tr key={`${item.kind}-${item.id}`}>
                             <td className="p-3 ps-5 text-ink-muted whitespace-nowrap">{item.date.slice(0, 10)}</td>
                             <td className="p-3 text-ink-muted">{k.kinds[item.kind]}</td>
                             <td className="p-3"><Link href={href(item)} className="font-mono text-accent hover:underline">{item.reference}</Link></td>
-                            <td className="p-3 text-ink truncate max-w-[220px]">{item.title}</td>
+                            <td className="p-3 text-ink truncate max-w-[220px]"><bdi dir="auto">{item.title}</bdi></td>
                             <td className="p-3 text-ink-muted">{item.status.replace("_", " ")}</td>
                             <td className="p-3 pe-5 text-end text-ink">{item.amount === null ? "" : `${item.currency} ${fmt(item.amount)}`}</td>
                           </tr>

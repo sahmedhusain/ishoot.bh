@@ -89,7 +89,7 @@ export function SecuritySettingsView({
   };
   const Heading = embedded ? "h3" : "h1";
   return (
-    <section className="rounded-2xl border border-ink/10 bg-white p-5 dark:bg-surface-raised sm:p-6">
+    <section className="rounded-2xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Heading className="flex items-center gap-2 font-semibold text-ink">
           <ShieldCheck aria-hidden className="h-4 w-4 text-accent" />
@@ -248,7 +248,7 @@ export function SecuritySettingsView({
           <p className="text-sm text-ink-muted">{st.updatedSignInAgain}</p>
           <Link
             href="/login"
-            className="inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white"
+            className="inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
           >
             {st.signIn}
           </Link>

@@ -82,35 +82,35 @@ export function WebsitePreviewPane({ theme, revision }: { theme: BrandTheme; rev
   return (
     <aside className="space-y-3 lg:sticky lg:top-6" aria-label={copy.title} data-testid="website-preview">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-bold text-slate-900 dark:text-white">{copy.title}</h3>
+        <h3 className="text-sm font-bold text-ink dark:text-ink">{copy.title}</h3>
         <div className="flex items-center gap-1">
           {(["desktop", "phone"] as const).map((option) => {
             const Icon = option === "desktop" ? Monitor : Smartphone;
             return (
-              <button key={option} type="button" aria-pressed={size === option} aria-label={copy[option]} title={copy[option]} onClick={() => setSize(option)} className={`rounded-lg p-1.5 transition-colors ${size === option ? "bg-accent/15 text-accent" : "text-slate-500 hover:bg-ink/5"}`}>
+              <button key={option} type="button" aria-pressed={size === option} aria-label={copy[option]} title={copy[option]} onClick={() => setSize(option)} className={`rounded-lg p-1.5 transition-colors ${size === option ? "bg-accent/15 text-accent" : "text-ink-muted hover:bg-ink/5"}`}>
                 <Icon className="h-4 w-4" />
               </button>
             );
           })}
           {link ? (
-            <a href={link} target="_blank" rel="noopener noreferrer" aria-label={copy.open} title={copy.open} className="rounded-lg p-1.5 text-slate-500 hover:bg-ink/5">
+            <a href={link} target="_blank" rel="noopener noreferrer" aria-label={copy.open} title={copy.open} className="rounded-lg p-1.5 text-ink-muted hover:bg-ink/5">
               <ExternalLink className="h-4 w-4" />
             </a>
           ) : null}
         </div>
       </div>
       <div ref={holder} className="flex justify-center">
-        <div className="overflow-hidden rounded-xl border border-ink/15 bg-ink/5 shadow-sm transition-[width,height] duration-300 motion-reduce:transition-none" style={{ width: width * scale, height: height * scale }}>
+        <div className="overflow-hidden rounded-xl border border-outline-variant bg-ink/5 shadow-sm transition-[width,height] duration-300 motion-reduce:transition-none" style={{ width: width * scale, height: height * scale }}>
           {error ? (
             <p role="alert" className="p-4 text-xs text-rose-600">{error}</p>
           ) : link && scale ? (
-            <iframe ref={frame} src={link} title={copy.title} className="origin-top-left border-0 bg-white rtl:origin-top-right" style={{ width, height, transform: `scale(${scale})` }} />
+            <iframe ref={frame} src={link} title={copy.title} className="origin-top-left border-0 bg-surface-raised rtl:origin-top-right" style={{ width, height, transform: `scale(${scale})` }} />
           ) : (
             <div aria-busy="true" className="h-full p-4 space-y-3"><Skeleton className="h-1/3 w-full" /><Skeleton className="h-4 w-2/3" /><Skeleton className="h-4 w-1/2" /><div className="grid grid-cols-3 gap-3"><Skeleton className="h-20" /><Skeleton className="h-20" /><Skeleton className="h-20" /></div></div>
           )}
         </div>
       </div>
-      <p className="text-xs text-slate-500 dark:text-ink-muted">{copy.hint}</p>
+      <p className="text-xs text-ink-muted dark:text-ink-muted">{copy.hint}</p>
     </aside>
   );
 }

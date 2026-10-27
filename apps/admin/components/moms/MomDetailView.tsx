@@ -376,7 +376,7 @@ export function MomDetailView({
                 {t.momDetail.sessionSubjectFocus}
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-slate-950">
-                {mom.title}
+                <bdi dir="auto">{mom.title}</bdi>
               </h2>
               {mom.title_ar && mom.title_ar !== mom.title && (
                 <h3 className="text-base sm:text-lg font-semibold text-slate-600 font-arabic mt-1">
@@ -445,7 +445,7 @@ export function MomDetailView({
                       <tr className="bg-slate-100 text-slate-800 uppercase tracking-wider text-[10px]">
                         <th className="py-2.5 px-3 text-start font-bold">#</th>
                         <th className="py-2.5 px-3 text-start font-bold">
-                          {t.momDetail.name}
+                          <bdi dir="auto">{t.momDetail.name}</bdi>
                         </th>
                         <th className="py-2.5 px-3 text-start font-bold">
                           {t.momDetail.roleEntity}
@@ -462,7 +462,7 @@ export function MomDetailView({
                             {String(i + 1).padStart(2, "0")}
                           </td>
                           <td className="py-2.5 px-3 font-semibold text-slate-900">
-                            {att.name}
+                            <bdi dir="auto">{att.name}</bdi>
                           </td>
                           <td className="py-2.5 px-3 text-slate-600">
                             {att.role || att.organization || "—"}

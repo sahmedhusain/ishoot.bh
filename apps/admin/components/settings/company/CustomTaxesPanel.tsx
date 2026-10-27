@@ -88,8 +88,8 @@ export function CustomTaxesPanel({
   };
 
   return (
-    <Card className="p-6 bg-white dark:bg-[#202124] border border-ink/15 shadow-xs rounded-2xl space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-ink/15 pb-3">
+    <Card className="p-6 bg-surface-raised dark:bg-surface-container-low border border-outline-variant shadow-xs rounded-2xl space-y-5">
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-outline-variant pb-3">
         <div>
           <h3 className="text-sm font-bold text-ink">{c.title}</h3>
           <p className="text-xs text-ink-muted mt-1 max-w-2xl">{c.subtitle}</p>
@@ -113,7 +113,7 @@ export function CustomTaxesPanel({
       ) : null}
 
       {initialTaxes.length ? (
-        <ul className="divide-y divide-ink/10">
+        <ul className="divide-y divide-outline-variant">
           {initialTaxes.map((tax) => (
             <li
               key={tax.id}

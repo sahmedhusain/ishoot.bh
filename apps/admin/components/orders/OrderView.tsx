@@ -57,13 +57,13 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
           <Link href={ROUTES.orders.list} className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent">
             <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" />
             {copy.back}
           </Link>
-          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex flex-wrap items-center gap-3">
+          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink flex flex-wrap items-center gap-3">
             <span dir="ltr">{order.number}</span>
             <OrderStatusPill status={order.status} />
             <PaymentStatusPill status={order.payment_status} />
@@ -77,7 +77,7 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
             </Button>
           ))}
           {order.invoice ? (
-            <Link href={ROUTES.invoices.detail(order.invoice.id)} className="inline-flex items-center rounded-full border border-ink/15 px-3 h-9 text-sm hover:border-accent" data-testid="order-invoice">{formatMessage(copy.invoice, { number: order.invoice.invoiceNumber })}</Link>
+            <Link href={ROUTES.invoices.detail(order.invoice.id)} className="inline-flex items-center rounded-full border border-outline-variant px-3 h-9 text-sm hover:border-accent" data-testid="order-invoice">{formatMessage(copy.invoice, { number: order.invoice.invoiceNumber })}</Link>
           ) : rights.invoice && !["cancelled"].includes(order.status) ? (
             <Button type="button" size="sm" variant="outline" className="rounded-full" disabled={busy} onClick={() => run(() => issueOrderInvoiceAction(order.id))}>{copy.issueInvoice}</Button>
           ) : null}
@@ -87,27 +87,27 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
 
       <div className="grid md:grid-cols-2 gap-4">
-        <Card className="p-5 space-y-1 text-sm">
+        <Card className="p-5 space-y-1 text-sm" data-page-section>
           <h2 className="font-bold text-ink mb-2">{copy.customer}</h2>
-          <p className="font-semibold text-ink">{order.name}</p>
-          {order.email && <p className="text-ink-muted" dir="ltr">{order.email}</p>}
-          {order.phone && <p className="text-ink-muted" dir="ltr">{order.phone}</p>}
+          <p className="font-semibold text-ink"><bdi dir="auto">{order.name}</bdi></p>
+          {order.email && <p className="text-ink-muted" dir="ltr"><bdi dir="ltr">{order.email}</bdi></p>}
+          {order.phone && <p className="text-ink-muted" dir="ltr"><bdi dir="ltr">{order.phone}</bdi></p>}
           {order.note && <p className="text-ink-muted pt-2 whitespace-pre-line">{order.note}</p>}
         </Card>
-        <Card className="p-5 space-y-1 text-sm">
+        <Card className="p-5 space-y-1 text-sm" data-page-section>
           <h2 className="font-bold text-ink mb-2">{order.fulfilment === "pickup" ? copy.pickup : copy.deliverTo}</h2>
           {order.address && (
             <>
-              <p className="font-semibold text-ink">{order.address.name} · <span dir="ltr">{order.address.phone}</span></p>
+              <p className="font-semibold text-ink"><bdi dir="auto">{order.address.name}</bdi> · <span dir="ltr"><bdi dir="ltr">{order.address.phone}</bdi></span></p>
               <p className="text-ink-muted">{[order.address.line1, order.address.line2, order.address.area, order.address.city, order.address.country, order.address.postalCode].filter(Boolean).join(", ")}</p>
             </>
           )}
         </Card>
       </div>
 
-      <Card className="p-5 space-y-4">
+      <Card className="p-5 space-y-4" data-page-section>
         <h2 className="font-bold text-ink">{copy.items}</h2>
-        <ul className="divide-y divide-ink/10 text-sm" data-testid="order-lines">
+        <ul className="divide-y divide-outline-variant text-sm" data-testid="order-lines">
           {order.lines.map((l) => (
             <li key={l.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2">
               <span className="flex-1 min-w-0 text-ink">{l.description} <span className="font-mono text-xs text-ink-muted" dir="ltr">{l.sku}</span></span>
@@ -121,7 +121,7 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
           {order.discount > 0 && <div className="flex justify-between"><dt className="text-ink-muted">{formatMessage(copy.discount, { code: order.coupon_code ?? "" })}</dt><dd>- {money(order.discount)}</dd></div>}
           {order.delivery_fee > 0 && <div className="flex justify-between"><dt className="text-ink-muted">{copy.delivery}</dt><dd>{money(order.delivery_fee)}</dd></div>}
           {order.vat_amount > 0 && <div className="flex justify-between"><dt className="text-ink-muted">{copy.vat}</dt><dd>{money(order.vat_amount)}</dd></div>}
-          <div className="flex justify-between font-bold border-t border-ink/10 pt-1"><dt>{copy.total}</dt><dd>{money(order.total)}</dd></div>
+          <div className="flex justify-between font-bold border-t border-outline-variant pt-1"><dt>{copy.total}</dt><dd>{money(order.total)}</dd></div>
           <div className="flex justify-between"><dt className="text-ink-muted">{copy.paid}</dt><dd data-testid="order-paid">{money(order.amount_paid)}</dd></div>
           {order.amount_refunded > 0 && <div className="flex justify-between"><dt className="text-ink-muted">{copy.refunded}</dt><dd>{money(order.amount_refunded)}</dd></div>}
         </dl>
@@ -129,7 +129,7 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
 
       <div className="grid md:grid-cols-2 gap-4">
         {rights.edit && order.amount_paid < order.total && !["cancelled", "returned"].includes(order.status) && (
-          <Card className="p-5 space-y-3" data-testid="order-payment">
+          <Card className="p-5 space-y-3" data-testid="order-payment" data-page-section>
             <h2 className="font-bold text-ink">{copy.recordPayment}</h2>
             <div className="grid grid-cols-2 gap-3">
               <Field label={copy.amount}>{(id) => <Input id={id} name="paymentAmount" type="number" min={0} step="0.001" value={payment.amount} onChange={(e) => setPayment({ ...payment, amount: e.target.value })} className="rounded-lg" />}</Field>
@@ -143,7 +143,7 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
               <Field label={copy.reference} wide>{(id) => <Input id={id} maxLength={100} value={payment.reference} onChange={(e) => setPayment({ ...payment, reference: e.target.value })} className="rounded-lg" />}</Field>
             </div>
             {payment.method === "bank_transfer" && (
-              <label className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 h-8 text-xs font-semibold ${payment.proofUrl ? "border-emerald-500 text-emerald-700 dark:text-emerald-300" : "border-ink/15 hover:border-accent"}`}>
+              <label className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 h-8 text-xs font-semibold ${payment.proofUrl ? "border-emerald-500 text-emerald-700 dark:text-emerald-300" : "border-outline-variant hover:border-accent"}`}>
                 <Paperclip className="w-3.5 h-3.5" aria-hidden="true" />
                 {payment.proofUrl ? copy.proofAdded : copy.addProof}
                 <input
@@ -163,7 +163,7 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
           </Card>
         )}
         {rights.refund && order.amount_paid > order.amount_refunded && (
-          <Card className="p-5 space-y-3">
+          <Card className="p-5 space-y-3" data-page-section>
             <h2 className="font-bold text-ink">{copy.refund}</h2>
             <div className="grid grid-cols-2 gap-3">
               <Field label={copy.amount}>{(id) => <Input id={id} name="refundAmount" type="number" min={0} step="0.001" value={refund.amount} onChange={(e) => setRefund({ ...refund, amount: e.target.value })} className="rounded-lg" />}</Field>
@@ -174,7 +174,7 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
           </Card>
         )}
         {paymentLink && (
-          <Card className="p-5 space-y-3" data-testid="order-payment-link">
+          <Card className="p-5 space-y-3" data-testid="order-payment-link" data-page-section>
             <h2 className="font-bold text-ink flex items-center gap-2"><Link2 className="w-4 h-4 text-accent" aria-hidden="true" />{copy.paymentLink}</h2>
             <p className="text-xs text-ink-muted">{copy.paymentLinkHint}</p>
             <div className="flex gap-2">
@@ -189,9 +189,9 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
       </div>
 
       {attempts.length > 0 && (
-        <Card className="p-5 space-y-3">
+        <Card className="p-5 space-y-3" data-page-section>
           <h2 className="font-bold text-ink flex items-center gap-2"><CreditCard className="w-4 h-4 text-accent" aria-hidden="true" />{copy.onlinePayments}</h2>
-          <ul className="divide-y divide-ink/10 text-sm" data-testid="order-attempts">
+          <ul className="divide-y divide-outline-variant text-sm" data-testid="order-attempts">
             {attempts.map((a) => (
               <li key={a.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2">
                 <span className="font-semibold text-ink">{gatewayName(a.gateway)}</span>
@@ -199,7 +199,7 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
                 <span className="text-ink-muted">{(copy.attemptStatuses as Record<string, string>)[a.status] ?? a.status}</span>
                 <span>{formatMessage(copy.requestedAmount, { amount: money(a.amount) })}</span>
                 {a.amount_refunded > 0 && <span className="text-xs text-ink-muted">{copy.refunded} {money(a.amount_refunded)}</span>}
-                <span className="font-mono text-xs text-ink-muted" dir="ltr">{a.reference}</span>
+                <span className="font-mono text-xs text-ink-muted" dir="ltr"><bdi dir="ltr">{a.reference}</bdi></span>
                 <span className="ms-auto text-xs text-ink-muted">{formatDate(a.created_at, locale, "time")}</span>
                 {a.failure && <p className="basis-full text-xs text-amber-800 dark:text-amber-200">{errorMessage(a.failure, t)}</p>}
                 {rights.edit && ["created", "pending", "review"].includes(a.status) && <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => void run(() => recheckOrderPaymentAction(order.id, a.id), copy.paymentChecked)}>{copy.recheckPayment}</Button>}
@@ -210,9 +210,9 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
       )}
 
       {requests.length > 0 && (
-        <Card className="p-5 space-y-3" data-testid="order-requests">
+        <Card className="p-5 space-y-3" data-testid="order-requests" data-page-section>
           <h2 className="font-bold text-ink">{t.serviceDesk.orderRequests}</h2>
-          <ul className="divide-y divide-ink/10 text-sm">
+          <ul className="divide-y divide-outline-variant text-sm">
             {requests.map((r) => (
               <li key={r.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2">
                 <Link href={ROUTES.requests.detail(r.id)} className="font-mono text-xs font-semibold hover:text-accent" dir="ltr">{r.reference}</Link>
@@ -224,13 +224,13 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
       )}
 
       {order.files.length > 0 && (
-        <Card className="p-5 space-y-2" data-testid="order-files">
+        <Card className="p-5 space-y-2" data-testid="order-files" data-page-section>
           <h2 className="font-bold text-ink">{copy.files}</h2>
           <ul className="space-y-1 text-sm">
             {order.files.map((f) => (
               <li key={f.id} className="flex items-center gap-2">
                 <Paperclip className="w-3.5 h-3.5 text-ink-muted" aria-hidden="true" />
-                <a href={f.url} target="_blank" rel="noopener noreferrer" className="hover:text-accent">{f.name}</a>
+                <a href={f.url} target="_blank" rel="noopener noreferrer" className="hover:text-accent"><bdi dir="auto">{f.name}</bdi></a>
                 <span className="text-xs text-ink-muted">{formatDate(f.at, locale, "time")}</span>
               </li>
             ))}
@@ -238,7 +238,7 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
         </Card>
       )}
 
-      <Card className="p-5 space-y-3">
+      <Card className="p-5 space-y-3" data-page-section>
         <h2 className="font-bold text-ink">{copy.history}</h2>
         <ol className="space-y-2 text-sm" data-testid="order-history">
           {order.events.map((e) => (

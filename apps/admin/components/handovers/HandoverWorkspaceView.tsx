@@ -131,7 +131,7 @@ export function HandoverWorkspaceView({
         : ROUTES.approvals();
 
   const card =
-    "rounded-3xl border border-ink/10 bg-white dark:bg-surface-raised p-5 space-y-4";
+    "rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-5 space-y-4";
   const heading = (
     icon: React.ReactNode,
     title: string,
@@ -153,12 +153,12 @@ export function HandoverWorkspaceView({
           <Link
             href={ROUTES.hr.handovers()}
             aria-label={t.actions.back}
-            className="mt-1 rounded-full border border-ink/15 p-2 text-ink-muted hover:text-ink"
+            className="mt-1 rounded-full border border-outline-variant p-2 text-ink-muted hover:text-ink"
           >
             <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
           </Link>
           <div>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2" data-page-header>
               <h1 className="text-xl sm:text-2xl font-bold text-ink">
                 {handover.kind === "exit" ? e.exitTitle : e.leaveTitle}
               </h1>
@@ -169,7 +169,7 @@ export function HandoverWorkspaceView({
               </span>
             </div>
             <p className="text-xs text-ink-muted mt-1 font-mono">
-              {handover.reference}
+              <bdi dir="ltr">{handover.reference}</bdi>
             </p>
           </div>
         </div>
@@ -181,7 +181,7 @@ export function HandoverWorkspaceView({
                 employeeId: handover.employee.id,
                 handoverId: handover.id,
               })}
-              className="inline-flex h-9 items-center rounded-full border border-ink/15 px-4 text-xs font-semibold text-ink hover:bg-ink/5"
+              className="inline-flex h-9 items-center rounded-full border border-outline-variant px-4 text-xs font-semibold text-ink hover:bg-ink/5"
             >
               {t.settlements.prepareFromHandover}
             </Link>
@@ -291,7 +291,7 @@ export function HandoverWorkspaceView({
         <p className="text-[11px] text-ink-muted">{e.casesHint}</p>
 
         {editable && pending.length ? (
-          <div className="rounded-2xl border border-ink/10 bg-surface-sunken/40 p-4 space-y-3">
+          <div className="rounded-2xl border border-outline-variant bg-surface-sunken/40 p-4 space-y-3">
             <div className="text-xs font-semibold text-ink">{e.modeTitle}</div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {MODES.map((m) => (
@@ -300,7 +300,7 @@ export function HandoverWorkspaceView({
                   type="button"
                   aria-pressed={mode === m}
                   onClick={() => setMode(m)}
-                  className={`rounded-2xl border p-3 text-start ${mode === m ? "border-accent bg-accent/10" : "border-ink/10 hover:border-ink/25"}`}
+                  className={`rounded-2xl border p-3 text-start ${mode === m ? "border-accent bg-accent/10" : "border-outline-variant hover:border-ink/25"}`}
                 >
                   <div className="text-sm font-semibold text-ink">
                     {e.modes[m]}
@@ -352,7 +352,7 @@ export function HandoverWorkspaceView({
         ) : null}
 
         {handover.cases.length ? (
-          <ul className="divide-y divide-ink/10 rounded-2xl border border-ink/10">
+          <ul className="divide-y divide-outline-variant rounded-2xl border border-outline-variant">
             {handover.cases.map((c) => (
               <li
                 key={c.id}
@@ -438,7 +438,7 @@ export function HandoverWorkspaceView({
           {handover.kind === "exit" ? e.assetsExitHint : e.assetsLeaveHint}
         </p>
         {held.length ? (
-          <ul className="divide-y divide-ink/10 rounded-2xl border border-ink/10">
+          <ul className="divide-y divide-outline-variant rounded-2xl border border-outline-variant">
             {held.map((asset) => (
               <li
                 key={asset.id}
@@ -492,11 +492,11 @@ export function HandoverWorkspaceView({
               <Link
                 key={r.id}
                 href={ROUTES.assets.handover(r.id)}
-                className="flex items-center justify-between gap-2 rounded-xl border border-ink/10 px-3 py-2 text-xs hover:bg-ink/[0.03]"
+                className="flex items-center justify-between gap-2 rounded-xl border border-outline-variant px-3 py-2 text-xs hover:bg-ink/[0.03]"
               >
                 <span className="text-ink">
                   <span className="font-mono text-ink-muted me-2">
-                    {r.reference}
+                    <bdi dir="ltr">{r.reference}</bdi>
                   </span>
                   {r.asset}
                 </span>
@@ -519,7 +519,7 @@ export function HandoverWorkspaceView({
           <ClipboardCheck className="h-4 w-4 text-accent" />,
           e.checklistTitle,
         )}
-        <ul className="divide-y divide-ink/10 rounded-2xl border border-ink/10">
+        <ul className="divide-y divide-outline-variant rounded-2xl border border-outline-variant">
           {handover.checklist.map((item) => (
             <li
               key={item.key}

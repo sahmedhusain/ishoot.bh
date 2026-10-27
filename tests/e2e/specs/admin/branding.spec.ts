@@ -38,7 +38,7 @@ test("the dashboard uses the company's theme, fonts and logos", async ({
 
 test("changing the theme in settings re-colours the app", async ({ page }) => {
   await page.goto("/dashboard/settings/company");
-  await page.getByRole("button", { name: t.setupWizard.steps.brand }).click();
+  await page.getByRole("tab", { name: t.setupWizard.steps.brand }).click();
   const accent = page
     .getByLabel(t.setupWizard.brand.accent, { exact: true })
     .last();

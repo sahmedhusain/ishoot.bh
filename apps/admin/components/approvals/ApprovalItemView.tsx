@@ -80,16 +80,16 @@ export function ApprovalItemView({ item }: { item: ApprovalItemDetail }) {
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-16">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3" data-page-header>
           <Link
             href={ROUTES.approvals()}
             aria-label={t.actions.back}
-            className="rounded-full border border-ink/15 p-2 text-ink-muted hover:text-ink"
+            className="rounded-full border border-outline-variant p-2 text-ink-muted hover:text-ink"
           >
             <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" aria-hidden />
           </Link>
           <div>
-            <p className="text-xs text-ink-muted">{a.title}</p>
+            <p className="text-xs text-ink-muted"><bdi dir="auto">{a.title}</bdi></p>
             <h1 className="text-xl sm:text-2xl font-bold text-ink">
               {typeLabel}
             </h1>
@@ -113,7 +113,7 @@ export function ApprovalItemView({ item }: { item: ApprovalItemDetail }) {
         {item.recordUrl ? (
           <Link
             href={item.recordUrl}
-            className="inline-flex h-9 items-center gap-1.5 self-start rounded-full border border-ink/15 px-4 text-xs font-semibold text-ink hover:bg-ink/5"
+            className="inline-flex h-9 items-center gap-1.5 self-start rounded-full border border-outline-variant px-4 text-xs font-semibold text-ink hover:bg-ink/5"
           >
             {a.openRecord}
             <ExternalLink className="h-3.5 w-3.5" aria-hidden />
@@ -124,21 +124,21 @@ export function ApprovalItemView({ item }: { item: ApprovalItemDetail }) {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           {item.subject ? (
-            <section className="flex items-center gap-3 rounded-3xl border border-ink/10 bg-white p-5 dark:bg-surface-raised">
+            <section className="flex items-center gap-3 rounded-3xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised">
               <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent/10 text-accent">
                 <User className="h-5 w-5" aria-hidden />
               </span>
               <div className="min-w-0">
                 <div className="text-[11px] text-ink-muted">{it.concerns}</div>
                 <div className="truncate font-semibold text-ink">
-                  {item.subject.name}
+                  <bdi dir="auto">{item.subject.name}</bdi>
                 </div>
                 {item.subject.email ? (
                   <div
                     className="truncate font-mono text-xs text-ink-muted"
                     dir="ltr"
                   >
-                    {item.subject.email}
+                    <bdi dir="ltr">{item.subject.email}</bdi>
                   </div>
                 ) : null}
               </div>
@@ -146,11 +146,11 @@ export function ApprovalItemView({ item }: { item: ApprovalItemDetail }) {
           ) : null}
 
           {item.changes.length ? (
-            <section className="rounded-3xl border border-ink/10 bg-white p-5 dark:bg-surface-raised">
+            <section className="rounded-3xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised" data-page-section>
               <h2 className="mb-3 text-sm font-bold text-ink">
                 {it.requestedChanges}
               </h2>
-              <ul className="divide-y divide-ink/10 rounded-2xl border border-ink/10">
+              <ul className="divide-y divide-outline-variant rounded-2xl border border-outline-variant">
                 {item.changes.map((change) => (
                   <li
                     key={change.key}
@@ -178,14 +178,14 @@ export function ApprovalItemView({ item }: { item: ApprovalItemDetail }) {
           ) : null}
 
           {item.images.length ? (
-            <section className="rounded-3xl border border-ink/10 bg-white p-5 dark:bg-surface-raised">
+            <section className="rounded-3xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {item.images.map((image) => (
                   <figure key={image.key} className="space-y-2">
                     <figcaption className="text-xs font-semibold text-ink-muted">
                       {label(image.key)}
                     </figcaption>
-                    <div className="flex h-32 items-center justify-center rounded-2xl border border-ink/10 bg-white">
+                    <div className="flex h-32 items-center justify-center rounded-2xl border border-outline-variant bg-surface-raised">
                       {image.url ? (
                         <ContentImage
                           src={image.url}
@@ -207,7 +207,7 @@ export function ApprovalItemView({ item }: { item: ApprovalItemDetail }) {
           ) : null}
 
           {item.facts.length ? (
-            <section className="rounded-3xl border border-ink/10 bg-white p-5 dark:bg-surface-raised">
+            <section className="rounded-3xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised" data-page-section>
               <h2 className="mb-3 text-sm font-bold text-ink">{a.details}</h2>
               <dl className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2 md:grid-cols-3">
                 {item.facts.map((fact) => (
@@ -223,7 +223,7 @@ export function ApprovalItemView({ item }: { item: ApprovalItemDetail }) {
           ) : null}
 
           {item.note ? (
-            <section className="rounded-3xl border border-ink/10 bg-white p-5 dark:bg-surface-raised">
+            <section className="rounded-3xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised" data-page-section>
               <h2 className="mb-2 text-sm font-bold text-ink">{it.reason}</h2>
               <p className="whitespace-pre-wrap text-sm text-ink">
                 {item.note}
@@ -232,7 +232,7 @@ export function ApprovalItemView({ item }: { item: ApprovalItemDetail }) {
           ) : null}
 
           {item.files.length ? (
-            <section className="rounded-3xl border border-ink/10 bg-white p-5 dark:bg-surface-raised">
+            <section className="rounded-3xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised" data-page-section>
               <h2 className="mb-2 flex items-center gap-2 text-sm font-bold text-ink">
                 <Paperclip className="h-4 w-4" aria-hidden />
                 {it.files}
@@ -259,7 +259,7 @@ export function ApprovalItemView({ item }: { item: ApprovalItemDetail }) {
 
         <aside className="space-y-4">
           {approval ? (
-            <section className="space-y-3 rounded-3xl border border-ink/10 bg-white p-5 dark:bg-surface-raised">
+            <section className="space-y-3 rounded-3xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised" data-page-section>
               <h2 className="text-sm font-bold text-ink">{it.progress}</h2>
               <p className="text-xs text-ink-muted">
                 {formatMessage(a.requestedBy, { name: approval.requestedBy.name })} ·{" "}
@@ -269,7 +269,7 @@ export function ApprovalItemView({ item }: { item: ApprovalItemDetail }) {
                 {approval.decisions.map((d, i) => (
                   <li
                     key={i}
-                    className="flex items-start gap-2 rounded-2xl border border-ink/10 p-3 text-xs"
+                    className="flex items-start gap-2 rounded-2xl border border-outline-variant p-3 text-xs"
                   >
                     {d.decision === "approved" ? (
                       <Check
@@ -326,7 +326,7 @@ export function ApprovalItemView({ item }: { item: ApprovalItemDetail }) {
               ) : null}
             </section>
           ) : (
-            <p className="rounded-3xl border border-ink/10 p-5 text-xs text-ink-muted">
+            <p className="rounded-3xl border border-outline-variant p-5 text-xs text-ink-muted">
               {it.noApproval}
             </p>
           )}

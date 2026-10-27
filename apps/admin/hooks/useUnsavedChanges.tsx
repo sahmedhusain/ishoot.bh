@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { ConfirmDialog } from "@platform/ui";
 import { useAdminLocale } from "./useAdminLocale";
 
@@ -16,7 +17,7 @@ const HISTORY_KEY = "__admin_unsaved_position";
 
 export function UnsavedChangesProvider({ children }: { children: React.ReactNode }) {
   const router = React.useContext(AppRouterContext);
-  if (!router) throw new Error();
+  // Static fallback documents have no router; retain the same provider tree during hydration.
   const { t } = useAdminLocale();
   const guards = React.useRef(new Set<Guard>());
   const resolve = React.useRef<((approved: boolean) => void) | null>(null);
@@ -41,16 +42,21 @@ export function UnsavedChangesProvider({ children }: { children: React.ReactNode
     done?.(approved);
   };
   const navigateConfirmed = React.useCallback((href: string, replace = false) => {
+    if (!router) {
+      if (replace) window.location.replace(href); else window.location.assign(href);
+      return;
+    }
     if (replace) router.replace(href); else router.push(href);
   }, [router]);
   const guardedRouter = React.useMemo(() => {
-    const navigate = (method: "push" | "replace", href: string, options?: Parameters<typeof router.push>[1]) => {
+    if (!router) return null;
+    const navigate = (method: "push" | "replace", href: string, options?: Parameters<AppRouterInstance["push"]>[1]) => {
       const target = new URL(href, window.location.href);
       const sameDocument = target.origin === window.location.origin && target.pathname === window.location.pathname && target.search === window.location.search;
       if (replayingClick.current || sameDocument || !hasChanges()) { router[method](href, options); return; }
       void requestNavigation().then(approved => { if (approved) router[method](href, options); });
     };
-    return { ...router, push: (href: string, options?: Parameters<typeof router.push>[1]) => navigate("push", href, options), replace: (href: string, options?: Parameters<typeof router.replace>[1]) => navigate("replace", href, options) };
+    return { ...router, push: (href: string, options?: Parameters<AppRouterInstance["push"]>[1]) => navigate("push", href, options), replace: (href: string, options?: Parameters<AppRouterInstance["replace"]>[1]) => navigate("replace", href, options) };
   }, [router, hasChanges, requestNavigation]);
   const value = React.useMemo(() => ({ register, requestNavigation, navigateConfirmed }), [register, requestNavigation, navigateConfirmed]);
 

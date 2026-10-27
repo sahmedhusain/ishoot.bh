@@ -71,10 +71,10 @@ export function NotificationInboxView({
         return (
           <article
             key={n.id}
-            className="rounded-2xl border border-ink/10 p-5 space-y-3"
-          >
+            className="rounded-2xl border border-outline-variant p-5 space-y-3"
+           data-page-section>
             <h2 className={n.is_read ? "font-medium" : "font-bold"}>
-              {text.title}
+              <bdi dir="auto">{text.title}</bdi>
             </h2>
             <p className="whitespace-pre-wrap text-sm">{text.message}</p>
             <time className="text-xs text-ink-muted">

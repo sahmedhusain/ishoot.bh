@@ -13,7 +13,7 @@ const fmt = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 3,
 
 function Section({ title, hint, children, action }: { title: string; hint?: string; children: React.ReactNode; action?: React.ReactNode }) {
   return (
-    <Card className="p-0 bg-surface border border-ink/10 rounded-3xl overflow-hidden">
+    <Card className="p-0 bg-surface border border-outline-variant rounded-3xl overflow-hidden">
       <header className="flex flex-wrap items-end justify-between gap-3 px-5 pt-5 pb-3">
         <div>
           <h2 className="text-base font-bold text-ink">{title}</h2>
@@ -55,7 +55,7 @@ export function FinancialReportDetailView({ detail, showVat }: { detail: Financi
                 <th className={`${th} text-end`}>{d.profit}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink/5">
+            <tbody className="divide-y divide-outline-variant">
               {detail.monthly.map((m) => (
                 <tr key={m.month}>
                   <td className={`${td} font-semibold text-ink`}>{m.month}</td>
@@ -76,7 +76,7 @@ export function FinancialReportDetailView({ detail, showVat }: { detail: Financi
         hint={showVat ? d.registerHintVat : d.registerHint}
         action={
           showVat ? (
-            <div role="tablist" className="inline-flex p-1 rounded-full bg-surface-sunken border border-ink/10">
+            <div role="tablist" className="inline-flex p-1 rounded-full bg-surface-sunken border border-outline-variant">
               {(["all", "with", "without"] as const).map((f) => (
                 <button
                   key={f}
@@ -84,8 +84,8 @@ export function FinancialReportDetailView({ detail, showVat }: { detail: Financi
                   role="tab"
                   aria-selected={vatFilter === f}
                   onClick={() => setVatFilter(f)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold ${vatFilter === f ? "bg-accent text-white" : "text-ink-muted hover:text-ink"}`}
-                >
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold ${vatFilter === f ? "bg-accent text-accent-foreground" : "text-ink-muted hover:text-ink"}`}
+                 tabIndex={vatFilter === f ? 0 : -1}>
                   {f === "all" ? d.allInvoices : f === "with" ? d.withVat : d.withoutVat}
                 </button>
               ))}
@@ -95,7 +95,7 @@ export function FinancialReportDetailView({ detail, showVat }: { detail: Financi
       >
         <div className="px-5 pb-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {detail.invoiceTotals.map((tot) => (
-            <div key={tot.currency} className="rounded-2xl border border-ink/10 p-3 text-xs space-y-1">
+            <div key={tot.currency} className="rounded-2xl border border-outline-variant p-3 text-xs space-y-1">
               <div className="font-bold text-ink">{tot.currency}</div>
               {showVat && (
                 <div className="flex justify-between text-ink-muted">
@@ -125,7 +125,7 @@ export function FinancialReportDetailView({ detail, showVat }: { detail: Financi
                 <th className={`${th} text-end`}>{d.due}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink/5">
+            <tbody className="divide-y divide-outline-variant">
               {visible.map((inv) => (
                 <tr key={inv.id}>
                   <td className={td}>
@@ -145,7 +145,7 @@ export function FinancialReportDetailView({ detail, showVat }: { detail: Financi
           </table>
         </div>
         {register.length > 25 && (
-          <div className="p-3 text-center border-t border-ink/5">
+          <div className="p-3 text-center border-t border-outline-variant">
             <button type="button" onClick={() => setShowAll(!showAll)} className="text-xs font-semibold text-accent hover:underline">
               {showAll ? d.showLess : formatMessage(d.showAll, { count: String(register.length) })}
             </button>
@@ -184,12 +184,12 @@ export function FinancialReportDetailView({ detail, showVat }: { detail: Financi
                 </div>
               ))}
               {(["deal", "client", "internal"] as const).map((s) => (
-                <div key={s} className="rounded-2xl border border-ink/10 p-3">
+                <div key={s} className="rounded-2xl border border-outline-variant p-3">
                   <dt className="text-ink-muted">{d.recordedAgainst} · {t.expenseMeta.scopes[s]}</dt>
                   <dd className="text-sm font-bold text-ink mt-1">{bhd} {fmt(detail.expensesByScope[s])}</dd>
                 </div>
               ))}
-              <div className="rounded-2xl border border-ink/10 p-3 col-span-2">
+              <div className="rounded-2xl border border-outline-variant p-3 col-span-2">
                 <dt className="text-ink-muted">{d.claims}</dt>
                 <dd className="text-sm text-ink mt-1">
                   {formatMessage(d.claimsPaid, { count: String(detail.claims.paidCount) })}: <strong>{bhd} {fmt(detail.claims.paidAmount)}</strong>
@@ -205,7 +205,7 @@ export function FinancialReportDetailView({ detail, showVat }: { detail: Financi
               <dl className="px-5 pb-5 space-y-2 text-xs">
                 <div className="flex justify-between"><dt className="text-ink-muted">{d.outputVat}</dt><dd className="font-semibold text-ink">{bhd} {fmt(detail.vat.output)}</dd></div>
                 <div className="flex justify-between"><dt className="text-ink-muted">{d.inputRecoverable}</dt><dd className="font-semibold text-ink">− {bhd} {fmt(detail.vat.inputRecoverable)}</dd></div>
-                <div className="flex justify-between border-t border-ink/10 pt-2"><dt className="font-bold text-ink">{d.netVatPayable}</dt><dd className={`font-bold ${detail.vat.netPayable >= 0 ? "text-rose-600" : "text-emerald-600"}`}>{bhd} {fmt(detail.vat.netPayable)}</dd></div>
+                <div className="flex justify-between border-t border-outline-variant pt-2"><dt className="font-bold text-ink">{d.netVatPayable}</dt><dd className={`font-bold ${detail.vat.netPayable >= 0 ? "text-rose-600" : "text-emerald-600"}`}>{bhd} {fmt(detail.vat.netPayable)}</dd></div>
                 <div className="flex justify-between"><dt className="text-ink-muted">{d.inputNonRecoverable}</dt><dd className="text-ink">{bhd} {fmt(detail.vat.inputNonRecoverable)}</dd></div>
               </dl>
             </Section>
@@ -216,7 +216,7 @@ export function FinancialReportDetailView({ detail, showVat }: { detail: Financi
       <div className="grid gap-6 lg:grid-cols-2">
         <Section title={d.topClients} hint={d.netHint}>
           <table className="w-full text-xs">
-            <tbody className="divide-y divide-ink/5">
+            <tbody className="divide-y divide-outline-variant">
               {detail.revenueByClient.map((c, i) => (
                 <tr key={c.clientId}>
                   <td className="p-3 ps-5 text-ink-muted w-8">{i + 1}</td>
@@ -240,7 +240,7 @@ export function FinancialReportDetailView({ detail, showVat }: { detail: Financi
                   <th className={`${th} text-end`}>{d.margin}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink/5">
+              <tbody className="divide-y divide-outline-variant">
                 {detail.dealProfitability.map((deal) => (
                   <tr key={deal.dealId}>
                     <td className={`${td} max-w-[200px] truncate`}><Link href={ROUTES.crm.deal(deal.dealId)} className="text-ink hover:text-accent">{deal.title}</Link></td>

@@ -4,7 +4,7 @@ import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import { toast } from "sonner";
 import { AlarmClock, BellRing, ChevronDown, Filter, Plus, Trash2 } from "lucide-react";
-import { Button, Card } from "@platform/ui";
+import { Select, Button, Card } from "@platform/ui";
 import {
   APPROVAL_CONDITION_FIELDS,
   APPROVER_MODES,
@@ -21,7 +21,7 @@ type Step = ApprovalPolicyView["steps"][number];
 type User = { id: string; fullName: string; role: string };
 
 const fieldClass =
-  "min-w-0 rounded-lg border border-ink/15 bg-white dark:bg-surface px-2.5 py-1.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent/40";
+  "min-w-0 rounded-lg border border-outline-variant bg-surface-raised dark:bg-surface px-2.5 py-1.5 text-xs text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent/40";
 const numberClass = `${fieldClass} w-24`;
 
 const toNumber = (value: string) => (value.trim() === "" ? null : Number(value));
@@ -54,13 +54,13 @@ function StepEditor({
   const escalating = step.escalateAfterHours != null;
 
   return (
-    <li className="relative rounded-xl border border-ink/10 bg-slate-50/70 dark:bg-white/[0.03] p-3 sm:p-4 space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-primary px-2 text-[11px] font-bold text-white">
+    <li className="relative rounded-xl border border-outline-variant bg-surface-raised/70 dark:bg-white/[0.03] p-3 sm:p-4 space-y-3">
+      <div className="flex flex-wrap items-center gap-2" data-page-toolbar>
+        <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-primary px-2 text-[11px] font-bold text-primary-foreground">
           {index + 1}
         </span>
-        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{p.approverLabel}</span>
-        <select
+        <span className="text-xs font-semibold text-ink-muted dark:text-ink">{p.approverLabel}</span>
+        <Select
           aria-label={p.steps}
           className={fieldClass}
           value={step.approverMode}
@@ -69,21 +69,21 @@ function StepEditor({
           {APPROVER_MODES.map((mode) => (
             <option key={mode} value={mode}>{p.modes[mode]}</option>
           ))}
-        </select>
+        </Select>
         {step.approverMode === "role" && (
-          <select aria-label={p.chooseRole} className={fieldClass} value={step.roleKey ?? ""} onChange={(e) => onChange({ roleKey: e.target.value })}>
+          <Select aria-label={p.chooseRole} className={fieldClass} value={step.roleKey ?? ""} onChange={(e) => onChange({ roleKey: e.target.value })}>
             <option value="" disabled>{p.chooseRole}</option>
             {ALL_ROLES.map((role) => <option key={role} value={role}>{roleLabel(role)}</option>)}
-          </select>
+          </Select>
         )}
         {step.approverMode === "user" && (
-          <select aria-label={p.chooseUser} className={fieldClass} value={step.userId ?? ""} onChange={(e) => onChange({ userId: e.target.value })}>
+          <Select aria-label={p.chooseUser} className={fieldClass} value={step.userId ?? ""} onChange={(e) => onChange({ userId: e.target.value })}>
             <option value="" disabled>{p.chooseUser}</option>
             {users.map((user) => <option key={user.id} value={user.id}>{user.fullName}</option>)}
-          </select>
+          </Select>
         )}
         {step.approverMode === "permission" && (
-          <select aria-label={p.choosePermission} className={`${fieldClass} max-w-full`} value={step.permission ?? ""} onChange={(e) => onChange({ permission: e.target.value })}>
+          <Select aria-label={p.choosePermission} className={`${fieldClass} max-w-full`} value={step.permission ?? ""} onChange={(e) => onChange({ permission: e.target.value })}>
             <option value="" disabled>{p.choosePermission}</option>
             {PERMISSION_GROUPS.flatMap((group) => group.resources).flatMap((resource) =>
               ALL_ACTIONS.filter((action) => action === "approve" || action === "issue_send").map((action) => (
@@ -92,7 +92,7 @@ function StepEditor({
                 </option>
               )),
             )}
-          </select>
+          </Select>
         )}
         <Button type="button" variant="ghost" size="sm" aria-label={p.removeStep} className="ms-auto" onClick={onRemove}>
           <Trash2 className="w-3.5 h-3.5" />
@@ -101,12 +101,12 @@ function StepEditor({
 
       {conditionFields.length > 0 && (
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
-          <span className="inline-flex items-center gap-1 font-medium text-slate-600 dark:text-slate-300">
+          <span className="inline-flex items-center gap-1 font-medium text-ink-muted dark:text-ink">
             <Filter className="w-3.5 h-3.5" />
             {p.conditions}
           </span>
           {conditionFields.map((field: ApprovalConditionField) => (
-            <label key={field} className="inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
+            <label key={field} className="inline-flex items-center gap-1.5 text-ink-muted dark:text-ink">
               {p[field]}
               <input
                 type="number"
@@ -120,12 +120,12 @@ function StepEditor({
               />
             </label>
           ))}
-          <span className="basis-full text-[11px] text-slate-500">{p.conditionsHint}</span>
+          <span className="basis-full text-[11px] text-ink-muted">{p.conditionsHint}</span>
         </div>
       )}
 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
-        <label className="inline-flex items-center gap-1.5 font-medium text-slate-600 dark:text-slate-300">
+        <label className="inline-flex items-center gap-1.5 font-medium text-ink-muted dark:text-ink">
           <input
             type="checkbox"
             className="accent-accent"
@@ -143,7 +143,7 @@ function StepEditor({
         </label>
         {escalating && (
           <>
-            <label className="inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
+            <label className="inline-flex items-center gap-1.5 text-ink-muted dark:text-ink">
               {p.escalateAfter}
               <input
                 type="number"
@@ -154,7 +154,7 @@ function StepEditor({
                 onChange={(e) => onChange({ escalateAfterHours: toNumber(e.target.value) })}
               />
             </label>
-            <select
+            <Select
               aria-label={p.escalateTo}
               className={fieldClass}
               value={step.escalateMode ?? "role"}
@@ -162,17 +162,17 @@ function StepEditor({
             >
               <option value="role">{p.escalateModes.role}</option>
               <option value="user">{p.escalateModes.user}</option>
-            </select>
+            </Select>
             {step.escalateMode === "user" ? (
-              <select aria-label={p.chooseUser} className={fieldClass} value={step.escalateUserId ?? ""} onChange={(e) => onChange({ escalateUserId: e.target.value })}>
+              <Select aria-label={p.chooseUser} className={fieldClass} value={step.escalateUserId ?? ""} onChange={(e) => onChange({ escalateUserId: e.target.value })}>
                 <option value="" disabled>{p.chooseUser}</option>
                 {users.map((user) => <option key={user.id} value={user.id}>{user.fullName}</option>)}
-              </select>
+              </Select>
             ) : (
-              <select aria-label={p.chooseRole} className={fieldClass} value={step.escalateRoleKey ?? ""} onChange={(e) => onChange({ escalateRoleKey: e.target.value })}>
+              <Select aria-label={p.chooseRole} className={fieldClass} value={step.escalateRoleKey ?? ""} onChange={(e) => onChange({ escalateRoleKey: e.target.value })}>
                 <option value="" disabled>{p.chooseRole}</option>
                 {ALL_ROLES.map((role) => <option key={role} value={role}>{roleLabel(role)}</option>)}
-              </select>
+              </Select>
             )}
           </>
         )}
@@ -236,13 +236,13 @@ function PolicyCard({ policy, users }: { policy: ApprovalPolicyView; users: User
           aria-controls={panelId}
           onClick={() => setOpen((v) => !v)}
         >
-          <ChevronDown className={`w-4 h-4 shrink-0 text-slate-500 transition-transform ${open ? "rotate-180" : ""}`} />
+          <ChevronDown className={`w-4 h-4 shrink-0 text-ink-muted transition-transform ${open ? "rotate-180" : ""}`} />
           <span className="min-w-0">
-            <span className="block text-sm font-semibold text-slate-900 dark:text-white">{t.approvals.types[draft.targetType]}</span>
-            <span className="block truncate text-xs text-slate-500">{summary}</span>
+            <span className="block text-sm font-semibold text-ink dark:text-ink">{t.approvals.types[draft.targetType]}</span>
+            <span className="block truncate text-xs text-ink-muted">{summary}</span>
           </span>
         </button>
-        <label className="inline-flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-slate-200">
+        <label className="inline-flex items-center gap-2 text-xs font-medium text-ink dark:text-ink">
           <input
             type="checkbox"
             role="switch"
@@ -255,7 +255,7 @@ function PolicyCard({ policy, users }: { policy: ApprovalPolicyView; users: User
       </div>
 
       {open && (
-        <div id={panelId} className="space-y-4 border-t border-ink/10 p-4 sm:p-5">
+        <div id={panelId} className="space-y-4 border-t border-outline-variant p-4 sm:p-5">
           {draft.enabled ? (
             <>
               <ol className="space-y-2.5">
@@ -288,12 +288,12 @@ function PolicyCard({ policy, users }: { policy: ApprovalPolicyView; users: User
                 </Button>
               )}
               {APPROVAL_CONDITION_FIELDS[draft.targetType].length > 0 && (
-                <p className="text-[11px] text-slate-500">{p.thresholdNote}</p>
+                <p className="text-[11px] text-ink-muted">{p.thresholdNote}</p>
               )}
 
               <div className="grid gap-4 sm:grid-cols-2 text-xs">
                 <div className="space-y-3">
-                  <label className="flex items-center gap-2 text-slate-700 dark:text-slate-200">
+                  <label className="flex items-center gap-2 text-ink dark:text-ink">
                     <input
                       type="checkbox"
                       className="accent-accent"
@@ -303,7 +303,7 @@ function PolicyCard({ policy, users }: { policy: ApprovalPolicyView; users: User
                     {p.allowSelf}
                   </label>
                   <label className="block space-y-1">
-                    <span className="inline-flex items-center gap-1.5 text-slate-700 dark:text-slate-200">
+                    <span className="inline-flex items-center gap-1.5 text-ink dark:text-ink">
                       <BellRing className="w-3.5 h-3.5" />
                       {p.reminder}
                     </span>
@@ -316,18 +316,18 @@ function PolicyCard({ policy, users }: { policy: ApprovalPolicyView; users: User
                       value={draft.reminderAfterHours ?? ""}
                       onChange={(e) => setDraft({ ...draft, reminderAfterHours: toNumber(e.target.value) })}
                     />
-                    <span className="block text-[11px] text-slate-500">{p.reminderHint}</span>
+                    <span className="block text-[11px] text-ink-muted">{p.reminderHint}</span>
                   </label>
                 </div>
                 <fieldset>
-                  <legend className="mb-1.5 text-slate-700 dark:text-slate-200">{p.autoApproveRoles}</legend>
+                  <legend className="mb-1.5 text-ink dark:text-ink">{p.autoApproveRoles}</legend>
                   <div className="flex flex-wrap gap-1.5">
                     {ALL_ROLES.map((role) => {
                       const on = draft.autoApproveRoles.includes(role);
                       return (
                         <label
                           key={role}
-                          className={`cursor-pointer rounded-full border px-2.5 py-1 transition-colors focus-within:ring-2 focus-within:ring-accent/40 ${on ? "border-accent bg-accent/10 text-slate-900 dark:text-white" : "border-ink/15 text-slate-600 dark:text-slate-300"
+                          className={`cursor-pointer rounded-full border px-2.5 py-1 transition-colors focus-within:ring-2 focus-within:ring-accent/40 ${on ? "border-accent bg-accent/10 text-ink dark:text-ink" : "border-outline-variant text-ink-muted dark:text-ink"
                             }`}
                         >
                           <input
@@ -350,14 +350,14 @@ function PolicyCard({ policy, users }: { policy: ApprovalPolicyView; users: User
               </div>
             </>
           ) : (
-            <p className="text-xs text-slate-500">{p.enabledHint}</p>
+            <p className="text-xs text-ink-muted">{p.enabledHint}</p>
           )}
         </div>
       )}
 
       {(open || dirty) && (
-        <div className="flex justify-end border-t border-ink/10 px-4 py-3 sm:px-5">
-          <Button type="button" size="sm" disabled={!dirty || saving} onClick={save} className="bg-primary text-white">
+        <div className="flex justify-end border-t border-outline-variant px-4 py-3 sm:px-5">
+          <Button type="button" size="sm" disabled={!dirty || saving} onClick={save} className="bg-primary text-primary-foreground">
             {p.save}
           </Button>
         </div>
@@ -372,10 +372,10 @@ export function ApprovalPoliciesView({ policies, users }: { policies: ApprovalPo
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-16">
       <SettingsNavTabs />
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{p.title}</h1>
-        <p className="text-sm text-slate-500 mt-1">{p.subtitle}</p>
-        <p className="text-xs text-slate-500 mt-2">{p.fallbackNote}</p>
+      <header data-page-header>
+        <h1 className="text-2xl font-bold tracking-tight text-ink dark:text-ink">{p.title}</h1>
+        <p className="text-sm text-ink-muted mt-1">{p.subtitle}</p>
+        <p className="text-xs text-ink-muted mt-2">{p.fallbackNote}</p>
       </header>
       <div className="space-y-3">
         {policies.map((policy) => (

@@ -45,7 +45,7 @@ export function FinancialAnalyticsView({ finance, insight, categoryTotals, categ
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
-      <div>
+      <div data-page-header>
         <h1 className="text-2xl sm:text-3xl font-bold text-ink font-display">{copy.title}</h1>
         <p className="text-sm text-ink-muted mt-1">{copy.subtitle}</p>
       </div>
@@ -65,7 +65,7 @@ export function FinancialAnalyticsView({ finance, insight, categoryTotals, categ
         ))}
       </div>
 
-      <Card className="p-6 sm:p-8 rounded-3xl space-y-4">
+      <Card className="p-6 sm:p-8 rounded-3xl space-y-4" data-page-section>
         <h2 className="text-sm font-bold text-ink uppercase tracking-wider">{copy.cashTrend}</h2>
         <div className="h-72 w-full">
           <DeferredCashflowChart kind="finance" data={chartData} />
@@ -73,7 +73,7 @@ export function FinancialAnalyticsView({ finance, insight, categoryTotals, categ
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="p-6 rounded-3xl space-y-4">
+        <Card className="p-6 rounded-3xl space-y-4" data-page-section>
           <h2 className="text-sm font-bold text-ink uppercase tracking-wider">{copy.aging}</h2>
           {agingTotal === 0 ? (
             <p className="text-sm text-ink-muted">{copy.noData}</p>
@@ -84,7 +84,7 @@ export function FinancialAnalyticsView({ finance, insight, categoryTotals, categ
                   <div key={bucket.bucket} className={AGING_COLORS[i]} style={{ width: `${(bucket.amount / agingTotal) * 100}%` }} />
                 ))}
               </div>
-              <ul className="divide-y divide-ink/5 text-sm">
+              <ul className="divide-y divide-outline-variant text-sm">
                 {insight.aging.map((bucket, i) => (
                   <li key={bucket.bucket} className="flex items-center justify-between py-2.5">
                     <span className="flex items-center gap-2 text-ink">
@@ -100,17 +100,17 @@ export function FinancialAnalyticsView({ finance, insight, categoryTotals, categ
           )}
         </Card>
 
-        <Card className="p-6 rounded-3xl space-y-4">
+        <Card className="p-6 rounded-3xl space-y-4" data-page-section>
           <h2 className="text-sm font-bold text-ink uppercase tracking-wider">{copy.topClients}</h2>
           {insight.topClients.length === 0 ? (
             <p className="text-sm text-ink-muted">{copy.noData}</p>
           ) : (
-            <ol className="divide-y divide-ink/5 text-sm">
+            <ol className="divide-y divide-outline-variant text-sm">
               {insight.topClients.map((client, i) => (
                 <li key={client.clientId} className="flex items-center justify-between py-2.5">
                   <Link href={ROUTES.crm.customer(client.clientId)} className="flex items-center gap-3 text-ink hover:text-accent">
                     <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 text-xs font-bold text-accent">{i + 1}</span>
-                    <span className="font-medium">{client.name}</span>
+                    <span className="font-medium"><bdi dir="auto">{client.name}</bdi></span>
                     <span className="text-xs text-ink-muted">· {formatMessage(copy.invoicesCount, { count: String(client.invoices) })}</span>
                   </Link>
                   <span className="font-semibold text-ink"><CurrencyDisplay amount={client.collected} currency="BHD" /></span>
@@ -121,14 +121,14 @@ export function FinancialAnalyticsView({ finance, insight, categoryTotals, categ
         </Card>
       </div>
 
-      <Card className="p-6 sm:p-8 rounded-3xl space-y-4">
+      <Card className="p-6 sm:p-8 rounded-3xl space-y-4" data-page-section>
         <h2 className="text-sm font-bold text-ink uppercase tracking-wider">{copy.spending}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {categories.map((category) => {
             const amount = categoryTotals[category.slug] || 0;
             const share = spendTotal > 0 ? (amount / spendTotal) * 100 : 0;
             return (
-              <div key={category.id} className="p-4 rounded-2xl bg-surface-sunken border border-ink/5 space-y-2">
+              <div key={category.id} className="p-4 rounded-2xl bg-surface-sunken border border-outline-variant space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-ink">{locale === "ar" ? category.name_ar : category.name_en}</span>
                   <span className="text-[11px] text-ink-muted">{share.toFixed(0)}%</span>

@@ -21,7 +21,7 @@ import {
   HelpCircle,
   Sparkles,
 } from "lucide-react";
-import { Button } from "@platform/ui";
+import { Select, Button } from "@platform/ui";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { createConsolidatedRequestAction } from "../../app/actions/requests";
 import type { CRMContact, ServiceItem } from "@platform/database";
@@ -161,34 +161,34 @@ export function NewRequestFormView({
       <div className="flex items-center justify-between">
         <Link
           href={ROUTES.requests.list}
-          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-ink-muted hover:text-ink dark:hover:text-white transition-colors"
         >
           <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
           <span>
             {t.newRequestForm.backToRequestsInbox}
           </span>
         </Link>
-        <span className="text-xs font-mono text-slate-400">
+        <span className="text-xs font-mono text-ink-muted">
           {t.newRequestForm.srCrSequentialIntake}
         </span>
       </div>
 
       {/* Header */}
-      <div className="border-b border-slate-200/80 dark:border-white/10 pb-5">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white font-display">
+      <div className="border-b border-outline-variant/80 dark:border-white/10 pb-5" data-page-header>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink dark:text-ink font-display">
           {t.newRequestForm.createServiceRequestOrComplaint}
         </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        <p className="text-sm text-ink-muted dark:text-ink-muted mt-1">
           {t.newRequestForm.registerAnOfficialTrackedRequest}
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Section 1: Ticket Classification */}
-        <div className="p-6 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 space-y-6 shadow-sm">
-          <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-white/5">
+        <div className="p-6 rounded-2xl bg-surface-raised dark:bg-surface-raised border border-outline-variant/80 dark:border-white/10 space-y-6 shadow-sm">
+          <div className="flex items-center gap-2 pb-2 border-b border-outline-variant dark:border-white/5">
             <Sparkles className="w-4 h-4 text-accent" />
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+            <h2 className="text-sm font-bold text-ink dark:text-ink uppercase tracking-wider">
               {t.newRequestForm.n1RequestClassificationAndSla}
             </h2>
           </div>
@@ -226,7 +226,7 @@ export function NewRequestFormView({
                   onClick={() => setRequestType(tab.id as any)}
                   className={`p-4 rounded-xl text-start border transition-all ${isSelected
                     ? "border-accent bg-accent/5 ring-2 ring-accent/20"
-                    : "border-slate-200/80 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 bg-slate-50/50 dark:bg-white/[0.01]"
+                    : "border-outline-variant/80 dark:border-white/10 hover:border-outline-variant dark:hover:border-white/20 bg-surface-raised/50 dark:bg-white/[0.01]"
                     }`}
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -239,10 +239,10 @@ export function NewRequestFormView({
                       <CheckCircle2 className="w-4 h-4 text-accent" />
                     )}
                   </div>
-                  <div className="font-semibold text-xs text-slate-900 dark:text-white">
+                  <div className="font-semibold text-xs text-ink dark:text-ink">
                     {tab.label}
                   </div>
-                  <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                  <div className="text-[11px] text-ink-muted dark:text-ink-muted mt-1">
                     {tab.desc}
                   </div>
                 </button>
@@ -251,14 +251,14 @@ export function NewRequestFormView({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+            <label>
+              <span className="block text-xs font-semibold text-ink dark:text-ink mb-1.5">
                 {t.newRequestForm.priorityLevel}
-              </label>
-              <select
+              </span>
+              <Select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-outline-variant dark:border-white/10 bg-surface-raised dark:bg-black/30 text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent"
               >
                 <option value="normal">
                   {t.newRequestForm.normalPriority}
@@ -269,11 +269,11 @@ export function NewRequestFormView({
                 <option value="urgent">
                   {t.newRequestForm.urgentSla}
                 </option>
-              </select>
-            </div>
+              </Select>
+            </label>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-ink dark:text-ink mb-1.5">
                 {t.newRequestForm.targetSlaDueDate}
               </label>
               <div className="relative">
@@ -281,7 +281,7 @@ export function NewRequestFormView({
                   type="date"
                   value={slaDueDate}
                   onChange={(e) => setSlaDueDate(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-outline-variant dark:border-white/10 bg-surface-raised dark:bg-black/30 text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
             </div>
@@ -289,16 +289,16 @@ export function NewRequestFormView({
         </div>
 
         {/* Section 2: Requester / CRM Contact */}
-        <div className="p-6 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 space-y-6 shadow-sm">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/5">
+        <div className="p-6 rounded-2xl bg-surface-raised dark:bg-surface-raised border border-outline-variant/80 dark:border-white/10 space-y-6 shadow-sm">
+          <div className="flex items-center justify-between pb-2 border-b border-outline-variant dark:border-white/5">
             <div className="flex items-center gap-2">
               <User className="w-4 h-4 text-accent" />
-              <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+              <h2 className="text-sm font-bold text-ink dark:text-ink uppercase tracking-wider">
                 {t.newRequestForm.n2ClientAndRequesterDetails}
               </h2>
             </div>
             {canPickContact && (
-              <span className="text-[11px] text-slate-400">
+              <span className="text-[11px] text-ink-muted">
                 {t.newRequestForm.linkCrmContactOrEnter}
               </span>
             )}
@@ -318,11 +318,11 @@ export function NewRequestFormView({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-ink dark:text-ink mb-1.5">
                 {t.newRequestForm.clientFullName}
               </label>
               <div className="relative">
-                <User className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 rtl:right-3 rtl:left-auto" />
+                <User className="w-4 h-4 text-ink-muted absolute left-3 top-2.5 rtl:right-3 rtl:left-auto" />
                 <input
                   type="text"
                   required
@@ -331,17 +331,17 @@ export function NewRequestFormView({
                   placeholder={
                     t.newRequestForm.eGAliMohammed
                   }
-                  className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
+                  className="w-full ps-9 pe-3 rtl:pe-9 rtl:ps-3 py-2 text-xs rounded-xl border border-outline-variant dark:border-white/10 bg-surface-raised dark:bg-black/30 text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-ink dark:text-ink mb-1.5">
                 {t.newRequestForm.companyOrganization}
               </label>
               <div className="relative">
-                <Building className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 rtl:right-3 rtl:left-auto" />
+                <Building className="w-4 h-4 text-ink-muted absolute left-3 top-2.5 rtl:right-3 rtl:left-auto" />
                 <input
                   type="text"
                   value={company}
@@ -349,41 +349,41 @@ export function NewRequestFormView({
                   placeholder={
                     t.newRequestForm.eGGulfMediaW
                   }
-                  className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
+                  className="w-full ps-9 pe-3 rtl:pe-9 rtl:ps-3 py-2 text-xs rounded-xl border border-outline-variant dark:border-white/10 bg-surface-raised dark:bg-black/30 text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-ink dark:text-ink mb-1.5">
                 {t.newRequestForm.emailAddress}
               </label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 rtl:right-3 rtl:left-auto" />
+              <div className="relative" dir="ltr">
+                <Mail className="w-4 h-4 text-ink-muted absolute left-3 top-2.5 rtl:right-3 rtl:left-auto" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={t.copy.clientEmailExample}
-                  className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent font-mono"
+                  className="w-full ps-9 pe-3 rtl:pe-9 rtl:ps-3 py-2 text-xs rounded-xl border border-outline-variant dark:border-white/10 bg-surface-raised dark:bg-black/30 text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent font-mono"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-ink dark:text-ink mb-1.5">
                 {t.newRequestForm.phoneWhatsapp}
               </label>
-              <div className="relative">
-                <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 rtl:right-3 rtl:left-auto" />
+              <div className="relative" dir="ltr">
+                <Phone className="w-4 h-4 text-ink-muted absolute left-3 top-2.5 rtl:right-3 rtl:left-auto" />
                 <input
                   type="tel"
                   dir="ltr"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+973 39000000"
-                  className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent font-mono text-start"
+                  className="w-full ps-9 pe-3 rtl:pe-9 rtl:ps-3 py-2 text-xs rounded-xl border border-outline-variant dark:border-white/10 bg-surface-raised dark:bg-black/30 text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent font-mono text-start"
                 />
               </div>
             </div>
@@ -391,10 +391,10 @@ export function NewRequestFormView({
         </div>
 
         {/* Section 3: Scope, Services & Details */}
-        <div className="p-6 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 space-y-6 shadow-sm">
-          <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-white/5">
+        <div className="p-6 rounded-2xl bg-surface-raised dark:bg-surface-raised border border-outline-variant/80 dark:border-white/10 space-y-6 shadow-sm">
+          <div className="flex items-center gap-2 pb-2 border-b border-outline-variant dark:border-white/5">
             <Layers className="w-4 h-4 text-accent" />
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+            <h2 className="text-sm font-bold text-ink dark:text-ink uppercase tracking-wider">
               {t.newRequestForm.n3ScopeOfServicesAnd}
             </h2>
           </div>
@@ -402,7 +402,7 @@ export function NewRequestFormView({
           {/* Service items picker */}
           {services.length > 0 && (
             <div className="space-y-2">
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <label className="block text-xs font-semibold text-ink dark:text-ink">
                 {t.newRequestForm.requestedServicesFromCatalog}
               </label>
               <div className="flex flex-wrap gap-2">
@@ -414,8 +414,8 @@ export function NewRequestFormView({
                       type="button"
                       onClick={() => handleToggleService(svc.name_en)}
                       className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${isChecked
-                        ? "bg-accent text-white border-accent shadow-sm shadow-accent/20"
-                        : "border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] text-slate-700 dark:text-slate-300 hover:border-slate-300"
+                        ? "bg-accent text-accent-foreground border-accent shadow-sm shadow-accent/20"
+                        : "border-outline-variant dark:border-white/10 bg-surface-raised dark:bg-white/[0.02] text-ink dark:text-ink hover:border-outline-variant"
                         }`}
                     >
                       {isRTL ? svc.name_ar : svc.name_en}
@@ -427,23 +427,23 @@ export function NewRequestFormView({
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+            <label>
+              <span className="block text-xs font-semibold text-ink dark:text-ink mb-1.5">
                 {t.newRequestForm.estimatedBudget}
-              </label>
+              </span>
               <input
                 type="text"
                 value={budgetRange}
                 onChange={(e) => setBudgetRange(e.target.value)}
                 placeholder={t.newRequestForm.eG5001500Bhd}
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-outline-variant dark:border-white/10 bg-surface-raised dark:bg-black/30 text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent"
               />
-            </div>
+            </label>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+            <label>
+              <span className="block text-xs font-semibold text-ink dark:text-ink mb-1.5">
                 {t.newRequestForm.targetTimeline}
-              </label>
+              </span>
               <input
                 type="text"
                 value={targetTimeline}
@@ -451,15 +451,15 @@ export function NewRequestFormView({
                 placeholder={
                   t.newRequestForm.eGWithin2Weeks
                 }
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-outline-variant dark:border-white/10 bg-surface-raised dark:bg-black/30 text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent"
               />
-            </div>
+            </label>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+          <label>
+            <span className="block text-xs font-semibold text-ink dark:text-ink mb-1.5">
               {t.newRequestForm.fullDescriptionAndSpecifications}
-            </label>
+            </span>
             <textarea
               required
               rows={4}
@@ -468,29 +468,29 @@ export function NewRequestFormView({
               placeholder={
                 t.newRequestForm.provideCompleteTechnicalSpecificationsShoot
               }
-              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
+              className="w-full px-3 py-2 text-xs rounded-xl border border-outline-variant dark:border-white/10 bg-surface-raised dark:bg-black/30 text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent"
             />
-          </div>
+          </label>
         </div>
 
         {/* Section 4: Operational Assignment & Routing */}
-        <div className="p-6 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 space-y-6 shadow-sm">
-          <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-white/5">
+        <div className="p-6 rounded-2xl bg-surface-raised dark:bg-surface-raised border border-outline-variant/80 dark:border-white/10 space-y-6 shadow-sm">
+          <div className="flex items-center gap-2 pb-2 border-b border-outline-variant dark:border-white/5">
             <Clock className="w-4 h-4 text-accent" />
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+            <h2 className="text-sm font-bold text-ink dark:text-ink uppercase tracking-wider">
               {t.newRequestForm.n4DepartmentRoutingAndAssignee}
             </h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+            <label>
+              <span className="block text-xs font-semibold text-ink dark:text-ink mb-1.5">
                 {t.newRequestForm.assignedTeam}
-              </label>
-              <select
+              </span>
+              <Select
                 value={team}
                 onChange={(e) => setTeam(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-outline-variant dark:border-white/10 bg-surface-raised dark:bg-black/30 text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent"
               >
                 <option value="production">
                   {t.newRequestForm.productionTeam}
@@ -507,17 +507,17 @@ export function NewRequestFormView({
                 <option value="support">
                   {t.newRequestForm.customerSupport}
                 </option>
-              </select>
-            </div>
+              </Select>
+            </label>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-ink dark:text-ink mb-1.5">
                 {t.newRequestForm.assigneePersonCheckedAgainstLeave}
               </label>
-              <select
+              <Select
                 value={assignedToId}
                 onChange={(e) => setAssignedToId(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-outline-variant dark:border-white/10 bg-surface-raised dark:bg-black/30 text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent"
               >
                 <option value="">
                   {t.newRequestForm.keepUnassigned}
@@ -527,8 +527,8 @@ export function NewRequestFormView({
                     {u.name} ({u.role.replace("_", " ")})
                   </option>
                 ))}
-              </select>
-              <span className="text-[11px] text-slate-400 mt-1 block">
+              </Select>
+              <span className="text-[11px] text-ink-muted mt-1 block">
                 {t.newRequestForm.availabilityPolicyStrictlyVerifiesNo}
               </span>
             </div>
@@ -536,7 +536,7 @@ export function NewRequestFormView({
         </div>
 
         {/* Submit Actions */}
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200/80 dark:border-white/10">
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant/80 dark:border-white/10">
           <Link href={ROUTES.requests.list}>
             <Button variant="outline" type="button" disabled={isSubmitting}>
               {t.newRequestForm.cancel}
@@ -546,7 +546,7 @@ export function NewRequestFormView({
             type="submit"
             variant="primary"
             disabled={isSubmitting}
-            className="bg-accent hover:bg-accent-pressed text-white px-6 font-semibold shadow-sm"
+            className="bg-accent hover:bg-accent-pressed text-accent-foreground px-6 font-semibold shadow-sm"
           >
             {isSubmitting
               ? t.newRequestForm.creating

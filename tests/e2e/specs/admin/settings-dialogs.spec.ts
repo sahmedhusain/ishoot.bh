@@ -1,3 +1,4 @@
+import { selectOption } from "../../select-option";
 import { expect, test } from "@playwright/test";
 import en from "../../../../packages/locales/src/admin/en.json";
 import ar from "../../../../packages/locales/src/admin/ar.json";
@@ -88,9 +89,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(dialog).toHaveAccessibleName(
       t.payrollManagement.generateMonthlyPayrollCycle,
     );
-    await dialog
-      .getByLabel(t.payrollManagement.month, { exact: true })
-      .selectOption("3");
+    await selectOption(dialog
+      .getByLabel(t.payrollManagement.month, { exact: true }), "3");
     const year = dialog.getByLabel(t.payrollManagement.year, { exact: true });
     await year.fill("2019");
     await dialog
@@ -121,7 +121,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(dialog.getByRole("alert")).toBeVisible();
     await expect(year).toHaveValue("2026");
     await expect(
-      dialog.getByLabel(t.payrollManagement.month, { exact: true }),
+      dialog.getByLabel(t.payrollManagement.month, { exact: true }).locator("..").locator("select"),
     ).toHaveValue("3");
     await dialog
       .getByRole("button", { name: t.shared.cancel, exact: true })
@@ -177,7 +177,7 @@ for (const locale of ["en", "ar"] as const) {
       .click();
     await expect(name).toHaveValue(changedName);
     await main
-      .getByRole("button", { name: t.companySettingsTabs.taxVat, exact: true })
+      .getByRole("tab", { name: t.companySettingsTabs.taxVat, exact: true })
       .click();
     const vat = main.getByRole("switch", {
       name: t.companySettingsTabs.vatStateLabel,

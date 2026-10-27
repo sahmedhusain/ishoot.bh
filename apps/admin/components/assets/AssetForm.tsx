@@ -109,7 +109,7 @@ export function AssetForm({ categories, asset, employees = [], onDone }: { categ
       </div>
 
       {category && category.spec_fields.length ? (
-        <div className="rounded-2xl border border-ink/10 p-4 space-y-3">
+        <div className="rounded-2xl border border-outline-variant p-4 space-y-3">
           <h3 className="text-sm font-bold text-ink">{formatMessage(a.specsTitle, { category: isAr ? category.name_ar : category.name_en })}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {category.spec_fields.map((f) => (
@@ -135,7 +135,7 @@ export function AssetForm({ categories, asset, employees = [], onDone }: { categ
       ) : null}
 
       <Field label={a.fields.notes}>
-        <textarea rows={3} value={value.notes ?? ""} onChange={(e) => set("notes", e.target.value)} className="w-full rounded-xl border border-ink/25 bg-white dark:bg-surface p-3 text-sm text-ink focus:outline-none focus:border-accent" />
+        <textarea rows={3} value={value.notes ?? ""} onChange={(e) => set("notes", e.target.value)} className="w-full rounded-xl border border-ink/25 bg-surface-raised dark:bg-surface p-3 text-sm text-ink focus:outline-none focus:border-accent" />
       </Field>
 
       <div className="flex justify-end gap-2">

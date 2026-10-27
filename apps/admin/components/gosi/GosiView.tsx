@@ -56,7 +56,7 @@ const firstOfNextMonth = () => {
     .slice(0, 10);
 };
 const card =
-  "rounded-3xl border border-ink/10 bg-white p-5 dark:bg-surface-raised";
+  "rounded-3xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised";
 const label = "mb-1 block text-xs font-semibold text-ink";
 
 interface ComponentForm {
@@ -211,18 +211,18 @@ export function GosiView({
           {actionError && <p id={`${endFormId}-error`} role="alert" className="text-sm text-rose-700 dark:text-rose-300">{actionError}</p>}
         </form>
       </Modal>
-      <header>
+      <header data-page-header>
         <h1 className="flex items-center gap-2 text-xl font-bold text-ink sm:text-2xl">
           <ShieldCheck className="h-5 w-5 text-accent" aria-hidden />
-          {g.title}
+          <bdi dir="auto">{g.title}</bdi>
         </h1>
         <p className="mt-1 text-xs text-ink-muted">{g.subtitle}</p>
       </header>
 
-      <section className={card}>
+      <section className={card} data-page-section>
         <h2 className="mb-3 text-sm font-bold text-ink">{g.rulesTitle}</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <label className="flex items-start gap-3 rounded-2xl border border-ink/10 p-3 text-sm text-ink">
+          <label className="flex items-start gap-3 rounded-2xl border border-outline-variant p-3 text-sm text-ink">
             <input
               type="checkbox"
               className="mt-1"
@@ -246,7 +246,7 @@ export function GosiView({
               </span>
             </span>
           </label>
-          <div className="rounded-2xl border border-ink/10 p-3">
+          <div className="rounded-2xl border border-outline-variant p-3">
             <span className={label}>{g.wageSource}</span>
             <Select
               disabled={!canEdit || busy}
@@ -286,11 +286,11 @@ export function GosiView({
             </Button>
           )}
         </div>
-        <div className="overflow-x-auto rounded-2xl border border-ink/10">
+        <div className="overflow-x-auto rounded-2xl border border-outline-variant">
           <table className="w-full text-xs">
             <thead className="bg-ink/[0.03] text-[11px] text-ink-muted">
               <tr>
-                <th className="px-3 py-2 text-start">{g.fields.name}</th>
+                <th className="px-3 py-2 text-start"><bdi dir="auto">{g.fields.name}</bdi></th>
                 <th className="px-3 py-2 text-start">{g.fields.appliesTo}</th>
                 <th className="px-3 py-2 text-end">{g.fields.employee}</th>
                 <th className="px-3 py-2 text-end">{g.fields.employer}</th>
@@ -301,7 +301,7 @@ export function GosiView({
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink/5">
+            <tbody className="divide-y divide-outline-variant">
               {codes.map((code) => {
                 const c = current(code);
                 const next = upcoming(code);
@@ -475,7 +475,7 @@ export function GosiView({
             </p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <label>
-                <span className={label}>{g.fields.code}</span>
+                <span className={label}><bdi dir="ltr">{g.fields.code}</bdi></span>
                 <Input
                   dir="ltr"
                   required
@@ -486,24 +486,24 @@ export function GosiView({
                 />
               </label>
               <label>
-                <span className={label}>{g.fields.nameEn}</span>
+                <span className={label}><bdi dir="auto">{g.fields.nameEn}</bdi></span>
                 <Input
                   required
                   value={form.name_en}
                   onChange={(e) =>
                     setForm({ ...form, name_en: e.target.value })
                   }
-                />
+                 dir="ltr"/>
               </label>
               <label>
-                <span className={label}>{g.fields.nameAr}</span>
+                <span className={label}><bdi dir="auto">{g.fields.nameAr}</bdi></span>
                 <Input
                   required
                   value={form.name_ar}
                   onChange={(e) =>
                     setForm({ ...form, name_ar: e.target.value })
                   }
-                />
+                 dir="rtl"/>
               </label>
               <label>
                 <span className={label}>{g.fields.employee} (%)</span>
@@ -751,7 +751,7 @@ export function GosiView({
             <p className="text-xs text-ink-muted">{g.employeesHint}</p>
           </div>
           {canEdit && registrations.some((r) => !r.current) ? (
-            <div className="flex items-end gap-2">
+            <div className="flex flex-wrap items-end gap-2">
               <label>
                 <span className={label}>{g.fields.effectiveFrom}</span>
                 <Input
@@ -779,12 +779,12 @@ export function GosiView({
             </div>
           ) : null}
         </div>
-        <div className="overflow-x-auto rounded-2xl border border-ink/10">
+        <div className="overflow-x-auto rounded-2xl border border-outline-variant">
           <table className="w-full text-xs">
             <thead className="bg-ink/[0.03] text-[11px] text-ink-muted">
               <tr>
                 <th className="px-3 py-2 text-start">
-                  {g.fields.employeeName}
+                  <bdi dir="auto">{g.fields.employeeName}</bdi>
                 </th>
                 <th className="px-3 py-2 text-start">{g.fields.category}</th>
                 <th className="px-3 py-2 text-start">
@@ -799,7 +799,7 @@ export function GosiView({
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink/5">
+            <tbody className="divide-y divide-outline-variant">
               {registrations.map((r) => (
                 <tr key={r.id} className="align-top">
                   <td className="px-3 py-2.5">
@@ -1023,18 +1023,18 @@ function RegistrationForm({
           <fieldset className="space-y-2">
             <legend className={label}>{g.exceptions}</legend>
             <p className="text-[11px] text-ink-muted">{g.exceptionsHint}</p>
-            <div className="overflow-x-auto rounded-2xl border border-ink/10">
+            <div className="overflow-x-auto rounded-2xl border border-outline-variant">
               <table className="w-full text-xs">
                 <thead className="bg-ink/[0.03] text-[11px] text-ink-muted">
                   <tr>
-                    <th className="px-3 py-2 text-start">{g.fields.name}</th>
+                    <th className="px-3 py-2 text-start"><bdi dir="auto">{g.fields.name}</bdi></th>
                     <th className="px-3 py-2">{g.exempt}</th>
                     <th className="px-3 py-2">{g.fields.employee} (%)</th>
                     <th className="px-3 py-2">{g.fields.employer} (%)</th>
                     <th className="px-3 py-2">{g.fields.componentWage}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-ink/5">
+                <tbody className="divide-y divide-outline-variant">
                   {form.overrides.map((o, i) => {
                     const c = components.find((x) => x.code === o.code)!;
                     const set = (patch: Partial<typeof o>) =>
@@ -1123,7 +1123,7 @@ function RegistrationForm({
                 {employee.history.map((h) => (
                   <li
                     key={h.id}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ink/10 px-3 py-2 text-[11px] text-ink"
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-outline-variant px-3 py-2 text-[11px] text-ink"
                   >
                     <span>
                       {formatDate(h.effectiveFrom, locale)} –{" "}

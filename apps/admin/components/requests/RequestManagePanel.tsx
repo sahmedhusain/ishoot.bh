@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Button } from "@platform/ui";
+import { Select, Button } from "@platform/ui";
 import { REQUEST_PRIORITIES, type RequestKind } from "@platform/database/constants/requests";
 import {
   convertInquiryToClientAction,
@@ -51,20 +51,20 @@ export function RequestManagePanel({
     }
   };
   if (!canManage && !canSell) return null;
-  const field = "w-full rounded-xl border border-ink/15 bg-surface px-3 py-2 text-xs text-ink";
+  const field = "w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-xs text-ink";
   const isLead = kind === "quote" || kind === "inquiry";
   const statuses = kind === "feedback" ? FEEDBACK_STATUSES : LEAD_STATUSES;
 
   return (
-    <div className="p-6 rounded-2xl bg-surface border border-ink/10 shadow-sm space-y-4">
+    <div className="p-6 rounded-2xl bg-surface border border-outline-variant shadow-sm space-y-4">
       <h3 className="text-xs font-bold uppercase tracking-wider text-accent">{copy.title}</h3>
       {canManage && (
         <div className="space-y-3 text-xs">
           <label className="block space-y-1">
             <span className="text-ink-muted">{copy.priority}</span>
-            <select className={field} value={priority} onChange={(e) => setPriority(e.target.value)}>
+            <Select className={field} value={priority} onChange={(e) => setPriority(e.target.value)}>
               {REQUEST_PRIORITIES.map((p) => <option key={p} value={p}>{t.requestLabels.priority[p]}</option>)}
-            </select>
+            </Select>
           </label>
           <label className="block space-y-1">
             <span className="text-ink-muted">{copy.sla}</span>
@@ -78,11 +78,11 @@ export function RequestManagePanel({
       )}
 
       {canSell && (isLead || kind === "feedback") && (
-        <div className="space-y-3 border-t border-ink/10 pt-4 text-xs">
+        <div className="space-y-3 border-t border-outline-variant pt-4 text-xs">
           <h4 className="font-semibold text-ink">{copy.salesTitle}</h4>
           <label className="block space-y-1">
             <span className="text-ink-muted">{copy.leadStatus}</span>
-            <select
+            <Select
               className={field}
               value={request.status}
               disabled={busy}
@@ -91,7 +91,7 @@ export function RequestManagePanel({
               {statuses.map((s) => (
                 <option key={s} value={s}>{kind === "feedback" ? copy.feedbackStatuses[s as keyof typeof copy.feedbackStatuses] : copy.leadStatuses[s as keyof typeof copy.leadStatuses]}</option>
               ))}
-            </select>
+            </Select>
           </label>
           {isLead && !request.convertedDealId && (
             <>

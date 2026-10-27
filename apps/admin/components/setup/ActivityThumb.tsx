@@ -11,7 +11,7 @@ export function ActivityThumb({ activity, locale }: { activity: BusinessActivity
   const sample = ACTIVITY_SAMPLES[activity];
   const title = sample.banner.title[locale === "ar" ? 1 : 0];
   return (
-    <span aria-hidden="true" className="block overflow-hidden rounded-lg border border-ink/10" style={{ background: light ? "#F8FAFC" : `color-mix(in srgb, ${primary} 35%, #05070B)` }}>
+    <span aria-hidden="true" className="block overflow-hidden rounded-lg border border-outline-variant" style={{ background: light ? "#F8FAFC" : `color-mix(in srgb, ${primary} 35%, #05070B)` }}>
       <span className="flex items-center gap-1 px-2 py-1">
         <span className="h-1.5 w-1.5 rounded-full" style={{ background: accent }} />
         <span className="ms-auto flex gap-1">

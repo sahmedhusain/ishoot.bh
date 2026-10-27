@@ -152,13 +152,13 @@ export function ProductEditorView({ product, categories, currency, languages, ca
   const readOnly = !canEdit;
   return (
     <div inert={busy} aria-busy={busy} className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
           <Link href={ROUTES.products.list} className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent">
             <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" />
             {copy.back}
           </Link>
-          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{product ? name(product.name_en, product.name_ar) : copy.titleNew}</h1>
+          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{product ? name(product.name_en, product.name_ar) : copy.titleNew}</h1>
         </div>
         <div className="flex gap-2">
           {product && canDelete && (
@@ -178,7 +178,7 @@ export function ProductEditorView({ product, categories, currency, languages, ca
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
 
       <fieldset disabled={readOnly} className="space-y-6">
-        <Card className="p-5 space-y-5">
+        <Card className="p-5 space-y-5" data-page-section>
           <h2 className="font-bold text-ink">{copy.details}</h2>
           <div className="grid sm:grid-cols-2 gap-4">
             <LanguageFields name="productName" label={copy.name} languages={languages} required maxLength={200} en={form.nameEn} ar={form.nameAr} onChange={({ en, ar }) => setForm((f) => ({ ...f, nameEn: en, nameAr: ar }))} />
@@ -210,7 +210,7 @@ export function ProductEditorView({ product, categories, currency, languages, ca
           </div>
         </Card>
 
-        <Card className="p-5 space-y-4">
+        <Card className="p-5 space-y-4" data-page-section>
           <h2 className="font-bold text-ink">{copy.pricing}</h2>
           <div className="grid sm:grid-cols-3 gap-4 items-start">
             <Field label={formatMessage(copy.price, { currency })}>
@@ -233,7 +233,7 @@ export function ProductEditorView({ product, categories, currency, languages, ca
           </div>
         </Card>
 
-        <Card className="p-5 space-y-4">
+        <Card className="p-5 space-y-4" data-page-section>
           <div>
             <h2 className="font-bold text-ink">{copy.images}</h2>
             <p className="text-xs text-ink-muted mt-0.5">{copy.imagesHint}</p>
@@ -241,7 +241,7 @@ export function ProductEditorView({ product, categories, currency, languages, ca
           {images.length > 0 && (
             <ul className="flex flex-wrap gap-3">
               {images.map((url, index) => (
-                <li key={url} className="relative h-24 w-24 overflow-hidden rounded-xl border border-ink/10 bg-ink/5">
+                <li key={url} className="relative h-24 w-24 overflow-hidden rounded-xl border border-outline-variant bg-ink/5">
                   <ContentImage src={url} alt="" width={96} height={96} className="h-full w-full object-cover" />
                   {canEdit && (
                     <button type="button" aria-label={formatMessage(copy.removeImage, { number: index + 1 })} onClick={() => setImages((current) => current.filter((u) => u !== url))} className="absolute top-1 end-1 rounded-full bg-black/60 p-1 text-white hover:bg-black/80">
@@ -263,7 +263,7 @@ export function ProductEditorView({ product, categories, currency, languages, ca
           )}
         </Card>
 
-        <Card className="p-5 space-y-4">
+        <Card className="p-5 space-y-4" data-page-section>
           <div>
             <h2 className="font-bold text-ink">{copy.options}</h2>
             <p className="text-xs text-ink-muted mt-0.5">{copy.optionsHint}</p>
@@ -271,7 +271,7 @@ export function ProductEditorView({ product, categories, currency, languages, ca
           {optionDrafts.map((draft, index) => {
             const update = (patch: Partial<OptionDraft>) => setOptionDrafts((current) => current.map((d, i) => (i === index ? { ...d, ...patch } : d)));
             return (
-              <div key={index} className="grid sm:grid-cols-[1fr_2fr_auto] gap-3 rounded-xl border border-ink/10 p-3">
+              <div key={index} className="grid sm:grid-cols-[1fr_2fr_auto] gap-3 rounded-xl border border-outline-variant p-3">
                 <LanguageFields label={copy.optionName} languages={languages} maxLength={40} en={draft.nameEn} ar={draft.nameAr} onChange={({ en, ar }) => update({ nameEn: en, nameAr: ar })} />
                 <LanguageFields label={copy.optionValues} hint={copy.optionValuesHint} languages={languages} maxLength={600} en={draft.valuesEn} ar={draft.valuesAr} onChange={({ en, ar }) => update({ valuesEn: en, valuesAr: ar })} />
                 {canEdit && (
@@ -303,7 +303,7 @@ export function ProductEditorView({ product, categories, currency, languages, ca
                   </Button>
                 )}
               </div>
-              <div className="overflow-x-auto rounded-xl border border-ink/10">
+              <div className="overflow-x-auto rounded-xl border border-outline-variant">
                 <table className="w-full text-sm" data-testid="product-variants">
                   <thead className="bg-ink/[0.03] text-xs text-ink-muted">
                     <tr>
@@ -315,7 +315,7 @@ export function ProductEditorView({ product, categories, currency, languages, ca
                       <th scope="col" className="px-3 py-2 text-start font-semibold">{copy.variantActive}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-ink/10">
+                  <tbody className="divide-y divide-outline-variant">
                     {combos.map((values) => {
                       const draft = variantFor(values);
                       const label = variantLabel(options ?? [], values, locale);
@@ -340,7 +340,7 @@ export function ProductEditorView({ product, categories, currency, languages, ca
 
       {stockPanel}
 
-      <Card className="p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+      <Card className="p-5 flex flex-col sm:flex-row sm:items-center gap-4" data-page-section>
         <Globe className="w-5 h-5 text-accent shrink-0" aria-hidden="true" />
         <div className="flex-1">
           <h2 className="font-bold text-ink">{copy.website}</h2>

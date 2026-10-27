@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Download, Search } from "lucide-react";
@@ -9,9 +10,9 @@ import {
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 const field =
-  "h-10 rounded-full border border-ink/15 bg-surface-sunken/60 text-sm text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition";
+  "h-11 rounded-xl border border-outline-variant bg-surface-sunken/60 text-sm text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition";
 const chip =
-  "inline-flex items-center justify-center h-9 min-w-9 rounded-full border border-ink/15 px-3 text-xs font-semibold text-ink hover:bg-ink/5 transition-colors";
+  "inline-flex items-center justify-center h-9 min-w-9 rounded-full border border-outline-variant px-3 text-xs font-semibold text-ink hover:bg-ink/5 transition-colors";
 
 export function ListControls({
   path,
@@ -43,7 +44,7 @@ export function ListControls({
       ? ["contacts", "deals", "invoices", "payments", "expenses", "settings"].every((r) => can(r as PermissionResource, "export"))
       : can(exportDomain as PermissionResource, "export"));
   return (
-    <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between mb-6 rounded-3xl border border-ink/10 bg-white dark:bg-surface-raised p-2.5 shadow-xs">
+    <div className="admin-list-controls">
       <form action={path} method="get" role="search" className="flex w-full flex-wrap items-center gap-2 lg:w-auto lg:flex-1">
         {filters.dealId ? (
           <input type="hidden" name="dealId" value={filters.dealId} />
@@ -64,7 +65,7 @@ export function ListControls({
           <input type="hidden" name="status" value={filters.status} />
         ) : null}
         {statuses.length ? (
-          <select
+          <Select
             aria-label={t.listControls.status}
             name="status"
             defaultValue={filters.status}
@@ -76,9 +77,9 @@ export function ListControls({
                 {ownName(s) || ((t.statusLabels as Record<string, string>)[s] ?? s.replaceAll("_", " "))}
               </option>
             ))}
-          </select>
+          </Select>
         ) : null}
-        <button className="h-10 rounded-full bg-primary px-5 text-xs font-semibold text-white hover:bg-primary/90 transition-colors">
+        <button className="h-10 rounded-full bg-primary px-5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
           {t.listControls.search}
         </button>
       </form>

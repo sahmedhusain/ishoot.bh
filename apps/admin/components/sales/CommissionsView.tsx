@@ -47,7 +47,7 @@ export function CommissionsView({ month, rows, canRecord, canSetRates }: { month
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
+        <div data-page-header>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display flex items-center gap-2">
             <BadgeDollarSign className="w-7 h-7 text-accent" />
             {c.title}
@@ -55,14 +55,14 @@ export function CommissionsView({ month, rows, canRecord, canSetRates }: { month
           <p className="text-xs text-ink-muted mt-1 max-w-2xl">{c.subtitle}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Link href={ROUTES.finance.commissions({ month: shiftMonth(month, -1) })} aria-label={c.previous} className="p-2 rounded-full border border-ink/15 hover:bg-ink/5">
+          <Link href={ROUTES.finance.commissions({ month: shiftMonth(month, -1) })} aria-label={c.previous} className="p-2 rounded-full border border-outline-variant hover:bg-ink/5">
             <ChevronLeft className="w-4 h-4 rtl:-scale-x-100" />
           </Link>
           <form>
-            <input type="month" name="month" defaultValue={month} max={current} aria-label={c.month} className="rounded-full border border-ink/15 bg-surface px-3 py-1.5 text-sm text-ink" onChange={(e) => router.push(ROUTES.finance.commissions({ month: e.target.value }))} />
+            <input type="month" name="month" defaultValue={month} max={current} aria-label={c.month} className="rounded-full border border-outline-variant bg-surface px-3 py-1.5 text-sm text-ink" onChange={(e) => router.push(ROUTES.finance.commissions({ month: e.target.value }))} />
           </form>
           {month < current && (
-            <Link href={ROUTES.finance.commissions({ month: shiftMonth(month, 1) })} aria-label={c.next} className="p-2 rounded-full border border-ink/15 hover:bg-ink/5">
+            <Link href={ROUTES.finance.commissions({ month: shiftMonth(month, 1) })} aria-label={c.next} className="p-2 rounded-full border border-outline-variant hover:bg-ink/5">
               <ChevronRight className="w-4 h-4 rtl:-scale-x-100" />
             </Link>
           )}
@@ -70,21 +70,21 @@ export function CommissionsView({ month, rows, canRecord, canSetRates }: { month
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="p-5 rounded-3xl bg-surface border border-ink/10">
+        <Card className="p-5 rounded-3xl bg-surface border border-outline-variant">
           <div className="text-xs text-ink-muted">{c.collected}</div>
           <div className="text-2xl font-bold text-ink mt-1">{bhd} {fmt(totals.collected)}</div>
         </Card>
-        <Card className="p-5 rounded-3xl bg-surface border border-ink/10">
+        <Card className="p-5 rounded-3xl bg-surface border border-outline-variant">
           <div className="text-xs text-ink-muted">{c.totalCommission}</div>
           <div className="text-2xl font-bold text-accent mt-1">{bhd} {fmt(totals.commission)}</div>
         </Card>
-        <Card className="p-5 rounded-3xl bg-surface border border-ink/10">
+        <Card className="p-5 rounded-3xl bg-surface border border-outline-variant">
           <div className="text-xs text-ink-muted">{c.recordedCount}</div>
           <div className="text-2xl font-bold text-ink mt-1">{rows.filter((r) => r.payout).length} / {rows.filter((r) => r.commission > 0).length}</div>
         </Card>
       </div>
 
-      <Card className="p-0 rounded-3xl bg-surface border border-ink/10 overflow-x-auto">
+      <Card className="p-0 rounded-3xl bg-surface border border-outline-variant overflow-x-auto">
         {rows.length === 0 ? (
           <p className="p-10 text-center text-sm text-ink-muted">{c.empty}</p>
         ) : (
@@ -99,11 +99,11 @@ export function CommissionsView({ month, rows, canRecord, canSetRates }: { month
                 <th className="p-3 pe-5 text-end">{c.status}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink/5">
+            <tbody className="divide-y divide-outline-variant">
               {rows.map((r) => (
                 <tr key={r.userId}>
                   <td className="p-3 ps-5">
-                    <div className="font-semibold text-ink">{r.name}</div>
+                    <div className="font-semibold text-ink"><bdi dir="auto">{r.name}</bdi></div>
                     <div className="text-[11px] text-ink-muted">{r.role.replace("_", " ")}</div>
                   </td>
                   <td className="p-3 text-end text-ink">{r.invoices}</td>
@@ -119,7 +119,7 @@ export function CommissionsView({ month, rows, canRecord, canSetRates }: { month
                     ) : r.onPayroll && r.commission > 0 ? (
                       <span className="text-ink-muted">{c.inPayroll}</span>
                     ) : canRecord && r.commission > 0 && month < current ? (
-                      <button type="button" disabled={busy === r.userId} onClick={() => record(r.userId)} className="px-3 py-1.5 rounded-full bg-accent text-white font-semibold disabled:opacity-60">
+                      <button type="button" disabled={busy === r.userId} onClick={() => record(r.userId)} className="px-3 py-1.5 rounded-full bg-accent text-accent-foreground font-semibold disabled:opacity-60">
                         {c.record}
                       </button>
                     ) : (

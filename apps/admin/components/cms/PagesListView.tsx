@@ -56,10 +56,10 @@ export function PagesListView({ pages, canEdit, canCreate, canDelete, canPublish
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
       <UnpublishedChangesNotice section="pages" status={publication} canPublish={canPublish} />
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{copy.title}</h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
+          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
         </div>
         <div className="flex gap-2">
           {canEdit && (
@@ -69,7 +69,7 @@ export function PagesListView({ pages, canEdit, canCreate, canDelete, canPublish
             </Button>
           )}
           {canCreate && (
-            <Link href={ROUTES.cms.page("new")} className="inline-flex items-center gap-1.5 h-8 px-4 rounded-full bg-primary text-white text-xs font-semibold hover:bg-primary/90">
+            <Link href={ROUTES.cms.page("new")} className="inline-flex items-center gap-1.5 h-8 px-4 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90">
               <Plus className="w-3.5 h-3.5" />
               {copy.newPage}
             </Link>

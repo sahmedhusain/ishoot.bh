@@ -97,13 +97,13 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
           <Link href={ROUTES.delivery.shipments} className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent">
             <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" />
             {copy.back}
           </Link>
-          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex flex-wrap items-center gap-3">
+          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink flex flex-wrap items-center gap-3">
             <span dir="ltr" className="break-all">{shipment.number}</span>
             <ShipmentStatusPill status={shipment.status} />
             {shipment.late && <LatePill />}
@@ -127,7 +127,7 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
           </div>
         )}
       </div>
-      {bookingBlocked && <div role="status" data-testid="courier-booking-warning" className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-800 dark:text-amber-200">{shipment.courier_booking === "pending" ? t.delivery.handover.bookingPending : shipment.courier_booking === "review" ? t.delivery.handover.needsReview : t.delivery.handover.bookingUncertain}{shipment.courier_booking_agency && <span className="ms-1 font-semibold">{shipment.courier_booking_agency.name}</span>}</div>}
+      {bookingBlocked && <div role="status" data-testid="courier-booking-warning" className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-800 dark:text-amber-200">{shipment.courier_booking === "pending" ? t.delivery.handover.bookingPending : shipment.courier_booking === "review" ? t.delivery.handover.needsReview : t.delivery.handover.bookingUncertain}{shipment.courier_booking_agency && <span className="ms-1 font-semibold"><bdi dir="auto">{shipment.courier_booking_agency.name}</bdi></span>}</div>}
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
 
       {canEdit && (failing || (next.includes("delivered") && shipment.cod_amount > 0)) && (
@@ -154,14 +154,14 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
       )}
 
       <div className="grid md:grid-cols-2 gap-4">
-        <Card className="p-5 space-y-2 text-sm">
+        <Card className="p-5 space-y-2 text-sm" data-page-section>
           <h2 className="font-bold text-ink">{copy.recipient}</h2>
           <p className="font-semibold text-ink">{shipment.recipient}</p>
-          {shipment.phone && <a href={`tel:${shipment.phone.replace(/[^\d+]/g, "")}`} className="inline-flex items-center gap-1.5 text-ink-muted hover:text-accent" dir="ltr"><Phone className="w-3.5 h-3.5" aria-hidden="true" />{shipment.phone}</a>}
+          {shipment.phone && <a href={`tel:${shipment.phone.replace(/[^\d+]/g, "")}`} className="inline-flex items-center gap-1.5 text-ink-muted hover:text-accent" dir="ltr"><Phone className="w-3.5 h-3.5" aria-hidden="true" /><bdi dir="ltr">{shipment.phone}</bdi></a>}
           <p className="flex items-start gap-1.5 text-ink-muted"><MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />{addressText}</p>
           {(shipment.zone_en || shipment.zone_ar) && <p className="text-xs text-ink-muted">{locale === "ar" ? shipment.zone_ar : shipment.zone_en}</p>}
         </Card>
-        <Card className="p-5 space-y-2 text-sm">
+        <Card className="p-5 space-y-2 text-sm" data-page-section>
           <h2 className="font-bold text-ink">{copy.slot}</h2>
           <p className="text-ink" data-testid="shipment-slot">{shipment.slot ? `${formatDate(shipment.slot.date, locale)} ${shipment.slot.start}–${shipment.slot.end}` : copy.noSlot}</p>
           <p className="text-xs text-ink-muted">{copy.promise}: {formatDate(shipment.promised_by, locale, "time")}</p>
@@ -171,7 +171,7 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
       </div>
 
       {(canAssign || shipment.driver_id || shipment.route_sheet || shipment.proof_photo_url || shipment.proof_signature) && (
-        <Card className="p-5 space-y-3" data-testid="shipment-driver">
+        <Card className="p-5 space-y-3" data-testid="shipment-driver" data-page-section>
           <h2 className="font-bold text-ink">{t.delivery.assign.title}</h2>
           {canAssign && assignable ? (
             <div className="grid sm:grid-cols-3 gap-3 items-end">
@@ -205,12 +205,12 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
                 {shipment.proof_photo_url && (
                   <a href={shipment.proof_photo_url} target="_blank" rel="noreferrer" className="block">
                     {/* eslint-disable-next-line @next/next/no-img-element -- a private file served by the owner-checked file route */}
-                    <img src={shipment.proof_photo_url} alt={t.delivery.assign.photo} className="h-32 rounded-lg border border-ink/10 object-cover" />
+                    <img src={shipment.proof_photo_url} alt={t.delivery.assign.photo} className="h-32 rounded-lg border border-outline-variant object-cover" />
                   </a>
                 )}
                 {shipment.proof_signature && (
                   // eslint-disable-next-line @next/next/no-img-element -- an inline PNG data URL
-                  <img src={shipment.proof_signature} alt={t.delivery.assign.signature} className="h-32 rounded-lg border border-ink/10 bg-white" />
+                  <img src={shipment.proof_signature} alt={t.delivery.assign.signature} className="h-32 rounded-lg border border-outline-variant bg-surface-raised" />
                 )}
               </div>
             </div>
@@ -219,11 +219,11 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
       )}
 
       {(shipment.agency || (canAssign && handoverAllowed && agencies.length > 0)) && (
-        <Card className="p-5 space-y-3" data-testid="shipment-agency">
+        <Card className="p-5 space-y-3" data-testid="shipment-agency" data-page-section>
           <h2 className="font-bold text-ink">{t.delivery.handover.title}</h2>
           {shipment.agency && (
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-              <span className="font-semibold">{shipment.agency.name}</span>
+              <span className="font-semibold"><bdi dir="auto">{shipment.agency.name}</bdi></span>
               <span className="font-mono text-xs break-all" dir="ltr" data-testid="shipment-tracking-number">{shipment.agency.tracking_number}</span>
               {shipment.agency.tracking_link && <a href={shipment.agency.tracking_link} target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary dark:text-mint">{t.delivery.handover.track}</a>}
               {shipment.agency.label_url && <a href={shipment.agency.label_url} target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary dark:text-mint">{t.delivery.handover.label}</a>}
@@ -250,9 +250,9 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
         </Card>
       )}
 
-      <Card className="p-5 space-y-3">
+      <Card className="p-5 space-y-3" data-page-section>
         <h2 className="font-bold text-ink">{copy.items}</h2>
-        <ul className="divide-y divide-ink/10 text-sm">
+        <ul className="divide-y divide-outline-variant text-sm">
           {shipment.order.lines.map((l, index) => (
             <li key={index} className="flex justify-between gap-3 py-2"><span>{l.description} <span className="font-mono text-xs text-ink-muted" dir="ltr">{l.sku}</span></span><span className="tabular-nums">× {l.quantity}</span></li>
           ))}
@@ -260,7 +260,7 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
       </Card>
 
       {trackingLink && (
-        <Card className="p-5 space-y-2">
+        <Card className="p-5 space-y-2" data-page-section>
           <h2 className="font-bold text-ink">{copy.trackingLink}</h2>
           <div className="flex gap-2">
             <Input readOnly aria-label={copy.trackingLink} value={trackingLink} dir="ltr" className="rounded-lg font-mono text-xs" onFocus={(e) => e.currentTarget.select()} data-testid="shipment-tracking-link" />
@@ -272,7 +272,7 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
         </Card>
       )}
 
-      <Card className="p-5 space-y-3">
+      <Card className="p-5 space-y-3" data-page-section>
         <h2 className="font-bold text-ink">{copy.history}</h2>
         <ol className="space-y-2 text-sm" data-testid="shipment-history">
           {shipment.events.map((e) => (

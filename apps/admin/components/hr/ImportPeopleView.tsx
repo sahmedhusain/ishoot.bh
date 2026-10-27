@@ -96,13 +96,13 @@ export function ImportPeopleView({
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink flex items-center gap-2">
             <FileUp className="w-6 h-6 text-accent" />
             {copy.title}
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
+          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
         </div>
         <Button type="button" variant="outline" size="sm" className="gap-1.5 rounded-full" onClick={downloadTemplate}>
           <Download className="w-3.5 h-3.5" />
@@ -111,7 +111,7 @@ export function ImportPeopleView({
       </div>
 
       <Card className="p-5 space-y-4">
-        <label className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-ink/15 p-8 text-center cursor-pointer transition-colors hover:border-accent/50 hover:bg-accent/[0.03]">
+        <label className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-outline-variant p-8 text-center cursor-pointer transition-colors hover:border-accent/50 hover:bg-accent/[0.03]">
           <Upload className="w-6 h-6 text-accent" />
           <span className="text-sm font-semibold text-ink">{fileName || copy.choose}</span>
           <span className="text-xs text-ink-muted">{formatMessage(copy.chooseHint, { limit: LIMIT })}</span>
@@ -148,7 +148,7 @@ export function ImportPeopleView({
 
       {checks && (
         <Card className="p-0 overflow-hidden">
-          <div className="p-4 flex flex-wrap items-center gap-3 border-b border-ink/10">
+          <div className="p-4 flex flex-wrap items-center gap-3 border-b border-outline-variant">
             <p className="text-sm text-ink">{formatMessage(copy.summary, { ready, problems: checks.length - ready, total: checks.length })}</p>
             <Button type="button" variant="primary" size="sm" className="ms-auto rounded-full gap-1.5" disabled={!ready || busy !== null} onClick={runImport}>
               {busy === "import" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
@@ -166,7 +166,7 @@ export function ImportPeopleView({
                   <th className="p-3 text-start">{copy.status}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink/5">
+              <tbody className="divide-y divide-outline-variant">
                 {checks.map((check) => {
                   const row = rows[check.row - 1] ?? {};
                   return (
@@ -177,7 +177,7 @@ export function ImportPeopleView({
                         <span className="text-ink-muted">{(locale === "ar" ? row.job_title_ar || row.job_title_en : row.job_title_en || row.job_title_ar) || ""}</span>
                       </td>
                       <td className="p-3" dir="ltr">{row.department_code || "—"}</td>
-                      <td className="p-3">{check.account ? <span dir="ltr">{row.email} · {row.account_role}</span> : "—"}</td>
+                      <td className="p-3">{check.account ? <span dir="ltr"><bdi dir="ltr">{row.email}</bdi> · {row.account_role}</span> : "—"}</td>
                       <td className="p-3">
                         {check.problems.length ? (
                           <ul className="space-y-0.5 text-rose-700 dark:text-rose-300">

@@ -1,0 +1,107 @@
+"use client";
+import * as React from "react";
+import {
+  ClickScrollPlugin,
+  OverlayScrollbars,
+  type OverlayScrollbars as Instance,
+} from "overlayscrollbars";
+import "overlayscrollbars/overlayscrollbars.css";
+import "./overlay-scrollbars.css";
+
+OverlayScrollbars.plugin(ClickScrollPlugin);
+
+const TARGETS =
+  '.admin-settings-nav, [role=tablist], .m3-floating-surface, .m3-surface-body, .admin-main, [data-dialog-body], .admin-popover-body, [data-overlay-scroll], [class*="overflow-auto"], [class*="overflow-y-auto"], [class*="overflow-x-auto"], [class*="overflow-scroll"], [class*="overflow-y-scroll"], [class*="overflow-x-scroll"]';
+
+/** Existing elements remain the native viewport, so React children, refs and scroll events stay intact. */
+export function OverlayScrollbarsProvider() {
+  React.useEffect(() => {
+    const instances = new Map<HTMLElement, Instance>();
+    const initialize = (element: HTMLElement) => {
+      if (
+        instances.has(element) ||
+        element.closest(".os-scrollbar, [data-print-target]") ||
+        ["SELECT", "TEXTAREA", "TABLE", "TBODY", "THEAD"].includes(
+          element.tagName,
+        )
+      )
+        return;
+      const style = getComputedStyle(element);
+      if (!/(auto|scroll)/.test(style.overflowX + style.overflowY)) return;
+      const axis = (value: string) =>
+        value === "hidden" || value === "clip"
+          ? ("hidden" as const)
+          : value === "visible"
+            ? ("visible" as const)
+            : ("scroll" as const);
+      const instance = OverlayScrollbars(
+        {
+          target: element,
+          elements: { viewport: element, padding: false, content: false },
+        },
+        {
+          overflow: { x: axis(style.overflowX), y: axis(style.overflowY) },
+          scrollbars: {
+            theme: "os-theme-material",
+            autoHide: "leave",
+            autoHideDelay: 650,
+            clickScroll: true,
+          },
+        },
+      );
+      instances.set(element, instance);
+    };
+    const scan = (root: Element) => {
+      if (root instanceof HTMLElement && root.matches(TARGETS))
+        initialize(root);
+      root.querySelectorAll<HTMLElement>(TARGETS).forEach(initialize);
+    };
+    scan(document.body);
+    let frame = 0;
+    const added = new Set<Element>();
+    const observer = new MutationObserver((records) => {
+      let removed = false;
+      for (const record of records) {
+        if (record.removedNodes.length) removed = true;
+        if ((record.target as Element).closest?.(".os-scrollbar")) continue;
+        if (record.type === "attributes") added.add(record.target as Element);
+        else
+          for (const node of Array.from(record.addedNodes))
+            if (node instanceof Element && !node.matches(".os-scrollbar"))
+              added.add(node);
+      }
+      if ((!added.size && !removed) || frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        added.forEach(scan);
+        added.clear();
+        instances.forEach((instance, element) => {
+          if (!element.isConnected) {
+            instance.destroy();
+            instances.delete(element);
+          }
+        });
+      });
+    });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    const direction = new MutationObserver(() =>
+      instances.forEach((instance) => instance.update(true)),
+    );
+    direction.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["dir", "class"],
+    });
+    return () => {
+      observer.disconnect();
+      direction.disconnect();
+      cancelAnimationFrame(frame);
+      instances.forEach((instance) => instance.destroy());
+    };
+  }, []);
+  return null;
+}

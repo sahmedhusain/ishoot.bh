@@ -86,10 +86,10 @@ export function WarehousesView({ warehouses, languages, canEdit }: { warehouses:
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{copy.title}</h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
+          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
         </div>
         {canEdit && !warehouse && (
           <Button type="button" variant="primary" size="sm" className="rounded-full gap-1.5" onClick={() => setWarehouse({ code: "", nameEn: "", nameAr: "", address: "", isActive: true, isDefault: false })}>
@@ -110,7 +110,7 @@ export function WarehousesView({ warehouses, languages, canEdit }: { warehouses:
               <div className="flex-1 min-w-0">
                 <h2 className="font-bold text-ink flex flex-wrap items-center gap-2">
                   {name(w)}
-                  <span className="font-mono text-xs text-ink-muted" dir="ltr">{w.code}</span>
+                  <span className="font-mono text-xs text-ink-muted" dir="ltr"><bdi dir="ltr">{w.code}</bdi></span>
                   {w.is_default && <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[11px] font-semibold text-accent">{copy.defaultBadge}</span>}
                   {!w.is_active && <span className="rounded-full bg-ink/10 px-2 py-0.5 text-[11px] text-ink-muted">{copy.inactive}</span>}
                 </h2>
@@ -128,10 +128,10 @@ export function WarehousesView({ warehouses, languages, canEdit }: { warehouses:
             <ul className="flex flex-wrap gap-2">
               {w.locations.map((l) => (
                 <li key={l.id}>
-                  <button type="button" disabled={!canEdit} onClick={() => setLocation({ id: l.id, warehouseId: w.id, code: l.code, name: l.name, isActive: l.is_active })} className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs ${l.is_active ? "border-ink/15 text-ink" : "border-dashed border-ink/15 text-ink-muted"} enabled:hover:border-accent`}>
+                  <button type="button" disabled={!canEdit} onClick={() => setLocation({ id: l.id, warehouseId: w.id, code: l.code, name: l.name, isActive: l.is_active })} className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs ${l.is_active ? "border-outline-variant text-ink" : "border-dashed border-outline-variant text-ink-muted"} enabled:hover:border-accent`}>
                     <MapPin className="w-3 h-3" aria-hidden="true" />
-                    <span className="font-mono" dir="ltr">{l.code}</span>
-                    {l.name && <span className="text-ink-muted">{l.name}</span>}
+                    <span className="font-mono" dir="ltr"><bdi dir="ltr">{l.code}</bdi></span>
+                    {l.name && <span className="text-ink-muted"><bdi dir="auto">{l.name}</bdi></span>}
                   </button>
                 </li>
               ))}
@@ -145,7 +145,7 @@ export function WarehousesView({ warehouses, languages, canEdit }: { warehouses:
               )}
             </ul>
             {location?.warehouseId === w.id && (
-              <div className="grid sm:grid-cols-[1fr_2fr_auto] gap-3 items-end rounded-xl border border-ink/10 p-3" data-testid="location-editor">
+              <div className="grid sm:grid-cols-[1fr_2fr_auto] gap-3 items-end rounded-xl border border-outline-variant p-3" data-testid="location-editor">
                 <Field label={copy.locationCode}>
                   {(id) => <Input id={id} name="locationCode" dir="ltr" maxLength={20} value={location.code} onChange={(e) => setLocation({ ...location, code: e.target.value.toUpperCase() })} className="rounded-lg font-mono" />}
                 </Field>

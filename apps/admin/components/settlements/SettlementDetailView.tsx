@@ -140,7 +140,7 @@ export function SettlementDetailView({
     const rows = s.lines.filter((l) => l.kind === kind);
     const total = kind === "addition" ? s.totalAdditions : s.totalDeductions;
     return (
-      <div className="overflow-hidden rounded-2xl border border-ink/10">
+      <div className="overflow-hidden rounded-2xl border border-outline-variant">
         <div
           className={`flex items-center justify-between px-4 py-2 text-xs font-bold text-white ${kind === "addition" ? "bg-primary" : "bg-rose-700"}`}
         >
@@ -152,7 +152,7 @@ export function SettlementDetailView({
         {rows.length === 0 ? (
           <p className="px-4 py-3 text-xs text-ink-muted">{f.none}</p>
         ) : (
-          <ul className="divide-y divide-ink/5">
+          <ul className="divide-y divide-outline-variant">
             {rows.map((l) => (
               <li
                 key={l.id}
@@ -180,7 +180,7 @@ export function SettlementDetailView({
             ))}
           </ul>
         )}
-        <div className="flex items-center justify-between border-t border-ink/10 bg-ink/[0.03] px-4 py-2 text-sm font-bold text-ink">
+        <div className="flex items-center justify-between border-t border-outline-variant bg-ink/[0.03] px-4 py-2 text-sm font-bold text-ink">
           <span>
             {kind === "addition" ? f.totalAdditions : f.totalDeductions}
           </span>
@@ -193,11 +193,11 @@ export function SettlementDetailView({
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-16">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3" data-page-header>
           <Link
             href={ROUTES.hr.settlements()}
             aria-label={t.actions.back}
-            className="rounded-full border border-ink/15 p-2 text-ink-muted hover:text-ink"
+            className="rounded-full border border-outline-variant p-2 text-ink-muted hover:text-ink"
           >
             <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
           </Link>
@@ -229,7 +229,7 @@ export function SettlementDetailView({
       </div>
 
       {warnings.length ? (
-        <section className="space-y-1 rounded-3xl border border-amber-400/40 bg-amber-500/5 p-4">
+        <section className="space-y-1 rounded-3xl border border-amber-400/40 bg-amber-500/5 p-4" data-page-section>
           <h2 className="flex items-center gap-2 text-sm font-bold text-amber-800 dark:text-amber-300">
             <AlertTriangle className="h-4 w-4" aria-hidden />
             {f.checkBeforePaying}
@@ -264,7 +264,7 @@ export function SettlementDetailView({
         </div>
 
         <aside className="space-y-4">
-          <section className="space-y-2 rounded-3xl border border-ink/10 bg-white p-5 text-xs dark:bg-surface-raised">
+          <section className="space-y-2 rounded-3xl border border-outline-variant bg-surface-raised p-5 text-xs dark:bg-surface-raised" data-page-section>
             <h2 className="text-sm font-bold text-ink">{f.basedOn}</h2>
             <dl className="space-y-1.5">
               {[
@@ -313,14 +313,14 @@ export function SettlementDetailView({
           </section>
 
           {s.approval?.decisions.length ? (
-            <section className="space-y-2 rounded-3xl border border-ink/10 bg-white p-5 dark:bg-surface-raised">
+            <section className="space-y-2 rounded-3xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised" data-page-section>
               <h2 className="text-sm font-bold text-ink">
                 {t.approvals.item.progress}
               </h2>
               {s.approval.decisions.map((d, i) => (
                 <div
                   key={i}
-                  className="flex items-start gap-2 rounded-2xl border border-ink/10 p-2.5 text-xs"
+                  className="flex items-start gap-2 rounded-2xl border border-outline-variant p-2.5 text-xs"
                 >
                   {d.decision === "approved" ? (
                     <Check
@@ -358,7 +358,7 @@ export function SettlementDetailView({
       </div>
 
       {editable && (
-        <section className="space-y-4 rounded-3xl border border-ink/10 bg-white p-5 dark:bg-surface-raised">
+        <section className="space-y-4 rounded-3xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised" data-page-section>
           <h2 className="text-sm font-bold text-ink">{f.adjust}</h2>
           <div className="flex flex-wrap items-end gap-3">
             <label className="text-xs">
@@ -495,13 +495,13 @@ export function SettlementDetailView({
                       placeholder={f.fields.labelEn}
                       value={m.label_en}
                       onChange={(e) => set({ label_en: e.target.value })}
-                    />
+                     dir="ltr"/>
                     <Input
                       aria-label={f.fields.labelAr}
                       placeholder={f.fields.labelAr}
                       value={m.label_ar}
                       onChange={(e) => set({ label_ar: e.target.value })}
-                    />
+                     dir="rtl"/>
                     <Input
                       aria-label={f.amount}
                       required
@@ -569,7 +569,7 @@ export function SettlementDetailView({
               </div>
             </form>
           )}
-          <div className="flex flex-wrap justify-between gap-2 border-t border-ink/10 pt-3">
+          <div className="flex flex-wrap justify-between gap-2 border-t border-outline-variant pt-3">
             <button
               type="button"
               disabled={busy}
@@ -604,7 +604,7 @@ export function SettlementDetailView({
       ) : null}
 
       {["approved", "paid"].includes(s.status) && (
-        <section className="space-y-3 rounded-3xl border border-ink/10 bg-white p-5 dark:bg-surface-raised">
+        <section className="space-y-3 rounded-3xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised" data-page-section>
           <h2 className="flex items-center gap-2 text-sm font-bold text-ink">
             <PenLine className="h-4 w-4 text-accent" aria-hidden />
             {f.acknowledgement}
@@ -617,7 +617,7 @@ export function SettlementDetailView({
                   alt=""
                   width={180}
                   height={60}
-                  className="max-h-14 w-auto rounded-lg border border-ink/10 bg-white"
+                  className="max-h-14 w-auto rounded-lg border border-outline-variant bg-surface-raised"
                 />
               ) : null}
               <div>
@@ -728,7 +728,7 @@ export function SettlementDetailView({
             </label>
             <label className="text-xs">
               <span className="mb-1 block font-semibold text-ink">
-                {f.fields.reference}
+                <bdi dir="ltr">{f.fields.reference}</bdi>
               </span>
               <Input
                 value={payment.reference}

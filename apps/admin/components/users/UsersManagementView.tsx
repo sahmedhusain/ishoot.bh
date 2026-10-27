@@ -1,5 +1,5 @@
 "use client";
-import { useConfirmation } from "@platform/ui";
+import { ModalFooter, useConfirmation } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
@@ -78,6 +78,8 @@ export function UsersManagementView({
   filters,
   people,
 }: UsersManagementViewProps) {
+  const modalFormId = React.useId();
+
   const confirmAction = useConfirmation();
   const { t, isRTL } = useAdminLocale();
   const { role: actorRole } = usePermissions();
@@ -202,7 +204,7 @@ export function UsersManagementView({
           {error}
         </p>
       )}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-ink font-display flex items-center gap-2">
             <Shield className="w-6 h-6 text-accent" />
@@ -212,23 +214,23 @@ export function UsersManagementView({
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center bg-surface p-1 rounded-xl border border-ink/10 text-xs font-semibold">
+          <div className="flex items-center bg-surface p-1 rounded-xl border border-outline-variant text-xs font-semibold" role="tablist">
             <button
               onClick={() => setActiveTab("users")}
               className={`px-3 py-1.5 rounded-lg transition-all ${activeTab === "users"
-                ? "bg-accent text-white shadow-sm"
+                ? "bg-accent text-accent-foreground shadow-sm"
                 : "text-ink-muted hover:text-ink"
                 }`}
-            >
+             tabIndex={activeTab === "users" ? 0 : -1} role="tab" aria-selected={activeTab === "users"} type="button">
               {t.nav.users} ({total})
             </button>
             <button
               onClick={() => setActiveTab("matrix")}
               className={`px-3 py-1.5 rounded-lg transition-all ${activeTab === "matrix"
-                ? "bg-accent text-white shadow-sm"
+                ? "bg-accent text-accent-foreground shadow-sm"
                 : "text-ink-muted hover:text-ink"
                 }`}
-            >
+             tabIndex={activeTab === "matrix" ? 0 : -1} role="tab" aria-selected={activeTab === "matrix"} type="button">
               {t.usersView.permissionsMatrix}
             </button>
           </div>
@@ -254,8 +256,8 @@ export function UsersManagementView({
       )}
 
       {activeTab === "users" && (
-        <Card className="p-0 bg-surface border border-ink/10 rounded-3xl shadow-xl overflow-hidden">
-          <form method="get" action={ROUTES.users.list} role="search" className="p-4 border-b border-ink/10 flex flex-wrap items-center gap-2">
+        <Card className="p-0 bg-surface border border-outline-variant rounded-3xl shadow-xl overflow-hidden" data-tab-panel>
+          <form method="get" action={ROUTES.users.list} role="search" className="p-4 border-b border-outline-variant flex flex-wrap items-center gap-2">
             <div className="relative flex-1 min-w-[200px] max-w-sm">
               <Search className="w-4 h-4 text-ink-muted absolute start-3 top-2.5" />
               <input
@@ -264,38 +266,38 @@ export function UsersManagementView({
                 aria-label={t.actions.search}
                 placeholder={t.usersBulk.searchPlaceholder}
                 defaultValue={filters.q}
-                className="w-full ps-9 pe-4 py-1.5 text-xs rounded-xl bg-surface-sunken border border-ink/10 text-ink placeholder:text-ink-muted/60 focus:outline-none focus:border-accent"
+                className="w-full ps-9 pe-4 py-1.5 text-xs rounded-xl bg-surface-sunken border border-outline-variant text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent"
               />
             </div>
-            <select name="role" defaultValue={filters.role} aria-label={t.usersView.roleHeader} className="py-1.5 px-2 text-xs rounded-xl bg-surface-sunken border border-ink/10">
+            <Select name="role" defaultValue={filters.role} aria-label={t.usersView.roleHeader} className="py-1.5 px-2 text-xs rounded-xl bg-surface-sunken border border-outline-variant">
               <option value="all">{t.usersBulk.allRoles}</option>
               {allRoles.map((r) => <option key={r.key} value={r.key}>{r.name}</option>)}
-            </select>
-            <select name="departmentId" defaultValue={filters.departmentId} aria-label={t.roles.department} className="py-1.5 px-2 text-xs rounded-xl bg-surface-sunken border border-ink/10">
+            </Select>
+            <Select name="departmentId" defaultValue={filters.departmentId} aria-label={t.roles.department} className="py-1.5 px-2 text-xs rounded-xl bg-surface-sunken border border-outline-variant">
               <option value="all">{t.usersBulk.allDepartments}</option>
               <option value="none">{t.usersBulk.noDepartment}</option>
               {departments.map((d) => <option key={d.id} value={d.id}>{isRTL ? d.name_ar : d.name_en}</option>)}
-            </select>
-            <select name="status" defaultValue={filters.status} aria-label={t.usersView.statusHeader} className="py-1.5 px-2 text-xs rounded-xl bg-surface-sunken border border-ink/10">
+            </Select>
+            <Select name="status" defaultValue={filters.status} aria-label={t.usersView.statusHeader} className="py-1.5 px-2 text-xs rounded-xl bg-surface-sunken border border-outline-variant">
               {(["all", "active", "suspended", "archived", "inactive"] as const).map((status) => <option key={status} value={status}>{t.usersBulk.statuses[status]}</option>)}
-            </select>
+            </Select>
             <Button type="submit" size="sm" variant="outline" className="rounded-xl">{t.actions.search}</Button>
             <span className="ms-auto text-xs text-ink-muted">{formatMessage(t.usersBulk.showing, { from: total ? (page - 1) * pageSize + 1 : 0, to: Math.min(total, page * pageSize), total })}</span>
           </form>
 
           {canWrite && selected.length > 0 && (
-            <div role="region" aria-label={t.usersBulk.title} className="px-4 py-3 border-b border-ink/10 bg-accent/[0.06] flex flex-wrap items-center gap-2 text-xs animate-in fade-in slide-in-from-top-1 duration-200">
+            <div role="region" aria-label={t.usersBulk.title} className="px-4 py-3 border-b border-outline-variant bg-accent/[0.06] flex flex-wrap items-center gap-2 text-xs animate-in fade-in slide-in-from-top-1 duration-200" data-page-toolbar>
               <span className="font-semibold">{formatMessage(t.usersBulk.selected, { count: selected.length })}</span>
-              <select value={bulkRole} onChange={(e) => setBulkRole(e.target.value)} aria-label={t.usersBulk.changeRole} className="py-1.5 px-2 rounded-xl bg-surface border border-ink/10">
+              <Select value={bulkRole} onChange={(e) => setBulkRole(e.target.value)} aria-label={t.usersBulk.changeRole} className="py-1.5 px-2 rounded-xl bg-surface border border-outline-variant">
                 <option value="">{t.usersBulk.changeRole}</option>
                 {allRoles.filter((r) => r.key !== "super_admin").map((r) => <option key={r.key} value={r.key}>{r.name}</option>)}
-              </select>
+              </Select>
               <Button type="button" size="sm" variant="outline" disabled={!bulkRole || bulkBusy} onClick={() => applyBulk({ role: bulkRole })}>{t.usersBulk.apply}</Button>
-              <select value={bulkDepartment} onChange={(e) => setBulkDepartment(e.target.value)} aria-label={t.usersBulk.changeDepartment} className="py-1.5 px-2 rounded-xl bg-surface border border-ink/10">
+              <Select value={bulkDepartment} onChange={(e) => setBulkDepartment(e.target.value)} aria-label={t.usersBulk.changeDepartment} className="py-1.5 px-2 rounded-xl bg-surface border border-outline-variant">
                 <option value="">{t.usersBulk.changeDepartment}</option>
                 <option value="__none">{t.usersBulk.noDepartment}</option>
                 {departments.map((d) => <option key={d.id} value={d.id}>{isRTL ? d.name_ar : d.name_en}</option>)}
-              </select>
+              </Select>
               <Button type="button" size="sm" variant="outline" disabled={!bulkDepartment || bulkBusy} onClick={() => applyBulk({ departmentId: bulkDepartment === "__none" ? "" : bulkDepartment })}>{t.usersBulk.apply}</Button>
               <button type="button" className="ms-auto text-ink-muted hover:text-ink" onClick={() => setSelected([])}>{t.usersBulk.clear}</button>
             </div>
@@ -303,7 +305,7 @@ export function UsersManagementView({
 
           <div className="overflow-x-auto">
             <table className="w-full text-start text-xs">
-              <thead className="bg-surface-sunken text-ink-muted uppercase text-[11px] border-b border-ink/10">
+              <thead className="bg-surface-sunken text-ink-muted uppercase text-[11px] border-b border-outline-variant">
                 <tr>
                   {canWrite && (
                     <th className="p-4 w-8">
@@ -325,7 +327,7 @@ export function UsersManagementView({
                   <th className="p-4 text-end">{t.usersView.actionsHeader}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink/5 text-ink">
+              <tbody className="divide-y divide-outline-variant text-ink">
                 {filteredUsers.map((u) => {
                   return (
                     <tr
@@ -346,15 +348,15 @@ export function UsersManagementView({
                       )}
                       <td className="p-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-primary border border-accent/40 flex items-center justify-center font-bold text-white text-xs">
+                          <div className="w-9 h-9 rounded-xl bg-primary border border-accent/40 flex items-center justify-center font-bold text-primary-foreground text-xs">
                             {u.full_name.charAt(0)}
                           </div>
                           <div>
                             <div className="font-bold text-ink text-sm">
-                              {u.full_name}
+                              <bdi dir="auto">{u.full_name}</bdi>
                             </div>
                             <div className="text-ink-muted text-[11px]">
-                              {u.email}
+                              <bdi dir="ltr">{u.email}</bdi>
                             </div>
                             {!u.employee_id && (
                               <div className="mt-1 flex items-center gap-2 text-[11px]">
@@ -384,7 +386,7 @@ export function UsersManagementView({
                       </td>
 
                       <td className="p-4 text-ink">
-                        {allRoles.find((r) => r.key === u.role)?.name ?? u.role}
+                        <bdi dir="auto">{allRoles.find((r) => r.key === u.role)?.name ?? u.role}</bdi>
                       </td>
 
                       <td className="p-4 text-ink-muted">
@@ -399,7 +401,7 @@ export function UsersManagementView({
                       <td className="p-4">
                         {u.signature_url ? (
                           <div
-                            className="flex h-9 w-24 items-center justify-center overflow-hidden rounded-lg border border-ink/10 bg-white px-2 py-0.5 shadow-sm"
+                            className="flex h-9 w-24 items-center justify-center overflow-hidden rounded-lg border border-outline-variant bg-surface-raised px-2 py-0.5 shadow-sm"
                             title={u.full_name}
                           >
                             <ContentImage
@@ -409,7 +411,7 @@ export function UsersManagementView({
                             />
                           </div>
                         ) : (
-                          <span className="text-ink-muted/60">—</span>
+                          <span className="text-ink-muted">—</span>
                         )}
                       </td>
 
@@ -465,7 +467,7 @@ export function UsersManagementView({
             </table>
           </div>
           {pages > 1 && (
-            <nav aria-label={t.usersBulk.pages} className="p-4 border-t border-ink/10 flex items-center justify-between text-xs">
+            <nav aria-label={t.usersBulk.pages} className="p-4 border-t border-outline-variant flex items-center justify-between text-xs">
               {page > 1 ? <Link href={pageHref(page - 1)} className="text-primary dark:text-mint font-semibold">{t.usersBulk.previous}</Link> : <span />}
               <span className="text-ink-muted">{formatMessage(t.usersBulk.pageOf, { page, pages })}</span>
               {page < pages ? <Link href={pageHref(page + 1)} className="text-primary dark:text-mint font-semibold">{t.usersBulk.next}</Link> : <span />}
@@ -488,14 +490,26 @@ export function UsersManagementView({
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         title={t.actions.addUser}
-      >
+       footer={<div className="flex items-center justify-end gap-3">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowCreateModal(false)}
+            >
+              {t.actions.cancel}
+            </Button>
+            <Button type="submit" variant="primary" size="sm" disabled={saving} form={modalFormId}>
+              {saving ? t.usersView.creating : t.actions.save}
+            </Button>
+          </div>}>
         <form
           onSubmit={(e) => {
             e.preventDefault();
             if (email && fullName && password) setConfirmCreate(true);
           }}
           className="space-y-4 text-xs"
-        >
+         id={modalFormId}>
           <label>
             {t.hrExtensions.employeeFirst}
             <Select
@@ -529,22 +543,22 @@ export function UsersManagementView({
             {t.hrExtensions.createEmployee}
           </Link>
           {error && <p role="alert">{error}</p>}
-          <div className="space-y-1.5">
-            <label className="text-ink-muted font-medium">
-              {t.usersView.fullName}
-            </label>
+          <label className="block space-y-1.5">
+            <span className="text-ink-muted font-medium">
+              <bdi dir="auto">{t.usersView.fullName}</bdi>
+            </span>
             <Input
               required
               placeholder={t.usersView.fullNamePlaceholder}
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
             />
-          </div>
+          </label>
 
-          <div className="space-y-1.5">
-            <label className="text-ink-muted font-medium">
-              {t.usersView.email}
-            </label>
+          <label className="block space-y-1.5">
+            <span className="text-ink-muted font-medium">
+              <bdi dir="ltr">{t.usersView.email}</bdi>
+            </span>
             <Input
               type="email"
               required
@@ -552,12 +566,12 @@ export function UsersManagementView({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-          </div>
+          </label>
 
-          <div className="space-y-1.5">
-            <label className="text-ink-muted font-medium">
+          <label className="block space-y-1.5">
+            <span className="text-ink-muted font-medium">
               {t.usersView.initialPassword}
-            </label>
+            </span>
             <Input
               type="password"
               required
@@ -565,13 +579,13 @@ export function UsersManagementView({
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-          </div>
+          </label>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="text-ink-muted font-medium">
+            <label className="block space-y-1.5">
+              <span className="text-ink-muted font-medium">
                 {t.usersView.userRole}
-              </label>
+              </span>
               <Select
                 value={role}
                 onChange={(e) => setRole(e.target.value as UserRole)}
@@ -582,12 +596,12 @@ export function UsersManagementView({
                   </option>
                 ))}
               </Select>
-            </div>
+            </label>
 
-            <div className="space-y-1.5">
-              <label className="text-ink-muted font-medium">
+            <label className="block space-y-1.5">
+              <span className="text-ink-muted font-medium">
                 {t.usersView.department}
-              </label>
+              </span>
               <Select
                 value={departmentId}
                 onChange={(e) => setDepartmentId(e.target.value)}
@@ -599,13 +613,13 @@ export function UsersManagementView({
                   </option>
                 ))}
               </Select>
-            </div>
+            </label>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-ink-muted font-medium">
-              {t.usersView.phone}
-            </label>
+          <label className="block space-y-1.5">
+            <span className="text-ink-muted font-medium">
+              <bdi dir="ltr">{t.usersView.phone}</bdi>
+            </span>
             <Input
               placeholder={t.usersView.phonePlaceholder}
               value={phone}
@@ -613,12 +627,12 @@ export function UsersManagementView({
               dir="ltr"
               className="text-start"
             />
-          </div>
+          </label>
 
-          <div className="space-y-1.5">
-            <label className="text-ink-muted font-medium">
+          <label className="block space-y-1.5">
+            <span className="text-ink-muted font-medium">
               {t.usersManagement.reportsToManager}
-            </label>
+            </span>
             <Select
               value={managerId}
               onChange={(e) => setManagerId(e.target.value)}
@@ -630,32 +644,20 @@ export function UsersManagementView({
                 </option>
               ))}
             </Select>
-          </div>
+          </label>
 
-          <div className="pt-4 flex items-center justify-end gap-3 border-t border-ink/10">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowCreateModal(false)}
-            >
-              {t.actions.cancel}
-            </Button>
-            <Button type="submit" variant="primary" size="sm" disabled={saving}>
-              {saving ? t.usersView.creating : t.actions.save}
-            </Button>
-          </div>
+
         </form>
       </Modal>
 
-      <Modal closeLabel={t.actions.close} isOpen={confirmCreate} onClose={() => setConfirmCreate(false)} title={t.accountSettings.confirmCreateTitle}>
+      <Modal closeLabel={t.actions.close} isOpen={confirmCreate} onClose={() => setConfirmCreate(false)} title={t.accountSettings.confirmCreateTitle} footer={null}>
         <p className="text-sm text-ink">
           {formatMessage(t.accountSettings.confirmCreateBody, { name: fullName, email: email, role: allRoles.find((r) => r.key === role)?.name ?? role })}
         </p>
-        <div className="mt-5 flex justify-end gap-2">
+        <ModalFooter><div className="flex justify-end gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={() => setConfirmCreate(false)}>{t.actions.cancel}</Button>
           <Button type="button" size="sm" disabled={saving} onClick={() => void handleCreateUser()}>{t.accountSettings.create}</Button>
-        </div>
+        </div></ModalFooter>
       </Modal>
 
       {editing && (

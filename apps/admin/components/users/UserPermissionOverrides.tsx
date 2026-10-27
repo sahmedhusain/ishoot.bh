@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Button, Modal } from "@platform/ui";
+import { ModalFooter, Button, Modal } from "@platform/ui";
 import { PERMISSION_GROUPS } from "@platform/database/constants/permissions";
 import { setUserPermissionOverridesAction } from "../../app/actions/permission-overrides";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -55,15 +55,15 @@ export function UserPermissionOverrides({ user, roleGrants, onClose }: { user: {
   };
 
   return (
-    <Modal closeLabel={t.actions.close} isOpen onClose={onClose} title={o.title.replace("{name}", user.name)}>
+    <Modal closeLabel={t.actions.close} isOpen onClose={onClose} title={o.title.replace("{name}", user.name)} footer={null}>
       <div className="space-y-4 text-xs">
         <p className="text-ink-muted">{o.hint}</p>
         <div className="flex flex-wrap gap-3 text-[11px]">
-          <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded border border-ink/20 bg-ink/5" />{o.legend.role}</span>
+          <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded border border-outline-variant bg-ink/5" />{o.legend.role}</span>
           <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-emerald-500" />{o.legend.allow}</span>
           <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-rose-500" />{o.legend.deny}</span>
         </div>
-        <div className="max-h-[60vh] overflow-auto rounded-2xl border border-ink/10">
+        <div className="max-h-[60vh] overflow-auto rounded-2xl border border-outline-variant">
           <table className="w-full text-[11px]">
             <thead className="sticky top-0 bg-surface text-ink-muted">
               <tr>
@@ -76,7 +76,7 @@ export function UserPermissionOverrides({ user, roleGrants, onClose }: { user: {
                 <React.Fragment key={group.key}>
                   <tr><td colSpan={ACTIONS.length + 1} className="bg-ink/[0.03] px-2 py-1 text-[10px] font-bold uppercase text-ink-muted">{labels.groups[group.key] ?? group.key}</td></tr>
                   {group.resources.map((resource) => (
-                    <tr key={resource} className="border-t border-ink/5">
+                    <tr key={resource} className="border-t border-outline-variant">
                       <td className="px-2 py-1.5 text-ink">{labels.resources[resource] ?? resource}</td>
                       {ACTIONS.map((action) => {
                         const key = `${resource}:${action}`;
@@ -89,7 +89,7 @@ export function UserPermissionOverrides({ user, roleGrants, onClose }: { user: {
                               onClick={() => cycle(key)}
                               aria-label={`${labels.resources[resource] ?? resource} · ${labels.actions[action] ?? action}: ${o.cells[cell]} (${on ? o.on : o.off})`}
                               title={o.cells[cell]}
-                              className={`h-6 w-9 rounded-md text-[10px] font-bold ${cell === "allow" ? "bg-emerald-500 text-white" : cell === "deny" ? "bg-rose-500 text-white" : on ? "border border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "border border-ink/15 bg-ink/5 text-ink-muted"
+                              className={`h-6 w-9 rounded-md text-[10px] font-bold ${cell === "allow" ? "bg-emerald-500 text-white" : cell === "deny" ? "bg-rose-500 text-white" : on ? "border border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "border border-outline-variant bg-ink/5 text-ink-muted"
                                 }`}
                             >
                               {on ? "✓" : "–"}
@@ -104,14 +104,14 @@ export function UserPermissionOverrides({ user, roleGrants, onClose }: { user: {
             </tbody>
           </table>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-2">
+        <ModalFooter><div className="flex flex-wrap items-center justify-between gap-2">
           <span className="text-ink-muted">{o.count.replace("{n}", String(count))}</span>
           <div className="flex gap-2">
             {count > 0 && <Button type="button" variant="ghost" size="sm" onClick={() => setOverrides({})}>{o.reset}</Button>}
             <Button type="button" variant="outline" size="sm" onClick={onClose}>{t.actions.cancel}</Button>
             <Button type="button" size="sm" disabled={busy} onClick={save}>{o.save}</Button>
           </div>
-        </div>
+        </div></ModalFooter>
       </div>
     </Modal>
   );

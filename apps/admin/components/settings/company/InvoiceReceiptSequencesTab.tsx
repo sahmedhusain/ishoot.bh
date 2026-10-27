@@ -24,16 +24,16 @@ export function InvoiceReceiptSequencesTab({
 }: InvoiceReceiptSequencesTabProps) {
   return (
     <div className="space-y-6 animate-fade-in">
-      <Card className="p-6 bg-white dark:bg-[#202124] border border-ink/15 dark:border-ink/15 shadow-xs rounded-2xl space-y-6">
-        <div className="flex items-center gap-3 pb-3 border-b border-ink/15 dark:border-ink/15">
+      <Card className="p-6 bg-surface-raised dark:bg-surface-container-low border border-outline-variant dark:border-outline-variant shadow-xs rounded-2xl space-y-6">
+        <div className="flex items-center gap-3 pb-3 border-b border-outline-variant dark:border-outline-variant">
           <div className="p-2 rounded-xl bg-primary/10 text-primary dark:text-mint">
             <Hash className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+            <h2 className="text-sm font-bold text-ink dark:text-ink">
               {t.companySettingsTabs.sequences}
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-ink-muted dark:text-ink-muted">
               {t.companySettingsTabs.sequencesSubtitle}
             </p>
           </div>
@@ -41,18 +41,18 @@ export function InvoiceReceiptSequencesTab({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {/* Invoice Sequence */}
-          <div className="p-4 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50/50 dark:bg-neutral-900/30 space-y-4">
-            <div className="flex items-center gap-2 font-bold text-xs text-slate-800 dark:text-neutral-200">
+          <div className="p-4 rounded-xl border border-outline-variant dark:border-outline-variant bg-surface-raised/50 dark:bg-surface-raised/30 space-y-4">
+            <div className="flex items-center gap-2 font-bold text-xs text-ink dark:text-ink">
               <FileText className="w-4 h-4 text-primary dark:text-mint" />
               <span>
                 {t.companySettingsTabs.invoiceSeqTitle}
               </span>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+            <label className="block space-y-1.5">
+              <span className="text-xs font-medium text-ink dark:text-ink">
                 {t.companySettingsTabs.invoicePrefix}
-              </label>
+              </span>
               <Input
                 value={settings.invoice_prefix || "INV"}
                 onChange={(e) =>
@@ -61,12 +61,12 @@ export function InvoiceReceiptSequencesTab({
                 placeholder={t.companySettingsTabs.invPrefixPlaceholder}
                 className=" text-sm uppercase rounded-lg"
               />
-            </div>
+            </label>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+            <label className="block space-y-1.5">
+              <span className="text-xs font-medium text-ink dark:text-ink">
                 {t.companySettingsTabs.invoiceNextNumber}
-              </label>
+              </span>
               <Input
                 type="number"
                 min="1"
@@ -79,10 +79,10 @@ export function InvoiceReceiptSequencesTab({
                 }
                 className=" text-sm rounded-lg"
               />
-            </div>
+            </label>
 
-            <div className="p-2.5 rounded-lg bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-xs">
-              <span className="text-slate-500 dark:text-neutral-400">
+            <div className="p-2.5 rounded-lg bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-outline-variant text-xs">
+              <span className="text-ink-muted dark:text-ink-muted">
                 {t.companySettingsTabs.nextInvoicePreview}
               </span>
               <span className=" font-bold text-primary dark:text-mint">
@@ -92,18 +92,18 @@ export function InvoiceReceiptSequencesTab({
           </div>
 
           {/* Receipt Sequence */}
-          <div className="p-4 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50/50 dark:bg-neutral-900/30 space-y-4">
-            <div className="flex items-center gap-2 font-bold text-xs text-slate-800 dark:text-neutral-200">
+          <div className="p-4 rounded-xl border border-outline-variant dark:border-outline-variant bg-surface-raised/50 dark:bg-surface-raised/30 space-y-4">
+            <div className="flex items-center gap-2 font-bold text-xs text-ink dark:text-ink">
               <Receipt className="w-4 h-4 text-accent" />
               <span>
                 {t.companySettingsTabs.receiptSeqTitle}
               </span>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+            <label className="block space-y-1.5">
+              <span className="text-xs font-medium text-ink dark:text-ink">
                 {t.companySettingsTabs.receiptPrefix}
-              </label>
+              </span>
               <Input
                 value={settings.receipt_prefix || "RCT"}
                 onChange={(e) =>
@@ -112,12 +112,12 @@ export function InvoiceReceiptSequencesTab({
                 placeholder={t.companySettingsTabs.rctPrefixPlaceholder}
                 className=" text-sm uppercase rounded-lg"
               />
-            </div>
+            </label>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+            <label className="block space-y-1.5">
+              <span className="text-xs font-medium text-ink dark:text-ink">
                 {t.companySettingsTabs.receiptNextNumber}
-              </label>
+              </span>
               <Input
                 type="number"
                 min="1"
@@ -130,10 +130,10 @@ export function InvoiceReceiptSequencesTab({
                 }
                 className=" text-sm rounded-lg"
               />
-            </div>
+            </label>
 
-            <div className="p-2.5 rounded-lg bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-xs">
-              <span className="text-slate-500 dark:text-neutral-400">
+            <div className="p-2.5 rounded-lg bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-outline-variant text-xs">
+              <span className="text-ink-muted dark:text-ink-muted">
                 {t.companySettingsTabs.nextReceiptPreview}
               </span>
               <span className=" font-bold text-accent">
@@ -143,8 +143,8 @@ export function InvoiceReceiptSequencesTab({
           </div>
 
           {/* Payment Terms Days */}
-          <div className="sm:col-span-2 p-4 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50/50 dark:bg-neutral-900/30 space-y-3">
-            <div className="flex items-center gap-2 font-bold text-xs text-slate-800 dark:text-neutral-200">
+          <div className="sm:col-span-2 p-4 rounded-xl border border-outline-variant dark:border-outline-variant bg-surface-raised/50 dark:bg-surface-raised/30 space-y-3">
+            <div className="flex items-center gap-2 font-bold text-xs text-ink dark:text-ink">
               <Clock className="w-4 h-4 text-amber-500" />
               <span>
                 {t.companySettingsTabs.termsTitle}
@@ -152,10 +152,10 @@ export function InvoiceReceiptSequencesTab({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+              <label className="block space-y-1.5">
+                <span className="text-xs font-medium text-ink dark:text-ink">
                   {t.companySettingsTabs.paymentTermsDays}
-                </label>
+                </span>
                 <Input
                   type="number"
                   min="0"
@@ -169,9 +169,9 @@ export function InvoiceReceiptSequencesTab({
                   }
                   className=" text-sm rounded-lg"
                 />
-              </div>
+              </label>
 
-              <p className="text-xs text-slate-500 dark:text-neutral-400">
+              <p className="text-xs text-ink-muted dark:text-ink-muted">
                 {t.companySettingsTabs.termsHelper}
               </p>
             </div>

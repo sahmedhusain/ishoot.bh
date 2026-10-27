@@ -7,11 +7,11 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 export function NoEmployeeProfile() {
   const { t } = useAdminLocale();
   return (
-    <div role="status" className="flex items-start gap-3 rounded-xl border border-dashed border-slate-300 dark:border-white/15 bg-slate-50 dark:bg-white/5 p-4">
-      <UserX className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" aria-hidden="true" />
+    <div role="status" className="flex items-start gap-3 rounded-xl border border-dashed border-outline-variant dark:border-white/15 bg-surface-raised dark:bg-white/5 p-4">
+      <UserX className="w-5 h-5 text-ink-muted shrink-0 mt-0.5" aria-hidden="true" />
       <div>
-        <p className="text-sm font-semibold text-slate-800 dark:text-white">{t.hrSelfService.noProfileTitle}</p>
-        <p className="text-xs text-slate-500 mt-1">{t.hrSelfService.noProfileBody}</p>
+        <p className="text-sm font-semibold text-ink dark:text-ink">{t.hrSelfService.noProfileTitle}</p>
+        <p className="text-xs text-ink-muted mt-1">{t.hrSelfService.noProfileBody}</p>
       </div>
     </div>
   );

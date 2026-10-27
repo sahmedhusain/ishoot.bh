@@ -12,6 +12,8 @@ import type { ContentLanguage } from "@platform/database/constants/languages";
 import { LanguageFields } from "../setup/LanguageFields";
 
 export function StatsManagementView({ initialStats, languages }: { initialStats: StatisticItem[]; languages: readonly ContentLanguage[] }) {
+  const modalFormId = React.useId();
+
   const { t, isRTL } = useAdminLocale();
   const [stats, setStats] = React.useState(initialStats);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -91,14 +93,14 @@ export function StatsManagementView({ initialStats, languages }: { initialStats:
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between" data-page-header>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">
             {t.statsView.title}
           </h1>
-          <p className="text-xs text-slate-500 mt-1">{t.statsView.subtitle}</p>
+          <p className="text-xs text-ink-muted mt-1">{t.statsView.subtitle}</p>
         </div>
-        <Button onClick={handleOpenNew} className="bg-accent text-white">
+        <Button onClick={handleOpenNew} className="bg-accent text-accent-foreground">
           <Plus className="w-4 h-4 me-2" /> {t.statsView.newStat}
         </Button>
       </div>
@@ -115,10 +117,10 @@ export function StatsManagementView({ initialStats, languages }: { initialStats:
                   </span>
                 )}
               </div>
-              <h3 className="font-bold text-sm dark:text-white">
+              <h3 className="font-bold text-sm dark:text-ink">
                 {isRTL && stat.labelAr ? stat.labelAr : stat.labelEn}
               </h3>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-ink-muted mt-1">
                 {isRTL && stat.subLabelAr ? stat.subLabelAr : stat.subLabelEn}
               </p>
             </div>
@@ -132,9 +134,12 @@ export function StatsManagementView({ initialStats, languages }: { initialStats:
         ))}
       </div>
 
-      <Modal closeLabel={t.actions.close} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingItem ? t.statsView.editStat : t.statsView.newStat}>
-        <form onSubmit={handleSave} className="space-y-4">
-          <div role="radiogroup" aria-label={t.statsView.valueSource} className="inline-flex flex-wrap gap-1 p-1 rounded-full bg-surface-sunken border border-ink/10">
+      <Modal closeLabel={t.actions.close} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingItem ? t.statsView.editStat : t.statsView.newStat} footer={<div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setIsModalOpen(false)} type="button">{t.statsView.cancel}</Button>
+            <Button type="submit" className="bg-accent text-accent-foreground" form={modalFormId}>{t.statsView.saveStat}</Button>
+          </div>}>
+        <form onSubmit={handleSave} className="space-y-4" id={modalFormId}>
+          <div role="radiogroup" aria-label={t.statsView.valueSource} className="inline-flex flex-wrap gap-1 p-1 rounded-full bg-surface-sunken border border-outline-variant">
             {(["manual", "preset"] as const).map((option) => (
               <button
                 key={option}
@@ -142,14 +147,14 @@ export function StatsManagementView({ initialStats, languages }: { initialStats:
                 role="radio"
                 aria-checked={source === option}
                 onClick={() => setSource(option)}
-                className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors ${source === option ? "bg-accent text-white shadow-sm" : "text-ink-muted hover:text-ink hover:bg-ink/5"}`}
+                className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors ${source === option ? "bg-accent text-accent-foreground shadow-sm" : "text-ink-muted hover:text-ink hover:bg-ink/5"}`}
               >
                 {option === "manual" ? t.statsView.sourceManual : t.statsView.sourcePreset}
               </button>
             ))}
           </div>
           {source === "preset" && (
-            <div className="grid grid-cols-2 gap-4 rounded-2xl border border-ink/10 p-4">
+            <div className="grid grid-cols-2 gap-4 rounded-2xl border border-outline-variant p-4">
               <div className="col-span-2">
                 <label htmlFor="stat-preset" className="text-xs font-bold block mb-1">{t.statsView.presetLabel}</label>
                 <Select id="stat-preset" value={preset} onChange={e => setPreset(e.target.value as StatisticPreset)}>
@@ -176,10 +181,10 @@ export function StatsManagementView({ initialStats, languages }: { initialStats:
           )}
           <div className="grid grid-cols-2 gap-4">
             {source === "manual" && (
-              <div className="col-span-2 sm:col-span-1">
-                <label className="text-xs font-bold block mb-1">{t.statsView.valueLabel}</label>
+              <label className="col-span-2 sm:col-span-1">
+                <span className="text-xs font-bold block mb-1">{t.statsView.valueLabel}</span>
                 <Input value={value} maxLength={20} onChange={e => setValue(e.target.value)} required />
-              </div>
+              </label>
             )}
             <div className="col-span-2 sm:col-span-1">
               <label className="text-xs font-bold block mb-1">{t.statsView.lucideIcon}</label>
@@ -188,12 +193,9 @@ export function StatsManagementView({ initialStats, languages }: { initialStats:
             <LanguageFields name="label" label={t.statsView.label} languages={languages} required maxLength={100} en={labelEn} ar={labelAr} onChange={(v) => { setLabelEn(v.en); setLabelAr(v.ar); }} />
             <LanguageFields name="subLabel" label={t.statsView.subLabel} languages={languages} maxLength={200} en={subLabelEn} ar={subLabelAr} onChange={(v) => { setSubLabelEn(v.en); setSubLabelAr(v.ar); }} />
           </div>
-          <div><label className="text-xs font-bold block mb-1">{t.statsView.sortOrder}</label><Input type="number" value={sortOrder} onChange={e => setSortOrder(Number(e.target.value))} /></div>
+          <label><span className="text-xs font-bold block mb-1">{t.statsView.sortOrder}</span><Input type="number" value={sortOrder} onChange={e => setSortOrder(Number(e.target.value))} /></label>
           {error && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-          <div className="flex justify-end gap-2 pt-4">
-            <Button variant="ghost" onClick={() => setIsModalOpen(false)}>{t.statsView.cancel}</Button>
-            <Button type="submit" className="bg-accent text-white">{t.statsView.saveStat}</Button>
-          </div>
+
         </form>
       </Modal>
 

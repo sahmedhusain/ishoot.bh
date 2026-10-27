@@ -45,7 +45,7 @@ export function AssetUrlInput({ value, onChange, resource, placeholder, required
   return (
     <div className="space-y-2">
       <div className="flex items-stretch gap-2">
-        <div className="w-11 shrink-0 rounded-xl bg-ink/5 border border-ink/10 flex items-center justify-center overflow-hidden">
+        <div className="w-11 shrink-0 rounded-xl bg-ink/5 border border-outline-variant flex items-center justify-center overflow-hidden">
           {previewable ? (
             <ContentImage src={websiteMedia(value)} alt="" className="w-full h-full object-contain p-1" />
           ) : (
@@ -75,7 +75,7 @@ export function AssetUrlInput({ value, onChange, resource, placeholder, required
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          className="shrink-0 inline-flex items-center gap-1.5 px-3 rounded-xl border border-ink/15 text-xs font-semibold text-ink hover:bg-ink/5 disabled:opacity-60"
+          className="shrink-0 inline-flex items-center gap-1.5 px-3 rounded-xl border border-outline-variant text-xs font-semibold text-ink hover:bg-ink/5 disabled:opacity-60"
         >
           {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UploadCloud className="w-3.5 h-3.5" />}
           <span>{uploading ? t.assetField.uploading : t.assetField.upload}</span>

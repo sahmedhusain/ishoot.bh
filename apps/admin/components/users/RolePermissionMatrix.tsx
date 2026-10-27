@@ -12,7 +12,7 @@ const LEVEL_STYLE: Record<Level, string> = {
   full: "bg-emerald-500/12 text-emerald-800 ring-emerald-600/25 dark:text-emerald-300",
   edit: "bg-sky-500/12 text-sky-800 ring-sky-600/25 dark:text-sky-300",
   view: "bg-amber-500/12 text-amber-800 ring-amber-600/25 dark:text-amber-300",
-  none: "text-ink-muted/50 ring-transparent",
+  none: "text-ink-muted ring-transparent",
 };
 const LEVEL_ICON = { full: ShieldCheck, edit: PencilLine, view: Eye, none: Lock } as const;
 
@@ -42,8 +42,8 @@ export function RolePermissionMatrix({
     PERMISSION_GROUPS.flatMap((group) => group.resources).filter((resource) => accessFor(rolePermissions[role], resource).level !== "none").length;
 
   return (
-    <section className="overflow-hidden rounded-3xl border border-ink/10 bg-surface shadow-sm" aria-labelledby="matrix-title">
-      <header className="flex flex-col gap-3 border-b border-ink/10 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+    <section className="overflow-hidden rounded-3xl border border-outline-variant bg-surface shadow-sm" aria-labelledby="matrix-title">
+      <header className="flex flex-col gap-3 border-b border-outline-variant px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
           <h2 id="matrix-title" className="text-base font-bold text-ink">{u.matrixTitle}</h2>
           <p className="mt-0.5 text-xs text-ink-muted">{u.matrixSubtitle}</p>
@@ -67,14 +67,14 @@ export function RolePermissionMatrix({
         <table className="w-full border-separate border-spacing-0 text-xs">
           <thead>
             <tr>
-              <th scope="col" className="sticky start-0 top-0 z-30 min-w-[190px] border-b border-ink/10 bg-surface px-4 py-3 text-start font-semibold text-ink-muted">
+              <th scope="col" className="sticky start-0 top-0 z-30 min-w-[190px] border-b border-outline-variant bg-surface px-4 py-3 text-start font-semibold text-ink-muted">
                 {u.moduleHeader}
               </th>
               {roles.map((role) => {
                 const covered = coverage(role.key);
                 return (
-                  <th key={role.key} scope="col" className="sticky top-0 z-20 min-w-[112px] border-b border-ink/10 bg-surface px-2 py-3 text-center align-bottom">
-                    <span className="block font-semibold leading-tight text-ink">{role.name}</span>
+                  <th key={role.key} scope="col" className="sticky top-0 z-20 min-w-[112px] border-b border-outline-variant bg-surface px-2 py-3 text-center align-bottom">
+                    <span className="block font-semibold leading-tight text-ink"><bdi dir="auto">{role.name}</bdi></span>
                     <span className="mt-1.5 block text-[10px] font-normal text-ink-muted">
                       {formatMessage(u.coverage, { count: String(covered), total: String(totalModules) })}
                     </span>
@@ -89,13 +89,13 @@ export function RolePermissionMatrix({
           {PERMISSION_GROUPS.map((group) => (
             <tbody key={group.key}>
               <tr>
-                <th scope="colgroup" colSpan={roles.length + 1} className="border-b border-ink/10 bg-ink/[0.04] px-4 py-2 text-start text-[11px] font-bold text-ink-muted">
+                <th scope="colgroup" colSpan={roles.length + 1} className="border-b border-outline-variant bg-ink/[0.04] px-4 py-2 text-start text-[11px] font-bold text-ink-muted">
                   <span className="sticky start-4">{labels.groups[group.key as keyof typeof labels.groups]}</span>
                 </th>
               </tr>
               {group.resources.map((resource: PermissionResource) => (
                 <tr key={resource} className="group">
-                  <th scope="row" className="sticky start-0 z-10 border-b border-ink/5 bg-surface px-4 py-2.5 text-start font-medium text-ink group-hover:bg-ink/[0.03]">
+                  <th scope="row" className="sticky start-0 z-10 border-b border-outline-variant bg-surface px-4 py-2.5 text-start font-medium text-ink group-hover:bg-ink/[0.03]">
                     {labels.resources[resource]}
                   </th>
                   {roles.map((role) => {
@@ -105,7 +105,7 @@ export function RolePermissionMatrix({
                       ? access.actions.map((action) => labels.actions[action as Exclude<PermissionAction, "write">]).join(u.listSeparator)
                       : u.levelNone;
                     return (
-                      <td key={role.key} className="border-b border-ink/5 px-2 py-2 text-center group-hover:bg-ink/[0.03]">
+                      <td key={role.key} className="border-b border-outline-variant px-2 py-2 text-center group-hover:bg-ink/[0.03]">
                         <span className="inline-flex items-center gap-1" title={`${role.name} · ${labels.resources[resource]}: ${detail}`}>
                           <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${LEVEL_STYLE[access.level]}`}>
                             <Icon className="h-3 w-3" aria-hidden />
@@ -123,7 +123,7 @@ export function RolePermissionMatrix({
           ))}
         </table>
       </div>
-      <p className="border-t border-ink/10 px-5 py-3 text-[11px] text-ink-muted">{u.matrixFootnote}</p>
+      <p className="border-t border-outline-variant px-5 py-3 text-[11px] text-ink-muted">{u.matrixFootnote}</p>
     </section>
   );
 }

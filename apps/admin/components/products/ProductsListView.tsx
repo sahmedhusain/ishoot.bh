@@ -63,10 +63,10 @@ export function ProductsListView({ rows, total, page, pageSize, filters, categor
   const allChecked = rows.length > 0 && rows.every((row) => selected.includes(row.id));
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{copy.title}</h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
+          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
         </div>
         {canCreate && (
           <Link href={ROUTES.products.new} className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 h-9 text-sm font-semibold text-primary-foreground hover:opacity-90">
@@ -103,7 +103,7 @@ export function ProductsListView({ rows, total, page, pageSize, filters, categor
 
       <Card className="overflow-hidden">
         {canEdit && selected.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2 border-b border-ink/10 bg-accent/[0.06] px-4 py-2.5 text-sm">
+          <div className="flex flex-wrap items-center gap-2 border-b border-outline-variant bg-accent/[0.06] px-4 py-2.5 text-sm">
             <span className="font-semibold">{formatMessage(copy.selected, { count: selected.length })}</span>
             <Button type="button" size="sm" variant="outline" className="rounded-full" disabled={busy} onClick={() => bulk(true)}>{copy.activate}</Button>
             <Button type="button" size="sm" variant="outline" className="rounded-full" disabled={busy} onClick={() => bulk(false)}>{copy.deactivate}</Button>
@@ -132,7 +132,7 @@ export function ProductsListView({ rows, total, page, pageSize, filters, categor
                   <th scope="col" className="px-4 py-3 text-start font-semibold hidden sm:table-cell">{copy.columns.status}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink/10">
+              <tbody className="divide-y divide-outline-variant">
                 {rows.map((row) => {
                   const title = name(row.name_en, row.name_ar);
                   return (
@@ -169,7 +169,7 @@ export function ProductsListView({ rows, total, page, pageSize, filters, categor
             </table>
           </div>
         )}
-        <div className="flex items-center justify-between gap-3 border-t border-ink/10 px-4 py-3 text-xs">
+        <div className="flex items-center justify-between gap-3 border-t border-outline-variant px-4 py-3 text-xs">
           <span className="text-ink-muted">{formatMessage(copy.showing, { from: total ? (page - 1) * pageSize + 1 : 0, to: Math.min(total, page * pageSize), total })}</span>
           {pages > 1 && (
             <nav aria-label={copy.pages} className="flex items-center gap-4">

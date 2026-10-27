@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CalendarDays, Clock, Pencil, Plus, Trash2, Wallet } from "lucide-react";
-import { Button, Card, ConfirmDialog, DateDisplay, Modal } from "@platform/ui";
+import { Select, ModalFooter, Button, Card, ConfirmDialog, DateDisplay, Modal } from "@platform/ui";
 import type { HrPolicyRules } from "@platform/database/hr/payroll-engine";
 import { payrollWindow } from "@platform/database/hr/payroll-engine";
 import type { LeaveTypeView, ShiftTypeView } from "@platform/database/queries/hr-settings";
@@ -23,15 +23,15 @@ type Tab = "policy" | "leave" | "holidays" | "shifts";
 type Holiday = { id: string; date: string; nameEn: string; nameAr: string };
 
 const fieldClass =
-  "w-full min-w-0 rounded-lg border border-ink/20 bg-white dark:bg-surface px-3 py-2 text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent/40";
-const labelClass = "block space-y-1 text-xs font-medium text-slate-700 dark:text-slate-200";
+  "w-full min-w-0 rounded-lg border border-outline-variant bg-surface-raised dark:bg-surface px-3 py-2 text-sm text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent/40";
+const labelClass = "block space-y-1 text-xs font-medium text-ink dark:text-ink";
 const fill = (template: string, values: Record<string, string | number>) =>
   Object.entries(values).reduce((text, [key, value]) => text.replaceAll(`{${key}}`, String(value)), template);
 
 function Section({ title, icon, children }: { title: string; icon?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <Card className="space-y-4 p-5 dark:bg-surface-raised">
-      <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">{icon}{title}</h2>
+    <Card className="space-y-4 p-5 dark:bg-surface-raised" data-page-section>
+      <h2 className="flex items-center gap-2 text-sm font-semibold text-ink dark:text-ink">{icon}{title}</h2>
       {children}
     </Card>
   );
@@ -40,7 +40,7 @@ function Section({ title, icon, children }: { title: string; icon?: React.ReactN
 function Choice({ name, value, current, onChange, children }: { name: string; value: string; current: string; onChange: (v: string) => void; children: React.ReactNode }) {
   const on = value === current;
   return (
-    <label className={`flex cursor-pointer items-start gap-2 rounded-xl border p-3 text-sm transition-colors focus-within:ring-2 focus-within:ring-accent/40 ${on ? "border-accent bg-accent/10 text-slate-900 dark:text-white" : "border-ink/15 text-slate-700 dark:text-slate-300"}`}>
+    <label className={`flex cursor-pointer items-start gap-2 rounded-xl border p-3 text-sm transition-colors focus-within:ring-2 focus-within:ring-accent/40 ${on ? "border-accent bg-accent/10 text-ink dark:text-ink" : "border-outline-variant text-ink dark:text-ink"}`}>
       <input type="radio" name={name} value={value} checked={on} onChange={() => onChange(value)} className="mt-0.5 accent-accent" />
       <span>{children}</span>
     </label>
@@ -106,21 +106,21 @@ function PolicyForm({ policy, editable }: { policy: HrPolicyRules; editable: boo
               <label className={labelClass}>
                 {h.cutoff}
                 {number("attendanceCutoffDay", { min: 1, max: 28, step: 1, placeholder: String(Math.max(1, Math.min(28, form.payDay - 1))) })}
-                <span className="block text-[11px] font-normal text-slate-500">{h.cutoffHint}</span>
+                <span className="block text-[11px] font-normal text-ink-muted">{h.cutoffHint}</span>
               </label>
             )}
           </div>
-          <p className="rounded-xl bg-surface-sunken px-3 py-2 text-xs text-slate-700 dark:text-slate-300">{fill(h.example, { example })}</p>
+          <p className="rounded-xl bg-surface-sunken px-3 py-2 text-xs text-ink dark:text-ink">{fill(h.example, { example })}</p>
         </Section>
 
         <Section title={h.week} icon={<CalendarDays className="w-4 h-4" />}>
           <fieldset>
-            <legend className="mb-1.5 text-xs font-medium text-slate-700 dark:text-slate-200">{h.weekendDays}</legend>
+            <legend className="mb-1.5 text-xs font-medium text-ink dark:text-ink">{h.weekendDays}</legend>
             <div className="flex flex-wrap gap-1.5">
               {h.weekdays.map((dayName: string, index: number) => {
                 const on = form.weekendDays.includes(index);
                 return (
-                  <label key={index} className={`cursor-pointer rounded-full border px-3 py-1 text-xs focus-within:ring-2 focus-within:ring-accent/40 ${on ? "border-accent bg-accent/10 text-slate-900 dark:text-white" : "border-ink/15 text-slate-600 dark:text-slate-300"}`}>
+                  <label key={index} className={`cursor-pointer rounded-full border px-3 py-1 text-xs focus-within:ring-2 focus-within:ring-accent/40 ${on ? "border-accent bg-accent/10 text-ink dark:text-ink" : "border-outline-variant text-ink-muted dark:text-ink"}`}>
                     <input type="checkbox" className="sr-only" checked={on} onChange={() => set("weekendDays", on ? form.weekendDays.filter((d) => d !== index) : [...form.weekendDays, index])} />
                     {dayName}
                   </label>
@@ -141,25 +141,25 @@ function PolicyForm({ policy, editable }: { policy: HrPolicyRules; editable: boo
           <div className="grid gap-3 sm:grid-cols-3">
             <label className={labelClass}>
               {h.dailyRateBasis}
-              <select className={fieldClass} value={form.dailyRateBasis} onChange={(e) => set("dailyRateBasis", e.target.value as HrPolicyRules["dailyRateBasis"])}>
+              <Select className={fieldClass} value={form.dailyRateBasis} onChange={(e) => set("dailyRateBasis", e.target.value as HrPolicyRules["dailyRateBasis"])}>
                 <option value="30">{h.basis30}</option>
                 <option value="calendar_days">{h.basisCalendar}</option>
                 <option value="working_days">{h.basisWorking}</option>
-              </select>
+              </Select>
             </label>
             <label className={labelClass}>
               {h.deductionBase}
-              <select className={fieldClass} value={form.deductionBase} onChange={(e) => set("deductionBase", e.target.value as HrPolicyRules["deductionBase"])}>
+              <Select className={fieldClass} value={form.deductionBase} onChange={(e) => set("deductionBase", e.target.value as HrPolicyRules["deductionBase"])}>
                 <option value="fixed">{h.baseFixed}</option>
                 <option value="basic">{h.baseBasic}</option>
-              </select>
+              </Select>
             </label>
             <label className={labelClass}>
               {h.unmarked}
-              <select className={fieldClass} value={form.unmarkedDays} onChange={(e) => set("unmarkedDays", e.target.value as HrPolicyRules["unmarkedDays"])}>
+              <Select className={fieldClass} value={form.unmarkedDays} onChange={(e) => set("unmarkedDays", e.target.value as HrPolicyRules["unmarkedDays"])}>
                 <option value="present">{h.unmarkedPresent}</option>
                 <option value="absent">{h.unmarkedAbsent}</option>
-              </select>
+              </Select>
             </label>
           </div>
         </Section>
@@ -168,10 +168,10 @@ function PolicyForm({ policy, editable }: { policy: HrPolicyRules; editable: boo
           <div className="grid gap-3 sm:grid-cols-5">
             <label className={labelClass}>
               {h.overtimeBase}
-              <select className={fieldClass} value={form.overtimeBase} onChange={(e) => set("overtimeBase", e.target.value as HrPolicyRules["overtimeBase"])}>
+              <Select className={fieldClass} value={form.overtimeBase} onChange={(e) => set("overtimeBase", e.target.value as HrPolicyRules["overtimeBase"])}>
                 <option value="basic">{h.baseBasic}</option>
                 <option value="fixed">{h.baseFixed}</option>
-              </select>
+              </Select>
             </label>
             <label className={labelClass}>{h.otNormal}{number("overtimeRate", { min: 1, max: 5, step: 0.05 })}</label>
             <label className={labelClass}>{h.otNight}{number("overtimeNightRate", { min: 1, max: 5, step: 0.05 })}</label>
@@ -182,7 +182,7 @@ function PolicyForm({ policy, editable }: { policy: HrPolicyRules; editable: boo
 
         <Section title={h.lateness}>
           <div className="grid items-end gap-3 sm:grid-cols-2">
-            <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+            <label className="flex items-center gap-2 text-sm text-ink dark:text-ink">
               <input type="checkbox" role="switch" className="accent-accent" checked={form.deductLateness} onChange={(e) => set("deductLateness", e.target.checked)} />
               {h.deductLateness}
             </label>
@@ -191,11 +191,11 @@ function PolicyForm({ policy, editable }: { policy: HrPolicyRules; editable: boo
         </Section>
 
         <Section title={h.other}>
-          <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+          <label className="flex items-center gap-2 text-sm text-ink dark:text-ink">
             <input type="checkbox" role="switch" className="accent-accent" checked={form.prorateJoiners} onChange={(e) => set("prorateJoiners", e.target.checked)} />
             {h.prorate}
           </label>
-          <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+          <label className="flex items-center gap-2 text-sm text-ink dark:text-ink">
             <input type="checkbox" role="switch" className="accent-accent" checked={form.commissionInPayroll} onChange={(e) => set("commissionInPayroll", e.target.checked)} />
             {h.commission}
           </label>
@@ -217,6 +217,8 @@ const emptyLeaveType = (order: number): LeaveTypeView => ({
 });
 
 function LeaveTypeForm({ value, onClose }: { value: LeaveTypeView; onClose: () => void }) {
+  const modalFormId = React.useId();
+
   const { t } = useAdminLocale();
   const h = t.hrSettings;
   const router = useRouter();
@@ -244,20 +246,20 @@ function LeaveTypeForm({ value, onClose }: { value: LeaveTypeView; onClose: () =
   );
 
   return (
-    <form onSubmit={save} className="space-y-3">
+    <form onSubmit={save} className="space-y-3" id={modalFormId}>
       <div className="grid gap-3 sm:grid-cols-3">
         <label className={labelClass}>{h.code}<input required dir="ltr" maxLength={40} className={fieldClass} value={form.code} onChange={(e) => set("code", e.target.value)} /></label>
-        <label className={labelClass}>{h.nameEn}<input required maxLength={80} className={fieldClass} value={form.nameEn} onChange={(e) => set("nameEn", e.target.value)} /></label>
+        <label className={labelClass}>{h.nameEn}<input required maxLength={80} className={fieldClass} value={form.nameEn} onChange={(e) => set("nameEn", e.target.value)}  dir="ltr"/></label>
         <label className={labelClass}>{h.nameAr}<input maxLength={80} dir="rtl" className={fieldClass} value={form.nameAr} onChange={(e) => set("nameAr", e.target.value)} /></label>
       </div>
       <div className="grid gap-3 sm:grid-cols-3">
         <label className={labelClass}>
           {h.accrual}
-          <select className={fieldClass} value={form.accrual} onChange={(e) => set("accrual", e.target.value as LeaveTypeView["accrual"])}>
+          <Select className={fieldClass} value={form.accrual} onChange={(e) => set("accrual", e.target.value as LeaveTypeView["accrual"])}>
             <option value="annual">{h.accrualAnnual}</option>
             <option value="monthly">{h.accrualMonthly}</option>
             <option value="none">{h.accrualNone}</option>
-          </select>
+          </Select>
         </label>
         {form.accrual !== "none" && <label className={labelClass}>{h.daysPerYear}{num("daysAllowedPerYear", { min: 0, max: 366, step: 0.5, required: true })}</label>}
         {form.accrual !== "none" && <label className={labelClass}>{h.carryOver}{num("maxCarryOverDays", { min: 0, max: 366, step: 0.5 })}</label>}
@@ -265,8 +267,8 @@ function LeaveTypeForm({ value, onClose }: { value: LeaveTypeView; onClose: () =
         <label className={labelClass}>{h.maxPerRequest}{num("maxDaysPerRequest", { min: 0.5, max: 366, step: 0.5 })}</label>
         <label className={labelClass}>{h.order}{num("sortOrder", { min: 0, max: 999, step: 1 })}</label>
       </div>
-      <fieldset className="space-y-2 rounded-xl border border-ink/10 p-3">
-        <legend className="px-1 text-xs font-semibold text-slate-700 dark:text-slate-200">{h.pay}</legend>
+      <fieldset className="space-y-2 rounded-xl border border-outline-variant p-3">
+        <legend className="px-1 text-xs font-semibold text-ink dark:text-ink">{h.pay}</legend>
         {tiers.length === 0 ? (
           <label className={labelClass}>{h.payPercent} (%){num("payPercent", { min: 0, max: 100, step: 1 })}</label>
         ) : (
@@ -284,7 +286,7 @@ function LeaveTypeForm({ value, onClose }: { value: LeaveTypeView; onClose: () =
           <Plus className="w-3.5 h-3.5" />{h.addBand}
         </Button>
       </fieldset>
-      <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-700 dark:text-slate-200">
+      <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-ink dark:text-ink">
         {([["allowHalfDay", h.allowHalf], ["allowHours", h.allowHours], ["countCalendarDays", h.calendarDays], ["requiresAttachment", h.attachment], ["requiresHandover", h.handover], ["isActive", h.active]] as const).map(([key, label]) => (
           <label key={key} className="flex items-center gap-2">
             <input type="checkbox" className="accent-accent" checked={!!form[key]} onChange={(e) => set(key, e.target.checked)} />
@@ -292,10 +294,10 @@ function LeaveTypeForm({ value, onClose }: { value: LeaveTypeView; onClose: () =
           </label>
         ))}
       </div>
-      <div className="flex justify-end gap-2">
+      <ModalFooter><div className="flex justify-end gap-2">
         <Button type="button" variant="ghost" size="sm" onClick={onClose}>{h.cancel}</Button>
-        <Button type="submit" size="sm" disabled={saving}>{h.saveType}</Button>
-      </div>
+        <Button type="submit" size="sm" disabled={saving} form={modalFormId}>{h.saveType}</Button>
+      </div></ModalFooter>
     </form>
   );
 }
@@ -316,28 +318,28 @@ function LeaveTypes({ leaveTypes, editable }: { leaveTypes: LeaveTypeView[]; edi
           <Card key={type.id} className={`space-y-2 p-4 dark:bg-surface-raised ${type.isActive ? "" : "opacity-60"}`}>
             <div className="flex items-start gap-2">
               <div className="min-w-0 flex-1">
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{locale === "ar" ? type.nameAr : type.nameEn}</h3>
-                <p className="text-[11px] text-slate-500"><bdi dir="ltr">{type.code}</bdi>{!type.isActive && ` · ${h.inactive}`}</p>
+                <h3 className="text-sm font-semibold text-ink dark:text-ink">{locale === "ar" ? type.nameAr : type.nameEn}</h3>
+                <p className="text-[11px] text-ink-muted"><bdi dir="ltr">{type.code}</bdi>{!type.isActive && ` · ${h.inactive}`}</p>
               </div>
               {editable && <Button type="button" variant="ghost" size="sm" aria-label={h.edit} onClick={() => setEditing(type)}><Pencil className="w-3.5 h-3.5" /></Button>}
             </div>
             <ul className="flex flex-wrap gap-1.5 text-[11px]">
-              <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-slate-700 dark:text-slate-300">
+              <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-ink dark:text-ink">
                 {type.payTiers?.length ? `${h.payBands}: ${type.payTiers.map((b) => `≤${b.upToDays} → ${b.percent}%`).join(" · ")}` : `${h.payPercent} ${type.payPercent}%`}
               </li>
-              <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-slate-700 dark:text-slate-300">
+              <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-ink dark:text-ink">
                 {type.accrual === "none" ? h.accrualNone : `${type.accrual === "monthly" ? h.accrualMonthly : h.accrualAnnual} · ${type.daysAllowedPerYear}`}
               </li>
-              {type.maxCarryOverDays > 0 && <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-slate-700 dark:text-slate-300">{h.carryOver} {type.maxCarryOverDays}</li>}
-              {type.eligibleAfterMonths > 0 && <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-slate-700 dark:text-slate-300">{h.eligibleAfter} {type.eligibleAfterMonths}</li>}
-              {type.allowHalfDay && <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-slate-700 dark:text-slate-300">{h.allowHalf}</li>}
-              {type.allowHours && <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-slate-700 dark:text-slate-300">{h.allowHours}</li>}
-              {type.countCalendarDays && <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-slate-700 dark:text-slate-300">{h.calendarDays}</li>}
+              {type.maxCarryOverDays > 0 && <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-ink dark:text-ink">{h.carryOver} {type.maxCarryOverDays}</li>}
+              {type.eligibleAfterMonths > 0 && <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-ink dark:text-ink">{h.eligibleAfter} {type.eligibleAfterMonths}</li>}
+              {type.allowHalfDay && <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-ink dark:text-ink">{h.allowHalf}</li>}
+              {type.allowHours && <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-ink dark:text-ink">{h.allowHours}</li>}
+              {type.countCalendarDays && <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-ink dark:text-ink">{h.calendarDays}</li>}
             </ul>
           </Card>
         ))}
       </div>
-      <Modal isOpen={editing !== null} onClose={() => setEditing(null)} title={editing?.id ? h.edit : h.addLeaveType} closeLabel={h.cancel} className="max-w-2xl">
+      <Modal isOpen={editing !== null} onClose={() => setEditing(null)} title={editing?.id ? h.edit : h.addLeaveType} closeLabel={h.cancel} className="max-w-2xl" footer={null}>
         {editing && <LeaveTypeForm value={editing} onClose={() => setEditing(null)} />}
       </Modal>
     </div>
@@ -365,25 +367,25 @@ function Holidays({ holidays, year, editable }: { holidays: Holiday[]; year: num
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <Link href={`?year=${year - 1}`} className="rounded-full px-3 py-1 text-xs hover:bg-ink/[0.06]"><bdi dir="ltr">{year - 1}</bdi></Link>
-        <span className="text-sm font-semibold text-slate-900 dark:text-white"><bdi dir="ltr">{year}</bdi></span>
+        <span className="text-sm font-semibold text-ink dark:text-ink"><bdi dir="ltr">{year}</bdi></span>
         <Link href={`?year=${year + 1}`} className="rounded-full px-3 py-1 text-xs hover:bg-ink/[0.06]"><bdi dir="ltr">{year + 1}</bdi></Link>
       </div>
       {editable && (
-        <form onSubmit={add} className="grid items-end gap-3 rounded-2xl border border-ink/10 p-4 sm:grid-cols-[10rem_1fr_1fr_auto]">
+        <form onSubmit={add} className="grid items-end gap-3 rounded-2xl border border-outline-variant p-4 sm:grid-cols-[10rem_1fr_1fr_auto]">
           <label className={labelClass}>{h.date}<input type="date" required className={fieldClass} value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} /></label>
-          <label className={labelClass}>{h.nameEn}<input required maxLength={120} className={fieldClass} value={form.nameEn} onChange={(e) => setForm({ ...form, nameEn: e.target.value })} /></label>
+          <label className={labelClass}>{h.nameEn}<input required maxLength={120} className={fieldClass} value={form.nameEn} onChange={(e) => setForm({ ...form, nameEn: e.target.value })}  dir="ltr"/></label>
           <label className={labelClass}>{h.nameAr}<input maxLength={120} dir="rtl" className={fieldClass} value={form.nameAr} onChange={(e) => setForm({ ...form, nameAr: e.target.value })} /></label>
           <Button type="submit" size="sm"><Plus className="w-3.5 h-3.5" />{h.addHoliday}</Button>
         </form>
       )}
       {holidays.length === 0 ? (
-        <p className="text-sm text-slate-600 dark:text-slate-300">{h.noHolidays}</p>
+        <p className="text-sm text-ink-muted dark:text-ink">{h.noHolidays}</p>
       ) : (
-        <ul className="divide-y divide-ink/10 rounded-2xl border border-ink/10">
+        <ul className="divide-y divide-outline-variant rounded-2xl border border-outline-variant">
           {holidays.map((holiday) => (
             <li key={holiday.id} className="flex items-center gap-3 px-4 py-2.5 text-sm">
-              <span className="w-36 shrink-0 text-slate-600 dark:text-slate-300"><DateDisplay date={holiday.date} locale={locale} /></span>
-              <span className="min-w-0 flex-1 truncate text-slate-900 dark:text-white">{locale === "ar" ? holiday.nameAr : holiday.nameEn}</span>
+              <span className="w-36 shrink-0 text-ink-muted dark:text-ink"><DateDisplay date={holiday.date} locale={locale} /></span>
+              <span className="min-w-0 flex-1 truncate text-ink dark:text-ink">{locale === "ar" ? holiday.nameAr : holiday.nameEn}</span>
               {editable && <Button type="button" variant="ghost" size="sm" aria-label={h.delete} onClick={() => setDeleting(holiday)}><Trash2 className="w-3.5 h-3.5 text-rose-600" /></Button>}
             </li>
           ))}
@@ -413,6 +415,8 @@ function Holidays({ holidays, year, editable }: { holidays: Holiday[]; year: num
 }
 
 function Shifts({ shiftTypes, editable }: { shiftTypes: ShiftTypeView[]; editable: boolean }) {
+  const modalFormId = React.useId();
+
   const { t, locale } = useAdminLocale();
   const h = t.hrSettings;
   const router = useRouter();
@@ -434,13 +438,13 @@ function Shifts({ shiftTypes, editable }: { shiftTypes: ShiftTypeView[]; editabl
     <div className="space-y-3">
       {editable && <div className="flex justify-end"><Button type="button" size="sm" onClick={() => setEditing(blank)}><Plus className="w-3.5 h-3.5" />{h.addShift}</Button></div>}
       {shiftTypes.length === 0 ? (
-        <p className="text-sm text-slate-600 dark:text-slate-300">{h.noShifts}</p>
+        <p className="text-sm text-ink-muted dark:text-ink">{h.noShifts}</p>
       ) : (
-        <ul className="divide-y divide-ink/10 rounded-2xl border border-ink/10">
+        <ul className="divide-y divide-outline-variant rounded-2xl border border-outline-variant">
           {shiftTypes.map((shift) => (
             <li key={shift.id} className={`flex flex-wrap items-center gap-3 px-4 py-2.5 text-sm ${shift.isActive ? "" : "opacity-60"}`}>
-              <span className="min-w-0 flex-1 text-slate-900 dark:text-white">{locale === "ar" ? shift.nameAr : shift.nameEn} <bdi dir="ltr" className="text-[11px] text-slate-500">{shift.code}</bdi></span>
-              <span className="text-xs text-slate-600 dark:text-slate-300">
+              <span className="min-w-0 flex-1 text-ink dark:text-ink">{locale === "ar" ? shift.nameAr : shift.nameEn} <bdi dir="ltr" className="text-[11px] text-ink-muted">{shift.code}</bdi></span>
+              <span className="text-xs text-ink-muted dark:text-ink">
                 <bdi dir="ltr">{shift.allowanceMode === "fixed" ? `${shift.allowanceValue.toFixed(3)} ${t.shared.bhd}` : `${shift.allowanceValue}%`}</bdi>
               </span>
               {editable && <Button type="button" variant="ghost" size="sm" aria-label={h.edit} onClick={() => setEditing(shift)}><Pencil className="w-3.5 h-3.5" /></Button>}
@@ -448,32 +452,32 @@ function Shifts({ shiftTypes, editable }: { shiftTypes: ShiftTypeView[]; editabl
           ))}
         </ul>
       )}
-      <Modal isOpen={editing !== null} onClose={() => setEditing(null)} title={editing?.id ? h.edit : h.addShift} closeLabel={h.cancel}>
+      <Modal isOpen={editing !== null} onClose={() => setEditing(null)} title={editing?.id ? h.edit : h.addShift} closeLabel={h.cancel} footer={null}>
         {editing && (
-          <form onSubmit={save} className="space-y-3">
+          <form onSubmit={save} className="space-y-3" id={modalFormId}>
             <div className="grid gap-3 sm:grid-cols-3">
               <label className={labelClass}>{h.code}<input required dir="ltr" maxLength={40} className={fieldClass} value={editing.code} onChange={(e) => setEditing({ ...editing, code: e.target.value })} /></label>
-              <label className={labelClass}>{h.nameEn}<input required maxLength={80} className={fieldClass} value={editing.nameEn} onChange={(e) => setEditing({ ...editing, nameEn: e.target.value })} /></label>
+              <label className={labelClass}>{h.nameEn}<input required maxLength={80} className={fieldClass} value={editing.nameEn} onChange={(e) => setEditing({ ...editing, nameEn: e.target.value })}  dir="ltr"/></label>
               <label className={labelClass}>{h.nameAr}<input maxLength={80} dir="rtl" className={fieldClass} value={editing.nameAr} onChange={(e) => setEditing({ ...editing, nameAr: e.target.value })} /></label>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <label className={labelClass}>
                 {h.allowance}
-                <select className={fieldClass} value={editing.allowanceMode} onChange={(e) => setEditing({ ...editing, allowanceMode: e.target.value as "fixed" | "percent" })}>
+                <Select className={fieldClass} value={editing.allowanceMode} onChange={(e) => setEditing({ ...editing, allowanceMode: e.target.value as "fixed" | "percent" })}>
                   <option value="fixed">{h.allowanceFixed}</option>
                   <option value="percent">{h.allowancePercent}</option>
-                </select>
+                </Select>
               </label>
               <label className={labelClass}>&nbsp;<input type="number" dir="ltr" min={0} step="0.001" className={fieldClass} value={editing.allowanceValue} onChange={(e) => setEditing({ ...editing, allowanceValue: Number(e.target.value) })} /></label>
             </div>
-            <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+            <label className="flex items-center gap-2 text-sm text-ink dark:text-ink">
               <input type="checkbox" className="accent-accent" checked={editing.isActive} onChange={(e) => setEditing({ ...editing, isActive: e.target.checked })} />
               {h.active}
             </label>
-            <div className="flex justify-end gap-2">
+            <ModalFooter><div className="flex justify-end gap-2">
               <Button type="button" variant="ghost" size="sm" onClick={() => setEditing(null)}>{h.cancel}</Button>
-              <Button type="submit" size="sm">{h.save}</Button>
-            </div>
+              <Button type="submit" size="sm" form={modalFormId}>{h.save}</Button>
+            </div></ModalFooter>
           </form>
         )}
       </Modal>
@@ -503,11 +507,11 @@ export function HrSettingsView({
   const [tab, setTab] = React.useState<Tab>("policy");
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-16">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{h.title}</h1>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{h.subtitle}</p>
+      <header data-page-header>
+        <h1 className="text-2xl font-bold tracking-tight text-ink dark:text-ink">{h.title}</h1>
+        <p className="mt-1 text-sm text-ink-muted dark:text-ink">{h.subtitle}</p>
       </header>
-      <div className="flex gap-1 overflow-x-auto border-b border-ink/10" role="tablist">
+      <div className="flex gap-1 overflow-x-auto border-b border-outline-variant" role="tablist">
         {(["policy", "leave", "holidays", "shifts"] as const).map((key) => (
           <button
             key={key}
@@ -515,8 +519,8 @@ export function HrSettingsView({
             role="tab"
             aria-selected={tab === key}
             onClick={() => setTab(key)}
-            className={`-mb-px whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors ${tab === key ? "border-primary text-primary dark:border-accent dark:text-accent" : "border-transparent text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"}`}
-          >
+            className={`-mb-px whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors ${tab === key ? "border-primary text-primary dark:border-accent dark:text-accent" : "border-transparent text-ink-muted hover:text-ink dark:text-ink-muted dark:hover:text-white"}`}
+           tabIndex={tab === key ? 0 : -1}>
             {h.tabs[key]}
           </button>
         ))}

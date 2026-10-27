@@ -61,7 +61,7 @@ export function ProductStockPanel({ productId, name, sku, trackBatches, options,
   };
 
   return (
-    <Card className="p-5 space-y-4" data-testid="product-stock">
+    <Card className="p-5 space-y-4" data-testid="product-stock" data-page-section>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="font-bold text-ink flex items-center gap-2"><Boxes className="w-4 h-4 text-accent" aria-hidden="true" />{copy.title}</h2>
         <div className="flex flex-wrap items-center gap-2">
@@ -87,7 +87,7 @@ export function ProductStockPanel({ productId, name, sku, trackBatches, options,
         {stock.levels.length === 0 ? (
           <p className="text-sm text-ink-muted">{copy.noStock}</p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-ink/10">
+          <div className="overflow-x-auto rounded-xl border border-outline-variant">
             <table className="w-full text-sm">
               <thead className="bg-ink/[0.03] text-xs text-ink-muted">
                 <tr>
@@ -98,7 +98,7 @@ export function ProductStockPanel({ productId, name, sku, trackBatches, options,
                   <th scope="col" className="px-3 py-2 text-end font-semibold">{t.inventory.stock.columns.reserved}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink/10">
+              <tbody className="divide-y divide-outline-variant">
                 {stock.levels.map((l, index) => (
                   <tr key={index}>
                     {variants.length > 0 && <td className="px-3 py-2">{label(l.variant_key)}</td>}

@@ -37,12 +37,12 @@ export function ServiceSettingsView({ settings, replies, languages, canEditTimes
   };
   return (
     <div className="space-y-6 max-w-3xl mx-auto pb-16">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{copy.title}</h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
+      <div data-page-header>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
+        <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
       </div>
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
-      <Card className="p-5 space-y-4">
+      <Card className="p-5 space-y-4" data-page-section>
         <h2 className="font-bold text-ink flex items-center gap-2"><Timer className="w-4 h-4 text-accent" aria-hidden="true" />{copy.sla}</h2>
         <fieldset disabled={!canEditTimes} className="grid grid-cols-3 gap-3">
           {(["urgent", "high", "normal"] as const).map((key) => (
@@ -52,7 +52,7 @@ export function ServiceSettingsView({ settings, replies, languages, canEditTimes
         <p className="text-xs text-ink-muted">{copy.slaHint}</p>
         {canEditTimes && <Button type="button" size="sm" variant="primary" className="rounded-full" disabled={busy} onClick={() => void run(() => saveServiceSettingsAction(times))} data-testid="sla-save">{copy.save}</Button>}
       </Card>
-      <Card className="p-5 space-y-4">
+      <Card className="p-5 space-y-4" data-page-section>
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-bold text-ink flex items-center gap-2"><MessageSquareText className="w-4 h-4 text-accent" aria-hidden="true" />{copy.replies}</h2>
           {!draft && (
@@ -63,7 +63,7 @@ export function ServiceSettingsView({ settings, replies, languages, canEditTimes
           )}
         </div>
         {draft && (
-          <div className="grid gap-3 rounded-xl border border-ink/10 p-3" data-testid="canned-editor">
+          <div className="grid gap-3 rounded-xl border border-outline-variant p-3" data-testid="canned-editor">
             <Field label={copy.replyTitle}>{(id) => <Input id={id} name="cannedTitle" maxLength={120} value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} className="rounded-lg" />}</Field>
             <LanguageFields label={copy.replyBody} languages={languages} multiline wide maxLength={4000} en={draft.bodyEn} ar={draft.bodyAr} onChange={({ en, ar }) => setDraft({ ...draft, bodyEn: en, bodyAr: ar })} />
             <label className="flex items-center gap-2.5 text-sm text-ink"><input type="checkbox" className="h-4 w-4 accent-accent" checked={draft.isActive} onChange={(e) => setDraft({ ...draft, isActive: e.target.checked })} />{copy.active}</label>
@@ -76,10 +76,10 @@ export function ServiceSettingsView({ settings, replies, languages, canEditTimes
         {replies.length === 0 ? (
           <p className="text-sm text-ink-muted">{copy.noReplies}</p>
         ) : (
-          <ul className="divide-y divide-ink/10 text-sm" data-testid="canned-list">
+          <ul className="divide-y divide-outline-variant text-sm" data-testid="canned-list">
             {replies.map((r) => (
               <li key={r.id} className={`flex items-center gap-3 py-2 ${r.is_active ? "" : "opacity-60"}`}>
-                <span className="font-medium">{r.title}</span>
+                <span className="font-medium"><bdi dir="auto">{r.title}</bdi></span>
                 {!r.is_active && <span className="text-xs text-ink-muted">{copy.inactive}</span>}
                 <button type="button" className="ms-auto text-xs font-semibold text-primary dark:text-mint" onClick={() => setDraft({ id: r.id, title: r.title, bodyEn: r.body_en, bodyAr: r.body_ar, isActive: r.is_active })}>{copy.edit}</button>
               </li>

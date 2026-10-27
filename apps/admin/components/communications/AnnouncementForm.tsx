@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Button, Input, Textarea } from "@platform/ui";
+import { Select, Button, Input, Textarea } from "@platform/ui";
 import type { AnnouncementInput, AnnouncementDetail } from "@platform/database";
 import {
   ANNOUNCEMENT_AUDIENCES,
@@ -71,7 +71,7 @@ export function AnnouncementForm({
         : "audience_roles";
   return (
     <form
-      className="space-y-5 rounded-3xl border border-ink/10 p-6"
+      className="space-y-5 rounded-3xl border border-outline-variant p-6"
       onSubmit={async (e) => {
         e.preventDefault();
         setBusy(true);
@@ -126,8 +126,8 @@ export function AnnouncementForm({
         ).map(([key, values]) => (
           <label key={key}>
             {c[key]}
-            <select
-              className="block w-full rounded-xl border border-ink/15 bg-surface p-2"
+            <Select
+              className="block w-full rounded-xl border border-outline-variant bg-surface p-2"
               value={form[key]}
               onChange={(e) => patch({ [key]: e.target.value })}
             >
@@ -136,7 +136,7 @@ export function AnnouncementForm({
                   {labels[v]}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
         ))}
       </div>

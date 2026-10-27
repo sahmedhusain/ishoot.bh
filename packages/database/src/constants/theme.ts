@@ -1,3 +1,10 @@
+import {
+  argbFromHex,
+  themeFromSourceColor,
+  hexFromArgb,
+  TonalPalette,
+} from "@material/material-color-utilities";
+
 // The company's visual identity: two brand colours, fonts, corner radius, type and default mode.
 // Everything else (hover shades, tinted surfaces, glow) is derived, so a company picks a few values
 // in the setup wizard and both apps stay consistent in light and dark mode.
@@ -1120,6 +1127,57 @@ export function themeVariables(input: BrandTheme) {
       ),
     ]),
   );
+
+  const m3 = themeFromSourceColor(argbFromHex(theme.primary), [
+    { name: "accent", value: argbFromHex(theme.accent), blend: true },
+  ]);
+  const neutral =
+    theme.surface === "neutral"
+      ? TonalPalette.fromHueAndChroma(0, 0)
+      : m3.palettes.neutral;
+  const neutralVariant =
+    theme.surface === "neutral" ? neutral : m3.palettes.neutralVariant;
+  const materialColors = (mode: "light" | "dark") => {
+    const dark = mode === "dark";
+    const accent = m3.customColors[0][mode];
+    const roles = {
+      ...m3.schemes[mode].toJSON(),
+      tertiary: accent.color,
+      onTertiary: accent.onColor,
+      tertiaryContainer: accent.colorContainer,
+      onTertiaryContainer: accent.onColorContainer,
+      surface: neutral.tone(dark ? 6 : 98),
+      surfaceDim: neutral.tone(dark ? 6 : 87),
+      surfaceBright: neutral.tone(dark ? 24 : 98),
+      surfaceContainerLowest: neutral.tone(dark ? 4 : 100),
+      surfaceContainerLow: neutral.tone(dark ? 10 : 96),
+      surfaceContainer: neutral.tone(dark ? 12 : 94),
+      surfaceContainerHigh: neutral.tone(dark ? 17 : 92),
+      surfaceContainerHighest: neutral.tone(dark ? 22 : 90),
+      onSurface: neutral.tone(dark ? 90 : 10),
+      onSurfaceVariant: neutralVariant.tone(dark ? 80 : 30),
+      outline: neutralVariant.tone(dark ? 60 : 50),
+      outlineVariant: neutralVariant.tone(dark ? 30 : 80),
+      inverseSurface: neutral.tone(dark ? 90 : 20),
+      inverseOnSurface: neutral.tone(dark ? 20 : 95),
+      inversePrimary: m3.schemes[dark ? "light" : "dark"].primary,
+    };
+    return Object.fromEntries(
+      Object.entries(roles).flatMap(([role, value]) => {
+        const name = role.replace(
+          /[A-Z]/g,
+          (letter) => `-${letter.toLowerCase()}`,
+        );
+        const hex = hexFromArgb(value);
+        // Official tokens are CSS colours; channel aliases support Tailwind opacity modifiers.
+        return [
+          [`--md-sys-color-${name}`, hex],
+          [`--m3-color-${name}`, channels(hex)],
+        ];
+      }),
+    );
+  };
+
   const sans = 'system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif';
   const common = {
     "--brand-primary": channels(theme.primary),
@@ -1141,6 +1199,47 @@ export function themeVariables(input: BrandTheme) {
       theme.headingCase === "uppercase" ? "uppercase" : "none",
     "--brand-font-body": familyCss(theme.fonts.body, sans),
     "--brand-font-heading": familyCss(theme.fonts.heading, sans),
+    // Material Design 3 Shape Scale
+    "--md-sys-shape-corner-none": "0px",
+    "--md-sys-shape-corner-extra-small": "4px",
+    "--md-sys-shape-corner-small": "8px",
+    "--md-sys-shape-corner-medium": "12px",
+    "--md-sys-shape-corner-large": "16px",
+    "--md-sys-shape-corner-extra-large": "28px",
+    "--md-sys-shape-corner-full": "9999px",
+    // Material Design 3 Motion Tokens
+    "--md-sys-motion-easing-standard": "cubic-bezier(0.2, 0, 0, 1)",
+    "--md-sys-motion-easing-emphasized": "cubic-bezier(0.05, 0.7, 0.1, 1.0)",
+    "--md-sys-motion-easing-emphasized-decelerate":
+      "cubic-bezier(0.05, 0.7, 0.1, 1)",
+    "--md-sys-motion-easing-emphasized-accelerate":
+      "cubic-bezier(0.3, 0.0, 0.8, 0.15)",
+    "--md-sys-motion-duration-short1": "50ms",
+    "--md-sys-motion-duration-short2": "100ms",
+    "--md-sys-motion-duration-short3": "150ms",
+    "--md-sys-motion-duration-short4": "200ms",
+    "--md-sys-motion-duration-medium1": "250ms",
+    "--md-sys-motion-duration-medium2": "300ms",
+    "--md-sys-motion-duration-medium3": "350ms",
+    "--md-sys-motion-duration-medium4": "400ms",
+    "--md-sys-motion-duration-long1": "450ms",
+    "--md-sys-motion-duration-long2": "500ms",
+    // Material Design 3 State Layers & Elevation
+    "--md-sys-state-hover-opacity": "0.08",
+    "--md-sys-state-focus-opacity": "0.12",
+    "--md-sys-state-pressed-opacity": "0.12",
+    "--md-sys-state-dragged-opacity": "0.16",
+    "--md-sys-elevation-level0": "none",
+    "--md-sys-elevation-level1":
+      "0 1px 2px 0 rgba(0, 0, 0, 0.05), 0 1px 3px 1px rgba(0, 0, 0, 0.08)",
+    "--md-sys-elevation-level2":
+      "0 2px 4px 0 rgba(0, 0, 0, 0.08), 0 4px 6px 2px rgba(0, 0, 0, 0.10)",
+    "--md-sys-elevation-level3":
+      "0 4px 8px 3px rgba(0, 0, 0, 0.10), 0 8px 12px 4px rgba(0, 0, 0, 0.12)",
+    "--md-sys-elevation-level4":
+      "0 6px 10px 4px rgba(0, 0, 0, 0.12), 0 10px 16px 5px rgba(0, 0, 0, 0.14)",
+    "--md-sys-elevation-level5":
+      "0 8px 12px 6px rgba(0, 0, 0, 0.14), 0 12px 20px 7px rgba(0, 0, 0, 0.16)",
     ...tones,
   };
   // Neutrals carry a faint tint of the primary hue (tonal surfaces), in both modes.
@@ -1154,6 +1253,7 @@ export function themeVariables(input: BrandTheme) {
     "--ui-surface-sunken": tint(0.25, 0.025),
     "--ui-ink": tint(0.15, 0.955),
     "--ui-ink-muted": tint(0.08, 0.65),
+    ...materialColors("dark"),
   };
   const light = {
     "--brand-bg-base": tint(0.25, 0.97),
@@ -1165,6 +1265,7 @@ export function themeVariables(input: BrandTheme) {
     "--ui-surface-sunken": tint(0.25, 0.94),
     "--ui-ink": "15 23 42",
     "--ui-ink-muted": "84 99 121",
+    ...materialColors("light"),
   };
   return { common, dark, light };
 }

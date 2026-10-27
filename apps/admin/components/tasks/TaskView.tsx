@@ -42,12 +42,12 @@ export function TaskView({ task, choices, canAssign, selfId }: { task: TaskRecor
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto pb-16">
-      <div className="space-y-2">
+      <div className="space-y-2" data-page-header>
         <Link href={ROUTES.tasks.list} className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent">
           <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" />
           {copy.detail.back}
         </Link>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{task.title}</h1>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink"><bdi dir="auto">{task.title}</bdi></h1>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
           <span className="font-mono" dir="ltr">{task.number}</span>
           <TaskStatusPill status={task.status} />
@@ -86,7 +86,7 @@ export function TaskView({ task, choices, canAssign, selfId }: { task: TaskRecor
         )}
       </Card>
 
-      <Card className="p-5 space-y-3">
+      <Card className="p-5 space-y-3" data-page-section>
         <h2 className="font-bold text-ink">{copy.detail.comments}</h2>
         {task.comments.length === 0 ? (
           <p className="text-sm text-ink-muted">{copy.detail.noComments}</p>

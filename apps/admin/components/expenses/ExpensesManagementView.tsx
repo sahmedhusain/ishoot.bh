@@ -58,26 +58,26 @@ export function ExpensesManagementView({ initialExpenses, categories, totals, co
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">{t.nav.expenses}</h1>
           <p className="text-xs text-ink-muted mt-1">{t.expensesView.subtitle}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
           {can("expenses", "write") && (
-            <Link href={ROUTES.expenses.recurring} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-ink/15 text-xs font-semibold text-ink hover:bg-ink/5">
+            <Link href={ROUTES.expenses.recurring} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-outline-variant text-xs font-semibold text-ink hover:bg-ink/5">
               <Repeat className="w-3.5 h-3.5" />
               {t.recurringExpenses.title}
             </Link>
           )}
           {can("expenses", "write") && (
-            <Link href={ROUTES.expenses.categories} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-ink/15 text-xs font-semibold text-ink hover:bg-ink/5">
+            <Link href={ROUTES.expenses.categories} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-outline-variant text-xs font-semibold text-ink hover:bg-ink/5">
               <Settings2 className="w-3.5 h-3.5" />
               {t.expensesNew.manageCategories}
             </Link>
           )}
           {can("expenses", "write") && (
-            <Link href={ROUTES.expenses.create} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-accent text-white text-xs font-semibold hover:bg-accent-hover">
+            <Link href={ROUTES.expenses.create} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-accent text-accent-foreground text-xs font-semibold hover:bg-accent-hover">
               <Plus className="w-3.5 h-3.5" />
               {t.actions.addExpense}
             </Link>
@@ -86,7 +86,7 @@ export function ExpensesManagementView({ initialExpenses, categories, totals, co
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <Card className="p-6 bg-surface border border-ink/10 space-y-2 rounded-3xl">
+        <Card className="p-6 bg-surface border border-outline-variant space-y-2 rounded-3xl">
           <div className="flex items-center justify-between text-xs text-ink-muted">
             <span>{t.kpi.operatingExpenses}</span>
             <div className="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-400">
@@ -105,7 +105,7 @@ export function ExpensesManagementView({ initialExpenses, categories, totals, co
           </div>
         </Card>
 
-        <Card className="p-6 bg-surface border border-ink/10 space-y-2 rounded-3xl">
+        <Card className="p-6 bg-surface border border-outline-variant space-y-2 rounded-3xl">
           <div className="flex items-center justify-between text-xs text-ink-muted">
             <span>{t.expensesView.costCenters}</span>
             <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
@@ -116,7 +116,7 @@ export function ExpensesManagementView({ initialExpenses, categories, totals, co
           <div className="text-[11px] text-ink-muted">{t.expensesView.overheadSubtitle}</div>
         </Card>
 
-        <Card className="p-6 bg-surface border border-ink/10 space-y-3 rounded-3xl">
+        <Card className="p-6 bg-surface border border-outline-variant space-y-3 rounded-3xl">
           <div className="flex items-center justify-between text-xs text-ink-muted">
             <span>{t.expensesNew.scopeLabel}</span>
             <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
@@ -132,9 +132,9 @@ export function ExpensesManagementView({ initialExpenses, categories, totals, co
         </Card>
       </div>
 
-      <div className="bg-surface border border-ink/10 rounded-3xl overflow-x-auto">
+      <div className="bg-surface border border-outline-variant rounded-3xl overflow-x-auto">
         <table className="w-full text-start text-xs min-w-[860px]">
-          <thead className="bg-surface-sunken border-b border-ink/10 text-ink-muted uppercase tracking-wider">
+          <thead className="bg-surface-sunken border-b border-outline-variant text-ink-muted uppercase tracking-wider">
             <tr>
               <th className="p-4 text-start">{t.expensesView.desc}</th>
               <th className="p-4 text-start">{t.expensesView.category}</th>
@@ -145,7 +145,7 @@ export function ExpensesManagementView({ initialExpenses, categories, totals, co
               <th className="p-4 text-end">{t.expensesView.actions}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-ink/5">
+          <tbody className="divide-y divide-outline-variant">
             {expenses.map((expense) => (
               <tr key={expense.id} id={expense.id} className="hover:bg-ink/[0.02] transition-colors">
                 <td className="p-4">

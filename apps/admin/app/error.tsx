@@ -11,7 +11,7 @@ export default function ErrorPage({
   return (
     <main
       role="alert"
-      className="mx-auto max-w-xl space-y-4 p-8 text-slate-900 dark:text-white"
+      className="mx-auto max-w-xl space-y-4 p-8 text-ink dark:text-ink"
     >
       <h1 className="text-xl font-semibold">
         {t.copy.errorTitle}

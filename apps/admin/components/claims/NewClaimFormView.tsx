@@ -5,7 +5,7 @@ import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Card, Button, Input } from "@platform/ui";
+import { Select, Card, Button, Input } from "@platform/ui";
 import {
   ArrowLeft,
   Camera,
@@ -116,11 +116,11 @@ export function NewClaimFormView({
 
   const label = "text-xs font-semibold text-ink mb-1.5 block";
   const select =
-    "w-full rounded-xl border border-ink/15 bg-surface px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/30";
+    "w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/30";
 
   return (
     <div inert={saving} aria-busy={saving} className="space-y-6 max-w-3xl mx-auto pb-16">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4" data-page-header>
         <Link href={ROUTES.claims.list()}>
           <Button
             variant="outline"
@@ -150,7 +150,7 @@ export function NewClaimFormView({
           </p>
         )}
 
-        <Card className="p-6 sm:p-8 bg-surface border border-ink/10 rounded-3xl space-y-5">
+        <Card className="p-6 sm:p-8 bg-surface border border-outline-variant rounded-3xl space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <div className="sm:col-span-2">
               <label className={label} htmlFor="claim-amount">
@@ -170,7 +170,7 @@ export function NewClaimFormView({
               <label className={label} htmlFor="claim-currency">
                 {t.expensesNew.currencyLabel}
               </label>
-              <select
+              <Select
                 id="claim-currency"
                 className={select}
                 value={currency}
@@ -181,7 +181,7 @@ export function NewClaimFormView({
                     {code}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -202,7 +202,7 @@ export function NewClaimFormView({
               <label className={label} htmlFor="claim-category">
                 {c.category}
               </label>
-              <select
+              <Select
                 id="claim-category"
                 className={select}
                 value={categoryId}
@@ -221,7 +221,7 @@ export function NewClaimFormView({
                     </optgroup>
                   ) : null;
                 })}
-              </select>
+              </Select>
             </div>
           </div>
           <div>
@@ -234,14 +234,14 @@ export function NewClaimFormView({
               maxLength={1000}
               rows={3}
               placeholder={c.reasonPlaceholder}
-              className="w-full rounded-xl border border-ink/15 bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/30"
+              className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/30"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
             />
           </div>
         </Card>
 
-        <Card className="p-6 sm:p-8 bg-surface border border-ink/10 rounded-3xl space-y-5">
+        <Card className="p-6 sm:p-8 bg-surface border border-outline-variant rounded-3xl space-y-5" data-page-section>
           <div>
             <h2 className="text-sm font-bold text-ink">{c.relatedTitle}</h2>
             <p className="text-[11px] text-ink-muted mt-0.5">{c.relatedHint}</p>
@@ -270,7 +270,7 @@ export function NewClaimFormView({
             <label className={label} htmlFor="claim-meeting">
               {c.relatedMeeting}
             </label>
-            <select
+            <Select
               id="claim-meeting"
               className={select}
               value={meetingId}
@@ -283,14 +283,14 @@ export function NewClaimFormView({
                   value={m.id}
                 >{`${m.startDate.slice(0, 10)} · ${m.title}`}</option>
               ))}
-            </select>
+            </Select>
           </div>
         </Card>
 
-        <Card className="p-6 sm:p-8 bg-surface border border-ink/10 rounded-3xl space-y-3">
+        <Card className="p-6 sm:p-8 bg-surface border border-outline-variant rounded-3xl space-y-3">
           <span className={label}>{c.receipt}</span>
           {receipt ? (
-            <div className="flex items-center gap-3 p-3 rounded-2xl border border-ink/10">
+            <div className="flex items-center gap-3 p-3 rounded-2xl border border-outline-variant">
               {receipt.preview ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -303,7 +303,7 @@ export function NewClaimFormView({
                   {t.copy.pdf}</div>
               )}
               <span className="text-sm text-ink truncate flex-1">
-                {receipt.name}
+                <bdi dir="auto">{receipt.name}</bdi>
               </span>
               <button
                 type="button"
@@ -319,7 +319,7 @@ export function NewClaimFormView({
               type="button"
               onClick={() => fileRef.current?.click()}
               disabled={uploading}
-              className="w-full flex flex-col items-center gap-2 p-8 rounded-2xl border-2 border-dashed border-ink/15 text-ink-muted hover:border-accent hover:text-accent"
+              className="w-full flex flex-col items-center gap-2 p-8 rounded-2xl border-2 border-dashed border-outline-variant text-ink-muted hover:border-accent hover:text-accent"
             >
               {uploading ? (
                 <Loader2 className="w-6 h-6 animate-spin" />
@@ -340,7 +340,7 @@ export function NewClaimFormView({
                 inputMode="url"
                 dir="ltr"
                 placeholder={t.copy.urlExample}
-                className="mt-1 h-10 w-full rounded-xl border border-ink/15 bg-surface px-3 text-sm text-ink"
+                className="mt-1 h-10 w-full rounded-xl border border-outline-variant bg-surface px-3 text-sm text-ink"
                 onBlur={(e) => {
                   const link = e.target.value.trim();
                   if (!link) return;

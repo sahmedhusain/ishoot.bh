@@ -27,52 +27,52 @@ export function GeneralInfoTab({
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Legal & Corporate Registration Card */}
-      <Card className="p-6 bg-white dark:bg-[#202124] border border-ink/15 dark:border-ink/15 shadow-xs rounded-2xl space-y-5">
-        <div className="flex items-center gap-3 pb-3 border-b border-ink/15 dark:border-ink/15">
+      <Card className="p-6 bg-surface-raised dark:bg-surface-container-low border border-outline-variant dark:border-outline-variant shadow-xs rounded-2xl space-y-5">
+        <div className="flex items-center gap-3 pb-3 border-b border-outline-variant dark:border-outline-variant">
           <div className="p-2 rounded-xl bg-accent/10 text-accent">
             <Building2 className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+            <h2 className="text-sm font-bold text-ink dark:text-ink">
               {t.settings.companyTitle}
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-ink-muted dark:text-ink-muted">
               {t.companySettingsView.crSubtitle}
             </p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium text-ink dark:text-ink">
               {t.companySettingsView.nameEnLabel}
-            </label>
+            </span>
             <Input
               value={settings.company_name_en}
               onChange={(e) =>
                 setSettings({ ...settings, company_name_en: e.target.value })
               }
               className="rounded-lg"
-            />
-          </div>
+             dir="ltr"/>
+          </label>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium text-ink dark:text-ink">
               {t.companySettingsView.nameArLabel}
-            </label>
+            </span>
             <Input
               value={settings.company_name_ar}
               onChange={(e) =>
                 setSettings({ ...settings, company_name_ar: e.target.value })
               }
               className="text-end font-arabic rounded-lg"
-            />
-          </div>
+             dir="rtl"/>
+          </label>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium text-ink dark:text-ink">
               {t.companySettingsView.crNumber}
-            </label>
+            </span>
             <Input
               value={settings.cr_number}
               onChange={(e) =>
@@ -80,68 +80,68 @@ export function GeneralInfoTab({
               }
               className=" rounded-lg"
             />
-          </div>
+          </label>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium text-ink dark:text-ink">
               {t.companySettingsView.defaultCurrency}
-            </label>
+            </span>
             <Input
               disabled
               value={`${settings.default_currency} (${settings.currency_decimals} ${t.companySettingsView.decimalsWord})`}
-              className=" bg-slate-50 dark:bg-slate-800/50 opacity-80 rounded-lg"
+              className=" bg-surface-raised dark:bg-surface-raised/50 opacity-80 rounded-lg"
             />
-          </div>
+          </label>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium text-ink dark:text-ink">
               {t.companySettingsTabs.addressEn}
-            </label>
+            </span>
             <Input
               value={settings.address_en || ""}
               onChange={(e) =>
                 setSettings({ ...settings, address_en: e.target.value })
               }
               className="rounded-lg"
-            />
-          </div>
+             dir="ltr"/>
+          </label>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium text-ink dark:text-ink">
               {t.companySettingsTabs.addressAr}
-            </label>
+            </span>
             <Input
               value={settings.address_ar || ""}
               onChange={(e) =>
                 setSettings({ ...settings, address_ar: e.target.value })
               }
               className="text-end font-arabic rounded-lg"
-            />
-          </div>
+             dir="rtl"/>
+          </label>
         </div>
       </Card>
 
       {/* Communications & Platforms Card */}
-      <Card className="p-6 bg-white dark:bg-[#202124] border border-ink/15 dark:border-ink/15 shadow-xs rounded-2xl space-y-5">
-        <div className="flex items-center gap-3 pb-3 border-b border-ink/15 dark:border-ink/15">
+      <Card className="p-6 bg-surface-raised dark:bg-surface-container-low border border-outline-variant dark:border-outline-variant shadow-xs rounded-2xl space-y-5">
+        <div className="flex items-center gap-3 pb-3 border-b border-outline-variant dark:border-outline-variant">
           <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
             <Phone className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+            <h2 className="text-sm font-bold text-ink dark:text-ink">
               {t.companySettingsTabs.contactInfo}
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-ink-muted dark:text-ink-muted">
               {t.companySettingsTabs.socialSubtitle}
             </p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
-              {t.companySettingsTabs.phone}
-            </label>
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium text-ink dark:text-ink">
+              <bdi dir="ltr">{t.companySettingsTabs.phone}</bdi>
+            </span>
             <Input
               value={settings.phone || ""}
               onChange={(e) =>
@@ -149,12 +149,12 @@ export function GeneralInfoTab({
               }
               className=" rounded-lg"
             />
-          </div>
+          </label>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium text-ink dark:text-ink">
               {t.companySettingsTabs.whatsapp}
-            </label>
+            </span>
             <Input
               value={settings.whatsapp_phone || ""}
               onChange={(e) =>
@@ -162,12 +162,12 @@ export function GeneralInfoTab({
               }
               className=" rounded-lg"
             />
-          </div>
+          </label>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
-              {t.companySettingsTabs.email}
-            </label>
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium text-ink dark:text-ink">
+              <bdi dir="ltr">{t.companySettingsTabs.email}</bdi>
+            </span>
             <Input
               type="email"
               value={settings.email || ""}
@@ -176,12 +176,12 @@ export function GeneralInfoTab({
               }
               className=" rounded-lg"
             />
-          </div>
+          </label>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium text-ink dark:text-ink">
               {t.companySettingsTabs.website}
-            </label>
+            </span>
             <Input
               type="url"
               value={settings.website || ""}
@@ -190,7 +190,7 @@ export function GeneralInfoTab({
               }
               className=" rounded-lg"
             />
-          </div>
+          </label>
         </div>
       </Card>
     </div>

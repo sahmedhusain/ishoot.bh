@@ -1,3 +1,4 @@
+import { selectOption } from "../../select-option";
 import { acceptConfirmations } from "../../helpers";
 import { expect, test } from "@playwright/test";
 import { testDatabase, watchErrors } from "../../helpers";
@@ -92,14 +93,14 @@ test("a phone order's shipment goes out, fails once with a reason, goes out agai
   });
   await page.getByTestId("sale-search").fill(SKU);
   await page.getByTestId("sale-search").press("Enter");
-  await page.getByLabel(t.orders.pos.channel).selectOption("phone");
+  await selectOption(page.getByLabel(t.orders.pos.channel), "phone");
   await page.locator('input[name="saleName"]').fill("Ship Buyer");
   await page.getByLabel(t.orders.pos.phone).fill("+973 3600 0007");
-  await page.getByLabel(t.orders.pos.fulfilment).selectOption("delivery");
+  await selectOption(page.getByLabel(t.orders.pos.fulfilment), "delivery");
   await page.getByLabel(t.orders.pos.address.line1).fill("House 1, Road 2");
   await page.getByLabel(t.orders.pos.address.city).fill("Muharraq");
   await page.getByLabel(t.orders.pos.address.country).fill("Bahrain");
-  await page.getByTestId("sale-paid-with").selectOption("cod");
+  await selectOption(page.getByTestId("sale-paid-with"), "cod");
   await page.getByTestId("sale-create").click();
   await expect(page).toHaveURL(/\/dashboard\/orders\/[0-9a-f-]{36}$/, {
     timeout: 60_000,
@@ -128,9 +129,8 @@ test("a phone order's shipment goes out, fails once with a reason, goes out agai
   expect(await stockOf(db, productId)).toEqual({ onHand: 5, reserved: 0 });
 
   await page.getByTestId("shipment-move-failed").click();
-  await page
-    .locator('select[name="failureReason"]')
-    .selectOption("customer_absent");
+  await selectOption(page
+    .locator('select[name="failureReason"]'), "customer_absent");
   await page.getByTestId("shipment-fail-save").click();
   await expect(page.getByTestId("shipment-status").first()).toHaveText(
     copy.statuses.failed,

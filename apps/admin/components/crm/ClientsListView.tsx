@@ -22,7 +22,7 @@ import {
   User,
   X,
 } from "lucide-react";
-import { Button, ConfirmDialog, formatCurrencyValue, formatDate } from "@platform/ui";
+import { Select, Button, ConfirmDialog, formatCurrencyValue, formatDate } from "@platform/ui";
 import type { ClientListRow } from "@platform/database/types";
 import {
   CLIENT_ACTIVITY_FILTERS,
@@ -46,8 +46,8 @@ const KIND_ICONS = { individual: User, company: Building2, government: Landmark 
 const TIER_STYLE: Record<string, string> = {
   A: "bg-amber-400/15 text-amber-700 border-amber-400/40 dark:text-amber-300",
   B: "bg-sky-500/10 text-sky-700 border-sky-500/30 dark:text-sky-300",
-  C: "bg-slate-500/10 text-slate-600 border-slate-500/25 dark:text-slate-300",
-  none: "bg-transparent text-ink-muted border-ink/15",
+  C: "bg-surface-sunken/10 text-ink-muted border-outline-variant/25 dark:text-ink",
+  none: "bg-transparent text-ink-muted border-outline-variant",
 };
 const FILTER_KEYS = ["kind", "type", "origin", "country", "tier", "balance", "activity"] as const;
 
@@ -129,18 +129,18 @@ export function ClientsListView({
     { key: "tierA", label: c.summary.tierA, value: String(summary.tier_a), link: href({ tier: "A", sort: "rank", page: 1 }), tone: "text-amber-600 dark:text-amber-300" },
     { key: "balance", label: c.summary.outstanding, value: money(summary.outstanding), link: href({ balance: "outstanding", sort: "outstanding_desc", page: 1 }), tone: summary.outstanding > 0 ? "text-rose-600 dark:text-rose-300" : undefined },
   ];
-  const select = "h-10 rounded-full border border-ink/15 bg-surface-sunken/60 px-4 text-xs text-ink focus:outline-none focus:border-accent cursor-pointer";
+  const select = "h-10 rounded-full border border-outline-variant bg-surface-sunken/60 px-4 text-xs text-ink focus:outline-none focus:border-accent cursor-pointer";
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink">{c.title}</h1>
           <p className="text-xs text-ink-muted mt-1">{c.subtitle}</p>
         </div>
         <div className="flex items-center gap-2">
           {can("contacts", "export") ? (
-            <a href={exportHref} className="inline-flex items-center gap-1.5 h-9 rounded-full border border-ink/15 px-4 text-xs font-semibold text-ink hover:bg-ink/5 transition-colors">
+            <a href={exportHref} className="inline-flex items-center gap-1.5 h-9 rounded-full border border-outline-variant px-4 text-xs font-semibold text-ink hover:bg-ink/5 transition-colors">
               <Download className="w-3.5 h-3.5" />
               {c.export}
             </a>
@@ -158,15 +158,15 @@ export function ClientsListView({
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {tiles.map((tile) => (
-          <Link key={tile.key} href={tile.link ?? "#"} className="rounded-2xl border border-ink/10 bg-white dark:bg-surface-raised p-4 hover:border-accent/50 transition-colors">
+          <Link key={tile.key} href={tile.link ?? "#"} className="rounded-2xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-4 hover:border-accent/50 transition-colors">
             <div className="text-[11px] text-ink-muted">{tile.label}</div>
             <div className={`mt-1 text-lg font-bold tabular-nums ${tile.tone ?? "text-ink"}`}>{tile.value}</div>
           </Link>
         ))}
       </div>
 
-      <form onSubmit={submit} role="search" className="rounded-3xl border border-ink/10 bg-white dark:bg-surface-raised p-3 space-y-3 shadow-xs">
-        <div className="flex flex-wrap items-center gap-2">
+      <form onSubmit={submit} role="search" className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-3 space-y-3 shadow-xs">
+        <div className="flex flex-wrap items-center gap-2" data-page-toolbar>
           <div className="relative flex-1 basis-60 min-w-0">
             <Search className="pointer-events-none absolute top-1/2 -translate-y-1/2 start-3.5 w-4 h-4 text-ink-muted" aria-hidden />
             <input
@@ -176,30 +176,30 @@ export function ClientsListView({
               maxLength={200}
               aria-label={c.filters.search}
               placeholder={c.filters.search}
-              className="h-10 w-full rounded-full border border-ink/15 bg-surface-sunken/60 ps-10 pe-4 text-sm text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+              className="h-10 w-full rounded-full border border-outline-variant bg-surface-sunken/60 ps-10 pe-4 text-sm text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
             />
           </div>
-          <select name="kind" defaultValue={filters.kind} aria-label={c.filters.kind} className={select}>
+          <Select name="kind" defaultValue={filters.kind} aria-label={c.filters.kind} className={select}>
             <option value="all">{c.filters.allKinds}</option>
             {CLIENT_KINDS.map((k) => <option key={k} value={k}>{c.kinds[k]}</option>)}
-          </select>
+          </Select>
           <label className="flex items-center gap-2 text-xs text-ink-muted">
             <span className="hidden sm:inline">{c.filters.sort}</span>
-            <select name="sort" defaultValue={filters.sort} aria-label={c.filters.sort} className={select}>
+            <Select name="sort" defaultValue={filters.sort} aria-label={c.filters.sort} className={select}>
               {CLIENT_SORTS.map((s) => <option key={s} value={s}>{c.sorts[s]}</option>)}
-            </select>
+            </Select>
           </label>
           <button
             type="button"
             onClick={() => setShowMore((v) => !v)}
             aria-expanded={showMore}
-            className="inline-flex items-center gap-1.5 h-10 rounded-full border border-ink/15 px-4 text-xs font-semibold text-ink hover:bg-ink/5"
+            className="inline-flex items-center gap-1.5 h-10 rounded-full border border-outline-variant px-4 text-xs font-semibold text-ink hover:bg-ink/5"
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
             {c.filters.more}
-            {activeFilters ? <span className="rounded-full bg-accent px-1.5 text-[10px] text-white">{activeFilters}</span> : null}
+            {activeFilters ? <span className="rounded-full bg-accent px-1.5 text-[10px] text-accent-foreground">{activeFilters}</span> : null}
           </button>
-          <button className="h-10 rounded-full bg-primary px-5 text-xs font-semibold text-white hover:bg-primary/90">{c.filters.apply}</button>
+          <button className="h-10 rounded-full bg-primary px-5 text-xs font-semibold text-primary-foreground hover:bg-primary/90">{c.filters.apply}</button>
           {activeFilters || filters.q || filters.sort !== "newest" ? (
             <Link href={ROUTES.crm.contacts} className="inline-flex items-center gap-1 h-10 px-3 text-xs font-semibold text-ink-muted hover:text-ink">
               <X className="w-3.5 h-3.5" />
@@ -208,39 +208,39 @@ export function ClientsListView({
           ) : null}
         </div>
         {showMore ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 border-t border-ink/10 pt-3">
-            <select name="type" defaultValue={filters.type} aria-label={c.filters.classification} className={select}>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 border-t border-outline-variant pt-3">
+            <Select name="type" defaultValue={filters.type} aria-label={c.filters.classification} className={select}>
               <option value="all">{c.filters.allClassifications}</option>
               {CONTACT_TYPES.map((type) => (
                 <option key={type.value} value={type.value}>{t.crm.contactTypes[type.value as keyof typeof t.crm.contactTypes]}</option>
               ))}
-            </select>
-            <select name="origin" defaultValue={filters.origin} aria-label={c.filters.origin} className={select}>
+            </Select>
+            <Select name="origin" defaultValue={filters.origin} aria-label={c.filters.origin} className={select}>
               <option value="all">{c.filters.allOrigins}</option>
               <option value="local">{c.origins.local}</option>
               <option value="foreign">{c.origins.foreign}</option>
-            </select>
-            <select name="country" defaultValue={filters.country} aria-label={c.filters.country} className={select}>
+            </Select>
+            <Select name="country" defaultValue={filters.country} aria-label={c.filters.country} className={select}>
               <option value="all">{c.filters.allCountries}</option>
               {countries.map((o) => <option key={o.code} value={o.code}>{o.name}</option>)}
-            </select>
-            <select name="tier" defaultValue={filters.tier} aria-label={c.filters.tier} className={select}>
+            </Select>
+            <Select name="tier" defaultValue={filters.tier} aria-label={c.filters.tier} className={select}>
               <option value="all">{c.filters.allTiers}</option>
               {CLIENT_TIERS.map((tier) => <option key={tier} value={tier}>{c.tierNames[tier]}</option>)}
-            </select>
-            <select name="balance" defaultValue={filters.balance} aria-label={c.filters.balance} className={select}>
+            </Select>
+            <Select name="balance" defaultValue={filters.balance} aria-label={c.filters.balance} className={select}>
               <option value="all">{c.filters.allBalances}</option>
               {CLIENT_BALANCE_FILTERS.map((b) => <option key={b} value={b}>{c.balances[b]}</option>)}
-            </select>
-            <select name="activity" defaultValue={filters.activity} aria-label={c.filters.activity} className={select}>
+            </Select>
+            <Select name="activity" defaultValue={filters.activity} aria-label={c.filters.activity} className={select}>
               <option value="all">{c.filters.anyActivity}</option>
               {CLIENT_ACTIVITY_FILTERS.map((a) => <option key={a} value={a}>{c.activities[a]}</option>)}
-            </select>
+            </Select>
           </div>
         ) : null}
       </form>
 
-      <div className="rounded-3xl border border-ink/10 bg-white dark:bg-surface-raised overflow-hidden shadow-xs">
+      <div className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-ink/[0.03] text-[11px] text-ink-muted">
@@ -255,7 +255,7 @@ export function ClientsListView({
                 <th scope="col" className="px-2 py-3"><span className="sr-only">{c.columns.actions}</span></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink/5">
+            <tbody className="divide-y divide-outline-variant">
               {rows.length === 0 ? (
                 <tr><td colSpan={8} className="px-4 py-14 text-center text-sm text-ink-muted">{c.empty}</td></tr>
               ) : null}
@@ -297,12 +297,12 @@ export function ClientsListView({
                       <div className="font-medium text-ink">{kind === "individual" ? row.job_title || "—" : row.full_name}</div>
                       {row.email ? (
                         <a href={`mailto:${row.email}`} className="mt-0.5 flex items-center gap-1 text-ink-muted hover:text-accent">
-                          <Mail className="h-3 w-3 shrink-0" /><span className="truncate" dir="ltr">{row.email}</span>
+                          <Mail className="h-3 w-3 shrink-0" /><span className="truncate" dir="ltr"><bdi dir="ltr">{row.email}</bdi></span>
                         </a>
                       ) : null}
                       {row.phone ? (
                         <a href={`tel:${row.phone}`} className="mt-0.5 flex items-center gap-1 text-ink-muted hover:text-accent">
-                          <Phone className="h-3 w-3 shrink-0" /><span dir="ltr">{row.phone}</span>
+                          <Phone className="h-3 w-3 shrink-0" /><span dir="ltr"><bdi dir="ltr">{row.phone}</bdi></span>
                         </a>
                       ) : null}
                       {row.contact_persons_count > 1 ? (
@@ -347,19 +347,19 @@ export function ClientsListView({
             </tbody>
           </table>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ink/10 px-4 py-3 text-xs text-ink-muted">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-outline-variant px-4 py-3 text-xs text-ink-muted">
           <span>{formatMessage(c.rankingNote, { currency: currency })}</span>
           <nav aria-label={t.listControls.listPages} className="flex items-center gap-2">
             <span className="tabular-nums">
               {formatMessage(t.listControls.page, { page: String(page), pages: String(pages) })} · {total} {t.listControls.records}
             </span>
             {page > 1 ? (
-              <Link href={href({ page: page - 1 })} aria-label={t.listControls.previous} className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-ink/15 hover:bg-ink/5">
+              <Link href={href({ page: page - 1 })} aria-label={t.listControls.previous} className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-outline-variant hover:bg-ink/5">
                 <ChevronLeft className="h-4 w-4 rtl:-scale-x-100" />
               </Link>
             ) : null}
             {page < pages ? (
-              <Link href={href({ page: page + 1 })} aria-label={t.listControls.next} className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-ink/15 hover:bg-ink/5">
+              <Link href={href({ page: page + 1 })} aria-label={t.listControls.next} className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-outline-variant hover:bg-ink/5">
                 <ChevronRight className="h-4 w-4 rtl:-scale-x-100" />
               </Link>
             ) : null}

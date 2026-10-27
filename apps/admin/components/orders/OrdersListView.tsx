@@ -36,10 +36,10 @@ export function OrdersListView({ rows, total, page, pageSize, filters, currency,
   };
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{copy.title}</h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
+          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
         </div>
         {canCreate && (
           <Link href={ROUTES.orders.new} className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 h-9 text-sm font-semibold text-primary-foreground hover:opacity-90">
@@ -69,14 +69,14 @@ export function OrdersListView({ rows, total, page, pageSize, filters, currency,
             <p className="text-sm text-ink-muted">{copy.empty}</p>
           </div>
         ) : (
-          <ul className="divide-y divide-ink/10" data-testid="orders-list">
+          <ul className="divide-y divide-outline-variant" data-testid="orders-list">
             {rows.map((o) => (
               <li key={o.id}>
                 <Link href={ROUTES.orders.detail(o.id)} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 hover:bg-ink/[0.02]">
                   <span className="font-mono text-xs font-semibold text-ink" dir="ltr">{o.number}</span>
                   <OrderStatusPill status={o.status} />
                   <PaymentStatusPill status={o.payment_status} />
-                  <span className="text-sm text-ink">{o.name}</span>
+                  <span className="text-sm text-ink"><bdi dir="auto">{o.name}</bdi></span>
                   <span className="text-xs text-ink-muted">{(copy.channels as Record<string, string>)[o.channel]}</span>
                   <span className="text-xs text-ink-muted">{formatDate(o.placed_at, locale, "time")}</span>
                   <span className="ms-auto text-sm font-semibold"><CurrencyDisplay amount={o.total} currency={currency} /></span>
@@ -86,7 +86,7 @@ export function OrdersListView({ rows, total, page, pageSize, filters, currency,
           </ul>
         )}
         {pages > 1 && (
-          <nav aria-label={t.products.pages} className="flex items-center justify-between border-t border-ink/10 px-4 py-3 text-xs">
+          <nav aria-label={t.products.pages} className="flex items-center justify-between border-t border-outline-variant px-4 py-3 text-xs">
             {page > 1 ? <Link href={href({ page: page - 1 })} className="font-semibold text-primary dark:text-mint">{t.products.previous}</Link> : <span />}
             <span className="text-ink-muted">{formatMessage(t.products.pageOf, { page, pages })}</span>
             {page < pages ? <Link href={href({ page: page + 1 })} className="font-semibold text-primary dark:text-mint">{t.products.next}</Link> : <span />}

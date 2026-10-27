@@ -85,13 +85,13 @@ export function PurchaseOrderView({ order, fromRequisition, suppliers, warehouse
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
           <Link href={ROUTES.procurement.orders} className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent">
             <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" />
             {copy.title}
           </Link>
-          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex flex-wrap items-center gap-3">
+          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink flex flex-wrap items-center gap-3">
             {order ? <span dir="ltr">{order.number}</span> : copy.new}
             {order && <StatusPill status={order.status} />}
           </h1>
@@ -127,12 +127,12 @@ export function PurchaseOrderView({ order, fromRequisition, suppliers, warehouse
           )}
           {order && order.status !== "draft" && (
             <>
-              <a href={pdfUrl(order.id)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-3 h-9 text-sm hover:border-accent" data-testid="order-pdf">
+              <a href={pdfUrl(order.id)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant px-3 h-9 text-sm hover:border-accent" data-testid="order-pdf">
                 <FileText className="w-3.5 h-3.5" />
                 {copy.pdf}
               </a>
               {rights.export && (
-                <a href={pdfUrl(order.id, true)} className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-3 h-9 text-sm hover:border-accent">
+                <a href={pdfUrl(order.id, true)} className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant px-3 h-9 text-sm hover:border-accent">
                   <Download className="w-3.5 h-3.5" />
                   {copy.download}
                 </a>
@@ -146,7 +146,7 @@ export function PurchaseOrderView({ order, fromRequisition, suppliers, warehouse
             </Button>
           )}
           {order && rights.bill && order.lines.some((l) => l.received > l.billed) && (
-            <Link href={ROUTES.procurement.newBill({ orderId: order.id })} className="inline-flex items-center rounded-full border border-ink/15 px-3 h-9 text-sm hover:border-accent" data-testid="order-bill">{t.procurement.bills.fromOrder}</Link>
+            <Link href={ROUTES.procurement.newBill({ orderId: order.id })} className="inline-flex items-center rounded-full border border-outline-variant px-3 h-9 text-sm hover:border-accent" data-testid="order-bill">{t.procurement.bills.fromOrder}</Link>
           )}
           {order && rights.cancel && ["draft", "pending_approval", "approved", "sent"].includes(order.status) && (
             <Button type="button" variant="ghost" size="sm" className="rounded-full text-rose-600" disabled={busy} onClick={() => confirmAction({ description: common.cancelConfirm, onConfirm: () => run(() => cancelPurchaseOrderAction(order.id)) })}>{copy.cancelOrder}</Button>
@@ -156,7 +156,7 @@ export function PurchaseOrderView({ order, fromRequisition, suppliers, warehouse
       </div>
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
 
-      <Card className="p-5 space-y-4">
+      <Card className="p-5 space-y-4" data-page-section>
         <fieldset disabled={!editable} className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Field label={copy.supplier}>
             {(id) => (
@@ -193,7 +193,7 @@ export function PurchaseOrderView({ order, fromRequisition, suppliers, warehouse
         {editable ? (
           <LinesEditor lines={lines} onChange={setLines} products={products} priceLabel={t.procurement.lines.unitPrice} />
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-ink/10">
+          <div className="overflow-x-auto rounded-xl border border-outline-variant">
             <table className="w-full text-sm" data-testid="order-lines">
               <thead className="bg-ink/[0.03] text-xs text-ink-muted">
                 <tr>
@@ -204,7 +204,7 @@ export function PurchaseOrderView({ order, fromRequisition, suppliers, warehouse
                   <th scope="col" className="px-3 py-2 text-end font-semibold">{copy.billed}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink/10">
+              <tbody className="divide-y divide-outline-variant">
                 {order?.lines.map((l) => (
                   <tr key={l.id}>
                     <td className="px-3 py-2">{l.description}</td>
@@ -221,7 +221,7 @@ export function PurchaseOrderView({ order, fromRequisition, suppliers, warehouse
         <dl className="ms-auto w-full sm:w-72 space-y-1 text-sm" data-testid="order-totals">
           <div className="flex justify-between"><dt className="text-ink-muted">{common.subtotal}</dt><dd><CurrencyDisplay amount={totals.subtotal} currency={company.currency} /></dd></div>
           {totals.vatAmount > 0 && <div className="flex justify-between"><dt className="text-ink-muted">{common.vat}</dt><dd><CurrencyDisplay amount={totals.vatAmount} currency={company.currency} /></dd></div>}
-          <div className="flex justify-between font-bold border-t border-ink/10 pt-1"><dt>{common.total}</dt><dd><CurrencyDisplay amount={totals.total} currency={company.currency} /></dd></div>
+          <div className="flex justify-between font-bold border-t border-outline-variant pt-1"><dt>{common.total}</dt><dd><CurrencyDisplay amount={totals.total} currency={company.currency} /></dd></div>
         </dl>
       </Card>
 
@@ -229,11 +229,11 @@ export function PurchaseOrderView({ order, fromRequisition, suppliers, warehouse
 
       {order && (order.receipts.length > 0 || order.bills.length > 0) && (
         <div className="grid sm:grid-cols-2 gap-4">
-          <Card className="p-5 space-y-2">
+          <Card className="p-5 space-y-2" data-page-section>
             <h2 className="font-bold text-ink">{copy.receipts}</h2>
             {order.receipts.map((r) => <p key={r.id} className="text-sm flex justify-between gap-2"><span className="font-mono text-xs" dir="ltr">{r.number}</span><span className="text-ink-muted">{formatDate(r.received_at, locale)}</span><span className="tabular-nums">{r.quantity}</span></p>)}
           </Card>
-          <Card className="p-5 space-y-2">
+          <Card className="p-5 space-y-2" data-page-section>
             <h2 className="font-bold text-ink">{copy.bills}</h2>
             {order.bills.map((b) => <Link key={b.id} href={ROUTES.procurement.bill(b.id)} className="text-sm flex justify-between gap-2 hover:text-accent"><span className="font-mono text-xs" dir="ltr">{b.number}</span><StatusPill status={b.status} /><CurrencyDisplay amount={b.total} currency={company.currency} /></Link>)}
           </Card>

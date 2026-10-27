@@ -47,10 +47,10 @@ export function SuppliersView({ suppliers, performance, currency, search, canEdi
   );
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{copy.title}</h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
+          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
         </div>
         {canEdit && !draft && (
           <Button type="button" variant="primary" size="sm" className="rounded-full gap-1.5" onClick={() => setDraft(blank())}>
@@ -93,7 +93,7 @@ export function SuppliersView({ suppliers, performance, currency, search, canEdi
             <p className="text-sm text-ink-muted">{copy.empty}</p>
           </div>
         ) : (
-          <ul className="divide-y divide-ink/10">
+          <ul className="divide-y divide-outline-variant">
             {suppliers.map((s) => (
               <li key={s.id} className="flex items-center gap-3 px-4 py-3">
                 <div className="flex-1 min-w-0">

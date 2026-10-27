@@ -336,7 +336,7 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto("/dashboard/settings/company");
     const main = page.getByRole("main");
     await main
-      .getByRole("button", { name: t.setupWizard.steps.brand, exact: true })
+      .getByRole("tab", { name: t.setupWizard.steps.brand, exact: true })
       .click();
     const color = main
       .getByRole("textbox", { name: t.setupWizard.brand.primary, exact: true })
@@ -345,10 +345,10 @@ for (const locale of ["en", "ar"] as const) {
     const changed = original === "#102030" ? "#203040" : "#102030";
     await color.fill(changed);
     await main
-      .getByRole("button", { name: t.companySettingsTabs.general, exact: true })
+      .getByRole("tab", { name: t.companySettingsTabs.general, exact: true })
       .click();
     await main
-      .getByRole("button", { name: t.setupWizard.steps.brand, exact: true })
+      .getByRole("tab", { name: t.setupWizard.steps.brand, exact: true })
       .click();
     await expect(color).toHaveValue(changed);
     let release!: () => void;

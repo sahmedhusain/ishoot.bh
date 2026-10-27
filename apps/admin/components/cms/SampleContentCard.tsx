@@ -32,7 +32,7 @@ export function ShowExampleButton({ activity, className, compact }: { activity: 
   };
   if (compact)
     return (
-      <button type="button" aria-label={t.sampleContent.showExample} title={t.sampleContent.showExample} disabled={busy} onClick={open} data-testid={`example-${activity}`} className={`rounded-full bg-surface/90 p-1.5 text-slate-600 shadow-sm ring-1 ring-ink/10 transition-colors hover:text-accent dark:text-slate-200 ${className ?? ""}`}>
+      <button type="button" aria-label={t.sampleContent.showExample} title={t.sampleContent.showExample} disabled={busy} onClick={open} data-testid={`example-${activity}`} className={`rounded-full bg-surface/90 p-1.5 text-ink-muted shadow-sm ring-1 ring-ink/10 transition-colors hover:text-accent dark:text-ink ${className ?? ""}`}>
         {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Eye className="h-3.5 w-3.5" />}
       </button>
     );

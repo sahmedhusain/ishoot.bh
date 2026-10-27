@@ -1,3 +1,4 @@
+import { selectOption } from "../../select-option";
 import { expect, test } from "@playwright/test";
 import { alertMessage, testDatabase, watchErrors } from "../../helpers";
 import { t } from "../../locale";
@@ -44,9 +45,8 @@ test("a product with a category, options and variants is created, kept unique an
   await page.locator('input[name="productNameEn"]').fill("E2E Cotton T-shirt");
   await page.locator('input[name="productNameAr"]').fill("تيشيرت الاختبار");
   await page.locator('input[name="sku"]').fill("E2E-TEE");
-  await page
-    .getByLabel(copy.editor.category)
-    .selectOption({ label: "ملابس الاختبار" });
+  await selectOption(page
+    .getByLabel(copy.editor.category), { label: "ملابس الاختبار" });
   await page.locator('input[name="price"]').fill("8.5");
   await page.locator('input[name="cost"]').fill("3.4");
   await expect(page.getByText("60%")).toBeVisible();

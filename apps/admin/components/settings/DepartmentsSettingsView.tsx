@@ -4,7 +4,7 @@ import { useConfirmation } from "@platform/ui";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Building, ChevronRight, Pencil, Plus, Sparkles, Trash2, Users } from "lucide-react";
-import { Button, Card, Input } from "@platform/ui";
+import { Select, Button, Card, Input } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import type { DepartmentNode } from "@platform/database";
 import type { ContentLanguage } from "@platform/database/constants/languages";
@@ -79,17 +79,17 @@ export function DepartmentsSettingsView({ departments, people, languages, canEdi
   const select = (value: string, onChange: (value: string) => void, options: { id: string; label: string }[], none: string) =>
     function Picker(id: string) {
       return (
-        <select id={id} value={value} onChange={(e) => onChange(e.target.value)} className="w-full h-9 rounded-lg border border-ink/15 bg-surface px-3 text-sm">
+        <Select id={id} value={value} onChange={(e) => onChange(e.target.value)} className="w-full h-9 rounded-lg border border-outline-variant bg-surface px-3 text-sm">
           <option value="">{none}</option>
           {options.map((option) => (
             <option key={option.id} value={option.id}>{option.label}</option>
           ))}
-        </select>
+        </Select>
       );
     };
 
   const form = draft && (
-    <Card className="p-5 space-y-4 animate-in fade-in slide-in-from-top-1 duration-200">
+    <Card className="p-5 space-y-4 animate-in fade-in slide-in-from-top-1 duration-200" data-page-section>
       <h2 className="font-bold text-ink">{draft.id ? copy.editTitle : copy.newTitle}</h2>
       <div className="grid sm:grid-cols-2 gap-4">
         <LanguageFields label={copy.name} en={draft.name_en} ar={draft.name_ar} languages={languages} maxLength={120} required onChange={({ en, ar }) => setDraft({ ...draft, name_en: en, name_ar: ar })} />
@@ -122,10 +122,10 @@ export function DepartmentsSettingsView({ departments, people, languages, canEdi
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{copy.title}</h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
+          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
         </div>
         {canEdit && (
           <Button variant="primary" size="sm" className="gap-1.5 rounded-full" onClick={() => setDraft({ ...EMPTY })}>
@@ -155,7 +155,7 @@ export function DepartmentsSettingsView({ departments, people, languages, canEdi
                   <div className="min-w-0">
                     <p className="font-semibold text-sm text-ink truncate">{name(node)}</p>
                     <p className="text-[11px] text-ink-muted">
-                      <span dir="ltr">{node.code}</span>
+                      <span dir="ltr"><bdi dir="ltr">{node.code}</bdi></span>
                       {node.cost_centre ? ` · ${formatMessage(copy.costCentreValue, { value: node.cost_centre })}` : ""}
                     </p>
                   </div>
@@ -187,7 +187,7 @@ export function DepartmentsSettingsView({ departments, people, languages, canEdi
       )}
 
       {canEdit && missing.length > 0 && (
-        <Card className="p-5 space-y-3">
+        <Card className="p-5 space-y-3" data-page-section>
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-accent" />
             <h2 className="font-bold text-sm text-ink">{copy.catalogueTitle}</h2>
@@ -197,7 +197,7 @@ export function DepartmentsSettingsView({ departments, people, languages, canEdi
             {missing.map((key) => {
               const on = picked.includes(key);
               return (
-                <button key={key} type="button" aria-pressed={on} onClick={() => setPicked(on ? picked.filter((k) => k !== key) : [...picked, key])} className={`px-3 py-1.5 rounded-full text-xs border transition-colors ${on ? "border-accent bg-accent/10 text-ink" : "border-ink/15 text-ink-muted hover:border-ink/30"}`}>
+                <button key={key} type="button" aria-pressed={on} onClick={() => setPicked(on ? picked.filter((k) => k !== key) : [...picked, key])} className={`px-3 py-1.5 rounded-full text-xs border transition-colors ${on ? "border-accent bg-accent/10 text-ink" : "border-outline-variant text-ink-muted hover:border-ink/30"}`}>
                   {(t.departmentCatalogue as Record<string, string>)[key]}
                 </button>
               );

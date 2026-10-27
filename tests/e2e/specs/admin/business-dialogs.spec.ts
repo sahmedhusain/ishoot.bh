@@ -1,3 +1,4 @@
+import { selectOption } from "../../select-option";
 import { expect, test } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import en from "../../../../packages/locales/src/admin/en.json";
@@ -269,12 +270,10 @@ for (const locale of ["en", "ar"] as const) {
       .getByRole("main")
       .getByRole("button", { name: t.supports.addEnrolment, exact: true })
       .click();
-    await dialog
-      .getByRole("combobox", { name: t.supports.fields.employee, exact: true })
-      .selectOption(employeeId);
-    await dialog
-      .getByRole("combobox", { name: t.supports.fields.program, exact: true })
-      .selectOption(programId);
+    await selectOption(dialog
+      .getByRole("combobox", { name: t.supports.fields.employee, exact: true }), employeeId);
+    await selectOption(dialog
+      .getByRole("combobox", { name: t.supports.fields.program, exact: true }), programId);
     await dialog
       .getByLabel(t.supports.fields.notes, { exact: true })
       .fill("E2E retained support note");

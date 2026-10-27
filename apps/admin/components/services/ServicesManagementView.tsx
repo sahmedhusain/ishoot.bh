@@ -190,9 +190,9 @@ export function ServicesManagementView({
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">
             {t.servicesView.title}
           </h1>
         </div>
@@ -200,7 +200,7 @@ export function ServicesManagementView({
         <div className="flex items-center gap-3">
           {canWrite && <Button
             onClick={openCreateModal}
-            className="bg-primary hover:bg-primary/90 text-white gap-2 shadow-xs rounded-full px-4 h-8 text-xs font-semibold"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 shadow-xs rounded-full px-4 h-8 text-xs font-semibold"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{t.servicesView.addService}</span>
@@ -210,19 +210,19 @@ export function ServicesManagementView({
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-3.5 rounded-xl bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 shadow-xs space-y-1">
+        <div className="p-3.5 rounded-xl bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-outline-variant shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.servicesView.totalServices}</span>
+            <span className="text-[11px] font-medium text-ink-muted dark:text-ink-muted">{t.servicesView.totalServices}</span>
             <Layers className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
           </div>
-          <div className="text-xl font-bold text-slate-900 dark:text-white ">
+          <div className="text-xl font-bold text-ink dark:text-ink ">
             {services.length}
           </div>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 shadow-xs space-y-1">
+        <div className="p-3.5 rounded-xl bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-outline-variant shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.servicesView.activeOfferings}</span>
+            <span className="text-[11px] font-medium text-ink-muted dark:text-ink-muted">{t.servicesView.activeOfferings}</span>
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400 ">
@@ -230,22 +230,22 @@ export function ServicesManagementView({
           </div>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 shadow-xs space-y-1">
+        <div className="p-3.5 rounded-xl bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-outline-variant shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.servicesView.avgRate}</span>
+            <span className="text-[11px] font-medium text-ink-muted dark:text-ink-muted">{t.servicesView.avgRate}</span>
             <DollarSign className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
           </div>
-          <div className="text-xl font-bold text-slate-900 dark:text-white ">
+          <div className="text-xl font-bold text-ink dark:text-ink ">
             <CurrencyDisplay amount={avgRate} currency="BHD" />
           </div>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 shadow-xs space-y-1">
+        <div className="p-3.5 rounded-xl bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-outline-variant shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.servicesView.categoriesCount}</span>
+            <span className="text-[11px] font-medium text-ink-muted dark:text-ink-muted">{t.servicesView.categoriesCount}</span>
             <Tag className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
           </div>
-          <div className="text-xl font-bold text-slate-900 dark:text-white ">
+          <div className="text-xl font-bold text-ink dark:text-ink ">
             {SERVICE_CATEGORIES.length - 1}
           </div>
         </div>
@@ -261,12 +261,12 @@ export function ServicesManagementView({
               onClick={() => setActiveCategory(cat.value)}
               className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1.5 ${isActive
                 ? "bg-tone-95 text-primary border border-primary/30 dark:bg-tone-15/40 dark:text-mint dark:border-tone-15 font-semibold"
-                : "text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                : "text-ink-muted hover:bg-surface-sunken dark:text-ink dark:hover:bg-surface-raised"
                 }`}
             >
               <span>{isRTL ? cat.labelAr : cat.labelEn}</span>
               {cat.value !== "all" && (
-                <span className={`text-[10px] px-1.5 py-0.2 rounded-full  ${isActive ? "bg-primary/20 dark:bg-mint/20" : "bg-slate-100 dark:bg-neutral-800 text-slate-500"
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full  ${isActive ? "bg-primary/20 dark:bg-mint/20" : "bg-surface-sunken dark:bg-surface-raised text-ink-muted"
                   }`}>
                   {services.filter((s) => s.category === cat.value).length}
                 </span>
@@ -277,38 +277,38 @@ export function ServicesManagementView({
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white dark:bg-surface-raised p-3 rounded-xl border border-ink/15 dark:border-ink/15 shadow-xs">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-surface-raised dark:bg-surface-raised p-3 rounded-xl border border-outline-variant dark:border-outline-variant shadow-xs">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute start-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute start-3 top-1/2 -translate-y-1/2 text-ink-muted" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder={t.servicesView.searchPlaceholder}
-            className="w-full ps-9 pe-4 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent"
+            className="w-full ps-9 pe-4 py-1.5 text-xs rounded-xl border border-outline-variant dark:border-outline-variant bg-surface-raised dark:bg-surface-raised/50 text-ink dark:text-ink focus:outline-none focus:ring-1 focus:ring-accent"
           />
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-          <span className="text-[11px] text-slate-500">{t.servicesView.statusFilterLabel}:</span>
-          <select
+          <span className="text-[11px] text-ink-muted">{t.servicesView.statusFilterLabel}:</span>
+          <Select
             value={statusFilter}
             onChange={(e: any) => setStatusFilter(e.target.value)}
-            className="text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-accent"
+            className="text-xs bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-outline-variant rounded-xl px-2.5 py-1.5 text-ink dark:text-ink focus:outline-none focus:ring-1 focus:ring-accent"
           >
             <option value="all">{t.servicesView.filterAll}</option>
             <option value="active">{t.servicesView.filterActive}</option>
             <option value="inactive">{t.servicesView.filterInactive}</option>
-          </select>
+          </Select>
         </div>
       </div>
 
       {/* Services Table */}
-      <div className="bg-white dark:bg-surface-raised rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+      <div className="bg-surface-raised dark:bg-surface-raised rounded-2xl border border-outline-variant/80 dark:border-outline-variant shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-start border-collapse">
             <thead>
-              <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/40 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+              <tr className="border-b border-outline-variant dark:border-outline-variant bg-surface-raised/70 dark:bg-surface-raised/40 text-[11px] font-semibold text-ink-muted uppercase tracking-wider">
                 <th className="py-3 px-4">{t.servicesView.thCodeItem}</th>
                 {bilingual ? <th className="py-3 px-4">{t.servicesView.thArabicTitle}</th> : null}
                 <th className="py-3 px-4">{t.servicesView.thCategory}</th>
@@ -317,12 +317,12 @@ export function ServicesManagementView({
                 <th className="py-3 px-4 text-end">{t.servicesView.thActions}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
+            <tbody className="divide-y divide-outline-variant dark:divide-outline-variant/60 text-xs">
               {filteredServices.length === 0 ? (
                 <tr>
-                  <td colSpan={bilingual ? 6 : 5} className="py-12 text-center text-slate-400">
+                  <td colSpan={bilingual ? 6 : 5} className="py-12 text-center text-ink-muted">
                     <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                    <p className="font-medium text-slate-600 dark:text-slate-300">{t.servicesView.noServicesFound}</p>
+                    <p className="font-medium text-ink-muted dark:text-ink">{t.servicesView.noServicesFound}</p>
                     <p className="text-[11px] mt-1">{t.servicesView.noServicesHint}</p>
                   </td>
                 </tr>
@@ -336,22 +336,22 @@ export function ServicesManagementView({
                   return (
                     <tr
                       key={service.id}
-                      className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
+                      className="hover:bg-surface-raised/60 dark:hover:bg-surface-raised/40 transition-colors"
                     >
                       <td className="py-3 px-4">
                         <div className="flex flex-col">
-                          <span className="font-semibold text-slate-900 dark:text-white">
+                          <span className="font-semibold text-ink dark:text-ink">
                             {bilingual ? service.name_en : pickText(service.name_en, service.name_ar, languages[0])}
                           </span>
-                          <span className="text-[11px] text-slate-400 ">
+                          <span className="text-[11px] text-ink-muted ">
                             {service.code ?? t.servicesView.customCode}
                           </span>
                         </div>
                       </td>
                       {bilingual ? (
                         <td className="py-3 px-4">
-                          <span className="font-arabic text-slate-700 dark:text-slate-300 text-xs">
-                            {service.name_ar}
+                          <span className="font-arabic text-ink dark:text-ink text-xs">
+                            <bdi dir="auto">{service.name_ar}</bdi>
                           </span>
                         </td>
                       ) : null}
@@ -362,10 +362,10 @@ export function ServicesManagementView({
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex flex-col">
-                          <span className="font-bold text-slate-900 dark:text-white ">
+                          <span className="font-bold text-ink dark:text-ink ">
                             <CurrencyDisplay amount={service.default_rate} currency="BHD" />
                           </span>
-                          <span className="text-[10px] text-slate-400">
+                          <span className="text-[10px] text-ink-muted">
                             {unitLabel}
                           </span>
                         </div>
@@ -377,7 +377,7 @@ export function ServicesManagementView({
                             {t.servicesManagement.active}
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[11px] text-slate-400 font-medium">
+                          <span className="inline-flex items-center gap-1 text-[11px] text-ink-muted font-medium">
                             <XCircle className="w-3.5 h-3.5" />
                             {t.servicesManagement.archived}
                           </span>
@@ -387,7 +387,7 @@ export function ServicesManagementView({
                         <div className="flex items-center justify-end gap-1.5">
                           {canWrite && <button
                             onClick={() => openEditModal(service)}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-accent hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            className="p-1.5 rounded-lg text-ink-muted hover:text-accent hover:bg-surface-sunken dark:hover:bg-surface-raised transition-colors"
                             title={t.servicesManagement.editService}
                           >
                             <Edit2 className="w-3.5 h-3.5" />
@@ -395,7 +395,7 @@ export function ServicesManagementView({
                           {canDelete && <button
                             onClick={() => handleDelete(service.id)}
                             disabled={deletingId === service.id}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                            className="p-1.5 rounded-lg text-ink-muted hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
                             title={t.servicesManagement.deleteService}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -417,7 +417,7 @@ export function ServicesManagementView({
           <fieldset disabled={saving} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor={`${serviceFormId}-code`} className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                <label htmlFor={`${serviceFormId}-code`} className="text-xs font-semibold text-ink dark:text-ink block mb-1">
                   {t.servicesView.codeLabel}
                 </label>
                 <Input
@@ -429,14 +429,14 @@ export function ServicesManagementView({
                 />
               </div>
               <div>
-                <label htmlFor={`${serviceFormId}-category`} className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                <label htmlFor={`${serviceFormId}-category`} className="text-xs font-semibold text-ink dark:text-ink block mb-1">
                   {t.servicesView.categoryLabel} *
                 </label>
                 <Select
                   id={`${serviceFormId}-category`}
                   value={formCategory}
                   onChange={(e: any) => setFormCategory(e.target.value)}
-                  className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent"
+                  className="w-full text-xs bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-outline-variant rounded-xl px-3 py-2 text-ink dark:text-ink focus:outline-none focus:ring-1 focus:ring-accent"
                 >
                   <option value="production">{t.servicesView.categoryProduction}</option>
                   <option value="post_production">{t.servicesView.categoryPost}</option>
@@ -462,7 +462,7 @@ export function ServicesManagementView({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor={`${serviceFormId}-rate`} className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                <label htmlFor={`${serviceFormId}-rate`} className="text-xs font-semibold text-ink dark:text-ink block mb-1">
                   {t.servicesView.rateLabel} ({t.financials.currency}) *
                 </label>
                 <Input
@@ -478,14 +478,14 @@ export function ServicesManagementView({
                 />
               </div>
               <div>
-                <label htmlFor={`${serviceFormId}-unit`} className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                <label htmlFor={`${serviceFormId}-unit`} className="text-xs font-semibold text-ink dark:text-ink block mb-1">
                   {t.servicesView.unitLabel} *
                 </label>
                 <Select
                   id={`${serviceFormId}-unit`}
                   value={formUnit}
                   onChange={(e: any) => setFormUnit(e.target.value)}
-                  className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent"
+                  className="w-full text-xs bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-outline-variant rounded-xl px-3 py-2 text-ink dark:text-ink focus:outline-none focus:ring-1 focus:ring-accent"
                 >
                   {SERVICE_UNITS.map((u) => (
                     <option key={u.value} value={u.value}>
@@ -516,7 +516,7 @@ export function ServicesManagementView({
                 onChange={(e) => setFormIsActive(e.target.checked)}
                 className="rounded text-accent focus:ring-accent"
               />
-              <label htmlFor="formIsActive" className="text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+              <label htmlFor="formIsActive" className="text-xs font-medium text-ink dark:text-ink cursor-pointer">
                 {t.servicesView.statusActive}
               </label>
             </div>

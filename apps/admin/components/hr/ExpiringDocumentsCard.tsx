@@ -26,7 +26,7 @@ export function ExpiringDocumentsCard({ rows }: { rows: ExpiringDocumentRow[] })
   const names = { ...c.kinds, ...t.expiryReminders.documents } as Record<string, string>;
   const expired = rows.filter((r) => r.days < 0).length;
   return (
-    <section className="rounded-3xl border border-amber-500/30 bg-amber-500/5 p-5 space-y-3">
+    <section className="rounded-3xl border border-amber-500/30 bg-amber-500/5 p-5 space-y-3" data-page-section>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="flex items-center gap-2 text-sm font-bold text-ink">
           <CalendarClock className="h-4 w-4 text-amber-600" />
@@ -39,7 +39,7 @@ export function ExpiringDocumentsCard({ rows }: { rows: ExpiringDocumentRow[] })
       <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
         {rows.slice(0, 10).map((r) => (
           <li key={`${r.employeeId}-${r.document}-${r.label ?? ""}-${r.expiryDate}`}>
-            <Link href={ROUTES.hr.employee(r.employeeId)} className="flex items-center justify-between gap-3 rounded-2xl bg-white dark:bg-surface-raised border border-ink/10 px-3 py-2 hover:border-accent/50">
+            <Link href={ROUTES.hr.employee(r.employeeId)} className="flex items-center justify-between gap-3 rounded-2xl bg-surface-raised dark:bg-surface-raised border border-outline-variant px-3 py-2 hover:border-accent/50">
               <span className="min-w-0">
                 <span className="block truncate text-sm font-semibold text-ink">{locale === "ar" ? r.nameAr : r.nameEn}</span>
                 <span className="block text-[11px] text-ink-muted">{r.label || names[r.document] || r.document} · {formatDate(r.expiryDate, locale)}</span>

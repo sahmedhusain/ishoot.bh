@@ -53,7 +53,7 @@ function cleanPastedHtml(html: string) {
     .replace(/<b\s+[^>]*?id="docs-internal-guid[^"]*"[^>]*>([\s\S]*?)<\/b>/gi, "$1");
 }
 
-function ToolButton({ label, active, disabled, onClick, children }: { label: string; active?: boolean; disabled?: boolean; onClick: () => void; children: React.ReactNode }) {
+function ToolButton({ label, active, disabled, onClick, children }: { label: string; active?: boolean; disabled?: boolean; onClick: (event: React.MouseEvent<HTMLButtonElement>) => void; children: React.ReactNode }) {
   return (
     <button
       type="button"
@@ -122,9 +122,10 @@ function Toolbar({ editor, imageResource }: { editor: Editor; imageResource: Ima
     }
   };
 
-  const link = () => { setError(""); setDialog({ kind: "link", value: (editor.getAttributes("link").href as string | undefined) ?? "" }); };
-  const video = () => { setError(""); setDialog({ kind: "video", value: "" }); };
-  const embed = () => { setError(""); setPreset("instagram"); setDialog({ kind: "embed", value: "" }); };
+  // Pointer-down preserves the text selection; focus the actual dialog opener on click.
+  const link = (event: React.MouseEvent<HTMLButtonElement>) => { event.currentTarget.focus(); setError(""); setDialog({ kind: "link", value: (editor.getAttributes("link").href as string | undefined) ?? "" }); };
+  const video = (event: React.MouseEvent<HTMLButtonElement>) => { event.currentTarget.focus(); setError(""); setDialog({ kind: "video", value: "" }); };
+  const embed = (event: React.MouseEvent<HTMLButtonElement>) => { event.currentTarget.focus(); setError(""); setPreset("instagram"); setDialog({ kind: "embed", value: "" }); };
   const applyDialog = (event: React.FormEvent) => {
     event.preventDefault();
     if (!dialog) return;
@@ -151,7 +152,7 @@ function Toolbar({ editor, imageResource }: { editor: Editor; imageResource: Ima
 
   return (
     <>
-      <div role="toolbar" aria-label={copy.toolbar} className="flex flex-wrap items-center gap-0.5 border-b border-ink/10 bg-surface-sunken/60 px-2 py-1.5 sticky top-0 z-10">
+      <div role="toolbar" aria-label={copy.toolbar} className="flex flex-wrap items-center gap-0.5 border-b border-outline-variant bg-surface-sunken/60 px-2 py-1.5 sticky top-0 z-10">
         <ToolButton label={copy.paragraph} active={!state.h2 && !state.h3} onClick={() => chain().setParagraph().run()}><Pilcrow className="w-4 h-4" /></ToolButton>
         <ToolButton label={copy.heading2} active={state.h2} onClick={() => chain().toggleHeading({ level: 2 }).run()}><Heading2 className="w-4 h-4" /></ToolButton>
         <ToolButton label={copy.heading3} active={state.h3} onClick={() => chain().toggleHeading({ level: 3 }).run()}><Heading3 className="w-4 h-4" /></ToolButton>
@@ -224,9 +225,9 @@ export function RichTextEditor({ value, onChange, label, dir, imageResource }: {
   });
   return (
     <div className="space-y-1.5">
-      <span id={id} className="text-xs font-medium text-slate-700 dark:text-slate-300">{label}</span>
-      <div className="rounded-xl border border-ink/15 bg-surface overflow-hidden focus-within:ring-2 focus-within:ring-accent/40 transition-shadow">
-        {editor ? <Toolbar editor={editor} imageResource={imageResource} /> : <div className="h-11 border-b border-ink/10" />}
+      <span id={id} className="text-xs font-medium text-ink dark:text-ink">{label}</span>
+      <div className="rounded-xl border border-outline-variant bg-surface overflow-hidden focus-within:ring-2 focus-within:ring-accent/40 transition-shadow">
+        {editor ? <Toolbar editor={editor} imageResource={imageResource} /> : <div className="h-11 border-b border-outline-variant" />}
         <EditorContent editor={editor} />
       </div>
     </div>

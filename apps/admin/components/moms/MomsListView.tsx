@@ -73,7 +73,7 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-ink/10 text-ink/70 border border-ink/15">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-ink/10 text-ink/70 border border-outline-variant">
             {t.momsList.draft}
           </span>
         );
@@ -83,7 +83,7 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-ink font-display flex items-center gap-2">
             <FileSignature className="w-6 h-6 text-accent" />
@@ -95,7 +95,7 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
         </div>
 
         <Link href={ROUTES.moms.create}>
-          <Button className="bg-accent hover:bg-tone-25 text-white flex items-center gap-2 text-xs">
+          <Button className="bg-accent hover:bg-tone-25 text-accent-foreground flex items-center gap-2 text-xs">
             <Plus className="w-4 h-4" />
             <span>{t.momsList.newMeetingMinutes}</span>
           </Button>
@@ -103,7 +103,7 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
       </div>
 
       {/* Filter and Search Bar */}
-      <Card className="p-4 bg-surface border border-ink/10 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
+      <Card className="p-4 bg-surface border border-outline-variant rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 text-ink-muted absolute start-3 top-2.5" />
           <input
@@ -111,7 +111,7 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
             placeholder={t.momsList.searchMinutesOrClients}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full ps-9 pe-4 py-1.5 text-xs rounded-xl bg-surface-sunken border border-ink/10 text-ink placeholder:text-ink-muted/60 focus:outline-none focus:border-accent"
+            className="w-full ps-9 pe-4 py-1.5 text-xs rounded-xl bg-surface-sunken border border-outline-variant text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent"
           />
         </div>
 
@@ -121,7 +121,7 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
               key={st}
               onClick={() => setStatusFilter(st)}
               className={`px-3 py-1 text-xs rounded-lg font-medium transition-all ${statusFilter === st
-                ? "bg-accent text-white"
+                ? "bg-accent text-accent-foreground"
                 : "bg-ink/5 text-ink-muted hover:text-ink"
                 }`}
             >
@@ -140,10 +140,10 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
       </Card>
 
       {/* MOM Table */}
-      <Card className="bg-surface border border-ink/10 rounded-2xl overflow-hidden shadow-xl">
+      <Card className="bg-surface border border-outline-variant rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-start text-xs">
-            <thead className="bg-surface-sunken text-ink-muted uppercase text-[11px] border-b border-ink/10">
+            <thead className="bg-surface-sunken text-ink-muted uppercase text-[11px] border-b border-outline-variant">
               <tr>
                 <th className="p-4 text-start">{t.momsList.mom}</th>
                 <th className="p-4 text-start">{t.momsList.meetingTitle}</th>
@@ -154,7 +154,7 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
                 <th className="p-4 text-end">{t.momsList.actions}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink/5 text-ink">
+            <tbody className="divide-y divide-outline-variant text-ink">
               {filteredMoms.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="p-8 text-center text-xs text-ink-muted">
@@ -218,7 +218,7 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
                       <div className="flex items-center justify-end gap-2">
                         <Link
                           href={ROUTES.moms.detail(mom.id)}
-                          className="p-1.5 rounded-lg bg-ink/5 hover:bg-accent/20 text-primary dark:text-mint border border-ink/10 hover:border-accent/40 transition-all"
+                          className="p-1.5 rounded-lg bg-ink/5 hover:bg-accent/20 text-primary dark:text-mint border border-outline-variant hover:border-accent/40 transition-all"
                           title={t.momsList.viewOfficialDocument}
                         >
                           <ExternalLink className="w-4 h-4" />

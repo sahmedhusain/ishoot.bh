@@ -121,6 +121,12 @@
       "skillPath": "skills/brutalist-skill/SKILL.md",
       "computedHash": "8fc355c4aadb7d29c53ca28bc41be3cd6eea765d121e3737c4dc2d0f90a8effa"
     },
+    "material-design-3-ui": {
+      "source": "skydashnet/material-design-3-ui-skill",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "34f1e4fa16efeacd5176dd3425090e0702876b2754ff44a083f356dc7603362f"
+    },
     "minimalist-ui": {
       "source": "Leonxlnx/taste-skill",
       "sourceType": "github",

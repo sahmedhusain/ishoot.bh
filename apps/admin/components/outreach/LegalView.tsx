@@ -95,10 +95,10 @@ export function LegalView({ matters, licences, contracts, filters, currency, can
   const documentStatus = (status: string) => (t.documents.contractStatuses as Record<string, string>)[status] ?? status;
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{copy.title}</h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
+          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
         </div>
         {canEdit && !adding && <Button type="button" size="sm" variant="primary" className="rounded-full gap-1.5" onClick={() => setAdding(true)} data-testid="legal-new"><Plus className="w-4 h-4" />{copy.new}</Button>}
       </div>
@@ -108,7 +108,7 @@ export function LegalView({ matters, licences, contracts, filters, currency, can
         </Card>
       )}
       <div className="flex flex-col sm:flex-row gap-2">
-        <div className="inline-flex rounded-full border border-ink/10 p-1 text-xs font-semibold">
+        <div className="inline-flex rounded-full border border-outline-variant p-1 text-xs font-semibold">
           {(["open", "all"] as const).map((s) => (
             <Link key={s} href={href({ status: s })} aria-current={filters.status === s ? "page" : undefined} className={`rounded-full px-3 py-1.5 ${filters.status === s ? "bg-primary text-primary-foreground" : "text-ink-muted"}`}>{s === "open" ? copy.openOnly : copy.all}</Link>
           ))}
@@ -125,12 +125,12 @@ export function LegalView({ matters, licences, contracts, filters, currency, can
             <p className="text-sm text-ink-muted">{copy.empty}</p>
           </div>
         ) : (
-          <ul className="divide-y divide-ink/10" data-testid="legal-list">
+          <ul className="divide-y divide-outline-variant" data-testid="legal-list">
             {matters.map((m) => (
               <li key={m.id}>
                 <Link href={ROUTES.legal.matter(m.id)} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 text-sm hover:bg-ink/[0.02]">
                   <span className="font-mono text-xs font-semibold" dir="ltr">{m.number}</span>
-                  <span className="font-medium text-ink">{m.title}</span>
+                  <span className="font-medium text-ink"><bdi dir="auto">{m.title}</bdi></span>
                   <span className="text-xs text-ink-muted">{(copy.kinds as Record<string, string>)[m.kind]} · {(copy.statuses as Record<string, string>)[m.status]}</span>
                   {m.counterparty && <span className="text-xs text-ink-muted">{m.counterparty}</span>}
                   {m.next_date && <span className={`ms-auto text-xs font-semibold ${m.next_date < today ? "text-rose-600" : "text-ink"}`}>{formatMessage(copy.next, { date: formatDate(m.next_date, locale) })}</span>}
@@ -141,13 +141,13 @@ export function LegalView({ matters, licences, contracts, filters, currency, can
         )}
       </Card>
       <div className="grid gap-4 md:grid-cols-2">
-        <Card className="p-5 space-y-3">
+        <Card className="p-5 space-y-3" data-page-section>
           <h2 className="font-bold text-ink flex items-center gap-2"><FileBadge className="w-4 h-4 text-accent" aria-hidden="true" />{copy.licences}</h2>
           <p className="text-xs text-ink-muted">{copy.licencesHint}</p>
           {licences.length === 0 ? (
             <p className="text-sm text-ink-muted">{copy.noLicences}</p>
           ) : (
-            <ul className="divide-y divide-ink/10 text-sm">
+            <ul className="divide-y divide-outline-variant text-sm">
               {licences.map((l) => (
                 <li key={l.id} className="flex items-center gap-3 py-2">
                   <Link href={ROUTES.company.documents} className="flex-1 hover:text-accent">{locale === "ar" ? l.title_ar : l.title_en}</Link>
@@ -157,12 +157,12 @@ export function LegalView({ matters, licences, contracts, filters, currency, can
             </ul>
           )}
         </Card>
-        <Card className="p-5 space-y-3">
+        <Card className="p-5 space-y-3" data-page-section>
           <h2 className="font-bold text-ink flex items-center gap-2"><FileSignature className="w-4 h-4 text-accent" aria-hidden="true" />{copy.contracts}</h2>
           {contracts.length === 0 ? (
             <p className="text-sm text-ink-muted">—</p>
           ) : (
-            <ul className="divide-y divide-ink/10 text-sm">
+            <ul className="divide-y divide-outline-variant text-sm">
               {contracts.map((c) => (
                 <li key={c.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2">
                   {c.deal_id ? <Link href={ROUTES.crm.deal(c.deal_id)} className="font-medium hover:text-accent">{locale === "ar" ? c.title_ar : c.title_en}</Link> : <span className="font-medium">{locale === "ar" ? c.title_ar : c.title_en}</span>}
@@ -189,16 +189,16 @@ export function LegalMatterView({ matter, currency, canEdit, people }: { matter:
   const eventText = (e: LegalMatterRecord["events"][number]) =>
     e.kind === "status" ? formatMessage(copy.events.status, { value: (copy.statuses as Record<string, string>)[e.body] ?? e.body }) : e.kind === "date" ? formatMessage(copy.events.date, { value: formatDate(e.body, locale) }) : e.body;
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-16">
-      <div className="space-y-2">
+    <div className="space-y-6 max-w-4xl mx-auto pb-16" >
+      <div className="space-y-2" data-page-header>
         <Link href={ROUTES.legal.matters} className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent"><ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" />{copy.back}</Link>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{matter.title}</h1>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink"><bdi dir="auto">{matter.title}</bdi></h1>
         <p className="text-xs text-ink-muted flex flex-wrap gap-x-3">
           <span className="font-mono" dir="ltr">{matter.number}</span>
           <span>{(copy.kinds as Record<string, string>)[matter.kind]}</span>
           <span data-testid="legal-status">{(copy.statuses as Record<string, string>)[matter.status]}</span>
           {matter.counterparty && <span>{matter.counterparty}</span>}
-          {matter.reference && <span dir="auto">{matter.reference}</span>}
+          {matter.reference && <span dir="auto"><bdi dir="ltr">{matter.reference}</bdi></span>}
           {matter.next_date && <span className="font-semibold text-ink">{formatMessage(copy.next, { date: formatDate(matter.next_date, locale) })}</span>}
           {matter.assignee && <span>{matter.assignee}</span>}
           {matter.amount_at_stake != null && <span>{formatCurrencyValue(matter.amount_at_stake, currency, locale === "ar")}</span>}
@@ -221,7 +221,7 @@ export function LegalMatterView({ matter, currency, canEdit, people }: { matter:
           </>
         )}
       </Card>
-      <Card className="p-5 space-y-3">
+      <Card className="p-5 space-y-3" data-page-section>
         <h2 className="font-bold text-ink">{copy.history}</h2>
         <ol className="space-y-2 text-sm" data-testid="legal-history">
           {matter.events.map((e) => (

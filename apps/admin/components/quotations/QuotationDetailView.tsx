@@ -8,7 +8,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Quotation, ApprovalRequest } from "@platform/database/types";
-import {
+import { Select,
   Card,
   Button, Textarea, formatDate
 } from "@platform/ui";
@@ -121,14 +121,14 @@ export function QuotationDetailView({
 
   // Status mapping
   const statusMeta: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
-    draft: { label: t.statusLabels.draft, color: "bg-slate-100 text-slate-700 dark:bg-neutral-800 dark:text-neutral-300", icon: Clock },
+    draft: { label: t.statusLabels.draft, color: "bg-surface-sunken text-ink dark:bg-surface-raised dark:text-ink", icon: Clock },
     submitted: { label: t.quotationDetail.pendingApproval, color: "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300", icon: Clock },
     approved: { label: t.quotationDetail.approvedBySuperAdmin, color: "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300", icon: CheckCircle2 },
     issued: { label: t.quotationDetail.issuedToClient, color: "bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-300", icon: Send },
     accepted: { label: t.quotationDetail.acceptedByClient, color: "bg-teal-50 text-teal-800 border border-teal-200 dark:bg-teal-950/40 dark:text-teal-300", icon: FileCheck },
     converted: { label: t.quotationDetail.convertedToInvoice, color: "bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950/40 dark:text-purple-300", icon: Receipt },
     rejected: { label: t.statusLabels.rejected, color: "bg-red-50 text-red-700 border border-red-200 dark:bg-red-950/40 dark:text-red-300", icon: XCircle },
-    expired: { label: t.statusLabels.expired, color: "bg-stone-100 text-stone-600 dark:bg-neutral-800 dark:text-neutral-400", icon: AlertCircle },
+    expired: { label: t.statusLabels.expired, color: "bg-stone-100 text-stone-600 dark:bg-surface-raised dark:text-ink-muted", icon: AlertCircle },
   };
 
   const currentStatusMeta = statusMeta[quotation.status] || statusMeta.draft;
@@ -291,11 +291,11 @@ export function QuotationDetailView({
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-16">
       {/* Editorial Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-ink/10 pb-6">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-outline-variant pb-6">
+        <div className="flex items-center gap-3" data-page-header>
           <Link
             href={ROUTES.quotations.list}
-            className="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-neutral-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
+            className="p-2 rounded-md hover:bg-surface-sunken dark:hover:bg-surface-raised text-ink-muted hover:text-ink dark:hover:text-white transition-colors"
           >
             {isRTL ? <ArrowRight className="w-5 h-5" /> : <ArrowLeft className="w-5 h-5" />}
           </Link>
@@ -304,12 +304,12 @@ export function QuotationDetailView({
               <span className="text-xs font-mono uppercase tracking-widest text-accent font-medium">
                 {qdT.commercialQuotation}
               </span>
-              <span className="text-xs font-mono bg-slate-100 dark:bg-neutral-800 px-2 py-0.5 rounded text-slate-600 dark:text-neutral-400">
+              <span className="text-xs font-mono bg-surface-sunken dark:bg-surface-raised px-2 py-0.5 rounded text-ink-muted dark:text-ink-muted">
                 {qdT.revision} #{quotation.revision}
               </span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white mt-1">
-              {quotation.quotationNumber}
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-ink dark:text-ink mt-1">
+              <bdi dir="ltr">{quotation.quotationNumber}</bdi>
             </h1>
           </div>
         </div>
@@ -357,7 +357,7 @@ export function QuotationDetailView({
                 }
               }}
               disabled={loadingAction === "submit"}
-              className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-md text-sm font-medium active:scale-[0.98] transition-all"
+              className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-primary-foreground px-4 py-2 rounded-md text-sm font-medium active:scale-[0.98] transition-all"
             >
               <Send className="w-4 h-4" />
               <span>{qdT.submitForApproval}</span>
@@ -385,7 +385,7 @@ export function QuotationDetailView({
                   <Button
                     onClick={() => setShowApproveModal(true)}
                     disabled={!!loadingAction}
-                    className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-md text-xs font-medium shadow-xs"
+                    className="bg-primary hover:bg-primary-hover text-primary-foreground px-4 py-2 rounded-md text-xs font-medium shadow-xs"
                   >
                     <CheckCircle2 className="w-4 h-4 me-1 inline" />
                     {qdT.approveBtn}
@@ -434,7 +434,7 @@ export function QuotationDetailView({
             <Button
               onClick={handleConvertToInvoice}
               disabled={loadingAction === "convert"}
-              className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-md text-sm font-medium active:scale-[0.98] transition-all"
+              className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-primary-foreground px-4 py-2 rounded-md text-sm font-medium active:scale-[0.98] transition-all"
             >
               <Receipt className="w-4 h-4" />
               <span>{qdT.convertToInvoice}</span>
@@ -459,14 +459,14 @@ export function QuotationDetailView({
         {/* Main Content: Left 2 Cols */}
         <div className="lg:col-span-2 space-y-6">
           {/* Status Banner */}
-          <div className="flex items-center justify-between p-4 rounded-lg bg-white dark:bg-surface-raised border border-ink/10">
+          <div className="flex items-center justify-between p-4 rounded-lg bg-surface-raised dark:bg-surface-raised border border-outline-variant">
             <div className="flex items-center gap-3">
               <div className={`p-2 rounded-full ${currentStatusMeta.color}`}>
                 <StatusIcon className="w-5 h-5" />
               </div>
               <div>
-                <div className="text-xs text-slate-500 dark:text-neutral-400">{qdT.currentLifecycle}</div>
-                <div className="font-semibold text-slate-900 dark:text-white">
+                <div className="text-xs text-ink-muted dark:text-ink-muted">{qdT.currentLifecycle}</div>
+                <div className="font-semibold text-ink dark:text-ink">
                   {qListT.statuses[quotation.status as keyof typeof qListT.statuses] || currentStatusMeta.label}
                 </div>
               </div>
@@ -487,20 +487,20 @@ export function QuotationDetailView({
               </div>
               <div className="grid grid-cols-3 gap-3 text-xs pt-1">
                 <div>
-                  <span className="text-slate-500">{qdT.rawMarketRate}</span>
-                  <div className="font-mono font-semibold text-slate-800 dark:text-neutral-200">
+                  <span className="text-ink-muted">{qdT.rawMarketRate}</span>
+                  <div className="font-mono font-semibold text-ink dark:text-ink">
                     {quotation.rawRate ? Number(quotation.rawRate).toFixed(4) : t.copy.notAvailable}
                   </div>
                 </div>
                 <div>
-                  <span className="text-slate-500">{qdT.fxSafetyBuffer}</span>
+                  <span className="text-ink-muted">{qdT.fxSafetyBuffer}</span>
                   <div className="font-mono font-semibold text-amber-700 dark:text-amber-400">
                     +{Number(quotation.fxMarginPercent)}%
                   </div>
                 </div>
                 <div>
-                  <span className="text-slate-500">{qdT.effectiveRate}</span>
-                  <div className="font-mono font-semibold text-slate-900 dark:text-white">
+                  <span className="text-ink-muted">{qdT.effectiveRate}</span>
+                  <div className="font-mono font-semibold text-ink dark:text-ink">
                     {quotation.effectiveRate ? Number(quotation.effectiveRate).toFixed(4) : "—"} {quotation.currency}{formatMessage(t.copy.currencyRate, { currency: "BHD" })}
                   </div>
                 </div>
@@ -512,8 +512,8 @@ export function QuotationDetailView({
           )}
 
           {/* Line Items Table */}
-          <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono flex items-center gap-2 border-b border-ink/10 pb-3">
+          <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-ink dark:text-ink font-mono flex items-center gap-2 border-b border-outline-variant pb-3">
               <FileText className="w-4 h-4 text-accent" />
               {qdT.scopeTitle}
             </h2>
@@ -521,7 +521,7 @@ export function QuotationDetailView({
             <div className="overflow-x-auto">
               <table className="w-full text-left rtl:text-right text-sm">
                 <thead>
-                  <tr className="border-b border-ink/10 text-xs font-mono uppercase text-slate-400">
+                  <tr className="border-b border-outline-variant text-xs font-mono uppercase text-ink-muted">
                     <th className="py-2.5 px-3">{qdT.colNum}</th>
                     <th className="py-2.5 px-3">{qdT.colDesc}</th>
                     <th className="py-2.5 px-3 text-right rtl:text-left">{qdT.colQty}</th>
@@ -529,21 +529,21 @@ export function QuotationDetailView({
                     <th className="py-2.5 px-3 text-right rtl:text-left">{qdT.colTotal} ({quotation.currency})</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-ink/10 dark:divide-white/5">
+                <tbody className="divide-y divide-outline-variant dark:divide-white/5">
                   {quotation.lineItems?.map((item, idx) => (
-                    <tr key={item.id || idx} className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02]">
-                      <td className="py-3 px-3 text-xs font-mono text-slate-400">{idx + 1}</td>
+                    <tr key={item.id || idx} className="hover:bg-surface-raised/50 dark:hover:bg-white/[0.02]">
+                      <td className="py-3 px-3 text-xs font-mono text-ink-muted">{idx + 1}</td>
                       <td className="py-3 px-3">
-                        <div className="font-medium text-slate-900 dark:text-white">{item.descriptionEn}</div>
+                        <div className="font-medium text-ink dark:text-ink">{item.descriptionEn}</div>
                         {item.descriptionAr && (
-                          <div className="text-xs text-slate-500 font-sans" dir="rtl">
+                          <div className="text-xs text-ink-muted font-sans" dir="rtl">
                             {item.descriptionAr}
                           </div>
                         )}
                       </td>
                       <td className="py-3 px-3 text-end font-mono">{Number(item.quantity)}</td>
                       <td className="py-3 px-3 text-end font-mono">{Number(item.unitPrice).toFixed(3)}</td>
-                      <td className="py-3 px-3 text-end font-mono font-semibold text-slate-900 dark:text-white">
+                      <td className="py-3 px-3 text-end font-mono font-semibold text-ink dark:text-ink">
                         {Number(item.lineTotal).toFixed(3)}
                       </td>
                     </tr>
@@ -553,9 +553,9 @@ export function QuotationDetailView({
             </div>
 
             {/* Calculations Breakdown */}
-            <div className="pt-4 border-t border-ink/10 flex justify-end">
+            <div className="pt-4 border-t border-outline-variant flex justify-end">
               <div className="w-72 space-y-2 text-xs">
-                <div className="flex justify-between text-slate-600 dark:text-neutral-400">
+                <div className="flex justify-between text-ink-muted dark:text-ink-muted">
                   <span>{qdT.subtotal}</span>
                   <span className="font-mono font-medium">{Number(quotation.subtotal).toFixed(3)} {quotation.currency}</span>
                 </div>
@@ -566,18 +566,18 @@ export function QuotationDetailView({
                   </div>
                 )}
                 {quotation.vatEnabled && (
-                  <div className="flex justify-between text-slate-600 dark:text-neutral-400">
+                  <div className="flex justify-between text-ink-muted dark:text-ink-muted">
                     <span>{qdT.vat} ({Number(quotation.vatPercentage)}%)</span>
                     <span className="font-mono font-medium">+{Number(quotation.vatAmount).toFixed(3)} {quotation.currency}</span>
                   </div>
                 )}
                 {(quotation.taxes ?? []).map((tax) => (
-                  <div key={tax.code} className="flex justify-between text-slate-600 dark:text-neutral-400">
+                  <div key={tax.code} className="flex justify-between text-ink-muted dark:text-ink-muted">
                     <span>{locale === "ar" ? tax.name_ar : tax.name_en} ({tax.rate}%)</span>
                     <span className="font-mono font-medium">+{tax.amount.toFixed(3)} {quotation.currency}</span>
                   </div>
                 ))}
-                <div className="flex justify-between text-sm font-bold text-slate-900 dark:text-white border-t border-ink/10 pt-2">
+                <div className="flex justify-between text-sm font-bold text-ink dark:text-ink border-t border-outline-variant pt-2">
                   <span>{qdT.totalPayable}</span>
                   <span className="font-mono text-primary dark:text-mint">
                     {Number(quotation.totalAmount).toFixed(3)} {quotation.currency}
@@ -588,20 +588,20 @@ export function QuotationDetailView({
           </Card>
 
           {/* Bilingual Terms */}
-          <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono border-b border-ink/10 pb-3">
+          <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-ink dark:text-ink font-mono border-b border-outline-variant pb-3">
               {qdT.termsTitle}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <div className="text-xs font-mono uppercase text-slate-400 mb-1">{t.quotationDetail.englishTerms}</div>
-                <div className="p-3 bg-slate-50 dark:bg-neutral-900/50 rounded-md text-xs font-mono text-slate-700 dark:text-neutral-300 whitespace-pre-line">
+                <div className="text-xs font-mono uppercase text-ink-muted mb-1">{t.quotationDetail.englishTerms}</div>
+                <div className="p-3 bg-surface-raised dark:bg-surface-raised/50 rounded-md text-xs font-mono text-ink dark:text-ink whitespace-pre-line">
                   {quotation.termsEn || (t.quotationDetail.noEnglishTermsSpecified)}
                 </div>
               </div>
               <div>
-                <div className="text-xs font-mono uppercase text-slate-400 mb-1">{t.quotationDetail.arabicTerms}</div>
-                <div className="p-3 bg-slate-50 dark:bg-neutral-900/50 rounded-md text-xs font-mono text-slate-700 dark:text-neutral-300 whitespace-pre-line" dir="rtl">
+                <div className="text-xs font-mono uppercase text-ink-muted mb-1">{t.quotationDetail.arabicTerms}</div>
+                <div className="p-3 bg-surface-raised dark:bg-surface-raised/50 rounded-md text-xs font-mono text-ink dark:text-ink whitespace-pre-line" dir="rtl">
                   {quotation.termsAr || (t.quotationDetail.noArabicTermsSpecified)}
                 </div>
               </div>
@@ -612,52 +612,52 @@ export function QuotationDetailView({
         {/* Right 1 Col: Metadata & Audit Box */}
         <div className="space-y-6">
           {/* Client Card */}
-          <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
-            <h2 className="text-xs font-mono uppercase tracking-widest text-slate-400 border-b border-ink/10 pb-2">
+          <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
+            <h2 className="text-xs font-mono uppercase tracking-widest text-ink-muted border-b border-outline-variant pb-2">
               {qdT.particularsTitle}
             </h2>
             <div className="space-y-2 text-xs">
-              <div className="font-semibold text-slate-900 dark:text-white text-sm flex items-center gap-1.5">
+              <div className="font-semibold text-ink dark:text-ink text-sm flex items-center gap-1.5">
                 <Building className="w-4 h-4 text-accent" />
-                {quotation.client?.companyName || `${quotation.client?.firstName || ""} ${quotation.client?.lastName || ""}`}
+                <bdi dir="auto">{quotation.client?.companyName || `${quotation.client?.firstName || ""} ${quotation.client?.lastName || ""}`}</bdi>
               </div>
               {quotation.client?.email && (
-                <div className="text-slate-500">{qdT.email}: {quotation.client.email}</div>
+                <div className="text-ink-muted"><bdi dir="ltr">{qdT.email}</bdi>: <bdi dir="ltr">{quotation.client.email}</bdi></div>
               )}
               {quotation.client?.phone && (
-                <div className="text-slate-500">{qdT.phone}: <bdi dir="ltr">{quotation.client.phone}</bdi></div>
+                <div className="text-ink-muted"><bdi dir="ltr">{qdT.phone}</bdi>: <bdi dir="ltr">{quotation.client.phone}</bdi></div>
               )}
               {quotation.vatEnabled && quotation.client?.taxNumber && (
-                <div className="text-slate-500">{t.quotationDetail.vatId} {quotation.client.taxNumber}</div>
+                <div className="text-ink-muted">{t.quotationDetail.vatId} {quotation.client.taxNumber}</div>
               )}
             </div>
           </Card>
 
           {/* Dates & Timeline */}
-          <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
-            <h2 className="text-xs font-mono uppercase tracking-widest text-slate-400 border-b border-ink/10 pb-2">
+          <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
+            <h2 className="text-xs font-mono uppercase tracking-widest text-ink-muted border-b border-outline-variant pb-2">
               {t.quotationDetail.documentLifecycle}
             </h2>
             <div className="space-y-3 text-xs">
               <div>
-                <span className="text-slate-400 block mb-0.5">{qdT.issueDate}:</span>
-                <div className="font-mono text-slate-900 dark:text-white flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                <span className="text-ink-muted block mb-0.5">{qdT.issueDate}:</span>
+                <div className="font-mono text-ink dark:text-ink flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-ink-muted" />
                   {formatDate(quotation.issueDate, locale, "long")}
                 </div>
               </div>
               <div>
-                <span className="text-slate-400 block mb-0.5">{qdT.validUntil}:</span>
-                <div className="font-mono text-slate-900 dark:text-white flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                <span className="text-ink-muted block mb-0.5">{qdT.validUntil}:</span>
+                <div className="font-mono text-ink dark:text-ink flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-ink-muted" />
                   {formatDate(quotation.validUntilDate, locale, "long")}
                 </div>
               </div>
               <div>
-                <span className="text-slate-400 block mb-0.5">{t.quotationDetail.preparedBy}</span>
-                <div className="font-medium text-slate-900 dark:text-white flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-slate-400" />
-                  {quotation.createdBy?.fullName || quotation.createdBy?.email || t.quotationDetail.unknownUser}
+                <span className="text-ink-muted block mb-0.5">{t.quotationDetail.preparedBy}</span>
+                <div className="font-medium text-ink dark:text-ink flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-ink-muted" />
+                  <bdi dir="auto">{quotation.createdBy?.fullName || quotation.createdBy?.email || t.quotationDetail.unknownUser}</bdi>
                 </div>
               </div>
             </div>
@@ -665,33 +665,33 @@ export function QuotationDetailView({
 
           {/* Super Admin Approval Box */}
           {approvalRequest && (
-            <Card className="p-6 bg-slate-50 dark:bg-neutral-900/50 border border-ink/10 rounded-lg space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 pb-2">
-                <span className="text-xs font-mono uppercase text-slate-500">{t.quotationDetail.governanceReview}</span>
-                <span className="text-xs font-mono px-2 py-0.5 rounded bg-slate-200 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300">
+            <Card className="p-6 bg-surface-raised dark:bg-surface-raised/50 border border-outline-variant rounded-lg space-y-3">
+              <div className="flex items-center justify-between border-b border-outline-variant dark:border-white/10 pb-2">
+                <span className="text-xs font-mono uppercase text-ink-muted">{t.quotationDetail.governanceReview}</span>
+                <span className="text-xs font-mono px-2 py-0.5 rounded bg-surface-sunken dark:bg-surface-raised text-ink dark:text-ink">
                   {approvalRequest.status}
                 </span>
               </div>
               {approvalRequest.discountReason && (
                 <div className="text-xs space-y-1">
-                  <span className="text-slate-400 font-mono text-[11px]">{t.quotationDetail.commercialDiscountReason}</span>
-                  <div className="p-2 bg-white dark:bg-neutral-800 rounded border border-slate-200 dark:border-white/5 font-mono text-slate-800 dark:text-neutral-200">
+                  <span className="text-ink-muted font-mono text-[11px]">{t.quotationDetail.commercialDiscountReason}</span>
+                  <div className="p-2 bg-surface-raised dark:bg-surface-raised rounded border border-outline-variant dark:border-white/5 font-mono text-ink dark:text-ink">
                     {approvalRequest.discountReason}
                   </div>
                 </div>
               )}
               {approvalRequest.decisions && approvalRequest.decisions.length > 0 && (
-                <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-white/10 text-xs">
-                  <span className="text-slate-400 font-mono text-[11px]">{t.quotationDetail.decisionsHistory}</span>
+                <div className="space-y-2 pt-2 border-t border-outline-variant dark:border-white/10 text-xs">
+                  <span className="text-ink-muted font-mono text-[11px]">{t.quotationDetail.decisionsHistory}</span>
                   {approvalRequest.decisions.map((dec) => (
-                    <div key={dec.id} className="p-2 rounded bg-white dark:bg-neutral-800 border border-slate-200 dark:border-white/5 text-[11px]">
-                      <div className="font-semibold text-slate-900 dark:text-white capitalize">
-                        {dec.decision} {t.copy.by}{dec.decidedBy?.fullName || t.quotationDetail.superAdmin}
+                    <div key={dec.id} className="p-2 rounded bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-white/5 text-[11px]">
+                      <div className="font-semibold text-ink dark:text-ink capitalize">
+                        {dec.decision} {t.copy.by}<bdi dir="auto">{dec.decidedBy?.fullName || t.quotationDetail.superAdmin}</bdi>
                       </div>
-                      <div className="text-slate-400 font-mono text-[10px]">
+                      <div className="text-ink-muted font-mono text-[10px]">
                         {formatDate(dec.decidedAt, locale, "time")}
                       </div>
-                      {dec.reason && <div className="text-slate-600 dark:text-neutral-400 mt-1">{dec.reason}</div>}
+                      {dec.reason && <div className="text-ink-muted dark:text-ink-muted mt-1">{dec.reason}</div>}
                     </div>
                   ))}
                 </div>
@@ -714,7 +714,7 @@ export function QuotationDetailView({
         description={
           <>
             {t.quotationDetail.thisQuotationContainsACommercial}{" "}
-            <strong className="font-mono text-slate-900 dark:text-white">
+            <strong className="font-mono text-ink dark:text-ink">
               {Number(quotation.discountAmount).toFixed(3)} {quotation.currency}
             </strong>
             {t.quotationDetail.superAdminApprovalPolicyStrictly}
@@ -725,7 +725,7 @@ export function QuotationDetailView({
         confirmDisabled={!discountReason.trim() || loadingAction === "submit"}
         onConfirm={handleSubmitForApproval}
       >
-        <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
+        <label className="block text-xs font-medium text-ink dark:text-ink mb-1">
           {t.quotationDetail.discountReasonAndBusinessJustification}
           <textarea
             rows={3}
@@ -733,7 +733,7 @@ export function QuotationDetailView({
             value={discountReason}
             onChange={(e) => setDiscountReason(e.target.value)}
             placeholder={t.quotationDetail.eGVolumeDiscountNegotiated}
-            className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white mt-1"
+            className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink mt-1"
           />
         </label>
       </QuotationActionDialog>
@@ -749,18 +749,18 @@ export function QuotationDetailView({
         confirmDisabled={loadingAction === "issue"}
         onConfirm={handleIssue}
       >
-        <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
+        <label className="block text-xs font-medium text-ink dark:text-ink mb-1">
           {t.quotationDetail.deliveryChannel}
-          <select
+          <Select
             value={deliveryChannel}
             onChange={(e) => setDeliveryChannel(e.target.value as typeof deliveryChannel)}
-            className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white mt-1"
+            className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink mt-1"
           >
             <option value="email">{t.quotationDetail.emailNotificationToClient}</option>
             <option value="portal">{t.quotationDetail.publishToClientPortal}</option>
             <option value="whatsapp">{t.quotationDetail.directWhatsappDispatch}</option>
             <option value="manual">{t.quotationDetail.manualInPersonPrintedHandover}</option>
-          </select>
+          </Select>
         </label>
       </QuotationActionDialog>
 
@@ -771,7 +771,7 @@ export function QuotationDetailView({
         title={t.quotationDetail.confirmSuperAdminApproval}
         description={
           <>
-            {t.quotationDetail.areYouSureYouWant} <strong>{quotation.quotationNumber}</strong> {t.quotationDetail.forATotalOf}{" "}
+            {t.quotationDetail.areYouSureYouWant} <strong><bdi dir="ltr">{quotation.quotationNumber}</bdi></strong> {t.quotationDetail.forATotalOf}{" "}
             <strong>{Number(quotation.totalAmount).toFixed(3)} {quotation.currency}</strong>?
           </>
         }
@@ -792,7 +792,7 @@ export function QuotationDetailView({
         confirmDisabled={!rejectReason.trim() || loadingAction === "reject"}
         onConfirm={handleReject}
       >
-        <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
+        <label className="block text-xs font-medium text-ink dark:text-ink mb-1">
           {t.quotationDetail.rejectionReason}
           <textarea
             rows={3}
@@ -800,7 +800,7 @@ export function QuotationDetailView({
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}
             placeholder={t.quotationDetail.eGDiscountExceedsAllowed}
-            className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white mt-1"
+            className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink mt-1"
           />
         </label>
       </QuotationActionDialog>
@@ -816,14 +816,14 @@ export function QuotationDetailView({
         confirmDisabled={loadingAction === "accept"}
         onConfirm={handleAccept}
       >
-        <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
+        <label className="block text-xs font-medium text-ink dark:text-ink mb-1">
           {t.quotationDetail.acceptanceReferenceNotes}
           <input
             type="text"
             value={acceptanceEvidence}
             onChange={(e) => setAcceptanceEvidence(e.target.value)}
             placeholder={t.quotationDetail.eGSignedPoPo}
-            className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white mt-1"
+            className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink mt-1"
           />
         </label>
       </QuotationActionDialog>

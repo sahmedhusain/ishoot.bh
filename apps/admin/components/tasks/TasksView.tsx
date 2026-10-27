@@ -64,7 +64,7 @@ export function TasksView({ rows, choices, filters, canAssign, selfId, today, pr
         setDragging(task.id);
       }}
       onDragEnd={() => setDragging(null)}
-      className={`rounded-xl border border-ink/10 bg-white dark:bg-surface p-3 space-y-2 ${board ? "cursor-grab active:cursor-grabbing" : ""} ${dragging === task.id ? "opacity-50" : ""}`}
+      className={`rounded-xl border border-outline-variant bg-surface-raised dark:bg-surface p-3 space-y-2 ${board ? "cursor-grab active:cursor-grabbing" : ""} ${dragging === task.id ? "opacity-50" : ""}`}
       data-testid={`task-${task.number}`}
     >
       <div className="flex items-start gap-2">
@@ -77,7 +77,7 @@ export function TasksView({ rows, choices, filters, canAssign, selfId, today, pr
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
         <span className="font-mono" dir="ltr">{task.number}</span>
         {!board && <TaskStatusPill status={task.status} />}
-        {task.project && <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ backgroundColor: task.project.color }} aria-hidden="true" />{task.project.name}</span>}
+        {task.project && <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ backgroundColor: task.project.color }} aria-hidden="true" /><bdi dir="auto">{task.project.name}</bdi></span>}
         {task.due_date && <span className={`inline-flex items-center gap-1 ${task.status !== "done" && task.due_date < today ? "text-rose-600 font-semibold" : ""}`}><CalendarClock className="w-3 h-3" aria-hidden="true" />{formatDate(task.due_date, locale)}</span>}
         {task.assignee_id !== selfId && <span>{task.assignee || copy.unassigned}</span>}
         {task.comments > 0 && <span className="inline-flex items-center gap-1"><MessageSquare className="w-3 h-3" aria-hidden="true" />{task.comments}</span>}
@@ -97,9 +97,9 @@ export function TasksView({ rows, choices, filters, canAssign, selfId, today, pr
   return (
     <div className="space-y-5" data-testid="tasks-view">
       <div className="flex flex-col lg:flex-row gap-2 lg:items-center">
-        <div className="inline-flex rounded-full border border-ink/10 p-1 text-xs font-semibold" role="tablist">
+        <div className="inline-flex rounded-full border border-outline-variant p-1 text-xs font-semibold" role="tablist">
           {(["mine", "board", "all"] as const).map((v) => (
-            <Link key={v} href={href({ view: v })} role="tab" aria-selected={filters.view === v} className={`rounded-full px-3 py-1.5 ${filters.view === v ? "bg-primary text-primary-foreground" : "text-ink-muted hover:text-ink"}`}>{copy.views[v]}</Link>
+            <Link key={v} href={href({ view: v })} role="tab" aria-selected={filters.view === v} className={`rounded-full px-3 py-1.5 ${filters.view === v ? "bg-primary text-primary-foreground" : "text-ink-muted hover:text-ink"}`} tabIndex={filters.view === v ? 0 : -1}>{copy.views[v]}</Link>
           ))}
         </div>
         <form role="search" className="relative flex-1" onSubmit={(e) => { e.preventDefault(); router.push(href({ q: search.trim() })); }}>
@@ -160,7 +160,7 @@ export function TasksView({ rows, choices, filters, canAssign, selfId, today, pr
                 }}
                 className="rounded-2xl bg-ink/[0.03] p-3 space-y-2 min-h-32"
                 data-testid={`column-${status}`}
-              >
+               data-page-section>
                 <h2 className="flex items-center justify-between text-xs font-bold text-ink">
                   {copy.statuses[status]}
                   <span className="rounded-full bg-ink/10 px-2 py-0.5 text-[11px] tabular-nums">{column.length}</span>
@@ -176,14 +176,14 @@ export function TasksView({ rows, choices, filters, canAssign, selfId, today, pr
             const tasks = open.filter((r) => dueBucket(r.due_date, today) === bucket);
             if (!tasks.length) return null;
             return (
-              <section key={bucket} className="space-y-2" data-testid={`bucket-${bucket}`}>
+              <section key={bucket} className="space-y-2" data-testid={`bucket-${bucket}`} data-page-section>
                 <h2 className={`text-xs font-bold uppercase tracking-wide ${bucket === "overdue" ? "text-rose-600" : "text-ink-muted"}`}>{copy.buckets[bucket]} · {tasks.length}</h2>
                 {tasks.map((task) => card(task))}
               </section>
             );
           })}
           {finished.length > 0 && (
-            <section className="space-y-2" data-testid="bucket-done">
+            <section className="space-y-2" data-testid="bucket-done" data-page-section>
               <h2 className="text-xs font-bold uppercase tracking-wide text-ink-muted">{copy.statuses.done} · {finished.length}</h2>
               {finished.map((task) => card(task))}
             </section>

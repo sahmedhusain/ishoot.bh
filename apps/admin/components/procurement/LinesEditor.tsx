@@ -38,7 +38,7 @@ export function LinesEditor({ lines, onChange, products, priceLabel, showPrice =
         const product = products.find((p) => p.id === line.productId);
         const total = round3((Number(line.quantity) || 0) * (Number(line.unitPrice) || 0));
         return (
-          <div key={index} className="grid grid-cols-2 sm:grid-cols-12 gap-2 items-start rounded-xl border border-ink/10 p-3">
+          <div key={index} className="grid grid-cols-2 sm:grid-cols-12 gap-2 items-start rounded-xl border border-outline-variant p-3">
             <Select aria-label={copy.product} disabled={readOnly} value={line.productId} onChange={(e) => chooseProduct(index, e.target.value)} className="col-span-2 sm:col-span-4 h-10 rounded-lg">
               <option value="">{copy.freeText}</option>
               {products.map((p) => <option key={p.id} value={p.id}>{`${name(p)} · ${p.sku}`}</option>)}

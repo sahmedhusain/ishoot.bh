@@ -23,18 +23,18 @@ export function EmployeePayHistory({ rows }: { rows: PayHistoryRow[] }) {
   const money = new Intl.NumberFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-BH", { minimumFractionDigits: 3, maximumFractionDigits: 3 });
   if (!rows.length) return null;
   return (
-    <Card className="p-5 dark:bg-surface-raised">
-      <h2 className="mb-2 text-sm font-semibold text-slate-900 dark:text-white">{t.payrollManagement.payrollAndCompensationRuns}</h2>
-      <ul className="divide-y divide-ink/10">
+    <Card className="p-5 dark:bg-surface-raised" data-page-section>
+      <h2 className="mb-2 text-sm font-semibold text-ink dark:text-ink">{t.payrollManagement.payrollAndCompensationRuns}</h2>
+      <ul className="divide-y divide-outline-variant">
         {rows.map((row) => (
           <li key={row.id}>
             <Link href={ROUTES.hr.payrollItem(row.id)} className="flex items-center gap-3 py-2.5 text-sm hover:bg-ink/[0.03]">
-              <span className="flex-1 text-slate-800 dark:text-slate-100">{month.format(new Date(Date.UTC(row.year, row.month - 1, 1)))}</span>
-              <bdi dir="ltr" className="font-mono text-slate-800 dark:text-slate-100">{money.format(row.netSalary)} {t.shared.bhd}</bdi>
-              <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${row.paymentStatus === "paid" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-slate-500/10 text-slate-600 dark:text-slate-300"}`}>
+              <span className="flex-1 text-ink dark:text-ink">{month.format(new Date(Date.UTC(row.year, row.month - 1, 1)))}</span>
+              <bdi dir="ltr" className="font-mono text-ink dark:text-ink">{money.format(row.netSalary)} {t.shared.bhd}</bdi>
+              <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${row.paymentStatus === "paid" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-surface-sunken/10 text-ink-muted dark:text-ink"}`}>
                 {row.paymentStatus === "paid" ? t.payroll.statusPaid : (t.hrExtensions as Record<string, string>)[row.runStatus] ?? row.runStatus}
               </span>
-              <Arrow className="w-4 h-4 text-slate-400" aria-hidden />
+              <Arrow className="w-4 h-4 text-ink-muted" aria-hidden />
             </Link>
           </li>
         ))}

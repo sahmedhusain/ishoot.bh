@@ -1,3 +1,4 @@
+import { selectOption } from "../../select-option";
 import { expect, test } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import en from "../../../../packages/locales/src/admin/en.json";
@@ -80,7 +81,7 @@ for (const locale of ["en", "ar"] as const) {
     ).toHaveCount(0);
     await expect(main.getByTestId("shipment-handover")).toBeDisabled();
     const card = main.getByTestId("shipment-agency");
-    await card.locator('select[name="agencyId"]').selectOption(agencyId);
+    await selectOption(card.locator('select[name="agencyId"]'), agencyId);
     for (const name of ["weightKg", "lengthCm", "widthCm", "heightCm"])
       await expect(card.locator(`input[name="${name}"]`)).toHaveValue("");
     await main.getByTestId("courier-booking-retry").click();

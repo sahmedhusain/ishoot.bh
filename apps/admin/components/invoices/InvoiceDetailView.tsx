@@ -66,7 +66,7 @@ export function InvoiceDetailView({
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print"
         data-topbar="true"
       >
-        <div>
+        <div data-page-header>
           <Link
             href={ROUTES.invoices.list}
             className="inline-flex items-center gap-2 text-xs text-ink-muted hover:text-accent transition-colors mb-2 font-medium"
@@ -75,7 +75,7 @@ export function InvoiceDetailView({
             <span>{t.actions.backToInvoices}</span>
           </Link>
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white font-display">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink dark:text-ink font-display">
               {invoice.invoice_number}
             </h1>
             <StatusBadge status={invoice.status} />
@@ -135,18 +135,18 @@ export function InvoiceDetailView({
         />
       </div>
 
-      <div className="p-2 sm:p-6 bg-slate-100/70 dark:bg-surface-sunken rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm flex justify-center">
+      <div className="p-2 sm:p-6 bg-surface-sunken/70 dark:bg-surface-sunken rounded-3xl border border-outline-variant/80 dark:border-white/10 shadow-sm flex justify-center">
         <InvoiceTemplate invoice={invoice} company={company} signing={signing} />
       </div>
 
       {payments.length > 0 && (
-        <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 rounded-2xl space-y-4 no-print shadow-sm">
-          <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+        <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant/80 dark:border-white/10 rounded-2xl space-y-4 no-print shadow-sm">
+          <div className="flex items-center gap-2 text-sm font-bold text-ink dark:text-ink uppercase tracking-wider">
             <Receipt className="w-4 h-4 text-accent" />
             <span>{t.actions.associatedReceipts}</span>
           </div>
 
-          <div className="divide-y divide-slate-100 dark:divide-white/5">
+          <div className="divide-y divide-outline-variant dark:divide-white/5">
             {payments.map((p) => (
               <div
                 key={p.id}
@@ -163,13 +163,13 @@ export function InvoiceDetailView({
                       ↗
                     </span>
                   </Link>
-                  <div className="text-slate-500 dark:text-slate-400 text-[11px] mt-0.5">
+                  <div className="text-ink-muted dark:text-ink-muted text-[11px] mt-0.5">
                     {p.payment_date} • {p.payment_method.replace("_", " ")}
                   </div>
                 </div>
 
                 <div className="text-end">
-                  <div className=" font-bold text-slate-900 dark:text-white">
+                  <div className=" font-bold text-ink dark:text-ink">
                     <CurrencyDisplay amount={p.amount} currency={p.currency} />
                   </div>
                   <span className="text-[10px] text-emerald-600 dark:text-emerald-400 ">

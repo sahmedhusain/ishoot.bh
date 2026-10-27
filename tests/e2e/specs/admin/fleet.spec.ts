@@ -1,3 +1,4 @@
+import { selectOption } from "../../select-option";
 import { acceptConfirmations } from "../../helpers";
 import zlib from "node:zlib";
 import { expect, test, type Browser, type Page } from "@playwright/test";
@@ -162,7 +163,7 @@ test("a route sheet puts two shipments in order and sends the driver out", async
   await page.goto("/dashboard/delivery/routes");
   await page.getByRole("button", { name: copy.routes.new }).first().click();
   const planner = page.getByTestId("route-planner").first();
-  await planner.locator('select[name="routeDriver"]').selectOption(driverId);
+  await selectOption(planner.locator('select[name="routeDriver"]'), driverId);
   for (const s of shipments)
     await planner.getByRole("checkbox", { name: s.number }).check();
   // B goes first.

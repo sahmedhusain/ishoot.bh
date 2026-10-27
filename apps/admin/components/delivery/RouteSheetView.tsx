@@ -45,7 +45,7 @@ export function RouteSheetView({ sheet }: { sheet: RouteSheetRecord }) {
             <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" />
             {copy.back}
           </Link>
-          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex flex-wrap items-center gap-3">
+          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink flex flex-wrap items-center gap-3">
             <span dir="ltr">{sheet.number}</span>
             <span className="text-sm font-medium text-ink-muted" data-testid="route-status">{(copy.statuses as Record<string, string>)[sheet.status]}</span>
           </h1>
@@ -63,7 +63,7 @@ export function RouteSheetView({ sheet }: { sheet: RouteSheetRecord }) {
       <Card className="overflow-x-auto print:border-0 print:shadow-none">
         <table className="w-full text-sm" data-testid="route-stops">
           <thead className="text-xs text-ink-muted">
-            <tr className="border-b border-ink/10 text-start">
+            <tr className="border-b border-outline-variant text-start">
               <th className="px-3 py-2 text-start w-12">{copy.stop}</th>
               <th className="px-3 py-2 text-start">{t.delivery.detail.recipient}</th>
               <th className="px-3 py-2 text-start">{t.delivery.detail.address}</th>
@@ -72,7 +72,7 @@ export function RouteSheetView({ sheet }: { sheet: RouteSheetRecord }) {
               <th className="px-3 py-2 text-start print:w-40">{copy.signatureLine}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-ink/10">
+          <tbody className="divide-y divide-outline-variant">
             {sheet.stops.map((s) => (
               <tr key={s.id} className="align-top">
                 <td className="px-3 py-3 font-bold tabular-nums">{s.stop}</td>
@@ -93,7 +93,7 @@ export function RouteSheetView({ sheet }: { sheet: RouteSheetRecord }) {
           </tbody>
           {total > 0 && (
             <tfoot>
-              <tr className="border-t border-ink/10 font-semibold">
+              <tr className="border-t border-outline-variant font-semibold">
                 <td colSpan={4} />
                 <td className="px-3 py-2 text-end tabular-nums">{formatCurrencyValue(total, currency, locale === "ar")}</td>
                 <td />

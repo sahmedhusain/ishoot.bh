@@ -32,7 +32,7 @@ export function LettersListView({
           className="block rounded-2xl border p-5"
         >
           <h2 className="font-bold">
-            {l.reference} · {locale === "ar" ? l.subjectAr : l.subjectEn}
+            <bdi dir="ltr">{l.reference}</bdi> · {locale === "ar" ? l.subjectAr : l.subjectEn}
           </h2>
           <p className="text-sm text-ink-muted">
             {l.recipient} · {labels[l.status]} · {l.letterDate}

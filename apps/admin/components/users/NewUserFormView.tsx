@@ -65,14 +65,14 @@ export function NewUserFormView({
 
   return (
     <div inert={saving} aria-busy={saving} className="space-y-8 max-w-4xl mx-auto pb-16">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4" data-page-header>
         <Link href={ROUTES.users.list}>
           <Button
             variant="outline"
             size="sm"
             className="gap-1.5 text-ink-muted"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
             <span>{t.actions.back}</span>
           </Button>
         </Link>
@@ -85,7 +85,7 @@ export function NewUserFormView({
         </div>
       </div>
 
-      <Card className="p-8 bg-surface border border-ink/10 rounded-3xl">
+      <Card className="p-8 bg-surface border border-outline-variant rounded-3xl">
         <form onSubmit={handleSubmit} className="space-y-6">
           <label className="block text-ink">
             {t.hrExtensions.employeeFirst}
@@ -121,21 +121,21 @@ export function NewUserFormView({
             </p>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="text-xs font-semibold text-ink mb-1.5 block">
+            <label>
+              <span className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.usersNew.nameLabel}
-              </label>
+              </span>
               <Input
                 required
                 placeholder={t.usersNew.fullNamePlaceholder}
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
               />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-ink mb-1.5 block">
+            </label>
+            <label>
+              <span className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.usersNew.emailLabel}
-              </label>
+              </span>
               <Input
                 type="email"
                 required
@@ -143,14 +143,14 @@ export function NewUserFormView({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-            </div>
+            </label>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="text-xs font-semibold text-ink mb-1.5 block">
+            <label>
+              <span className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.usersNew.passwordLabel}
-              </label>
+              </span>
               <Input
                 type="password"
                 minLength={12}
@@ -160,11 +160,11 @@ export function NewUserFormView({
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-ink mb-1.5 block">
+            </label>
+            <label>
+              <span className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.usersNew.roleLabel}
-              </label>
+              </span>
               <Select
                 value={role}
                 onChange={(e) => setRole(e.target.value as any)}
@@ -179,10 +179,10 @@ export function NewUserFormView({
                   </option>
                 ))}
               </Select>
-            </div>
+            </label>
           </div>
 
-          <div className="pt-6 border-t border-ink/10 flex items-center justify-end gap-4">
+          <div className="pt-6 border-t border-outline-variant flex items-center justify-end gap-4">
             <Link href={ROUTES.users.list}>
               <Button type="button" variant="outline" size="sm">
                 {t.actions.cancel}

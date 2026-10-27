@@ -82,7 +82,7 @@ export function CompanyDocumentsClientView({
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-ink font-display flex items-center gap-2">
             <Building2 className="w-7 h-7 text-accent" />
@@ -111,8 +111,8 @@ export function CompanyDocumentsClientView({
             key={cat.id}
             onClick={() => setSelectedCat(cat.id)}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${selectedCat === cat.id
-              ? "bg-primary text-white border border-accent"
-              : "bg-surface text-ink-muted hover:text-ink border border-ink/10"
+              ? "bg-primary text-primary-foreground border border-accent"
+              : "bg-surface text-ink-muted hover:text-ink border border-outline-variant"
               }`}
           >
             {cat.label}
@@ -121,8 +121,8 @@ export function CompanyDocumentsClientView({
       </div>
 
       {filtered.length === 0 ? (
-        <Card className="p-12 text-center bg-surface border border-ink/10 rounded-3xl space-y-3">
-          <FileText className="w-12 h-12 text-ink-muted/40 mx-auto" />
+        <Card className="p-12 text-center bg-surface border border-outline-variant rounded-3xl space-y-3">
+          <FileText className="w-12 h-12 text-ink-muted mx-auto" />
           <p className="text-sm font-semibold text-ink">
             {t.companyDocumentsView.noAssetsFound}
           </p>
@@ -140,7 +140,7 @@ export function CompanyDocumentsClientView({
           {filtered.map((doc) => (
             <Card
               key={doc.id}
-              className="p-5 bg-surface border border-ink/10 rounded-3xl flex flex-col justify-between hover:border-accent/50 transition-all space-y-4"
+              className="p-5 bg-surface border border-outline-variant rounded-3xl flex flex-col justify-between hover:border-accent/50 transition-all space-y-4"
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-2">
@@ -149,7 +149,7 @@ export function CompanyDocumentsClientView({
                   </div>
                   <Badge
                     variant="outline"
-                    className="text-[10px] uppercase  border-ink/20"
+                    className="text-[10px] uppercase  border-outline-variant"
                   >
                     {getCategoryLabel(doc.category)}
                   </Badge>
@@ -167,12 +167,12 @@ export function CompanyDocumentsClientView({
                 </div>
 
                 {doc.notes && (
-                  <p className="text-xs text-ink-muted line-clamp-2 bg-surface-sunken p-2.5 rounded-xl border border-ink/5">
+                  <p className="text-xs text-ink-muted line-clamp-2 bg-surface-sunken p-2.5 rounded-xl border border-outline-variant">
                     {doc.notes}
                   </p>
                 )}
 
-                <div className="text-[11px] text-ink-muted space-y-1  pt-2 border-t border-ink/5">
+                <div className="text-[11px] text-ink-muted space-y-1  pt-2 border-t border-outline-variant">
                   {doc.valid_until && (
                     <div className="flex items-center gap-1.5 text-amber-400">
                       <Calendar className="w-3.5 h-3.5" />
@@ -186,7 +186,7 @@ export function CompanyDocumentsClientView({
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-ink/10 flex items-center justify-between">
+              <div className="pt-3 border-t border-outline-variant flex items-center justify-between">
                 <a
                   href={doc.file_url}
                   target="_blank"

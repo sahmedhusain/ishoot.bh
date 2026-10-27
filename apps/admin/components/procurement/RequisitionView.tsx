@@ -67,13 +67,13 @@ export function RequisitionView({ requisition, products, currency, canEdit, canP
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
           <Link href={ROUTES.procurement.requisitions} className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent">
             <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" />
             {copy.title}
           </Link>
-          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex flex-wrap items-center gap-3">
+          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink flex flex-wrap items-center gap-3">
             {requisition ? <span dir="ltr">{requisition.number}</span> : copy.editorTitle}
             {requisition && <StatusPill status={requisition.status} />}
           </h1>
@@ -101,7 +101,7 @@ export function RequisitionView({ requisition, products, currency, canEdit, canP
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
       {requisition?.status === "rejected" && requisition.decision_note && <p className="text-sm rounded-xl px-4 py-3 bg-rose-500/10 text-rose-700 dark:text-rose-300">{formatMessage(copy.rejectedBecause, { reason: requisition.decision_note })}</p>}
 
-      <Card className="p-5 space-y-4">
+      <Card className="p-5 space-y-4" data-page-section>
         <div className="grid sm:grid-cols-3 gap-4">
           <Field label={copy.neededBy}>
             {(id) => <Input id={id} type="date" disabled={!editable} value={neededBy} onChange={(e) => setNeededBy(e.target.value)} className="rounded-lg" />}

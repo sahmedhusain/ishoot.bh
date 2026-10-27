@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { ArrowDown, ArrowUp, Loader2, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
-import { Button, Card, Input } from "@platform/ui";
+import { Select, Button, Card, Input } from "@platform/ui";
 import type { WebsiteArticles, WebsiteMenuItem, WebsiteMenus } from "@platform/database/website-config";
 import type { ContentLanguage } from "@platform/database/constants/languages";
 import { saveWebsiteMenusAction } from "../../app/actions/website";
@@ -69,24 +69,24 @@ export function MenusEditorView({ initialMenus, articles: initialArticles, pages
       update(which, next);
     };
     return (
-      <Card className="p-5 space-y-3">
+      <Card className="p-5 space-y-3" data-page-section>
         <h2 className="font-bold text-ink">{copy[which]}</h2>
         {items.length === 0 && <p className="text-xs text-ink-muted">{copy.empty}</p>}
         <ol className="space-y-2">
           {items.map((item, index) => (
-            <li key={index} className="rounded-xl border border-ink/10 p-3 space-y-3 transition-colors hover:border-ink/20">
+            <li key={index} className="rounded-xl border border-outline-variant p-3 space-y-3 transition-colors hover:border-outline-variant">
               <div className="flex flex-wrap items-center gap-2">
-                <select aria-label={copy.kind} value={item.kind} onChange={(e) => set(index, { kind: e.target.value as WebsiteMenuItem["kind"], pageId: e.target.value === "page" ? pages[0]?.id : undefined, url: e.target.value === "external" ? "https://" : undefined })} className="h-9 rounded-lg border border-ink/15 bg-surface px-2 text-sm">
+                <Select aria-label={copy.kind} value={item.kind} onChange={(e) => set(index, { kind: e.target.value as WebsiteMenuItem["kind"], pageId: e.target.value === "page" ? pages[0]?.id : undefined, url: e.target.value === "external" ? "https://" : undefined })} className="h-9 rounded-lg border border-outline-variant bg-surface px-2 text-sm">
                   {(["page", "catalogue", "articles", "external"] as const).map((kind) => (
                     <option key={kind} value={kind}>{copy.kinds[kind]}</option>
                   ))}
-                </select>
+                </Select>
                 {item.kind === "page" && (
-                  <select aria-label={copy.page} value={item.pageId} onChange={(e) => set(index, { pageId: e.target.value })} className="h-9 flex-1 min-w-[160px] rounded-lg border border-ink/15 bg-surface px-2 text-sm">
+                  <Select aria-label={copy.page} value={item.pageId} onChange={(e) => set(index, { pageId: e.target.value })} className="h-9 flex-1 min-w-[160px] rounded-lg border border-outline-variant bg-surface px-2 text-sm">
                     {pages.map((page) => (
                       <option key={page.id} value={page.id}>{locale === "ar" ? page.title_ar : page.title_en}{page.is_visible ? "" : ` (${copy.hidden})`}</option>
                     ))}
-                  </select>
+                  </Select>
                 )}
                 {item.kind === "external" && <Input aria-label={copy.url} dir="ltr" value={item.url ?? ""} onChange={(e) => set(index, { url: e.target.value })} className="h-9 flex-1 min-w-[180px] rounded-lg" />}
                 <div className="ms-auto flex gap-1">
@@ -119,10 +119,10 @@ export function MenusEditorView({ initialMenus, articles: initialArticles, pages
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{copy.title}</h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">{custom ? copy.subtitleCustom : copy.subtitleAuto}</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
+          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{custom ? copy.subtitleCustom : copy.subtitleAuto}</p>
         </div>
         <div className="flex gap-2">
           {custom && (
@@ -142,7 +142,7 @@ export function MenusEditorView({ initialMenus, articles: initialArticles, pages
         {list("header")}
         {list("footer")}
       </div>
-      <Card className="p-5 grid sm:grid-cols-2 gap-4">
+      <Card className="p-5 grid sm:grid-cols-2 gap-4" data-page-section>
         <h2 className="sm:col-span-2 font-bold text-ink">{copy.articlesTitle}</h2>
         <Field label={copy.articlesSlug} hint={copy.articlesSlugHint}>
           {(id) => <Input id={id} dir="ltr" value={articles.slug} onChange={(e) => setArticles({ ...articles, slug: e.target.value.toLowerCase() })} className="rounded-lg" />}

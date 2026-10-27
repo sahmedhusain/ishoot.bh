@@ -156,15 +156,15 @@ export function WebSettingsView({
         {t.webSettings.websiteEditorPreviewAndPublishing}
       </Link>
       {/* Top Navigation */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink flex items-center gap-2.5">
             <span>{t.webSettingsView.title}</span>
             <span className="text-xs font-bold text-accent font-sans">
               &lt;&lt; {t.webSettingsView.badge} &gt;&gt;
             </span>
           </h1>
-          <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1">
+          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1">
             {t.webSettingsView.subtitle}
           </p>
         </div>
@@ -174,7 +174,7 @@ export function WebSettingsView({
             type="button"
             disabled={isRevalidating}
             onClick={handleRevalidate}
-            className="px-3.5 py-2 rounded-xl bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 hover:border-accent/40 text-xs font-semibold text-slate-700 dark:text-neutral-200 hover:text-accent inline-flex items-center gap-2 transition-all shadow-2xs"
+            className="px-3.5 py-2 rounded-xl bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-white/10 hover:border-accent/40 text-xs font-semibold text-ink dark:text-ink hover:text-accent inline-flex items-center gap-2 transition-all shadow-2xs"
             title={t.webSettingsView.purgeTooltip}
           >
             <RefreshCw
@@ -191,7 +191,7 @@ export function WebSettingsView({
             href={webUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-4 py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold inline-flex items-center gap-2 transition-all shadow-sm"
+            className="px-4 py-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold inline-flex items-center gap-2 transition-all shadow-sm"
           >
             <Globe className="w-3.5 h-3.5 text-primary dark:text-mint" />
             <span>{t.webSettingsView.viewLiveWebsite}</span>
@@ -206,15 +206,15 @@ export function WebSettingsView({
       <DomainSettingsCard initialWebsiteDomain={settings.website_domain} initialAdminDomain={settings.admin_domain} canEdit={can("settings", "write")} />
 
       {/* Web Management Sub-Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-white/10 pb-3 overflow-x-auto">
+      <div className="flex items-center gap-2 border-b border-outline-variant dark:border-white/10 pb-3 overflow-x-auto" role="tablist">
         <button
           type="button"
           onClick={() => setActiveTab("hero")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === "hero"
-            ? "bg-primary text-white shadow-xs"
-            : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
+            ? "bg-primary text-primary-foreground shadow-xs"
+            : "text-ink-muted dark:text-ink-muted hover:text-ink dark:hover:text-white hover:bg-surface-sunken dark:hover:bg-white/5"
             }`}
-        >
+         tabIndex={activeTab === "hero" ? 0 : -1} role="tab" aria-selected={activeTab === "hero"}>
           <Film className="w-4 h-4 text-accent" />
           <span>{t.webSettingsView.tabHero}</span>
         </button>
@@ -223,10 +223,10 @@ export function WebSettingsView({
           type="button"
           onClick={() => setActiveTab("narrative")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === "narrative"
-            ? "bg-primary text-white shadow-xs"
-            : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
+            ? "bg-primary text-primary-foreground shadow-xs"
+            : "text-ink-muted dark:text-ink-muted hover:text-ink dark:hover:text-white hover:bg-surface-sunken dark:hover:bg-white/5"
             }`}
-        >
+         tabIndex={activeTab === "narrative" ? 0 : -1} role="tab" aria-selected={activeTab === "narrative"}>
           <Building2 className="w-4 h-4 text-accent" />
           <span>{t.webSettingsView.tabNarrative}</span>
         </button>
@@ -235,10 +235,10 @@ export function WebSettingsView({
           type="button"
           onClick={() => setActiveTab("legal")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === "legal"
-            ? "bg-primary text-white shadow-xs"
-            : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
+            ? "bg-primary text-primary-foreground shadow-xs"
+            : "text-ink-muted dark:text-ink-muted hover:text-ink dark:hover:text-white hover:bg-surface-sunken dark:hover:bg-white/5"
             }`}
-        >
+         tabIndex={activeTab === "legal" ? 0 : -1} role="tab" aria-selected={activeTab === "legal"}>
           <Shield className="w-4 h-4 text-accent" />
           <span>{t.webSettings.termsAndPrivacy}</span>
         </button>
@@ -247,10 +247,10 @@ export function WebSettingsView({
           type="button"
           onClick={() => setActiveTab("social")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === "social"
-            ? "bg-primary text-white shadow-xs"
-            : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
+            ? "bg-primary text-primary-foreground shadow-xs"
+            : "text-ink-muted dark:text-ink-muted hover:text-ink dark:hover:text-white hover:bg-surface-sunken dark:hover:bg-white/5"
             }`}
-        >
+         tabIndex={activeTab === "social" ? 0 : -1} role="tab" aria-selected={activeTab === "social"}>
           <Share2 className="w-4 h-4 text-accent" />
           <span>{t.webSettingsView.tabSocial}</span>
         </button>
@@ -259,10 +259,10 @@ export function WebSettingsView({
           type="button"
           onClick={() => setActiveTab("cms")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === "cms"
-            ? "bg-primary text-white shadow-xs"
-            : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
+            ? "bg-primary text-primary-foreground shadow-xs"
+            : "text-ink-muted dark:text-ink-muted hover:text-ink dark:hover:text-white hover:bg-surface-sunken dark:hover:bg-white/5"
             }`}
-        >
+         tabIndex={activeTab === "cms" ? 0 : -1} role="tab" aria-selected={activeTab === "cms"}>
           <Layers className="w-4 h-4 text-accent" />
           <span>{t.webSettingsView.tabCms}</span>
           {cmsCounts.pendingReviews > 0 && (
@@ -276,18 +276,18 @@ export function WebSettingsView({
       <form onSubmit={handleSave} className="space-y-6">
         {/* TAB 1: Hero & Media Showcase */}
         {activeTab === "hero" && (
-          <div className="space-y-6">
-            <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-2xl space-y-5">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/10">
+          <div className="space-y-6" data-tab-panel>
+            <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl space-y-5">
+              <div className="flex items-center justify-between pb-3 border-b border-outline-variant dark:border-white/10">
                 <div className="flex items-center gap-2.5">
                   <div className="p-2 rounded-xl bg-accent/10 text-accent">
                     <Film className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    <h3 className="text-sm font-bold text-ink dark:text-ink">
                       {t.webSettingsView.heroCardTitle}
                     </h3>
-                    <p className="text-xs text-slate-500 dark:text-neutral-400">
+                    <p className="text-xs text-ink-muted dark:text-ink-muted">
                       {t.webSettingsView.heroCardDesc}
                     </p>
                   </div>
@@ -295,20 +295,20 @@ export function WebSettingsView({
 
                 <Link
                   href={ROUTES.cms.banners}
-                  className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-xs font-semibold text-slate-700 dark:text-neutral-300 inline-flex items-center gap-1.5 transition-colors"
+                  className="px-3 py-1.5 rounded-lg bg-surface-sunken dark:bg-white/5 hover:bg-surface-sunken dark:hover:bg-white/10 text-xs font-semibold text-ink dark:text-ink inline-flex items-center gap-1.5 transition-colors"
                 >
                   <span>
                     {formatMessage(t.webSettingsView.manageBanners, { count: String(cmsCounts.banners) })}
                   </span>
-                  <ExternalLink className="w-3 h-3 text-slate-400" />
+                  <ExternalLink className="w-3 h-3 text-ink-muted" />
                 </Link>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
+                <label className="block space-y-1">
+                  <span className="text-xs font-semibold text-ink dark:text-ink">
                     {t.webSettingsView.webNameEn}
-                  </label>
+                  </span>
                   <Input
                     value={settings.company_name_en}
                     onChange={(e) =>
@@ -317,13 +317,13 @@ export function WebSettingsView({
                         company_name_en: e.target.value,
                       })
                     }
-                  />
-                </div>
+                   dir="ltr"/>
+                </label>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
+                <label className="block space-y-1">
+                  <span className="text-xs font-semibold text-ink dark:text-ink">
                     {t.webSettingsView.webNameAr}
-                  </label>
+                  </span>
                   <Input
                     value={settings.company_name_ar}
                     onChange={(e) =>
@@ -333,16 +333,16 @@ export function WebSettingsView({
                       })
                     }
                     className="text-end font-arabic"
-                  />
-                </div>
+                   dir="rtl"/>
+                </label>
               </div>
 
-              <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 flex items-center justify-between">
+              <div className="p-4 rounded-xl bg-surface-raised dark:bg-white/[0.02] border border-outline-variant dark:border-white/5 flex items-center justify-between">
                 <div>
-                  <div className="text-xs font-bold text-slate-900 dark:text-white">
+                  <div className="text-xs font-bold text-ink dark:text-ink">
                     {t.webSettingsView.brandPresentationTitle}
                   </div>
-                  <div className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
+                  <div className="text-[11px] text-ink-muted dark:text-ink-muted mt-0.5">
                     {t.webSettingsView.brandPresentationDesc}
                   </div>
                 </div>
@@ -360,17 +360,17 @@ export function WebSettingsView({
 
         {/* TAB 2: Brand Story, CEO & About */}
         {activeTab === "narrative" && (
-          <div className="space-y-6">
-            <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-2xl space-y-6">
-              <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-white/10">
+          <div className="space-y-6" data-tab-panel>
+            <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl space-y-6">
+              <div className="flex items-center gap-2.5 pb-3 border-b border-outline-variant dark:border-white/10">
                 <div className="p-2 rounded-xl bg-accent/10 text-accent">
                   <User className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  <h3 className="text-sm font-bold text-ink dark:text-ink">
                     {t.webSettingsView.ceoStoryTitle}
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-neutral-400">
+                  <p className="text-xs text-ink-muted dark:text-ink-muted">
                     {t.webSettingsView.ceoStoryDesc}
                   </p>
                 </div>
@@ -380,23 +380,23 @@ export function WebSettingsView({
                 {(["about_text_en", "about_text_ar"] as const).map(key => <label key={key} className="text-sm">{t.webSettings.studioStory} ({key === "about_text_ar" ? t.websiteEditor.inArabic : t.websiteEditor.inEnglish})<textarea rows={5} maxLength={20000} className="w-full border rounded p-3 bg-transparent" dir={key.endsWith("ar") ? "rtl" : "ltr"} value={settings[key] || ""} onChange={e => setSettings({ ...settings, [key]: e.target.value })} /></label>)}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
+                <label className="block space-y-1">
+                  <span className="text-xs font-semibold text-ink dark:text-ink">
                     {t.webSettingsView.ceoNameEn}
-                  </label>
+                  </span>
                   <Input
                     placeholder={t.webSettingsView.ceoNameEnPlaceholder}
                     value={settings.ceo_name_en || ""}
                     onChange={(e) =>
                       setSettings({ ...settings, ceo_name_en: e.target.value })
                     }
-                  />
-                </div>
+                   dir="ltr"/>
+                </label>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
+                <label className="block space-y-1">
+                  <span className="text-xs font-semibold text-ink dark:text-ink">
                     {t.webSettingsView.ceoNameAr}
-                  </label>
+                  </span>
                   <Input
                     placeholder={t.webSettingsView.ceoNameArPlaceholder}
                     value={settings.ceo_name_ar || ""}
@@ -404,26 +404,26 @@ export function WebSettingsView({
                       setSettings({ ...settings, ceo_name_ar: e.target.value })
                     }
                     className="text-end font-arabic"
-                  />
-                </div>
+                   dir="rtl"/>
+                </label>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
+                <label className="block space-y-1">
+                  <span className="text-xs font-semibold text-ink dark:text-ink">
                     {t.webSettingsView.ceoTitleEn}
-                  </label>
+                  </span>
                   <Input
                     placeholder={t.webSettingsView.ceoTitleEnPlaceholder}
                     value={settings.ceo_title_en || ""}
                     onChange={(e) =>
                       setSettings({ ...settings, ceo_title_en: e.target.value })
                     }
-                  />
-                </div>
+                   dir="ltr"/>
+                </label>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
+                <label className="block space-y-1">
+                  <span className="text-xs font-semibold text-ink dark:text-ink">
                     {t.webSettingsView.ceoTitleAr}
-                  </label>
+                  </span>
                   <Input
                     placeholder={t.webSettingsView.ceoTitleArPlaceholder}
                     value={settings.ceo_title_ar || ""}
@@ -431,13 +431,13 @@ export function WebSettingsView({
                       setSettings({ ...settings, ceo_title_ar: e.target.value })
                     }
                     className="text-end font-arabic"
-                  />
-                </div>
+                   dir="rtl"/>
+                </label>
 
-                <div className="space-y-1 md:col-span-2">
-                  <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
+                <label className="block space-y-1 md:col-span-2">
+                  <span className="text-xs font-semibold text-ink dark:text-ink">
                     {t.webSettingsView.ceoQuoteEn}
-                  </label>
+                  </span>
                   <Textarea
                     rows={2}
                     placeholder={t.webSettingsView.ceoQuoteEnPlaceholder}
@@ -445,13 +445,13 @@ export function WebSettingsView({
                     onChange={(e) =>
                       setSettings({ ...settings, ceo_quote_en: e.target.value })
                     }
-                  />
-                </div>
+                   dir="ltr"/>
+                </label>
 
-                <div className="space-y-1 md:col-span-2">
-                  <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
+                <label className="block space-y-1 md:col-span-2">
+                  <span className="text-xs font-semibold text-ink dark:text-ink">
                     {t.webSettingsView.ceoQuoteAr}
-                  </label>
+                  </span>
                   <Textarea
                     rows={2}
                     placeholder={t.webSettingsView.ceoQuoteArPlaceholder}
@@ -460,21 +460,21 @@ export function WebSettingsView({
                       setSettings({ ...settings, ceo_quote_ar: e.target.value })
                     }
                     className="text-end font-arabic"
-                  />
-                </div>
+                   dir="rtl"/>
+                </label>
               </div>
 
               {/* Mission & Vision */}
-              <div className="pt-4 border-t border-slate-100 dark:border-white/10 space-y-4">
-                <div className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+              <div className="pt-4 border-t border-outline-variant dark:border-white/10 space-y-4">
+                <div className="text-xs font-bold text-ink dark:text-ink uppercase tracking-wider">
                   {t.webSettingsView.corporateMissionVision}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
+                  <label className="block space-y-1">
+                    <span className="text-xs font-semibold text-ink dark:text-ink">
                       {t.webSettingsView.missionEn}
-                    </label>
+                    </span>
                     <Textarea
                       rows={3}
                       value={settings.mission_en || ""}
@@ -482,13 +482,13 @@ export function WebSettingsView({
                         setSettings({ ...settings, mission_en: e.target.value })
                       }
                       placeholder={t.webSettingsView.missionEnPlaceholder}
-                    />
-                  </div>
+                     dir="ltr"/>
+                  </label>
 
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
+                  <label className="block space-y-1">
+                    <span className="text-xs font-semibold text-ink dark:text-ink">
                       {t.webSettingsView.missionAr}
-                    </label>
+                    </span>
                     <Textarea
                       rows={3}
                       value={settings.mission_ar || ""}
@@ -497,13 +497,13 @@ export function WebSettingsView({
                       }
                       placeholder={t.webSettingsView.missionArPlaceholder}
                       className="text-end font-arabic"
-                    />
-                  </div>
+                     dir="rtl"/>
+                  </label>
 
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
+                  <label className="block space-y-1">
+                    <span className="text-xs font-semibold text-ink dark:text-ink">
                       {t.webSettingsView.visionEn}
-                    </label>
+                    </span>
                     <Textarea
                       rows={3}
                       value={settings.vision_en || ""}
@@ -511,13 +511,13 @@ export function WebSettingsView({
                         setSettings({ ...settings, vision_en: e.target.value })
                       }
                       placeholder={t.webSettingsView.visionEnPlaceholder}
-                    />
-                  </div>
+                     dir="ltr"/>
+                  </label>
 
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
+                  <label className="block space-y-1">
+                    <span className="text-xs font-semibold text-ink dark:text-ink">
                       {t.webSettingsView.visionAr}
-                    </label>
+                    </span>
                     <Textarea
                       rows={3}
                       value={settings.vision_ar || ""}
@@ -526,8 +526,8 @@ export function WebSettingsView({
                       }
                       placeholder={t.webSettingsView.visionArPlaceholder}
                       className="text-end font-arabic"
-                    />
-                  </div>
+                     dir="rtl"/>
+                  </label>
                 </div>
               </div>
             </Card>
@@ -536,40 +536,40 @@ export function WebSettingsView({
 
         {/* TAB 2.5: Legal & Rules */}
         {activeTab === "legal" && (
-          <div className="space-y-6">
-            <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-2xl space-y-6">
-              <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-white/10">
+          <div className="space-y-6" data-tab-panel>
+            <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl space-y-6">
+              <div className="flex items-center gap-2.5 pb-3 border-b border-outline-variant dark:border-white/10">
                 <div className="p-2 rounded-xl bg-accent/10 text-accent">
                   <Shield className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  <h3 className="text-sm font-bold text-ink dark:text-ink">
                     {t.webSettings.termsOfConditionsAndPrivacy}
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-neutral-400">
+                  <p className="text-xs text-ink-muted dark:text-ink-muted">
                     {t.webSettings.manageTheTermsOfConditions}
                   </p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
+                <label className="block space-y-1">
+                  <span className="text-xs font-semibold text-ink dark:text-ink">
                     {t.webSettings.termsOfConditionsEnglish}
-                  </label>
+                  </span>
                   <Textarea
                     rows={6}
                     value={settings.terms_en || ""}
                     onChange={(e) =>
                       setSettings({ ...settings, terms_en: e.target.value })
                     }
-                  />
-                </div>
+                   dir="ltr"/>
+                </label>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
+                <label className="block space-y-1">
+                  <span className="text-xs font-semibold text-ink dark:text-ink">
                     {t.webSettings.termsOfConditionsArabic}
-                  </label>
+                  </span>
                   <Textarea
                     rows={6}
                     value={settings.terms_ar || ""}
@@ -577,26 +577,26 @@ export function WebSettingsView({
                       setSettings({ ...settings, terms_ar: e.target.value })
                     }
                     className="text-end font-arabic"
-                  />
-                </div>
+                   dir="rtl"/>
+                </label>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
+                <label className="block space-y-1">
+                  <span className="text-xs font-semibold text-ink dark:text-ink">
                     {t.webSettings.privacyAndSecurityPolicyEnglish}
-                  </label>
+                  </span>
                   <Textarea
                     rows={6}
                     value={settings.rules_en || ""}
                     onChange={(e) =>
                       setSettings({ ...settings, rules_en: e.target.value })
                     }
-                  />
-                </div>
+                   dir="ltr"/>
+                </label>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
+                <label className="block space-y-1">
+                  <span className="text-xs font-semibold text-ink dark:text-ink">
                     {t.webSettings.privacyAndSecurityPolicyArabic}
-                  </label>
+                  </span>
                   <Textarea
                     rows={6}
                     value={settings.rules_ar || ""}
@@ -604,8 +604,8 @@ export function WebSettingsView({
                       setSettings({ ...settings, rules_ar: e.target.value })
                     }
                     className="text-end font-arabic"
-                  />
-                </div>
+                   dir="rtl"/>
+                </label>
               </div>
             </Card>
           </div>
@@ -613,26 +613,26 @@ export function WebSettingsView({
 
         {/* TAB 3: Contact & Social Channels */}
         {activeTab === "social" && (
-          <div className="space-y-6">
-            <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-2xl space-y-6">
-              <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-white/10">
+          <div className="space-y-6" data-tab-panel>
+            <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl space-y-6">
+              <div className="flex items-center gap-2.5 pb-3 border-b border-outline-variant dark:border-white/10">
                 <div className="p-2 rounded-xl bg-accent/10 text-accent">
                   <Share2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  <h3 className="text-sm font-bold text-ink dark:text-ink">
                     {t.webSettings.dynamicSocialLinks}
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-neutral-400">
+                  <p className="text-xs text-ink-muted dark:text-ink-muted">
                     {t.webSettings.addAndManageSocialMedia}
                   </p>
                 </div>
               </div>
 
               <div className="space-y-4">
-                <div className="flex gap-2 items-end">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-[1fr_1fr_128px_auto] gap-3 items-end">
                   <div className="flex-1 space-y-1">
-                    <label className="text-[10px] uppercase font-bold text-slate-500">
+                    <label className="text-[10px] uppercase font-bold text-ink-muted">
                       {t.webSettings.platform}
                     </label>
                     <PlatformPicker
@@ -646,9 +646,9 @@ export function WebSettingsView({
                       }}
                     />
                   </div>
-                  <div className="flex-1 space-y-1">
-                    <label className="text-[10px] uppercase font-bold text-slate-500">
-                      {t.copy.url}</label>
+                  <label className="flex-1 space-y-1">
+                    <span className="text-[10px] uppercase font-bold text-ink-muted">
+                      {t.copy.url}</span>
                     <Input
                       placeholder={t.copy.urlExample}
                       value={newLink.url}
@@ -656,9 +656,9 @@ export function WebSettingsView({
                         setNewLink({ ...newLink, url: e.target.value })
                       }
                     />
-                  </div>
-                  <div className="w-32 space-y-1">
-                    <label className="text-[10px] uppercase font-bold text-slate-500">
+                  </label>
+                  <div className="min-w-0 space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-ink-muted">
                       {t.webSettings.iconOptional}
                     </label>
                     <IconPicker
@@ -670,15 +670,15 @@ export function WebSettingsView({
                   <button
                     type="button"
                     onClick={handleAddSocialLink}
-                    className="h-10 px-4 rounded-xl bg-accent text-white text-xs font-bold hover:bg-accent-hover transition-colors"
+                    className="h-10 px-4 rounded-xl bg-accent text-accent-foreground text-xs font-bold hover:bg-accent-hover transition-colors"
                   >
                     {t.webSettings.addLink}
                   </button>
                 </div>
 
-                <div className="border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden">
+                <div className="border border-outline-variant dark:border-white/10 rounded-xl overflow-x-auto">
                   <table className="w-full text-start text-sm">
-                    <thead className="bg-slate-50 dark:bg-white/5 text-xs text-slate-500">
+                    <thead className="bg-surface-raised dark:bg-white/5 text-xs text-ink-muted">
                       <tr>
                         <th className="px-4 py-3 font-semibold">{t.webSettings.platform}</th>
                         <th className="px-4 py-3 font-semibold">{t.shared.url}</th>
@@ -687,11 +687,11 @@ export function WebSettingsView({
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-200 dark:divide-white/5">
+                    <tbody className="divide-y divide-outline-variant dark:divide-white/5">
                       {links.map((link) => (
                         <tr
                           key={link.id}
-                          className="bg-white dark:bg-surface"
+                          className="bg-surface-raised dark:bg-surface"
                         >
                           <td className="px-4 py-3 font-medium flex items-center gap-2">
                             <SocialBrandIcon name={link.platform} hint={link.icon} className="w-4 h-4 text-accent" />
@@ -702,7 +702,7 @@ export function WebSettingsView({
                               </span>
                             )}
                           </td>
-                          <td className="px-4 py-3 text-slate-500 truncate max-w-[200px]">
+                          <td className="px-4 py-3 text-ink-muted truncate max-w-[200px]">
                             {link.url}
                           </td>
                           <td className="px-4 py-3 text-end space-x-2 rtl:space-x-reverse">
@@ -711,7 +711,7 @@ export function WebSettingsView({
                               onClick={() =>
                                 handleToggleSocialLink(link.id, link.is_active)
                               }
-                              className="text-xs text-slate-500 hover:text-accent"
+                              className="text-xs text-ink-muted hover:text-accent"
                             >
                               {link.is_active ? t.webSettings.hideLink : t.webSettings.showLink}
                             </button>
@@ -729,7 +729,7 @@ export function WebSettingsView({
                         <tr>
                           <td
                             colSpan={3}
-                            className="px-4 py-8 text-center text-slate-500 text-xs"
+                            className="px-4 py-8 text-center text-ink-muted text-xs"
                           >
                             {t.webSettings.noSocialLinksAddedYet}
                           </td>
@@ -741,27 +741,27 @@ export function WebSettingsView({
               </div>
             </Card>
 
-            <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-2xl space-y-6">
-              <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-white/10">
+            <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl space-y-6">
+              <div className="flex items-center gap-2.5 pb-3 border-b border-outline-variant dark:border-white/10">
                 <div className="p-2 rounded-xl bg-accent/10 text-accent">
                   <Phone className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  <h3 className="text-sm font-bold text-ink dark:text-ink">
                     {t.webSettings.contactDetails}
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-neutral-400">
+                  <p className="text-xs text-ink-muted dark:text-ink-muted">
                     {t.webSettings.phoneNumbersAndAddressesFor}
                   </p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300 flex items-center gap-1.5">
+                <label className="block space-y-1">
+                  <span className="text-xs font-semibold text-ink dark:text-ink flex items-center gap-1.5">
                     <Phone className="w-3.5 h-3.5 text-emerald-500" />
                     <span>{t.webSettingsView.waPhone}</span>
-                  </label>
+                  </span>
                   <Input
                     placeholder={t.webSettingsView.phonePlaceholder}
                     value={settings.whatsapp_phone || ""}
@@ -773,13 +773,13 @@ export function WebSettingsView({
                     }
                     dir="ltr"
                   />
-                </div>
+                </label>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300 flex items-center gap-1.5">
-                    <Phone className="w-3.5 h-3.5 text-slate-400" />
+                <label className="block space-y-1">
+                  <span className="text-xs font-semibold text-ink dark:text-ink flex items-center gap-1.5">
+                    <Phone className="w-3.5 h-3.5 text-ink-muted" />
                     <span>{t.webSettingsView.studioPhone}</span>
-                  </label>
+                  </span>
                   <Input
                     value={settings.phone}
                     onChange={(e) =>
@@ -787,13 +787,13 @@ export function WebSettingsView({
                     }
                     dir="ltr"
                   />
-                </div>
+                </label>
 
-                <div className="space-y-1 md:col-span-2">
-                  <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300 flex items-center gap-1.5">
-                    <Mail className="w-3.5 h-3.5 text-slate-400" />
+                <label className="block space-y-1 md:col-span-2">
+                  <span className="text-xs font-semibold text-ink dark:text-ink flex items-center gap-1.5">
+                    <Mail className="w-3.5 h-3.5 text-ink-muted" />
                     <span>{t.webSettingsView.inquiriesEmail}</span>
-                  </label>
+                  </span>
                   <Input
                     value={settings.email}
                     onChange={(e) =>
@@ -801,34 +801,34 @@ export function WebSettingsView({
                     }
                     dir="ltr"
                   />
-                </div>
+                </label>
 
-                <div className="space-y-1 md:col-span-2">
-                  <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300 flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                <label className="block space-y-1 md:col-span-2">
+                  <span className="text-xs font-semibold text-ink dark:text-ink flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-ink-muted" />
                     <span>{t.webSettingsView.addressEn}</span>
-                  </label>
+                  </span>
                   <Input
                     value={settings.address_en}
                     onChange={(e) =>
                       setSettings({ ...settings, address_en: e.target.value })
                     }
-                  />
-                </div>
+                   dir="ltr"/>
+                </label>
 
-                <div className="space-y-1 md:col-span-2">
-                  <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300 flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                <label className="block space-y-1 md:col-span-2">
+                  <span className="text-xs font-semibold text-ink dark:text-ink flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-ink-muted" />
                     <span>{t.webSettingsView.addressAr}</span>
-                  </label>
+                  </span>
                   <Input
                     value={settings.address_ar}
                     onChange={(e) =>
                       setSettings({ ...settings, address_ar: e.target.value })
                     }
                     className="text-end font-arabic"
-                  />
-                </div>
+                   dir="rtl"/>
+                </label>
               </div>
             </Card>
           </div>
@@ -836,17 +836,17 @@ export function WebSettingsView({
 
         {/* TAB 4: CMS Content Hub & Live Stats */}
         {activeTab === "cms" && (
-          <div className="space-y-6">
-            <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-2xl space-y-6">
-              <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-white/10">
+          <div className="space-y-6" data-tab-panel>
+            <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl space-y-6">
+              <div className="flex items-center gap-2.5 pb-3 border-b border-outline-variant dark:border-white/10">
                 <div className="p-2 rounded-xl bg-accent/10 text-accent">
                   <Layers className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  <h3 className="text-sm font-bold text-ink dark:text-ink">
                     {t.webSettingsView.cmsHubTitle}
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-neutral-400">
+                  <p className="text-xs text-ink-muted dark:text-ink-muted">
                     {t.webSettingsView.cmsHubDesc}
                   </p>
                 </div>
@@ -855,94 +855,94 @@ export function WebSettingsView({
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <Link
                   href={ROUTES.cms.banners}
-                  className="p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-accent/40 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
+                  className="p-4 rounded-xl border border-outline-variant dark:border-white/10 hover:border-accent/40 bg-surface-raised/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-primary text-white">
+                    <div className="p-2.5 rounded-xl bg-primary text-primary-foreground">
                       <Film className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-accent transition-colors">
+                      <div className="text-xs font-bold text-ink dark:text-ink group-hover:text-accent transition-colors">
                         {t.webSettingsView.manageShowcaseBanners}
                       </div>
-                      <div className="text-[11px] text-slate-400 ">
+                      <div className="text-[11px] text-ink-muted ">
                         {formatMessage(t.webSettingsView.cmsSlidesConfigured, { count: String(cmsCounts.banners) })}
                       </div>
                     </div>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-slate-300 dark:text-neutral-600 group-hover:text-accent" />
+                  <ExternalLink className="w-4 h-4 text-ink dark:text-ink-muted group-hover:text-accent" />
                 </Link>
 
                 <Link
                   href={ROUTES.cms.portfolio}
-                  className="p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-accent/40 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
+                  className="p-4 rounded-xl border border-outline-variant dark:border-white/10 hover:border-accent/40 bg-surface-raised/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-primary text-white">
+                    <div className="p-2.5 rounded-xl bg-primary text-primary-foreground">
                       <FolderOpen className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-accent transition-colors">
+                      <div className="text-xs font-bold text-ink dark:text-ink group-hover:text-accent transition-colors">
                         {t.webSettingsView.managePortfolio}
                       </div>
-                      <div className="text-[11px] text-slate-400 ">
+                      <div className="text-[11px] text-ink-muted ">
                         {formatMessage(t.webSettingsView.cmsProjectsPublished, { count: String(cmsCounts.portfolio) })}
                       </div>
                     </div>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-slate-300 dark:text-neutral-600 group-hover:text-accent" />
+                  <ExternalLink className="w-4 h-4 text-ink dark:text-ink-muted group-hover:text-accent" />
                 </Link>
 
                 <Link
                   href={ROUTES.cms.clients}
-                  className="p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-accent/40 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
+                  className="p-4 rounded-xl border border-outline-variant dark:border-white/10 hover:border-accent/40 bg-surface-raised/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-primary text-white">
+                    <div className="p-2.5 rounded-xl bg-primary text-primary-foreground">
                       <Users className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-accent transition-colors">
+                      <div className="text-xs font-bold text-ink dark:text-ink group-hover:text-accent transition-colors">
                         {t.webSettingsView.manageClients}
                       </div>
-                      <div className="text-[11px] text-slate-400 ">
+                      <div className="text-[11px] text-ink-muted ">
                         {formatMessage(t.webSettingsView.cmsPartnerLogos, { count: String(cmsCounts.clients) })}
                       </div>
                     </div>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-slate-300 dark:text-neutral-600 group-hover:text-accent" />
+                  <ExternalLink className="w-4 h-4 text-ink dark:text-ink-muted group-hover:text-accent" />
                 </Link>
 
                 <Link
                   href={ROUTES.cms.equipment}
-                  className="p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-accent/40 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
+                  className="p-4 rounded-xl border border-outline-variant dark:border-white/10 hover:border-accent/40 bg-surface-raised/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-primary text-white">
+                    <div className="p-2.5 rounded-xl bg-primary text-primary-foreground">
                       <Camera className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-accent transition-colors">
+                      <div className="text-xs font-bold text-ink dark:text-ink group-hover:text-accent transition-colors">
                         {t.webSettingsView.manageEquipment}
                       </div>
-                      <div className="text-[11px] text-slate-400 ">
+                      <div className="text-[11px] text-ink-muted ">
                         {formatMessage(t.webSettingsView.cmsCameraSystems, { count: String(cmsCounts.equipment) })}
                       </div>
                     </div>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-slate-300 dark:text-neutral-600 group-hover:text-accent" />
+                  <ExternalLink className="w-4 h-4 text-ink dark:text-ink-muted group-hover:text-accent" />
                 </Link>
 
                 <Link
                   href={ROUTES.cms.reviews}
-                  className="p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-accent/40 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
+                  className="p-4 rounded-xl border border-outline-variant dark:border-white/10 hover:border-accent/40 bg-surface-raised/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-primary text-white">
+                    <div className="p-2.5 rounded-xl bg-primary text-primary-foreground">
                       <Star className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-accent transition-colors flex items-center gap-1.5">
+                      <div className="text-xs font-bold text-ink dark:text-ink group-hover:text-accent transition-colors flex items-center gap-1.5">
                         <span>{t.webSettingsView.manageReviews}</span>
                         {cmsCounts.pendingReviews > 0 && (
                           <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-500 text-white">
@@ -950,32 +950,32 @@ export function WebSettingsView({
                           </span>
                         )}
                       </div>
-                      <div className="text-[11px] text-slate-400 ">
+                      <div className="text-[11px] text-ink-muted ">
                         {formatMessage(t.webSettingsView.cmsClientReviews, { count: String(cmsCounts.reviews) })}
                       </div>
                     </div>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-slate-300 dark:text-neutral-600 group-hover:text-accent" />
+                  <ExternalLink className="w-4 h-4 text-ink dark:text-ink-muted group-hover:text-accent" />
                 </Link>
 
                 <Link
                   href={ROUTES.cms.faqs}
-                  className="p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-accent/40 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
+                  className="p-4 rounded-xl border border-outline-variant dark:border-white/10 hover:border-accent/40 bg-surface-raised/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-primary text-white">
+                    <div className="p-2.5 rounded-xl bg-primary text-primary-foreground">
                       <HelpCircle className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-accent transition-colors">
+                      <div className="text-xs font-bold text-ink dark:text-ink group-hover:text-accent transition-colors">
                         {t.webSettingsView.manageFaqs}
                       </div>
-                      <div className="text-[11px] text-slate-400 ">
+                      <div className="text-[11px] text-ink-muted ">
                         {formatMessage(t.webSettingsView.cmsQuestionsConfigured, { count: String(cmsCounts.faqs) })}
                       </div>
                     </div>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-slate-300 dark:text-neutral-600 group-hover:text-accent" />
+                  <ExternalLink className="w-4 h-4 text-ink dark:text-ink-muted group-hover:text-accent" />
                 </Link>
               </div>
             </Card>
@@ -983,8 +983,8 @@ export function WebSettingsView({
         )}
 
         {/* Save Bar */}
-        <div className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 shadow-xs">
-          <div className="text-xs text-slate-500 dark:text-neutral-400 flex items-center gap-2">
+        <div className="flex items-center justify-between p-4 rounded-2xl bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-white/10 shadow-xs">
+          <div className="text-xs text-ink-muted dark:text-ink-muted flex items-center gap-2">
             {saveSuccess ? (
               <span className="text-emerald-500 dark:text-emerald-400 font-bold flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4" />
@@ -998,7 +998,7 @@ export function WebSettingsView({
           <button
             type="submit"
             disabled={isSaving}
-            className="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold inline-flex items-center gap-2 transition-all border border-accent/40 shadow-sm disabled:opacity-50"
+            className="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold inline-flex items-center gap-2 transition-all border border-accent/40 shadow-sm disabled:opacity-50"
           >
             {isSaving ? (
               <>

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ClipboardList, Plus } from "lucide-react";
-import { Button, Card, Modal, formatDate } from "@platform/ui";
+import { Select, ModalFooter, Button, Card, Modal, formatDate } from "@platform/ui";
 import { ROUTES } from "@platform/database/constants/routes";
 import { errorMessage } from "../../lib/error-text";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -37,9 +37,9 @@ const CHIP: Record<string, string> = {
   paid: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
   scheduled: "bg-blue-500/10 text-blue-700 dark:text-blue-300",
   rejected: "bg-rose-500/10 text-rose-700 dark:text-rose-300",
-  cancelled: "bg-slate-500/10 text-slate-600 dark:text-slate-300",
+  cancelled: "bg-surface-sunken/10 text-ink-muted dark:text-ink",
 };
-const field = "w-full rounded-lg border border-ink/20 bg-white dark:bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/40";
+const field = "w-full rounded-lg border border-outline-variant bg-surface-raised dark:bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/40";
 
 export function HrRequestsView(props: {
   rows: HrRequestRow[];
@@ -75,7 +75,7 @@ export function HrRequestsView(props: {
           <span className="w-12 h-12 shrink-0 rounded-2xl bg-accent/10 text-accent flex items-center justify-center" aria-hidden>
             <ClipboardList className="w-6 h-6" />
           </span>
-          <div className="space-y-1">
+          <div className="space-y-1" data-page-header>
             <h1 className="text-2xl font-bold tracking-tight text-ink">{c.title}</h1>
             <p className="text-sm text-ink-muted">{c.subtitle}</p>
           </div>
@@ -88,24 +88,24 @@ export function HrRequestsView(props: {
       </header>
 
       <Card className="p-4 flex flex-wrap items-end gap-3">
-        <label className="space-y-1 text-xs font-medium text-ink-muted">
+        <label className="block space-y-1 text-xs font-medium text-ink-muted">
           {c.filters.type}
-          <select className={field} value={type} onChange={(e) => go({ type: e.target.value })}>
+          <Select className={field} value={type} onChange={(e) => go({ type: e.target.value })}>
             {TYPES.map((v) => <option key={v} value={v}>{c.types[v]}</option>)}
-          </select>
+          </Select>
         </label>
-        <label className="space-y-1 text-xs font-medium text-ink-muted">
+        <label className="block space-y-1 text-xs font-medium text-ink-muted">
           {c.filters.status}
-          <select className={field} value={status} onChange={(e) => go({ status: e.target.value })}>
+          <Select className={field} value={status} onChange={(e) => go({ status: e.target.value })}>
             {STATUSES.map((v) => <option key={v} value={v}>{c.statuses[v]}</option>)}
-          </select>
+          </Select>
         </label>
-        <label className="space-y-1 text-xs font-medium text-ink-muted min-w-56">
+        <label className="block space-y-1 text-xs font-medium text-ink-muted min-w-56">
           {c.filters.employee}
-          <select className={field} value={employeeId} onChange={(e) => go({ employeeId: e.target.value })}>
+          <Select className={field} value={employeeId} onChange={(e) => go({ employeeId: e.target.value })}>
             <option value="">{c.allEmployees}</option>
             {employees.map((e) => <option key={e.id} value={e.id}>{employeeName(e)}</option>)}
-          </select>
+          </Select>
         </label>
       </Card>
 
@@ -122,12 +122,12 @@ export function HrRequestsView(props: {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink/10">
+              <tbody className="divide-y divide-outline-variant">
                 {rows.map((r) => (
                   <tr key={r.key} className="hover:bg-ink/5">
                     <td className="px-4 py-3">
                       <Link href={r.href} className="font-semibold text-ink hover:text-accent">{isAr ? r.employee.ar || r.employee.en : r.employee.en}</Link>
-                      <div className="text-[11px] font-mono text-ink-muted" dir="ltr">{r.reference}</div>
+                      <div className="text-[11px] font-mono text-ink-muted" dir="ltr"><bdi dir="ltr">{r.reference}</bdi></div>
                     </td>
                     <td className="px-4 py-3 text-ink-muted">{c.types[r.type]}</td>
                     <td className="px-4 py-3">
@@ -168,6 +168,8 @@ function FileForEmployeeModal({ isOpen, onClose, employees, leaveTypes, canFileD
   leaveTypes: LeaveTypeOption[];
   canFileDocuments: boolean;
 }) {
+  const modalFormId = React.useId();
+
   const { t, locale } = useAdminLocale();
   const c = t.hrRequests;
   const isAr = locale === "ar";
@@ -210,20 +212,20 @@ function FileForEmployeeModal({ isOpen, onClose, employees, leaveTypes, canFileD
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={c.fileForEmployee}>
+    <Modal isOpen={isOpen} onClose={onClose} title={c.fileForEmployee} footer={!employeeId ? <Button type="button" variant="outline" onClick={onClose}>{c.cancel}</Button> : null}>
       <div className="space-y-5">
         <p className="text-sm text-ink-muted">{c.fileHint}</p>
         <label className="block space-y-1 text-xs font-medium text-ink-muted">
           {c.filters.employee}
-          <select className={field} value={employeeId} onChange={(e) => setEmployeeId(e.target.value)}>
+          <Select className={field} value={employeeId} onChange={(e) => setEmployeeId(e.target.value)}>
             <option value="">—</option>
             {employees.map((e) => <option key={e.id} value={e.id}>{`${isAr ? e.nameAr || e.nameEn : e.nameEn} (${e.number})`}</option>)}
-          </select>
+          </Select>
         </label>
-        <div role="radiogroup" aria-label={c.filters.type} className="inline-flex gap-1 p-1 rounded-full bg-surface-sunken border border-ink/10">
+        <div role="radiogroup" aria-label={c.filters.type} className="inline-flex gap-1 p-1 rounded-full bg-surface-sunken border border-outline-variant">
           {(["leave", ...(canFileDocuments ? ["salary_document"] : [])] as const).map((v) => (
             <button key={v} type="button" role="radio" aria-checked={kind === v} onClick={() => setKind(v as typeof kind)}
-              className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors ${kind === v ? "bg-accent text-white shadow-sm" : "text-ink-muted hover:text-ink hover:bg-ink/5"}`}>
+              className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors ${kind === v ? "bg-accent text-accent-foreground shadow-sm" : "text-ink-muted hover:text-ink hover:bg-ink/5"}`}>
               {c.types[v as "leave" | "salary_document"]}
             </button>
           ))}
@@ -232,12 +234,12 @@ function FileForEmployeeModal({ isOpen, onClose, employees, leaveTypes, canFileD
         {!employeeId ? (
           <p className="text-xs text-ink-muted">{c.pickEmployeeFirst}</p>
         ) : kind === "leave" ? (
-          <form onSubmit={submitLeave} className="space-y-4">
+          <form onSubmit={submitLeave} className="space-y-4" id={modalFormId}>
             <label className="block space-y-1 text-xs font-medium text-ink-muted">
               {c.leaveType}
-              <select className={field} value={leaveTypeId} onChange={(e) => setLeaveTypeId(e.target.value)}>
+              <Select className={field} value={leaveTypeId} onChange={(e) => setLeaveTypeId(e.target.value)}>
                 {leaveTypes.map((lt) => <option key={lt.id} value={lt.id}>{isAr ? lt.nameAr : lt.nameEn}</option>)}
-              </select>
+              </Select>
             </label>
             <div className="grid grid-cols-2 gap-3">
               <label className="block space-y-1 text-xs font-medium text-ink-muted">{c.from}
@@ -250,10 +252,10 @@ function FileForEmployeeModal({ isOpen, onClose, employees, leaveTypes, canFileD
             <label className="block space-y-1 text-xs font-medium text-ink-muted">{c.reason}
               <textarea rows={3} className={field} value={reason} onChange={(e) => setReason(e.target.value)} />
             </label>
-            <div className="flex justify-end gap-2">
+            <ModalFooter><div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={onClose}>{c.cancel}</Button>
-              <Button type="submit" disabled={busy}>{c.submit}</Button>
-            </div>
+              <Button type="submit" disabled={busy} form={modalFormId}>{c.submit}</Button>
+            </div></ModalFooter>
           </form>
         ) : (
           <SalaryDocumentsView embedded employeeId={employeeId} documents={[]} availableMonths={months} />

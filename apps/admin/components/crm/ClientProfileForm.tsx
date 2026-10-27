@@ -43,8 +43,8 @@ function Field({ label, hint, required, children, wide }: { label: string; hint?
 
 function Section({ title, children, aside }: { title: string; children: React.ReactNode; aside?: React.ReactNode }) {
   return (
-    <section className="space-y-4">
-      <div className="flex items-center justify-between gap-3 border-b border-ink/10 pb-2">
+    <section className="space-y-4" data-page-section>
+      <div className="flex items-center justify-between gap-3 border-b border-outline-variant pb-2">
         <h2 className="text-sm font-bold text-ink">{title}</h2>
         {aside}
       </div>
@@ -150,7 +150,7 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4" data-page-header>
         <Link href={contact ? ROUTES.crm.customer(contact.id) : ROUTES.crm.contacts}>
           <Button variant="outline" size="sm" className="gap-1.5 text-ink-muted">
             <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
@@ -167,7 +167,7 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
       </div>
 
       <form onSubmit={submit} className="space-y-6">
-        <Card className="p-6 sm:p-8 bg-surface border border-ink/10 rounded-3xl space-y-8">
+        <Card className="p-6 sm:p-8 bg-surface border border-outline-variant rounded-3xl space-y-8">
           <Section title={f.sections.type}>
             <div role="radiogroup" aria-label={f.sections.type} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {CLIENT_KINDS.map((k) => {
@@ -180,10 +180,10 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
                     role="radio"
                     aria-checked={active}
                     onClick={() => setKind(k)}
-                    className={`flex items-start gap-3 rounded-2xl border p-4 text-start transition-colors ${active ? "border-accent bg-accent/5 ring-2 ring-accent/20" : "border-ink/15 hover:border-ink/30"
+                    className={`flex items-start gap-3 rounded-2xl border p-4 text-start transition-colors ${active ? "border-accent bg-accent/5 ring-2 ring-accent/20" : "border-outline-variant hover:border-ink/30"
                       }`}
                   >
-                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${active ? "bg-accent text-white" : "bg-ink/5 text-ink-muted"}`}>
+                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${active ? "bg-accent text-accent-foreground" : "bg-ink/5 text-ink-muted"}`}>
                       <Icon className="h-4.5 w-4.5" />
                     </span>
                     <span>
@@ -213,7 +213,7 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
                         type="button"
                         aria-pressed={values.company_origin === origin}
                         onClick={() => set("company_origin", origin)}
-                        className={`h-11 rounded-xl border text-sm font-semibold transition-colors ${values.company_origin === origin ? "border-accent bg-accent/5 text-accent" : "border-ink/20 text-ink-muted hover:border-ink/40"
+                        className={`h-11 rounded-xl border text-sm font-semibold transition-colors ${values.company_origin === origin ? "border-accent bg-accent/5 text-accent" : "border-outline-variant text-ink-muted hover:border-ink/40"
                           }`}
                       >
                         {c.origins[origin]}
@@ -340,12 +340,12 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
               <p className="text-[11px] text-ink-muted -mt-2">{f.poc.note}</p>
               <div className="space-y-3">
                 {persons.map((p, index) => (
-                  <div key={p.key} className={`rounded-2xl border p-4 ${p.is_primary ? "border-accent/50 bg-accent/5" : "border-ink/10"}`}>
+                  <div key={p.key} className={`rounded-2xl border p-4 ${p.is_primary ? "border-accent/50 bg-accent/5" : "border-outline-variant"}`}>
                     <div className="flex items-center justify-between gap-2 mb-3">
                       <span className="text-xs font-bold text-ink">
                         {formatMessage(f.poc.contactNumber, { n: String(index + 1) })}
                         {p.is_primary ? (
-                          <span className="ms-2 inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-white">
+                          <span className="ms-2 inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-accent-foreground">
                             <Star className="h-3 w-3" />
                             {f.poc.primary}
                           </span>
@@ -462,7 +462,7 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
                   value={values.notes ?? ""}
                   onChange={(e) => set("notes", e.target.value)}
                   placeholder={f.notesPlaceholder}
-                  className="w-full bg-white dark:bg-surface border border-ink/25 rounded-xl p-3 text-sm text-ink placeholder:text-slate-400 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+                  className="w-full bg-surface-raised dark:bg-surface border border-ink/25 rounded-xl p-3 text-sm text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
                 />
               </Field>
             </div>

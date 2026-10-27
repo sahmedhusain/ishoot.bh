@@ -118,16 +118,16 @@ export function NotificationCenter() {
       <button
         ref={menu.triggerRef}
         type="button"
-        aria-label={t.actions.notifications}
         aria-haspopup="dialog"
         aria-expanded={menu.open}
         aria-controls="notification-preview"
         onClick={() => menu.setOpen(!menu.open)}
-        className="relative flex h-9 w-9 items-center justify-center rounded-full text-ink-muted hover:bg-ink/5 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="relative flex h-10 w-10 items-center justify-center rounded-full text-ink-muted hover:bg-ink/5 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
+        <span className="sr-only">{t.actions.notifications}</span>
         <Bell aria-hidden className="h-[18px] w-[18px]" />
         {unreadCount > 0 && (
-          <span className="absolute -end-1 -top-1 min-w-4 rounded-full bg-primary px-1 text-center text-[10px] leading-4 text-white ring-2 ring-white dark:ring-surface-raised">
+          <span className="absolute -end-1 -top-1 min-w-4 rounded-full bg-primary px-1 text-center text-[10px] leading-4 text-primary-foreground ring-2 ring-white dark:ring-surface-raised">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
@@ -138,9 +138,9 @@ export function NotificationCenter() {
           role="dialog"
           aria-label={t.notificationsCenter.title}
           ref={menu.panelRef}
-          className="absolute end-0 top-full z-50 mt-3 flex max-h-[min(36rem,calc(100dvh-5rem))] w-96 flex-col overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-xl dark:bg-surface-raised max-sm:fixed max-sm:inset-x-3 max-sm:top-16 max-sm:mt-0 max-sm:w-auto"
+          className="admin-popover absolute end-0 top-full z-50 mt-3 flex max-h-[min(38rem,calc(100dvh-6rem))] w-[400px] flex-col max-sm:fixed max-sm:inset-x-3 max-sm:mt-0 max-sm:w-auto"
         >
-          <header className="flex items-center justify-between gap-3 px-4 pb-3 pt-4">
+          <header role="presentation" data-popup-header className="admin-popover-header flex items-center justify-between gap-4">
             <div>
               <h2 className="text-sm font-semibold text-ink">
                 {t.notificationsCenter.title}
@@ -161,7 +161,7 @@ export function NotificationCenter() {
             </button>
           </header>
           <div
-            className="flex gap-1 border-b border-ink/10 px-4 pb-3"
+            className="flex gap-1 border-b border-outline-variant px-4 pb-3"
             aria-label={p.filter}
           >
             {(["all", "unread"] as const).map((value) => (
@@ -183,7 +183,7 @@ export function NotificationCenter() {
             {failed && (
               <div
                 role="alert"
-                className="flex items-center gap-2 border-b border-ink/10 px-4 py-3 text-xs text-ink-muted"
+                className="flex items-center gap-2 border-b border-outline-variant px-4 py-3 text-xs text-ink-muted"
               >
                 <AlertCircle aria-hidden className="h-4 w-4" />
                 <span className="flex-1">{p.failed}</span>
@@ -217,7 +217,7 @@ export function NotificationCenter() {
               <div className="px-6 py-9 text-center">
                 <Inbox
                   aria-hidden
-                  className="mx-auto mb-3 h-7 w-7 text-ink-muted/50"
+                  className="mx-auto mb-3 h-7 w-7 text-ink-muted"
                 />
                 <p className="text-sm font-medium text-ink">
                   {filter === "unread"
@@ -231,14 +231,14 @@ export function NotificationCenter() {
                 </p>
               </div>
             ) : (
-              <ul className="divide-y divide-ink/5">
+              <ul className="divide-y divide-outline-variant">
                 {items.map((n) => {
                   const text = notificationText(n, t, locale);
                   const href = notificationHref(n);
                   const content = (
                     <>
                       <p className="line-clamp-2 text-sm font-medium leading-snug text-ink">
-                        {text.title}
+                        <bdi dir="auto">{text.title}</bdi>
                       </p>
                       <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-ink-muted">
                         {text.message}
@@ -306,7 +306,7 @@ export function NotificationCenter() {
               </ul>
             )}
           </div>
-          <footer className="border-t border-ink/10 p-3">
+          <footer className="border-t border-outline-variant p-3">
             <Link
               href={ROUTES.notifications()}
               onClick={() => menu.setOpen(false)}

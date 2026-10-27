@@ -3,7 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Button, Input, Textarea } from "@platform/ui";
+import { Select, Button, Input, Textarea } from "@platform/ui";
 import type {
   OfficialLetterDetail,
   OfficialLetterInput,
@@ -91,7 +91,7 @@ export function LetterWorkspace({
   };
   return (
     <div className="max-w-5xl mx-auto space-y-5">
-      <header>
+      <header data-page-header>
         <Link href={ROUTES.letters.list()} className="text-sm text-accent">
           {c.letters}
         </Link>
@@ -101,7 +101,7 @@ export function LetterWorkspace({
       </header>
       {editable ? (
         <form
-          className="space-y-5 rounded-3xl border border-ink/10 p-6"
+          className="space-y-5 rounded-3xl border border-outline-variant p-6"
           onSubmit={(e) => {
             e.preventDefault();
             void run(async () => {
@@ -113,7 +113,7 @@ export function LetterWorkspace({
           <div className="grid gap-4 sm:grid-cols-2">
             <label>
               {c.template}
-              <select
+              <Select
                 className="block w-full rounded border p-2 bg-surface"
                 value={form.template_id ?? ""}
                 onChange={(e) => patch({ template_id: e.target.value })}
@@ -126,11 +126,11 @@ export function LetterWorkspace({
                       {locale === "ar" ? v.nameAr : v.nameEn}
                     </option>
                   ))}
-              </select>
+              </Select>
             </label>
             <label>
               {c.employee}
-              <select
+              <Select
                 className="block w-full rounded border p-2 bg-surface"
                 value={form.employee_id ?? ""}
                 onChange={(e) => patch({ employee_id: e.target.value })}
@@ -141,7 +141,7 @@ export function LetterWorkspace({
                     {e.name}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
           </div>
           <label className="block">
@@ -254,7 +254,7 @@ export function LetterWorkspace({
             </label>
             <label>
               {c.classification}
-              <select
+              <Select
                 className="block rounded border p-2 bg-surface"
                 value={form.classification}
                 onChange={(e) => patch({ classification: e.target.value })}
@@ -264,7 +264,7 @@ export function LetterWorkspace({
                     {labels[v]}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
             {(
               [
@@ -287,7 +287,7 @@ export function LetterWorkspace({
           </Button>
         </form>
       ) : (
-        <article className="rounded-3xl border p-6">
+        <article className="rounded-3xl border p-6" data-page-section>
           <p>
             {letter?.recipientOrganization} · {letter?.recipientName}
           </p>

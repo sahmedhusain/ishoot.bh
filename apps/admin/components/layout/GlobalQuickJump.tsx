@@ -115,11 +115,11 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
       case "purchase_orders":
         return <ClipboardList className="w-4 h-4 text-orange-500" />;
       case "legal":
-        return <Gavel className="w-4 h-4 text-slate-500" />;
+        return <Gavel className="w-4 h-4 text-ink-muted" />;
       case "campaigns":
         return <Megaphone className="w-4 h-4 text-pink-500" />;
       default:
-        return <Search className="w-4 h-4 text-slate-400" />;
+        return <Search className="w-4 h-4 text-ink-muted" />;
     }
   };
 
@@ -128,43 +128,43 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
       {/* Topbar Trigger Button */}
       <button
         type="button"
+        aria-keyshortcuts="Meta+K Control+K"
         aria-haspopup="dialog"
         aria-expanded={isOpen}
-        aria-label={t.quickJump.universalSearch}
         onClick={() => setIsOpen(true)}
         className={
           className ||
-          "flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200/70 text-slate-600 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-300 text-xs transition-colors border border-slate-200/80 dark:border-white/10 w-44 sm:w-64 justify-between"
+          "flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-surface-sunken hover:bg-surface-sunken/70 text-ink-muted dark:bg-white/5 dark:hover:bg-white/10 dark:text-ink text-xs transition-colors border border-outline-variant/80 dark:border-white/10 w-44 sm:w-64 justify-between"
         }
       >
-        <span className="flex items-center gap-2 text-slate-500 dark:text-slate-400 truncate">
+        <span className="flex items-center gap-2 text-ink-muted dark:text-ink-muted truncate">
           <Search className="w-3.5 h-3.5 shrink-0" />
-          <span className="truncate">{t.quickJump.navigate}...</span>
+          <span className="truncate">{t.quickJump.universalSearch}</span>
         </span>
-        <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-white dark:bg-black/30 border border-slate-200 dark:border-white/10 text-[10px]  text-slate-400">
+        <kbd dir="ltr" className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-surface-raised dark:bg-black/30 border border-outline-variant dark:border-white/10 text-[10px]  text-ink-muted">
           {t.copy.shortcut}</kbd>
       </button>
 
       {/* Modal Dialog */}
-      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={t.quickJump.universalSearch}
-        className="max-w-xl" footer={<>
+      <Modal kind="command" isOpen={isOpen} onClose={() => setIsOpen(false)} title={t.quickJump.universalSearch}
+        className="max-w-2xl" footer={<>
           {/* Footer */}
-          <div className=" flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+          <div className=" flex items-center justify-between text-[11px] text-ink-muted dark:text-ink-muted">
             <span className="flex items-center gap-3">
               <span>
-                <kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">
+                <kbd dir="ltr" className="px-1 py-0.5 bg-surface-raised dark:bg-black/30 rounded border border-outline-variant dark:border-white/10">
                   ↑↓
                 </kbd>{" "}
                 {t.quickJump.navigate}
               </span>
               <span>
-                <kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">
+                <kbd dir="ltr" className="px-1 py-0.5 bg-surface-raised dark:bg-black/30 rounded border border-outline-variant dark:border-white/10">
                   ↵
                 </kbd>{" "}
                 {t.quickJump.select}
               </span>
               <span>
-                <kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">
+                <kbd dir="ltr" className="px-1 py-0.5 bg-surface-raised dark:bg-black/30 rounded border border-outline-variant dark:border-white/10">
                   {t.copy.escape}</kbd>{" "}
                 {t.actions.cancel}
               </span>
@@ -175,7 +175,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
           </div>        </>}>
         {/* Input Header */}
         <div className="flex items-center gap-3">
-          <Search className="w-5 h-5 text-slate-400 shrink-0" />
+          <Search className="w-5 h-5 text-ink-muted shrink-0" />
           <Input
             role="combobox"
             aria-label={t.quickJump.searchLabel}
@@ -189,7 +189,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={t.quickJump.placeholder}
-            className="w-full min-w-0 bg-transparent text-sm sm:text-base text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
+            className="w-full min-w-0 bg-transparent text-sm sm:text-base text-ink dark:text-ink placeholder:text-ink-muted focus:outline-none"
           />
           {loading && (
             <Loader2 role="status" aria-label={t.quickJump.searching} className="w-4 h-4 text-accent animate-spin shrink-0" />
@@ -199,17 +199,17 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
 
         {error && <p role="alert" className="py-3 text-sm text-rose-700 dark:text-rose-300">{error}</p>}
         {/* Results Body */}
-        <div id={resultsId} role="listbox" aria-busy={loading} aria-label={t.quickJump.resultsLabel} className="max-h-80 overflow-y-auto p-2 divide-y divide-slate-100 dark:divide-white/5">
+        <div id={resultsId} role="listbox" aria-busy={loading} aria-label={t.quickJump.resultsLabel} className="max-h-80 overflow-y-auto p-2 divide-y divide-outline-variant dark:divide-white/5">
           {query.trim().length < 2 && (
-            <div className="py-8 text-center text-xs text-slate-400 dark:text-slate-500">
+            <div className="py-8 text-center text-xs text-ink-muted dark:text-ink-muted">
               {t.quickJump.helper}
             </div>
           )}
 
           {query.trim().length >= 2 && results.length === 0 && !loading && !error && (
-            <div className="py-8 text-center text-xs text-slate-500 dark:text-slate-400">
+            <div className="py-8 text-center text-xs text-ink-muted dark:text-ink-muted">
               {t.quickJump.noMatches}{" "}
-              <span className="font-semibold text-slate-700 dark:text-slate-300">
+              <span className="font-semibold text-ink dark:text-ink">
                 &quot;{query}&quot;
               </span>
             </div>
@@ -226,17 +226,17 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
                 onClick={() => handleSelect(result)}
                 onMouseEnter={() => setSelectedIndex(idx)}
                 className={`p-3 rounded-xl cursor-pointer flex items-center justify-between gap-3 text-xs transition-colors ${isSelected
-                  ? "bg-tone-95 text-primary dark:bg-tone-15 dark:text-white"
-                  : "hover:bg-slate-50 text-slate-700 dark:hover:bg-white/5 dark:text-slate-200"
+                  ? "bg-tone-95 text-primary dark:bg-tone-15 dark:text-ink"
+                  : "hover:bg-surface-raised text-ink dark:hover:bg-white/5 dark:text-ink"
                   }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="p-2 rounded-lg bg-slate-100 dark:bg-white/10 shrink-0">
+                  <div className="p-2 rounded-lg bg-surface-sunken dark:bg-white/10 shrink-0">
                     {getCategoryIcon(result.category)}
                   </div>
                   <div className="min-w-0">
                     <div className="font-bold truncate text-sm">
-                      {result.title}
+                      <bdi dir="auto">{result.title}</bdi>
                     </div>
                     <div className="text-[11px] opacity-75 truncate mt-0.5">
                       {result.subtitle}
@@ -246,11 +246,11 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
 
                 <div className="flex items-center gap-2 shrink-0">
                   {result.badge && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px]  uppercase bg-slate-200/60 dark:bg-white/10">
+                    <span className="px-2 py-0.5 rounded-full text-[10px]  uppercase bg-surface-sunken/60 dark:bg-white/10">
                       {badgeLabel(result.category, result.badge)}
                     </span>
                   )}
-                  <ArrowRight className="w-3.5 h-3.5 opacity-50" />
+                  <ArrowRight className="w-3.5 h-3.5 opacity-50 rtl:-scale-x-100" />
                 </div>
               </div>
             );

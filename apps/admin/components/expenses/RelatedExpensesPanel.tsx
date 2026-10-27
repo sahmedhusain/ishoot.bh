@@ -22,8 +22,8 @@ export function RelatedExpensesPanel({ dealId, clientId, items, totals, canWrite
   const { t, locale } = useAdminLocale();
   const addHref = `${ROUTES.expenses.create}?${dealId ? `dealId=${encodeURIComponent(dealId)}` : `clientId=${encodeURIComponent(clientId!)}`}`;
   return (
-    <section className="max-w-7xl mx-auto mt-8 rounded-3xl border border-ink/10 bg-surface overflow-hidden">
-      <header className="flex flex-wrap items-center justify-between gap-3 p-5 border-b border-ink/10">
+    <section className="max-w-7xl mx-auto mt-8 rounded-3xl border border-outline-variant bg-surface overflow-hidden">
+      <header className="flex flex-wrap items-center justify-between gap-3 p-5 border-b border-outline-variant">
         <div className="flex items-center gap-2">
           <Receipt className="w-5 h-5 text-accent" />
           <h2 className="text-sm font-bold text-ink">{t.relatedExpenses.title}</h2>
@@ -36,7 +36,7 @@ export function RelatedExpensesPanel({ dealId, clientId, items, totals, canWrite
             </span>
           ))}
           {canWrite && (
-            <Link href={addHref} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent text-white text-xs font-semibold hover:bg-accent-hover">
+            <Link href={addHref} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent text-accent-foreground text-xs font-semibold hover:bg-accent-hover">
               <Plus className="w-3.5 h-3.5" />
               {t.actions.addExpense}
             </Link>
@@ -48,7 +48,7 @@ export function RelatedExpensesPanel({ dealId, clientId, items, totals, canWrite
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-xs min-w-[640px]">
-            <tbody className="divide-y divide-ink/5">
+            <tbody className="divide-y divide-outline-variant">
               {items.map((e) => (
                 <tr key={e.id}>
                   <td className="p-3 ps-5 text-ink-muted whitespace-nowrap">{e.expense_date}</td>

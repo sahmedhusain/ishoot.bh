@@ -5,7 +5,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, ShieldCheck } from "lucide-react";
-import { Button, Modal } from "@platform/ui";
+import { Select, ModalFooter, Button, Modal } from "@platform/ui";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { saveAccountSettingsAction } from "../../app/actions/account-settings";
 
@@ -22,8 +22,8 @@ export interface AccountSettingsValue {
 type Field = "role" | "managerId" | "status" | "discountLimitPercent" | "commissionRatePercent";
 
 const fieldClass =
-  "w-full min-w-0 rounded-lg border border-ink/20 bg-white dark:bg-surface px-3 py-2 text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent/40";
-const labelClass = "block space-y-1 text-xs font-medium text-slate-700 dark:text-slate-200";
+  "w-full min-w-0 rounded-lg border border-outline-variant bg-surface-raised dark:bg-surface px-3 py-2 text-sm text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent/40";
+const labelClass = "block space-y-1 text-xs font-medium text-ink dark:text-ink";
 
 /**
  * Edit → review → confirm. Admins save directly; when `requiresApproval` the review step collects a reason and the
@@ -46,6 +46,8 @@ export function AccountSettingsDialog({
   onClose: () => void;
   onSaved?: (mode: "applied" | "pending") => void;
 }) {
+  const modalFormId = React.useId();
+
   const { t, isRTL } = useAdminLocale();
   const a = t.accountSettings;
   const router = useRouter();
@@ -104,7 +106,7 @@ export function AccountSettingsDialog({
   const Back = isRTL ? ArrowRight : ArrowLeft;
 
   return (
-    <Modal isOpen onClose={onClose} title={step === "edit" ? `${a.edit} — ${value.fullName}` : a.review} closeLabel={a.cancel} className="max-w-xl">
+    <Modal isOpen onClose={onClose} title={step === "edit" ? `${a.edit} — ${value.fullName}` : a.review} closeLabel={a.cancel} className="max-w-xl" footer={null}>
       {step === "edit" ? (
         <form
           onSubmit={(e) => {
@@ -113,31 +115,31 @@ export function AccountSettingsDialog({
             setStep("review");
           }}
           className="space-y-3"
-        >
+         id={modalFormId}>
           <div className="grid gap-3 sm:grid-cols-2">
             {fields.includes("role") && (
               <label className={labelClass}>
                 {a.role}
-                <select className={fieldClass} value={form.role} onChange={(e) => set("role", e.target.value)}>
+                <Select className={fieldClass} value={form.role} onChange={(e) => set("role", e.target.value)}>
                   {roles.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
-                </select>
+                </Select>
               </label>
             )}
             {fields.includes("managerId") && (
               <label className={labelClass}>
                 {a.manager}
-                <select className={fieldClass} value={form.managerId ?? ""} onChange={(e) => set("managerId", e.target.value || null)}>
+                <Select className={fieldClass} value={form.managerId ?? ""} onChange={(e) => set("managerId", e.target.value || null)}>
                   <option value="">{a.noManager}</option>
                   {managers.filter((m) => m.id !== value.userId).map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
-                </select>
+                </Select>
               </label>
             )}
             {fields.includes("status") && (
               <label className={labelClass}>
                 {a.status}
-                <select className={fieldClass} value={form.status === "inactive" ? "active" : form.status} onChange={(e) => set("status", e.target.value as AccountSettingsValue["status"])}>
+                <Select className={fieldClass} value={form.status === "inactive" ? "active" : form.status} onChange={(e) => set("status", e.target.value as AccountSettingsValue["status"])}>
                   {(["active", "suspended", "archived"] as const).map((s) => <option key={s} value={s}>{a.statuses[s]}</option>)}
-                </select>
+                </Select>
               </label>
             )}
             {fields.includes("status") && form.status === "suspended" && value.status !== "suspended" && (
@@ -158,43 +160,43 @@ export function AccountSettingsDialog({
               <ShieldCheck className="mt-0.5 w-3.5 h-3.5 shrink-0" />{a.approvalNote}
             </p>
           )}
-          <div className="flex justify-end gap-2 pt-1">
+          <ModalFooter><div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" size="sm" onClick={onClose}>{a.cancel}</Button>
-            <Button type="submit" size="sm" disabled={!changed.length}>{a.review}</Button>
-          </div>
+            <Button type="submit" size="sm" disabled={!changed.length} form={modalFormId}>{a.review}</Button>
+          </div></ModalFooter>
         </form>
       ) : (
         <div className="space-y-4">
-          <p className="text-sm text-slate-600 dark:text-slate-300">{a.reviewHint}</p>
+          <p className="text-sm text-ink-muted dark:text-ink">{a.reviewHint}</p>
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-xs text-slate-500">
+              <tr className="text-xs text-ink-muted">
                 <th scope="col" className="py-1.5 text-start font-medium" />
                 <th scope="col" className="py-1.5 text-start font-medium">{a.from}</th>
                 <th scope="col" className="py-1.5 text-start font-medium">{a.to}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink/10">
+            <tbody className="divide-y divide-outline-variant">
               {changed.map((field) => (
                 <tr key={field}>
-                  <th scope="row" className="py-2 pe-3 text-start font-medium text-slate-700 dark:text-slate-200">{label(field)}</th>
-                  <td className="py-2 pe-3 text-slate-500 line-through decoration-slate-400/60">{display(field, value)}</td>
+                  <th scope="row" className="py-2 pe-3 text-start font-medium text-ink dark:text-ink">{label(field)}</th>
+                  <td className="py-2 pe-3 text-ink-muted line-through decoration-slate-400/60">{display(field, value)}</td>
                   <td className="py-2 font-semibold text-primary dark:text-accent">{display(field, form)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {changed.includes("status") && statusReason && <p className="text-xs text-slate-600 dark:text-slate-300">{a.statusReason}: {statusReason}</p>}
+          {changed.includes("status") && statusReason && <p className="text-xs text-ink-muted dark:text-ink">{a.statusReason}: {statusReason}</p>}
           {requiresApproval && (
             <label className={labelClass}>
               {a.requestReason}
               <input maxLength={500} className={fieldClass} value={reason} onChange={(e) => setReason(e.target.value)} />
             </label>
           )}
-          <div className="flex flex-wrap justify-between gap-2">
+          <ModalFooter><div className="flex flex-wrap justify-between gap-2">
             <Button type="button" variant="ghost" size="sm" onClick={() => setStep("edit")}><Back className="w-3.5 h-3.5" />{a.back}</Button>
             <Button type="button" size="sm" disabled={saving} onClick={save}>{requiresApproval ? a.confirmRequest : a.confirm}</Button>
-          </div>
+          </div></ModalFooter>
         </div>
       )}
     </Modal>

@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AlertTriangle, ArrowLeft, ArrowRight, BadgeCheck, CalendarDays, ChevronLeft, ChevronRight, Clock, Receipt, Wallet } from "lucide-react";
-import { Button, Card, DateDisplay } from "@platform/ui";
+import { Select, Button, Card, DateDisplay } from "@platform/ui";
 import type { getPayrollItemDetail } from "@platform/database/queries/payroll";
 import { ROUTES } from "@platform/database/constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -34,7 +34,7 @@ interface Summary {
 }
 
 const fieldClass =
-  "w-full min-w-0 rounded-lg border border-ink/20 bg-white dark:bg-surface px-3 py-2 text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent/40";
+  "w-full min-w-0 rounded-lg border border-outline-variant bg-surface-raised dark:bg-surface px-3 py-2 text-sm text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent/40";
 
 const fill = (template: string, values: Record<string, string | number>) =>
   Object.entries(values).reduce((text, [key, value]) => text.replaceAll(`{${key}}`, String(value)), template);
@@ -53,12 +53,12 @@ function useMoney() {
 
 function Line({ label, detail, value, tone = "default", strong = false }: { label: string; detail?: string | null; value: React.ReactNode; tone?: "default" | "minus" | "plus"; strong?: boolean }) {
   return (
-    <div className={`flex items-start justify-between gap-3 py-2 ${strong ? "border-t border-ink/15 pt-3 mt-1" : ""}`}>
+    <div className={`flex items-start justify-between gap-3 py-2 ${strong ? "border-t border-outline-variant pt-3 mt-1" : ""}`}>
       <div className="min-w-0">
-        <p className={`text-sm ${strong ? "font-semibold text-slate-900 dark:text-white" : "text-slate-700 dark:text-slate-200"}`}>{label}</p>
-        {detail && <p className="text-[11px] text-slate-500 dark:text-slate-400">{detail}</p>}
+        <p className={`text-sm ${strong ? "font-semibold text-ink dark:text-ink" : "text-ink dark:text-ink"}`}>{label}</p>
+        {detail && <p className="text-[11px] text-ink-muted dark:text-ink-muted">{detail}</p>}
       </div>
-      <span className={`shrink-0 text-sm ${strong ? "font-bold text-slate-900 dark:text-white" : tone === "minus" ? "text-rose-700 dark:text-rose-400" : tone === "plus" ? "text-emerald-700 dark:text-emerald-400" : "text-slate-800 dark:text-slate-100"}`}>
+      <span className={`shrink-0 text-sm ${strong ? "font-bold text-ink dark:text-ink" : tone === "minus" ? "text-rose-700 dark:text-rose-400" : tone === "plus" ? "text-emerald-700 dark:text-emerald-400" : "text-ink dark:text-ink"}`}>
         {tone === "minus" ? <bdi dir="ltr">−{value}</bdi> : value}
       </span>
     </div>
@@ -130,11 +130,11 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-16">
       <nav className="flex flex-wrap items-center gap-2">
-        <Link href={ROUTES.hr.payroll({ highlight: run.id })} className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-ink/[0.06] dark:text-slate-200">
+        <Link href={ROUTES.hr.payroll({ highlight: run.id })} className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-ink hover:bg-ink/[0.06] dark:text-ink">
           <Back className="w-3.5 h-3.5" />
           {p.back}
         </Link>
-        <span className="ms-auto flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300">
+        <span className="ms-auto flex items-center gap-1 text-xs text-ink-muted dark:text-ink">
           {detail.previousId ? (
             <Link href={ROUTES.hr.payrollItem(detail.previousId)} aria-label={p.previous} className="rounded-full p-1.5 hover:bg-ink/[0.06]"><Prev className="w-4 h-4" /></Link>
           ) : <span className="p-1.5 opacity-30"><Prev className="w-4 h-4" /></span>}
@@ -148,19 +148,19 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
       <header className="flex flex-wrap items-start gap-4">
         <div className="min-w-0 flex-1 basis-72">
           <p className="text-xs font-medium text-primary dark:text-accent">{monthLabel}</p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{name}</h1>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-ink dark:text-ink">{name}</h1>
+          <p className="mt-1 text-sm text-ink-muted dark:text-ink">
             <bdi dir="ltr">{employee.employeeNumber}</bdi> · {locale === "ar" ? employee.jobTitleAr : employee.jobTitleEn}
             {employee.department && ` · ${locale === "ar" ? employee.department.nameAr : employee.department.nameEn}`}
           </p>
-          <dl className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-600 dark:text-slate-400">
+          <dl className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-ink-muted dark:text-ink-muted">
             <div className="flex gap-1"><dt>{p.window}:</dt><dd><bdi dir="ltr">{run.attendanceStart} → {run.attendanceEnd}</bdi></dd></div>
             {run.payDate && <div className="flex gap-1"><dt>{p.payDate}:</dt><dd><DateDisplay date={run.payDate} locale={locale} /></dd></div>}
             <div className="flex gap-1"><dt>{p.joined}:</dt><dd><DateDisplay date={employee.hireDate} locale={locale} /></dd></div>
           </dl>
         </div>
         <Card className="w-full space-y-1 p-5 sm:w-auto sm:min-w-56 dark:bg-surface-raised">
-          <p className="text-xs font-medium text-slate-600 dark:text-slate-300">{p.net}</p>
+          <p className="text-xs font-medium text-ink-muted dark:text-ink">{p.net}</p>
           <p className="text-3xl font-bold text-primary dark:text-accent">{money(item.netSalary)}</p>
           <p className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${item.paymentStatus === "paid" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-amber-500/10 text-amber-700 dark:text-amber-300"}`}>
             {item.paymentStatus === "paid" ? <BadgeCheck className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
@@ -170,9 +170,9 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
       </header>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="p-5 dark:bg-surface-raised">
-          <h2 className="mb-1 text-sm font-semibold text-slate-900 dark:text-white">{p.earnings}</h2>
-          <div className="divide-y divide-ink/5">
+        <Card className="p-5 dark:bg-surface-raised" data-page-section>
+          <h2 className="mb-1 text-sm font-semibold text-ink dark:text-ink">{p.earnings}</h2>
+          <div className="divide-y divide-outline-variant">
             <Line label={p.basic} value={money(item.basicSalary)} />
             {item.housingAllowance > 0 && <Line label={p.housing} value={money(item.housingAllowance)} />}
             {item.transportAllowance > 0 && <Line label={p.transport} value={money(item.transportAllowance)} />}
@@ -199,9 +199,9 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
           </div>
         </Card>
 
-        <Card className="p-5 dark:bg-surface-raised">
-          <h2 className="mb-1 text-sm font-semibold text-slate-900 dark:text-white">{p.deductionsTitle}</h2>
-          <div className="divide-y divide-ink/5">
+        <Card className="p-5 dark:bg-surface-raised" data-page-section>
+          <h2 className="mb-1 text-sm font-semibold text-ink dark:text-ink">{p.deductionsTitle}</h2>
+          <div className="divide-y divide-outline-variant">
             <Line label={p.contribution} tone="minus" value={money(item.gosiEmployee)} />
             {item.absenceDeduction > 0 && (
               <Line
@@ -232,19 +232,19 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
             <Line label={p.totalDeductions} strong value={money(totalDeductions)} />
           </div>
           <div className="mt-4 rounded-xl bg-surface-sunken p-3">
-            <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-200">{p.employerTitle}</h3>
-            <div className="mt-1 space-y-1 text-xs text-slate-600 dark:text-slate-300">
+            <h3 className="text-xs font-semibold text-ink dark:text-ink">{p.employerTitle}</h3>
+            <div className="mt-1 space-y-1 text-xs text-ink-muted dark:text-ink">
               <div className="flex justify-between gap-2"><span>{p.employerContribution}</span>{money(item.gosiEmployer)}</div>
               {item.externalSupport > 0 && <div className="flex justify-between gap-2"><span>{p.support}</span><bdi dir="ltr">−{money(item.externalSupport)}</bdi></div>}
-              <div className="flex justify-between gap-2 font-semibold text-slate-800 dark:text-slate-100"><span>{p.employerCost}</span>{money(item.grossSalary + item.gosiEmployer - item.externalSupport)}</div>
+              <div className="flex justify-between gap-2 font-semibold text-ink dark:text-ink"><span>{p.employerCost}</span>{money(item.grossSalary + item.gosiEmployer - item.externalSupport)}</div>
             </div>
           </div>
         </Card>
       </div>
 
       {summary && (
-        <Card className="space-y-4 p-5 dark:bg-surface-raised">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white"><CalendarDays className="w-4 h-4" />{p.attendanceTitle}</h2>
+        <Card className="space-y-4 p-5 dark:bg-surface-raised" data-page-section>
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-ink dark:text-ink"><CalendarDays className="w-4 h-4" />{p.attendanceTitle}</h2>
           <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
             {[
               [p.workingDays, summary.workingDays],
@@ -256,17 +256,17 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
               [p.dailyRate, (summary.dailyRate ?? fixed / 30).toFixed(3)],
             ].map(([label, value]) => (
               <div key={String(label)} className="rounded-xl bg-surface-sunken p-3">
-                <dt className="text-[11px] text-slate-600 dark:text-slate-400">{label}</dt>
-                <dd className="mt-1 text-lg font-semibold text-slate-900 dark:text-white"><bdi dir="ltr">{value}</bdi></dd>
+                <dt className="text-[11px] text-ink-muted dark:text-ink-muted">{label}</dt>
+                <dd className="mt-1 text-lg font-semibold text-ink dark:text-ink"><bdi dir="ltr">{value}</bdi></dd>
               </div>
             ))}
           </dl>
           {Object.keys(summary.leave).length > 0 && (
             <div>
-              <h3 className="mb-2 text-xs font-semibold text-slate-700 dark:text-slate-200">{p.leaveTaken}</h3>
+              <h3 className="mb-2 text-xs font-semibold text-ink dark:text-ink">{p.leaveTaken}</h3>
               <ul className="flex flex-wrap gap-2">
                 {Object.entries(summary.leave).map(([code, leave]) => (
-                  <li key={code} className="rounded-full border border-ink/15 px-3 py-1 text-xs text-slate-700 dark:text-slate-200">
+                  <li key={code} className="rounded-full border border-outline-variant px-3 py-1 text-xs text-ink dark:text-ink">
                     {leaveName(code)}: <bdi dir="ltr">{leave.days}</bdi>
                     {leave.unpaidDays > 0 && <span className="text-rose-700 dark:text-rose-400"> · {fill(p.unpaidOf, { unpaid: leave.unpaidDays, days: leave.days })}</span>}
                   </li>
@@ -291,75 +291,75 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
 
       <div className="grid gap-4 lg:grid-cols-2">
         {editable && (
-          <Card className="p-5 dark:bg-surface-raised">
-            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">{p.adjustments}</h2>
-            <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">{p.adjustmentsHint}</p>
+          <Card className="p-5 dark:bg-surface-raised" data-page-section>
+            <h2 className="text-sm font-semibold text-ink dark:text-ink">{p.adjustments}</h2>
+            <p className="mt-1 text-xs text-ink-muted dark:text-ink-muted">{p.adjustmentsHint}</p>
             <form onSubmit={saveAdjustments} className="mt-3 space-y-3">
               <PayLinesEditor kind="addition" lines={additions} onChange={setAdditions} />
               <PayLinesEditor kind="deduction" lines={deductions} onChange={setDeductions} />
-              {recurringLines.length > 0 && <p className="text-[11px] text-slate-500">{formatMessage(t.payLines.recurringNote, { count: String(recurringLines.length) })}</p>}
-              <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-slate-200">
+              {recurringLines.length > 0 && <p className="text-[11px] text-ink-muted">{formatMessage(t.payLines.recurringNote, { count: String(recurringLines.length) })}</p>}
+              <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
                 {t.payLines.generalNote}
                 <input maxLength={500} className={fieldClass} value={note} onChange={(e) => setNote(e.target.value)} />
               </label>
               <div className="flex flex-wrap items-center gap-3">
                 <Button type="submit" size="sm" disabled={saving}>{p.saveAdjustments}</Button>
-                {detail.editedBy && <span className="text-[11px] text-slate-500">{fill(p.lastEdited, { name: detail.editedBy })}</span>}
+                {detail.editedBy && <span className="text-[11px] text-ink-muted">{fill(p.lastEdited, { name: detail.editedBy })}</span>}
               </div>
             </form>
           </Card>
         )}
 
-        <Card className="p-5 dark:bg-surface-raised">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white"><Wallet className="w-4 h-4" />{p.payment}</h2>
+        <Card className="p-5 dark:bg-surface-raised" data-page-section>
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-ink dark:text-ink"><Wallet className="w-4 h-4" />{p.payment}</h2>
           {item.paymentStatus === "paid" ? (
             <dl className="mt-3 space-y-2 text-sm">
-              <div className="flex justify-between gap-3"><dt className="text-slate-600 dark:text-slate-400">{p.paidOn}</dt><dd>{item.paidAt ? <DateDisplay date={item.paidAt} locale={locale} /> : "—"}</dd></div>
-              <div className="flex justify-between gap-3"><dt className="text-slate-600 dark:text-slate-400">{p.method}</dt><dd>{item.paymentMethod ? t.payroll.methods[item.paymentMethod as keyof typeof t.payroll.methods] ?? item.paymentMethod : "—"}</dd></div>
-              {item.paymentReference && <div className="flex justify-between gap-3"><dt className="text-slate-600 dark:text-slate-400">{p.reference}</dt><dd><bdi dir="ltr">{item.paymentReference}</bdi></dd></div>}
-              {detail.paidBy && <p className="text-[11px] text-slate-500">{fill(p.paidBy, { name: detail.paidBy })}</p>}
+              <div className="flex justify-between gap-3"><dt className="text-ink-muted dark:text-ink-muted">{p.paidOn}</dt><dd>{item.paidAt ? <DateDisplay date={item.paidAt} locale={locale} /> : "—"}</dd></div>
+              <div className="flex justify-between gap-3"><dt className="text-ink-muted dark:text-ink-muted">{p.method}</dt><dd>{item.paymentMethod ? t.payroll.methods[item.paymentMethod as keyof typeof t.payroll.methods] ?? item.paymentMethod : "—"}</dd></div>
+              {item.paymentReference && <div className="flex justify-between gap-3"><dt className="text-ink-muted dark:text-ink-muted">{p.reference}</dt><dd><bdi dir="ltr">{item.paymentReference}</bdi></dd></div>}
+              {detail.paidBy && <p className="text-[11px] text-ink-muted">{fill(p.paidBy, { name: detail.paidBy })}</p>}
               {detail.payslipId && <p className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 dark:text-emerald-400"><Receipt className="w-3.5 h-3.5" />{p.payslipIssued}</p>}
             </dl>
           ) : payable ? (
             <form onSubmit={pay} className="mt-3 space-y-3">
               <div className="grid gap-3 sm:grid-cols-2">
-                <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-slate-200">
+                <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
                   {p.method}
-                  <select className={fieldClass} value={method} onChange={(e) => setMethod(e.target.value)}>
+                  <Select className={fieldClass} value={method} onChange={(e) => setMethod(e.target.value)}>
                     {Object.entries(t.payroll.methods).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
-                  </select>
+                  </Select>
                 </label>
-                <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-slate-200">
+                <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
                   {p.paidOn}
                   <input type="date" required className={fieldClass} max={new Date().toISOString().slice(0, 10)} value={paidOn} onChange={(e) => setPaidOn(e.target.value)} />
                 </label>
               </div>
-              <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-slate-200">
+              <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
                 {p.reference}
                 <input maxLength={120} dir="ltr" className={fieldClass} value={reference} onChange={(e) => setReference(e.target.value)} />
               </label>
               <Button type="submit" size="sm" disabled={paying}>{p.payNow} · {money(item.netSalary)}</Button>
             </form>
           ) : (
-            <p className="mt-3 text-xs text-slate-600 dark:text-slate-400">{p.notApproved}</p>
+            <p className="mt-3 text-xs text-ink-muted dark:text-ink-muted">{p.notApproved}</p>
           )}
         </Card>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="p-5 dark:bg-surface-raised">
-          <h2 className="text-sm font-semibold text-slate-900 dark:text-white">{p.log}</h2>
+        <Card className="p-5 dark:bg-surface-raised" data-page-section>
+          <h2 className="text-sm font-semibold text-ink dark:text-ink">{p.log}</h2>
           {detail.attendance.length === 0 ? (
-            <p className="mt-3 text-xs text-slate-500">{p.logEmpty}</p>
+            <p className="mt-3 text-xs text-ink-muted">{p.logEmpty}</p>
           ) : (
             <div className="mt-2 max-h-80 overflow-y-auto">
               <table className="w-full text-xs">
-                <tbody className="divide-y divide-ink/5">
+                <tbody className="divide-y divide-outline-variant">
                   {detail.attendance.map((day) => (
                     <tr key={day.date}>
                       <td className="py-1.5 pe-2"><DateDisplay date={day.date} locale={locale} /></td>
                       <td className="py-1.5 pe-2">{p.statuses[day.status as keyof typeof p.statuses] ?? day.status}</td>
-                      <td className="py-1.5 pe-2 text-slate-600 dark:text-slate-400">
+                      <td className="py-1.5 pe-2 text-ink-muted dark:text-ink-muted">
                         {[day.lateMinutes ? `${t.attendance.late}: ${day.lateMinutes}` : null,
                         day.overtimeMinutes + day.overtimeNightMinutes + day.overtimeRestDayMinutes + day.overtimeHolidayMinutes
                           ? `${t.payroll.overtime}: ${fill(t.payroll.hoursShort, { n: hours(day.overtimeMinutes + day.overtimeNightMinutes + day.overtimeRestDayMinutes + day.overtimeHolidayMinutes) })}`
@@ -373,16 +373,16 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
             </div>
           )}
         </Card>
-        <Card className="p-5 dark:bg-surface-raised">
-          <h2 className="text-sm font-semibold text-slate-900 dark:text-white">{p.leavesTitle}</h2>
+        <Card className="p-5 dark:bg-surface-raised" data-page-section>
+          <h2 className="text-sm font-semibold text-ink dark:text-ink">{p.leavesTitle}</h2>
           {detail.leaves.length === 0 ? (
-            <p className="mt-3 text-xs text-slate-500">{p.noLeave}</p>
+            <p className="mt-3 text-xs text-ink-muted">{p.noLeave}</p>
           ) : (
-            <ul className="mt-2 divide-y divide-ink/5">
+            <ul className="mt-2 divide-y divide-outline-variant">
               {detail.leaves.map((leave) => (
                 <li key={leave.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-xs">
-                  <span className="font-medium text-slate-800 dark:text-slate-100">{locale === "ar" ? leave.type.nameAr : leave.type.nameEn}</span>
-                  <span className="text-slate-600 dark:text-slate-400">
+                  <span className="font-medium text-ink dark:text-ink">{locale === "ar" ? leave.type.nameAr : leave.type.nameEn}</span>
+                  <span className="text-ink-muted dark:text-ink-muted">
                     <bdi dir="ltr">{leave.startDate === leave.endDate ? leave.startDate : `${leave.startDate} → ${leave.endDate}`}</bdi>
                     {" · "}{p.portion[leave.dayPortion as keyof typeof p.portion] ?? leave.dayPortion}{" · "}<bdi dir="ltr">{leave.days}</bdi> {t.shared.days}
                   </span>

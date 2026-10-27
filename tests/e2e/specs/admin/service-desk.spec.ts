@@ -1,3 +1,4 @@
+import { selectOption } from "../../select-option";
 import crypto from "node:crypto";
 import { expect, test } from "@playwright/test";
 import en from "../../../../packages/locales/src/en.json";
@@ -140,7 +141,7 @@ test("staff save a reply, answer by WhatsApp from the request, and an e-mail tha
     "href",
     `/dashboard/orders/${orderId}`,
   );
-  await panel.getByTestId("canned-pick").selectOption({ label: "E2E thanks" });
+  await selectOption(panel.getByTestId("canned-pick"), { label: "E2E thanks" });
   await expect(panel.locator('textarea[name="serviceReply"]')).toHaveValue(
     "Thank you, a replacement is on its way.",
   );

@@ -81,24 +81,19 @@ function useStylesheet(href: string | null) {
 const libraryPreviewHref = `https://fonts.googleapis.com/css2?${FONT_LIBRARY.map((f) => `family=${f.family.replace(/ /g, "+")}`).join("&")}&text=${encodeURIComponent(SAMPLE)}&display=swap`;
 
 function ChoiceGroup<T extends string | number>({ label, options, value, onChange, render }: { label: string; options: readonly T[]; value: T; onChange: (value: T) => void; render: (value: T) => React.ReactNode }) {
+  const name = React.useId();
   return (
-    <div className="space-y-2">
-      <p className="text-xs font-medium text-slate-700 dark:text-slate-300">{label}</p>
-      <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={label}>
+    <fieldset className="space-y-2">
+      <legend className="text-sm font-medium text-ink">{label}</legend>
+      <div className="flex flex-wrap gap-2">
         {options.map((option) => (
-          <button
-            key={String(option)}
-            type="button"
-            role="radio"
-            aria-checked={value === option}
-            onClick={() => onChange(option)}
-            className={`whitespace-nowrap rounded-lg border px-3 py-1.5 text-xs transition-colors ${value === option ? "border-accent bg-accent/10 text-slate-900 dark:text-white" : "border-ink/15 text-slate-600 hover:border-ink/30 dark:text-slate-300"}`}
-          >
-            {render(option)}
-          </button>
+          <label key={String(option)} className="relative cursor-pointer">
+            <input type="radio" name={name} value={String(option)} checked={value === option} onChange={() => onChange(option)} className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0" />
+            <span className="flex min-h-10 items-center whitespace-nowrap rounded-lg border border-outline px-3 py-2 text-sm text-ink transition-colors peer-checked:border-primary peer-checked:bg-secondary-container peer-checked:text-on-secondary-container peer-focus-visible:outline peer-focus-visible:outline-[3px] peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary">{render(option)}</span>
+          </label>
         ))}
       </div>
-    </div>
+    </fieldset>
   );
 }
 
@@ -108,7 +103,7 @@ function ColourField({ label, hint, value, onChange }: { label: string; hint: st
   React.useEffect(() => setDraft(value), [value]);
   return (
     <div className="space-y-1.5">
-      <label htmlFor={id} className="text-xs font-medium text-slate-700 dark:text-slate-300">{label}</label>
+      <label htmlFor={id} className="text-xs font-medium text-ink dark:text-ink">{label}</label>
       <div className="flex items-center gap-3">
         <input
           type="color"
@@ -130,7 +125,7 @@ function ColourField({ label, hint, value, onChange }: { label: string; hint: st
           className="rounded-lg font-mono uppercase"
         />
       </div>
-      <p className="text-[11px] text-slate-500 dark:text-slate-400">{hint}</p>
+      <p className="text-[11px] text-ink-muted dark:text-ink-muted">{hint}</p>
     </div>
   );
 }
@@ -150,7 +145,7 @@ function FontLibrary({ value, onChange, label }: { value: FontChoice; onChange: 
     <div className="space-y-3">
       <div className="relative">
         <label htmlFor={searchId} className="sr-only">{copy.fontSearch}</label>
-        <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
         <Input id={searchId} type="search" value={query} placeholder={copy.fontSearch} onChange={(e) => setQuery(e.target.value)} className="rounded-lg ps-9" />
       </div>
       <div className="flex flex-wrap gap-1.5" role="group" aria-label={copy.fontSearch}>
@@ -160,13 +155,13 @@ function FontLibrary({ value, onChange, label }: { value: FontChoice; onChange: 
             type="button"
             aria-pressed={filter === f}
             onClick={() => setFilter(f)}
-            className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${filter === f ? "bg-accent text-accent-foreground" : "bg-ink/[0.06] text-slate-600 hover:bg-ink/10 dark:text-slate-300"}`}
+            className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${filter === f ? "bg-accent text-accent-foreground" : "bg-ink/[0.06] text-ink-muted hover:bg-ink/10 dark:text-ink"}`}
           >
             {copy.fontFilters[f]}
           </button>
         ))}
       </div>
-      <p className="text-[11px] text-slate-500 dark:text-ink-muted" aria-live="polite">{formatMessage(copy.fontCount, { count: fonts.length })}</p>
+      <p className="text-[11px] text-ink-muted dark:text-ink-muted" aria-live="polite">{formatMessage(copy.fontCount, { count: fonts.length })}</p>
       {fonts.length ? (
         <div className="grid max-h-80 grid-cols-1 gap-2 overflow-y-auto pe-1 sm:grid-cols-2" role="radiogroup" aria-label={label}>
           {fonts.map((font) => {
@@ -178,11 +173,11 @@ function FontLibrary({ value, onChange, label }: { value: FontChoice; onChange: 
                 role="radio"
                 aria-checked={selected}
                 onClick={() => onChange({ kind: "google", family: font.family })}
-                className={`rounded-lg border px-3 py-2 text-start transition-colors ${selected ? "border-accent bg-accent/10 text-slate-900 dark:text-white" : "border-ink/15 text-slate-600 hover:border-ink/30 dark:text-slate-300"}`}
+                className={`rounded-lg border px-3 py-2 text-start transition-colors ${selected ? "border-accent bg-accent/10 text-ink dark:text-ink" : "border-ink/15 text-ink-muted hover:border-ink/30 dark:text-ink"}`}
               >
                 <span className="flex items-center justify-between gap-2 text-xs">
                   <span className="truncate font-medium">{font.family}</span>
-                  {font.script === "latin" ? <span className="shrink-0 rounded bg-ink/[0.06] px-1.5 py-0.5 text-[10px] text-slate-500">{copy.fontFilters.latin}</span> : null}
+                  {font.script === "latin" ? <span className="shrink-0 rounded bg-ink/[0.06] px-1.5 py-0.5 text-[10px] text-ink-muted">{copy.fontFilters.latin}</span> : null}
                 </span>
                 <span className="block truncate pt-1 text-base" style={{ fontFamily: `"${font.family}", system-ui` }}>{SAMPLE}</span>
               </button>
@@ -190,7 +185,7 @@ function FontLibrary({ value, onChange, label }: { value: FontChoice; onChange: 
           })}
         </div>
       ) : (
-        <p className="rounded-lg bg-ink/[0.04] p-4 text-center text-xs text-slate-500">{copy.noFonts}</p>
+        <p className="rounded-lg bg-ink/[0.04] p-4 text-center text-xs text-ink-muted">{copy.noFonts}</p>
       )}
     </div>
   );
@@ -230,7 +225,7 @@ function FontUploader({ value, onChange, slot, licensed }: { value: Extract<Font
     <div className="space-y-3">
       {licensed ? (
         <div className="space-y-3">
-          <p className="rounded-lg bg-accent/[0.07] p-3 text-xs leading-relaxed text-slate-700 dark:text-slate-200">{copy.licensedIntro}</p>
+          <p className="rounded-lg bg-accent/[0.07] p-3 text-xs leading-relaxed text-ink dark:text-ink">{copy.licensedIntro}</p>
           <div className="grid gap-2" role="radiogroup" aria-label={copy.fontSource.licensed}>
             {LICENSED_FONTS.map((font) => (
               <button
@@ -239,7 +234,7 @@ function FontUploader({ value, onChange, slot, licensed }: { value: Extract<Font
                 role="radio"
                 aria-checked={value.family === font.family}
                 onClick={() => onChange({ kind: "upload", family: font.family, files: value.family === font.family ? value.files : [] })}
-                className={`rounded-lg border px-3 py-2 text-start text-sm ${value.family === font.family ? "border-accent bg-accent/10 text-slate-900 dark:text-white" : "border-ink/15 text-slate-600 hover:border-ink/30 dark:text-slate-300"}`}
+                className={`rounded-lg border px-3 py-2 text-start text-sm ${value.family === font.family ? "border-accent bg-accent/10 text-ink dark:text-ink" : "border-ink/15 text-ink-muted hover:border-ink/30 dark:text-ink"}`}
               >
                 {font.family}
               </button>
@@ -254,7 +249,7 @@ function FontUploader({ value, onChange, slot, licensed }: { value: Extract<Font
         </div>
       ) : (
         <div className="space-y-1.5">
-          <label className="text-xs font-medium text-slate-700 dark:text-slate-300" htmlFor={`${id}-family`}>{copy.fontFamilyName}</label>
+          <label className="text-xs font-medium text-ink dark:text-ink" htmlFor={`${id}-family`}>{copy.fontFamilyName}</label>
           <Input
             id={`${id}-family`}
             dir="ltr"
@@ -267,7 +262,7 @@ function FontUploader({ value, onChange, slot, licensed }: { value: Extract<Font
       )}
       <div className="flex flex-wrap items-end gap-2">
         <div className="space-y-1.5">
-          <label className="text-xs font-medium text-slate-700 dark:text-slate-300" htmlFor={`${id}-weight`}>{copy.fontWeight}</label>
+          <label className="text-xs font-medium text-ink dark:text-ink" htmlFor={`${id}-weight`}>{copy.fontWeight}</label>
           <Select id={`${id}-weight`} value={weight} onChange={(e) => setWeight(Number(e.target.value))} className="w-28 rounded-lg">
             {WEIGHTS.map((w) => <option key={w} value={w}>{w}</option>)}
           </Select>
@@ -284,17 +279,17 @@ function FontUploader({ value, onChange, slot, licensed }: { value: Extract<Font
           type="button"
           disabled={uploading || !value.family}
           onClick={() => fileRef.current?.click()}
-          className="inline-flex h-11 items-center gap-2 whitespace-nowrap rounded-lg border border-ink/20 px-4 text-sm font-medium text-slate-700 hover:border-accent hover:text-accent disabled:opacity-50 dark:text-slate-200"
+          className="inline-flex h-11 items-center gap-2 whitespace-nowrap rounded-lg border border-ink/20 px-4 text-sm font-medium text-ink hover:border-accent hover:text-accent disabled:opacity-50 dark:text-ink"
         >
           <Upload className="h-4 w-4" />
           {uploading ? t.setupWizard.assets.uploading : copy.uploadFont}
         </button>
       </div>
-      <p className="text-[11px] text-slate-500 dark:text-ink-muted">{copy.uploadHint}</p>
+      <p className="text-[11px] text-ink-muted dark:text-ink-muted">{copy.uploadHint}</p>
       {value.files.length ? (
         <ul className="flex flex-wrap gap-2">
           {[...value.files].sort((a, b) => a.weight - b.weight).map((file) => (
-            <li key={file.weight} className="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1 text-xs text-slate-700 dark:text-slate-200" style={{ fontFamily: `"${value.family}", system-ui`, fontWeight: file.weight }}>
+            <li key={file.weight} className="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1 text-xs text-ink dark:text-ink" style={{ fontFamily: `"${value.family}", system-ui`, fontWeight: file.weight }}>
               {file.weight}
               <button
                 type="button"
@@ -326,7 +321,7 @@ function FontField({ label, value, onChange, slot, arabic }: { label: string; va
 
   return (
     <fieldset className="space-y-3 rounded-xl border border-ink/15 p-4">
-      <legend className="px-1 text-xs font-semibold text-slate-700 dark:text-slate-300">{label}</legend>
+      <legend className="px-1 text-xs font-semibold text-ink dark:text-ink">{label}</legend>
       <div className="space-y-1.5">
         <label htmlFor={sourceId} className="sr-only">{label}</label>
         <Select
@@ -366,7 +361,6 @@ function ThemePreview({ theme }: { theme: BrandTheme }) {
   // The website preview follows the website's own background; the admin preview follows the toggle.
   const previewMode = surface === "website" ? theme.websiteMode : mode;
   const style = { ...vars.common, ...(previewMode === "dark" ? vars.dark : vars.light), fontSize: "var(--brand-font-size)" } as React.CSSProperties;
-  const dark = mode === "dark";
   const heading = { fontFamily: "var(--brand-font-heading)", fontWeight: theme.headingWeight, textTransform: theme.headingCase === "uppercase" ? "uppercase" : "none" } as React.CSSProperties;
   const button = { borderRadius: "var(--brand-button-radius)" };
   const toggle = (active: boolean) => `inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs ${active ? "bg-accent text-accent-foreground" : "text-slate-600 dark:text-slate-300"}`;
@@ -406,18 +400,18 @@ function ThemePreview({ theme }: { theme: BrandTheme }) {
             </div>
           </div>
         ) : (
-          <div className="space-y-4 rounded-brand bg-brand-surface p-5 shadow-sm" style={{ fontFamily: "var(--brand-font-body)" }}>
+          <div className="space-y-4 rounded-brand bg-m3-surface-container-low text-m3-on-surface p-5" style={{ fontFamily: "var(--brand-font-body)" }}>
             <div className="flex items-center justify-between gap-3">
-              <h4 className={`text-[1.15em] ${dark ? "text-white" : "text-slate-900"}`} style={heading}>{copy.previewHeading}</h4>
-              <span className="rounded-full bg-accent/15 px-2.5 py-0.5 text-[0.75em] font-semibold text-brand-text">{copy.previewBadge}</span>
+              <h4 className="text-[1.375em] font-medium">{copy.previewHeading}</h4>
+              <span className="rounded-lg bg-m3-secondary-container px-2.5 py-0.5 text-[0.75em] font-medium text-m3-on-secondary-container">{copy.previewBadge}</span>
             </div>
-            <p className={`text-[0.875em] leading-relaxed ${dark ? "text-ink-muted" : "text-slate-600"}`}>{copy.previewBody}</p>
-            <div className={`h-2 overflow-hidden rounded-full ${dark ? "bg-tone-20" : "bg-tone-90"}`}>
-              <div className="h-full w-2/3 rounded-full bg-accent" />
+            <p className="text-[0.875em] leading-relaxed text-m3-on-surface-variant">{copy.previewBody}</p>
+            <div className="h-1 overflow-hidden rounded-full bg-m3-secondary-container">
+              <div className="h-full w-2/3 rounded-full bg-m3-primary" />
             </div>
             <div className="flex flex-wrap gap-2">
-              <span style={button} className="inline-flex h-10 items-center bg-primary px-4 text-[0.875em] font-semibold text-primary-foreground">{copy.previewButton}</span>
-              <span style={button} className="inline-flex h-10 items-center border border-accent px-4 text-[0.875em] font-semibold text-brand-text">{copy.previewSecondary}</span>
+              <span style={button} data-preview-primary className="inline-flex h-10 items-center bg-m3-primary px-4 text-[0.875em] font-medium text-m3-on-primary">{copy.previewButton}</span>
+              <span style={button} className="inline-flex h-10 items-center border border-m3-outline px-4 text-[0.875em] font-medium text-m3-primary">{copy.previewSecondary}</span>
             </div>
           </div>
         )}
@@ -437,8 +431,8 @@ function StylePresets({ theme, onApply }: { theme: BrandTheme; onApply: (preset:
   return (
     <section className="space-y-3" aria-labelledby="theme-styles">
       <div>
-        <h3 id="theme-styles" className="text-sm font-bold text-slate-900 dark:text-white">{copy.stylePresets}</h3>
-        <p className="text-xs text-slate-500 dark:text-ink-muted">{copy.stylePresetsHint}</p>
+        <h3 id="theme-styles" className="text-sm font-bold text-ink dark:text-ink">{copy.stylePresets}</h3>
+        <p className="text-xs text-ink-muted dark:text-ink-muted">{copy.stylePresetsHint}</p>
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {STYLE_PRESETS.map((preset) => {
@@ -458,10 +452,10 @@ function StylePresets({ theme, onApply }: { theme: BrandTheme; onApply: (preset:
                 <span className="h-full w-2/3 rounded-sm" style={{ background: p.primary }} />
                 <span className="h-3 w-1/3" style={{ background: p.accent, borderRadius: p.buttonShape === "pill" ? 9999 : p.buttonShape === "square" ? 0 : 3 }} />
               </span>
-              <span className="block truncate text-sm text-slate-900 dark:text-white" style={{ fontFamily: family ? `"${family}", system-ui` : undefined, fontWeight: p.headingWeight }}>
+              <span className="block truncate text-sm text-ink dark:text-ink" style={{ fontFamily: family ? `"${family}", system-ui` : undefined, fontWeight: p.headingWeight }}>
                 {copy.styleNames[preset.id as keyof typeof copy.styleNames]}
               </span>
-              <span className="block truncate text-[11px] text-slate-500 dark:text-ink-muted">{family} · {copy.websiteModes[p.websiteMode]}</span>
+              <span className="block truncate text-[11px] text-ink-muted dark:text-ink-muted">{family} · {copy.websiteModes[p.websiteMode]}</span>
             </button>
           );
         })}
@@ -485,9 +479,9 @@ export function ThemeEditor({ theme, onChange, languages = ["ar", "en"] }: { the
         <StylePresets theme={normalized} onApply={(preset) => set({ ...preset.theme })} />
 
         <section className="space-y-4" aria-labelledby="theme-colours">
-          <h3 id="theme-colours" className="text-sm font-bold text-slate-900 dark:text-white">{copy.colours}</h3>
+          <h3 id="theme-colours" className="text-sm font-bold text-ink dark:text-ink">{copy.colours}</h3>
           <div className="space-y-2">
-            <p className="text-xs font-medium text-slate-700 dark:text-slate-300">{copy.presets}</p>
+            <p className="text-xs font-medium text-ink dark:text-ink">{copy.presets}</p>
             <div className="flex flex-wrap gap-2">
               {PALETTES.map(([primary, accent]) => {
                 const active = normalized.primary === primary && normalized.accent === accent;
@@ -498,7 +492,7 @@ export function ThemeEditor({ theme, onChange, languages = ["ar", "en"] }: { the
                     aria-label={`${primary} / ${accent}`}
                     aria-pressed={active}
                     onClick={() => set({ primary, accent })}
-                    className={`flex h-10 w-16 overflow-hidden rounded-lg border-2 transition-transform hover:scale-105 ${active ? "border-slate-900 dark:border-white" : "border-transparent"}`}
+                    className={`flex h-10 w-16 overflow-hidden rounded-lg border-2 transition-colors ${active ? "border-slate-900 dark:border-white" : "border-transparent"}`}
                   >
                     <span className="h-full w-1/2" style={{ background: primary }} />
                     <span className="h-full w-1/2" style={{ background: accent }} />
@@ -524,7 +518,7 @@ export function ThemeEditor({ theme, onChange, languages = ["ar", "en"] }: { the
         </section>
 
         <section className="space-y-4" aria-labelledby="theme-fonts">
-          <h3 id="theme-fonts" className="text-sm font-bold text-slate-900 dark:text-white">{copy.fonts}</h3>
+          <h3 id="theme-fonts" className="text-sm font-bold text-ink dark:text-ink">{copy.fonts}</h3>
           <div className="grid gap-4 xl:grid-cols-2">
             <FontField slot="body" arabic={arabic} label={copy.bodyFont} value={theme.fonts.body} onChange={(body) => set({ fonts: { ...theme.fonts, body } })} />
             <FontField slot="heading" arabic={arabic} label={copy.headingFont} value={theme.fonts.heading} onChange={(heading) => set({ fonts: { ...theme.fonts, heading } })} />
@@ -532,7 +526,8 @@ export function ThemeEditor({ theme, onChange, languages = ["ar", "en"] }: { the
         </section>
 
         <section className="space-y-5" aria-labelledby="theme-type">
-          <h3 id="theme-type" className="text-sm font-bold text-slate-900 dark:text-white">{copy.typography}</h3>
+          <h3 id="theme-type" className="text-sm font-bold text-ink dark:text-ink">{copy.typography}</h3>
+          <p className="text-xs text-ink-muted">{copy.adminShapeHint}</p>
           <div className="grid gap-5 sm:grid-cols-2">
             <ChoiceGroup label={copy.fontScale} options={SCALES} value={normalized.fontScale} onChange={(fontScale) => set({ fontScale })} render={(s) => copy.fontScales[s]} />
             <ChoiceGroup

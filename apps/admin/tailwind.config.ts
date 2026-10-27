@@ -18,6 +18,20 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      // M3 body, title, headline and display sizes, scaled by the saved root font size.
+      fontSize: {
+        xs: ["0.75rem", "1rem"],
+        sm: ["0.875rem", "1.25rem"],
+        base: ["1rem", "1.5rem"],
+        lg: ["1.375rem", "1.75rem"],
+        xl: ["1.5rem", "2rem"],
+        "2xl": ["1.75rem", "2.25rem"],
+        "3xl": ["2rem", "2.5rem"],
+        "4xl": ["2.25rem", "2.75rem"],
+        "5xl": ["2.8125rem", "3.25rem"],
+        "6xl": ["3.5625rem", "4rem"],
+      },
+      borderRadius: { "3xl": "var(--md-sys-shape-corner-extra-large)" },
       // Latin monospace first; Arabic glyphs fall back to the company's body font instead of a system font.
       fontFamily: {
         mono: [
@@ -34,7 +48,26 @@ const config: Config = {
           DEFAULT: themed("--ui-surface"),
           raised: themed("--ui-surface-raised"),
           sunken: themed("--ui-surface-sunken"),
+          "container-lowest": themed("--m3-color-surface-container-lowest"),
+          "container-low": themed("--m3-color-surface-container-low"),
+          container: themed("--m3-color-surface-container"),
+          "container-high": themed("--m3-color-surface-container-high"),
+          "container-highest": themed("--m3-color-surface-container-highest"),
+          dim: themed("--m3-color-surface-dim"),
+          bright: themed("--m3-color-surface-bright"),
         },
+        outline: {
+          DEFAULT: themed("--m3-color-outline"),
+          variant: themed("--m3-color-outline-variant"),
+        },
+        "on-surface": themed("--m3-color-on-surface"),
+        "on-surface-variant": themed("--m3-color-on-surface-variant"),
+        "primary-container": themed("--m3-color-primary-container"),
+        "on-primary-container": themed("--m3-color-on-primary-container"),
+        "secondary-container": themed("--m3-color-secondary-container"),
+        "on-secondary-container": themed("--m3-color-on-secondary-container"),
+        "tertiary-container": themed("--m3-color-tertiary-container"),
+        "on-tertiary-container": themed("--m3-color-on-tertiary-container"),
         // Secondary-text greys follow the theme so the same class reads well on white and on dark.
         slate: { 400: themed("--ui-slate-400") },
         neutral: { 400: themed("--ui-neutral-400") },

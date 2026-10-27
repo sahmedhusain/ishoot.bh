@@ -5,7 +5,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowDown, ArrowLeft, ArrowUp, Copy, Eye, EyeOff, Loader2, Plus, Save, Trash2 } from "lucide-react";
-import { Button, Card, Input, Textarea } from "@platform/ui";
+import { Select, Button, Card, Input, Textarea } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { BLOCK_TYPES, CODE_BLOCKS, EMBED_PRESETS, newBlockData, type Block, type BlockType, type LocalText } from "@platform/database/cms/blocks";
 import type { CmsPageRecord } from "@platform/database/queries/cms-pages";
@@ -105,11 +105,11 @@ export function PageEditorView({ page, languages, canCode, catalogueSlug }: { pa
   const select = <T extends string>(block: Block, key: string, label: string, values: readonly T[], labels: Record<string, string>) => (
     <Field label={label}>
       {(id) => (
-        <select id={id} value={String((block.data as Record<string, unknown>)[key])} onChange={(e) => patchBlock(block.id, { [key]: Number.isNaN(Number(e.target.value)) ? e.target.value : Number(e.target.value) } as never)} className="w-full h-9 rounded-lg border border-ink/15 bg-surface px-3 text-sm">
+        <Select id={id} value={String((block.data as Record<string, unknown>)[key])} onChange={(e) => patchBlock(block.id, { [key]: Number.isNaN(Number(e.target.value)) ? e.target.value : Number(e.target.value) } as never)} className="w-full h-9 rounded-lg border border-outline-variant bg-surface px-3 text-sm">
           {values.map((value) => (
             <option key={value} value={value}>{labels[value] ?? value}</option>
           ))}
-        </select>
+        </Select>
       )}
     </Field>
   );
@@ -375,7 +375,7 @@ export function PageEditorView({ page, languages, canCode, catalogueSlug }: { pa
                     <button type="button" aria-label={copy.remove} onClick={() => setBlocks((blocks) => blocks.filter((b) => b.id !== block.id))} className="p-1.5 rounded-md text-rose-600 hover:bg-rose-500/10"><Trash2 className="w-3.5 h-3.5" /></button>
                   )}
                 </div>
-                {open === block.id && <div className="border-t border-ink/10 p-4 grid sm:grid-cols-2 gap-4 animate-in fade-in duration-150">{editor(block)}</div>}
+                {open === block.id && <div className="border-t border-outline-variant p-4 grid sm:grid-cols-2 gap-4 animate-in fade-in duration-150">{editor(block)}</div>}
               </Card>
             </li>
           );
@@ -385,12 +385,12 @@ export function PageEditorView({ page, languages, canCode, catalogueSlug }: { pa
       <Card className="p-4 flex flex-wrap items-end gap-3">
         <Field label={copy.addBlock}>
           {(id) => (
-            <select id={id} value={adding} onChange={(e) => setAdding(e.target.value as BlockType)} className="h-9 rounded-lg border border-ink/15 bg-surface px-3 text-sm min-w-[220px]">
+            <Select id={id} value={adding} onChange={(e) => setAdding(e.target.value as BlockType)} className="h-9 rounded-lg border border-outline-variant bg-surface px-3 text-sm min-w-[220px]">
               <option value="">{copy.chooseBlock}</option>
               {available.map((type) => (
                 <option key={type} value={type}>{copy.types[type]}</option>
               ))}
-            </select>
+            </Select>
           )}
         </Field>
         <Button type="button" variant="outline" size="sm" className="rounded-full gap-1.5" disabled={!adding} onClick={addBlock}>

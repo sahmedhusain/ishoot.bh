@@ -110,14 +110,14 @@ export function DashboardBoard({ desk, layout, custom, available, data, loaded, 
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{t.workload.focus[desk]}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{t.workload.focus[desk]}</h1>
           <p className="text-sm text-ink-muted mt-1">{t.workload.focusSubtitle[desk]}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {showDepartment && !editing ? (
-            <Link href={ROUTES.departmentDashboard()} className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 h-8 px-3.5 text-xs font-medium hover:border-accent">
+            <Link href={ROUTES.departmentDashboard()} className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant h-8 px-3.5 text-xs font-medium hover:border-accent">
               <Users className="w-3.5 h-3.5 text-accent" aria-hidden="true" />
               {b.myDepartment}
             </Link>
@@ -169,7 +169,7 @@ export function DashboardBoard({ desk, layout, custom, available, data, loaded, 
       ) : null}
 
       {items.length ? (
-        <ul className="grid grid-cols-12 gap-4 stagger-children" data-testid="dashboard-grid">
+        <ul className="grid grid-cols-12 gap-5" data-testid="dashboard-grid">
           {items.map((item, index) => {
             const name = label(item.id);
             const ready = loadedIds.has(item.id);
@@ -202,15 +202,15 @@ export function DashboardBoard({ desk, layout, custom, available, data, loaded, 
                 data-testid={`widget-${item.id}`}
               >
                 {editing ? (
-                  <div className="absolute -top-3 end-3 z-10 flex items-center gap-0.5 rounded-full border border-ink/15 bg-white dark:bg-surface-raised shadow-sm px-1 py-0.5">
+                  <div className="absolute -top-3 end-3 z-10 flex items-center gap-0.5 rounded-full border border-outline-variant bg-surface-raised dark:bg-surface-raised shadow-sm px-1 py-0.5">
                     <span className="p-1 text-ink-muted" aria-label={formatMessage(b.drag, { name })} title={formatMessage(b.drag, { name })}>
                       <GripVertical className="w-3.5 h-3.5" aria-hidden="true" />
                     </span>
                     <button type="button" className="p-1 rounded-full hover:bg-ink/5 disabled:opacity-30" onClick={() => move(index, index - 1)} disabled={index === 0} aria-label={formatMessage(b.moveEarlier, { name })} title={formatMessage(b.moveEarlier, { name })}>
-                      <ArrowRight className="w-3.5 h-3.5 ltr:rotate-180" aria-hidden="true" />
+                      <ArrowRight className="w-3.5 h-3.5 ltr:rotate-180 rtl:-scale-x-100" aria-hidden="true" />
                     </button>
                     <button type="button" className="p-1 rounded-full hover:bg-ink/5 disabled:opacity-30" onClick={() => move(index, index + 1)} disabled={index === items.length - 1} aria-label={formatMessage(b.moveLater, { name })} title={formatMessage(b.moveLater, { name })}>
-                      <ArrowLeft className="w-3.5 h-3.5 ltr:rotate-180" aria-hidden="true" />
+                      <ArrowLeft className="w-3.5 h-3.5 ltr:rotate-180 rtl:-scale-x-100" aria-hidden="true" />
                     </button>
                     <button type="button" className="p-1 rounded-full hover:bg-ink/5" onClick={() => resize(index)} aria-label={formatMessage(b.resize, { name, size: (b.sizes as Record<string, string>)[item.size] })} title={formatMessage(b.resize, { name, size: (b.sizes as Record<string, string>)[item.size] })}>
                       <Maximize2 className="w-3.5 h-3.5" aria-hidden="true" />
@@ -228,7 +228,7 @@ export function DashboardBoard({ desk, layout, custom, available, data, loaded, 
           })}
         </ul>
       ) : (
-        <p className="rounded-xl border border-dashed border-ink/20 p-10 text-center text-sm text-ink-muted">{b.empty}</p>
+        <p className="rounded-xl border border-dashed border-outline-variant p-10 text-center text-sm text-ink-muted">{b.empty}</p>
       )}
     </div>
   );

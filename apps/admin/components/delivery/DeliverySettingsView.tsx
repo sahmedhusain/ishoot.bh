@@ -44,9 +44,9 @@ export function DeliverySettingsView({ settings, zones, sharedSlots, currency, l
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-16">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{copy.title}</h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
+      <div data-page-header>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
+        <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
       </div>
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
 
@@ -76,7 +76,7 @@ export function DeliverySettingsView({ settings, zones, sharedSlots, currency, l
         )}
       </Card>
 
-      <Card className="p-5 space-y-4">
+      <Card className="p-5 space-y-4" data-page-section>
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-bold text-ink flex items-center gap-2"><MapPinned className="w-4 h-4 text-accent" aria-hidden="true" />{copy.zones}</h2>
           {canEdit && !zone && (
@@ -88,7 +88,7 @@ export function DeliverySettingsView({ settings, zones, sharedSlots, currency, l
         </div>
         <p className="text-xs text-ink-muted">{copy.zonesHint}</p>
         {zone && (
-          <div className="grid sm:grid-cols-3 gap-3 rounded-xl border border-ink/10 p-3" data-testid="zone-editor">
+          <div className="grid sm:grid-cols-3 gap-3 rounded-xl border border-outline-variant p-3" data-testid="zone-editor">
             <LanguageFields label={copy.zoneName} languages={languages} wide maxLength={120} en={zone.nameEn} ar={zone.nameAr} onChange={({ en, ar }) => setZone({ ...zone, nameEn: en, nameAr: ar })} />
             <Field label={copy.areas} wide>{(id) => <Textarea id={id} name="zoneAreas" rows={3} value={zone.areas} onChange={(e) => setZone({ ...zone, areas: e.target.value })} className="rounded-lg" />}</Field>
             <Field label={formatMessage(copy.fee, { currency })}>{(id) => <Input id={id} name="zoneFee" type="number" min={0} step="0.001" value={zone.fee} onChange={(e) => setZone({ ...zone, fee: e.target.value })} className="rounded-lg" />}</Field>
@@ -106,7 +106,7 @@ export function DeliverySettingsView({ settings, zones, sharedSlots, currency, l
         ) : (
           <ul className="space-y-3" data-testid="zones-list">
             {zones.map((z) => (
-              <li key={z.id} className={`rounded-xl border border-ink/10 p-4 space-y-3 ${z.is_active ? "" : "opacity-60"}`}>
+              <li key={z.id} className={`rounded-xl border border-outline-variant p-4 space-y-3 ${z.is_active ? "" : "opacity-60"}`}>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                   <span className="font-semibold text-ink">{locale === "ar" ? z.name_ar || z.name_en : z.name_en || z.name_ar}</span>
                   <span>{money(z.fee)}</span>
@@ -123,7 +123,7 @@ export function DeliverySettingsView({ settings, zones, sharedSlots, currency, l
         )}
       </Card>
 
-      <Card className="p-5 space-y-3">
+      <Card className="p-5 space-y-3" data-page-section>
         <h2 className="font-bold text-ink">{copy.sharedSlots}</h2>
         <SlotsEditor slots={sharedSlots} zoneId="" canEdit={canEdit} busy={busy} run={run} />
       </Card>
@@ -145,7 +145,7 @@ function SlotsEditor({ slots, zoneId, canEdit, busy, run }: { slots: Slot[]; zon
       ) : (
         <ul className="flex flex-wrap gap-2">
           {slots.map((s) => (
-            <li key={s.id} className="inline-flex items-center gap-1.5 rounded-full border border-ink/10 px-3 py-1 text-xs">
+            <li key={s.id} className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant px-3 py-1 text-xs">
               <span dir="ltr">{label(s)}</span>
               {s.capacity != null && <span className="text-ink-muted">· {formatMessage(copy.perSlot, { count: s.capacity })}</span>}
               {canEdit && <button type="button" aria-label={formatMessage(copy.removeSlot, { slot: label(s) })} disabled={busy} onClick={() => void run(() => deleteDeliverySlotAction(s.id))} className="text-rose-600"><Trash2 className="w-3 h-3" /></button>}
@@ -161,7 +161,7 @@ function SlotsEditor({ slots, zoneId, canEdit, busy, run }: { slots: Slot[]; zon
           <fieldset className="flex flex-wrap gap-2">
             <legend className="sr-only">{copy.weekdaysLabel}</legend>
             {copy.weekdaysShort.map((day, index) => (
-              <label key={day} className={`cursor-pointer rounded-full border px-2.5 py-1 text-xs ${draft.weekdays.includes(index) ? "border-accent bg-accent/10" : "border-ink/15"}`}>
+              <label key={day} className={`cursor-pointer rounded-full border px-2.5 py-1 text-xs ${draft.weekdays.includes(index) ? "border-accent bg-accent/10" : "border-outline-variant"}`}>
                 <input type="checkbox" className="sr-only" checked={draft.weekdays.includes(index)} onChange={(e) => setDraft({ ...draft, weekdays: e.target.checked ? [...draft.weekdays, index] : draft.weekdays.filter((d) => d !== index) })} />
                 {day}
               </label>

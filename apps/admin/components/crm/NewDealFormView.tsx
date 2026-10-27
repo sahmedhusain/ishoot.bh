@@ -63,14 +63,14 @@ export function NewDealFormView({
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto pb-16">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4" data-page-header>
         <Link href={ROUTES.crm.deals}>
           <Button
             variant="outline"
             size="sm"
             className="gap-1.5 text-ink-muted"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
             <span>{t.actions.back}</span>
           </Button>
         </Link>
@@ -83,24 +83,24 @@ export function NewDealFormView({
         </div>
       </div>
 
-      <Card className="p-8 bg-surface border border-ink/10 rounded-3xl">
+      <Card className="p-8 bg-surface border border-outline-variant rounded-3xl">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="text-xs font-semibold text-ink mb-1.5 block">
+            <label>
+              <span className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.dealsNew.dealTitleLabel}
-              </label>
+              </span>
               <Input
                 required
                 placeholder={t.dealsNew.titlePlaceholder}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-ink mb-1.5 block">
+            </label>
+            <label>
+              <span className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.dealsNew.valueLabel} ({defaultCurrency})
-              </label>
+              </span>
               <Input
                 type="number"
                 required
@@ -110,7 +110,7 @@ export function NewDealFormView({
                 onChange={(e) => setValue(parseFloat(e.target.value) || 0)}
                 className=""
               />
-            </div>
+            </label>
           </div>
 
           {canPickContact && (
@@ -124,10 +124,10 @@ export function NewDealFormView({
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="text-xs font-semibold text-ink mb-1.5 block">
+            <label>
+              <span className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.dealsNew.stageLabel}
-              </label>
+              </span>
               <Select
                 value={stage}
                 onChange={(e) => setStage(e.target.value as DealStage)}
@@ -138,34 +138,34 @@ export function NewDealFormView({
                   </option>
                 ))}
               </Select>
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-ink mb-1.5 block">
+            </label>
+            <label>
+              <span className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.dealsNew.targetDateLabel}
-              </label>
+              </span>
               <Input
                 type="date"
                 value={shootDate}
                 onChange={(e) => setShootDate(e.target.value)}
                 className=""
               />
-            </div>
+            </label>
           </div>
 
-          <div>
-            <label className="text-xs font-semibold text-ink mb-1.5 block">
+          <label>
+            <span className="text-xs font-semibold text-ink mb-1.5 block">
               {t.dealsNew.descriptionLabel}
-            </label>
+            </span>
             <textarea
               rows={4}
               placeholder={t.dealsNew.notesPlaceholder}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full bg-surface-sunken border border-ink/10 rounded-xl p-3 text-xs text-ink placeholder-ink-muted/50 focus:outline-none focus:border-accent"
+              className="w-full bg-surface-sunken border border-outline-variant rounded-xl p-3 text-xs text-ink placeholder-ink-muted/50 focus:outline-none focus:border-accent"
             />
-          </div>
+          </label>
 
-          <div className="pt-6 border-t border-ink/10 flex items-center justify-end gap-4">
+          <div className="pt-6 border-t border-outline-variant flex items-center justify-end gap-4">
             <Link href={ROUTES.crm.deals}>
               <Button type="button" variant="outline" size="sm">
                 {t.actions.cancel}

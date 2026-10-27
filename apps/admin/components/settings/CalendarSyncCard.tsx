@@ -94,28 +94,28 @@ export function CalendarSyncCard({
       className="scroll-mt-24 space-y-4 p-5 dark:bg-surface-raised"
     >
       <div className="flex items-start gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary dark:bg-white/10 dark:text-white">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary dark:bg-white/10 dark:text-ink">
           <CalendarDays className="h-5 w-5" aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+            <h3 className="text-sm font-semibold text-ink dark:text-ink">
               {c.title}
             </h3>
             <span
-              className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${!syncEnabled ? "border-ink/15 bg-slate-500/10 text-slate-600" : feed ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300"}`}
+              className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${!syncEnabled ? "border-outline-variant bg-surface-sunken/10 text-ink-muted" : feed ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300"}`}
             >
               {!syncEnabled ? c.off : feed ? c.connected : c.notConnected}
             </span>
           </div>
-          <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+          <p className="mt-1 text-xs leading-relaxed text-ink-muted dark:text-ink">
             {c.description}
           </p>
         </div>
       </div>
 
       {canManage && (
-        <label className="flex items-center gap-2 rounded-xl border border-ink/10 px-3 py-2 text-xs text-ink">
+        <label className="flex items-center gap-2 rounded-xl border border-outline-variant px-3 py-2 text-xs text-ink">
           <input
             type="checkbox"
             checked={syncEnabled}
@@ -138,7 +138,7 @@ export function CalendarSyncCard({
               {LAYERS.map((layer) => (
                 <label
                   key={layer}
-                  className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] ${layers.includes(layer) ? "border-accent bg-accent/10 font-semibold text-ink" : "border-ink/15 text-ink-muted"}`}
+                  className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] ${layers.includes(layer) ? "border-accent bg-accent/10 font-semibold text-ink" : "border-outline-variant text-ink-muted"}`}
                 >
                   <input
                     type="checkbox"
@@ -167,7 +167,7 @@ export function CalendarSyncCard({
                   dir="ltr"
                   value={link.https}
                   onFocus={(e) => e.target.select()}
-                  className="h-9 min-w-0 flex-1 rounded-lg border border-ink/15 bg-white px-2 font-mono text-[11px] dark:bg-surface"
+                  className="h-9 min-w-0 flex-1 rounded-lg border border-outline-variant bg-surface-raised px-2 font-mono text-[11px] dark:bg-surface"
                   aria-label={c.yourLink}
                 />
                 <button
@@ -177,7 +177,7 @@ export function CalendarSyncCard({
                       .writeText(link.https)
                       .then(() => toast.success(c.copied))
                   }
-                  className="inline-flex h-9 items-center gap-1 rounded-lg border border-ink/15 px-3 text-xs font-semibold"
+                  className="inline-flex h-9 items-center gap-1 rounded-lg border border-outline-variant px-3 text-xs font-semibold"
                 >
                   <Copy className="h-3.5 w-3.5" aria-hidden />
                   {c.copy}
@@ -188,14 +188,14 @@ export function CalendarSyncCard({
                   href={googleUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primary/90"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
                 >
                   <ExternalLink className="h-3.5 w-3.5" aria-hidden />
                   {c.addToGoogle}
                 </a>
                 <a
                   href={link.webcal}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-4 py-2 text-xs font-semibold text-ink hover:bg-ink/5"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant px-4 py-2 text-xs font-semibold text-ink hover:bg-ink/5"
                 >
                   {c.openInCalendarApp}
                 </a>
@@ -204,7 +204,7 @@ export function CalendarSyncCard({
             </div>
           ) : null}
 
-          <div className="flex flex-wrap items-center gap-2 border-t border-ink/10 pt-3">
+          <div className="flex flex-wrap items-center gap-2 border-t border-outline-variant pt-3">
             {!feed ? (
               <Button
                 size="sm"

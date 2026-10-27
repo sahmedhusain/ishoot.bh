@@ -68,9 +68,9 @@ export function WebsiteEditor({
     setVersion(revision);
   }, [revision]);
   const field =
-    "w-full rounded-lg border border-slate-300 dark:border-neutral-600 bg-transparent p-3 text-sm";
+    "w-full rounded-lg border border-outline-variant dark:border-outline-variant bg-transparent p-3 text-sm";
   const button =
-    "rounded-lg border border-slate-300 dark:border-neutral-600 px-4 py-2 text-sm disabled:opacity-50";
+    "rounded-lg border border-outline-variant dark:border-outline-variant px-4 py-2 text-sm disabled:opacity-50";
   async function run(fn: () => Promise<unknown>) {
     setBusy(true);
     setError("");
@@ -106,11 +106,11 @@ export function WebsiteEditor({
         <h1 className="text-2xl font-bold mt-3">
           {t.websiteEditor.websitePublishing}
         </h1>
-        <p className="text-sm text-slate-500 mt-2">
+        <p className="text-sm text-ink-muted mt-2">
           {t.websiteEditor.arrangeSectionsEditContactContent}
         </p>
         {publishedAt && (
-          <p className="text-xs text-slate-500 mt-2">
+          <p className="text-xs text-ink-muted mt-2">
             {`${t.websiteEditor.lastPublished} ${formatDate(publishedAt, locale, "time")}`}
           </p>
         )}
@@ -121,13 +121,13 @@ export function WebsiteEditor({
           <SampleContentCard activity={company.activity} count={sampleCount} />
         </div>
         {deliveryStatus && (
-          <p className="text-xs text-slate-500 mt-2">
+          <p className="text-xs text-ink-muted mt-2">
             {t.websiteEditor.publicRefresh}{" "}
             {(t.websiteEditor.deliveryStatuses as Record<string, string>)[deliveryStatus] ?? deliveryStatus}
           </p>
         )}
       </header>
-      <div className="flex flex-wrap gap-3 sticky top-0 z-10 bg-white dark:bg-neutral-900 py-3 border-b border-slate-200 dark:border-neutral-700">
+      <div className="flex flex-wrap gap-3 sticky top-0 z-10 bg-surface-raised dark:bg-surface-raised py-3 border-b border-outline-variant dark:border-outline-variant">
         <button disabled={busy} className={button} onClick={() => run(save)}>
           {t.websiteEditor.saveDraft}
           {dirty ? " *" : ""}
@@ -190,7 +190,7 @@ export function WebsiteEditor({
           {message}
         </p>
       )}
-      <section className="space-y-4 rounded-xl border p-5">
+      <section className="space-y-4 rounded-xl border p-5" data-page-section>
         <h2 className="font-bold">{t.websiteEditor.studioImageAndHistory}</h2>
         <div className="block space-y-1"><span>{t.websiteEditor.imageUrl}</span><AssetUrlInput value={draft.aboutImageUrl || ""} onChange={(url) => change({ ...draft, aboutImageUrl: url })} resource="settings" /></div>
         {(draft.pillars || []).map((entry, index) => <div key={index} className="grid gap-3 sm:grid-cols-2 border p-3 rounded">
@@ -208,7 +208,7 @@ export function WebsiteEditor({
         companyActivity={company.activity}
         hasWhatsapp={company.hasWhatsapp}
       />
-      <section className="space-y-4">
+      <section className="space-y-4" data-page-section>
         <h2 className="font-bold text-lg">
           {t.websiteEditor.contactPageContent}
         </h2>
@@ -228,11 +228,11 @@ export function WebsiteEditor({
           ))}
         </div>
       </section>
-      <section className="space-y-4">
+      <section className="space-y-4" data-page-section>
         <h2 className="font-bold text-lg">
           {t.websiteEditor.servicesShownOnTheWebsite}
         </h2>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-ink-muted">
           {t.websiteEditor.namesAndDescriptionsComeFrom}{" "}
           <Link href={ROUTES.services} className="underline">
             {t.websiteEditor.serviceCatalogue}
@@ -241,7 +241,7 @@ export function WebsiteEditor({
         {services.map((service) => (
           <form
             key={`${service.id}-${service.isPublic}-${service.imageUrl}`}
-            className="grid sm:grid-cols-[1fr_2fr_auto] gap-3 items-center border-b border-slate-200 dark:border-neutral-700 pb-4"
+            className="grid sm:grid-cols-[1fr_2fr_auto] gap-3 items-center border-b border-outline-variant dark:border-outline-variant pb-4"
             onSubmit={(e) => {
               e.preventDefault();
               const form = new FormData(e.currentTarget);
@@ -272,11 +272,11 @@ export function WebsiteEditor({
           </form>
         ))}
       </section>
-      <section className="space-y-3">
+      <section className="space-y-3" data-page-section>
         <h2 className="font-bold">
           {t.websiteEditor.contentCollections}
         </h2>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-ink-muted">
           {t.websiteEditor.afterTheFirstPublicationBanner}
         </p>
         <div className="flex flex-wrap gap-4">

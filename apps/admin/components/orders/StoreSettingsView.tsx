@@ -68,9 +68,9 @@ export function StoreSettingsView({ settings, coupons, gateways, currency, langu
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-16">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{copy.title}</h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
+      <div data-page-header>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
+        <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
       </div>
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
       <Card className="p-5 space-y-4">
@@ -105,7 +105,7 @@ export function StoreSettingsView({ settings, coupons, gateways, currency, langu
         )}
       </Card>
 
-      <Card className="p-5 space-y-4">
+      <Card className="p-5 space-y-4" data-page-section>
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-bold text-ink flex items-center gap-2"><Ticket className="w-4 h-4 text-accent" aria-hidden="true" />{copy.coupons}</h2>
           {canCoupons && !coupon && (
@@ -116,7 +116,7 @@ export function StoreSettingsView({ settings, coupons, gateways, currency, langu
           )}
         </div>
         {coupon && (
-          <div className="grid sm:grid-cols-4 gap-3 rounded-xl border border-ink/10 p-3" data-testid="coupon-editor">
+          <div className="grid sm:grid-cols-4 gap-3 rounded-xl border border-outline-variant p-3" data-testid="coupon-editor">
             <Field label={copy.code}>{(id) => <Input id={id} name="couponCode" dir="ltr" maxLength={30} value={coupon.code} onChange={(e) => setCoupon({ ...coupon, code: e.target.value.toUpperCase() })} className="rounded-lg font-mono" />}</Field>
             <Field label={copy.kind}>
               {(id) => (
@@ -141,7 +141,7 @@ export function StoreSettingsView({ settings, coupons, gateways, currency, langu
         {coupons.length === 0 ? (
           <p className="text-sm text-ink-muted">{copy.noCoupons}</p>
         ) : (
-          <ul className="divide-y divide-ink/10 text-sm">
+          <ul className="divide-y divide-outline-variant text-sm">
             {coupons.map((c) => (
               <li key={c.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2">
                 <button type="button" disabled={!canCoupons} onClick={() => setCoupon({ id: c.id, code: c.code, kind: c.kind, value: String(c.value), minOrder: c.min_order?.toString() ?? "", startsAt: c.starts_at ?? "", endsAt: c.ends_at ?? "", maxUses: c.max_uses?.toString() ?? "", isActive: c.is_active })} className="font-mono font-semibold text-ink enabled:hover:text-accent" dir="ltr">{c.code}</button>

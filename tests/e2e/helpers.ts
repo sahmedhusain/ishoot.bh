@@ -57,9 +57,10 @@ export async function login(
   password = admin.password,
 ) {
   await page.goto("/login");
-  await page.locator('input[type="email"]').fill(email);
-  await page.locator('input[type="password"]').fill(password);
-  await page.locator('button[type="submit"]').click();
+  // Next's streaming response can temporarily retain a hidden copy of the form.
+  await page.locator('input[type="email"]:visible').fill(email);
+  await page.locator('input[type="password"]:visible').fill(password);
+  await page.locator('button[type="submit"]:visible').click();
 }
 
 /** Fails the test on uncaught page errors and console errors (ignoring known browser noise). */

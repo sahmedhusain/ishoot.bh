@@ -62,11 +62,11 @@ export function NewSettlementForm({
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 pb-16">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3" data-page-header>
         <Link
           href={ROUTES.hr.settlements()}
           aria-label={t.actions.back}
-          className="rounded-full border border-ink/15 p-2 text-ink-muted hover:text-ink"
+          className="rounded-full border border-outline-variant p-2 text-ink-muted hover:text-ink"
         >
           <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
         </Link>
@@ -77,7 +77,7 @@ export function NewSettlementForm({
       </div>
       <form
         onSubmit={submit}
-        className="space-y-4 rounded-3xl border border-ink/10 bg-white p-6 dark:bg-surface-raised"
+        className="space-y-4 rounded-3xl border border-outline-variant bg-surface-raised p-6 dark:bg-surface-raised"
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className="sm:col-span-2">

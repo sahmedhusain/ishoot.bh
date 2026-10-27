@@ -28,6 +28,8 @@ interface ClientsManagementViewProps {
 export function ClientsManagementView({
   initialLogos,
 }: ClientsManagementViewProps) {
+  const modalFormId = React.useId();
+
   const { t } = useAdminLocale();
   const [logos, setLogos] = React.useState<ClientLogo[]>(initialLogos);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -93,7 +95,7 @@ export function ClientsManagementView({
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">
             {t.cms.clientsTitle}
@@ -115,7 +117,7 @@ export function ClientsManagementView({
       </div>
 
       {logos.length === 0 ? (
-        <div className="p-12 text-center rounded-3xl bg-surface border border-ink/10 text-ink-muted">
+        <div className="p-12 text-center rounded-3xl bg-surface border border-outline-variant text-ink-muted">
           {t.clientsView.emptyState}
         </div>
       ) : (
@@ -123,7 +125,7 @@ export function ClientsManagementView({
           {logos.map((logo) => (
             <Card
               key={logo.id}
-              className="p-6 text-center space-y-4 bg-surface border border-ink/10 hover:border-accent/40 transition-all rounded-3xl relative group"
+              className="p-6 text-center space-y-4 bg-surface border border-outline-variant hover:border-accent/40 transition-all rounded-3xl relative group"
             >
               <div className="absolute top-4 end-4 flex gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
                 <button
@@ -144,7 +146,7 @@ export function ClientsManagementView({
                 </button>
               </div>
 
-              <div className="w-16 h-16 rounded-2xl mx-auto bg-ink/5 border border-ink/10 flex items-center justify-center p-3">
+              <div className="w-16 h-16 rounded-2xl mx-auto bg-ink/5 border border-outline-variant flex items-center justify-center p-3">
                 {logo.logo_svg_url.startsWith("http") ||
                   logo.logo_svg_url.startsWith("/") ? (
                   <ContentImage
@@ -189,47 +191,7 @@ export function ClientsManagementView({
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingId ? t.clientsView.editClient : t.actions.addClient}
-      >
-        <form onSubmit={handleSave} className="space-y-4">
-          <div>
-            <label className="text-xs text-ink mb-1.5 block">
-              {t.clientsView.clientBrandName}
-            </label>
-            <Input
-              value={clientName}
-              onChange={(e) => setClientName(e.target.value)}
-              placeholder={t.clientsView.clientBrandPlaceholder}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="text-xs text-ink mb-1.5 block">
-              {t.clientsView.logoVectorUrl}
-            </label>
-            <AssetUrlInput
-              value={logoSvgUrl}
-              onChange={setLogoSvgUrl}
-              resource="clients"
-              placeholder={t.clientsView.logoVectorPlaceholder}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="text-xs text-ink mb-1.5 block">
-              {t.clientsView.officialWebsiteUrl}
-            </label>
-            <Input
-              value={websiteUrl}
-              onChange={(e) => setWebsiteUrl(e.target.value)}
-              placeholder={t.clientsView.officialWebsitePlaceholder}
-            />
-          </div>
-
-          {error && <p className="text-xs text-rose-500">{error}</p>}
-
-          <div className="pt-4 flex justify-end gap-3 border-t border-ink/10">
+       footer={<div className="flex justify-end gap-3">
             <Button
               type="button"
               variant="outline"
@@ -244,11 +206,51 @@ export function ClientsManagementView({
               size="sm"
               disabled={saving}
               className="gap-1.5"
-            >
+             form={modalFormId}>
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>{t.actions.save}</span>
             </Button>
+          </div>}>
+        <form onSubmit={handleSave} className="space-y-4" id={modalFormId}>
+          <label>
+            <span className="text-xs text-ink mb-1.5 block">
+              {t.clientsView.clientBrandName}
+            </span>
+            <Input
+              value={clientName}
+              onChange={(e) => setClientName(e.target.value)}
+              placeholder={t.clientsView.clientBrandPlaceholder}
+              required
+            />
+          </label>
+
+          <div>
+            <label className="text-xs text-ink mb-1.5 block">
+              {t.clientsView.logoVectorUrl}
+            </label>
+            <AssetUrlInput
+              value={logoSvgUrl}
+              onChange={setLogoSvgUrl}
+              resource="clients"
+              placeholder={t.clientsView.logoVectorPlaceholder}
+              required
+            />
           </div>
+
+          <label>
+            <span className="text-xs text-ink mb-1.5 block">
+              {t.clientsView.officialWebsiteUrl}
+            </span>
+            <Input
+              value={websiteUrl}
+              onChange={(e) => setWebsiteUrl(e.target.value)}
+              placeholder={t.clientsView.officialWebsitePlaceholder}
+            />
+          </label>
+
+          {error && <p className="text-xs text-rose-500">{error}</p>}
+
+
         </form>
       </Modal>
 

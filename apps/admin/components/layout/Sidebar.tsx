@@ -2,6 +2,8 @@
 
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { useAdminTheme } from "../../hooks/useAdminTheme";
 import { Button, useDialog } from "@platform/ui";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -104,8 +106,11 @@ interface NavSection {
 export function Sidebar() {
   const pathname = usePathname();
   const { can, managesTeam, role, user } = usePermissions();
-  const { isMobileOpen, setIsMobileOpen } = useSidebar();
-  const { t } = useAdminLocale();
+  const { isMobileOpen, setIsMobileOpen, isCollapsed } = useSidebar();
+  const { t, isRTL } = useAdminLocale();
+  const { appearance } = useAdminTheme();
+  const systemReducedMotion = useReducedMotion();
+  const reduceMotion = systemReducedMotion || appearance.motion !== "system";
   const mobileDialog = useDialog(isMobileOpen, () => setIsMobileOpen(false));
   React.useEffect(() => {
     const desktop = window.matchMedia("(min-width: 1024px)");
@@ -799,25 +804,23 @@ export function Sidebar() {
         return (
           <div
             key={section.id}
-            className={
-              idx > 0
-                ? "pt-2 border-t border-slate-100 dark:border-neutral-800"
-                : ""
-            }
+            className={idx > 0 ? "pt-2 border-t border-outline-variant/20" : ""}
           >
             <button
               type="button"
               onClick={() => toggleSection(section.id, collapsed)}
               aria-expanded={!collapsed}
-              className="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
+              aria-label={section.title}
+              data-nav-section
+              className="w-full flex items-center justify-between px-4 py-2 text-xs font-bold uppercase tracking-wider text-on-surface-variant hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary rounded-lg m3-state-layer"
             >
-              <span>{section.title}</span>
+              <span data-nav-label>{section.title}</span>
               <ChevronDown
                 aria-hidden
-                className={`h-3 w-3 transition-transform ${collapsed ? "-rotate-90 rtl:rotate-90" : ""}`}
+                className={`h-3.5 w-3.5 transition-transform duration-fast ease-standard ${collapsed ? "-rotate-90 rtl:rotate-90" : ""}`}
               />
             </button>
-            <div hidden={collapsed} className="space-y-0.5">
+            <div hidden={collapsed} className="space-y-1 mt-1">
               {section.items.map((item) => {
                 const Icon = item.icon;
                 const isActive = item.href === activeHref;
@@ -828,19 +831,22 @@ export function Sidebar() {
                     href={item.href}
                     aria-current={isActive ? "page" : undefined}
                     title={item.label}
+                    aria-label={item.label}
                     onClick={() => setIsMobileOpen(false)}
-                    className={`flex items-center gap-3 mx-2 px-3 h-9 rounded-xl text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${isActive
-                      ? "bg-tone-95 text-primary dark:bg-tone-15/40 dark:text-mint font-semibold"
-                      : "text-slate-700 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800"
-                      }`}
+                    className={`flex items-center gap-3.5 mx-3 px-4 h-10 rounded-full text-[13px] font-medium transition-all duration-base ease-standard focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary m3-state-layer ${
+                      isActive
+                        ? "bg-secondary-container text-on-secondary-container font-semibold shadow-m3-0"
+                        : "text-on-surface-variant hover:text-on-surface hover:bg-on-surface/[0.08] active:bg-on-surface/[0.12]"
+                    }`}
                   >
                     <Icon
-                      className={`w-4 h-4 shrink-0 transition-colors ${isActive
-                        ? "text-primary dark:text-mint"
-                        : "text-slate-500 dark:text-neutral-400"
-                        }`}
+                      className={`w-4 h-4 shrink-0 transition-colors ${
+                        isActive
+                          ? "text-on-secondary-container"
+                          : "text-on-surface-variant"
+                      }`}
                     />
-                    <span className="truncate">{item.label}</span>
+                    <span data-nav-label className="truncate">{item.label}</span>
                   </Link>
                 );
               })}
@@ -853,26 +859,27 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Desktop Fixed Google Navigation Drawer (w-60, 240px) */}
-      <aside className="hidden lg:block shrink-0 h-full w-60 bg-white dark:bg-surface-raised border-e border-ink/15 dark:border-ink/15 z-20">
+      {/* Persistent drawer for the many admin destinations */}
+      <aside data-collapsed={isCollapsed} className="admin-sidebar hidden lg:block">
         {navContent}
       </aside>
 
       {/* Mobile Drawer */}
       {isMobileOpen && (
-        <div className="lg:hidden fixed inset-0 top-14 z-50 flex">
+        <div className="lg:hidden fixed inset-0 z-50 flex">
           <div
             aria-hidden="true"
             className="fixed inset-0 modal-scrim animate-in fade-in duration-base"
             onClick={() => setIsMobileOpen(false)}
           />
-          <div {...mobileDialog} data-navigation-drawer aria-label={t.sidebar.mobileNavigation} className="relative w-64 max-w-[80vw] h-full bg-white dark:bg-surface-raised border-e border-ink/15 dark:border-ink/15 shadow-xl flex flex-col z-10 animate-in slide-in-from-start duration-base ease-emphasized">
-            <div className="flex shrink-0 items-center justify-between border-b border-ink/10 px-3 py-2">
-              <span className="text-sm font-semibold">{t.sidebar.mobileNavigation}</span>
+          <motion.div {...mobileDialog} initial={reduceMotion ? false : { x: isRTL ? 48 : -48, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 400, damping: 40, mass: 1 }} data-navigation-drawer aria-label={t.sidebar.mobileNavigation} className="relative w-80 max-w-[85vw] h-full bg-surface-container-low rounded-e-3xl shadow-m3-3 flex flex-col z-10">
+            <div className="flex shrink-0 items-center justify-between border-b border-outline-variant/20 px-4 py-3">
+              <span className="text-sm font-bold text-on-surface">{t.sidebar.mobileNavigation}</span>
               <Button type="button" size="icon" variant="ghost" onClick={() => setIsMobileOpen(false)} aria-label={t.actions.close}><X aria-hidden className="h-4 w-4" /></Button>
             </div>
             {navContent}
-          </div>
+            <footer data-popup-footer className="shrink-0 border-t border-outline-variant px-4 py-4"><Button type="button" variant="outline" className="w-full" onClick={() => setIsMobileOpen(false)}>{t.actions.close}</Button></footer>
+          </motion.div>
         </div>
       )}
     </>

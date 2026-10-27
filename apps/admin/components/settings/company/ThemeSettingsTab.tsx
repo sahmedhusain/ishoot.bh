@@ -38,7 +38,7 @@ export function ThemeSettingsTab({ initialTheme }: { initialTheme: BrandTheme })
   };
 
   return (
-    <Card inert={saving} aria-busy={saving} className="space-y-6 rounded-2xl border border-ink/15 bg-white p-6 shadow-xs dark:bg-surface">
+    <Card inert={saving} aria-busy={saving} className="space-y-6 rounded-2xl border border-outline-variant bg-surface-raised p-6 shadow-xs dark:bg-surface">
       <ThemeEditor theme={theme} onChange={setTheme} />
       {error ? <p role="alert" className="rounded-lg bg-rose-500/10 p-3 text-sm text-rose-700 dark:text-rose-300">{error}</p> : null}
       <div className="flex justify-end">

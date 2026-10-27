@@ -44,13 +44,13 @@ export function ShipmentsListView({ rows, total, page, pageSize, counts, zones, 
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{copy.title}</h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
+      <div data-page-header>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
+        <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3" data-testid="delivery-board">
         {board.map((b) => (
-          <Link key={b.key} href={b.key === "late" ? href({ late: true, status: "" }) : href({ status: b.key, late: false })} className={`rounded-2xl border px-4 py-3 hover:border-accent ${b.key === "late" && b.count ? "border-rose-500/40 bg-rose-500/5" : "border-ink/10 bg-white dark:bg-surface"}`}>
+          <Link key={b.key} href={b.key === "late" ? href({ late: true, status: "" }) : href({ status: b.key, late: false })} className={`rounded-2xl border px-4 py-3 hover:border-accent ${b.key === "late" && b.count ? "border-rose-500/40 bg-rose-500/5" : "border-outline-variant bg-surface-raised dark:bg-surface"}`}>
             <p className="text-xs text-ink-muted">{copy.counts[b.key]}</p>
             <p className="text-2xl font-bold tabular-nums text-ink">{b.count}</p>
           </Link>
@@ -80,7 +80,7 @@ export function ShipmentsListView({ rows, total, page, pageSize, counts, zones, 
             <p className="text-sm text-ink-muted">{copy.empty}</p>
           </div>
         ) : (
-          <ul className="divide-y divide-ink/10" data-testid="shipments-list">
+          <ul className="divide-y divide-outline-variant" data-testid="shipments-list">
             {rows.map((s) => (
               <li key={s.id}>
                 <Link href={ROUTES.delivery.shipment(s.id)} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 hover:bg-ink/[0.02]">
@@ -97,7 +97,7 @@ export function ShipmentsListView({ rows, total, page, pageSize, counts, zones, 
           </ul>
         )}
         {pages > 1 && (
-          <nav aria-label={t.products.pages} className="flex items-center justify-between border-t border-ink/10 px-4 py-3 text-xs">
+          <nav aria-label={t.products.pages} className="flex items-center justify-between border-t border-outline-variant px-4 py-3 text-xs">
             {page > 1 ? <Link href={href({ page: page - 1 })} className="font-semibold text-primary dark:text-mint">{t.products.previous}</Link> : <span />}
             <span className="text-ink-muted">{formatMessage(t.products.pageOf, { page, pages })}</span>
             {page < pages ? <Link href={href({ page: page + 1 })} className="font-semibold text-primary dark:text-mint">{t.products.next}</Link> : <span />}

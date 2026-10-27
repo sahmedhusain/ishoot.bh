@@ -321,22 +321,22 @@ export function InvoiceEditFormView({
     <div inert={submitting} aria-busy={submitting} className="space-y-8 max-w-5xl mx-auto pb-16">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4" data-page-header>
           <Link href={ROUTES.invoices.detail(invoice.id)}>
             <Button
               variant="outline"
               size="sm"
-              className="gap-1.5 text-slate-600 dark:text-slate-300"
+              className="gap-1.5 text-ink-muted dark:text-ink"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
               <span>{t.actions.back}</span>
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white font-display">
+            <h1 className="text-2xl sm:text-3xl font-bold text-ink dark:text-ink font-display">
               {t.invoiceEdit.title} — {invoice.invoice_number}
             </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-xs text-ink-muted dark:text-ink-muted mt-1">
               {t.invoiceEdit.subtitle}
             </p>
           </div>
@@ -357,13 +357,13 @@ export function InvoiceEditFormView({
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Section 1: Client Selection & Auto-fetch */}
-        <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-white/10 pb-4">
+        <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant/80 dark:border-white/10 rounded-2xl shadow-sm space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-outline-variant dark:border-white/10 pb-4">
             <div>
-              <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+              <h2 className="text-sm font-bold text-ink dark:text-ink uppercase tracking-wider">
                 {t.invoiceEdit.clientInfo}
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-xs text-ink-muted dark:text-ink-muted mt-0.5">
                 {t.invoiceEdit.clientHelper}
               </p>
             </div>
@@ -381,7 +381,7 @@ export function InvoiceEditFormView({
 
           {/* Client Search / Autocomplete */}
           <div className="space-y-4">
-            <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block">
+            <label className="text-xs font-medium text-ink dark:text-ink block">
               {t.invoiceEdit.searchSelectClient}
             </label>
             <ClientAutocomplete
@@ -400,11 +400,11 @@ export function InvoiceEditFormView({
 
             {/* Selected Client Live Card */}
             {selectedContact && (
-              <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 space-y-2">
+              <div className="p-4 rounded-xl bg-surface-raised dark:bg-white/[0.03] border border-outline-variant dark:border-white/10 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Building className="w-4 h-4 text-accent" />
-                    <span className="font-bold text-sm text-slate-900 dark:text-white">
+                    <span className="font-bold text-sm text-ink dark:text-ink">
                       {selectedContact.company || selectedContact.full_name}
                     </span>
                   </div>
@@ -416,20 +416,20 @@ export function InvoiceEditFormView({
                     <ExternalLink className="w-3 h-3" />
                   </Link>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-slate-600 dark:text-slate-400 pt-1">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-ink-muted dark:text-ink-muted pt-1">
                   <div className="flex items-center gap-1.5">
-                    <User className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{selectedContact.full_name}</span>
+                    <User className="w-3.5 h-3.5 text-ink-muted" />
+                    <span><bdi dir="auto">{selectedContact.full_name}</bdi></span>
                   </div>
                   {selectedContact.email && (
                     <div className="flex items-center gap-1.5">
-                      <Mail className="w-3.5 h-3.5 text-slate-400" />
-                      <span className="">{selectedContact.email}</span>
+                      <Mail className="w-3.5 h-3.5 text-ink-muted" />
+                      <span className=""><bdi dir="ltr">{selectedContact.email}</bdi></span>
                     </div>
                   )}
                   {selectedContact.phone && (
                     <div className="flex items-center gap-1.5" dir="ltr">
-                      <Phone className="w-3.5 h-3.5 text-slate-400" />
+                      <Phone className="w-3.5 h-3.5 text-ink-muted" />
                       <span className=""><bdi dir="ltr">{selectedContact.phone}</bdi></span>
                     </div>
                   )}
@@ -439,11 +439,11 @@ export function InvoiceEditFormView({
           </div>
 
           {/* Invoice Metadata Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-4 border-t border-slate-100 dark:border-white/10">
-            <div>
-              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-4 border-t border-outline-variant dark:border-white/10">
+            <label>
+              <span className="text-xs font-medium text-ink dark:text-ink mb-1.5 block">
                 {t.invoiceEdit.currency}
-              </label>
+              </span>
               <Select
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value as any)}
@@ -455,12 +455,12 @@ export function InvoiceEditFormView({
                   </option>
                 ))}
               </Select>
-            </div>
+            </label>
 
-            <div>
-              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
+            <label>
+              <span className="text-xs font-medium text-ink dark:text-ink mb-1.5 block">
                 {t.invoiceEdit.language}
-              </label>
+              </span>
               <Select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value as any)}
@@ -469,12 +469,12 @@ export function InvoiceEditFormView({
                 <option value="ar">{t.invoiceForm.arabic}</option>
                 <option value="en">{t.invoiceForm.english}</option>
               </Select>
-            </div>
+            </label>
 
-            <div>
-              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
+            <label>
+              <span className="text-xs font-medium text-ink dark:text-ink mb-1.5 block">
                 {t.invoiceEdit.issueDate} *
-              </label>
+              </span>
               <Input
                 type="date"
                 required
@@ -483,12 +483,12 @@ export function InvoiceEditFormView({
                 disabled={isLocked}
                 className=""
               />
-            </div>
+            </label>
 
-            <div>
-              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
+            <label>
+              <span className="text-xs font-medium text-ink dark:text-ink mb-1.5 block">
                 {t.invoiceEdit.dueDate} *
-              </label>
+              </span>
               <Input
                 type="date"
                 required
@@ -497,14 +497,14 @@ export function InvoiceEditFormView({
                 disabled={isLocked}
                 className=""
               />
-            </div>
+            </label>
           </div>
         </Card>
 
         {/* Section 2: Line Items */}
-        <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+        <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4" data-page-section>
+          <div className="flex items-center justify-between border-b border-outline-variant dark:border-white/10 pb-3">
+            <h2 className="text-sm font-bold text-ink dark:text-ink uppercase tracking-wider">
               {t.invoiceEdit.lineItems}
             </h2>
             {!isLocked && (
@@ -525,11 +525,11 @@ export function InvoiceEditFormView({
             {lineItems.map((item, idx) => (
               <div
                 key={idx}
-                className="p-4 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5 space-y-3"
+                className="p-4 rounded-xl bg-surface-raised/70 dark:bg-white/[0.02] border border-outline-variant/70 dark:border-white/5 space-y-3"
               >
                 {/* Standard Service Quick Selector */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-200/60 dark:border-white/10">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-outline-variant/60 dark:border-white/10">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-ink dark:text-ink">
                     <Sparkles className="w-3.5 h-3.5 text-accent" />
                     <span>{t.invoiceEdit.itemNumber} #{idx + 1}</span>
                     {item.service_id && (
@@ -540,10 +540,10 @@ export function InvoiceEditFormView({
                   </div>
                   {!isLocked && services && services.length > 0 && (
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                      <span className="text-[11px] text-ink-muted dark:text-ink-muted">
                         {t.invoiceEdit.presetService}
                       </span>
-                      <select
+                      <Select
                         value={item.service_id || ""}
                         onChange={(e) => {
                           const val = e.target.value;
@@ -569,7 +569,7 @@ export function InvoiceEditFormView({
                             });
                           }
                         }}
-                        className="text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-accent"
+                        className="text-xs bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-outline-variant rounded-lg px-2.5 py-1 text-ink dark:text-ink focus:outline-none focus:ring-1 focus:ring-accent"
                       >
                         <option value="">{t.invoiceEdit.customItemNone}</option>
                         {services.map((srv) => (
@@ -577,16 +577,16 @@ export function InvoiceEditFormView({
                             {srv.name_en} ({srv.default_rate.toFixed(3)} {bhd} / {srv.unit})
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     </div>
                   )}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1 block">
+                  <label>
+                    <span className="text-[11px] font-medium text-ink-muted dark:text-ink-muted mb-1 block">
                       {t.invoiceEdit.descEn} *
-                    </label>
+                    </span>
                     <Input
                       required
                       placeholder={t.invoiceEdit.descEnPlaceholder}
@@ -595,12 +595,12 @@ export function InvoiceEditFormView({
                         handleLineItemChange(idx, "description_en", e.target.value)
                       }
                       disabled={isLocked}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1 block">
+                     dir="ltr"/>
+                  </label>
+                  <label>
+                    <span className="text-[11px] font-medium text-ink-muted dark:text-ink-muted mb-1 block">
                       {t.invoiceEdit.descAr}
-                    </label>
+                    </span>
                     <Input
                       placeholder={t.invoiceForm.placeholderAr}
                       value={item.description_ar || ""}
@@ -608,15 +608,15 @@ export function InvoiceEditFormView({
                         handleLineItemChange(idx, "description_ar", e.target.value)
                       }
                       disabled={isLocked}
-                    />
-                  </div>
+                     dir="rtl"/>
+                  </label>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-                  <div>
-                    <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1 block">
+                  <label>
+                    <span className="text-[11px] font-medium text-ink-muted dark:text-ink-muted mb-1 block">
                       {t.invoiceEdit.quantity}
-                    </label>
+                    </span>
                     <Input
                       type="number"
                       step="0.01"
@@ -628,11 +628,11 @@ export function InvoiceEditFormView({
                       disabled={isLocked}
                       className=""
                     />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1 block">
+                  </label>
+                  <label>
+                    <span className="text-[11px] font-medium text-ink-muted dark:text-ink-muted mb-1 block">
                       {t.invoiceEdit.unitPrice} ({currency})
-                    </label>
+                    </span>
                     <Input
                       type="number"
                       step="0.001"
@@ -644,13 +644,13 @@ export function InvoiceEditFormView({
                       disabled={isLocked}
                       className=""
                     />
-                  </div>
+                  </label>
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1 block">
+                      <label className="text-[11px] font-medium text-ink-muted dark:text-ink-muted mb-1 block">
                         {t.invoiceEdit.lineTotal}
                       </label>
-                      <div className="text-sm font-bold text-slate-900 dark:text-white  h-10 flex items-center">
+                      <div className="text-sm font-bold text-ink dark:text-ink  h-10 flex items-center">
                         {(item.quantity * item.unit_price).toFixed(3)} {currency}
                       </div>
                     </div>
@@ -658,7 +658,7 @@ export function InvoiceEditFormView({
                       <button
                         type="button"
                         onClick={() => removeLineItem(idx)}
-                        className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors"
+                        className="p-2 text-ink-muted hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors"
                         title={t.invoiceEdit.removeItem}
                       >
                         <Trash2 className="w-4 h-4" />
@@ -672,16 +672,16 @@ export function InvoiceEditFormView({
         </Card>
 
         {/* Section 3: Discounts & Tax Adjustments */}
-        <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4">
-          <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-white/10 pb-3">
+        <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4" data-page-section>
+          <h2 className="text-sm font-bold text-ink dark:text-ink uppercase tracking-wider border-b border-outline-variant dark:border-white/10 pb-3">
             {t.invoiceEdit.discountTaxAdjustments}
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            <div>
-              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
+            <label>
+              <span className="text-xs font-medium text-ink dark:text-ink mb-1.5 block">
                 {t.invoiceEdit.discountType}
-              </label>
+              </span>
               <Select
                 value={discountType}
                 onChange={(e) => setDiscountType(e.target.value as any)}
@@ -691,13 +691,13 @@ export function InvoiceEditFormView({
                 <option value="percentage">{t.invoiceEdit.discountPercentage}</option>
                 <option value="fixed">{t.invoiceEdit.discountFixed} ({currency})</option>
               </Select>
-            </div>
+            </label>
 
             {discountType !== "none" && (
-              <div>
-                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
+              <label>
+                <span className="text-xs font-medium text-ink dark:text-ink mb-1.5 block">
                   {t.invoiceEdit.discountValue}
-                </label>
+                </span>
                 <Input
                   type="number"
                   step="0.001"
@@ -708,61 +708,61 @@ export function InvoiceEditFormView({
                   disabled={isLocked}
                   className=""
                 />
-              </div>
+              </label>
             )}
 
           </div>
         </Card>
 
         {/* Section 4: Terms & Notes */}
-        <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4">
-          <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-white/10 pb-3">
+        <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4" data-page-section>
+          <h2 className="text-sm font-bold text-ink dark:text-ink uppercase tracking-wider border-b border-outline-variant dark:border-white/10 pb-3">
             {t.invoiceEdit.invoiceTermsNotes}
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
+            <label>
+              <span className="text-xs font-medium text-ink dark:text-ink mb-1.5 block">
                 {t.invoiceEdit.notesEn}
-              </label>
+              </span>
               <textarea
                 rows={3}
                 placeholder={t.invoiceEdit.notesEnPlaceholder}
                 value={notesEn}
                 onChange={(e) => setNotesEn(e.target.value)}
                 disabled={isLocked}
-                className="w-full bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-xl p-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-accent"
-              />
-            </div>
+                className="w-full bg-surface-raised dark:bg-white/[0.03] border border-outline-variant dark:border-white/10 rounded-xl p-3 text-xs text-ink dark:text-ink placeholder-slate-400 focus:outline-none focus:border-accent"
+               dir="ltr"/>
+            </label>
 
-            <div>
-              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
+            <label>
+              <span className="text-xs font-medium text-ink dark:text-ink mb-1.5 block">
                 {t.invoiceEdit.notesAr}
-              </label>
+              </span>
               <textarea
                 rows={3}
                 placeholder={t.invoiceForm.placeholderAr}
                 value={notesAr}
                 onChange={(e) => setNotesAr(e.target.value)}
                 disabled={isLocked}
-                className="w-full bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-xl p-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-accent"
-              />
-            </div>
+                className="w-full bg-surface-raised dark:bg-white/[0.03] border border-outline-variant dark:border-white/10 rounded-xl p-3 text-xs text-ink dark:text-ink placeholder-slate-400 focus:outline-none focus:border-accent"
+               dir="rtl"/>
+            </label>
           </div>
         </Card>
 
         {/* Section 5: Totals Summary */}
-        <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-3">
-          <div className="flex items-center justify-between text-xs border-b border-slate-100 dark:border-white/10 pb-3">
-            <span className="text-slate-500 dark:text-slate-400">{t.invoiceEdit.subtotal}</span>
-            <span className=" font-bold text-slate-900 dark:text-white">
+        <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant/80 dark:border-white/10 rounded-2xl shadow-sm space-y-3">
+          <div className="flex items-center justify-between text-xs border-b border-outline-variant dark:border-white/10 pb-3">
+            <span className="text-ink-muted dark:text-ink-muted">{t.invoiceEdit.subtotal}</span>
+            <span className=" font-bold text-ink dark:text-ink">
               {totals.subtotal.toFixed(3)} {currency}
             </span>
           </div>
 
           {discountType !== "none" && (
-            <div className="flex items-center justify-between text-xs border-b border-slate-100 dark:border-white/10 pb-3">
-              <span className="text-slate-500 dark:text-slate-400">{t.invoiceEdit.discount}</span>
+            <div className="flex items-center justify-between text-xs border-b border-outline-variant dark:border-white/10 pb-3">
+              <span className="text-ink-muted dark:text-ink-muted">{t.invoiceEdit.discount}</span>
               <span className=" font-bold text-rose-600 dark:text-rose-400">
                 -{totals.discountAmount.toFixed(3)} {currency}
               </span>
@@ -770,8 +770,8 @@ export function InvoiceEditFormView({
           )}
 
           {vatEnabled && (
-            <div className="flex items-center justify-between text-xs border-b border-slate-100 dark:border-white/10 pb-3">
-              <span className="text-slate-500 dark:text-slate-400">
+            <div className="flex items-center justify-between text-xs border-b border-outline-variant dark:border-white/10 pb-3">
+              <span className="text-ink-muted dark:text-ink-muted">
                 {t.invoiceEdit.vatRate} ({vatPercentage}%)
               </span>
               <span className=" font-bold text-accent">
@@ -781,8 +781,8 @@ export function InvoiceEditFormView({
           )}
 
           {otherTaxes.map((tax) => (
-            <div key={tax.code} className="flex items-center justify-between text-xs border-b border-slate-100 dark:border-white/10 pb-3">
-              <span className="text-slate-500 dark:text-slate-400">
+            <div key={tax.code} className="flex items-center justify-between text-xs border-b border-outline-variant dark:border-white/10 pb-3">
+              <span className="text-ink-muted dark:text-ink-muted">
                 {isRTL ? tax.name_ar : tax.name_en} ({tax.rate}%)
               </span>
               <span className=" font-bold text-accent">
@@ -792,7 +792,7 @@ export function InvoiceEditFormView({
           ))}
 
           <div className="flex items-center justify-between text-sm border-t-2 border-accent/40 pt-3">
-            <span className="font-bold text-slate-900 dark:text-white">{t.invoiceEdit.totalAmount}</span>
+            <span className="font-bold text-ink dark:text-ink">{t.invoiceEdit.totalAmount}</span>
             <span className=" font-bold text-2xl text-primary dark:text-accent">
               {totals.totalAmount.toFixed(3)} {currency}
             </span>
@@ -800,7 +800,7 @@ export function InvoiceEditFormView({
         </Card>
 
         {/* Actions Toolbar */}
-        <div className="pt-4 border-t border-slate-200 dark:border-white/10 flex items-center justify-end gap-4">
+        <div className="pt-4 border-t border-outline-variant dark:border-white/10 flex items-center justify-end gap-4">
           <Link href={ROUTES.invoices.detail(invoice.id)}>
             <Button type="button" variant="outline" size="sm">
               {t.actions.cancel}
@@ -812,7 +812,7 @@ export function InvoiceEditFormView({
               variant="primary"
               size="sm"
               disabled={submitting}
-              className="gap-2 bg-primary hover:bg-primary/90 text-white"
+              className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>

@@ -6,16 +6,18 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { SlidersHorizontal } from "lucide-react";
-import { Button, Card, Modal } from "@platform/ui";
+import { Select, Button, Card, Modal } from "@platform/ui";
 import type { LeaveBalance } from "@platform/database/queries/leave-balances";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { addLeaveAdjustmentAction } from "../../app/actions/hr-settings";
 
 const fieldClass =
-  "w-full min-w-0 rounded-lg border border-ink/20 bg-white dark:bg-surface px-3 py-2 text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent/40";
+  "w-full min-w-0 rounded-lg border border-outline-variant bg-surface-raised dark:bg-surface px-3 py-2 text-sm text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent/40";
 
 /** Per-type leave balances for one employee and year; HR can add adjustments. */
 export function LeaveBalancesCard({ balances, year, employeeId, canAdjust = false }: { balances: LeaveBalance[]; year: number; employeeId?: string; canAdjust?: boolean }) {
+  const modalFormId = React.useId();
+
   const { t, locale } = useAdminLocale();
   const l = t.leaveForm;
   const router = useRouter();
@@ -39,10 +41,10 @@ export function LeaveBalancesCard({ balances, year, employeeId, canAdjust = fals
   };
 
   return (
-    <Card className="space-y-3 p-5 dark:bg-surface-raised">
+    <Card className="space-y-3 p-5 dark:bg-surface-raised" data-page-section>
       <div className="flex flex-wrap items-center gap-2">
-        <h2 className="flex-1 text-sm font-semibold text-slate-900 dark:text-white">
-          {l.balances} <span className="font-normal text-slate-500">· <bdi dir="ltr">{year}</bdi></span>
+        <h2 className="flex-1 text-sm font-semibold text-ink dark:text-ink">
+          {l.balances} <span className="font-normal text-ink-muted">· <bdi dir="ltr">{year}</bdi></span>
         </h2>
         {canAdjust && employeeId && withBalance.length > 0 && (
           <Button type="button" size="sm" variant="outline" onClick={() => setOpen(true)}>
@@ -54,30 +56,30 @@ export function LeaveBalancesCard({ balances, year, employeeId, canAdjust = fals
       <div className="overflow-x-auto">
         <table className="w-full min-w-[560px] text-xs">
           <thead>
-            <tr className="text-slate-500 dark:text-slate-400">
+            <tr className="text-ink-muted dark:text-ink-muted">
               <th scope="col" className="py-2 pe-3 text-start font-medium">{t.leaveManagement.leaveType2.replace(/\s*\*$/, "")}</th>
               <th scope="col" className="py-2 px-2 text-end font-medium">{l.entitled}</th>
               <th scope="col" className="py-2 px-2 text-end font-medium">{l.carried}</th>
               <th scope="col" className="py-2 px-2 text-end font-medium">{l.adjusted}</th>
               <th scope="col" className="py-2 px-2 text-end font-medium">{l.used}</th>
               <th scope="col" className="py-2 px-2 text-end font-medium">{l.pending}</th>
-              <th scope="col" className="py-2 ps-2 text-end font-semibold text-slate-700 dark:text-slate-200">{l.available}</th>
+              <th scope="col" className="py-2 ps-2 text-end font-semibold text-ink dark:text-ink">{l.available}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-ink/5">
+          <tbody className="divide-y divide-outline-variant">
             {balances.map((b) => (
               <tr key={b.leaveTypeId}>
-                <th scope="row" className="py-2 pe-3 text-start font-medium text-slate-800 dark:text-slate-100">
+                <th scope="row" className="py-2 pe-3 text-start font-medium text-ink dark:text-ink">
                   {locale === "ar" ? b.nameAr : b.nameEn}
-                  <span className="block text-[10px] font-normal text-slate-500">
+                  <span className="block text-[10px] font-normal text-ink-muted">
                     {b.hasPayBands ? l.bands : formatMessage(l.paidAt, { percent: String(b.payPercent) })}
                     {!b.eligible && b.eligibleFrom ? ` · ${formatMessage(l.eligibleFrom, { date: b.eligibleFrom })}` : ""}
                   </span>
                 </th>
-                <td className="py-2 px-2 text-end text-slate-700 dark:text-slate-300">{b.entitled == null ? "—" : n(b.entitled)}</td>
-                <td className="py-2 px-2 text-end text-slate-700 dark:text-slate-300">{b.carriedOver ? n(b.carriedOver) : "—"}</td>
-                <td className="py-2 px-2 text-end text-slate-700 dark:text-slate-300">{b.adjustments ? n(b.adjustments) : "—"}</td>
-                <td className="py-2 px-2 text-end text-slate-700 dark:text-slate-300">{n(b.used)}</td>
+                <td className="py-2 px-2 text-end text-ink dark:text-ink">{b.entitled == null ? "—" : n(b.entitled)}</td>
+                <td className="py-2 px-2 text-end text-ink dark:text-ink">{b.carriedOver ? n(b.carriedOver) : "—"}</td>
+                <td className="py-2 px-2 text-end text-ink dark:text-ink">{b.adjustments ? n(b.adjustments) : "—"}</td>
+                <td className="py-2 px-2 text-end text-ink dark:text-ink">{n(b.used)}</td>
                 <td className="py-2 px-2 text-end text-amber-700 dark:text-amber-400">{b.pending ? n(b.pending) : "—"}</td>
                 <td className={`py-2 ps-2 text-end font-semibold ${b.available != null && b.available < 0 ? "text-rose-700 dark:text-rose-400" : "text-primary dark:text-accent"}`}>
                   {b.available == null ? l.unlimited : n(b.available)}
@@ -87,26 +89,26 @@ export function LeaveBalancesCard({ balances, year, employeeId, canAdjust = fals
           </tbody>
         </table>
       </div>
-      <Modal isOpen={open} onClose={() => setOpen(false)} title={l.adjust} closeLabel={t.shared.cancel}>
-        <form onSubmit={save} className="space-y-3">
-          <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-slate-200">
+      <Modal isOpen={open} onClose={() => setOpen(false)} title={l.adjust} closeLabel={t.shared.cancel} footer={<div className="flex justify-end gap-2">
+            <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>{t.shared.cancel}</Button>
+            <Button type="submit" size="sm" form={modalFormId}>{l.adjust}</Button>
+          </div>}>
+        <form onSubmit={save} className="space-y-3" id={modalFormId}>
+          <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
             {t.leaveManagement.leaveType2}
-            <select className={fieldClass} value={form.leaveTypeId} onChange={(e) => setForm({ ...form, leaveTypeId: e.target.value })}>
+            <Select className={fieldClass} value={form.leaveTypeId} onChange={(e) => setForm({ ...form, leaveTypeId: e.target.value })}>
               {withBalance.map((b) => <option key={b.leaveTypeId} value={b.leaveTypeId}>{locale === "ar" ? b.nameAr : b.nameEn}</option>)}
-            </select>
+            </Select>
           </label>
-          <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-slate-200">
+          <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
             {l.adjustDays}
             <input type="number" required step={0.5} min={-366} max={366} dir="ltr" className={fieldClass} value={form.days} onChange={(e) => setForm({ ...form, days: e.target.value })} />
           </label>
-          <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-slate-200">
+          <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
             {l.adjustReason}
             <input required maxLength={300} className={fieldClass} value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} />
           </label>
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>{t.shared.cancel}</Button>
-            <Button type="submit" size="sm">{l.adjust}</Button>
-          </div>
+
         </form>
       </Modal>
     </Card>

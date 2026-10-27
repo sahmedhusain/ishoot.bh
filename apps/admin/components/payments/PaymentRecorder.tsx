@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import type { Invoice, PaymentMethod } from "@platform/database/types";
-import { Modal, Input, Select, Button, CurrencyDisplay } from "@platform/ui";
+import { ModalFooter, Modal, Input, Select, Button, CurrencyDisplay } from "@platform/ui";
 import { CheckCircle2 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { createPaymentAction } from "../../app/actions/finance";
@@ -20,6 +20,8 @@ export function PaymentRecorder({
   invoice,
   onSuccess,
 }: PaymentRecorderProps) {
+  const modalFormId = React.useId();
+
   const { t } = useAdminLocale();
   const [amount, setAmount] = React.useState<number>(invoice.amount_due);
   const [method, setMethod] = React.useState<PaymentMethod>("bank_transfer");
@@ -65,7 +67,7 @@ export function PaymentRecorder({
   const modalTitle = `${t.paymentRecorder.modalTitle}: ${invoice.invoice_number}`;
 
   return (
-    <Modal closeLabel={t.actions.close} isOpen={isOpen} onClose={onClose} title={modalTitle}>
+    <Modal closeLabel={t.actions.close} isOpen={isOpen} onClose={onClose} title={modalTitle} footer={success ? <Button type="button" variant="outline" onClick={onClose}>{t.actions.close}</Button> : null}>
       {success ? (
         <div className="py-8 text-center space-y-3">
           <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 mx-auto flex items-center justify-center">
@@ -79,8 +81,8 @@ export function PaymentRecorder({
           </p>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="p-4 rounded-xl bg-surface-sunken border border-ink/10 flex justify-between items-center text-xs">
+        <form onSubmit={handleSubmit} className="space-y-5" id={modalFormId}>
+          <div className="p-4 rounded-xl bg-surface-sunken border border-outline-variant flex justify-between items-center text-xs">
             <div>
               <span className="text-ink-muted block">
                 {t.paymentRecorder.totalDue}
@@ -121,10 +123,10 @@ export function PaymentRecorder({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-ink-muted">
+            <label className="block space-y-1.5">
+              <span className="text-xs font-medium text-ink-muted">
                 {t.paymentRecorder.paymentMethod}
-              </label>
+              </span>
               <Select
                 value={method}
                 onChange={(e) => setMethod(e.target.value as PaymentMethod)}
@@ -137,44 +139,44 @@ export function PaymentRecorder({
                 <option value="card">{t.paymentRecorder.card}</option>
                 <option value="online">{t.paymentRecorder.online}</option>
               </Select>
-            </div>
+            </label>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-ink-muted">
+            <label className="block space-y-1.5">
+              <span className="text-xs font-medium text-ink-muted">
                 {t.paymentRecorder.paymentDate}
-              </label>
+              </span>
               <Input
                 type="date"
                 required
                 value={paymentDate}
                 onChange={(e) => setPaymentDate(e.target.value)}
               />
-            </div>
+            </label>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-ink-muted">
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium text-ink-muted">
               {t.paymentRecorder.refNumber}
-            </label>
+            </span>
             <Input
               placeholder={t.paymentRecorder.refPlaceholder}
               value={reference}
               onChange={(e) => setReference(e.target.value)}
             />
-          </div>
+          </label>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-ink-muted">
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium text-ink-muted">
               {t.paymentRecorder.notes}
-            </label>
+            </span>
             <Input
               placeholder={t.paymentRecorder.notesPlaceholder}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
-          </div>
+          </label>
 
-          <div className="pt-2 flex justify-end gap-3">
+          <ModalFooter><div className="flex justify-end gap-3">
             <Button type="button" variant="ghost" size="sm" onClick={onClose}>
               {t.actions.cancel}
             </Button>
@@ -183,12 +185,12 @@ export function PaymentRecorder({
               disabled={loading}
               variant="primary"
               size="sm"
-            >
+             form={modalFormId}>
               {loading
                 ? t.paymentRecorder.recording
                 : t.paymentRecorder.confirmAndIssue}
             </Button>
-          </div>
+          </div></ModalFooter>
         </form>
       )}
     </Modal>

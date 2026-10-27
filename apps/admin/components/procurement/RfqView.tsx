@@ -68,17 +68,17 @@ export function RfqView({ rfq, suppliers, currency, canEdit, canOrder }: { rfq: 
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
           <Link href={ROUTES.procurement.rfqs} className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent">
             <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" />
             {copy.title}
           </Link>
-          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex flex-wrap items-center gap-3">
+          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink flex flex-wrap items-center gap-3">
             <span dir="ltr">{rfq.number}</span>
             <StatusPill status={rfq.status} />
           </h1>
-          <p className="text-xs text-ink-muted mt-1">{rfq.title}{rfq.requisition && <> · <Link href={ROUTES.procurement.requisition(rfq.requisition.id)} className="hover:text-accent" dir="ltr">{rfq.requisition.number}</Link></>}</p>
+          <p className="text-xs text-ink-muted mt-1"><bdi dir="auto">{rfq.title}</bdi>{rfq.requisition && <> · <Link href={ROUTES.procurement.requisition(rfq.requisition.id)} className="hover:text-accent" dir="ltr">{rfq.requisition.number}</Link></>}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {open && canEdit && !entry && (
@@ -122,7 +122,7 @@ export function RfqView({ rfq, suppliers, currency, canEdit, canOrder }: { rfq: 
         </Card>
       )}
 
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden" data-page-section>
         <h2 className="px-4 pt-4 font-bold text-ink">{copy.compare}</h2>
         {rfq.suppliers.length === 0 ? (
           <p className="px-4 py-6 text-sm text-ink-muted">{copy.noQuotes}</p>
@@ -139,7 +139,7 @@ export function RfqView({ rfq, suppliers, currency, canEdit, canOrder }: { rfq: 
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink/10">
+              <tbody className="divide-y divide-outline-variant">
                 {rfq.lines.map((l) => {
                   const cheapest = best(l.id);
                   return (
@@ -172,7 +172,7 @@ export function RfqView({ rfq, suppliers, currency, canEdit, canOrder }: { rfq: 
           </div>
         )}
         {open && canOrder && rfq.quotes.length > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ink/10 px-4 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-outline-variant px-4 py-3">
             <p className="text-xs text-ink-muted">{copy.awardHint}</p>
             <Button type="button" variant="primary" size="sm" className="rounded-full" disabled={busy} onClick={() => run(() => awardRfqAction(rfq.id, rfq.lines.map((l) => choice(l.id)).filter(Boolean)), copy.awarded)} data-testid="rfq-award">{copy.award}</Button>
           </div>

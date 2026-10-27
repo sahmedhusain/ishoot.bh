@@ -14,7 +14,12 @@ export function AdminLoginFormView(brand: AuthBrandingProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const requestedCallback = searchParams.get("callbackUrl") || ROUTES.home;
-  const callbackUrl = requestedCallback.startsWith("/") && !requestedCallback.startsWith("//") && !requestedCallback.includes("\\") ? requestedCallback : ROUTES.home;
+  const callbackUrl =
+    requestedCallback.startsWith("/") &&
+    !requestedCallback.startsWith("//") &&
+    !requestedCallback.includes("\\")
+      ? requestedCallback
+      : ROUTES.home;
   const { t, locale, setLocale, isRTL } = useAdminLocale();
 
   const [email, setEmail] = React.useState("");
@@ -61,24 +66,25 @@ export function AdminLoginFormView(brand: AuthBrandingProps) {
   };
 
   return (
-    <div
+    <main
       dir={isRTL ? "rtl" : "ltr"}
-      className="min-h-screen flex items-center justify-center p-6 bg-brand-base relative overflow-hidden"
+      className="h-[100dvh] flex items-center justify-center px-6 pt-20 pb-6 bg-brand-base relative overflow-auto"
     >
-      <div className="absolute w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-primary/30 via-accent/10 to-transparent blur-3xl pointer-events-none" />
-
       <div className="absolute top-6 end-6 z-20">
         <button
           type="button"
           onClick={handleToggleLocale}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-ink-muted hover:text-white transition-all backdrop-blur-md"
+          className="m3-state-layer flex min-h-10 items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-primary"
         >
           <Globe className="w-3.5 h-3.5 text-accent" />
           <span>{t.loginView.switchLanguage}</span>
         </button>
       </div>
 
-      <Card className="relative z-10 w-full max-w-md p-8 sm:p-10 bg-brand-surface border border-accent/30 shadow-2xl rounded-3xl space-y-8">
+      <Card
+        variant="filled"
+        className="relative z-10 my-auto w-full max-w-md p-8 sm:p-10 bg-surface-container-low rounded-3xl space-y-8"
+      >
         <div className="text-center space-y-4">
           <AuthBrandMark {...brand} />
           <div className="space-y-1">
@@ -96,28 +102,33 @@ export function AdminLoginFormView(brand: AuthBrandingProps) {
         </div>
 
         {errorMessage && (
-          <div role="alert" className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-2.5 text-xs text-rose-300">
-            <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+          <div
+            role="alert"
+            id="login-error"
+            className="p-3.5 rounded-xl bg-m3-error-container flex items-start gap-2.5 text-sm text-m3-on-error-container"
+          >
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
             <span>{errorMessage}</span>
           </div>
         )}
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-ink-muted">
+            <label
+              htmlFor="login-email"
+              className="text-sm font-medium text-ink-muted"
+            >
               {t.loginView.emailLabel}
             </label>
-            <div className="relative">
-              <Mail
-                className={`w-4 h-4 absolute top-3.5 text-ink-muted ${isRTL ? "right-3.5" : "left-3.5"
-                  }`}
-              />
+            <div className="relative" dir="ltr">
+              <Mail className="pointer-events-none w-4 h-4 absolute start-3.5 top-1/2 -translate-y-1/2 text-ink-muted" />
               <Input
+                id="login-email"
                 type="email"
                 required
                 autoComplete="email"
                 placeholder={t.loginView.emailPlaceholder}
-                className={isRTL ? "pe-10" : "ps-10"}
+                className="ps-10"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -126,31 +137,49 @@ export function AdminLoginFormView(brand: AuthBrandingProps) {
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-medium text-ink-muted">
+              <label
+                htmlFor="login-password"
+                className="text-sm font-medium text-ink-muted"
+              >
                 {t.loginView.passwordLabel}
               </label>
-              <button type="button" onClick={() => router.push("/login/forgot")} className="text-[11px] text-accent hover:text-white transition-colors">
+              <button
+                type="button"
+                onClick={() => router.push("/login/forgot")}
+                className="min-h-10 text-sm text-primary hover:underline"
+              >
                 {t.adminLoginForm.forgotPassword}
               </button>
             </div>
             <div className="relative">
-              <Lock
-                className={`w-4 h-4 absolute top-3.5 text-ink-muted ${isRTL ? "right-3.5" : "left-3.5"
-                  }`}
-              />
+              <Lock className="pointer-events-none w-4 h-4 absolute start-3.5 top-1/2 -translate-y-1/2 text-ink-muted" />
               <Input
+                id="login-password"
+                aria-invalid={!!errorMessage}
+                aria-describedby={errorMessage ? "login-error" : undefined}
                 type="password"
                 required
                 autoComplete="current-password"
                 placeholder={t.loginView.passwordPlaceholder}
-                className={isRTL ? "pe-10" : "ps-10"}
+                className="ps-10"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
           </div>
 
-          {mfaRequired && <label className="block text-xs text-white">{t.adminLoginForm.authenticationOrRecoveryCode}<Input autoComplete="one-time-code" value={otp} maxLength={32} onChange={(e) => setOtp(e.target.value.trim())} required /></label>}
+          {mfaRequired && (
+            <label className="block text-sm text-ink">
+              {t.adminLoginForm.authenticationOrRecoveryCode}
+              <Input
+                autoComplete="one-time-code"
+                value={otp}
+                maxLength={32}
+                onChange={(e) => setOtp(e.target.value.trim())}
+                required
+              />
+            </label>
+          )}
 
           <Button
             type="submit"
@@ -166,10 +195,10 @@ export function AdminLoginFormView(brand: AuthBrandingProps) {
           </Button>
         </form>
 
-        <div className="text-center text-[11px] text-ink-muted/60">
+        <div className="text-center text-xs text-ink-muted">
           {t.loginView.footerNote}
         </div>
       </Card>
-    </div>
+    </main>
   );
 }

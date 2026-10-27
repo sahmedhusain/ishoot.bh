@@ -21,7 +21,7 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
-import { Button, Card, ConfirmDialog, DateDisplay, Modal } from "@platform/ui";
+import { Select, ModalFooter, Button, Card, ConfirmDialog, DateDisplay, Modal } from "@platform/ui";
 import {
   SOCIAL_PLAN_STATUSES,
   sumSocialCounts,
@@ -40,10 +40,10 @@ import { SocialBrandIcon } from "../shared/PlatformPicker";
 type Tab = "overview" | "posts" | "planner";
 
 const fieldClass =
-  "w-full min-w-0 rounded-lg border border-ink/15 bg-white dark:bg-surface px-3 py-2 text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent/40";
+  "w-full min-w-0 rounded-lg border border-outline-variant bg-surface-raised dark:bg-surface px-3 py-2 text-sm text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent/40";
 
 const planTone: Record<SocialPlanStatus, string> = {
-  idea: "bg-slate-500/10 text-slate-700 dark:text-slate-300",
+  idea: "bg-surface-sunken/10 text-ink dark:text-ink",
   draft: "bg-blue-500/10 text-blue-700 dark:text-blue-300",
   scheduled: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
   published: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
@@ -68,7 +68,7 @@ function Delta({ current, previous }: { current: number | null; previous: number
     <span className={`inline-flex items-center gap-0.5 text-[11px] font-medium ${up ? "text-emerald-700 dark:text-emerald-400" : "text-rose-700 dark:text-rose-400"}`}>
       {up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
       <bdi dir="ltr">{up ? "+" : ""}{change}%</bdi>
-      <span className="text-slate-500 font-normal">{t.socialAnalytics.kpi.vsPrevious}</span>
+      <span className="text-ink-muted font-normal">{t.socialAnalytics.kpi.vsPrevious}</span>
     </span>
   );
 }
@@ -77,10 +77,10 @@ function Kpi({ icon, label, value, footer }: { icon: React.ReactNode; label: str
   return (
     <Card className="space-y-2 p-4 dark:bg-surface-raised">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-medium text-slate-600 dark:text-slate-300">{label}</span>
+        <span className="text-xs font-medium text-ink-muted dark:text-ink">{label}</span>
         <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary dark:bg-white/10 dark:text-accent">{icon}</span>
       </div>
-      <p className="text-2xl font-bold text-slate-900 dark:text-white"><bdi dir="ltr">{value}</bdi></p>
+      <p className="text-2xl font-bold text-ink dark:text-ink"><bdi dir="ltr">{value}</bdi></p>
       {footer && <div className="min-h-4">{footer}</div>}
     </Card>
   );
@@ -111,13 +111,13 @@ function InteractionsChart({ daily }: { daily: SocialAnalytics["daily"] }) {
               className={`w-full rounded-t-sm ${point.interactions ? "bg-accent/80 group-hover:bg-accent" : "bg-ink/10"}`}
               style={{ height: `${Math.max(2, ((point.interactions ?? 0) / max) * 100)}%` }}
             />
-            <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[11px] text-white shadow group-hover:block dark:bg-white dark:text-slate-900">
+            <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded-m3-xs bg-m3-inverse-surface px-2 py-1 text-[11px] text-m3-inverse-on-surface shadow group-hover:block">
               {fmt.format(new Date(point.date))} · {number.full(point.interactions)} · {point.posts} {t.socialAnalytics.chartPosts}
             </div>
           </div>
         ))}
       </div>
-      <div className="flex justify-between text-[10px] text-slate-500" dir="ltr">
+      <div className="flex justify-between text-[10px] text-ink-muted" dir="ltr">
         {points.filter((_, i) => i % labelEvery === 0).map((point) => (
           <span key={point.date}>{fmt.format(new Date(point.date))}</span>
         ))}
@@ -132,22 +132,22 @@ function PostRow({ post }: { post: SocialPostView }) {
   const number = useNumber();
   return (
     <li className="flex gap-3 py-3">
-      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-slate-100 dark:bg-white/5">
+      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-surface-sunken dark:bg-white/5">
         {post.thumbnailUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={post.thumbnailUrl} alt="" className="h-full w-full object-cover" loading="lazy" referrerPolicy="no-referrer" />
         ) : (
-          <span className="flex h-full w-full items-center justify-center text-slate-400">
+          <span className="flex h-full w-full items-center justify-center text-ink-muted">
             <SocialBrandIcon name={post.platform} className="w-5 h-5" />
           </span>
         )}
-        <span className="absolute bottom-0.5 end-0.5 rounded bg-white/90 p-0.5 text-slate-800 dark:bg-black/70 dark:text-white">
+        <span className="absolute bottom-0.5 end-0.5 rounded bg-white/90 p-0.5 text-ink dark:bg-black/70 dark:text-ink">
           <SocialBrandIcon name={post.platform} className="w-3 h-3" />
         </span>
       </div>
       <div className="min-w-0 flex-1 space-y-1">
-        <p className="line-clamp-2 text-sm text-slate-800 dark:text-slate-100" dir="auto">{post.caption || s.noCaption}</p>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-600 dark:text-slate-400">
+        <p className="line-clamp-2 text-sm text-ink dark:text-ink" dir="auto">{post.caption || s.noCaption}</p>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-ink-muted dark:text-ink-muted">
           <DateDisplay date={post.publishedAt} locale={locale} />
           <span className="inline-flex items-center gap-1" title={s.likes}><Heart className="w-3 h-3" />{number.compact(post.likes)}</span>
           <span className="inline-flex items-center gap-1" title={s.comments}><MessageCircle className="w-3 h-3" />{number.compact(post.comments)}</span>
@@ -157,7 +157,7 @@ function PostRow({ post }: { post: SocialPostView }) {
         </div>
       </div>
       {post.permalink && (
-        <a href={post.permalink} target="_blank" rel="noreferrer" className="self-start rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-primary dark:hover:bg-white/5" aria-label={s.open}>
+        <a href={post.permalink} target="_blank" rel="noreferrer" className="self-start rounded-lg p-1.5 text-ink-muted hover:bg-surface-sunken hover:text-primary dark:hover:bg-white/5" aria-label={s.open}>
           <ExternalLink className="w-4 h-4" />
         </a>
       )}
@@ -174,6 +174,8 @@ function PlanForm({
   team: Array<{ id: string; fullName: string }>;
   onClose: () => void;
 }) {
+  const modalFormId = React.useId();
+
   const { t } = useAdminLocale();
   const p = t.socialAnalytics.plan;
   const router = useRouter();
@@ -210,22 +212,22 @@ function PlanForm({
   };
 
   return (
-    <form onSubmit={submit} className="space-y-3">
-      <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-slate-200">
+    <form onSubmit={submit} className="space-y-3" id={modalFormId}>
+      <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
         {p.title}
         <input required maxLength={200} className={fieldClass} value={form.title} onChange={(e) => set("title", e.target.value)} />
       </label>
-      <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-slate-200">
+      <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
         {p.caption}
         <textarea rows={4} maxLength={5000} className={fieldClass} value={form.caption} onChange={(e) => set("caption", e.target.value)} />
       </label>
       <fieldset>
-        <legend className="mb-1.5 text-xs font-medium text-slate-700 dark:text-slate-200">{p.platforms}</legend>
+        <legend className="mb-1.5 text-xs font-medium text-ink dark:text-ink">{p.platforms}</legend>
         <div className="flex flex-wrap gap-1.5">
           {SOCIAL_PLATFORM_IDS.map((id) => {
             const on = form.platforms.includes(id);
             return (
-              <label key={id} className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs focus-within:ring-2 focus-within:ring-accent/40 ${on ? "border-accent bg-accent/10 text-slate-900 dark:text-white" : "border-ink/15 text-slate-600 dark:text-slate-300"}`}>
+              <label key={id} className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs focus-within:ring-2 focus-within:ring-accent/40 ${on ? "border-accent bg-accent/10 text-ink dark:text-ink" : "border-outline-variant text-ink-muted dark:text-ink"}`}>
                 <input type="checkbox" className="sr-only" checked={on} onChange={() => set("platforms", on ? form.platforms.filter((x) => x !== id) : [...form.platforms, id])} />
                 <SocialBrandIcon name={id} className="w-3.5 h-3.5" />
                 {t.socialAnalytics.platforms[id]}
@@ -235,38 +237,38 @@ function PlanForm({
         </div>
       </fieldset>
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-slate-200">
+        <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
           {p.status}
-          <select className={fieldClass} value={form.status} onChange={(e) => set("status", e.target.value as SocialPlanStatus)}>
+          <Select className={fieldClass} value={form.status} onChange={(e) => set("status", e.target.value as SocialPlanStatus)}>
             {SOCIAL_PLAN_STATUSES.map((status) => <option key={status} value={status}>{p.statuses[status]}</option>)}
-          </select>
+          </Select>
         </label>
-        <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-slate-200">
+        <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
           {p.scheduledFor}
           <input type="datetime-local" className={fieldClass} required={form.status === "scheduled"} value={form.scheduledFor} onChange={(e) => set("scheduledFor", e.target.value)} />
         </label>
-        <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-slate-200">
+        <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
           {p.assignee}
-          <select className={fieldClass} value={form.assigneeId} onChange={(e) => set("assigneeId", e.target.value)}>
+          <Select className={fieldClass} value={form.assigneeId} onChange={(e) => set("assigneeId", e.target.value)}>
             <option value="">{p.unassigned}</option>
             {team.map((member) => <option key={member.id} value={member.id}>{member.fullName}</option>)}
-          </select>
+          </Select>
         </label>
-        <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-slate-200">
+        <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
           {p.media}
           <input type="url" dir="ltr" className={fieldClass} placeholder={t.copy.urlExample} value={form.mediaUrl} onChange={(e) => set("mediaUrl", e.target.value)} />
         </label>
       </div>
       {form.status === "published" && (
-        <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-slate-200">
+        <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
           {p.publishedUrl}
           <input type="url" dir="ltr" className={fieldClass} placeholder={t.copy.urlExample} value={form.publishedUrl} onChange={(e) => set("publishedUrl", e.target.value)} />
         </label>
       )}
-      <div className="flex justify-end gap-2 pt-2">
+      <ModalFooter><div className="flex justify-end gap-2">
         <Button type="button" variant="ghost" size="sm" onClick={onClose}>{p.cancel}</Button>
-        <Button type="submit" size="sm" disabled={saving || !form.platforms.length}>{p.save}</Button>
-      </div>
+        <Button type="submit" size="sm" disabled={saving || !form.platforms.length} form={modalFormId}>{p.save}</Button>
+      </div></ModalFooter>
     </form>
   );
 }
@@ -292,8 +294,8 @@ function Planner({ plans, team, canEdit, canDelete }: { plans: SocialPlanView[];
               role="tab"
               aria-selected={filter === status}
               onClick={() => setFilter(status)}
-              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${filter === status ? "bg-primary text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10"}`}
-            >
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${filter === status ? "bg-primary text-primary-foreground" : "bg-surface-sunken text-ink hover:bg-surface-sunken dark:bg-white/5 dark:text-ink dark:hover:bg-white/10"}`}
+             tabIndex={filter === status ? 0 : -1}>
               {status === "all" ? p.all : p.statuses[status]}
               <span className="ms-1 opacity-70">{status === "all" ? plans.length : plans.filter((x) => x.status === status).length}</span>
             </button>
@@ -308,7 +310,7 @@ function Planner({ plans, team, canEdit, canDelete }: { plans: SocialPlanView[];
       </div>
 
       {shown.length === 0 ? (
-        <Card className="p-10 text-center text-sm text-slate-600 dark:text-slate-300 dark:bg-surface-raised">{p.empty}</Card>
+        <Card className="p-10 text-center text-sm text-ink-muted dark:text-ink dark:bg-surface-raised">{p.empty}</Card>
       ) : (
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {shown.map((plan) => {
@@ -316,22 +318,22 @@ function Planner({ plans, team, canEdit, canDelete }: { plans: SocialPlanView[];
             return (
               <Card key={plan.id} className="flex flex-col gap-2 p-4 dark:bg-surface-raised">
                 <div className="flex items-start gap-2">
-                  <h3 className="min-w-0 flex-1 text-sm font-semibold text-slate-900 dark:text-white" dir="auto">{plan.title}</h3>
+                  <h3 className="min-w-0 flex-1 text-sm font-semibold text-ink dark:text-ink" dir="auto"><bdi dir="auto">{plan.title}</bdi></h3>
                   <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${planTone[plan.status]}`}>{p.statuses[plan.status]}</span>
                 </div>
-                {plan.caption && <p className="line-clamp-3 text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap" dir="auto">{plan.caption}</p>}
-                <div className="flex flex-wrap items-center gap-2 text-slate-600 dark:text-slate-300">
+                {plan.caption && <p className="line-clamp-3 text-xs text-ink-muted dark:text-ink whitespace-pre-wrap" dir="auto">{plan.caption}</p>}
+                <div className="flex flex-wrap items-center gap-2 text-ink-muted dark:text-ink">
                   {plan.platforms.map((id) => (
                     <span key={id} title={t.socialAnalytics.platforms[id]}><SocialBrandIcon name={id} className="w-3.5 h-3.5" /></span>
                   ))}
                 </div>
-                <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 text-[11px] text-slate-600 dark:text-slate-400">
+                <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 text-[11px] text-ink-muted dark:text-ink-muted">
                   <span className={`inline-flex items-center gap-1 ${overdue ? "font-semibold text-rose-700 dark:text-rose-400" : ""}`}>
                     <CalendarClock className="w-3 h-3" />
                     {plan.scheduledFor ? <DateDisplay date={plan.scheduledFor} locale={locale} /> : p.unscheduled}
                     {overdue && ` · ${p.overdue}`}
                   </span>
-                  {plan.assignee && <span className="truncate">{plan.assignee.fullName}</span>}
+                  {plan.assignee && <span className="truncate"><bdi dir="auto">{plan.assignee.fullName}</bdi></span>}
                   {plan.publishedUrl && (
                     <a href={plan.publishedUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary dark:text-accent hover:underline">
                       <ExternalLink className="w-3 h-3" />{t.socialAnalytics.open}
@@ -339,7 +341,7 @@ function Planner({ plans, team, canEdit, canDelete }: { plans: SocialPlanView[];
                   )}
                   <span className="ms-auto flex gap-1">
                     {canEdit && (
-                      <button type="button" className="rounded-md p-1 hover:bg-slate-100 dark:hover:bg-white/10" aria-label={p.edit} onClick={() => setEditing(plan)}>
+                      <button type="button" className="rounded-md p-1 hover:bg-surface-sunken dark:hover:bg-white/10" aria-label={p.edit} onClick={() => setEditing(plan)}>
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                     )}
@@ -356,7 +358,7 @@ function Planner({ plans, team, canEdit, canDelete }: { plans: SocialPlanView[];
         </div>
       )}
 
-      <Modal isOpen={editing !== null} onClose={() => setEditing(null)} title={editing === "new" ? p.add : p.edit} closeLabel={p.cancel}>
+      <Modal isOpen={editing !== null} onClose={() => setEditing(null)} title={editing === "new" ? p.add : p.edit} closeLabel={p.cancel} footer={null}>
         {editing !== null && <PlanForm plan={editing === "new" ? null : editing} team={team} onClose={() => setEditing(null)} />}
       </Modal>
       <ConfirmDialog
@@ -434,24 +436,24 @@ export function SocialAnalyticsView({
     <div className="space-y-6 pb-16">
       <header className="flex flex-wrap items-end gap-3">
         <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{s.title}</h1>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{s.subtitle}</p>
-          <p className="mt-1 text-xs text-slate-500">{s.snapshotScope}</p>
+          <h1 className="text-2xl font-bold tracking-tight text-ink dark:text-ink">{s.title}</h1>
+          <p className="mt-1 text-sm text-ink-muted dark:text-ink">{s.subtitle}</p>
+          <p className="mt-1 text-xs text-ink-muted">{s.snapshotScope}</p>
           {analytics.partial && <p role="status" className="mt-1 text-xs text-amber-700 dark:text-amber-400">{s.partial}</p>}
           {lastSynced && (
-            <p className="mt-1 flex flex-wrap items-center gap-1 text-xs text-slate-500">
+            <p className="mt-1 flex flex-wrap items-center gap-1 text-xs text-ink-muted">
               {s.updated} <DateDisplay date={lastSynced} locale={locale} format="time" />
             </p>
           )}
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <select aria-label={s.period} className={`${fieldClass} w-auto`} value={String(analytics.periodDays)} onChange={(e) => setParam("days", e.target.value === "30" ? null : e.target.value)}>
+        <div className="flex flex-wrap items-center gap-2" data-page-toolbar>
+          <Select aria-label={s.period} className={`${fieldClass} w-auto`} value={String(analytics.periodDays)} onChange={(e) => setParam("days", e.target.value === "30" ? null : e.target.value)}>
             {(["7", "30", "90", "365"] as const).map((days) => <option key={days} value={days}>{s.periods[days]}</option>)}
-          </select>
-          <select aria-label={s.allPlatforms} className={`${fieldClass} w-auto`} value={platform ?? ""} onChange={(e) => setParam("platform", e.target.value || null)}>
+          </Select>
+          <Select aria-label={s.allPlatforms} className={`${fieldClass} w-auto`} value={platform ?? ""} onChange={(e) => setParam("platform", e.target.value || null)}>
             <option value="">{s.allPlatforms}</option>
             {SOCIAL_PLATFORM_IDS.map((id) => <option key={id} value={id}>{s.platforms[id]}</option>)}
-          </select>
+          </Select>
           {can("social", "write") && connected.length > 0 && (
             <Button type="button" size="sm" variant="outline" disabled={refreshing} onClick={refresh}>
               <RefreshCw className={`w-3.5 h-3.5 me-1 ${refreshing ? "animate-spin" : ""}`} />
@@ -461,7 +463,7 @@ export function SocialAnalyticsView({
         </div>
       </header>
 
-      <div className="flex gap-1 border-b border-ink/10" role="tablist">
+      <div className="flex gap-1 border-b border-outline-variant" role="tablist">
         {(["overview", "posts", "planner"] as const).map((key) => (
           <button
             key={key}
@@ -469,20 +471,20 @@ export function SocialAnalyticsView({
             role="tab"
             aria-selected={tab === key}
             onClick={() => setTab(key)}
-            className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium transition-colors ${tab === key ? "border-primary text-primary dark:border-accent dark:text-accent" : "border-transparent text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"}`}
-          >
+            className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium transition-colors ${tab === key ? "border-primary text-primary dark:border-accent dark:text-accent" : "border-transparent text-ink-muted hover:text-ink dark:text-ink-muted dark:hover:text-white"}`}
+           tabIndex={tab === key ? 0 : -1}>
             {s.tabs[key]}
           </button>
         ))}
       </div>
 
       {tab === "overview" && (
-        <div className="space-y-6">
+        <div className="space-y-6" data-tab-panel>
           {!hasData && (
             <Card data-testid="social-empty" className="flex flex-col items-center gap-3 p-8 text-center dark:bg-surface-raised">
-              <p className="max-w-md text-sm text-slate-600 dark:text-slate-300">{connected.length ? s.noData : s.empty}</p>
+              <p className="max-w-md text-sm text-ink-muted dark:text-ink">{connected.length ? s.noData : s.empty}</p>
               {can("settings", "write") && (
-                <Link href={ROUTES.settings.integrations} className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primary-light">
+                <Link href={ROUTES.settings.integrations} className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary-light">
                   {s.connect}
                 </Link>
               )}
@@ -509,15 +511,15 @@ export function SocialAnalyticsView({
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {analytics.accounts.map((account) => (
               <Card key={account.platform} data-testid={`social-account-${account.platform}`} className="flex items-center gap-3 p-4 dark:bg-surface-raised">
-                <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${account.connected ? "bg-primary/10 text-primary dark:bg-white/10 dark:text-white" : "bg-slate-100 text-slate-400 dark:bg-white/5"}`}>
+                <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${account.connected ? "bg-primary/10 text-primary dark:bg-white/10 dark:text-ink" : "bg-surface-sunken text-ink-muted dark:bg-white/5"}`}>
                   <SocialBrandIcon name={account.platform} className="w-5 h-5" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-slate-900 dark:text-white">{s.platforms[account.platform]}</p>
-                  <p className="text-xs text-slate-600 dark:text-slate-400">
+                  <p className="text-sm font-semibold text-ink dark:text-ink">{s.platforms[account.platform]}</p>
+                  <p className="text-xs text-ink-muted dark:text-ink-muted">
                     {account.followers != null ? (
                       <>
-                        <bdi dir="ltr" className="font-semibold text-slate-800 dark:text-slate-100">{number.full(account.followers)}</bdi> {s.metrics.followers}
+                        <bdi dir="ltr" className="font-semibold text-ink dark:text-ink">{number.full(account.followers)}</bdi> {s.metrics.followers}
                         {account.followersChange ? (
                           <span className={account.followersChange > 0 ? "text-emerald-700 dark:text-emerald-400" : "text-rose-700 dark:text-rose-400"}>
                             {" "}<bdi dir="ltr">({account.followersChange > 0 ? "+" : ""}{number.full(account.followersChange)})</bdi>
@@ -538,8 +540,8 @@ export function SocialAnalyticsView({
           </div>
 
           {analytics.ownerInsights.map(owner => (
-            <Card key={owner.platform} data-testid={`social-owner-${owner.platform}`} className="space-y-4 p-4 sm:p-5 dark:bg-surface-raised">
-              <h2 className="text-sm font-semibold text-slate-900 dark:text-white">{formatMessage(s.owner.title, { platform: s.platforms[owner.platform] })}</h2>
+            <Card key={owner.platform} data-testid={`social-owner-${owner.platform}`} className="space-y-4 p-4 sm:p-5 dark:bg-surface-raised" data-page-section>
+              <h2 className="text-sm font-semibold text-ink dark:text-ink">{formatMessage(s.owner.title, { platform: s.platforms[owner.platform] })}</h2>
               <p className="text-xs text-ink-muted">{s.owner.scope}</p>
               {owner.snapshot ? <>
                 <p className="flex flex-wrap items-center gap-2 text-xs text-ink-muted" data-testid="owner-period">
@@ -550,7 +552,7 @@ export function SocialAnalyticsView({
                   <span>{owner.snapshot.timeZone === "America/Los_Angeles" ? s.owner.pacific : owner.snapshot.timeZone}</span>
                 </p>
                 <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  {SOCIAL_OWNER_METRIC_IDS.map(metric => <div key={metric} className="rounded-xl border border-ink/10 p-3" data-testid={`owner-metric-${metric}`}>
+                  {SOCIAL_OWNER_METRIC_IDS.map(metric => <div key={metric} className="rounded-xl border border-outline-variant p-3" data-testid={`owner-metric-${metric}`}>
                     <dt className="text-xs text-ink-muted">{s.owner.metrics[metric]}</dt>
                     <dd className="mt-1 text-lg font-semibold tabular-nums" dir="ltr">{number.full(owner.snapshot!.metrics[metric] ?? null)}</dd>
                     {owner.snapshot!.metrics[metric] == null && <p className="mt-1 text-[11px] text-ink-muted">{s.owner.unavailable}</p>}
@@ -568,22 +570,22 @@ export function SocialAnalyticsView({
           ))}
 
           <div className="grid gap-4 lg:grid-cols-3">
-            <Card className="space-y-3 p-4 sm:p-5 lg:col-span-2 dark:bg-surface-raised">
-              <h2 className="text-sm font-semibold text-slate-900 dark:text-white">{s.chartTitle}</h2>
-              {analytics.daily.some(day => day.interactions != null) ? <InteractionsChart daily={analytics.daily} /> : <p className="text-xs text-slate-500">{s.noData}</p>}
+            <Card className="space-y-3 p-4 sm:p-5 lg:col-span-2 dark:bg-surface-raised" data-page-section>
+              <h2 className="text-sm font-semibold text-ink dark:text-ink">{s.chartTitle}</h2>
+              {analytics.daily.some(day => day.interactions != null) ? <InteractionsChart daily={analytics.daily} /> : <p className="text-xs text-ink-muted">{s.noData}</p>}
             </Card>
-            <Card className="space-y-3 p-4 sm:p-5 dark:bg-surface-raised">
-              <h2 className="text-sm font-semibold text-slate-900 dark:text-white">{s.byPlatform}</h2>
+            <Card className="space-y-3 p-4 sm:p-5 dark:bg-surface-raised" data-page-section>
+              <h2 className="text-sm font-semibold text-ink dark:text-ink">{s.byPlatform}</h2>
               {analytics.byPlatform.length === 0 ? (
-                <p className="text-xs text-slate-500">{s.noPosts}</p>
+                <p className="text-xs text-ink-muted">{s.noPosts}</p>
               ) : (
                 <ul className="space-y-3">
                   {analytics.byPlatform.map((row) => (
                     <li key={row.platform} className="space-y-1">
                       <div className="flex items-center gap-2 text-xs">
                         <SocialBrandIcon name={row.platform} className="w-3.5 h-3.5" />
-                        <span className="font-medium text-slate-800 dark:text-slate-100">{s.platforms[row.platform]}</span>
-                        <span className="ms-auto text-slate-600 dark:text-slate-400"><bdi dir="ltr">{number.compact(row.interactions)}</bdi> · {row.posts} {s.chartPosts}</span>
+                        <span className="font-medium text-ink dark:text-ink">{s.platforms[row.platform]}</span>
+                        <span className="ms-auto text-ink-muted dark:text-ink-muted"><bdi dir="ltr">{number.compact(row.interactions)}</bdi> · {row.posts} {s.chartPosts}</span>
                       </div>
                       <div className="h-2 overflow-hidden rounded-full bg-ink/10">
                         <div className="h-full rounded-full bg-accent" style={{ width: `${((row.interactions ?? 0) / maxPlatform) * 100}%` }} />
@@ -595,12 +597,12 @@ export function SocialAnalyticsView({
             </Card>
           </div>
 
-          <Card className="p-4 sm:p-5 dark:bg-surface-raised">
-            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">{s.topPosts}</h2>
+          <Card className="p-4 sm:p-5 dark:bg-surface-raised" data-page-section>
+            <h2 className="text-sm font-semibold text-ink dark:text-ink">{s.topPosts}</h2>
             {analytics.topPosts.length === 0 ? (
-              <p className="mt-3 text-xs text-slate-500">{s.noPosts}</p>
+              <p className="mt-3 text-xs text-ink-muted">{s.noPosts}</p>
             ) : (
-              <ol className="divide-y divide-ink/10">
+              <ol className="divide-y divide-outline-variant">
                 {analytics.topPosts.map((post) => <PostRow key={post.id} post={post} />)}
               </ol>
             )}
@@ -609,11 +611,11 @@ export function SocialAnalyticsView({
       )}
 
       {tab === "posts" && (
-        <Card className="p-4 sm:p-5 dark:bg-surface-raised">
+        <Card className="p-4 sm:p-5 dark:bg-surface-raised" data-tab-panel>
           {analytics.recentPosts.length === 0 ? (
-            <p className="py-6 text-center text-sm text-slate-600 dark:text-slate-300">{s.noPosts}</p>
+            <p className="py-6 text-center text-sm text-ink-muted dark:text-ink">{s.noPosts}</p>
           ) : (
-            <ul className="divide-y divide-ink/10">
+            <ul className="divide-y divide-outline-variant">
               {analytics.recentPosts.map((post) => <PostRow key={post.id} post={post} />)}
             </ul>
           )}

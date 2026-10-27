@@ -73,9 +73,9 @@ export function ReportView({ result, locale: dataLocale, compare, schedules, cur
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
-      <div className="space-y-2">
+      <div className="space-y-2" data-page-header>
         <Link href={ROUTES.reports.list} className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent"><ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" />{copy.view.back}</Link>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{title?.title}</h1>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink"><bdi dir="auto">{title?.title}</bdi></h1>
         <p className="text-xs text-ink-muted max-w-2xl">{title?.description}</p>
       </div>
 
@@ -87,7 +87,7 @@ export function ReportView({ result, locale: dataLocale, compare, schedules, cur
             <Button type="button" size="sm" variant="primary" className="rounded-full" onClick={() => go(period)} data-testid="report-run">{copy.view.run}</Button>
             <div className="flex flex-wrap gap-1">
               {(Object.keys(ranges) as (keyof typeof ranges)[]).map((k) => (
-                <button key={k} type="button" onClick={() => { setPeriod(ranges[k]); go(ranges[k]); }} className="rounded-full border border-ink/10 px-2.5 py-1 text-xs hover:border-accent">{copy.view.presets[k]}</button>
+                <button key={k} type="button" onClick={() => { setPeriod(ranges[k]); go(ranges[k]); }} className="rounded-full border border-outline-variant px-2.5 py-1 text-xs hover:border-accent">{copy.view.presets[k]}</button>
               ))}
             </div>
             {measure && (
@@ -103,7 +103,7 @@ export function ReportView({ result, locale: dataLocale, compare, schedules, cur
         <div className="ms-auto flex items-center gap-1.5">
           <Download className="w-4 h-4 text-ink-muted" aria-hidden="true" />
           {REPORT_FORMATS.map((f) => (
-            <a key={f} href={`${ROUTES.reports.export(definition.key)}?${query({ format: f })}`} className="rounded-full border border-ink/15 px-2.5 py-1 text-xs font-semibold hover:border-accent" data-testid={`report-export-${f}`}>{copy.view.formats[f]}</a>
+            <a key={f} href={`${ROUTES.reports.export(definition.key)}?${query({ format: f })}`} className="rounded-full border border-outline-variant px-2.5 py-1 text-xs font-semibold hover:border-accent" data-testid={`report-export-${f}`}>{copy.view.formats[f]}</a>
           ))}
         </div>
       </Card>
@@ -121,7 +121,7 @@ export function ReportView({ result, locale: dataLocale, compare, schedules, cur
       )}
 
       {top.length > 0 && measure && (
-        <Card className="p-5 space-y-2" data-testid="report-chart">
+        <Card className="p-5 space-y-2" data-testid="report-chart" data-page-section>
           <h2 className="text-xs font-semibold text-ink-muted">{columnLabel(measure.key)}</h2>
           <ul className="space-y-1.5">
             {top.map((r) => (
@@ -141,12 +141,12 @@ export function ReportView({ result, locale: dataLocale, compare, schedules, cur
         ) : (
           <table className="w-full text-sm" data-testid="report-table">
             <thead className="text-xs text-ink-muted">
-              <tr className="border-b border-ink/10">
+              <tr className="border-b border-outline-variant">
                 {definition.columns.map((c) => <th key={c.key} className={`px-3 py-2 font-medium ${c.kind === "text" || c.kind === "date" ? "text-start" : "text-end"}`}>{columnLabel(c.key)}</th>)}
                 {result.previous && measure && <th className="px-3 py-2 font-medium text-end">{copy.view.change}</th>}
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink/10">
+            <tbody className="divide-y divide-outline-variant">
               {result.rows.map((r) => {
                 const change = result.previous && measure ? changePercent(Number(r[measure.key]) || 0, result.previous.byKey[String(r.key)] ?? 0) : null;
                 return (
@@ -158,7 +158,7 @@ export function ReportView({ result, locale: dataLocale, compare, schedules, cur
               })}
             </tbody>
             <tfoot>
-              <tr className="border-t-2 border-ink/10 font-semibold" data-testid="report-totals">
+              <tr className="border-t-2 border-outline-variant font-semibold" data-testid="report-totals">
                 {definition.columns.map((c, i) => <td key={c.key} className={`px-3 py-2 ${i === 0 ? "text-start" : "text-end tabular-nums"}`}>{i === 0 ? copy.view.total : c.key in result.totals ? show(result.totals[c.key], c.kind) : ""}</td>)}
                 {result.previous && measure && <td />}
               </tr>
@@ -194,13 +194,13 @@ function Schedules({ reportKey, schedules }: { reportKey: string; schedules: Rep
     }
   };
   return (
-    <Card className="p-5 space-y-3" data-testid="report-schedules">
+    <Card className="p-5 space-y-3" data-testid="report-schedules" data-page-section>
       <h2 className="font-bold text-ink flex items-center gap-2"><Mail className="w-4 h-4 text-accent" aria-hidden="true" />{copy.title}</h2>
       <p className="text-xs text-ink-muted">{copy.hint}</p>
       {schedules.length === 0 ? (
         <p className="text-sm text-ink-muted">{copy.none}</p>
       ) : (
-        <ul className="divide-y divide-ink/10 text-sm">
+        <ul className="divide-y divide-outline-variant text-sm">
           {schedules.map((s) => (
             <li key={s.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2">
               <span className="font-medium">{(copy.frequencies as Record<string, string>)[s.frequency]} · {(t.reports.view.formats as Record<string, string>)[s.format]}</span>

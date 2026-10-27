@@ -75,7 +75,7 @@ export function SettlementsListView({
     return `${ROUTES.hr.settlements()}${params.size ? `?${params}` : ""}`;
   };
   const chip = (active: boolean) =>
-    `h-9 inline-flex items-center rounded-full border px-4 text-xs font-semibold ${active ? "border-accent bg-accent/10 text-ink" : "border-ink/15 text-ink-muted hover:text-ink"}`;
+    `h-9 inline-flex items-center rounded-full border px-4 text-xs font-semibold ${active ? "border-accent bg-accent/10 text-ink" : "border-outline-variant text-ink-muted hover:text-ink"}`;
 
   const saveRules = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -98,11 +98,11 @@ export function SettlementsListView({
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 pb-16">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center" data-page-header>
         <div>
           <h1 className="flex items-center gap-2 text-xl font-bold text-ink sm:text-2xl">
             <FileSignature className="h-5 w-5 text-accent" aria-hidden />
-            {f.title}
+            <bdi dir="auto">{f.title}</bdi>
           </h1>
           <p className="mt-1 text-xs text-ink-muted">{f.subtitle}</p>
         </div>
@@ -121,7 +121,7 @@ export function SettlementsListView({
           {canCreate && (
             <Link
               href={ROUTES.hr.newSettlement()}
-              className="inline-flex h-9 items-center gap-1.5 rounded-full bg-primary px-4 text-xs font-semibold text-white hover:bg-primary/90"
+              className="inline-flex h-9 items-center gap-1.5 rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
             >
               <Plus className="h-4 w-4" aria-hidden />
               {f.new}
@@ -323,15 +323,15 @@ export function SettlementsListView({
       </div>
 
       {items.length === 0 ? (
-        <p className="rounded-3xl border border-dashed border-ink/15 p-10 text-center text-sm text-ink-muted">
+        <p className="rounded-3xl border border-dashed border-outline-variant p-10 text-center text-sm text-ink-muted">
           {f.empty}
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-3xl border border-ink/10 bg-white dark:bg-surface-raised">
+        <div className="overflow-x-auto rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised">
           <table className="w-full text-sm">
             <thead className="bg-ink/[0.03] text-xs text-ink-muted">
               <tr>
-                <th className="px-4 py-3 text-start">{f.fields.reference}</th>
+                <th className="px-4 py-3 text-start"><bdi dir="ltr">{f.fields.reference}</bdi></th>
                 <th className="px-4 py-3 text-start">{f.fields.employee}</th>
                 <th className="px-4 py-3 text-start">{f.fields.reason}</th>
                 <th className="px-4 py-3 text-start">
@@ -341,7 +341,7 @@ export function SettlementsListView({
                 <th className="px-4 py-3 text-start">{f.fields.status}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink/5">
+            <tbody className="divide-y divide-outline-variant">
               {items.map((s) => (
                 <tr key={s.id} className="hover:bg-ink/[0.02]">
                   <td className="px-4 py-3">

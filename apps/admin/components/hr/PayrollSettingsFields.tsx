@@ -1,4 +1,5 @@
 "use client";
+import { Select } from "@platform/ui";
 import type { EmployeePayrollSettings } from "@platform/database/types";
 import * as React from "react";
 import { tamkeenSupports, TAMKEEN_PROVIDER } from "@platform/database/constants/hr-support";
@@ -20,9 +21,9 @@ export function PayrollSettingsFields({
   const [tamkeenStart, setTamkeenStart] = React.useState("");
   const hasTamkeen = value.supports.some((s) => s.provider.trim() === TAMKEEN_PROVIDER);
   const inputClass =
-    "w-full rounded border border-slate-300 bg-transparent p-2 text-sm";
+    "w-full rounded border border-outline-variant bg-transparent p-2 text-sm";
   return (
-    <section className="space-y-4 rounded-lg border border-slate-200 dark:border-white/10 p-5">
+    <section className="space-y-4 rounded-lg border border-outline-variant dark:border-white/10 p-5" data-page-section>
       <h2 className="font-semibold">{h.contributions}</h2>
       <div className="grid gap-4 sm:grid-cols-2">
         {(["employee", "employer"] as const).map((key) => (
@@ -32,7 +33,7 @@ export function PayrollSettingsFields({
                 ? h.employeeContribution
                 : h.employerContribution}
             </legend>
-            <select
+            <Select
               aria-label={
                 key === "employee"
                   ? h.employeeContribution
@@ -52,7 +53,7 @@ export function PayrollSettingsFields({
             >
               <option value="percentage">{h.percentage}</option>
               <option value="fixed">{h.fixed}</option>
-            </select>
+            </Select>
             <input
               aria-label={h.value}
               className={inputClass}
@@ -107,7 +108,7 @@ export function PayrollSettingsFields({
                 onChange={(e) => change({ value: Number(e.target.value) })}
               />
             </label>
-            <select
+            <Select
               aria-label={h.value}
               className={inputClass}
               value={support.mode}
@@ -117,7 +118,7 @@ export function PayrollSettingsFields({
             >
               <option value="percentage">{h.percentage}</option>
               <option value="fixed">{h.fixed}</option>
-            </select>
+            </Select>
             <label>
               {h.startMonth}
               <input
@@ -157,7 +158,7 @@ export function PayrollSettingsFields({
         <div className="flex flex-wrap items-end gap-3 rounded-lg bg-emerald-500/5 border border-emerald-500/20 p-3">
           <label className="text-sm">
             <span className="block font-semibold">{t.tamkeen.addTitle}</span>
-            <span className="block text-xs text-slate-500 mb-1">{t.tamkeen.addHint}</span>
+            <span className="block text-xs text-ink-muted mb-1">{t.tamkeen.addHint}</span>
             <input type="month" className={inputClass} value={tamkeenStart} onChange={(e) => setTamkeenStart(e.target.value)} aria-label={t.tamkeen.firstMonth} />
           </label>
           <button

@@ -46,7 +46,7 @@ export function HandoversListView({ items, status, kind, startFor, employees, ca
     const next = { status, kind, ...patch };
     return ROUTES.hr.handovers({ status: next.status === "active" ? null : next.status, kind: next.kind === "all" ? null : next.kind });
   };
-  const chip = (active: boolean) => `h-9 inline-flex items-center rounded-full border px-4 text-xs font-semibold ${active ? "border-accent bg-accent/10 text-ink" : "border-ink/15 text-ink-muted hover:text-ink"}`;
+  const chip = (active: boolean) => `h-9 inline-flex items-center rounded-full border px-4 text-xs font-semibold ${active ? "border-accent bg-accent/10 text-ink" : "border-outline-variant text-ink-muted hover:text-ink"}`;
 
   const start = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -69,9 +69,9 @@ export function HandoversListView({ items, status, kind, startFor, employees, ca
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-ink flex items-center gap-2"><ArrowRightLeft className="h-5 w-5 text-accent" />{e.title}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-ink flex items-center gap-2"><ArrowRightLeft className="h-5 w-5 text-accent" /><bdi dir="auto">{e.title}</bdi></h1>
           <p className="text-xs text-ink-muted mt-1">{e.subtitle}</p>
         </div>
         {canEdit && !starting ? <Button size="sm" className="gap-1.5 rounded-full h-9 self-start" onClick={() => setStarting(true)}><Plus className="h-4 w-4" />{e.start}</Button> : null}
@@ -128,11 +128,11 @@ export function HandoversListView({ items, status, kind, startFor, employees, ca
       </div>
 
       {items.length ? (
-        <div className="overflow-x-auto rounded-3xl border border-ink/10 bg-white dark:bg-surface-raised">
+        <div className="overflow-x-auto rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised">
           <table className="w-full text-sm">
             <thead className="text-[11px] uppercase tracking-wide text-ink-muted">
-              <tr className="border-b border-ink/10">
-                <th className="px-4 py-3 text-start">{e.reference}</th>
+              <tr className="border-b border-outline-variant">
+                <th className="px-4 py-3 text-start"><bdi dir="ltr">{e.reference}</bdi></th>
                 <th className="px-4 py-3 text-start">{e.employee}</th>
                 <th className="px-4 py-3 text-start">{e.kind}</th>
                 <th className="px-4 py-3 text-start">{e.dates}</th>
@@ -140,7 +140,7 @@ export function HandoversListView({ items, status, kind, startFor, employees, ca
                 <th className="px-4 py-3 text-start">{e.status}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink/5">
+            <tbody className="divide-y divide-outline-variant">
               {items.map((h) => (
                 <tr key={h.id} className="hover:bg-ink/[0.02]">
                   <td className="px-4 py-3"><Link href={ROUTES.hr.handover(h.id)} className="font-mono text-xs font-semibold text-accent hover:underline">{h.reference}</Link></td>
@@ -161,7 +161,7 @@ export function HandoversListView({ items, status, kind, startFor, employees, ca
           </table>
         </div>
       ) : (
-        <div className="rounded-3xl border border-dashed border-ink/15 p-10 text-center text-sm text-ink-muted">{e.empty}</div>
+        <div className="rounded-3xl border border-dashed border-outline-variant p-10 text-center text-sm text-ink-muted">{e.empty}</div>
       )}
     </div>
   );

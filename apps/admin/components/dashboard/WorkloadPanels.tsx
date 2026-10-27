@@ -16,7 +16,7 @@ interface WorkloadPanelsProps {
   generatedAt: string;
 }
 
-const card = "bg-white dark:bg-surface-raised border border-ink/15 rounded-2xl shadow-xs";
+const card = "bg-surface-raised dark:bg-surface-raised border border-outline-variant rounded-2xl shadow-xs";
 const requestsLink = (query: Record<string, string> = {}) => {
   const params = new URLSearchParams(query).toString();
   return params ? `${ROUTES.requests.list}?${params}` : ROUTES.requests.list;
@@ -49,14 +49,14 @@ export function WorkloadPanels({ approvals, requests, complaints, generatedAt }:
           {Object.keys(approvals.awaitingMeByType).length > 0 && (
             <div className="flex flex-wrap gap-2">
               {Object.entries(approvals.awaitingMeByType).map(([type, count]) => (
-                <Link key={type} href={ROUTES.approvals({ type })} className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-3 py-1 text-xs font-medium hover:bg-ink/5">
+                <Link key={type} href={ROUTES.approvals({ type })} className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant px-3 py-1 text-xs font-medium hover:bg-ink/5">
                   {typeLabel(type)} <span className="rounded-full bg-accent/15 text-accent px-1.5 text-[11px] font-bold">{count}</span>
                 </Link>
               ))}
             </div>
           )}
           {approvals.queue.length ? (
-            <ul className="divide-y divide-ink/10 rounded-xl border border-ink/10">
+            <ul className="divide-y divide-outline-variant rounded-xl border border-outline-variant">
               {approvals.queue.map((item) => (
                 <li key={item.id}>
                   <Link href={approvalTargetUrl(item.targetType, item.targetId)} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-ink/5">
@@ -178,7 +178,7 @@ function Tile({ label, value, tone = "neutral", href, hint, wide }: { label: str
       {hint && <div className="text-[10px] text-ink-muted mt-0.5">{hint}</div>}
     </>
   );
-  const cls = `block rounded-xl bg-surface-sunken/60 border border-ink/10 p-3 ${wide ? "col-span-2" : ""}`;
+  const cls = `block rounded-xl bg-surface-sunken/60 border border-outline-variant p-3 ${wide ? "col-span-2" : ""}`;
   return href ? <Link href={href} className={`${cls} press hover:border-accent/40 transition-[border-color,transform] duration-base ease-standard`}>{body}</Link> : <div className={cls}>{body}</div>;
 }
 
@@ -212,19 +212,19 @@ function Breakdown({ title, data, label, href }: { title: string; data: Record<s
 function RequestList({ rows, age, showAssignee }: { rows: (WorkloadRequestRow & { assignee?: string | null })[]; age: (iso: string | null) => string; showAssignee?: boolean }) {
   const { t } = useAdminLocale();
   return (
-    <ul className="divide-y divide-ink/10 rounded-xl border border-ink/10">
+    <ul className="divide-y divide-outline-variant rounded-xl border border-outline-variant">
       {rows.map((row) => (
         <li key={row.id}>
           <Link href={ROUTES.requests.detail(row.id)} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-ink/5">
             <div className="min-w-0">
-              <div className="text-sm font-semibold truncate">{row.title}</div>
+              <div className="text-sm font-semibold truncate"><bdi dir="auto">{row.title}</bdi></div>
               <div className="text-[11px] text-ink-muted truncate">
-                <span dir="ltr">{row.reference}</span> · {row.customer}
+                <span dir="ltr"><bdi dir="ltr">{row.reference}</bdi></span> · {row.customer}
                 {showAssignee && <> · {row.assignee ?? t.workload.unassigned}</>}
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0 text-[11px]">
-              <span className="rounded-full border border-ink/15 px-2 py-0.5">{(t.requestLabels.priority as Record<string, string>)[row.priority] ?? row.priority}</span>
+              <span className="rounded-full border border-outline-variant px-2 py-0.5">{(t.requestLabels.priority as Record<string, string>)[row.priority] ?? row.priority}</span>
               {row.overdue ? (
                 <span className="rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 px-2 py-0.5 font-semibold">{t.workload.overdue}</span>
               ) : (
@@ -239,5 +239,5 @@ function RequestList({ rows, age, showAssignee }: { rows: (WorkloadRequestRow & 
 }
 
 function EmptyState({ text }: { text: string }) {
-  return <p className="rounded-xl border border-dashed border-ink/15 px-4 py-6 text-center text-xs text-ink-muted">{text}</p>;
+  return <p className="rounded-xl border border-dashed border-outline-variant px-4 py-6 text-center text-xs text-ink-muted">{text}</p>;
 }

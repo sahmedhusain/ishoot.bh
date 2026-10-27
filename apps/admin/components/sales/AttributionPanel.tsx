@@ -1,5 +1,6 @@
 "use client";
 
+import { Select } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
@@ -45,19 +46,19 @@ export function AttributionPanel({ entityType, entityId, info, salesPeople, canR
   };
 
   return (
-    <section className="rounded-3xl border border-ink/10 bg-surface p-5 space-y-4">
+    <section className="rounded-3xl border border-outline-variant bg-surface p-5 space-y-4">
       <h3 className="text-sm font-bold text-ink flex items-center gap-2">
         <UserCheck className="w-4 h-4 text-accent" />
-        {a.title}
+        <bdi dir="auto">{a.title}</bdi>
       </h3>
       <dl className="grid grid-cols-2 gap-3 text-xs">
         <div>
           <dt className="text-ink-muted">{a.issuedBy}</dt>
-          <dd className="font-semibold text-ink mt-0.5">{info.issuedBy?.name ?? "—"}</dd>
+          <dd className="font-semibold text-ink mt-0.5"><bdi dir="auto">{info.issuedBy?.name ?? "—"}</bdi></dd>
         </div>
         <div>
           <dt className="text-ink-muted">{a.creditedTo}</dt>
-          <dd className="font-semibold text-ink mt-0.5">{info.salesOwner?.name ?? "—"}</dd>
+          <dd className="font-semibold text-ink mt-0.5"><bdi dir="auto">{info.salesOwner?.name ?? "—"}</bdi></dd>
         </div>
       </dl>
 
@@ -69,26 +70,26 @@ export function AttributionPanel({ entityType, entityId, info, salesPeople, canR
       )}
       {editing && (
         <div className="space-y-2">
-          <select
+          <Select
             aria-label={a.creditedTo}
-            className="w-full rounded-xl border border-ink/15 bg-surface px-3 py-2 text-xs text-ink"
+            className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-xs text-ink"
             value={owner}
             onChange={(e) => setOwner(e.target.value)}
           >
             {salesPeople.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
+          </Select>
           <input
-            className="w-full rounded-xl border border-ink/15 bg-surface px-3 py-2 text-xs text-ink"
+            className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-xs text-ink"
             placeholder={a.reasonPlaceholder}
             value={reason}
             maxLength={300}
             onChange={(e) => setReason(e.target.value)}
           />
           <div className="flex gap-2">
-            <button type="button" disabled={saving} onClick={save} className="px-3 py-1.5 rounded-full bg-accent text-white text-xs font-semibold disabled:opacity-60">
+            <button type="button" disabled={saving} onClick={save} className="px-3 py-1.5 rounded-full bg-accent text-accent-foreground text-xs font-semibold disabled:opacity-60">
               {t.actions.save}
             </button>
-            <button type="button" onClick={() => setEditing(false)} className="px-3 py-1.5 rounded-full border border-ink/15 text-xs text-ink">
+            <button type="button" onClick={() => setEditing(false)} className="px-3 py-1.5 rounded-full border border-outline-variant text-xs text-ink">
               {t.actions.cancel}
             </button>
           </div>
@@ -96,7 +97,7 @@ export function AttributionPanel({ entityType, entityId, info, salesPeople, canR
       )}
 
       {info.history.length > 0 && (
-        <div className="pt-3 border-t border-ink/10">
+        <div className="pt-3 border-t border-outline-variant">
           <div className="text-[11px] font-semibold text-ink-muted flex items-center gap-1.5 mb-2">
             <History className="w-3.5 h-3.5" />
             {a.history}

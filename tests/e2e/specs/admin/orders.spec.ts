@@ -1,3 +1,4 @@
+import { selectOption } from "../../select-option";
 import { acceptConfirmations } from "../../helpers";
 import { expect, test } from "@playwright/test";
 import { testDatabase, watchErrors } from "../../helpers";
@@ -82,9 +83,9 @@ test("a phone order is paid later (which invoices it), packed and shipped, and p
   const errors = watchErrors(page);
   await acceptConfirmations(page);
   await startSale(page, "1");
-  await page.getByLabel(copy.pos.channel).selectOption("phone");
+  await selectOption(page.getByLabel(copy.pos.channel), "phone");
   await page.locator('input[name="saleName"]').fill("Phone Buyer");
-  await page.getByTestId("sale-paid-with").selectOption("");
+  await selectOption(page.getByTestId("sale-paid-with"), "");
   await page.getByTestId("sale-create").click();
   await expect(page).toHaveURL(/\/dashboard\/orders\/[0-9a-f-]{36}$/, {
     timeout: 60_000,

@@ -3,7 +3,7 @@ import { ROUTES } from "../../constants/routes";
 import { ContentImage } from "../shared/ContentImage";
 
 import Link from "next/link";
-import { Calendar, Sun, Moon, Menu } from "lucide-react";
+import { Calendar, Sun, Moon, Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { useAdminTheme } from "../../hooks/useAdminTheme";
 import { usePermissions } from "../../hooks/usePermissions";
@@ -30,7 +30,7 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
   const { t, isRTL } = useAdminLocale();
   const { can } = usePermissions();
   const { resolvedTheme, setTheme } = useAdminTheme();
-  const { toggleMobileOpen } = useSidebar();
+  const { toggleMobileOpen, isCollapsed, toggleCollapsed } = useSidebar();
 
   const toggleTheme = () => {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
@@ -42,17 +42,21 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
   return (
     <header
       data-topbar
-      className="h-14 w-full fixed top-0 start-0 end-0 z-40 bg-white dark:bg-[#1f1f1f] border-b border-ink/15 dark:border-ink/15 px-3 sm:px-4 flex items-center justify-between select-none shadow-[0_1px_2px_0_rgba(60,64,67,0.08)] dark:shadow-none transition-colors duration-150"
+      className="admin-topbar"
     >
       {/* Start: Hamburger Menu + Dynamic Brand Lockup */}
-      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+      <div className="admin-brand">
         <button
           type="button"
           onClick={toggleMobileOpen}
-          className="lg:hidden w-10 h-10 rounded-full flex items-center justify-center text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
+          className="admin-icon-action admin-mobile-navigation-toggle"
           aria-label={t.topbar.toggleNavigationMenu}
         >
           <Menu className="w-5 h-5" />
+        </button>
+
+        <button type="button" className="admin-icon-action admin-desktop-navigation-toggle" onClick={toggleCollapsed} aria-label={isCollapsed ? t.appearance.expandNavigation : t.appearance.collapseNavigation} aria-expanded={!isCollapsed}>
+          {isCollapsed ? <PanelLeftOpen aria-hidden className="w-5 h-5 rtl:-scale-x-100" /> : <PanelLeftClose aria-hidden className="w-5 h-5 rtl:-scale-x-100" />}
         </button>
 
         <Link
@@ -86,19 +90,19 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
         </Link>
       </div>
 
-      {/* Center: Google Cloud Style Minimalist Search Bar */}
+      {/* Center: M3 Search Bar */}
       {/* Search shrinks on phones so the actions on the other side stay on screen. */}
-      <div className="flex-1 min-w-0 max-w-xs sm:max-w-md lg:max-w-xl mx-2 sm:mx-6 flex justify-center">
-        <GlobalQuickJump className="w-full flex items-center gap-2.5 px-3.5 py-1.5 rounded-lg bg-[#f1f3f4] hover:bg-[#e8eaed] dark:bg-[#282a2d] dark:hover:bg-[#35373a] text-slate-500 dark:text-neutral-400 text-xs transition-colors border border-transparent focus-within:border-accent focus-within:bg-white dark:focus-within:bg-[#1f1f1f] focus-within:shadow-sm justify-between cursor-pointer" />
+      <div className="admin-topbar-search">
+        <GlobalQuickJump className="w-full flex items-center gap-2.5 px-4 py-2 rounded-full bg-surface-container-highest hover:bg-surface-container-high dark:bg-surface-container-highest dark:hover:bg-surface-container-high text-on-surface-variant text-xs transition-colors border border-transparent focus-within:border-primary focus-within:bg-surface-container-lowest dark:focus-within:bg-surface-container-lowest focus-within:shadow-m3-1 justify-between cursor-pointer" />
       </div>
 
       {/* End: Action Cluster */}
-      <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+      <div className="admin-topbar-actions">
         {/* Calendar Shortcut */}
         {can("calendar", "read") && (
           <Link
             href={ROUTES.calendar}
-            className="hidden sm:flex w-9 h-9 rounded-full items-center justify-center text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
+            className="admin-icon-action hidden sm:inline-flex"
             title={t.nav.calendar}
             aria-label={t.nav.calendar}
           >
@@ -110,7 +114,7 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
         <button
           type="button"
           onClick={toggleTheme}
-          className="w-9 h-9 rounded-full flex items-center justify-center text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
+          className="admin-icon-action"
           title={t.topbar.toggleTheme}
           aria-label={t.topbar.toggleTheme}
         >
@@ -123,7 +127,7 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
 
         {/* Notifications Popover */}
         <NotificationCenter />
-        <span className="mx-1 h-5 w-px bg-ink/10" aria-hidden />
+        <span className="mx-1 h-5 w-px bg-outline-variant/40" aria-hidden />
         <AdminProfileDropdown />
       </div>
     </header>

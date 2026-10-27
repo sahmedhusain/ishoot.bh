@@ -125,7 +125,7 @@ export function SignaturePad({ currentUrl, changes }: { currentUrl?: string | nu
   };
 
   return (
-    <section className="rounded-3xl border border-ink/10 bg-surface p-5 sm:p-6 space-y-5">
+    <section className="rounded-3xl border border-outline-variant bg-surface p-5 sm:p-6 space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="text-base font-bold text-ink flex items-center gap-2">
@@ -136,29 +136,29 @@ export function SignaturePad({ currentUrl, changes }: { currentUrl?: string | nu
         </div>
         <div className="text-xs text-ink-muted">
           <div className="mb-1">{s.current}</div>
-          <div className="h-14 w-40 rounded-xl border border-ink/10 bg-white flex items-center justify-center overflow-hidden">
-            {currentUrl ? <ContentImage src={currentUrl} alt={s.current} className="max-h-full max-w-full object-contain" /> : <span className="text-[11px] text-slate-400">{s.none}</span>}
+          <div className="h-14 w-40 rounded-xl border border-outline-variant bg-surface-raised flex items-center justify-center overflow-hidden">
+            {currentUrl ? <ContentImage src={currentUrl} alt={s.current} className="max-h-full max-w-full object-contain" /> : <span className="text-[11px] text-ink-muted">{s.none}</span>}
           </div>
         </div>
       </div>
 
       {pending ? (
         <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 flex flex-wrap items-center gap-4">
-          <div className="h-14 w-40 rounded-xl border border-ink/10 bg-white flex items-center justify-center overflow-hidden">
+          <div className="h-14 w-40 rounded-xl border border-outline-variant bg-surface-raised flex items-center justify-center overflow-hidden">
             <ContentImage src={pending.signatureUrl} alt={s.pending} className="max-h-full max-w-full object-contain" />
           </div>
           <div className="flex-1 text-xs text-ink">
             <div className="font-semibold">{s.pending}</div>
             <div className="text-ink-muted">{s.pendingHint}</div>
           </div>
-          <button type="button" onClick={() => withdraw(pending.id)} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-ink/15 text-xs text-ink">
+          <button type="button" onClick={() => withdraw(pending.id)} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-outline-variant text-xs text-ink">
             <X className="w-3.5 h-3.5" />
             {s.withdraw}
           </button>
         </div>
       ) : (
         <div className="space-y-3">
-          <div className="rounded-2xl border-2 border-dashed border-ink/15 bg-white overflow-hidden">
+          <div className="rounded-2xl border-2 border-dashed border-outline-variant bg-surface-raised overflow-hidden">
             <canvas
               ref={canvasRef}
               width={WIDTH}
@@ -176,15 +176,15 @@ export function SignaturePad({ currentUrl, changes }: { currentUrl?: string | nu
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-[11px] text-ink-muted">{s.hint}</span>
             <div className="flex gap-2">
-              <button type="button" onClick={undo} disabled={!hasInk} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-ink/15 text-xs text-ink disabled:opacity-40">
+              <button type="button" onClick={undo} disabled={!hasInk} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-outline-variant text-xs text-ink disabled:opacity-40">
                 <Undo2 className="w-3.5 h-3.5" />
                 {s.undo}
               </button>
-              <button type="button" onClick={clear} disabled={!hasInk} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-ink/15 text-xs text-ink disabled:opacity-40">
+              <button type="button" onClick={clear} disabled={!hasInk} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-outline-variant text-xs text-ink disabled:opacity-40">
                 <Eraser className="w-3.5 h-3.5" />
                 {s.clear}
               </button>
-              <button type="button" onClick={submit} disabled={!hasInk || saving} className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-accent text-white text-xs font-semibold disabled:opacity-50">
+              <button type="button" onClick={submit} disabled={!hasInk || saving} className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-accent text-accent-foreground text-xs font-semibold disabled:opacity-50">
                 <Send className="w-3.5 h-3.5" />
                 {saving ? s.submitting : s.submit}
               </button>
@@ -194,7 +194,7 @@ export function SignaturePad({ currentUrl, changes }: { currentUrl?: string | nu
       )}
 
       {changes.length > 0 && (
-        <div className="pt-4 border-t border-ink/10">
+        <div className="pt-4 border-t border-outline-variant">
           <div className="text-xs font-semibold text-ink-muted flex items-center gap-1.5 mb-3">
             <History className="w-3.5 h-3.5" />
             {s.log}
@@ -202,7 +202,7 @@ export function SignaturePad({ currentUrl, changes }: { currentUrl?: string | nu
           <ul className="space-y-2">
             {changes.map((c) => (
               <li key={c.id} className="flex flex-wrap items-center gap-3 text-xs">
-                <div className="h-9 w-24 rounded-lg border border-ink/10 bg-white flex items-center justify-center overflow-hidden">
+                <div className="h-9 w-24 rounded-lg border border-outline-variant bg-surface-raised flex items-center justify-center overflow-hidden">
                   <ContentImage src={c.signatureUrl} alt="" className="max-h-full max-w-full object-contain" />
                 </div>
                 <span className={`px-2 py-0.5 rounded-full font-semibold ${statusStyle[c.status]}`}>{s.status[c.status]}</span>

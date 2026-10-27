@@ -57,7 +57,7 @@ const KINDS: IntegrationKind[] = [
 ];
 
 const fieldClass =
-  "w-full min-w-0 rounded-lg border border-ink/15 bg-white dark:bg-surface px-3 py-2 text-sm text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-accent/40";
+  "w-full min-w-0 rounded-lg border border-outline-variant bg-surface-raised dark:bg-surface px-3 py-2 text-sm text-ink dark:text-ink placeholder:text-ink-muted focus:outline-none focus:ring-2 focus:ring-accent/40";
 
 type SetupLinks = ReturnType<typeof integrationSetupLinks>;
 
@@ -68,7 +68,7 @@ const statusTone: Record<string, string> = {
   error: "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30",
   unknown:
     "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30",
-  off: "bg-slate-500/10 text-slate-600 dark:text-slate-300 border-ink/15",
+  off: "bg-surface-sunken/10 text-ink-muted dark:text-ink border-outline-variant",
 };
 
 function ProviderIcon({ provider }: { provider: IntegrationProvider }) {
@@ -271,12 +271,12 @@ function IntegrationCard({
       className="flex flex-col p-0 overflow-hidden dark:bg-surface-raised"
     >
       <div className="flex items-start gap-3 p-4 sm:p-5">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary dark:bg-white/10 dark:text-white">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary dark:bg-white/10 dark:text-ink">
           <ProviderIcon provider={provider} />
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+            <h3 className="text-sm font-semibold text-ink dark:text-ink">
               {copy.name}
             </h3>
             <span
@@ -285,15 +285,15 @@ function IntegrationCard({
               {c.status[status as keyof typeof c.status] ?? status}
             </span>
           </div>
-          <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+          <p className="mt-1 text-xs leading-relaxed text-ink-muted dark:text-ink">
             {copy.description}
           </p>
           {(view.accountName || view.lastCheckedAt) && (
-            <dl className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-500">
+            <dl className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-ink-muted">
               {view.accountName && (
                 <div className="flex gap-1 min-w-0">
                   <dt>{c.account}:</dt>
-                  <dd className="truncate font-medium text-slate-700 dark:text-slate-200">
+                  <dd className="truncate font-medium text-ink dark:text-ink">
                     <bdi>{view.accountName}</bdi>
                   </dd>
                 </div>
@@ -342,15 +342,15 @@ function IntegrationCard({
         </div>
       </div>
 
-      <details className="border-t border-ink/10 px-4 py-3 text-xs sm:px-5">
+      <details className="border-t border-outline-variant px-4 py-3 text-xs sm:px-5">
         <summary className="cursor-pointer rounded font-semibold text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent dark:text-accent">
           {c.setup.title}
         </summary>
-        <div className="mt-3 space-y-3 leading-relaxed text-slate-600 dark:text-slate-300">
+        <div className="mt-3 space-y-3 leading-relaxed text-ink-muted dark:text-ink">
           {(["prerequisites", "permissions", "environment"] as const).map(
             (key) => (
               <div key={key}>
-                <h4 className="font-semibold text-slate-800 dark:text-slate-100">
+                <h4 className="font-semibold text-ink dark:text-ink">
                   {c.setup[key]}
                 </h4>
                 <p>{copy.guide[key]}</p>
@@ -358,7 +358,7 @@ function IntegrationCard({
             ),
           )}
           <div>
-            <h4 className="font-semibold text-slate-800 dark:text-slate-100">
+            <h4 className="font-semibold text-ink dark:text-ink">
               {c.setup.steps}
             </h4>
             <ol className="list-decimal space-y-1 ps-5">
@@ -368,7 +368,7 @@ function IntegrationCard({
             </ol>
           </div>
           <div className="space-y-2">
-            <h4 className="font-semibold text-slate-800 dark:text-slate-100">
+            <h4 className="font-semibold text-ink dark:text-ink">
               {c.setup.addresses}
             </h4>
             {links.map((link) => (
@@ -377,7 +377,7 @@ function IntegrationCard({
                 <div className="flex min-w-0 items-start gap-2">
                   <code
                     dir="ltr"
-                    className="min-w-0 flex-1 break-all rounded border border-ink/10 p-2 select-all"
+                    className="min-w-0 flex-1 break-all rounded border border-outline-variant p-2 select-all"
                   >
                     {link.url}
                   </code>
@@ -409,7 +409,7 @@ function IntegrationCard({
           </div>
           {(["verify", "errors", "limits"] as const).map((key) => (
             <div key={key}>
-              <h4 className="font-semibold text-slate-800 dark:text-slate-100">
+              <h4 className="font-semibold text-ink dark:text-ink">
                 {c.setup[key]}
               </h4>
               <p>{copy.guide[key]}</p>
@@ -442,7 +442,7 @@ function IntegrationCard({
             event.preventDefault();
             void save();
           }}
-          className="space-y-3 border-t border-ink/10 bg-slate-50/60 dark:bg-white/[0.02] p-4 sm:p-5"
+          className="space-y-3 border-t border-outline-variant bg-surface-raised/60 dark:bg-white/[0.02] p-4 sm:p-5"
         >
           {provider.fields.map((field) => {
             const secret = view.secrets[field.key];
@@ -451,7 +451,7 @@ function IntegrationCard({
               <div key={field.key} className="space-y-1">
                 <label
                   htmlFor={id}
-                  className="text-xs font-medium text-slate-700 dark:text-slate-200"
+                  className="text-xs font-medium text-ink dark:text-ink"
                 >
                   {c.fields[field.key as keyof typeof c.fields] ?? field.key}
                   {field.required && <span className="text-rose-500"> *</span>}
@@ -574,7 +574,7 @@ function IntegrationCard({
                 )}
                 <p
                   id={`${id}-help`}
-                  className="text-[11px] text-slate-500 dark:text-slate-400"
+                  className="text-[11px] text-ink-muted dark:text-ink-muted"
                 >
                   {field.secret && secret?.set
                     ? c.secretKeep
@@ -592,7 +592,7 @@ function IntegrationCard({
               </div>
             );
           })}
-          <label className="flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-slate-200">
+          <label className="flex items-center gap-2 text-xs font-medium text-ink dark:text-ink">
             <input
               type="checkbox"
               role="switch"
@@ -637,10 +637,10 @@ function IntegrationCard({
         view.isActive &&
         view.healthStatus === "healthy" &&
         !editing && (
-          <div className="flex flex-wrap items-center gap-2 border-t border-ink/10 px-4 py-3 sm:px-5">
+          <div className="flex flex-wrap items-center gap-2 border-t border-outline-variant px-4 py-3 sm:px-5">
             <label
               htmlFor="wa-test-to"
-              className="text-xs font-medium text-slate-700 dark:text-slate-200"
+              className="text-xs font-medium text-ink dark:text-ink"
             >
               {c.whatsappTest}
             </label>
@@ -666,7 +666,7 @@ function IntegrationCard({
           </div>
         )}
 
-      <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-ink/10 px-4 py-3 sm:px-5">
+      <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-outline-variant px-4 py-3 sm:px-5">
         {!editing && (
           <Button
             type="button"
@@ -768,17 +768,17 @@ export function IntegrationsView({
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-16">
       {canManage && <SettingsNavTabs />}
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+      <header data-page-header>
+        <h1 className="text-2xl font-bold tracking-tight text-ink dark:text-ink">
           {c.title}
         </h1>
-        <p className="mt-1 max-w-3xl text-sm text-slate-600 dark:text-slate-300">
+        <p className="mt-1 max-w-3xl text-sm text-ink-muted dark:text-ink">
           {canManage ? c.subtitle : t.calendarSync.personalSubtitle}
         </p>
       </header>
       {calendar && (
-        <section className="space-y-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <section className="space-y-3" data-page-section>
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
             {t.calendarSync.kind}
           </h2>
           <div className="grid gap-4 md:grid-cols-2">
@@ -796,8 +796,8 @@ export function IntegrationsView({
             (provider) => provider.kind === kind,
           );
           return (
-            <section key={kind} className="space-y-3">
-              <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <section key={kind} className="space-y-3" data-page-section>
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
                 {c.kinds[kind]}
               </h2>
               <div className="grid gap-4 md:grid-cols-2">

@@ -42,12 +42,12 @@ export function EmployeeAttachments({
     }
   }
   return (
-    <section className="rounded-lg border border-slate-200 dark:border-white/10 p-5 space-y-4">
+    <section className="rounded-lg border border-outline-variant dark:border-white/10 p-5 space-y-4" data-page-section>
       <h2 className="font-semibold">{h.documents}</h2>
       {canEdit && (
         <form
           key={formKey}
-          className="space-y-3 rounded-lg bg-slate-50 p-3 dark:bg-white/[0.03]"
+          className="space-y-3 rounded-lg bg-surface-raised p-3 dark:bg-white/[0.03]"
           onSubmit={(e) => {
             e.preventDefault();
             if (!fileUrl || !name.trim()) return;
@@ -89,20 +89,20 @@ export function EmployeeAttachments({
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="mt-1 block w-full rounded border border-slate-300 bg-transparent p-2 text-sm font-normal"
+                className="mt-1 block w-full rounded border border-outline-variant bg-transparent p-2 text-sm font-normal"
               />
             </label>
             <button
               type="submit"
               disabled={busy || !fileUrl || !name.trim()}
-              className="h-10 rounded-lg bg-accent px-4 text-xs font-semibold text-white disabled:opacity-50"
+              className="h-10 rounded-lg bg-accent px-4 text-xs font-semibold text-accent-foreground disabled:opacity-50"
             >
               {t.linkOrUpload.addDocument}
             </button>
           </div>
         </form>
       )}
-      {!attachments.length && <p className="text-slate-500">{h.empty}</p>}
+      {!attachments.length && <p className="text-ink-muted">{h.empty}</p>}
       {attachments.map((file) => (
         <div key={file.id} className="flex justify-between gap-3">
           <a

@@ -23,12 +23,12 @@ export function CashSettlementView({ pending, history, currency, canSettle }: { 
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-16">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{copy.title}</h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
+      <div data-page-header>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
+        <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
       </div>
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
-      <section className="space-y-3">
+      <section className="space-y-3" data-page-section>
         <h2 className="font-bold text-ink">{copy.toSettle}</h2>
         {pending.length === 0 ? (
           <Card className="p-6 text-center text-sm text-ink-muted">{copy.nothing}</Card>
@@ -36,12 +36,12 @@ export function CashSettlementView({ pending, history, currency, canSettle }: { 
           pending.map((p) => <DriverCash key={p.source} entry={p} money={money} currency={currency} canSettle={canSettle} onDone={(text) => { setMessage({ tone: "ok", text }); router.refresh(); }} onError={(text) => setMessage({ tone: "error", text })} />)
         )}
       </section>
-      <Card className="p-5 space-y-3">
+      <Card className="p-5 space-y-3" data-page-section>
         <h2 className="font-bold text-ink">{copy.history}</h2>
         {history.length === 0 ? (
           <p className="text-sm text-ink-muted">{copy.noHistory}</p>
         ) : (
-          <ul className="divide-y divide-ink/10 text-sm" data-testid="cash-history">
+          <ul className="divide-y divide-outline-variant text-sm" data-testid="cash-history">
             {history.map((h) => (
               <li key={h.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2">
                 <span className="font-mono text-xs font-semibold" dir="ltr">{h.number}</span>

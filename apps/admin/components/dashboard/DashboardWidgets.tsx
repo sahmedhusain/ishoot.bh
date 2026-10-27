@@ -29,7 +29,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { DeferredCashflowChart } from "../shared/DeferredCharts";
 import { WorkloadPanels } from "./WorkloadPanels";
 
-export const widgetCard = "h-full bg-white dark:bg-surface-raised border border-ink/15 rounded-xl shadow-xs";
+export const widgetCard = "admin-widget h-full";
 
 /** Where an activity entry's record opens, for the types that have a page. */
 const ENTITY_LINKS: Record<string, (id: string) => string> = {
@@ -46,13 +46,13 @@ const ENTITY_LINKS: Record<string, (id: string) => string> = {
 
 function Kpi({ title, icon, tone, value, sub, href }: { title: string; icon: ReactNode; tone: string; value: ReactNode; sub?: ReactNode; href?: string }) {
   const body = (
-    <div className={`${widgetCard} p-4 space-y-1.5 ${href ? "transition-[border-color,box-shadow] duration-base ease-standard hover:border-accent/50 hover:shadow-sm" : ""}`}>
+    <div className={`${widgetCard} admin-kpi ${href ? "transition-[border-color,box-shadow] duration-base ease-standard hover:border-accent/50 hover:shadow-sm" : ""}`}>
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400 truncate">{title}</span>
+        <span className="admin-kpi-label truncate">{title}</span>
         <span className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 ${tone}`} aria-hidden="true">{icon}</span>
       </div>
-      <div className="text-lg font-bold text-slate-900 dark:text-white tabular-nums">{value}</div>
-      {sub ? <div className="text-[10px] font-medium text-ink-muted truncate">{sub}</div> : null}
+      <div className="admin-kpi-value text-ink">{value}</div>
+      {sub ? <div className="admin-kpi-note">{sub}</div> : null}
     </div>
   );
   return href ? <Link href={href} className="block h-full rounded-xl press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">{body}</Link> : body;
@@ -61,16 +61,16 @@ function Kpi({ title, icon, tone, value, sub, href }: { title: string; icon: Rea
 function Panel({ title, icon, href, children }: { title: string; icon: ReactNode; href?: string; children: ReactNode }) {
   const { t } = useAdminLocale();
   return (
-    <section className={`${widgetCard} p-5 space-y-3 flex flex-col`}>
-      <div className="flex items-center justify-between gap-2 border-b border-ink/10 pb-3">
-        <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+    <section className={`${widgetCard} p-5 space-y-3 flex flex-col`} data-page-section>
+      <div className="admin-widget-header">
+        <h2 className="text-ink">
           <span className="text-accent" aria-hidden="true">{icon}</span>
           {title}
         </h2>
         {href ? (
           <Link href={href} className="text-xs text-primary dark:text-mint hover:underline font-semibold inline-flex items-center gap-1">
             {t.dashboardBoard.view}
-            <ArrowUpRight className="w-3.5 h-3.5" aria-hidden="true" />
+            <ArrowUpRight className="w-3.5 h-3.5 rtl:-scale-x-100" aria-hidden="true" />
           </Link>
         ) : null}
       </div>
@@ -152,12 +152,12 @@ export function DashboardWidget({ id, data }: { id: string; data: DashboardData 
                 return (
                   <li key={key} className="space-y-1 text-xs">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-slate-600 dark:text-slate-400 font-medium truncate">
+                      <span className="text-ink-muted dark:text-ink-muted font-medium truncate">
                         {stage ? dealStageLabel(stage, t, locale) : ((t.stages as Record<string, string>)[key] ?? key)} ({stat.count})
                       </span>
-                      {data.showMoney ? <span className="font-bold text-slate-900 dark:text-white">{money(stat.value)}</span> : null}
+                      {data.showMoney ? <span className="font-bold text-ink dark:text-ink">{money(stat.value)}</span> : null}
                     </div>
-                    <div className="w-full h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                    <div className="w-full h-1.5 bg-surface-sunken dark:bg-white/5 rounded-full overflow-hidden">
                       <div className="h-full bg-accent rounded-full motion-safe:transition-[width] motion-safe:duration-700" style={{ width: `${Math.min(100, Math.max(0, share))}%` }} />
                     </div>
                   </li>
@@ -178,11 +178,11 @@ export function DashboardWidget({ id, data }: { id: string; data: DashboardData 
       return data.tasks && (
         <Panel title={title} icon={<CheckSquare className="w-3.5 h-3.5" />} href={ROUTES.tasks.list}>
           {data.tasks.tasks.length ? (
-            <ul className="divide-y divide-ink/10 stagger-children">
+            <ul className="divide-y divide-outline-variant stagger-children">
               {data.tasks.tasks.map((task) => (
                 <li key={task.id} className="py-2 flex items-center justify-between gap-3 text-xs">
                   <Link href={ROUTES.tasks.detail(task.id)} className="min-w-0 hover:text-accent">
-                    <span className="block font-semibold text-ink truncate">{task.title}</span>
+                    <span className="block font-semibold text-ink truncate"><bdi dir="auto">{task.title}</bdi></span>
                     <span className="block text-[11px] text-ink-muted truncate">
                       {task.number}
                       {task.project ? ` · ${task.project}` : ""}
@@ -204,7 +204,7 @@ export function DashboardWidget({ id, data }: { id: string; data: DashboardData 
       return data.deals && (
         <Panel title={title} icon={<Briefcase className="w-3.5 h-3.5" />} href={ROUTES.crm.deals}>
           {data.deals.recent.length ? (
-            <ul className="divide-y divide-ink/10 stagger-children">
+            <ul className="divide-y divide-outline-variant stagger-children">
               {data.deals.recent.slice(0, 5).map((deal) => (
                 <li key={deal.id} className="py-2.5 flex items-center justify-between gap-3">
                   <div className="min-w-0">
@@ -230,7 +230,7 @@ export function DashboardWidget({ id, data }: { id: string; data: DashboardData 
           {data.events.length ? (
             <ul className="space-y-2 stagger-children">
               {data.events.map((event) => (
-                <li key={event.id} className="p-2.5 rounded-lg bg-slate-50 dark:bg-neutral-800/40 border border-ink/10 space-y-1">
+                <li key={event.id} className="p-2.5 rounded-lg bg-surface-raised dark:bg-surface-raised/40 border border-outline-variant space-y-1">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase" style={{ backgroundColor: `${event.color || "rgb(var(--brand-accent))"}20`, color: event.color || "rgb(var(--brand-accent))" }}>
                       {(t.calendarView as Record<string, unknown>)[event.event_type] as string ?? event.event_type}
@@ -251,12 +251,12 @@ export function DashboardWidget({ id, data }: { id: string; data: DashboardData 
       return data.recentOrders && (
         <Panel title={title} icon={<ShoppingBag className="w-3.5 h-3.5" />} href={ROUTES.orders.list}>
           {data.recentOrders.length ? (
-            <ul className="divide-y divide-ink/10 stagger-children">
+            <ul className="divide-y divide-outline-variant stagger-children">
               {data.recentOrders.map((order) => (
                 <li key={order.id} className="py-2 flex items-center justify-between gap-3 text-xs">
                   <Link href={ROUTES.orders.detail(order.id)} className="min-w-0 hover:text-accent">
                     <span className="block font-semibold text-ink truncate">{order.number}</span>
-                    <span className="block text-[11px] text-ink-muted truncate">{order.name}</span>
+                    <span className="block text-[11px] text-ink-muted truncate"><bdi dir="auto">{order.name}</bdi></span>
                   </Link>
                   <div className="flex items-center gap-2 shrink-0">
                     <span className="rounded-full bg-ink/5 px-2 py-0.5 text-[10px] font-semibold">{(t.orders.statuses as Record<string, string>)[order.status] ?? order.status}</span>
@@ -276,7 +276,7 @@ export function DashboardWidget({ id, data }: { id: string; data: DashboardData 
         <Panel title={title} icon={<Package className="w-3.5 h-3.5" />} href={`${ROUTES.inventory.stock}?filter=low`}>
           {data.lowStock.rows.length ? (
             <>
-              <ul className="divide-y divide-ink/10 stagger-children">
+              <ul className="divide-y divide-outline-variant stagger-children">
                 {data.lowStock.rows.map((row) => (
                   <li key={`${row.product_id}-${row.variant_id ?? ""}`} className="py-2 flex items-center justify-between gap-3 text-xs">
                     <Link href={ROUTES.products.detail(row.product_id)} className="min-w-0 hover:text-accent">
@@ -302,7 +302,7 @@ export function DashboardWidget({ id, data }: { id: string; data: DashboardData 
       return data.campaigns && (
         <Panel title={title} icon={<Megaphone className="w-3.5 h-3.5" />} href={ROUTES.marketing.campaigns}>
           {data.campaigns.length ? (
-            <ul className="divide-y divide-ink/10 stagger-children">
+            <ul className="divide-y divide-outline-variant stagger-children">
               {data.campaigns.map((c) => (
                 <li key={c.id} className="py-2 flex items-center justify-between gap-3 text-xs">
                   <span className="min-w-0">
@@ -323,11 +323,11 @@ export function DashboardWidget({ id, data }: { id: string; data: DashboardData 
       return data.legal && (
         <Panel title={title} icon={<Gavel className="w-3.5 h-3.5" />} href={ROUTES.legal.matters}>
           {data.legal.length ? (
-            <ul className="divide-y divide-ink/10 stagger-children">
+            <ul className="divide-y divide-outline-variant stagger-children">
               {data.legal.map((m) => (
                 <li key={m.id} className="py-2 flex items-center justify-between gap-3 text-xs">
                   <Link href={ROUTES.legal.matter(m.id)} className="min-w-0 hover:text-accent">
-                    <span className="block font-semibold text-ink truncate">{m.title}</span>
+                    <span className="block font-semibold text-ink truncate"><bdi dir="auto">{m.title}</bdi></span>
                     <span className="block text-[11px] text-ink-muted">{(t.legal.kinds as Record<string, string>)[m.kind] ?? m.kind}</span>
                   </Link>
                   {m.next_date ? <DateDisplay date={m.next_date} locale={locale} className="shrink-0 text-[11px] text-ink-muted" /> : null}
@@ -343,9 +343,9 @@ export function DashboardWidget({ id, data }: { id: string; data: DashboardData 
     case "company":
       return data.company && (
         <Panel title={title} icon={<Building2 className="w-3.5 h-3.5" />} href={ROUTES.settings.company}>
-          <dl className="space-y-1.5 text-xs">
-            <div className="font-bold text-ink">{locale === "ar" ? data.company.company_name_ar : data.company.company_name_en}</div>
-            {data.company.cr_number ? <div className="text-[11px] text-ink-muted">{t.copy.registrationLabel}{data.company.cr_number}</div> : null}
+          <div className="font-bold text-xs text-ink">{locale === "ar" ? data.company.company_name_ar : data.company.company_name_en}</div>
+          {data.company.cr_number ? <p className="mt-1 text-[11px] text-ink-muted">{t.copy.registrationLabel}{data.company.cr_number}</p> : null}
+          <dl className="mt-2 space-y-1.5 text-xs">
             {data.company.vat_enabled ? (
               <div className="flex items-center justify-between gap-2">
                 <dt className="text-ink-muted">{t.settings.vatTitle}</dt>
@@ -374,7 +374,7 @@ export function DashboardWidget({ id, data }: { id: string; data: DashboardData 
           {data.actions.length ? (
             <div className="grid grid-cols-2 gap-2 stagger-children">
               {data.actions.map((action) => (
-                <Link key={action.key} href={action.href} className="rounded-lg border border-ink/15 px-3 py-2.5 text-xs font-semibold text-ink hover:border-accent hover:text-accent motion-safe:transition-[color,border-color,transform] motion-safe:active:scale-[0.98]">
+                <Link key={action.key} href={action.href} className="rounded-lg border border-outline-variant px-3 py-2.5 text-xs font-semibold text-ink hover:border-accent hover:text-accent motion-safe:transition-[color,border-color,transform] motion-safe:active:scale-[0.98]">
                   {(b.actions as Record<string, string>)[action.key] ?? action.key}
                 </Link>
               ))}

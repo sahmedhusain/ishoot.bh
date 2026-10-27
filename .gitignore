@@ -56,3 +56,4 @@ tests/.results/
 
 # Database dumps from ./run.sh db backup
 backups/
+.next-material-check/

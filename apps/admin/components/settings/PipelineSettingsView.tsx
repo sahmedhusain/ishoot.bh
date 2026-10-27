@@ -3,7 +3,7 @@ import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
 import { ArrowDown, ArrowUp, Lock, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
-import { Button, Card, Input } from "@platform/ui";
+import { Select, Button, Card, Input } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import type { DealPipelineStage } from "@platform/database";
 import type { ContentLanguage } from "@platform/database/constants/languages";
@@ -109,10 +109,10 @@ export function PipelineSettingsView({ initialStages, languages, canEdit }: { in
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{copy.title}</h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed max-w-2xl">{copy.subtitle}</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
+          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 leading-relaxed max-w-2xl">{copy.subtitle}</p>
         </div>
         {canEdit && (
           <div className="flex gap-2">
@@ -180,13 +180,13 @@ export function PipelineSettingsView({ initialStages, languages, canEdit }: { in
                   </div>
                   {canEdit && (
                     <div className="flex items-end gap-3">
-                      <label className="space-y-1.5 text-xs font-medium text-slate-700 dark:text-slate-300">
+                      <label className="block space-y-1.5 text-xs font-medium text-ink dark:text-ink">
                         <span className="block">{copy.probability}</span>
                         <Input type="number" min={0} max={100} value={row.probability} disabled={locked} onChange={(e) => update(row.id, { probability: Math.max(0, Math.min(100, Number(e.target.value) || 0)) })} className="w-20 rounded-lg" />
                       </label>
-                      <label className="space-y-1.5 text-xs font-medium text-slate-700 dark:text-slate-300">
+                      <label className="block space-y-1.5 text-xs font-medium text-ink dark:text-ink">
                         <span className="block">{copy.color}</span>
-                        <input type="color" value={row.color || "#64748b"} onChange={(e) => update(row.id, { color: e.target.value })} className="h-9 w-12 rounded-lg border border-ink/15 bg-transparent" />
+                        <input type="color" value={row.color || "#64748b"} onChange={(e) => update(row.id, { color: e.target.value })} className="h-9 w-12 rounded-lg border border-outline-variant bg-transparent" />
                       </label>
                       <label className="flex items-center gap-2 h-9 text-xs text-ink">
                         <input type="checkbox" checked={row.is_active} disabled={row.is_system || row.deal_count > 0} onChange={(e) => update(row.id, { is_active: e.target.checked })} />
@@ -208,15 +208,15 @@ export function PipelineSettingsView({ initialStages, languages, canEdit }: { in
 
       {canEdit && (
         <Card className="p-4 flex flex-wrap items-end gap-3">
-          <label className="space-y-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 flex-1 min-w-[220px]">
+          <label className="block space-y-1.5 text-xs font-medium text-ink dark:text-ink flex-1 min-w-[220px]">
             <span className="block">{copy.addLabel}</span>
-            <select value={adding} onChange={(e) => setAdding(e.target.value)} className="w-full h-9 rounded-lg border border-ink/15 bg-surface px-3 text-sm">
+            <Select value={adding} onChange={(e) => setAdding(e.target.value)} className="w-full h-9 rounded-lg border border-outline-variant bg-surface px-3 text-sm">
               <option value="">{copy.addChoose}</option>
               {missingBuiltIns.map((id) => (
                 <option key={id} value={id}>{(t.stages as Record<string, string>)[id] ?? id}</option>
               ))}
               <option value="__custom">{copy.addCustom}</option>
-            </select>
+            </Select>
           </label>
           <Button variant="outline" size="sm" onClick={addStage} disabled={!adding} className="gap-1.5 rounded-full">
             <Plus className="w-3.5 h-3.5" />

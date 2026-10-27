@@ -95,9 +95,9 @@ export function HandoverDetailView({
     at?: string,
     pending?: string,
   ) => (
-    <div className="rounded-2xl border border-ink/10 p-3 space-y-1">
+    <div className="rounded-2xl border border-outline-variant p-3 space-y-1">
       <div className="text-[11px] text-ink-muted">{title}</div>
-      <div className="flex h-16 items-center justify-center rounded-xl bg-white">
+      <div className="flex h-16 items-center justify-center rounded-xl bg-surface-raised">
         {image ? (
           <ContentImage
             src={image}
@@ -107,7 +107,7 @@ export function HandoverDetailView({
             className="max-h-14 w-auto object-contain"
           />
         ) : (
-          <span className="text-[11px] text-slate-400">{pending ?? "—"}</span>
+          <span className="text-[11px] text-ink-muted">{pending ?? "—"}</span>
         )}
       </div>
       <div className="text-xs font-semibold text-ink">{name || "—"}</div>
@@ -122,7 +122,7 @@ export function HandoverDetailView({
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3" data-page-header>
           <Link
             href={
               canEdit
@@ -130,7 +130,7 @@ export function HandoverDetailView({
                 : ROUTES.profile()
             }
             aria-label={t.actions.back}
-            className="rounded-full border border-ink/15 p-2 text-ink-muted hover:text-ink"
+            className="rounded-full border border-outline-variant p-2 text-ink-muted hover:text-ink"
           >
             <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
           </Link>
@@ -158,7 +158,7 @@ export function HandoverDetailView({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <section className="lg:col-span-2 rounded-3xl border border-ink/10 bg-white dark:bg-surface-raised p-5 space-y-5">
+        <section className="lg:col-span-2 rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-5 space-y-5">
           <dl className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
             {[
               [
@@ -191,7 +191,7 @@ export function HandoverDetailView({
           {handover.checklist.length ? (
             <div>
               <h2 className="mb-2 text-sm font-bold text-ink">{h.checklist}</h2>
-              <ul className="divide-y divide-ink/10 rounded-2xl border border-ink/10">
+              <ul className="divide-y divide-outline-variant rounded-2xl border border-outline-variant">
                 {handover.checklist.map((c) => (
                   <li
                     key={c.key}
@@ -267,7 +267,7 @@ export function HandoverDetailView({
           </dl>
         </section>
 
-        <section className="rounded-3xl border border-ink/10 bg-white dark:bg-surface-raised p-5 space-y-3">
+        <section className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-5 space-y-3" data-page-section>
           <h2 className="text-sm font-bold text-ink">{h.signatures}</h2>
           {signatureBox(
             h.issuedBy,
@@ -293,7 +293,7 @@ export function HandoverDetailView({
           {handover.approval?.decisions.map((d, i) => (
             <div
               key={i}
-              className="flex items-start gap-2 rounded-2xl border border-ink/10 p-3"
+              className="flex items-start gap-2 rounded-2xl border border-outline-variant p-3"
             >
               {d.decision === "approved" ? (
                 <Check className="mt-0.5 h-4 w-4 text-emerald-600" />
@@ -301,7 +301,7 @@ export function HandoverDetailView({
                 <CircleX className="mt-0.5 h-4 w-4 text-rose-500" />
               )}
               <div className="text-xs">
-                <div className="font-semibold text-ink">{d.name}</div>
+                <div className="font-semibold text-ink"><bdi dir="auto">{d.name}</bdi></div>
                 <div className="text-ink-muted">
                   {formatMessage((d.decision === "approved"
                     ? h.approvedOn
@@ -320,7 +320,7 @@ export function HandoverDetailView({
 
       {handover.status === "awaiting_employee" && isEmployee && !canEdit ? (
         // The employee reviews and signs on the dedicated signing page, not inside the admin screen.
-        <section className="rounded-3xl border border-accent/30 bg-accent/5 p-5 space-y-3">
+        <section className="rounded-3xl border border-accent/30 bg-accent/5 p-5 space-y-3" data-page-section>
           <h2 className="flex items-center gap-2 text-sm font-bold text-ink">
             <PenLine className="h-4 w-4 text-accent" />
             {h.signTitle}
@@ -350,7 +350,7 @@ export function HandoverDetailView({
             links={signingLinks}
             reference={handover.reference}
           />
-          <section className="rounded-3xl border border-ink/10 bg-white p-5 space-y-3 dark:bg-surface-raised">
+          <section className="rounded-3xl border border-outline-variant bg-surface-raised p-5 space-y-3 dark:bg-surface-raised" data-page-section>
             <h2 className="flex items-center gap-2 text-sm font-bold text-ink">
               <PenLine className="h-4 w-4 text-accent" />
               {h.signInPerson}

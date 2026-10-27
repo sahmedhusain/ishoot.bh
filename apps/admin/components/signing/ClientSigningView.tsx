@@ -130,8 +130,8 @@ export function ClientSigningView({
       <header className="border-b border-primary/10 bg-white">
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-4">
           {company.iconUrl && <img src={company.iconUrl} alt="" className="h-9 w-9 object-contain" />}
-          {company.logoUrl ? <img src={company.logoUrl} alt={company.name} className="h-6 w-auto object-contain" /> : <span className="font-bold text-primary">{company.name}</span>}
-          <span className="ms-auto truncate text-sm font-semibold text-primary">{company.name}</span>
+          {company.logoUrl ? <img src={company.logoUrl} alt={company.name} className="h-6 w-auto object-contain" /> : <span className="font-bold text-primary"><bdi dir="auto">{company.name}</bdi></span>}
+          <span className="ms-auto truncate text-sm font-semibold text-primary"><bdi dir="auto">{company.name}</bdi></span>
         </div>
       </header>
 
@@ -142,7 +142,7 @@ export function ClientSigningView({
             <h1 className="mt-4 text-2xl font-bold text-primary">{s.doneTitle}</h1>
             {signedAt && <p className="mt-2 text-slate-600">{formatMessage(s.doneText, { date: date(signedAt) })}</p>}
             {doc && (
-              <a href={`${pdfUrl}?download=true`} className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-hover">
+              <a href={`${pdfUrl}?download=true`} className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary-hover">
                 <Download className="h-4 w-4" aria-hidden />
                 {s.downloadSigned}
               </a>
@@ -176,7 +176,7 @@ export function ClientSigningView({
                 <table className="w-full text-sm">
                   <caption className="sr-only">{s.items}</caption>
                   <thead>
-                    <tr className="bg-primary text-white">
+                    <tr className="bg-primary text-primary-foreground">
                       <th scope="col" className="px-3 py-2 text-start font-semibold">{s.description}</th>
                       <th scope="col" className="px-3 py-2 text-center font-semibold">{s.qty}</th>
                       <th scope="col" className="px-3 py-2 text-end font-semibold">{s.amount}</th>
@@ -212,7 +212,7 @@ export function ClientSigningView({
               </a>
             </section>
 
-            <section className="rounded-2xl bg-white p-6 shadow-sm">
+            <section className="rounded-2xl bg-white p-6 shadow-sm" data-page-section>
               <h2 className="text-lg font-bold text-primary">{s.termsTitle}</h2>
               <div className="mt-3 max-h-72 overflow-y-auto whitespace-pre-line rounded-xl bg-brand-base p-4 text-sm leading-relaxed text-slate-700">{terms}</div>
             </section>
@@ -254,7 +254,7 @@ export function ClientSigningView({
                 <span>{s.agree}</span>
               </label>
               {error && <p role="alert" className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
-              <button type="submit" disabled={busy} className="w-full rounded-full bg-primary px-5 py-3 text-sm font-bold text-white hover:bg-primary-hover disabled:opacity-60 sm:w-auto">
+              <button type="submit" disabled={busy} className="w-full rounded-full bg-primary px-5 py-3 text-sm font-bold text-primary-foreground hover:bg-primary-hover disabled:opacity-60 sm:w-auto">
                 {busy ? s.signing : s.sign}
               </button>
             </form>

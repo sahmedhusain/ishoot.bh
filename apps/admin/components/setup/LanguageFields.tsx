@@ -66,9 +66,9 @@ export function Field({ label, hint, children, wide }: { label: string; hint?: s
   const id = React.useId();
   return (
     <div className={`space-y-1.5 ${wide ? "sm:col-span-2" : ""}`}>
-      <label htmlFor={id} className="text-xs font-medium text-slate-700 dark:text-slate-300">{label}</label>
+      <label htmlFor={id} className="text-xs font-medium text-ink dark:text-ink">{label}</label>
       {children(id)}
-      {hint ? <p className="text-[11px] text-slate-500 dark:text-ink-muted">{hint}</p> : null}
+      {hint ? <p className="text-[11px] text-ink-muted dark:text-ink-muted">{hint}</p> : null}
     </div>
   );
 }

@@ -73,6 +73,7 @@ for (const locale of ["en", "ar"]) {
       "next/link": ({ children, ...props }) =>
         React.createElement("a", props, children),
       "next/navigation": { usePathname: () => pathname },
+      "framer-motion": { motion: { div: "div" }, useReducedMotion: () => false },
       "@platform/ui": {
         useDialog: () => ({}),
         Button: ({ children, ...props }) => React.createElement("button", props, children),
@@ -91,9 +92,10 @@ for (const locale of ["en", "ar"]) {
         }),
       },
       "./SidebarContext": {
-        useSidebar: () => ({ isMobileOpen: false, setIsMobileOpen() { } }),
+        useSidebar: () => ({ isMobileOpen: false, isCollapsed: false, setIsMobileOpen() { } }),
       },
       "../../hooks/useAdminLocale": { useAdminLocale: () => ({ t, locale }) },
+      "../../hooks/useAdminTheme": { useAdminTheme: () => ({ appearance: { motion: "system" } }) },
       "../../hooks/useFeatureToggles": {
         useFeatureToggles: () => ({
           isFeatureEnabled: (key) => !disabled.includes(key),

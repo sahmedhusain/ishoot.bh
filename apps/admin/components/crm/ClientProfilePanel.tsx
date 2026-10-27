@@ -21,8 +21,8 @@ export interface ClientStanding {
 const TIER_STYLE: Record<ClientStanding["tier"], string> = {
   A: "bg-amber-400/15 text-amber-700 border-amber-400/40 dark:text-amber-300",
   B: "bg-sky-500/10 text-sky-700 border-sky-500/30 dark:text-sky-300",
-  C: "bg-slate-500/10 text-slate-600 border-slate-500/25 dark:text-slate-300",
-  none: "bg-transparent text-ink-muted border-ink/15",
+  C: "bg-surface-sunken/10 text-ink-muted border-outline-variant/25 dark:text-ink",
+  none: "bg-transparent text-ink-muted border-outline-variant",
 };
 
 export function ClientTierBadge({ standing }: { standing: ClientStanding }) {
@@ -124,14 +124,14 @@ export function ClientProfilePanel({ contact, standing, className = "" }: { cont
           </div>
         ) : null}
         {standing && standing.billed > 0 ? (
-          <p className="text-xs text-ink-muted border-t border-ink/10 pt-3">
+          <p className="text-xs text-ink-muted border-t border-outline-variant pt-3">
             {standing.rank ? formatMessage(c.profile.rankLine, { rank: String(standing.rank), total: String(standing.rankedClients) }) : c.profile.notRanked}
             {" · "}
             {c.columns.billed}: {formatCurrencyValue(standing.billed, standing.currency, locale === "ar")}
           </p>
         ) : null}
         {contact.notes ? (
-          <div className="border-t border-ink/10 pt-3">
+          <div className="border-t border-outline-variant pt-3">
             <div className="text-[11px] text-ink-muted mb-1">{f.notes}</div>
             <p className="text-xs text-ink bg-ink/[0.03] p-3 rounded-xl whitespace-pre-wrap">{contact.notes}</p>
           </div>
@@ -146,12 +146,12 @@ export function ClientProfilePanel({ contact, standing, className = "" }: { cont
           </h3>
           {kind === "individual" ? (
             <ul className="space-y-1.5 text-xs">
-              {contact.email ? <li className="flex items-center gap-2"><Mail className="h-3.5 w-3.5 text-ink-muted" /><a href={`mailto:${contact.email}`} dir="ltr" className="text-accent hover:underline">{contact.email}</a></li> : null}
-              {contact.phone ? <li className="flex items-center gap-2"><Phone className="h-3.5 w-3.5 text-ink-muted" /><a href={`tel:${contact.phone}`} dir="ltr" className="text-accent hover:underline">{contact.phone}</a></li> : null}
+              {contact.email ? <li className="flex items-center gap-2"><Mail className="h-3.5 w-3.5 text-ink-muted" /><a href={`mailto:${contact.email}`} dir="ltr" className="text-accent hover:underline"><bdi dir="ltr">{contact.email}</bdi></a></li> : null}
+              {contact.phone ? <li className="flex items-center gap-2"><Phone className="h-3.5 w-3.5 text-ink-muted" /><a href={`tel:${contact.phone}`} dir="ltr" className="text-accent hover:underline"><bdi dir="ltr">{contact.phone}</bdi></a></li> : null}
               {!contact.email && !contact.phone ? <li className="text-ink-muted">{c.profile.noContactDetails}</li> : null}
             </ul>
           ) : persons.length ? (
-            <ul className="divide-y divide-ink/10">
+            <ul className="divide-y divide-outline-variant">
               {persons.map((p) => (
                 <li key={p.id} className="py-2.5 first:pt-0 last:pb-0">
                   <div className="flex items-center gap-2">

@@ -45,7 +45,7 @@ export function SignaturePoliciesPanel({
         </h2>
         <p className="mt-1 text-xs text-ink-muted">{s.subtitle}</p>
       </div>
-      <ul className="divide-y divide-ink/10 rounded-2xl border border-ink/10">
+      <ul className="divide-y divide-outline-variant rounded-2xl border border-outline-variant">
         {policies.map((policy) => (
           <li
             key={policy.documentType}
@@ -72,7 +72,7 @@ export function SignaturePoliciesPanel({
                   onClick={() =>
                     policy.mode !== mode && change(policy.documentType, mode)
                   }
-                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${policy.mode === mode ? "bg-white text-ink shadow-sm dark:bg-white/10" : "text-ink-muted hover:text-ink"}`}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${policy.mode === mode ? "bg-surface-raised text-ink shadow-sm dark:bg-white/10" : "text-ink-muted hover:text-ink"}`}
                 >
                   {s.modes[mode]}
                 </button>

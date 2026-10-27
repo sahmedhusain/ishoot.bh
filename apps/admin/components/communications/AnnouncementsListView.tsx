@@ -27,12 +27,12 @@ export function AnnouncementsListView({
   const [busy, setBusy] = useState(false);
   return (
     <div className="max-w-5xl mx-auto space-y-5">
-      <header className="flex justify-between">
+      <header className="flex justify-between" data-page-header>
         <h1 className="text-2xl font-bold">{c.announcements}</h1>
         {canCreate && (
           <Link
             href={ROUTES.announcements.create}
-            className="rounded-full bg-accent px-4 py-2 text-white"
+            className="rounded-full bg-accent px-4 py-2 text-accent-foreground"
           >
             {c.new}
           </Link>
@@ -75,7 +75,7 @@ export function AnnouncementsListView({
         <Link
           href={ROUTES.announcements.detail(a.id)}
           key={a.id}
-          className="block rounded-2xl border border-ink/10 p-5"
+          className="block rounded-2xl border border-outline-variant p-5"
         >
           <div className="flex justify-between">
             <h2 className={`text-lg ${a.readAt ? "" : "font-bold"}`}>
@@ -87,7 +87,7 @@ export function AnnouncementsListView({
             {locale === "ar" ? a.bodyAr : a.bodyEn}
           </p>
           <p className="mt-2 text-xs">
-            {a.reference} · {labels[a.priority]}{" "}
+            <bdi dir="ltr">{a.reference}</bdi> · {labels[a.priority]}{" "}
             {a.official ? `· ${c.official}` : ""}
           </p>
         </Link>

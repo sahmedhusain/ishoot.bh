@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Laptop, Plus, Search, Settings2, X } from "lucide-react";
-import { Button, formatCurrencyValue, formatDate } from "@platform/ui";
+import { Select, Button, formatCurrencyValue, formatDate } from "@platform/ui";
 import type { AssetRecord } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -45,20 +45,20 @@ export function AssetsListView({ items, counts, totalValue, filters, categories,
     const qs = params.toString();
     return qs ? `${ROUTES.assets.list()}?${qs}` : ROUTES.assets.list();
   };
-  const select = "h-10 rounded-full border border-ink/15 bg-surface-sunken/60 px-4 text-xs text-ink focus:outline-none focus:border-accent";
+  const select = "h-10 rounded-full border border-outline-variant bg-surface-sunken/60 px-4 text-xs text-ink focus:outline-none focus:border-accent";
   const filtered = Object.entries(filters).some(([k, v]) => v && v !== "all" && !(k === "sort" && v === "tag"));
   const total = Object.values(counts).reduce((s, n) => s + n, 0);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-ink flex items-center gap-2"><Laptop className="h-5 w-5 text-accent" />{a.title}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-ink flex items-center gap-2"><Laptop className="h-5 w-5 text-accent" /><bdi dir="auto">{a.title}</bdi></h1>
           <p className="text-xs text-ink-muted mt-1">{a.subtitle}</p>
         </div>
         <div className="flex items-center gap-2">
           {canEdit ? (
-            <Link href={ROUTES.assets.categories} className="inline-flex items-center gap-1.5 h-9 rounded-full border border-ink/15 px-4 text-xs font-semibold text-ink hover:bg-ink/5">
+            <Link href={ROUTES.assets.categories} className="inline-flex items-center gap-1.5 h-9 rounded-full border border-outline-variant px-4 text-xs font-semibold text-ink hover:bg-ink/5">
               <Settings2 className="h-3.5 w-3.5" />{a.categories}
             </Link>
           ) : null}
@@ -83,16 +83,16 @@ export function AssetsListView({ items, counts, totalValue, filters, categories,
             </>
           );
           return link ? (
-            <Link key={title} href={link} className="rounded-2xl border border-ink/10 bg-white dark:bg-surface-raised p-4 hover:border-accent/50">{body}</Link>
+            <Link key={title} href={link} className="rounded-2xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-4 hover:border-accent/50">{body}</Link>
           ) : (
-            <div key={title} className="rounded-2xl border border-ink/10 bg-white dark:bg-surface-raised p-4">{body}</div>
+            <div key={title} className="rounded-2xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-4">{body}</div>
           );
         })}
       </div>
 
       <form
         role="search"
-        className="flex flex-wrap items-center gap-2 rounded-3xl border border-ink/10 bg-white dark:bg-surface-raised p-3"
+        className="flex flex-wrap items-center gap-2 rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-3"
         onSubmit={(e) => {
           e.preventDefault();
           const data = new FormData(e.currentTarget);
@@ -103,34 +103,34 @@ export function AssetsListView({ items, counts, totalValue, filters, categories,
       >
         <div className="relative flex-1 basis-56 min-w-0">
           <Search className="pointer-events-none absolute top-1/2 -translate-y-1/2 start-3.5 h-4 w-4 text-ink-muted" />
-          <input name="q" defaultValue={filters.q} placeholder={a.filters.search} aria-label={a.filters.search} className="h-10 w-full rounded-full border border-ink/15 bg-surface-sunken/60 ps-10 pe-4 text-sm text-ink focus:outline-none focus:border-accent" />
+          <input name="q" defaultValue={filters.q} placeholder={a.filters.search} aria-label={a.filters.search} className="h-10 w-full rounded-full border border-outline-variant bg-surface-sunken/60 ps-10 pe-4 text-sm text-ink focus:outline-none focus:border-accent" />
         </div>
-        <select name="category" defaultValue={filters.category} aria-label={a.fields.category} className={select}>
+        <Select name="category" defaultValue={filters.category} aria-label={a.fields.category} className={select}>
           <option value="all">{a.filters.allCategories}</option>
           {categories.map((c) => <option key={c.id} value={c.id}>{label(c)}</option>)}
-        </select>
-        <select name="status" defaultValue={filters.status} aria-label={a.fields.status} className={select}>
+        </Select>
+        <Select name="status" defaultValue={filters.status} aria-label={a.fields.status} className={select}>
           <option value="all">{a.filters.allStatuses}</option>
           {STATUSES.map((s) => <option key={s} value={s}>{a.statuses[s]}</option>)}
-        </select>
-        <select name="condition" defaultValue={filters.condition} aria-label={a.fields.condition} className={select}>
+        </Select>
+        <Select name="condition" defaultValue={filters.condition} aria-label={a.fields.condition} className={select}>
           <option value="all">{a.filters.anyCondition}</option>
           {CONDITIONS.map((c) => <option key={c} value={c}>{a.conditions[c]}</option>)}
-        </select>
-        <select name="holder" defaultValue={filters.holder} aria-label={a.fields.holder} className={select}>
+        </Select>
+        <Select name="holder" defaultValue={filters.holder} aria-label={a.fields.holder} className={select}>
           <option value="all">{a.filters.anyHolder}</option>
           {employees.map((e) => <option key={e.id} value={e.id}>{label(e)}</option>)}
-        </select>
-        <select name="sort" defaultValue={filters.sort} aria-label={a.filters.sort} className={select}>
+        </Select>
+        <Select name="sort" defaultValue={filters.sort} aria-label={a.filters.sort} className={select}>
           {SORTS.map((s) => <option key={s} value={s}>{a.sorts[s]}</option>)}
-        </select>
-        <button className="h-10 rounded-full bg-primary px-5 text-xs font-semibold text-white">{a.filters.apply}</button>
+        </Select>
+        <button className="h-10 rounded-full bg-primary px-5 text-xs font-semibold text-primary-foreground">{a.filters.apply}</button>
         {filtered ? (
           <Link href={ROUTES.assets.list()} className="inline-flex items-center gap-1 px-2 text-xs font-semibold text-ink-muted hover:text-ink"><X className="h-3.5 w-3.5" />{a.filters.reset}</Link>
         ) : null}
       </form>
 
-      <div className="rounded-3xl border border-ink/10 bg-white dark:bg-surface-raised overflow-hidden">
+      <div className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-ink/[0.03] text-[11px] text-ink-muted">
@@ -143,7 +143,7 @@ export function AssetsListView({ items, counts, totalValue, filters, categories,
                 <th className="px-4 py-3 text-start font-semibold">{a.columns.warranty}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink/5">
+            <tbody className="divide-y divide-outline-variant">
               {items.length === 0 ? <tr><td colSpan={6} className="px-4 py-12 text-center text-ink-muted">{a.empty}</td></tr> : null}
               {items.map((item) => (
                 <tr key={item.id} className="align-top hover:bg-ink/[0.02]">

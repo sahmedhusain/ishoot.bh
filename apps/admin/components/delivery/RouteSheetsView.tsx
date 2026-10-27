@@ -54,10 +54,10 @@ export function RouteSheetsView({ sheets, shipments, drivers, vehicles }: { shee
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{copy.title}</h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
+          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
         </div>
         {!planning && (
           <Button type="button" size="sm" variant="primary" className="rounded-full gap-1.5" onClick={() => setPlanning(true)}>
@@ -93,7 +93,7 @@ export function RouteSheetsView({ sheets, shipments, drivers, vehicles }: { shee
             {shipments.length === 0 ? (
               <p className="text-sm text-ink-muted">{copy.noRoutable}</p>
             ) : (
-              <ul className="divide-y divide-ink/10 rounded-xl border border-ink/10" data-testid="route-candidates">
+              <ul className="divide-y divide-outline-variant rounded-xl border border-outline-variant" data-testid="route-candidates">
                 {shipments.map((s) => (
                   <li key={s.id}>
                     <label className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 text-sm cursor-pointer">
@@ -137,7 +137,7 @@ export function RouteSheetsView({ sheets, shipments, drivers, vehicles }: { shee
             <p className="text-sm text-ink-muted">{copy.empty}</p>
           </div>
         ) : (
-          <ul className="divide-y divide-ink/10" data-testid="route-sheets">
+          <ul className="divide-y divide-outline-variant" data-testid="route-sheets">
             {sheets.map((r) => (
               <li key={r.id}>
                 <Link href={ROUTES.delivery.route(r.id)} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 text-sm hover:bg-ink/[0.02]">

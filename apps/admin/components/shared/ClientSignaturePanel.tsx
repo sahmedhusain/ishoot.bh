@@ -15,7 +15,7 @@ import {
   Upload,
   XCircle,
 } from "lucide-react";
-import { Button, Card, DateDisplay, Modal } from "@platform/ui";
+import { ModalFooter, Button, Card, DateDisplay, Modal } from "@platform/ui";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { uploadForClaim } from "../../lib/upload-client";
 import { LinkOrUploadField } from "./LinkOrUploadField";
@@ -41,9 +41,9 @@ export interface ClientSignatureRow {
 }
 
 const fieldClass =
-  "w-full min-w-0 rounded-lg border border-ink/20 bg-white dark:bg-surface px-3 py-2 text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent/40";
+  "w-full min-w-0 rounded-lg border border-outline-variant bg-surface-raised dark:bg-surface px-3 py-2 text-sm text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent/40";
 const labelClass =
-  "block space-y-1 text-xs font-medium text-slate-700 dark:text-slate-200";
+  "block space-y-1 text-xs font-medium text-ink dark:text-ink";
 
 /** Client acceptance for a quotation or invoice: a one-time signing link, or a copy signed by hand. */
 export function ClientSignaturePanel({
@@ -64,6 +64,9 @@ export function ClientSignaturePanel({
   canRecord: boolean;
   defaultEmail?: string | null;
 }) {
+  const modalFormId = React.useId();
+  const modalFormId2 = React.useId();
+
   const { t, locale } = useAdminLocale();
   const s = t.clientSigning;
   const router = useRouter();
@@ -130,19 +133,19 @@ export function ClientSignaturePanel({
   const statusTone: Record<ClientSignatureRow["status"], string> = {
     pending: "bg-amber-500/10 text-amber-800 dark:text-amber-300",
     signed: "bg-emerald-500/10 text-emerald-800 dark:text-emerald-300",
-    revoked: "bg-ink/5 text-slate-600 dark:text-slate-300",
-    expired: "bg-ink/5 text-slate-600 dark:text-slate-300",
+    revoked: "bg-ink/5 text-ink-muted dark:text-ink",
+    expired: "bg-ink/5 text-ink-muted dark:text-ink",
   };
 
   return (
     <Card className="space-y-4 p-5 dark:bg-surface-raised">
       <div className="flex flex-wrap items-start gap-3">
         <div className="min-w-0 flex-1">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-ink dark:text-ink">
             <FileSignature className="w-4 h-4" aria-hidden />
             {s.panelTitle}
           </h2>
-          <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">
+          <p className="mt-0.5 text-xs text-ink-muted dark:text-ink-muted">
             {signable || signed ? s.panelHint : s.notSignable}
           </p>
         </div>
@@ -252,14 +255,14 @@ export function ClientSignaturePanel({
 
       {records.length > 0 && (
         <details className="text-xs">
-          <summary className="cursor-pointer font-medium text-slate-600 dark:text-slate-300">
+          <summary className="cursor-pointer font-medium text-ink-muted dark:text-ink">
             {s.history}
           </summary>
           <ul className="mt-2 space-y-1.5">
             {records.map((r) => (
               <li
                 key={r.id}
-                className="flex flex-wrap items-center gap-x-2 gap-y-1 text-slate-600 dark:text-slate-400"
+                className="flex flex-wrap items-center gap-x-2 gap-y-1 text-ink-muted dark:text-ink-muted"
               >
                 <DateDisplay date={r.createdAt} locale={locale} />
                 <span
@@ -283,7 +286,7 @@ export function ClientSignaturePanel({
           title={link ? s.linkReady : s.createLink}
           closeLabel={s.cancel}
           className="max-w-lg"
-        >
+         footer={null}>
           {link ? (
             <div className="space-y-3">
               <div className="flex gap-2">
@@ -308,7 +311,7 @@ export function ClientSignaturePanel({
                   {s.copy}
                 </Button>
               </div>
-              <p className="text-xs text-slate-600 dark:text-slate-300">
+              <p className="text-xs text-ink-muted dark:text-ink">
                 {formatMessage(s.linkNotice, {
                   date: new Intl.DateTimeFormat(
                     locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB",
@@ -319,7 +322,7 @@ export function ClientSignaturePanel({
               <p className="text-xs font-medium text-amber-700 dark:text-amber-300">
                 {s.linkOnce}
               </p>
-              <div className="flex justify-end gap-2">
+              <ModalFooter><div className="flex justify-end gap-2">
                 <a
                   href={link.url}
                   target="_blank"
@@ -337,7 +340,7 @@ export function ClientSignaturePanel({
                 >
                   {s.cancel}
                 </Button>
-              </div>
+              </div></ModalFooter>
             </div>
           ) : (
             <form
@@ -346,7 +349,7 @@ export function ClientSignaturePanel({
                 createLink();
               }}
               className="space-y-3"
-            >
+             id={modalFormId}>
               <label className={labelClass}>
                 {s.linkDays}
                 <input
@@ -370,7 +373,7 @@ export function ClientSignaturePanel({
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </label>
-              <div className="flex justify-end gap-2">
+              <ModalFooter><div className="flex justify-end gap-2">
                 <Button
                   type="button"
                   size="sm"
@@ -379,10 +382,10 @@ export function ClientSignaturePanel({
                 >
                   {s.cancel}
                 </Button>
-                <Button type="submit" size="sm" disabled={busy}>
+                <Button type="submit" size="sm" disabled={busy} form={modalFormId}>
                   {s.createLink}
                 </Button>
-              </div>
+              </div></ModalFooter>
             </form>
           )}
         </Modal>
@@ -395,23 +398,23 @@ export function ClientSignaturePanel({
           title={reviewing ? s.reviewTitle : s.uploadCopy}
           closeLabel={s.cancel}
           className="max-w-lg"
-        >
+         footer={null}>
           {reviewing ? (
             <div className="space-y-3 text-sm">
               <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5">
-                <dt className="text-slate-500">{s.signerName}</dt>
+                <dt className="text-ink-muted">{s.signerName}</dt>
                 <dd className="font-medium">{copy.signerName}</dd>
                 {copy.signerTitle && (
                   <>
-                    <dt className="text-slate-500">{s.signerTitle}</dt>
+                    <dt className="text-ink-muted">{s.signerTitle}</dt>
                     <dd>{copy.signerTitle}</dd>
                   </>
                 )}
-                <dt className="text-slate-500">{s.signedDate}</dt>
+                <dt className="text-ink-muted">{s.signedDate}</dt>
                 <dd>
                   <DateDisplay date={copy.signedAt} locale={locale} />
                 </dd>
-                <dt className="text-slate-500">{s.file}</dt>
+                <dt className="text-ink-muted">{s.file}</dt>
                 <dd className="truncate">
                   <bdi dir="ltr">{file?.name}</bdi>
                 </dd>
@@ -421,7 +424,7 @@ export function ClientSignaturePanel({
                   {s.uploadWarningQuotation}
                 </p>
               )}
-              <div className="flex justify-between gap-2">
+              <ModalFooter><div className="flex justify-between gap-2">
                 <Button
                   type="button"
                   size="sm"
@@ -438,7 +441,7 @@ export function ClientSignaturePanel({
                 >
                   {s.confirm}
                 </Button>
-              </div>
+              </div></ModalFooter>
             </div>
           ) : (
             <form
@@ -447,7 +450,7 @@ export function ClientSignaturePanel({
                 if (file && copy.signerName.trim()) setReviewing(true);
               }}
               className="space-y-3"
-            >
+             id={modalFormId2}>
               <label className={labelClass}>
                 {s.signerName}
                 <input
@@ -509,7 +512,7 @@ export function ClientSignaturePanel({
                   })
                 }
               />
-              <div className="flex justify-end gap-2">
+              <ModalFooter><div className="flex justify-end gap-2">
                 <Button
                   type="button"
                   size="sm"
@@ -518,10 +521,10 @@ export function ClientSignaturePanel({
                 >
                   {s.cancel}
                 </Button>
-                <Button type="submit" size="sm">
+                <Button type="submit" size="sm" form={modalFormId2}>
                   {s.saveUpload}
                 </Button>
-              </div>
+              </div></ModalFooter>
             </form>
           )}
         </Modal>

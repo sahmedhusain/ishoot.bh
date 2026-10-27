@@ -133,6 +133,86 @@ describe("generated CSS", () => {
       expect(common[`--brand-tone-${tone}`]).toMatch(/^\d+ \d+ \d+$/);
     expect(dark["--ui-ink"]).not.toBe(light["--ui-ink"]);
     expect(light["--brand-bg-surface"]).toBe("255 255 255");
+
+    // Material Design 3 (M3) System Tokens
+    expect(common["--md-sys-shape-corner-extra-large"]).toBe("28px");
+    expect(common["--md-sys-shape-corner-full"]).toBe("9999px");
+    expect(common["--md-sys-motion-easing-standard"]).toBe(
+      "cubic-bezier(0.2, 0, 0, 1)",
+    );
+    expect(common["--md-sys-motion-easing-emphasized"]).toBe(
+      "cubic-bezier(0.05, 0.7, 0.1, 1.0)",
+    );
+    expect(light["--md-sys-color-primary"]).toMatch(/^#[0-9a-f]{6}$/);
+    expect(light["--m3-color-primary"]).toMatch(/^\d+ \d+ \d+$/);
+    expect(light["--md-sys-color-surface-container"]).toMatch(/^#[0-9a-f]{6}$/);
+    expect(dark["--md-sys-color-primary"]).toMatch(/^#[0-9a-f]{6}$/);
+    expect(dark["--md-sys-color-surface-container"]).toMatch(/^#[0-9a-f]{6}$/);
+    expect(dark["--md-sys-color-surface"]).not.toBe(
+      light["--md-sys-color-surface"],
+    );
+  });
+
+  test("Material foreground pairs meet AA for every preset and extreme seed colours", () => {
+    const themes = [
+      ...STYLE_PRESETS.map((preset) => normalizeTheme(preset.theme)),
+      ...["#FFFF00", "#FFFFFF", "#000000", "#00FF00"].map((primary) =>
+        normalizeTheme({ primary }),
+      ),
+    ];
+    for (const theme of themes) {
+      const variables = themeVariables(theme);
+      for (const mode of ["light", "dark"] as const) {
+        const roles = variables[mode];
+        for (const role of [
+          "primary",
+          "secondary",
+          "tertiary",
+          "error",
+          "primary-container",
+          "secondary-container",
+          "tertiary-container",
+          "error-container",
+          "surface",
+          "surface-container-highest",
+        ]) {
+          const onRole = role.startsWith("surface")
+            ? "on-surface"
+            : `on-${role}`;
+          expect(
+            contrastRatio(
+              roles[`--md-sys-color-${role}`],
+              roles[`--md-sys-color-${onRole}`],
+            ),
+            `${theme.primary}/${mode}/${role}`,
+          ).toBeGreaterThanOrEqual(4.5);
+        }
+        expect(
+          contrastRatio(
+            roles["--md-sys-color-on-surface-variant"],
+            roles["--md-sys-color-surface-container-highest"],
+          ),
+        ).toBeGreaterThanOrEqual(4.5);
+      }
+    }
+  });
+
+  test("Material neutral surfaces and accent roles follow saved appearance settings", () => {
+    const neutral = themeVariables(
+      normalizeTheme({ primary: "#7F1D1D", surface: "neutral" }),
+    );
+    for (const mode of ["light", "dark"] as const) {
+      const values = neutral[mode]["--m3-color-surface"].split(" ").map(Number);
+      expect(Math.max(...values) - Math.min(...values)).toBe(0);
+    }
+    const first = themeVariables(normalizeTheme({ accent: "#00FF00" }));
+    const second = themeVariables(normalizeTheme({ accent: "#FF0000" }));
+    expect(first.light["--md-sys-color-tertiary"]).not.toBe(
+      second.light["--md-sys-color-tertiary"],
+    );
+    expect(first.light["--md-sys-color-primary"]).toBe(
+      second.light["--md-sys-color-primary"],
+    );
   });
 
   test("stylesheet declares uploaded fonts once and both modes", () => {

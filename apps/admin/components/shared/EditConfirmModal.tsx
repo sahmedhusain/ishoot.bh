@@ -60,7 +60,7 @@ export function EditConfirmModal({
       errorLabel={errorLabel}
       description={
         <div className="space-y-5">
-          <p className="text-xs text-slate-500 dark:text-ink-muted">
+          <p className="text-xs text-ink-muted dark:text-ink-muted">
             {description ||
               (t.editConfirmModal.pleaseReviewTheModifiedFields)}
           </p>
@@ -70,9 +70,9 @@ export function EditConfirmModal({
               {filteredChanges.map((change, idx) => (
                 <div
                   key={idx}
-                  className="p-3.5 rounded-2xl bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 space-y-1.5"
+                  className="p-3.5 rounded-2xl bg-surface-raised dark:bg-surface border border-outline-variant dark:border-white/10 space-y-1.5"
                 >
-                  <div className="text-[11px] font-bold text-slate-700 dark:text-ink-muted uppercase tracking-wider">
+                  <div className="text-[11px] font-bold text-ink dark:text-ink-muted uppercase tracking-wider">
                     {change.label}
                   </div>
 
@@ -82,7 +82,7 @@ export function EditConfirmModal({
                       {formatValue(change.oldValue, t)}
                     </div>
 
-                    <ArrowRight className="w-3.5 h-3.5 text-slate-400 shrink-0 rtl:rotate-180" />
+                    <ArrowRight className="w-3.5 h-3.5 text-ink-muted shrink-0 rtl:rotate-180" />
 
                     {/* New Value */}
                     <div className="flex-1 p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 font-mono text-[11px] font-bold min-w-0 break-words">

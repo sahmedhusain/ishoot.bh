@@ -45,12 +45,12 @@ export function AnnouncementDetailView({
   };
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <header>
+      <header data-page-header>
         <h1 className="text-2xl font-bold">
           {locale === "ar" ? item.titleAr : item.titleEn}
         </h1>
         <p className="text-sm text-ink-muted">
-          {item.reference} · {labels[item.status]} · {item.author}
+          <bdi dir="ltr">{item.reference}</bdi> · {labels[item.status]} · {item.author}
         </p>
       </header>
       {item.canEdit ? (
@@ -60,7 +60,7 @@ export function AnnouncementDetailView({
           createAny={createAny}
         />
       ) : (
-        <article className="rounded-3xl border border-ink/10 p-6 whitespace-pre-wrap leading-8">
+        <article className="rounded-3xl border border-outline-variant p-6 whitespace-pre-wrap leading-8">
           {locale === "ar" ? item.bodyAr : item.bodyEn}
         </article>
       )}
@@ -140,7 +140,7 @@ export function AnnouncementDetailView({
       )}
       {item.decisionNotes && <p>{item.decisionNotes}</p>}
       {!!item.readers.length && (
-        <section className="rounded-2xl border p-5">
+        <section className="rounded-2xl border p-5" data-page-section>
           <h2>{c.readers}</h2>
           <ul>
             {item.readers.map((r, i) => (

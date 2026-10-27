@@ -9,5 +9,11 @@
   "inflow": "Inflow (revenue)",
   "outflow": "Outflow (expenses)",
   "typeToConfirm": "Type to confirm",
-  "actionFailed": "The action failed. Please try again."
+  "actionFailed": "The action failed. Please try again.",
+  "dialog": "Dialog",
+  "selectOption": "Select an option",
+  "searchOptions": "Search options",
+  "noOptions": "No matching options",
+  "selectRequired": "Select an option to continue.",
+  "optionSeparator": ", "
 }

@@ -25,12 +25,13 @@
     "type-check": "tsc --noEmit && tsc --project tsconfig.seed.json --noEmit"
   },
   "dependencies": {
+    "@material/material-color-utilities": "0.3.0",
+    "@platform/config": "workspace:*",
     "@platform/locales": "workspace:*",
     "@prisma/client": "5.22.0",
     "@supabase/supabase-js": "^2.117.2",
     "bcryptjs": "^3.0.3",
-    "libphonenumber-js": "^1.13.14",
-    "@platform/config": "workspace:*"
+    "libphonenumber-js": "^1.13.14"
   },
   "devDependencies": {
     "@types/node": "^22.20.4",

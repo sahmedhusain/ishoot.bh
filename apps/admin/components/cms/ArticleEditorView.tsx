@@ -6,7 +6,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Eye, Loader2, Save, Send, Trash2 } from "lucide-react";
-import { Button, Card, Input } from "@platform/ui";
+import { Select, Button, Card, Input } from "@platform/ui";
 import type { CmsArticleRecord } from "@platform/database/queries/cms-articles";
 import type { ContentLanguage } from "@platform/database/constants/languages";
 import { deleteCmsArticleAction, saveCmsArticleAction } from "../../app/actions/cms-articles";
@@ -135,9 +135,9 @@ export function ArticleEditorView({ article, languages, canPublish, canDelete, a
         </Field>
         <Field label={copy.category}>
           {(id) => (
-            <select id={id} value={draft.category} onChange={(e) => set("category", e.target.value)} className="w-full h-9 rounded-lg border border-ink/15 bg-surface px-3 text-sm">
+            <Select id={id} value={draft.category} onChange={(e) => set("category", e.target.value)} className="w-full h-9 rounded-lg border border-outline-variant bg-surface px-3 text-sm">
               {Object.entries(copy.categories).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
-            </select>
+            </Select>
           )}
         </Field>
         <Field label={copy.fields.tags} hint={copy.hints.tags}>

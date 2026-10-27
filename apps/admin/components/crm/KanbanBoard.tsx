@@ -56,9 +56,9 @@ export function KanbanBoard({ initialDeals, contacts = [], stages, canCustomize 
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">
             {t.nav.deals}
           </h1>
         </div>
@@ -74,7 +74,7 @@ export function KanbanBoard({ initialDeals, contacts = [], stages, canCustomize 
             <Button
               variant="primary"
               size="sm"
-              className="gap-1.5 shrink-0 bg-primary hover:bg-primary/90 text-white rounded-full px-4 h-8 text-xs font-semibold shadow-xs"
+              className="gap-1.5 shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-4 h-8 text-xs font-semibold shadow-xs"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>{t.actions.newDeal}</span>

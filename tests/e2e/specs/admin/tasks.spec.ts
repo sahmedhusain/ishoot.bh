@@ -1,3 +1,4 @@
+import { selectOption } from "../../select-option";
 import { expect, test, type Browser } from "@playwright/test";
 import users from "../../fixtures/users.json";
 import { ports } from "../../../../playwright.config";
@@ -64,9 +65,9 @@ test("a manager creates a project and gives a task to someone, who is told", asy
   await page.getByTestId("task-new").first().click();
   const form = page.getByTestId("task-form").first();
   await form.locator('input[name="taskTitle"]').fill(TASK);
-  await form.locator('select[name="taskAssignee"]').selectOption(driverUserId);
+  await selectOption(form.locator('select[name="taskAssignee"]'), driverUserId);
   await form.locator('input[name="taskDue"]').fill("2030-01-15");
-  await form.locator('select[name="taskPriority"]').selectOption("high");
+  await selectOption(form.locator('select[name="taskPriority"]'), "high");
   await page.getByTestId("task-save").first().click();
   await expect(page.getByTestId("column-todo").first()).toContainText(TASK);
   const task = await db.task.findFirstOrThrow({
@@ -88,11 +89,10 @@ test("a manager creates a project and gives a task to someone, who is told", asy
     .toBe(1);
 
   // Moving it on the board.
-  await page
+  await selectOption(page
     .getByTestId(`task-${task.number}`)
     .first()
-    .getByRole("combobox")
-    .selectOption("in_progress");
+    .getByRole("combobox"), "in_progress");
   await expect(page.getByTestId("column-in_progress").first()).toContainText(
     TASK,
   );
@@ -126,7 +126,7 @@ test("the assignee finds it in My tasks, comments and finishes it, and can only 
   await expect(page.getByTestId("task-comments")).toContainText(
     "On it, done by Thursday.",
   );
-  await page.locator('select[name="taskStatusQuick"]').selectOption("done");
+  await selectOption(page.locator('select[name="taskStatusQuick"]'), "done");
   await expect(page.getByTestId("task-status").first()).toHaveText(
     copy.statuses.done,
   );

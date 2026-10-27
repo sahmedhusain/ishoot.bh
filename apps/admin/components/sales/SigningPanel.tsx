@@ -71,7 +71,7 @@ export function SigningPanel({
   ];
 
   return (
-    <section className="rounded-3xl border border-ink/10 bg-surface p-5 space-y-4">
+    <section className="rounded-3xl border border-outline-variant bg-surface p-5 space-y-4">
       <h3 className="text-sm font-bold text-ink flex items-center gap-2">
         <ShieldCheck className="w-4 h-4 text-accent" />
         {s.title}
@@ -80,7 +80,7 @@ export function SigningPanel({
         {steps.map((step, i) => (
           <li key={step.key} className="flex items-center gap-2 flex-1">
             <span
-              className={`w-6 h-6 rounded-full flex items-center justify-center font-bold ${step.done ? "bg-accent text-white" : "bg-ink/10 text-ink-muted"}`}
+              className={`w-6 h-6 rounded-full flex items-center justify-center font-bold ${step.done ? "bg-accent text-accent-foreground" : "bg-ink/10 text-ink-muted"}`}
             >
               {i + 1}
             </span>
@@ -102,7 +102,7 @@ export function SigningPanel({
 
       {state.signed ? (
         <div className="flex items-center gap-3 text-xs">
-          <div className="h-12 w-32 rounded-xl border border-ink/10 bg-white flex items-center justify-center overflow-hidden">
+          <div className="h-12 w-32 rounded-xl border border-outline-variant bg-surface-raised flex items-center justify-center overflow-hidden">
             {state.signatureUrl && (
               <ContentImage
                 src={state.signatureUrl}
@@ -145,7 +145,7 @@ export function SigningPanel({
                     s.approvalRequested,
                   )
                 }
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent text-white font-semibold disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent text-accent-foreground font-semibold disabled:opacity-60"
               >
                 <Send className="w-3.5 h-3.5" />
                 {s.requestApproval}
@@ -166,7 +166,7 @@ export function SigningPanel({
             onClick={() =>
               run(() => signDocumentAction(type, id, drawn!), s.signedToast)
             }
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-accent text-white text-xs font-semibold disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-accent text-accent-foreground text-xs font-semibold disabled:opacity-60"
           >
             <PenLine className="w-3.5 h-3.5" />
             {s.signAndStamp}
@@ -180,7 +180,7 @@ export function SigningPanel({
             onClick={() =>
               run(() => signDocumentAction(type, id), s.signedToast)
             }
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-accent text-white text-xs font-semibold disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-accent text-accent-foreground text-xs font-semibold disabled:opacity-60"
           >
             <PenLine className="w-3.5 h-3.5" />
             {s.signAndStamp}

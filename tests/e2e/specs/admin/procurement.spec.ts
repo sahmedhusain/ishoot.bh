@@ -1,3 +1,4 @@
+import { selectOption } from "../../select-option";
 import { expect, test } from "@playwright/test";
 import { testDatabase, watchErrors } from "../../helpers";
 import { t } from "../../locale";
@@ -115,7 +116,7 @@ test("a requisition is approved, priced by two suppliers, ordered from the cheap
   ]) {
     await page.getByTestId("rfq-add-quote").click();
     const entry = page.getByTestId("rfq-quote-entry");
-    await entry.getByLabel(copy.rfqs.supplier).selectOption({ label: name });
+    await selectOption(entry.getByLabel(copy.rfqs.supplier), { label: name });
     await entry
       .getByRole("spinbutton", { name: new RegExp(`^${copy.lines.unitPrice}`) })
       .fill(price);
@@ -164,12 +165,10 @@ test("goods are received into stock, a bill that differs is approved with a reas
     where: { sku: "E2E-PROC" },
   });
   await page.goto("/dashboard/procurement/orders/new");
-  await page
-    .getByLabel(copy.orders.supplier)
-    .selectOption({ label: "E2E Supplier Alpha" });
-  await page
-    .getByRole("combobox", { name: copy.lines.product })
-    .selectOption({ value: product.id });
+  await selectOption(page
+    .getByLabel(copy.orders.supplier), { label: "E2E Supplier Alpha" });
+  await selectOption(page
+    .getByRole("combobox", { name: copy.lines.product }), { value: product.id });
   await page
     .getByRole("spinbutton", { name: `${copy.lines.quantity} 1` })
     .fill("10");

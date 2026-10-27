@@ -1,3 +1,4 @@
+import { selectOption } from "../../select-option";
 import { expect, test } from "@playwright/test";
 import users from "../../fixtures/users.json";
 import { cronSecret, ports } from "../../../../playwright.config";
@@ -91,7 +92,7 @@ test("a report scheduled by e-mail is run by the scheduled job", async ({
   const errors = watchErrors(page);
   await page.goto("/dashboard/reports/stock_on_hand");
   await page.waitForLoadState("networkidle");
-  await page.locator('select[name="scheduleFrequency"]').selectOption("daily");
+  await selectOption(page.locator('select[name="scheduleFrequency"]'), "daily");
   await page
     .locator('input[name="scheduleRecipients"]')
     .fill("e2e-reports@example.test, e2e-owner@example.test");

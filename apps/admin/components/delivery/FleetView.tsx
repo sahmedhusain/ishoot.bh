@@ -38,10 +38,10 @@ export function FleetView({ vehicles, drivers }: { vehicles: VehicleRecord[]; dr
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{copy.title}</h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
+          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
         </div>
         {!draft && (
           <Button type="button" size="sm" variant="primary" className="rounded-full gap-1.5" onClick={() => setDraft({ plate: "", name: "", kind: "van", notes: "", isActive: true })}>
@@ -74,12 +74,12 @@ export function FleetView({ vehicles, drivers }: { vehicles: VehicleRecord[]; dr
         {vehicles.length === 0 ? (
           <p className="px-5 py-10 text-center text-sm text-ink-muted">{copy.empty}</p>
         ) : (
-          <ul className="divide-y divide-ink/10" data-testid="vehicles-list">
+          <ul className="divide-y divide-outline-variant" data-testid="vehicles-list">
             {vehicles.map((v) => (
               <li key={v.id} className={`flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-3 text-sm ${v.is_active ? "" : "opacity-60"}`}>
                 <CarFront className="w-4 h-4 text-accent" aria-hidden="true" />
                 <span className="font-mono font-semibold text-ink" dir="ltr">{v.plate}</span>
-                <span className="text-ink">{v.name}</span>
+                <span className="text-ink"><bdi dir="auto">{v.name}</bdi></span>
                 <span className="text-xs text-ink-muted">{(t.delivery.kinds as Record<string, string>)[v.kind]}</span>
                 {!v.is_active && <span className="text-xs text-ink-muted">{copy.inactive}</span>}
                 <button type="button" className="ms-auto text-xs font-semibold text-primary dark:text-mint" onClick={() => setDraft({ id: v.id, plate: v.plate, name: v.name, kind: v.kind, notes: v.notes, isActive: v.is_active })}>{copy.edit}</button>
@@ -88,17 +88,17 @@ export function FleetView({ vehicles, drivers }: { vehicles: VehicleRecord[]; dr
           </ul>
         )}
       </Card>
-      <Card className="p-5 space-y-3">
+      <Card className="p-5 space-y-3" data-page-section>
         <h2 className="font-bold text-ink">{copy.drivers}</h2>
         {drivers.length === 0 ? (
           <p className="text-sm text-ink-muted">{copy.noDrivers}</p>
         ) : (
           <ul className="flex flex-wrap gap-2" data-testid="drivers-list">
             {drivers.map((d) => (
-              <li key={d.id} className="inline-flex items-center gap-1.5 rounded-full border border-ink/10 px-3 py-1 text-xs">
+              <li key={d.id} className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant px-3 py-1 text-xs">
                 <UserRound className="w-3.5 h-3.5" aria-hidden="true" />
                 {locale === "ar" ? d.name_ar : d.name_en}
-                {d.phone && <span className="text-ink-muted" dir="ltr">{d.phone}</span>}
+                {d.phone && <span className="text-ink-muted" dir="ltr"><bdi dir="ltr">{d.phone}</bdi></span>}
               </li>
             ))}
           </ul>

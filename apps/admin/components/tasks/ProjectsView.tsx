@@ -63,7 +63,7 @@ function ProjectForm({ initial, choices, onDone, onCancel }: { initial: ProjectI
       </Field>
       <Field label={copy.startDate}>{(id) => <Input id={id} type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} className="rounded-lg" />}</Field>
       <Field label={copy.dueDate}>{(id) => <Input id={id} name="projectDue" type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} className="rounded-lg" />}</Field>
-      <Field label={copy.color}>{(id) => <input id={id} type="color" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value.toUpperCase() })} className="h-10 w-16 rounded-lg border border-ink/15 bg-transparent" />}</Field>
+      <Field label={copy.color}>{(id) => <input id={id} type="color" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value.toUpperCase() })} className="h-10 w-16 rounded-lg border border-outline-variant bg-transparent" />}</Field>
       {error && <p role="alert" className="sm:col-span-2 text-sm text-rose-600">{error}</p>}
       <div className="sm:col-span-2 flex gap-2">
         <Button type="button" variant="primary" size="sm" className="rounded-full" disabled={busy || !form.name.trim()} onClick={() => void save()} data-testid="project-save">{copy.save}</Button>
@@ -89,10 +89,10 @@ export function ProjectsView({ projects, choices, canManage }: { projects: Proje
   const [adding, setAdding] = React.useState(false);
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{copy.title}</h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
+          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
         </div>
         {canManage && !adding && (
           <Button type="button" size="sm" variant="primary" className="rounded-full gap-1.5" onClick={() => setAdding(true)} data-testid="project-new">
@@ -115,7 +115,7 @@ export function ProjectsView({ projects, choices, canManage }: { projects: Proje
         <ul className="grid gap-3 sm:grid-cols-2" data-testid="projects-list">
           {projects.map((p) => (
             <li key={p.id}>
-              <Link href={ROUTES.tasks.project(p.id)} className="block rounded-2xl border border-ink/10 bg-white dark:bg-surface p-4 space-y-3 hover:border-accent">
+              <Link href={ROUTES.tasks.project(p.id)} className="block rounded-2xl border border-outline-variant bg-surface-raised dark:bg-surface p-4 space-y-3 hover:border-accent">
                 <div className="flex items-center gap-2">
                   <span className="h-3 w-3 rounded-full" style={{ backgroundColor: p.color }} aria-hidden="true" />
                   <span className="font-semibold text-ink">{p.name}</span>
@@ -152,8 +152,8 @@ export function ProjectView({ project, rows, choices, filters, canAssign, selfId
         </Link>
         <div className="flex flex-wrap items-center gap-3">
           <span className="h-4 w-4 rounded-full" style={{ backgroundColor: project.color }} aria-hidden="true" />
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{project.name}</h1>
-          <span className="font-mono text-xs text-ink-muted" dir="ltr">{project.code}</span>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink"><bdi dir="auto">{project.name}</bdi></h1>
+          <span className="font-mono text-xs text-ink-muted" dir="ltr"><bdi dir="ltr">{project.code}</bdi></span>
           <span className="text-xs text-ink-muted">{(copy.statuses as Record<string, string>)[project.status]}</span>
           {canAssign && !editing && <Button type="button" size="sm" variant="outline" className="rounded-full ms-auto" onClick={() => setEditing(true)}>{copy.edit}</Button>}
         </div>

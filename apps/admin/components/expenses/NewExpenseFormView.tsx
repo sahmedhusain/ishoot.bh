@@ -9,7 +9,7 @@ import * as React from "react";
 import { businessDateString } from "../../lib/dates";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Card, Button, Input } from "@platform/ui";
+import { Select, Card, Button, Input } from "@platform/ui";
 import { LinkOrUploadField } from "../shared/LinkOrUploadField";
 import {
   ArrowLeft,
@@ -138,12 +138,12 @@ export function NewExpenseFormView({
 
   const label = "text-xs font-semibold text-ink mb-1.5 block";
   const select =
-    "w-full rounded-xl border border-ink/15 bg-surface px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/30";
+    "w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/30";
 
   return (
     <div inert={saving} aria-busy={saving} className="space-y-6 max-w-4xl mx-auto pb-16">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4" data-page-header>
           <Link href={ROUTES.expenses.list()}>
             <Button
               variant="outline"
@@ -157,7 +157,7 @@ export function NewExpenseFormView({
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-ink font-display flex items-center gap-2">
               <Receipt className="w-6 h-6 text-accent" />
-              <span>{nT.title}</span>
+              <span><bdi dir="auto">{nT.title}</bdi></span>
             </h1>
             <p className="text-xs text-ink-muted mt-1">{nT.subtitle}</p>
           </div>
@@ -183,7 +183,7 @@ export function NewExpenseFormView({
           </p>
         ) : null}
 
-        <Card className="p-6 sm:p-8 bg-surface border border-ink/10 rounded-3xl space-y-5">
+        <Card className="p-6 sm:p-8 bg-surface border border-outline-variant rounded-3xl space-y-5">
           <span className={label}>{nT.scopeLabel}</span>
           <div
             role="radiogroup"
@@ -196,7 +196,7 @@ export function NewExpenseFormView({
                 role="radio"
                 aria-checked={scope === s}
                 onClick={() => setScope(s)}
-                className={`text-start p-4 rounded-2xl border transition-colors ${scope === s ? "border-accent bg-accent/10" : "border-ink/10 hover:border-ink/25"}`}
+                className={`text-start p-4 rounded-2xl border transition-colors ${scope === s ? "border-accent bg-accent/10" : "border-outline-variant hover:border-ink/25"}`}
               >
                 <span className="flex items-center gap-2 text-sm font-bold text-ink">
                   {SCOPE_ICONS[s]}
@@ -234,13 +234,13 @@ export function NewExpenseFormView({
           )}
         </Card>
 
-        <Card className="p-6 sm:p-8 bg-surface border border-ink/10 rounded-3xl space-y-5">
+        <Card className="p-6 sm:p-8 bg-surface border border-outline-variant rounded-3xl space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className={label} htmlFor="expense-category">
                 {nT.categoryLabel}
               </label>
-              <select
+              <Select
                 id="expense-category"
                 required
                 className={select}
@@ -257,7 +257,7 @@ export function NewExpenseFormView({
                     ))}
                   </optgroup>
                 ))}
-              </select>
+              </Select>
             </div>
             <div>
               <label className={label} htmlFor="expense-date">
@@ -281,7 +281,7 @@ export function NewExpenseFormView({
                 placeholder={nT.descriptionPlaceholder}
                 value={descriptionEn}
                 onChange={(e) => setDescriptionEn(e.target.value)}
-              />
+               dir="ltr"/>
             </div>
             <div>
               <label className={label} htmlFor="expense-desc-ar">
@@ -317,7 +317,7 @@ export function NewExpenseFormView({
               <label className={label} htmlFor="expense-currency">
                 {nT.currencyLabel}
               </label>
-              <select
+              <Select
                 id="expense-currency"
                 className={select}
                 value={currency}
@@ -330,7 +330,7 @@ export function NewExpenseFormView({
                     {code}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
           </div>
 
@@ -380,7 +380,7 @@ export function NewExpenseFormView({
               <label className={label} htmlFor="expense-method">
                 {nT.paymentMethodLabel}
               </label>
-              <select
+              <Select
                 id="expense-method"
                 className={select}
                 value={paymentMethod}
@@ -391,7 +391,7 @@ export function NewExpenseFormView({
                     {t.expenseMeta.methods[m]}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
           </div>
 
@@ -414,7 +414,7 @@ export function NewExpenseFormView({
             <textarea
               id="expense-notes"
               rows={3}
-              className="w-full rounded-xl border border-ink/15 bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/30"
+              className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/30"
               placeholder={nT.notesPlaceholder}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}

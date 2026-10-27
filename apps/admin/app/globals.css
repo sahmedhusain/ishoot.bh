@@ -35,15 +35,15 @@ html.light {
 
 html.dark,
 body.dark {
-  background-color: rgb(var(--brand-bg-base));
-  color: rgb(var(--ui-ink));
+  background-color: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
   color-scheme: dark;
 }
 
 html.light,
 body.light {
-  background-color: #f8fafc;
-  color: #0f172a;
+  background-color: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
   color-scheme: light;
 }
 
@@ -53,116 +53,80 @@ body {
   min-height: 100vh;
 }
 
-/* =========================================================================
-   ZERO-GUTTER OVERLAY SCROLLBARS (Visible ONLY on Hover)
-   ========================================================================= */
-
-/* Modern Standard CSS (Firefox, Chrome 121+, Safari 18+) */
-html,
-body,
+/* Keep scroll affordances visible for pointer and keyboard users. */
 * {
-  scrollbar-width: none;
-  scrollbar-color: transparent transparent;
-}
-
-html:hover,
-body:hover,
-*:hover {
   scrollbar-width: thin;
-  scrollbar-color: rgb(var(--brand-accent) / 0.5) transparent;
+  scrollbar-color: var(--md-sys-color-outline) transparent;
 }
-
-.light html:hover,
-.light body:hover,
-.light *:hover {
-  scrollbar-color: rgb(var(--brand-primary) / 0.45) transparent;
-}
-
-/* WebKit / Blink Engine (Chrome, Safari, Edge, Opera) */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-  background-color: transparent !important;
+  width: 8px;
+  height: 8px;
 }
-
-/* Scroller track area completely invisible – No background, no gutter */
 ::-webkit-scrollbar-track,
 ::-webkit-scrollbar-corner {
-  background: transparent !important;
-  background-color: transparent !important;
-  border: none !important;
+  background: transparent;
 }
-
-/* Scroller thumb invisible by default */
 ::-webkit-scrollbar-thumb {
-  background-color: transparent;
-  border-radius: 9999px;
-  transition: background-color 0.2s ease-in-out;
+  background: var(--md-sys-color-outline-variant);
+  border: 2px solid transparent;
+  border-radius: var(--md-sys-shape-corner-full);
+  background-clip: padding-box;
 }
-
-/* Scroller thumb visible ONLY when hovering the window or container */
-html:hover::-webkit-scrollbar-thumb,
-body:hover::-webkit-scrollbar-thumb,
-*:hover::-webkit-scrollbar-thumb {
-  background-color: rgb(var(--brand-accent) / 0.45);
-}
-
-.light html:hover::-webkit-scrollbar-thumb,
-.light body:hover::-webkit-scrollbar-thumb,
-.light *:hover::-webkit-scrollbar-thumb {
-  background-color: rgb(var(--brand-primary) / 0.4);
-}
-
-/* Scroller thumb active hover state */
 ::-webkit-scrollbar-thumb:hover {
-  background-color: rgb(var(--brand-accent) / 0.85) !important;
+  background-color: var(--md-sys-color-outline);
 }
 
-.light ::-webkit-scrollbar-thumb:hover {
-  background-color: rgb(var(--brand-primary) / 0.8) !important;
+/* Printed documents keep the company's exact brand colours. */
+:root {
+  --document-primary: var(--brand-primary);
+  --document-accent: var(--brand-accent);
+  --document-on-primary: var(--brand-on-primary);
+  --document-on-accent: var(--brand-on-accent);
+}
+[data-print-target] {
+  --brand-primary: var(--document-primary);
+  --brand-accent: var(--document-accent);
+  --brand-on-primary: var(--document-on-primary);
+  --brand-on-accent: var(--document-on-accent);
 }
 
-/* Card glass aesthetics */
+/* Brand aliases keep existing screens on the same semantic Material roles. */
+body {
+  --brand-primary: var(--m3-color-primary);
+  --brand-primary-light: var(--m3-color-primary);
+  --brand-primary-dark: var(--m3-color-primary);
+  --brand-primary-hover: var(--m3-color-primary);
+  --brand-on-primary: var(--m3-color-on-primary);
+  --brand-accent: var(--m3-color-primary);
+  --brand-accent-hover: var(--m3-color-primary);
+  --brand-accent-pressed: var(--m3-color-primary);
+  --brand-on-accent: var(--m3-color-on-primary);
+  --brand-mint: var(--m3-color-primary);
+  --brand-text-accent: var(--m3-color-primary);
+  --brand-bg-base: var(--m3-color-surface);
+  --brand-bg-surface: var(--m3-color-surface-container-low);
+  --brand-bg-elevated: var(--m3-color-surface-container-high);
+  --ui-surface: var(--m3-color-surface);
+  --ui-surface-raised: var(--m3-color-surface-container-low);
+  --ui-surface-sunken: var(--m3-color-surface-container);
+  --ui-ink: var(--m3-color-on-surface);
+  --ui-ink-muted: var(--m3-color-on-surface-variant);
+  --motion-fast: var(--md-sys-motion-duration-short2);
+  --motion-base: var(--md-sys-motion-duration-short4);
+  --motion-slow: var(--md-sys-motion-duration-medium2);
+  --ease-standard: var(--md-sys-motion-easing-standard);
+  --ease-emphasized: var(--md-sys-motion-easing-emphasized);
+  --ease-exit: var(--md-sys-motion-easing-emphasized-accelerate);
+  accent-color: var(--md-sys-color-primary);
+}
 .glass-panel {
-  background: rgb(var(--brand-bg-surface) / 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--md-sys-color-surface-container-low);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
 }
-
-.light .glass-panel {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
-}
-
-/* Light mode overrides for high-contrast enterprise clarity */
-.light .border-white\/10 {
-  border-color: #e2e8f0 !important;
-}
-
-.light .border-white\/5 {
-  border-color: #f1f5f9 !important;
-}
-
-.light .bg-white\/5 {
-  background-color: #f1f5f9 !important;
-}
-
-.light .hover\:bg-white\/5:hover {
-  background-color: #e2e8f0 !important;
-}
-
-.light aside {
-  background-color: #ffffff !important;
-  border-inline-end-color: #e2e8f0 !important;
-}
-
-.light header[data-topbar] {
-  background-color: rgba(255, 255, 255, 0.95) !important;
-  border-bottom-color: #e2e8f0 !important;
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--md-sys-color-primary);
+  outline-offset: 3px;
 }
 
 /* ==========================================================================
@@ -343,67 +307,23 @@ a[href^="tel:"] {
   unicode-bidi: isolate;
 }
 
-/* ---------------------------------------------------------------- dialogs
-   One look for every popup: a frosted, brand-tinted scrim (never black) and a raised, rounded card. */
-.modal-scrim,
-[data-modal-container] {
-  /* No dimming and no blur: the page stays fully visible behind the dialog. */
+/* Modal surfaces share one scrim and elevation, including custom dialogs. */
+.modal-scrim {
+  background: rgb(0 0 0 / 0.32);
+}
+[data-sonner-toaster] [data-sonner-toast] {
+  background: var(--md-sys-color-inverse-surface);
+  color: var(--md-sys-color-inverse-on-surface);
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  box-shadow: var(--md-sys-elevation-level3);
+}
+[data-sonner-toast] [data-description] {
+  color: inherit;
+}
+[data-sonner-toast] [data-button] {
   background: transparent;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-
-[role="dialog"][aria-modal="true"]:not([data-navigation-drawer]) {
-  /* Individual dialogs keep their own maximum width. */
-  width: 100%;
-  min-width: 0;
-  border: 1px solid rgb(var(--ui-ink) / 0.1);
-  border-radius: 1.25rem;
-  background-color: rgb(var(--ui-surface-raised));
-  color: rgb(var(--ui-ink));
-  box-shadow:
-    0 1px 0 rgb(255 255 255 / 0.04) inset,
-    0 0 0 1px rgb(var(--ui-ink) / 0.06),
-    0 30px 80px -10px rgba(0, 0, 0, 0.45),
-    0 10px 30px -10px rgb(var(--brand-primary) / 0.4);
-  animation: modal-card-in var(--motion-base) var(--ease-emphasized) both;
-}
-html.light [role="dialog"][aria-modal="true"]:not([data-navigation-drawer]) {
-  background-color: #ffffff;
-  border-color: rgb(var(--brand-primary) / 0.12);
-  box-shadow:
-    0 0 0 1px rgb(var(--brand-primary) / 0.08),
-    0 30px 80px -12px rgba(15, 23, 42, 0.35),
-    0 10px 30px -10px rgb(var(--brand-primary) / 0.25);
-}
-
-/* Header strip shared by the standard Modal. */
-[data-modal-header] {
-  border-bottom: 1px solid rgb(var(--ui-ink) / 0.08);
-  background: linear-gradient(
-    180deg,
-    rgb(var(--brand-accent) / 0.1),
-    transparent
-  );
-}
-[data-modal-header] button {
-  border: 1px solid rgb(var(--ui-ink) / 0.1);
-}
-
-@keyframes modal-card-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  [role="dialog"][aria-modal="true"] {
-    animation: none;
-  }
+  color: var(--md-sys-color-inverse-primary);
 }
 
 /* The article and rich-text editor (TipTap): the same structure the website shows, in the admin's colours. */
@@ -472,9 +392,183 @@ html.light [role="dialog"][aria-modal="true"]:not([data-navigation-drawer]) {
   outline: none;
 }
 
-@media (max-width: 639px) {
-  [data-modal-card] {
-    border-end-start-radius: 0;
-    border-end-end-radius: 0;
+
+
+/* State layers acknowledge input without changing the semantic colour pair. */
+.m3-button::after,
+.m3-state-layer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--motion-fast) var(--ease-standard);
+}
+.m3-state-layer {
+  position: relative;
+  overflow: hidden;
+}
+@media (hover: hover) {
+  .m3-button:enabled:hover::after,
+  .m3-state-layer:hover::after {
+    opacity: var(--md-sys-state-hover-opacity);
   }
+  .m3-segment:hover {
+    background-image: linear-gradient(
+      rgb(var(--m3-color-on-surface) / 0.08),
+      rgb(var(--m3-color-on-surface) / 0.08)
+    );
+  }
+}
+.m3-button:focus-visible::after,
+.m3-state-layer:focus-visible::after {
+  opacity: var(--md-sys-state-focus-opacity);
+}
+.m3-button:enabled:active::after,
+.m3-state-layer:active::after {
+  opacity: var(--md-sys-state-pressed-opacity);
+}
+.m3-button:disabled {
+  background: rgb(var(--m3-color-on-surface) / 0.12);
+  color: rgb(var(--m3-color-on-surface) / 0.38);
+  border-color: transparent;
+}
+input[type="checkbox"]:not(.sr-only),
+input[type="radio"]:not(.sr-only) {
+  accent-color: var(--md-sys-color-primary);
+  min-width: 18px;
+  min-height: 18px;
+}
+input[role="switch"]:not(.sr-only) {
+  appearance: none;
+  position: relative;
+  width: 52px;
+  height: 32px;
+  flex-shrink: 0;
+  border: 2px solid var(--md-sys-color-outline);
+  border-radius: 999px;
+  background: var(--md-sys-color-surface-container-highest);
+  transition:
+    background-color var(--motion-fast),
+    border-color var(--motion-fast);
+}
+input[role="switch"]::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  inset-inline-start: 6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--md-sys-color-outline);
+  transition:
+    inset-inline-start var(--motion-base) var(--ease-emphasized),
+    width var(--motion-base),
+    height var(--motion-base),
+    top var(--motion-base);
+}
+input[role="switch"]:checked {
+  background: var(--md-sys-color-primary);
+  border-color: var(--md-sys-color-primary);
+}
+input[role="switch"]:checked::after {
+  inset-inline-start: 22px;
+  top: 2px;
+  width: 24px;
+  height: 24px;
+  background: var(--md-sys-color-on-primary);
+}
+input[role="switch"]:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+/* Touch targets grow without expanding desktop table density. */
+@media (pointer: coarse) {
+  :where(
+    button,
+    a[aria-label],
+    input:not([type="checkbox"]):not([type="radio"]):not(.sr-only),
+    select
+  ) {
+    min-height: 48px;
+  }
+  :where(button[aria-label], a[aria-label]) {
+    min-width: 48px;
+  }
+  .m3-segment {
+    min-height: 48px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Material Web owns pointer ripple physics; keyboard focus remains a visible outline. */
+.m3-button {
+  --md-ripple-hover-color: currentColor;
+  --md-ripple-pressed-color: currentColor;
+}
+.m3-button:has(md-ripple:defined)::after {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  md-ripple {
+    display: none;
+  }
+  .m3-button:has(md-ripple:defined)::after {
+    display: block;
+  }
+}
+
+[data-ui="text-field"] {
+  border-radius: var(--md-sys-shape-corner-extra-small);
+}
+
+button[role="switch"] {
+  width: 52px;
+  height: 32px;
+  min-height: 32px;
+  border: 2px solid var(--md-sys-color-outline);
+  background: var(--md-sys-color-surface-container-highest);
+}
+button[role="switch"]::before {
+  content: "";
+  position: absolute;
+  inset: -8px 0;
+}
+button[role="switch"] > span {
+  position: absolute;
+  top: 6px;
+  inset-inline-start: 6px;
+  width: 16px;
+  height: 16px;
+  background: var(--md-sys-color-outline);
+  box-shadow: none;
+  transform: none;
+  transition:
+    inset-inline-start var(--motion-base) var(--ease-emphasized),
+    width var(--motion-base),
+    height var(--motion-base),
+    top var(--motion-base);
+}
+button[role="switch"][aria-checked="true"] {
+  background: var(--md-sys-color-primary);
+  border-color: var(--md-sys-color-primary);
+}
+button[role="switch"][aria-checked="true"] > span {
+  top: 2px;
+  inset-inline-start: 22px;
+  width: 24px;
+  height: 24px;
+  background: var(--md-sys-color-on-primary);
 }

@@ -57,9 +57,67 @@ const config: Omit<Config, "content"> = {
           DEFAULT: brand("--ui-ink"),
           muted: brand("--ui-ink-muted"),
         },
+        // Material Design 3 (M3) Semantic System Roles
+        m3: {
+          primary: brand("--m3-color-primary"),
+          "on-primary": brand("--m3-color-on-primary"),
+          "primary-container": brand("--m3-color-primary-container"),
+          "on-primary-container": brand("--m3-color-on-primary-container"),
+          secondary: brand("--m3-color-secondary"),
+          "on-secondary": brand("--m3-color-on-secondary"),
+          "secondary-container": brand("--m3-color-secondary-container"),
+          "on-secondary-container": brand("--m3-color-on-secondary-container"),
+          tertiary: brand("--m3-color-tertiary"),
+          "on-tertiary": brand("--m3-color-on-tertiary"),
+          "tertiary-container": brand("--m3-color-tertiary-container"),
+          "on-tertiary-container": brand("--m3-color-on-tertiary-container"),
+          error: brand("--m3-color-error"),
+          "on-error": brand("--m3-color-on-error"),
+          "error-container": brand("--m3-color-error-container"),
+          "on-error-container": brand("--m3-color-on-error-container"),
+          surface: brand("--m3-color-surface"),
+          "surface-dim": brand("--m3-color-surface-dim"),
+          "surface-bright": brand("--m3-color-surface-bright"),
+          "surface-container-lowest": brand(
+            "--m3-color-surface-container-lowest",
+          ),
+          "surface-container-low": brand("--m3-color-surface-container-low"),
+          "surface-container": brand("--m3-color-surface-container"),
+          "surface-container-high": brand("--m3-color-surface-container-high"),
+          "surface-container-highest": brand(
+            "--m3-color-surface-container-highest",
+          ),
+          "on-surface": brand("--m3-color-on-surface"),
+          "on-surface-variant": brand("--m3-color-on-surface-variant"),
+          outline: brand("--m3-color-outline"),
+          "outline-variant": brand("--m3-color-outline-variant"),
+          "inverse-surface": brand("--m3-color-inverse-surface"),
+          "inverse-on-surface": brand("--m3-color-inverse-on-surface"),
+          "inverse-primary": brand("--m3-color-inverse-primary"),
+        },
       },
       borderRadius: {
         brand: "var(--brand-radius)",
+        "m3-none": "var(--md-sys-shape-corner-none, 0px)",
+        "m3-xs": "var(--md-sys-shape-corner-extra-small, 4px)",
+        "m3-sm": "var(--md-sys-shape-corner-small, 8px)",
+        "m3-md": "var(--md-sys-shape-corner-medium, 12px)",
+        "m3-lg": "var(--md-sys-shape-corner-large, 16px)",
+        "m3-xl": "var(--md-sys-shape-corner-extra-large, 28px)",
+        "m3-full": "var(--md-sys-shape-corner-full, 9999px)",
+      },
+      boxShadow: {
+        "m3-0": "var(--md-sys-elevation-level0, none)",
+        "m3-1":
+          "var(--md-sys-elevation-level1, 0 1px 2px 0 rgba(0, 0, 0, 0.05), 0 1px 3px 1px rgba(0, 0, 0, 0.08))",
+        "m3-2":
+          "var(--md-sys-elevation-level2, 0 2px 4px 0 rgba(0, 0, 0, 0.08), 0 4px 6px 2px rgba(0, 0, 0, 0.10))",
+        "m3-3":
+          "var(--md-sys-elevation-level3, 0 4px 8px 3px rgba(0, 0, 0, 0.10), 0 8px 12px 4px rgba(0, 0, 0, 0.12))",
+        "m3-4":
+          "var(--md-sys-elevation-level4, 0 6px 10px 4px rgba(0, 0, 0, 0.12), 0 10px 16px 5px rgba(0, 0, 0, 0.14))",
+        "m3-5":
+          "var(--md-sys-elevation-level5, 0 8px 12px 6px rgba(0, 0, 0, 0.14), 0 12px 20px 7px rgba(0, 0, 0, 0.16))",
       },
       fontFamily: {
         display: ["var(--brand-font-heading)"],

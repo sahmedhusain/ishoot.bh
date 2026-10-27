@@ -43,19 +43,19 @@ export function AudienceView({ segments, broadcasts, campaigns, currency, langua
   );
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-16">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{copy.title}</h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
+      <div data-page-header>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
+        <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
       </div>
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
 
-      <Card className="p-5 space-y-4">
+      <Card className="p-5 space-y-4" data-page-section>
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-bold text-ink flex items-center gap-2"><Users2 className="w-4 h-4 text-accent" aria-hidden="true" />{copy.segments}</h2>
           {canEdit && !segment && <Button type="button" size="sm" variant="outline" className="rounded-full gap-1.5" onClick={() => setSegment({ name: "", minOrders: "", minSpent: "", orderedWithinDays: "", notOrderedForDays: "", city: "" })} data-testid="segment-new"><Plus className="w-3.5 h-3.5" />{copy.newSegment}</Button>}
         </div>
         {segment && (
-          <div className="grid sm:grid-cols-3 gap-3 rounded-xl border border-ink/10 p-3" data-testid="segment-form">
+          <div className="grid sm:grid-cols-3 gap-3 rounded-xl border border-outline-variant p-3" data-testid="segment-form">
             <Field label={copy.segmentName}>{(id) => <Input id={id} name="segmentName" maxLength={120} value={segment.name} onChange={(e) => setSegment({ ...segment, name: e.target.value })} className="rounded-lg" />}</Field>
             {numberField("minOrders", copy.minOrders)}
             {numberField("minSpent", formatMessage(copy.minSpent, { currency }))}
@@ -71,7 +71,7 @@ export function AudienceView({ segments, broadcasts, campaigns, currency, langua
         {segments.length === 0 ? (
           <p className="text-sm text-ink-muted">{copy.noSegments}</p>
         ) : (
-          <ul className="divide-y divide-ink/10 text-sm" data-testid="segments-list">
+          <ul className="divide-y divide-outline-variant text-sm" data-testid="segments-list">
             {segments.map((s) => (
               <li key={s.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2">
                 <span className="font-medium">{s.name}</span>
@@ -83,13 +83,13 @@ export function AudienceView({ segments, broadcasts, campaigns, currency, langua
         )}
       </Card>
 
-      <Card className="p-5 space-y-4">
+      <Card className="p-5 space-y-4" data-page-section>
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-bold text-ink flex items-center gap-2"><Mail className="w-4 h-4 text-accent" aria-hidden="true" />{copy.broadcasts}</h2>
           {canEdit && !broadcast && segments.length > 0 && <Button type="button" size="sm" variant="outline" className="rounded-full gap-1.5" onClick={() => setBroadcast({ name: "", segmentId: segments[0].id, campaignId: "", subjectEn: "", subjectAr: "", bodyEn: "", bodyAr: "" })} data-testid="broadcast-new"><Plus className="w-3.5 h-3.5" />{copy.newBroadcast}</Button>}
         </div>
         {broadcast && (
-          <div className="grid sm:grid-cols-3 gap-3 rounded-xl border border-ink/10 p-3" data-testid="broadcast-form">
+          <div className="grid sm:grid-cols-3 gap-3 rounded-xl border border-outline-variant p-3" data-testid="broadcast-form">
             <Field label={copy.broadcastName}>{(id) => <Input id={id} name="broadcastName" maxLength={120} value={broadcast.name} onChange={(e) => setBroadcast({ ...broadcast, name: e.target.value })} className="rounded-lg" />}</Field>
             <Field label={copy.segment}>
               {(id) => (
@@ -117,7 +117,7 @@ export function AudienceView({ segments, broadcasts, campaigns, currency, langua
         {broadcasts.length === 0 ? (
           <p className="text-sm text-ink-muted">{copy.noBroadcasts}</p>
         ) : (
-          <ul className="divide-y divide-ink/10 text-sm" data-testid="broadcasts-list">
+          <ul className="divide-y divide-outline-variant text-sm" data-testid="broadcasts-list">
             {broadcasts.map((b) => (
               <li key={b.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2" data-testid={`broadcast-${b.name}`}>
                 <span className="font-medium">{b.name}</span>
