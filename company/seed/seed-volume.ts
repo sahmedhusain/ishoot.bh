@@ -33,7 +33,7 @@ import {
   getSupportClaims,
   recordSupportReimbursement,
 } from "../../packages/database/src/queries/support-claims";
-import { tamkeenSupports } from "../../packages/database/src/constants/hr-support";
+import { supportSchedule } from "../../packages/database/src/constants/hr-support";
 import {
   reassignSalesOwner,
   getCommissionStatement,
@@ -387,7 +387,7 @@ export async function seedVolume(
   const departments = Object.fromEntries(
     (await prisma.department.findMany()).map((d) => [d.code, d.id]),
   );
-  const SIO = {
+  const CONTRIBUTIONS = {
     employee: { mode: "percentage" as const, value: 7 },
     employer: { mode: "percentage" as const, value: 12 },
     supports: [],
@@ -604,11 +604,11 @@ export async function seedVolume(
         basicSalary: int(plan.salary[0], plan.salary[1]),
         housingAllowance: pick([0, 150, 200, 250, 300]),
         transportAllowance: pick([0, 50, 75, 100]),
-        // Bahraini hires from the last three years are on Tamkeen's 70/50/30% wage support.
+        // Bahraini hires from the last three years are on Wage support fund's 70/50/30% wage support.
         payrollSettings:
           hireDate > daysAgo(3 * 365) && chance(0.7)
-            ? { ...SIO, supports: tamkeenSupports(iso(hireDate).slice(0, 7)) }
-            : SIO,
+            ? { ...CONTRIBUTIONS, supports: supportSchedule("Wage support fund", iso(hireDate).slice(0, 7), [70, 50, 30]) }
+            : CONTRIBUTIONS,
       },
       owner.id,
     );
@@ -1686,7 +1686,7 @@ export async function seedVolume(
       await markPayrollAsPaid(run.id, owner.id);
   }
 
-  // ============================================================ 7b. Tamkeen six-monthly reimbursements received
+  // ============================================================ 7b. Wage support fund six-monthly reimbursements received
   for (const claim of await getSupportClaims()) {
     if (
       claim.status !== "claimable" ||
@@ -2195,7 +2195,7 @@ export async function seedVolume(
       ],
       [
         "Ali Salman",
-        "ali.salman@tamkeen-partner.example",
+        "ali.salman@support-fund.example",
         "suggestion",
         "Offering vertical versions by default would save us a lot of back and forth.",
       ],

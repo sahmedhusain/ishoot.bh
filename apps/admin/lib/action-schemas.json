@@ -1675,37 +1675,7 @@
         "kind": "object",
         "fields": {
           "category": {
-            "kind": "union",
-            "variants": [
-              {
-                "kind": "literal",
-                "value": "cameras"
-              },
-              {
-                "kind": "literal",
-                "value": "lenses"
-              },
-              {
-                "kind": "literal",
-                "value": "lighting"
-              },
-              {
-                "kind": "literal",
-                "value": "audio_grading"
-              },
-              {
-                "kind": "literal",
-                "value": "stages"
-              },
-              {
-                "kind": "literal",
-                "value": "grip"
-              },
-              {
-                "kind": "literal",
-                "value": "audio"
-              }
-            ],
+            "kind": "string",
             "optional": false
           },
           "model_name": {
@@ -1744,37 +1714,7 @@
         "kind": "object",
         "fields": {
           "category": {
-            "kind": "union",
-            "variants": [
-              {
-                "kind": "literal",
-                "value": "cameras"
-              },
-              {
-                "kind": "literal",
-                "value": "lenses"
-              },
-              {
-                "kind": "literal",
-                "value": "lighting"
-              },
-              {
-                "kind": "literal",
-                "value": "audio_grading"
-              },
-              {
-                "kind": "literal",
-                "value": "stages"
-              },
-              {
-                "kind": "literal",
-                "value": "grip"
-              },
-              {
-                "kind": "literal",
-                "value": "audio"
-              }
-            ],
+            "kind": "string",
             "optional": false
           },
           "model_name": {
@@ -3002,45 +2942,7 @@
             "optional": true
           },
           "currency": {
-            "kind": "union",
-            "variants": [
-              {
-                "kind": "literal",
-                "value": "BHD"
-              },
-              {
-                "kind": "literal",
-                "value": "SAR"
-              },
-              {
-                "kind": "literal",
-                "value": "AED"
-              },
-              {
-                "kind": "literal",
-                "value": "KWD"
-              },
-              {
-                "kind": "literal",
-                "value": "OMR"
-              },
-              {
-                "kind": "literal",
-                "value": "QAR"
-              },
-              {
-                "kind": "literal",
-                "value": "USD"
-              },
-              {
-                "kind": "literal",
-                "value": "EUR"
-              },
-              {
-                "kind": "literal",
-                "value": "GBP"
-              }
-            ],
+            "kind": "string",
             "optional": true
           },
           "stage": {
@@ -5169,45 +5071,7 @@
             "optional": true
           },
           "currency": {
-            "kind": "union",
-            "variants": [
-              {
-                "kind": "literal",
-                "value": "BHD"
-              },
-              {
-                "kind": "literal",
-                "value": "SAR"
-              },
-              {
-                "kind": "literal",
-                "value": "AED"
-              },
-              {
-                "kind": "literal",
-                "value": "KWD"
-              },
-              {
-                "kind": "literal",
-                "value": "OMR"
-              },
-              {
-                "kind": "literal",
-                "value": "QAR"
-              },
-              {
-                "kind": "literal",
-                "value": "USD"
-              },
-              {
-                "kind": "literal",
-                "value": "EUR"
-              },
-              {
-                "kind": "literal",
-                "value": "GBP"
-              }
-            ],
+            "kind": "string",
             "optional": true
           },
           "receipt_url": {
@@ -5345,45 +5209,7 @@
             "optional": false
           },
           "currency": {
-            "kind": "union",
-            "variants": [
-              {
-                "kind": "literal",
-                "value": "BHD"
-              },
-              {
-                "kind": "literal",
-                "value": "SAR"
-              },
-              {
-                "kind": "literal",
-                "value": "AED"
-              },
-              {
-                "kind": "literal",
-                "value": "KWD"
-              },
-              {
-                "kind": "literal",
-                "value": "OMR"
-              },
-              {
-                "kind": "literal",
-                "value": "QAR"
-              },
-              {
-                "kind": "literal",
-                "value": "USD"
-              },
-              {
-                "kind": "literal",
-                "value": "EUR"
-              },
-              {
-                "kind": "literal",
-                "value": "GBP"
-              }
-            ],
+            "kind": "string",
             "optional": true
           },
           "language": {
@@ -5519,45 +5345,7 @@
             "optional": true
           },
           "currency": {
-            "kind": "union",
-            "variants": [
-              {
-                "kind": "literal",
-                "value": "BHD"
-              },
-              {
-                "kind": "literal",
-                "value": "SAR"
-              },
-              {
-                "kind": "literal",
-                "value": "AED"
-              },
-              {
-                "kind": "literal",
-                "value": "KWD"
-              },
-              {
-                "kind": "literal",
-                "value": "OMR"
-              },
-              {
-                "kind": "literal",
-                "value": "QAR"
-              },
-              {
-                "kind": "literal",
-                "value": "USD"
-              },
-              {
-                "kind": "literal",
-                "value": "EUR"
-              },
-              {
-                "kind": "literal",
-                "value": "GBP"
-              }
-            ],
+            "kind": "string",
             "optional": true
           },
           "language": {
@@ -5683,17 +5471,7 @@
         "kind": "object",
         "fields": {
           "locale": {
-            "kind": "union",
-            "variants": [
-              {
-                "kind": "literal",
-                "value": "en"
-              },
-              {
-                "kind": "literal",
-                "value": "ar"
-              }
-            ],
+            "kind": "string",
             "optional": true
           },
           "basis": {
@@ -5722,10 +5500,6 @@
         "optional": false
       }
     }
-  },
-  "refreshExchangeRatesAction": {
-    "kind": "object",
-    "fields": {}
   },
   "createExpenseCategoryAction": {
     "kind": "object",
@@ -6494,6 +6268,10 @@
                 "element": {
                   "kind": "object",
                   "fields": {
+                    "claimPeriodMonths": {
+                      "kind": "number",
+                      "optional": true
+                    },
                     "provider": {
                       "kind": "string",
                       "optional": false
@@ -6847,6 +6625,10 @@
                 "element": {
                   "kind": "object",
                   "fields": {
+                    "claimPeriodMonths": {
+                      "kind": "number",
+                      "optional": true
+                    },
                     "provider": {
                       "kind": "string",
                       "optional": false
@@ -8022,6 +7804,32 @@
                   },
                   "postalCode": {
                     "kind": "string",
+                    "optional": true
+                  },
+                  "latitude": {
+                    "kind": "union",
+                    "variants": [
+                      {
+                        "kind": "number"
+                      },
+                      {
+                        "kind": "literal",
+                        "value": null
+                      }
+                    ],
+                    "optional": true
+                  },
+                  "longitude": {
+                    "kind": "union",
+                    "variants": [
+                      {
+                        "kind": "number"
+                      },
+                      {
+                        "kind": "literal",
+                        "value": null
+                      }
+                    ],
                     "optional": true
                   }
                 }
@@ -10970,37 +10778,7 @@
             "optional": false
           },
           "category": {
-            "kind": "union",
-            "variants": [
-              {
-                "kind": "literal",
-                "value": "pre_production"
-              },
-              {
-                "kind": "literal",
-                "value": "production"
-              },
-              {
-                "kind": "literal",
-                "value": "post_production"
-              },
-              {
-                "kind": "literal",
-                "value": "studio_rental"
-              },
-              {
-                "kind": "literal",
-                "value": "equipment"
-              },
-              {
-                "kind": "literal",
-                "value": "consulting"
-              },
-              {
-                "kind": "literal",
-                "value": "other"
-              }
-            ],
+            "kind": "string",
             "optional": true
           },
           "description_en": {
@@ -11012,29 +10790,7 @@
             "optional": true
           },
           "unit": {
-            "kind": "union",
-            "variants": [
-              {
-                "kind": "literal",
-                "value": "hour"
-              },
-              {
-                "kind": "literal",
-                "value": "day"
-              },
-              {
-                "kind": "literal",
-                "value": "project"
-              },
-              {
-                "kind": "literal",
-                "value": "unit"
-              },
-              {
-                "kind": "literal",
-                "value": "minute"
-              }
-            ],
+            "kind": "string",
             "optional": true
           },
           "default_rate": {
@@ -11077,37 +10833,7 @@
             "optional": true
           },
           "category": {
-            "kind": "union",
-            "variants": [
-              {
-                "kind": "literal",
-                "value": "pre_production"
-              },
-              {
-                "kind": "literal",
-                "value": "production"
-              },
-              {
-                "kind": "literal",
-                "value": "post_production"
-              },
-              {
-                "kind": "literal",
-                "value": "studio_rental"
-              },
-              {
-                "kind": "literal",
-                "value": "equipment"
-              },
-              {
-                "kind": "literal",
-                "value": "consulting"
-              },
-              {
-                "kind": "literal",
-                "value": "other"
-              }
-            ],
+            "kind": "string",
             "optional": true
           },
           "description_en": {
@@ -11119,29 +10845,7 @@
             "optional": true
           },
           "unit": {
-            "kind": "union",
-            "variants": [
-              {
-                "kind": "literal",
-                "value": "hour"
-              },
-              {
-                "kind": "literal",
-                "value": "day"
-              },
-              {
-                "kind": "literal",
-                "value": "project"
-              },
-              {
-                "kind": "literal",
-                "value": "unit"
-              },
-              {
-                "kind": "literal",
-                "value": "minute"
-              }
-            ],
+            "kind": "string",
             "optional": true
           },
           "default_rate": {
@@ -11678,45 +11382,7 @@
             "optional": true
           },
           "default_currency": {
-            "kind": "union",
-            "variants": [
-              {
-                "kind": "literal",
-                "value": "BHD"
-              },
-              {
-                "kind": "literal",
-                "value": "SAR"
-              },
-              {
-                "kind": "literal",
-                "value": "AED"
-              },
-              {
-                "kind": "literal",
-                "value": "KWD"
-              },
-              {
-                "kind": "literal",
-                "value": "OMR"
-              },
-              {
-                "kind": "literal",
-                "value": "QAR"
-              },
-              {
-                "kind": "literal",
-                "value": "USD"
-              },
-              {
-                "kind": "literal",
-                "value": "EUR"
-              },
-              {
-                "kind": "literal",
-                "value": "GBP"
-              }
-            ],
+            "kind": "string",
             "optional": false
           },
           "currency_decimals": {
@@ -12561,45 +12227,7 @@
         "kind": "object",
         "fields": {
           "defaultCurrency": {
-            "kind": "union",
-            "variants": [
-              {
-                "kind": "literal",
-                "value": "BHD"
-              },
-              {
-                "kind": "literal",
-                "value": "SAR"
-              },
-              {
-                "kind": "literal",
-                "value": "AED"
-              },
-              {
-                "kind": "literal",
-                "value": "KWD"
-              },
-              {
-                "kind": "literal",
-                "value": "OMR"
-              },
-              {
-                "kind": "literal",
-                "value": "QAR"
-              },
-              {
-                "kind": "literal",
-                "value": "USD"
-              },
-              {
-                "kind": "literal",
-                "value": "EUR"
-              },
-              {
-                "kind": "literal",
-                "value": "GBP"
-              }
-            ],
+            "kind": "string",
             "optional": false
           },
           "vatEnabled": {

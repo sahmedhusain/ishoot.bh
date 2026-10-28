@@ -1,4 +1,7 @@
+import { isValidEmail } from "../constants/validation";
+import { normalizeContactInput } from "./contact-validation";
 import { serverMessages } from "@platform/locales";
+import { phoneSearchVariants } from "../constants/phone";
 import { db } from "../db";
 import { Profile, UserRole } from "../types";
 import bcrypt from "bcryptjs";
@@ -81,7 +84,8 @@ export async function createUser(data: {
   signature_url?: string;
   manager_id?: string;
 }): Promise<Profile> {
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim()))
+  data = await normalizeContactInput(data);
+  if (!isValidEmail(data.email))
     throw new Error(serverMessages.invalidUserEmail);
   if (data.manager_id) await validateManager(data.manager_id);
   const passwordHash = await bcrypt.hash(data.password, PASSWORD_HASH_ROUNDS);
@@ -110,6 +114,7 @@ export async function updateUser(
   data: Partial<Profile> & { password?: string },
 ): Promise<Profile | null> {
   try {
+    data = await normalizeContactInput(data);
     if (data.manager_id) await validateManager(data.manager_id, id);
     const existing = await db.user.findUniqueOrThrow({
       where: { id },
@@ -129,7 +134,7 @@ export async function updateUser(
     if (data.full_name !== undefined) updateData.fullName = data.full_name;
     if (
       data.email !== undefined &&
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())
+      !isValidEmail(data.email)
     )
       throw new Error(serverMessages.invalidUserEmail);
     if (data.email !== undefined)
@@ -354,7 +359,7 @@ export async function getUsersPage(filters: UserListFilters) {
           OR: [
             { fullName: { contains: q, mode: "insensitive" } },
             { email: { contains: q, mode: "insensitive" } },
-            { phone: { contains: q } },
+            ...phoneSearchVariants(q).map((v) => ({ phone: { contains: v } })),
             {
               employee: {
                 OR: [

@@ -1,4 +1,11 @@
+import { roundMoney, validMoneyAmount, toMinorUnits } from "../finance/money";
+import { assertCompanyCurrency } from "../finance/company-currency";
+import { isLocale } from "@platform/locales/registry";
+import { companyCurrency as getAccountingCurrency } from "../finance/company-currency";
 import { Prisma } from "@prisma/client";
+import { phoneSearchVariants, isValidPhone, formatPhoneE164 } from "../constants/phone";
+import { isValidEmail, normalizeEmail } from "../constants/validation";
+import { defaultWebsiteCommerce, selectedPickupBranch, validateWebsiteCommerce, type PublicBranch } from "../constants/website-commerce";
 import { serverMessages } from "@platform/locales";
 import { db, runAtomicMutation } from "../db";
 import { allocateDocumentNumber } from "../finance/numbering";
@@ -90,7 +97,7 @@ export async function saveStoreSettings(input: StoreSettingsInput) {
   if (!input.deliveryEnabled && !input.pickupEnabled)
     throw new Error(serverMessages.storeFulfilmentRequired);
   const email = input.orderNotifyEmail.trim().toLowerCase();
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+  if (email && !isValidEmail(email))
     throw new Error(serverMessages.customerEmailInvalid);
   const gateway = (input.paymentGateway ?? "").trim();
   if (gateway && !isPaymentGateway(gateway))
@@ -190,6 +197,15 @@ export async function saveCoupon(input: CouponInput) {
 
 // ─── What the website sells ──────────────────────────────────────────────────────────────────────────────────────
 
+/** Current prices for catalogue cards, in one query; authored project prices stay independent. */
+export async function catalogueProductPrices(itemIds: string[]) {
+  const products = await db.product.findMany({
+    where: { catalogueItemId: { in: itemIds }, isActive: true },
+    select: { catalogueItemId: true, price: true, variants: { where: { isActive: true }, select: { price: true } } },
+  });
+  return new Map(products.map(product => [product.catalogueItemId!, Math.min(...(product.variants.length ? product.variants.map(variant => num(variant.price ?? product.price)) : [num(product.price)]))]));
+}
+
 /** The product behind a catalogue item, with each variant's price and what is available to sell. */
 export async function storeProductForItem(catalogueItemId: string) {
   const product = await db.product.findFirst({
@@ -265,6 +281,7 @@ export async function quoteCart(
   },
   client: Tx | typeof db = db,
 ) {
+  const accountingCurrency = await getAccountingCurrency();
   const cart = input.lines
     .slice(0, MAX_CART_LINES)
     .filter((l) => Number.isFinite(l.quantity) && l.quantity > 0);
@@ -365,9 +382,7 @@ export async function quoteCart(
     minOrder: number | null;
   } | null = null;
   const code = input.couponCode?.trim().toUpperCase();
-  const goods = round3(
-    lines.reduce((sum, l) => sum + round3(l.unitPrice * l.quantity), 0),
-  );
+  const goods = roundMoney(lines.reduce((sum, line) => sum + roundMoney(line.unitPrice * line.quantity, accountingCurrency), 0), accountingCurrency);
   if (code) {
     const row = await client.coupon.findUnique({ where: { code } });
     const problem = row
@@ -403,6 +418,7 @@ export async function quoteCart(
   if (zone?.minOrder != null && hasAddress && goods < zone.minOrder)
     problems.push({ productId: "", problem: "below_minimum" });
   const totals = priceOrder({
+    currency: accountingCurrency,
     lines,
     vatPercentage: company?.vatEnabled ? num(company.vatPercentage) : 0,
     coupon,
@@ -416,7 +432,7 @@ export async function quoteCart(
     lines,
     problems,
     couponCode: coupon ? code! : null,
-    currency: company?.defaultCurrency ?? "BHD",
+    currency: company?.defaultCurrency ?? accountingCurrency,
     zoneId: hasAddress ? (zone?.id ?? null) : null,
     minOrder: zone?.minOrder ?? null,
     ...totals,
@@ -435,6 +451,8 @@ export interface OrderAddress {
   city: string;
   country: string;
   postalCode?: string;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export interface PlaceOrderInput {
@@ -442,6 +460,7 @@ export interface PlaceOrderInput {
   couponCode?: string;
   fulfilment: "delivery" | "pickup";
   address?: OrderAddress | null;
+  pickupBranchId?: string | null;
   name: string;
   email: string;
   phone: string;
@@ -484,7 +503,7 @@ async function orderContact(tx: Tx, input: PlaceOrderInput) {
         lastName: rest.join(" ") || null,
         email: email || null,
         emailNorm: email || null,
-        phone: input.phone.trim() || null,
+        phone: input.phone ? formatPhoneE164(input.phone) : null,
         contactType: "client",
         clientKind: "individual",
       },
@@ -498,12 +517,19 @@ async function orderContact(tx: Tx, input: PlaceOrderInput) {
  */
 export async function placeOrder(input: PlaceOrderInput) {
   const name = input.name.trim().slice(0, 120);
-  const email = input.email.trim().toLowerCase().slice(0, 254);
+  const rawEmail = input.email.trim();
   if (!name) throw new Error(serverMessages.customerNameRequired);
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+  if (rawEmail && !isValidEmail(rawEmail))
     throw new Error(serverMessages.customerEmailInvalid);
-  if (input.channel === "website" && !email)
+  if (input.channel === "website" && !rawEmail)
     throw new Error(serverMessages.customerEmailInvalid);
+  const email = rawEmail ? normalizeEmail(rawEmail) : "";
+
+  const rawPhone = input.phone?.trim() ?? "";
+  if (rawPhone && !isValidPhone(rawPhone))
+    throw new Error(serverMessages.invalidInput);
+  const phone = rawPhone ? formatPhoneE164(rawPhone) : "";
+
   if (
     !(ORDER_PAYMENT_METHODS as readonly string[]).includes(input.paymentMethod)
   )
@@ -544,9 +570,13 @@ export async function placeOrder(input: PlaceOrderInput) {
       !a.country?.trim()
     )
       throw new Error(serverMessages.customerAddressIncomplete);
+    if (!isValidPhone(a.phone.trim()))
+      throw new Error(serverMessages.invalidInput);
+    if ((a.latitude != null) !== (a.longitude != null) || (a.latitude != null && (typeof a.latitude !== "number" || !Number.isFinite(a.latitude) || Math.abs(a.latitude) > 90)) || (a.longitude != null && (typeof a.longitude !== "number" || !Number.isFinite(a.longitude) || Math.abs(a.longitude) > 180))) throw new Error(serverMessages.customerAddressIncomplete);
     address = {
+      ...(a.latitude != null && a.longitude != null ? { latitude: a.latitude, longitude: a.longitude } : {}),
       name: a.name.trim().slice(0, 120),
-      phone: a.phone.trim().slice(0, 40),
+      phone: formatPhoneE164(a.phone.trim()),
       line1: a.line1.trim().slice(0, 200),
       line2: a.line2?.trim().slice(0, 200) || "",
       area: a.area?.trim().slice(0, 80) || "",
@@ -557,6 +587,23 @@ export async function placeOrder(input: PlaceOrderInput) {
   }
   const warehouse = await ensureDefaultWarehouse();
   return db.$transaction(async (tx) => {
+    await assertCompanyCurrency(undefined, tx);
+    let pickupBranch: PublicBranch | null = null;
+    if (input.channel === "website") {
+      const publication = await tx.websiteContent.findUnique({ where: { id: "main" }, select: { published: true } });
+      const raw = (publication?.published as { config?: { commerce?: unknown } } | null)?.config?.commerce;
+      const commerce = raw ? validateWebsiteCommerce(raw) : defaultWebsiteCommerce();
+      if (!commerce.capabilities.shop || !commerce.capabilities.ordering || !commerce.capabilities[input.fulfilment])
+        throw new Error(serverMessages.storeFulfilmentRequired);
+      if (input.fulfilment === "pickup") pickupBranch = selectedPickupBranch(commerce, input.pickupBranchId);
+    }
+    // Snapshot public collection details without coupling the branch to a stock warehouse.
+    const destination = pickupBranch ? {
+      name: input.locale === "ar" ? pickupBranch.nameAr : pickupBranch.nameEn,
+      phone: pickupBranch.phone,
+      line1: input.locale === "ar" ? pickupBranch.addressAr : pickupBranch.addressEn,
+      city: pickupBranch.city, country: pickupBranch.country, pickupBranch,
+    } : address;
     const quote = await quoteCart(
       {
         lines: input.lines,
@@ -624,13 +671,13 @@ export async function placeOrder(input: PlaceOrderInput) {
         contactId,
         email: email || null,
         name,
-        phone: input.phone.trim().slice(0, 40) || null,
+        phone: phone || null,
         channel: input.channel,
         paymentMethod: input.paymentMethod,
         paymentStatus: input.paymentMethod === "online" ? "pending" : "unpaid",
         fulfilment: input.fulfilment,
-        shippingAddress: address
-          ? (address as unknown as Prisma.InputJsonValue)
+        shippingAddress: destination
+          ? (destination as unknown as Prisma.InputJsonValue)
           : Prisma.JsonNull,
         subtotal: quote.subtotal,
         discountAmount: quote.discount,
@@ -639,7 +686,7 @@ export async function placeOrder(input: PlaceOrderInput) {
         deliveryFee: quote.deliveryFee,
         total: quote.total,
         currency: quote.currency,
-        locale: input.locale === "en" ? "en" : "ar",
+        locale: isLocale(input.locale) ? input.locale : "en",
         note: input.note?.trim().slice(0, 1000) || null,
         warehouseId: warehouse.id,
         createdById: input.createdById ?? null,
@@ -655,7 +702,7 @@ export async function placeOrder(input: PlaceOrderInput) {
             quantity: l.quantity,
             unitPrice: l.unitPrice,
             vatExempt: l.vatExempt,
-            lineTotal: round3(l.quantity * l.unitPrice),
+            lineTotal: roundMoney(l.quantity * l.unitPrice, quote.currency),
             locationId: held[index].locationId,
             sortOrder: index,
           })),
@@ -722,6 +769,7 @@ export async function getOrder(id: string) {
     payment_method: o.paymentMethod,
     fulfilment: o.fulfilment,
     address: (o.shippingAddress as OrderAddress | null) ?? null,
+    pickup_branch: (o.shippingAddress as { pickupBranch?: PublicBranch } | null)?.pickupBranch ?? null,
     subtotal: num(o.subtotal),
     discount: num(o.discountAmount),
     coupon_code: o.couponCode,
@@ -786,7 +834,7 @@ export async function listOrders(
             { number: { contains: search, mode: "insensitive" } },
             { name: { contains: search, mode: "insensitive" } },
             { email: { contains: search, mode: "insensitive" } },
-            { phone: { contains: search } },
+            ...phoneSearchVariants(search).map((v) => ({ phone: { contains: v } })),
           ],
         }
       : {}),
@@ -807,6 +855,7 @@ export async function listOrders(
       name: o.name,
       channel: o.channel,
       status: o.status,
+      fulfilment: o.fulfilment,
       payment_status: o.paymentStatus,
       payment_method: o.paymentMethod,
       total: num(o.total),
@@ -842,12 +891,29 @@ export async function customerOrders(customerId: string) {
     total: num(o.total),
     currency: o.currency,
     placed_at: o.placedAt.toISOString(),
+    fulfilment: o.fulfilment,
     tracking_token: o.shipments[0]?.trackingToken ?? null,
+    pickup_branch: (o.shippingAddress as { pickupBranch?: PublicBranch } | null)?.pickupBranch ?? null,
     lines: o.lines.map((l) => ({
       description: l.description,
       quantity: num(l.quantity),
     })),
   }));
+}
+
+/** Public account details are selected by ownership; staff notes and other customers' files never leave the server. */
+export async function customerOrder(customerId: string, id: string) {
+  return db.salesOrder.findFirst({
+    where: { id, customerId },
+    select: {
+      id: true, number: true, status: true, paymentStatus: true, paymentMethod: true,
+      fulfilment: true, shippingAddress: true, name: true, email: true, phone: true,
+      subtotal: true, discountAmount: true, deliveryFee: true, vatAmount: true,
+      total: true, amountPaid: true, currency: true, placedAt: true,
+      lines: { orderBy: { sortOrder: "asc" }, select: { id: true, description: true, quantity: true, unitPrice: true, lineTotal: true } },
+      shipments: { where: { status: { not: "cancelled" } }, orderBy: { createdAt: "desc" }, take: 1, select: { trackingToken: true } },
+    },
+  });
 }
 
 // ─── Moving orders along ─────────────────────────────────────────────────────────────────────────────────────────
@@ -1017,7 +1083,7 @@ export async function issueOrderInvoice(orderId: string, byId: string | null) {
         dueDate: new Date(
           issueDate.getTime() + (company?.paymentTermsDays ?? 0) * 86_400_000,
         ),
-        subtotal: round3(num(order.subtotal) + fee),
+        subtotal: roundMoney(num(order.subtotal) + fee, order.currency),
         discountType: num(order.discountAmount) > 0 ? "fixed" : "none",
         discountValue: order.discountAmount,
         discountAmount: order.discountAmount,
@@ -1026,7 +1092,7 @@ export async function issueOrderInvoice(orderId: string, byId: string | null) {
         vatAmount: order.vatAmount,
         totalAmount: order.total,
         currency: order.currency,
-        language: order.locale,
+        language: order.locale === "ar" ? "ar" : "en",
         status: "sent",
         approvalStatus: "approved",
         notesEn: `Order ${order.number}`,
@@ -1056,13 +1122,15 @@ export async function recordOrderPayment(
 ) {
   return runAtomicMutation(async () => {
     await db.$queryRaw`SELECT id FROM "SalesOrder" WHERE id = ${orderId} FOR UPDATE`;
-    const amount = round3(input.amount);
     const order = await db.salesOrder.findUnique({ where: { id: orderId } });
     if (!order) throw new Error(serverMessages.procurementDocumentMissing);
+    await assertCompanyCurrency(order.currency);
+    if (!validMoneyAmount(input.amount, order.currency)) throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
+    const amount = roundMoney(input.amount, order.currency);
     if (
       !Number.isFinite(amount) ||
       amount <= 0 ||
-      num(order.amountPaid) + amount > num(order.total) + 0.0005
+      toMinorUnits(num(order.amountPaid) + amount, order.currency) > toMinorUnits(num(order.total), order.currency)
     )
       throw new Error(serverMessages.procurementOverpaid);
     if (["cancelled", "returned"].includes(order.status))
@@ -1076,8 +1144,8 @@ export async function recordOrderPayment(
       created_by: byId ?? undefined,
       notes: order.number,
     });
-    const paid = round3(num(order.amountPaid) + amount);
-    const full = paid >= num(order.total) - 0.0005;
+    const paid = roundMoney(num(order.amountPaid) + amount, order.currency);
+    const full = toMinorUnits(paid, order.currency) >= toMinorUnits(num(order.total), order.currency);
     await db.$transaction([
       db.salesOrder.update({
         where: { id: orderId },
@@ -1116,24 +1184,25 @@ export async function recordOrderRefund(
   reason: string,
   byId: string | null,
 ) {
-  const amount = round3(amountInput);
   return db.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM "SalesOrder" WHERE id = ${orderId} FOR UPDATE`;
     const order = await tx.salesOrder.findUnique({ where: { id: orderId } });
     if (!order) throw new Error(serverMessages.procurementDocumentMissing);
+    if (!validMoneyAmount(amountInput, order.currency)) throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
+    const amount = roundMoney(amountInput, order.currency);
     if (
       !Number.isFinite(amount) ||
       amount <= 0 ||
-      num(order.amountRefunded) + amount > num(order.amountPaid) + 0.0005
+      toMinorUnits(num(order.amountRefunded) + amount, order.currency) > toMinorUnits(num(order.amountPaid), order.currency)
     )
       throw new Error(serverMessages.orderRefundTooLarge);
-    const refunded = round3(num(order.amountRefunded) + amount);
+    const refunded = roundMoney(num(order.amountRefunded) + amount, order.currency);
     await tx.salesOrder.update({
       where: { id: orderId },
       data: {
         amountRefunded: refunded,
         paymentStatus:
-          refunded >= num(order.amountPaid) - 0.0005
+          toMinorUnits(refunded, order.currency) >= toMinorUnits(num(order.amountPaid), order.currency)
             ? "refunded"
             : "partially_refunded",
       },

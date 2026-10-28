@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import en from "../../../../packages/locales/src/en.json";
+import { en } from "../../../../packages/locales/src";
 import { alertMessage, testDatabase, watchErrors } from "../../helpers";
 import {
   disableDelivery,
@@ -85,8 +85,8 @@ test("checkout prices delivery by zone, refuses areas not served, and books a de
   await expect(form.getByText(copy.problems.no_delivery_zone)).toHaveCount(0);
   const slots = page.getByTestId("checkout-slots").getByRole("combobox");
   await expect(slots).toBeVisible();
-  const choice = await slots.locator("option").nth(2).getAttribute("value");
-  await slots.selectOption(choice!);
+  await slots.click();
+  await page.getByRole("option").nth(2).click();
   await form.getByRole("radio", { name: copy.paymentMethods.cod }).check();
   await page.getByTestId("checkout-place").click();
   await expect(page.getByTestId("order-placed")).toContainText(

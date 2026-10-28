@@ -1,3 +1,8 @@
+import { isLocale } from "@platform/locales/registry";
+import { validateWebsitePromotions, type WebsitePromotion } from "./constants/website-promotions";
+import { validateWebsiteDocuments, type WebsiteDocument } from "./constants/website-documents";
+import { defaultWebsiteCommerce, validateWebsiteCommerce, type WebsiteCommerce } from "./constants/website-commerce";
+import { defaultWebsiteDesign, validateWebsiteDesign, type WebsiteDesign } from "./constants/website-design";
 import {
   serverTemplates,
   formatMessage,
@@ -94,16 +99,23 @@ export interface WebsiteSeo {
 }
 
 export interface WebsiteConfig {
-  /** The company activity the website was set up for (website-presets.ts); media when missing. */
+  /** The company activity the website was set up for (website-presets.ts); neutral when missing. */
   purpose?: BusinessActivity;
+  interfaceLanguages?: string[];
+  primaryInterfaceLanguage?: string;
+  interfaceCopy?: Record<string, Record<string, unknown>>;
   heroStyle?: HeroStyle;
   collection?: WebsiteCollection;
   inquiry?: InquiryOptions;
   seo?: WebsiteSeo;
-  /** The studio equipment list on the About page. */
+  /** The company's equipment list on the About page. */
   showEquipment?: boolean;
-  /** A floating WhatsApp button when the company has a WhatsApp number. */
+  /** Retired; legacy snapshots may contain it, but it always resolves to false. */
   whatsappButton?: boolean;
+  design?: WebsiteDesign;
+  commerce?: WebsiteCommerce;
+  documents?: WebsiteDocument[];
+  promotions?: WebsitePromotion[];
   aboutImageUrl?: string;
   pillars?: WebsitePillar[];
   sections: { id: WebsiteSection; visible: boolean }[];
@@ -127,6 +139,8 @@ export type ResolvedWebsiteConfig = WebsiteConfig &
   Required<
     Pick<
       WebsiteConfig,
+      | "design"
+      | "commerce"
       | "purpose"
       | "heroStyle"
       | "collection"
@@ -209,7 +223,7 @@ export function websiteConfigForActivity(
     collection: collectionForActivity(activity),
     inquiry: { ...preset.inquiry },
     showEquipment: preset.showEquipment,
-    whatsappButton: base.whatsappButton ?? true,
+    whatsappButton: false,
     sections: order.map((id) => ({ id, visible: shown.has(id) })),
     pages: websitePages.map((id) => ({ id, visible: preset.pages[id] })),
   };
@@ -218,8 +232,9 @@ export function websiteConfigForActivity(
 /** Fills settings older drafts do not have from the preset of their activity (media when none is set). */
 export function resolveWebsiteConfig(
   config: WebsiteConfig,
+  legacyMode: "light" | "dark" = "dark",
 ): ResolvedWebsiteConfig {
-  const purpose = config.purpose ?? "media";
+  const purpose = config.purpose ?? "other";
   const preset = activityPreset(purpose);
   return {
     ...config,
@@ -234,7 +249,9 @@ export function resolveWebsiteConfig(
       descriptionAr: "",
     },
     showEquipment: config.showEquipment ?? preset.showEquipment,
-    whatsappButton: config.whatsappButton ?? true,
+    whatsappButton: false,
+    design: config.design ?? defaultWebsiteDesign(legacyMode),
+    commerce: config.commerce ?? defaultWebsiteCommerce(),
     pages: config.pages ?? defaultWebsitePages,
     articles: config.articles ?? articlesForActivity(purpose),
     code: config.code ?? EMPTY_WEBSITE_CODE,
@@ -297,9 +314,28 @@ export function validateWebsiteConfig(value: unknown): WebsiteConfig {
     });
   }
 
+  if (data.interfaceLanguages !== undefined && (!Array.isArray(data.interfaceLanguages) || !data.interfaceLanguages.length || data.interfaceLanguages.some((language) => !isLocale(language)) || new Set(data.interfaceLanguages).size !== data.interfaceLanguages.length)) throw new Error(serverMessages.contentLanguagesInvalid);
+  if (data.primaryInterfaceLanguage !== undefined && (!isLocale(data.primaryInterfaceLanguage) || !(data.interfaceLanguages as string[] | undefined)?.includes(data.primaryInterfaceLanguage))) throw new Error(serverMessages.contentLanguagesInvalid);
+  const interfaceCopy: Record<string, Record<string, unknown>> = {};
+  if (data.interfaceCopy !== undefined) {
+    if (!data.interfaceCopy || typeof data.interfaceCopy !== "object" || Array.isArray(data.interfaceCopy)) throw new Error(serverMessages.invalidWebsiteContent);
+    const validateCopy = (node: unknown, reference: unknown): boolean => {
+      if (typeof reference === "string") return typeof node === "string" && node.length <= 1500;
+      if (Array.isArray(reference)) return Array.isArray(node) && node.length <= 100 && node.every((entry) => typeof entry === "string" && entry.length <= 1500);
+      return !!node && typeof node === "object" && !Array.isArray(node) && Object.entries(node).every(([key, child]) => !["__proto__", "prototype", "constructor", "admin"].includes(key) && !!reference && typeof reference === "object" && Object.prototype.hasOwnProperty.call(reference, key) && validateCopy(child, (reference as Record<string, unknown>)[key]));
+    };
+    const reference = getWebsiteTranslations("en");
+    for (const [language, copy] of Object.entries(data.interfaceCopy)) {
+      if (!isLocale(language) || !validateCopy(copy, reference)) throw new Error(serverMessages.invalidWebsiteContent);
+      interfaceCopy[language] = copy as Record<string, unknown>;
+    }
+  }
   const result = {
     sections: data.sections.map((s) => ({ id: s.id, visible: s.visible })),
     pages,
+    ...(data.interfaceLanguages !== undefined ? { interfaceLanguages: data.interfaceLanguages as string[] } : {}),
+    ...(data.primaryInterfaceLanguage !== undefined ? { primaryInterfaceLanguage: data.primaryInterfaceLanguage as string } : {}),
+    interfaceCopy,
   } as WebsiteConfig;
   for (const key of Object.keys(
     websiteDefaultCopy,
@@ -392,7 +428,12 @@ export function validateWebsiteConfig(value: unknown): WebsiteConfig {
       "seo",
       300,
     );
-  for (const key of ["showEquipment", "whatsappButton"] as const) {
+  if (data.promotions !== undefined) result.promotions = validateWebsitePromotions(data.promotions);
+  if (data.documents !== undefined) result.documents = validateWebsiteDocuments(data.documents);
+  if (data.commerce !== undefined) result.commerce = validateWebsiteCommerce(data.commerce);
+  if (data.design !== undefined) result.design = validateWebsiteDesign(data.design);
+  if (data.whatsappButton !== undefined) result.whatsappButton = false;
+  for (const key of ["showEquipment"] as const) {
     if (data[key] === undefined) continue;
     if (typeof data[key] !== "boolean")
       throw new Error(formatMessage(serverTemplates.invalid0, { 0: key }));
@@ -466,6 +507,18 @@ export function validateWebsiteConfig(value: unknown): WebsiteConfig {
       bodyHtml:
         typeof raw.bodyHtml === "string" ? raw.bodyHtml.slice(0, 50_000) : "",
     };
+  }
+  if (data.design !== undefined) {
+    result.design = validateWebsiteDesign(data.design);
+  }
+  if (data.commerce !== undefined) {
+    result.commerce = validateWebsiteCommerce(data.commerce);
+  }
+  if (data.promotions !== undefined) {
+    result.promotions = validateWebsitePromotions(data.promotions);
+  }
+  if (data.documents !== undefined) {
+    result.documents = validateWebsiteDocuments(data.documents);
   }
   if (!result.contactTitleEn || !result.contactTitleAr)
     throw new Error(serverMessages.contactTitlesAreRequiredInBothLanguages);

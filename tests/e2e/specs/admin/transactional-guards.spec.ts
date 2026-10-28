@@ -1,7 +1,7 @@
 import { expect, test, type Locator } from "@playwright/test";
 import { randomUUID } from "node:crypto";
-import en from "../../../../packages/locales/src/admin/en.json";
-import ar from "../../../../packages/locales/src/admin/ar.json";
+import en from "../../../../packages/locales/src/admin/en";
+import ar from "../../../../packages/locales/src/admin/ar";
 import { testDatabase } from "../../helpers";
 
 const db =
@@ -16,12 +16,12 @@ test.beforeEach(async () => {
   contactId = (await db.crmContact.create({ data: { firstName: marker } })).id;
   dealId = (
     await db.crmDeal.create({
-      data: { title: marker, contactId, probability: 0, dealValue: 100 },
+      data: { currency: "BHD", title: marker, contactId, probability: 0, dealValue: 100 },
     })
   ).id;
   invoiceId = (
     await db.invoice.create({
-      data: {
+      data: { currency: "BHD",
         invoiceNumber: marker,
         clientId: contactId,
         dueDate: new Date("2050-12-31"),
@@ -41,7 +41,7 @@ test.beforeEach(async () => {
   ).id;
   quotationId = (
     await db.quotation.create({
-      data: {
+      data: { currency: "BHD",
         quotationNumber: marker,
         clientId: contactId,
         status: "accepted",

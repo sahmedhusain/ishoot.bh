@@ -1,5 +1,5 @@
 import { hasPermission, requirePagePermission } from "../../../../../lib/auth";
-import { listDepartments, db } from "@platform/database";
+import { listDepartments, getHrPolicy, db } from "@platform/database";
 import { NewEmployeeFormView } from "../../../../../components/hr/NewEmployeeFormView";
 
 export const dynamic = "force-dynamic";
@@ -24,5 +24,5 @@ export default async function NewEmployeePage({
       : Promise.resolve(null),
   ]);
 
-  return <NewEmployeeFormView departments={departments} linkUser={linkUser} canSetPay={await hasPermission("payroll", "edit")} />;
+  return <NewEmployeeFormView visaExemptCountries={(await getHrPolicy()).visaExemptCountries} departments={departments} linkUser={linkUser} canSetPay={await hasPermission("payroll", "edit")} />;
 }

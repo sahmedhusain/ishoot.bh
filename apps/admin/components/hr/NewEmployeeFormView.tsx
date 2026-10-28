@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
@@ -12,7 +13,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Department } from "@platform/database/types";
-import { Card, Button, Input, Select } from "@platform/ui";
+import { Card, Button, Input, PhoneInput, Select, useCompanyCountry } from "@platform/ui";
 import type { EmployeeCredentialInput, EmployeeIdentityInput } from "@platform/database";
 import { needsWorkVisa } from "@platform/database/constants/employee-documents";
 import { countryOptions } from "@platform/database/constants/clients";
@@ -31,14 +32,17 @@ import { toast } from "sonner";
 
 interface NewEmployeeFormViewProps {
   departments: Department[];
+  visaExemptCountries?: string[];
   /** Existing user account the new employee record will be linked to. */
   linkUser?: { id: string; fullName: string; email: string } | null;
   /** Salary and payroll settings are set only by payroll managers; others leave them for payroll to complete. */
   canSetPay?: boolean;
 }
 
-export function NewEmployeeFormView({ departments, linkUser, canSetPay = false }: NewEmployeeFormViewProps) {
+export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, visaExemptCountries = [] }: NewEmployeeFormViewProps) {
+  const companyCurrency = useCompanyCurrency();
   const router = useRouter();
+  const companyCountry = useCompanyCountry();
   const { isRTL, t } = useAdminLocale();
 
   const [submitting, setSubmitting] = React.useState(false);
@@ -56,7 +60,7 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false }
   const [identity, setIdentity] = React.useState<EmployeeIdentityInput>({ nationality: "BH", gender: "", passport_country: "" });
   const [visa, setVisa] = React.useState<EmployeeCredentialInput>(emptyCredential("visa"));
   const countries = React.useMemo(() => countryOptions(t.countries), [t.countries]);
-  const visaRequired = needsWorkVisa(identity.nationality);
+  const visaRequired = needsWorkVisa(identity.nationality, [...visaExemptCountries, ...(companyCountry ? [companyCountry] : [])]);
   const setId = <K extends keyof EmployeeIdentityInput>(key: K, value: EmployeeIdentityInput[K]) => setIdentity((v) => ({ ...v, [key]: value }));
   const [jobTitleEn, setJobTitleEn] = React.useState("");
   const [jobTitleAr, setJobTitleAr] = React.useState("");
@@ -70,7 +74,7 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false }
     "full_time" | "part_time" | "contract"
   >("full_time");
 
-  // Compensation Structure (BHD)
+  // Compensation in the company currency
   const [basicSalary, setBasicSalary] = React.useState(500);
   const [housingAllowance, setHousingAllowance] = React.useState(100);
   const [transportAllowance, setTransportAllowance] = React.useState(50);
@@ -261,12 +265,9 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false }
               <span className="block text-xs font-medium text-ink dark:text-ink mb-1">
                 {t.shared.phoneNumber}
               </span>
-              <input
-                type="tel"
+              <PhoneInput
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+973 39000000"
-                className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
+                onChange={setPhone}
               />
             </label>
           </div>
@@ -422,7 +423,7 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false }
               <div className="text-xs font-mono font-semibold text-primary dark:text-mint">
                 {t.newEmployeeForm.totalMonthlyGross}
                 {totalMonthlyGross.toFixed(3)}
-                {t.shared.bhd}
+                {companyCurrency}
               </div>
             </div>
 

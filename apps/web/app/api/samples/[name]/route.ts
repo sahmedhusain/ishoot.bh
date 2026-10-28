@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { measureOperation } from "@platform/database";
-import { getPublicCompanySettings } from "../../../../lib/company";
+import { getSite } from "../../../../lib/site";
 
 /**
  * Abstract artwork for sample content ("banner-1.svg" … "item-6.svg"), drawn in the company's own colours so a
@@ -15,7 +15,7 @@ export async function GET(
     const { name } = await params;
     const match = /^(banner|item)-([1-6])\.svg$/.exec(name);
     if (!match) return new NextResponse(null, { status: 404 });
-    const { theme } = await getPublicCompanySettings();
+    const { company: { theme } } = await getSite();
     const [kind, n] = [match[1], Number(match[2])];
     const [w, h] = kind === "banner" ? [1600, 900] : [800, 600];
     const { primary, accent } = theme;
@@ -29,7 +29,7 @@ export async function GET(
     return new NextResponse(svg, {
       headers: {
         "Content-Type": "image/svg+xml; charset=utf-8",
-        "Cache-Control": "public, max-age=300",
+        "Cache-Control": "private, no-store",
         "Content-Security-Policy":
           "default-src 'none'; style-src 'unsafe-inline'",
         "X-Content-Type-Options": "nosniff",

@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
 import Link from "next/link";
@@ -25,6 +26,7 @@ const AGING_COLORS = ["bg-emerald-500", "bg-amber-400", "bg-orange-500", "bg-ros
  * The profit & loss statement, VAT and accounting basis live only in Financial Reports.
  */
 export function FinancialAnalyticsView({ finance, insight, categoryTotals, categories, monthlyCashflow }: FinancialAnalyticsViewProps) {
+  const companyCurrency = useCompanyCurrency();
   const { t, locale } = useAdminLocale();
   const copy = t.financialAnalytics;
   const chartData = monthlyCashflow.map((point) => ({
@@ -39,8 +41,8 @@ export function FinancialAnalyticsView({ finance, insight, categoryTotals, categ
   const kpis = [
     { icon: Percent, label: copy.collectionRate, value: `${insight.collectionRate.toFixed(1)}%`, hint: copy.collectionRateHint },
     { icon: CalendarClock, label: copy.daysToCollect, value: `${insight.averageDaysToCollect} ${copy.days}`, hint: copy.daysToCollectHint },
-    { icon: Wallet, label: copy.outstanding, value: <CurrencyDisplay amount={finance.outstanding} currency="BHD" />, hint: copy.outstandingHint },
-    { icon: Receipt, label: copy.averageInvoice, value: <CurrencyDisplay amount={insight.averageInvoiceValue} currency="BHD" />, hint: formatMessage(copy.averageInvoiceHint, { count: String(insight.invoicesIssued) }) },
+    { icon: Wallet, label: copy.outstanding, value: <CurrencyDisplay amount={finance.outstanding} currency={companyCurrency} />, hint: copy.outstandingHint },
+    { icon: Receipt, label: copy.averageInvoice, value: <CurrencyDisplay amount={insight.averageInvoiceValue} currency={companyCurrency} />, hint: formatMessage(copy.averageInvoiceHint, { count: String(insight.invoicesIssued) }) },
   ];
 
   return (
@@ -92,7 +94,7 @@ export function FinancialAnalyticsView({ finance, insight, categoryTotals, categ
                       {copy.agingBuckets[bucket.bucket]}
                       <span className="text-xs text-ink-muted">· {formatMessage(copy.invoicesCount, { count: String(bucket.count) })}</span>
                     </span>
-                    <span className="font-semibold text-ink"><CurrencyDisplay amount={bucket.amount} currency="BHD" /></span>
+                    <span className="font-semibold text-ink"><CurrencyDisplay amount={bucket.amount} currency={companyCurrency} /></span>
                   </li>
                 ))}
               </ul>
@@ -113,7 +115,7 @@ export function FinancialAnalyticsView({ finance, insight, categoryTotals, categ
                     <span className="font-medium"><bdi dir="auto">{client.name}</bdi></span>
                     <span className="text-xs text-ink-muted">· {formatMessage(copy.invoicesCount, { count: String(client.invoices) })}</span>
                   </Link>
-                  <span className="font-semibold text-ink"><CurrencyDisplay amount={client.collected} currency="BHD" /></span>
+                  <span className="font-semibold text-ink"><CurrencyDisplay amount={client.collected} currency={companyCurrency} /></span>
                 </li>
               ))}
             </ol>
@@ -133,7 +135,7 @@ export function FinancialAnalyticsView({ finance, insight, categoryTotals, categ
                   <span className="text-xs font-semibold text-ink">{locale === "ar" ? category.name_ar : category.name_en}</span>
                   <span className="text-[11px] text-ink-muted">{share.toFixed(0)}%</span>
                 </div>
-                <div className="text-base font-bold text-ink"><CurrencyDisplay amount={amount} currency="BHD" /></div>
+                <div className="text-base font-bold text-ink"><CurrencyDisplay amount={amount} currency={companyCurrency} /></div>
                 <div className="w-full h-1.5 bg-ink/5 rounded-full overflow-hidden">
                   <div className="h-full rounded-full" style={{ width: `${share}%`, backgroundColor: category.color || "rgb(var(--brand-accent))" }} />
                 </div>

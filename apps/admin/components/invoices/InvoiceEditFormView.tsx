@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 import { errorMessage } from "../../lib/error-text";
 import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import { formatMessage } from "@platform/locales";
@@ -15,13 +16,10 @@ import type {
   CompanySettings,
   InvoiceLineItem,
   DiscountType,
-  SupportedCurrency,
   ServiceItem,
 } from "@platform/database/types";
 import {
-  CURRENCY_CONFIGS,
   calculateInvoiceTotals,
-  getCurrencyDisplayLabel,
 } from "@platform/database/types";
 import {
   Card,
@@ -43,7 +41,6 @@ import {
   ExternalLink,
   Sparkles,
 } from "lucide-react";
-import { convertFromBhd } from "../../lib/fx-client";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
   updateInvoiceAction,
@@ -57,8 +54,6 @@ interface InvoiceEditFormViewProps {
   initialContacts: CRMContact[];
   company: CompanySettings | null;
   services?: ServiceItem[];
-  /** Units of each supported currency per 1 BHD; service catalogue prices are in BHD. */
-  fxRates?: Record<string, number>;
 }
 
 export function InvoiceEditFormView({
@@ -66,11 +61,10 @@ export function InvoiceEditFormView({
   initialContacts,
   company,
   services = [],
-  fxRates = {},
 }: InvoiceEditFormViewProps) {
   const router = useRouter();
-  const { t, isRTL, locale } = useAdminLocale();
-  const bhd = getCurrencyLabel("BHD", locale === "ar");
+  const { isArabic, t, locale } = useAdminLocale();
+  const bhd = getCurrencyLabel(useCompanyCurrency(), locale === "ar");
 
   const [contacts, setContacts] = React.useState<CRMContact[]>(initialContacts);
   const [submitting, setSubmitting] = React.useState(false);
@@ -85,9 +79,7 @@ export function InvoiceEditFormView({
     return contacts.find((c) => c.id === selectedContactId) || null;
   }, [contacts, selectedContactId]);
 
-  const [currency, setCurrency] = React.useState<SupportedCurrency>(
-    (invoice.currency as SupportedCurrency) || "BHD",
-  );
+  const currency = invoice.currency;
   const [language, setLanguage] = React.useState<"en" | "ar">(
     (invoice.language as "en" | "ar") || "ar",
   );
@@ -444,17 +436,7 @@ export function InvoiceEditFormView({
               <span className="text-xs font-medium text-ink dark:text-ink mb-1.5 block">
                 {t.invoiceEdit.currency}
               </span>
-              <Select
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value as any)}
-                disabled={isLocked}
-              >
-                {Object.keys(CURRENCY_CONFIGS).map((code) => (
-                  <option key={code} value={code}>
-                    {getCurrencyDisplayLabel(code as SupportedCurrency, isRTL ? "ar" : "en")}
-                  </option>
-                ))}
-              </Select>
+              <Select value={currency} disabled className="w-full"><option value={currency}>{currency}</option></Select>
             </label>
 
             <label>
@@ -556,7 +538,7 @@ export function InvoiceEditFormView({
                             setLineItems((prev) => {
                               const next = [...prev];
                               const qty = Number(next[idx].quantity) || 1;
-                              const price = convertFromBhd(Number(s.default_rate) || 0, fxRates[currency] ?? 1, currency);
+                              const price = Number(s.default_rate) || 0;
                               next[idx] = {
                                 ...next[idx],
                                 service_id: s.id,
@@ -635,7 +617,7 @@ export function InvoiceEditFormView({
                     </span>
                     <Input
                       type="number"
-                      step="0.001"
+                      step="any"
                       required
                       value={item.unit_price}
                       onChange={(e) =>
@@ -700,7 +682,7 @@ export function InvoiceEditFormView({
                 </span>
                 <Input
                   type="number"
-                  step="0.001"
+                  step="any"
                   value={discountValue}
                   onChange={(e) =>
                     setDiscountValue(parseFloat(e.target.value) || 0)
@@ -783,7 +765,7 @@ export function InvoiceEditFormView({
           {otherTaxes.map((tax) => (
             <div key={tax.code} className="flex items-center justify-between text-xs border-b border-outline-variant dark:border-white/10 pb-3">
               <span className="text-ink-muted dark:text-ink-muted">
-                {isRTL ? tax.name_ar : tax.name_en} ({tax.rate}%)
+                {isArabic ? tax.name_ar : tax.name_en} ({tax.rate}%)
               </span>
               <span className=" font-bold text-accent">
                 +{(totals.taxes.find((x) => x.code === tax.code)?.amount ?? 0).toFixed(3)} {currency}

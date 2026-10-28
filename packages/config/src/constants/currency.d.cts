@@ -7,3 +7,6 @@ export function getCurrencyLabel(
   isArabic?: boolean,
   unicode?: boolean,
 ): string;
+
+export const CURRENCY_CODES: readonly string[];
+export function isCurrencyCode(code: unknown): code is string;

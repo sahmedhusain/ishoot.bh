@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 
 import { errorMessage } from "../../lib/error-text";
@@ -17,7 +18,6 @@ import {
 import type { ExpenseCategory } from "@platform/database/types";
 import {
   EXPENSE_CATEGORY_KINDS,
-  SUPPORTED_CURRENCIES,
 } from "@platform/database/constants/finance";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -46,7 +46,7 @@ export function NewClaimFormView({
   const fileRef = React.useRef<HTMLInputElement>(null);
 
   const [amount, setAmount] = React.useState<number>(0);
-  const [currency, setCurrency] = React.useState("BHD");
+  const currency = useCompanyCurrency();
   const [expenseDate, setExpenseDate] = React.useState(() =>
     businessDateString(),
   );
@@ -160,7 +160,7 @@ export function NewClaimFormView({
                 id="claim-amount"
                 type="number"
                 min={0}
-                step="0.001"
+                step="any"
                 required
                 value={amount || ""}
                 onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
@@ -170,18 +170,7 @@ export function NewClaimFormView({
               <label className={label} htmlFor="claim-currency">
                 {t.expensesNew.currencyLabel}
               </label>
-              <Select
-                id="claim-currency"
-                className={select}
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-              >
-                {SUPPORTED_CURRENCIES.map((code) => (
-                  <option key={code} value={code}>
-                    {code}
-                  </option>
-                ))}
-              </Select>
+              <Select value={currency} disabled className="w-full"><option value={currency}>{currency}</option></Select>
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">

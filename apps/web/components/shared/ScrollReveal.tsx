@@ -1,4 +1,5 @@
 "use client";
+import { useSiteReducedMotion } from "../site/SiteTheme";
 import { useEffect } from "react";
 
 /**
@@ -8,8 +9,9 @@ import { useEffect } from "react";
  * "reduce motion" nothing moves.
  */
 export function ScrollReveal() {
+  const reduced = useSiteReducedMotion();
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) return;
+    if (reduced || !("IntersectionObserver" in window)) return;
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -30,6 +32,6 @@ export function ScrollReveal() {
       observer.disconnect();
       for (const element of elements) element.removeAttribute("data-reveal-pending");
     };
-  }, []);
+  }, [reduced]);
   return null;
 }

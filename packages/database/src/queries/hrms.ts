@@ -1,3 +1,5 @@
+import { phoneSearchVariants } from "../constants/phone";
+import { normalizeContactInput } from "./contact-validation";
 import { serverMessages } from "@platform/locales";
 import { toLeaveTypeRules } from "./hr-settings";
 import { parsePayrollSettings } from "../payroll-calculation";
@@ -31,6 +33,7 @@ export async function createEmployee(
   actorId: string,
 ): Promise<Employee> {
   await assertActorNotOnLeave(actorId);
+  data = await normalizeContactInput(data);
   if (data.payrollSettings) parsePayrollSettings(data.payrollSettings);
 
   const employeeNumber = await getNextSequenceNumber("EMP");
@@ -131,6 +134,7 @@ export async function listEmployees(filters: {
       { lastNameAr: { contains: filters.search } },
       { email: { contains: filters.search, mode: "insensitive" } },
       { cprNumber: { contains: filters.search } },
+      ...phoneSearchVariants(filters.search).map((value) => ({ phone: { contains: value } })),
     ];
   }
 
@@ -313,6 +317,7 @@ export async function updateEmployee(
   actorId: string,
 ): Promise<Employee> {
   await assertActorNotOnLeave(actorId);
+  data = await normalizeContactInput(data);
   if (data.payrollSettings) parsePayrollSettings(data.payrollSettings);
 
   await db.$transaction(async (tx) => {

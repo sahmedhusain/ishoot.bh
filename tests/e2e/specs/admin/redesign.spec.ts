@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import en from "../../../../packages/locales/src/admin/en.json";
-import ar from "../../../../packages/locales/src/admin/ar.json";
+import en from "../../../../packages/locales/src/admin/en";
+import ar from "../../../../packages/locales/src/admin/ar";
 
 for (const locale of ["en", "ar"] as const) {
   const t = locale === "en" ? en : ar;

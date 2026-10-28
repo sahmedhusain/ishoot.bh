@@ -31,6 +31,7 @@ export default async function CmsPageEditorPage({ params }: { params: Promise<{ 
   await requireFeatureEnabled("cms");
   const [page, company, content, canCode] = await Promise.all([id === "new" ? Promise.resolve(EMPTY) : getCmsPage(id), getCompanySettings(), getWebsiteEditor(), hasPermission("cms_code", "edit")]);
   if (!page) notFound();
-  const catalogue = resolveWebsiteConfig(validateWebsiteConfig(content.draft)).collection.slug;
-  return <PageEditorView key={page.id || "new"} page={page} languages={company.content_languages} canCode={canCode} catalogueSlug={catalogue} />;
+  const config = resolveWebsiteConfig(validateWebsiteConfig(content.draft));
+  const catalogue = config.collection.slug;
+  return <PageEditorView key={page.id || "new"} page={page} activity={config.purpose} languages={company.content_languages} canCode={canCode} catalogueSlug={catalogue} />;
 }

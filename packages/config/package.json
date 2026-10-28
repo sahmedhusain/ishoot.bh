@@ -8,12 +8,14 @@
   "exports": {
     ".": "./tailwind.config.ts",
     "./constants": "./src/constants/index.ts",
+    "./phone": "./src/phone.ts",
     "./currency": {
       "types": "./src/constants/currency.d.cts",
       "default": "./src/constants/currency.cjs"
     }
   },
   "dependencies": {
+    "libphonenumber-js": "^1.13.14",
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {

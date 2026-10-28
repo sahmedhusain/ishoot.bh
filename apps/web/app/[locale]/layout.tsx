@@ -1,7 +1,9 @@
 import { isWebsitePreview, websiteExample } from "../../lib/website";
 import { PreviewBridge } from "../../components/site/PreviewBridge";
-import { storeEnabled } from "../../lib/customer";
+import { storeEnabled, orderingEnabled } from "../../lib/customer";
 import * as React from "react";
+import { PhoneCountryProvider, CompanyCurrencyProvider } from "@platform/ui";
+import { isRtlLocale } from "@platform/locales/registry";
 import { formatMessage } from "@platform/locales";
 import { notFound } from "next/navigation";
 import { isValidLocale } from "../../lib/i18n";
@@ -13,13 +15,14 @@ import { Footer } from "../../components/layout/Footer";
 import { SmoothScroll } from "../../components/layout/SmoothScroll";
 import { FloatingScrollbar } from "../../components/layout/FloatingScrollbar";
 import { BackToTop } from "../../components/layout/BackToTop";
-import { WhatsAppButton } from "../../components/layout/WhatsAppButton";
+import { SiteThemeProvider, SiteRegion } from "../../components/site/SiteTheme";
+import { siteBaseTone, siteThemeBootstrap } from "@platform/database/constants/website-design";
 import { WebsiteOffline } from "../../components/layout/WebsiteOffline";
 import { SiteProvider } from "../../components/site/SiteProvider";
 import { getSocialLinks } from "@platform/database";
 import { UtmCapture } from "../../components/store/UtmCapture";
 import { pickText } from "@platform/database/constants/languages";
-import { googleFontsHref, themeStylesheet } from "@platform/database/constants/theme";
+import { googleFontsHref, themeStylesheet, websiteThemeStylesheet } from "@platform/database/constants/theme";
 
 /** The admin app's origin, the only one a preview frame takes theme changes from. */
 const originOf = (url?: string) => {
@@ -53,8 +56,8 @@ export default async function LocaleLayout({
     websiteExample(),
     siteTranslations(locale),
   ]);
-  const isRTL = locale === "ar";
-  const store = await storeEnabled().catch(() => false);
+  const isRTL = isRtlLocale(locale);
+  const [store, ordering] = await Promise.all([storeEnabled().catch(() => false), orderingEnabled().catch(() => false)]);
   const adminOrigin = originOf(process.env.ADMIN_URL);
   const menus = siteMenus(website, config, info, locale);
   const fontsHref = googleFontsHref(company.theme);
@@ -67,7 +70,8 @@ export default async function LocaleLayout({
           <link rel="stylesheet" href={fontsHref} />
         </>
       ) : null}
-      <style id="company-theme" dangerouslySetInnerHTML={{ __html: themeStylesheet(company.theme) }} />
+      <style id="company-theme" dangerouslySetInnerHTML={{ __html: themeStylesheet(company.theme) + websiteThemeStylesheet(company.theme) }} />
+      <script id="site-theme-init" dangerouslySetInnerHTML={{ __html: siteThemeBootstrap(config.design) }} />
       {enabled && website && !preview ? <SiteAnalytics code={config.code} /> : null}
     </head>
   );
@@ -76,7 +80,7 @@ export default async function LocaleLayout({
   // and how to reach it.
   if ((!enabled || !website) && !preview) {
     return (
-      <html dir={isRTL ? "rtl" : "ltr"} lang={locale} className={company.theme.websiteMode}>
+      <html dir={isRTL ? "rtl" : "ltr"} lang={locale} className={siteBaseTone(config.design, config.design.defaultMode)} data-site-tone={siteBaseTone(config.design, config.design.defaultMode)} data-site-mode={config.design.defaultMode} data-site-motion={config.design.motion} data-site-density={config.design.density} data-site-header={config.design.headerLayout ?? "standard"} data-site-footer={config.design.footerLayout ?? "standard"} data-site-width={config.design.contentWidth} suppressHydrationWarning>
         {head}
         <body className={`min-h-screen bg-brand-base text-ink ${isRTL ? "font-arabic" : "font-sans"}`}>
           <WebsiteOffline company={company} locale={locale} t={t} />
@@ -86,7 +90,7 @@ export default async function LocaleLayout({
   }
 
   return (
-    <html dir={isRTL ? "rtl" : "ltr"} lang={locale} className={company.theme.websiteMode}>
+    <html dir={isRTL ? "rtl" : "ltr"} lang={locale} className={siteBaseTone(config.design, config.design.defaultMode)} data-site-tone={siteBaseTone(config.design, config.design.defaultMode)} data-site-mode={config.design.defaultMode} data-site-motion={config.design.motion} data-site-density={config.design.density} data-site-header={config.design.headerLayout ?? "standard"} data-site-footer={config.design.footerLayout ?? "standard"} data-site-width={config.design.contentWidth} suppressHydrationWarning>
       {head}
       <body
         className={`min-h-screen bg-brand-base text-ink selection:bg-accent/40 selection:text-paper ${isRTL ? "font-arabic" : "font-sans"}`}
@@ -107,20 +111,21 @@ export default async function LocaleLayout({
           </div>
         )}
         {preview && adminOrigin ? <PreviewBridge adminOrigin={adminOrigin} /> : null}
-        <SiteProvider site={info}>
+        <SiteThemeProvider design={config.design}>
+        <CompanyCurrencyProvider currency={company.default_currency}><PhoneCountryProvider country={company.country}><SiteProvider site={info}>
           <FloatingScrollbar />
           <BackToTop />
           <UtmCapture />
           <SmoothScroll>
-            <Navbar company={company} pages={config.pages} links={menus?.header} accountHref={store ? `/${locale}/account` : undefined} />
-            <main id="main-content" className="w-full">
+            <Navbar cartEnabled={ordering} company={company} pages={config.pages} links={menus?.header} accountHref={store && config.commerce.capabilities.accounts ? `/${locale}/account` : undefined} />
+            <SiteRegion as="main" region="page" id="main-content" className="w-full">
               {children}
-            </main>
+            </SiteRegion>
             <Footer company={company} socialLinks={socialLinks} pages={config.pages} links={menus?.footer} />
             {!preview ? <SiteCustomCode code={config.code} /> : null}
           </SmoothScroll>
-          {info.whatsappButton && company.whatsapp_phone ? <WhatsAppButton phone={company.whatsapp_phone} /> : null}
-        </SiteProvider>
+        </SiteProvider></PhoneCountryProvider></CompanyCurrencyProvider>
+        </SiteThemeProvider>
       </body>
     </html>
   );
@@ -145,7 +150,7 @@ export async function generateMetadata({
     openGraph: {
       title,
       description,
-      locale: locale === "ar" ? "ar_BH" : "en_US",
+      locale,
     },
     ...((await isWebsitePreview())
       ? { robots: { index: false, follow: false } }

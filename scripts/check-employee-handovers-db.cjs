@@ -293,7 +293,7 @@ async function main() {
             where: { code: "other" },
           });
           const laptop = await tx.asset.create({
-            data: {
+            data: { currency: "BHD",
               assetTag: `AST-EHO-${stamp}`,
               categoryId: category.id,
               name: "Work laptop",

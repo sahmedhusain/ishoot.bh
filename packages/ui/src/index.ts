@@ -21,3 +21,5 @@ export * from "./visual-analytics/lead-funnel-chart";
 export * from "./overlay-scrollbars";
 
 export * from "./floating-surface";
+export * from "./phone-input";
+

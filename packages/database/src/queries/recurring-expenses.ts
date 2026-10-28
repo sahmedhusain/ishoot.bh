@@ -1,3 +1,5 @@
+import { validMoneyAmount } from "../finance/money";
+import { assertCompanyCurrency } from "../finance/company-currency";
 import { serverMessages } from "@platform/locales";
 import { db, runAtomicMutation } from "../db";
 import { ROUTES } from "../constants/routes";
@@ -101,12 +103,13 @@ function normalize(input: RecurringExpenseInput) {
   if (!titleEn) throw new Error(serverMessages.enterTheBillSName);
   if (!(EXPENSE_FREQUENCIES as readonly string[]).includes(input.frequency))
     throw new Error(serverMessages.chooseHowOftenTheBillIs);
-  const amount = Math.round(Number(input.amount) * 1000) / 1000;
+  const amount = Number(input.amount);
   if (!Number.isFinite(amount) || amount <= 0)
     throw new Error(serverMessages.expenseAmountMustBePositive);
-  const vat = Math.round(Number(input.input_vat_amount ?? 0) * 1000) / 1000;
+  const vat = Number(input.input_vat_amount ?? 0);
   if (!Number.isFinite(vat) || vat < 0 || vat >= amount)
     throw new Error(serverMessages.inputVatMustBeLessThanThe);
+  if (!validMoneyAmount(amount, input.currency ?? "") || !validMoneyAmount(vat, input.currency ?? "", true)) throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
   if (
     !/^\d{4}-\d{2}-\d{2}$/.test(input.start_date ?? "") ||
     !Number.isFinite(Date.parse(input.start_date))
@@ -127,7 +130,7 @@ function normalize(input: RecurringExpenseInput) {
     amount,
     inputVatAmount: vat,
     isVatRecoverable: input.is_vat_recoverable ?? true,
-    currency: (input.currency || "BHD").toUpperCase(),
+    currency: input.currency ?? "",
     paymentMethod: input.payment_method || null,
     frequency: input.frequency as ExpenseFrequency,
     startDate: day(input.start_date),
@@ -206,8 +209,9 @@ export async function saveRecurringExpense(
   actorId: string,
   id?: string,
 ) {
-  const data = normalize(input);
+  const data = normalize({ ...input, currency: await assertCompanyCurrency(input.currency) });
   return runAtomicMutation(async () => {
+    await assertCompanyCurrency(data.currency);
     if (data.categoryId) {
       const category = await db.expenseCategory.findUnique({
         where: { id: data.categoryId },

@@ -1,7 +1,11 @@
+import { isLocale } from "@platform/locales/registry";
+import { countryIso } from "../constants/phone";
+import { companyCurrency as getAccountingCurrency } from "../finance/company-currency";
 import { serverMessages } from "@platform/locales";
 import { Prisma } from "@prisma/client";
 import { db, runAtomicMutation } from "../db";
-import { normalizeToE164 } from "../services/lead-resolver";
+import { isValidEmail, normalizeEmail } from "../constants/validation";
+import { isValidPhone, formatPhoneE164, phoneSearchVariants } from "../constants/phone";
 import {
   BAHRAIN_CR_PATTERN,
   BAHRAIN_VAT_PATTERN,
@@ -12,8 +16,6 @@ import {
   CLIENT_SORTS,
   CLIENT_TIERS,
   GOVERNMENT_TYPES,
-  INDUSTRIES,
-  LEGAL_FORMS,
   isCountryCode,
   type ClientSort,
 } from "../constants/clients";
@@ -23,7 +25,8 @@ import { mapContact } from "./crm";
 const MAX_CONTACT_PERSONS = 20;
 const clean = (value: unknown, max = 200): string | null => {
   if (typeof value !== "string") return null;
-  const text = value.trim().slice(0, max);
+  const text = value.trim();
+  if (text.length > max || /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(text)) throw new Error(serverMessages.invalidInput);
   return text || null;
 };
 const oneOf = <T extends readonly string[]>(
@@ -33,8 +36,6 @@ const oneOf = <T extends readonly string[]>(
   typeof value === "string" && (list as readonly string[]).includes(value)
     ? (value as T[number])
     : null;
-const looksLikeEmail = (value: string) =>
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
 /** Turns a stored client back into form input, so a partial update can be validated as a whole profile. */
 function storedProfile(c: CRMContact): ClientProfileInput {
@@ -74,7 +75,7 @@ function storedProfile(c: CRMContact): ClientProfileInput {
  * Individuals are one person; companies and government entities need at least one point of contact,
  * and the primary one is mirrored onto the client's name, e-mail, phone and job title.
  */
-export function normalizeClientProfile(input: ClientProfileInput) {
+export function normalizeClientProfile(input: ClientProfileInput, companyCountry?: string) {
   const kind =
     oneOf(CLIENT_KINDS, input.client_kind) ??
     (clean(input.company) ? "company" : "individual");
@@ -86,7 +87,7 @@ export function normalizeClientProfile(input: ClientProfileInput) {
   if (nationality && !isCountryCode(nationality))
     throw new Error(serverMessages.chooseACountryFromTheList);
   const preferredLanguage =
-    input.preferred_language === "ar" || input.preferred_language === "en"
+    isLocale(input.preferred_language)
       ? input.preferred_language
       : null;
   const terms = input.payment_terms_days;
@@ -97,9 +98,10 @@ export function normalizeClientProfile(input: ClientProfileInput) {
   )
     throw new Error(serverMessages.paymentTermsMustBeBetween0);
   const website = clean(input.website, 300);
-  const email = clean(input.email, 254)?.toLowerCase() ?? null;
-  if (email && !looksLikeEmail(email))
+  const rawEmail = clean(input.email, 254);
+  if (rawEmail && !isValidEmail(rawEmail))
     throw new Error(serverMessages.enterAValidEMailAddress);
+  const email = rawEmail ? normalizeEmail(rawEmail) : null;
 
   const companyName = clean(input.company);
   let companyOrigin: "local" | "foreign" | null = null;
@@ -110,16 +112,16 @@ export function normalizeClientProfile(input: ClientProfileInput) {
     if (!companyName) throw new Error(serverMessages.companyNameIsRequired);
     companyOrigin = input.company_origin === "foreign" ? "foreign" : "local";
     if (companyOrigin === "local") {
-      crNumber = clean(input.cr_number, 20)?.replace(/\s+/g, "") ?? null;
-      if (!crNumber || !BAHRAIN_CR_PATTERN.test(crNumber))
+      registrationCountry = clean(input.registration_country, 2) ?? companyCountry ?? null;
+      crNumber = clean(input.cr_number, 100)?.replace(/\s+/g, "") ?? null;
+      if (!crNumber || (registrationCountry === "BH" && !BAHRAIN_CR_PATTERN.test(crNumber)))
         throw new Error(serverMessages.enterTheCommercialRegistrationCRNumber);
-      registrationCountry = "BH";
     } else {
       registrationCountry = clean(input.registration_country, 2);
       if (
         !registrationCountry ||
         !isCountryCode(registrationCountry) ||
-        registrationCountry === "BH"
+        registrationCountry === companyCountry
       )
         throw new Error(serverMessages.chooseTheCountryWhereTheCompany);
       registrationNumber = clean(input.registration_number, 60);
@@ -129,7 +131,7 @@ export function normalizeClientProfile(input: ClientProfileInput) {
   } else if (kind === "government") {
     if (!companyName)
       throw new Error(serverMessages.enterTheGovernmentEntitySName);
-    registrationCountry = clean(input.registration_country, 2) ?? "BH";
+    registrationCountry = clean(input.registration_country, 2) ?? companyCountry ?? null;
     if (!isCountryCode(registrationCountry))
       throw new Error(serverMessages.chooseACountryFromTheList);
   }
@@ -152,15 +154,20 @@ export function normalizeClientProfile(input: ClientProfileInput) {
             const fullName = clean(p.full_name, 150);
             if (!fullName)
               throw new Error(serverMessages.everyPointOfContactNeedsA);
-            const personEmail = clean(p.email, 254)?.toLowerCase() ?? null;
-            if (personEmail && !looksLikeEmail(personEmail))
+            const rawPersonEmail = clean(p.email, 254);
+            if (rawPersonEmail && !isValidEmail(rawPersonEmail))
               throw new Error(serverMessages.enterAValidEMailAddress);
+            const personEmail = rawPersonEmail ? normalizeEmail(rawPersonEmail) : null;
+            const personPhoneRaw = clean(p.phone, 40);
+            if (personPhoneRaw && !isValidPhone(personPhoneRaw))
+              throw new Error(serverMessages.invalidInput);
+            const personPhone = personPhoneRaw ? formatPhoneE164(personPhoneRaw) : null;
             return {
               fullName,
               position: clean(p.position, 120),
               department: clean(p.department, 120),
               email: personEmail,
-              phone: clean(p.phone, 40),
+              phone: personPhone,
               notes: clean(p.notes, 500),
               isPrimary: !!p.is_primary,
               displayOrder: index,
@@ -194,8 +201,14 @@ export function normalizeClientProfile(input: ClientProfileInput) {
     }
     if (!firstName) throw new Error(serverMessages.clientNameIsRequired);
   }
-  const phone = primary ? primary.phone : clean(input.phone, 40);
-  const contactEmail = primary ? primary.email : email;
+  const rawPhone = primary ? primary.phone : clean(input.phone, 40);
+  if (rawPhone && !isValidPhone(rawPhone))
+    throw new Error(serverMessages.invalidInput);
+  const phone = rawPhone ? formatPhoneE164(rawPhone) : null;
+  const rawContactEmail = primary ? primary.email : email;
+  if (rawContactEmail && !isValidEmail(rawContactEmail))
+    throw new Error(serverMessages.enterAValidEMailAddress);
+  const contactEmail = rawContactEmail ? normalizeEmail(rawContactEmail) : null;
 
   const data = {
     clientKind: kind,
@@ -204,12 +217,12 @@ export function normalizeClientProfile(input: ClientProfileInput) {
     email: contactEmail,
     emailNorm: contactEmail,
     phone,
-    phoneE164: phone ? normalizeToE164(phone) : null,
+    phoneE164: phone ? formatPhoneE164(phone) : null,
     jobTitle: primary ? primary.position : clean(input.job_title, 120),
     companyName: kind === "individual" ? null : companyName,
     companyNameAr: kind === "individual" ? null : clean(input.company_ar),
     companyOrigin,
-    legalForm: kind === "company" ? oneOf(LEGAL_FORMS, input.legal_form) : null,
+    legalForm: kind === "company" ? clean(input.legal_form, 100) : null,
     crNumber,
     crExpiryDate:
       kind === "company" &&
@@ -228,7 +241,7 @@ export function normalizeClientProfile(input: ClientProfileInput) {
     requiresPurchaseOrder:
       kind === "government" ? !!input.requires_purchase_order : false,
     nationality: kind === "individual" ? nationality : null,
-    industry: kind === "individual" ? null : oneOf(INDUSTRIES, input.industry),
+    industry: kind === "individual" ? null : clean(input.industry, 100),
     website:
       website && !/^https?:\/\//i.test(website)
         ? `https://${website}`
@@ -276,7 +289,8 @@ export async function getClientProfile(id: string): Promise<CRMContact | null> {
 export async function createClientProfile(
   input: ClientProfileInput,
 ): Promise<CRMContact> {
-  const { data, persons } = normalizeClientProfile(input);
+  const company = await db.companySetting.findUnique({ where: { singleton: 1 }, select: { country: true } });
+  const { data, persons } = normalizeClientProfile(input, countryIso(company?.country) ?? company?.country ?? undefined);
   return runAtomicMutation(async () => {
     await assertUniqueCr(data.crNumber);
     const created = await db.crmContact.create({
@@ -306,7 +320,8 @@ export async function updateClientProfile(
       merged.first_name = undefined;
       merged.last_name = undefined;
     }
-    const { data, persons } = normalizeClientProfile(merged);
+    const company = await db.companySetting.findUnique({ where: { singleton: 1 }, select: { country: true } });
+    const { data, persons } = normalizeClientProfile(merged, countryIso(company?.country) ?? company?.country ?? undefined);
     await assertUniqueCr(data.crNumber, id);
     await db.clientContactPerson.deleteMany({ where: { contactId: id } });
     const updated = await db.crmContact.update({
@@ -433,12 +448,24 @@ function filterSql(f: ClientListFilters, extra: Prisma.Sql[] = []) {
   const and: Prisma.Sql[] = [...extra];
   if (f.q) {
     const pattern = `%${f.q.replace(/[\\%_]/g, "\\$&")}%`;
+    const variants = phoneSearchVariants(f.q);
+    const phoneSql =
+      variants.length > 0
+        ? Prisma.sql`OR ${Prisma.join(
+            variants.map((v) => {
+              const vPat = `%${v}%`;
+              return Prisma.sql`c.phone ILIKE ${vPat} OR c."phoneE164" ILIKE ${vPat} OR EXISTS (SELECT 1 FROM "ClientContactPerson" p WHERE p."contactId" = c.id AND p.phone ILIKE ${vPat})`;
+            }),
+            " OR ",
+          )}`
+        : Prisma.empty;
     and.push(Prisma.sql`(
       c."firstName" ILIKE ${pattern} OR c."lastName" ILIKE ${pattern} OR CONCAT_WS(' ', c."firstName", c."lastName") ILIKE ${pattern}
       OR c."companyName" ILIKE ${pattern} OR c."companyNameAr" ILIKE ${pattern} OR c.email ILIKE ${pattern} OR c.phone ILIKE ${pattern}
       OR c."crNumber" ILIKE ${pattern} OR c."vatNumber" ILIKE ${pattern} OR c."registrationNumber" ILIKE ${pattern} OR c."addressCity" ILIKE ${pattern}
       OR EXISTS (SELECT 1 FROM "ClientContactPerson" p WHERE p."contactId" = c.id
         AND (p."fullName" ILIKE ${pattern} OR p.email ILIKE ${pattern} OR p.phone ILIKE ${pattern} OR p.department ILIKE ${pattern}))
+      ${phoneSql}
     )`);
   }
   if (f.kind !== "all") and.push(Prisma.sql`c."clientKind" = ${f.kind}`);
@@ -492,10 +519,11 @@ type StandingRow = {
 };
 
 async function baseCurrency() {
+  const accountingCurrency = await getAccountingCurrency();
   const settings = await db.companySetting.findFirst({
     select: { defaultCurrency: true },
   });
-  return settings?.defaultCurrency || "BHD";
+  return settings?.defaultCurrency || accountingCurrency;
 }
 
 async function hydrate(rows: StandingRow[]): Promise<ClientListRow[]> {

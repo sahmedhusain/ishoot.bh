@@ -6,9 +6,9 @@ import type { ClientLogo } from "@platform/database/types";
 import { useTranslation } from "../../hooks/useTranslation";
 import { Pause, Play } from "lucide-react";
 
-export function LogoMarquee({ logos }: { logos: ClientLogo[] }) {
+export function LogoMarquee({ logos, instanceId = "default" }: { logos: ClientLogo[]; instanceId?: string }) {
   const { t } = useTranslation();
-  const contrastId = React.useId().replace(/:/g, "");
+  const contrastId = `client-contrast-${instanceId.replace(/[^a-z0-9-]/gi, "-")}`;
   const [paused, setPaused] = React.useState(false);
   if (!logos?.length) return null;
 
@@ -153,7 +153,7 @@ export function LogoMarquee({ logos }: { logos: ClientLogo[] }) {
                       decoding="async"
                       className="client-logo-image"
                       style={{
-                        filter: `url(#${contrastId}) drop-shadow(0 0 1px rgba(255,255,255,.4))`,
+                        filter: `var(--site-client-filter, url(#${contrastId}) drop-shadow(0 0 1px rgba(255,255,255,.4)))`,
                       }}
                     />
                   ) : (

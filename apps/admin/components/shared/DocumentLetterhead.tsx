@@ -6,6 +6,7 @@ import { ContentImage } from "./ContentImage";
 import * as React from "react";
 import Link from "next/link";
 import type { CompanySettings } from "@platform/database/types";
+import { formatDocumentPhone, countryDisplayName } from "@platform/database/constants/phone";
 import { ExternalLink } from "lucide-react";
 import { adminTranslations } from "../../lib/translations-bilingual";
 
@@ -115,8 +116,7 @@ export function DocumentLetterhead({
             <span>
               {t.crLabel} {company.cr_number}
             </span>
-            <span className="text-white/40">•</span>
-            <span>{t.countryBahrain}</span>
+            {company.country && <><span className="text-white/40">•</span><span>{countryDisplayName(company.country, language)}</span></>}
           </div>
         </div>
 
@@ -176,7 +176,7 @@ export function DocumentLetterhead({
 
           {client.phone && (
             <div className="text-gray-500 " dir="ltr">
-              <bdi dir="ltr">{client.phone}</bdi>
+              <bdi dir="ltr">{formatDocumentPhone(client.phone, company.country)}</bdi>
             </div>
           )}
 
@@ -338,11 +338,10 @@ export function DocumentFooter({
           {company.phone && (
             <>
               <span>•</span>
-              <span dir="ltr">{company.phone}</span>
+              <span dir="ltr">{formatDocumentPhone(company.phone, company.country)}</span>
             </>
           )}
-          <span>•</span>
-          <span>{t.countryBahrain}</span>
+          {company.country && <><span>•</span><span>{countryDisplayName(company.country, language)}</span></>}
         </div>
       </div>
     </div>

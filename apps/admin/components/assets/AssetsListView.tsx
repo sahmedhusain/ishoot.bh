@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -33,6 +34,7 @@ export function AssetsListView({ items, counts, totalValue, filters, categories,
   canCreate: boolean;
   canEdit: boolean;
 }) {
+  const companyCurrency = useCompanyCurrency();
   const { t, locale } = useAdminLocale();
   const a = t.assets;
   const router = useRouter();
@@ -74,7 +76,7 @@ export function AssetsListView({ items, counts, totalValue, filters, categories,
           [a.statuses.available, String(counts.available ?? 0), href({ status: "available" })],
           [a.statuses.assigned, String(counts.assigned ?? 0), href({ status: "assigned" })],
           [a.statuses.maintenance, String(counts.maintenance ?? 0), href({ status: "maintenance" })],
-          [a.stats.value, formatCurrencyValue(totalValue, "BHD", isAr), undefined],
+          [a.stats.value, formatCurrencyValue(totalValue, companyCurrency, isAr), undefined],
         ].map(([title, value, link]) => {
           const body = (
             <>

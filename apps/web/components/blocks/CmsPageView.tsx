@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { getReviews, getStudioEquipment } from "@platform/database";
+import { storeEnabled } from "../../lib/customer";
+import { getReviews, getStudioEquipment, catalogueProductPrices } from "@platform/database";
 import type { CmsPageRecord } from "@platform/database/queries/cms-pages";
 import { getSite } from "../../lib/site";
 import { Reveal } from "../shared/Reveal";
@@ -14,6 +15,8 @@ export async function CmsPageView({ page, locale, contact }: { page: CmsPageReco
     types.has("testimonials") ? getReviews(false) : Promise.resolve([]),
     types.has("equipment") && info.showEquipment ? getStudioEquipment() : Promise.resolve([]),
   ]);
+  const prices = types.has("catalogue") && await storeEnabled() ? await catalogueProductPrices(website.portfolio.map(item => item.id)) : new Map<string, number>();
+  const content = { ...website, portfolio: website.portfolio.map(item => prices.has(item.id) ? { ...item, price: prices.get(item.id) } : item) };
   const title = locale === "ar" ? page.title_ar || page.title_en : page.title_en || page.title_ar;
   const opensWithHero = page.blocks.find((block) => block.visible)?.type === "hero";
   return (
@@ -27,7 +30,7 @@ export async function CmsPageView({ page, locale, contact }: { page: CmsPageReco
       )}
       <PageBlocks
         blocks={page.blocks}
-        context={{ locale, website, company, reviews, equipment, contact, showEquipment: info.showEquipment, articlesBase: `/${locale}/${info.articles.slug}` }}
+        context={{ home: page.page_type === "home", locale, website: content, company, reviews, equipment, contact, showEquipment: info.showEquipment, articlesBase: `/${locale}/${info.articles.slug}` }}
       />
     </div>
   );

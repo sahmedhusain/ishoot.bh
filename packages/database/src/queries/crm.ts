@@ -1,4 +1,6 @@
+import { companyCurrency as getAccountingCurrency } from "../finance/company-currency";
 import { serverMessages } from "@platform/locales";
+import { phoneSearchVariants } from "../constants/phone";
 import { ROUTES } from "../constants/routes";
 import {
   DEAL_STAGE_DEFAULTS,
@@ -6,7 +8,8 @@ import {
   isActiveDealStage,
   type DealProgressEvent,
 } from "../constants/crm";
-import { getCompanySettings } from "./company-settings";
+import { assertCompanyCurrency } from "../finance/company-currency";
+import { validMoneyAmount } from "../finance/money";
 import { db } from "../db";
 import {
   ClientAddress,
@@ -93,7 +96,7 @@ export function mapDeal(d: any): CRMDeal {
     contact: d.contact ? mapContact(d.contact) : undefined,
     title: d.title,
     value: Number(d.dealValue),
-    currency: (d.currency as SupportedCurrency) || "BHD",
+    currency: String(d.currency ?? ""),
     stage: (d.dealStage as DealStage) || "lead",
     probability: d.probability,
     target_close_date: d.expectedCloseDate
@@ -146,13 +149,16 @@ export async function lookupCRMContactByEmailOrPhone(
   try {
     const cleanTerm = term.trim().toLowerCase();
     if (!cleanTerm) return null;
+    const phoneVars = phoneSearchVariants(term);
     const contact = await db.crmContact.findFirst({
       where: {
         OR: [
           { email: { contains: cleanTerm, mode: "insensitive" } },
-          { phone: { contains: cleanTerm, mode: "insensitive" } },
           { emailNorm: { contains: cleanTerm, mode: "insensitive" } },
-          { phoneE164: { contains: cleanTerm, mode: "insensitive" } },
+          ...phoneVars.flatMap((v) => [
+            { phone: { contains: v, mode: "insensitive" as const } },
+            { phoneE164: { contains: v, mode: "insensitive" as const } },
+          ]),
         ],
       },
     });
@@ -173,6 +179,7 @@ export async function getCustomerDossier(
   >,
   options: { q?: string; pages?: Record<string, string> } = {},
 ) {
+  const accountingCurrency = await getAccountingCurrency();
   try {
     const contactRaw = await db.crmContact.findUnique({
       where: { id },
@@ -576,7 +583,7 @@ export async function getCustomerDossier(
     const winRate = decidedCount
       ? Math.round((wonCount / decidedCount) * 100)
       : 0;
-    const bhd = stages.filter((s) => s.currency === "BHD"),
+    const bhd = stages.filter((s) => s.currency === accountingCurrency),
       bhdCount = bhd.reduce((n, s) => n + s._count, 0);
     const avgDealSize = bhdCount
       ? bhd.reduce((n, s) => n + Number(s._sum.dealValue), 0) / bhdCount
@@ -699,7 +706,7 @@ export async function getCustomerDossier(
                 )
               : 0),
         ),
-        currency: inv.currency || "BHD",
+        currency: inv.currency || accountingCurrency,
         language: inv.language || "ar",
         status: inv.status || "draft",
         created_at: inv.createdAt.toISOString(),
@@ -711,7 +718,7 @@ export async function getCustomerDossier(
         receipt_number: p.receiptNumber,
         payment_date: p.paymentDate.toISOString().split("T")[0],
         amount: Number(p.amount),
-        currency: p.currency || "BHD",
+        currency: p.currency || accountingCurrency,
         payment_method: p.paymentMethod || "bank_transfer",
         reference_number: p.referenceNumber || undefined,
         notes: p.notes || undefined,
@@ -846,11 +853,13 @@ export async function createCRMDeal(data: {
   notes?: string;
   assigned_to?: string;
 }): Promise<CRMDeal> {
+  const currency = await assertCompanyCurrency(data.currency);
+  if (!validMoneyAmount(data.value, currency, true)) throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
   const created = await db.crmDeal.create({
     data: {
       title: data.title,
       dealValue: data.value,
-      currency: data.currency || (await getCompanySettings()).default_currency,
+      currency,
       dealStage: data.stage || "lead",
       probability: data.probability ?? 50,
       contactId: data.contact_id || null,
@@ -881,6 +890,13 @@ export async function updateCRMDeal(
   },
 ): Promise<CRMDeal | null> {
   try {
+    if (data.value !== undefined || data.currency !== undefined) {
+      const existing = await db.crmDeal.findUnique({ where: { id }, select: { currency: true } });
+      if (!existing) return null;
+      const currency = await assertCompanyCurrency(existing.currency);
+      if (data.currency !== undefined) await assertCompanyCurrency(data.currency);
+      if (data.value !== undefined && !validMoneyAmount(data.value, currency, true)) throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
+    }
     const updateData: any = {};
     if (data.title !== undefined) updateData.title = data.title;
     if (data.value !== undefined) updateData.dealValue = data.value;
@@ -991,6 +1007,7 @@ export async function searchCRMContacts(
       return all.map(mapContact);
     }
 
+    const phoneVars = phoneSearchVariants(clean);
     const contacts = await db.crmContact.findMany({
       where: {
         OR: [
@@ -998,7 +1015,7 @@ export async function searchCRMContacts(
           { lastName: { contains: clean, mode: "insensitive" } },
           { companyName: { contains: clean, mode: "insensitive" } },
           { email: { contains: clean, mode: "insensitive" } },
-          { phone: { contains: clean, mode: "insensitive" } },
+          ...phoneVars.map((v) => ({ phone: { contains: v, mode: "insensitive" as const } })),
         ],
       },
       take: limit,
@@ -1053,6 +1070,7 @@ export async function globalAdminSearch(
   const results: GlobalSearchResult[] = [];
 
   try {
+    const phoneVars = phoneSearchVariants(query);
     // 1. Search Contacts/Customers
     const contacts = categories.has("customers")
       ? await db.crmContact.findMany({
@@ -1062,7 +1080,7 @@ export async function globalAdminSearch(
               { lastName: { contains: clean, mode: "insensitive" } },
               { companyName: { contains: clean, mode: "insensitive" } },
               { email: { contains: clean, mode: "insensitive" } },
-              { phone: { contains: clean, mode: "insensitive" } },
+              ...phoneVars.map((v) => ({ phone: { contains: v, mode: "insensitive" as const } })),
             ],
           },
           take: limit,
@@ -1179,7 +1197,7 @@ export async function globalAdminSearch(
             OR: [
               { fullName: { contains: clean, mode: "insensitive" } },
               { email: { contains: clean, mode: "insensitive" } },
-              { phone: { contains: clean } },
+              ...phoneVars.map((v) => ({ phone: { contains: v } })),
               {
                 employee: {
                   OR: [
@@ -1223,6 +1241,7 @@ export async function getCRMDealOverview(
   /** Owners whose deals count; null or missing for all. */ scope?:
     string[] | null,
 ) {
+  const accountingCurrency = await getAccountingCurrency();
   const where = scope ? { assignedTo: { in: scope } } : {};
   const [groups, recent] = await Promise.all([
     includeAnalytics
@@ -1246,11 +1265,11 @@ export async function getCRMDealOverview(
   for (const group of groups) {
     const entry = (stageStats[group.dealStage] ||= { count: 0, value: 0 });
     entry.count += group._count._all;
-    if (group.currency === "BHD")
+    if (group.currency === accountingCurrency)
       entry.value += Number(group._sum.dealValue || 0);
     if (isActiveDealStage(group.dealStage)) {
       activeCount += group._count._all;
-      if (group.currency === "BHD")
+      if (group.currency === accountingCurrency)
         activePipelineValue += Number(group._sum.dealValue || 0);
     }
   }

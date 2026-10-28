@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Package, Plus, Receipt } from "lucide-react";
-import { Button, Card, Input, Select, formatCurrencyValue, formatDate } from "@platform/ui";
+import { Button, Card, Input, PhoneInput, Select, formatCurrencyValue, formatDate } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { COURIER_KINDS } from "@platform/database/constants/delivery";
 import type { CourierAgencyInput, CourierAgencyRecord, listAgencyInvoices, unbilledAgencyShipments } from "@platform/database";
@@ -68,9 +68,9 @@ export function AgenciesView({ agencies, unbilled, invoices, currency, canInvoic
             )}
           </Field>
           <Field label={copy.trackingUrl} hint={copy.trackingUrlHint} wide>{(id) => <Input id={id} name="agencyTrackingUrl" dir="ltr" maxLength={300} value={draft.trackingUrl} onChange={(e) => setDraft({ ...draft, trackingUrl: e.target.value })} className="rounded-lg" />}</Field>
-          <Field label={copy.phone}>{(id) => <Input id={id} type="tel" dir="ltr" maxLength={40} value={draft.phone} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} className="rounded-lg" />}</Field>
+          <Field label={copy.phone}>{(id) => <PhoneInput id={id} value={draft.phone} onChange={(phone) => setDraft({ ...draft, phone })} />}</Field>
           <Field label={copy.email}>{(id) => <Input id={id} type="email" dir="ltr" maxLength={254} value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} className="rounded-lg" />}</Field>
-          <Field label={formatMessage(copy.fee, { currency })}>{(id) => <Input id={id} name="agencyFee" type="number" min={0} step="0.001" value={draft.fee} onChange={(e) => setDraft({ ...draft, fee: e.target.value })} className="rounded-lg" />}</Field>
+          <Field label={formatMessage(copy.fee, { currency })}>{(id) => <Input id={id} name="agencyFee" type="number" min={0} step="any" value={draft.fee} onChange={(e) => setDraft({ ...draft, fee: e.target.value })} className="rounded-lg" />}</Field>
           <label className="flex items-center gap-2.5 text-sm text-ink sm:pt-6"><input type="checkbox" className="h-4 w-4 accent-accent" checked={draft.isActive} onChange={(e) => setDraft({ ...draft, isActive: e.target.checked })} />{copy.active}</label>
           <div className="sm:col-span-2 flex gap-2">
             <Button type="button" size="sm" variant="primary" className="rounded-full" disabled={busy} onClick={async () => { if (await run(() => saveCourierAgencyAction(draft))) setDraft(null); }} data-testid="agency-save">{copy.save}</Button>
@@ -137,7 +137,7 @@ function InvoiceForm({ agencyId, shipments, currency, busy, onSave }: { agencyId
       <div className="grid sm:grid-cols-3 gap-3">
         <Field label={copy.invoiceReference}>{(id) => <Input id={id} name="invoiceReference" dir="ltr" maxLength={60} value={form.reference} onChange={(e) => setForm({ ...form, reference: e.target.value })} className="rounded-lg" />}</Field>
         <Field label={copy.invoiceDate}>{(id) => <Input id={id} type="date" value={form.invoiceDate} onChange={(e) => setForm({ ...form, invoiceDate: e.target.value })} className="rounded-lg" />}</Field>
-        <Field label={formatMessage(copy.invoiceAmount, { currency })} hint={expected > 0 ? formatMessage(copy.invoiceExpected, { amount: formatCurrencyValue(expected, currency, locale === "ar") }) : undefined}>{(id) => <Input id={id} name="invoiceAmount" type="number" min={0} step="0.001" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className="rounded-lg" />}</Field>
+        <Field label={formatMessage(copy.invoiceAmount, { currency })} hint={expected > 0 ? formatMessage(copy.invoiceExpected, { amount: formatCurrencyValue(expected, currency, locale === "ar") }) : undefined}>{(id) => <Input id={id} name="invoiceAmount" type="number" min={0} step="any" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className="rounded-lg" />}</Field>
       </div>
       <fieldset className="space-y-1">
         <legend className="text-xs font-semibold text-ink">{copy.invoiceShipments}</legend>

@@ -1,6 +1,6 @@
 "use client";
-import { siteIcon, siteLogo } from "../../lib/brand-images";
-import { ContentImage } from "../shared/ContentImage";
+import { BrandImage } from "../site/BrandImage";
+import { SiteRegion, SiteModeSwitch, useSiteTheme } from "../site/SiteTheme";
 
 import * as React from "react";
 import Link from "next/link";
@@ -22,9 +22,10 @@ interface FooterProps {
 }
 
 export function Footer({ company, socialLinks = [], pages, links }: FooterProps) {
-  const { t, locale, isRTL, site } = useTranslation();
+  const { isArabic, t, locale, site } = useTranslation();
   const pathname = usePathname();
-  const showInvitation =
+  const theme = useSiteTheme();
+  const showInvitation = site?.footerInvitation !== false && theme?.design.footerLayout !== "compact" &&
     !pathname.endsWith("/contact") &&
     pages?.find((page) => page.id === "contact")?.visible !== false;
   const [modalType, setModalType] = React.useState<"terms" | "rules" | null>(
@@ -47,7 +48,7 @@ export function Footer({ company, socialLinks = [], pages, links }: FooterProps)
   const activeLinks = React.useMemo(() => {
     const seen = new Set<string>();
     return [...socialLinks]
-      .filter((link) => link.is_active)
+      .filter((link) => link.is_active && !/whatsapp/i.test(link.platform) && !/^https?:\/\/(wa\.me|(?:[a-z0-9-]+\.)*whatsapp\.com)(?:\/|$)/i.test(link.url))
       .sort((a, b) => a.display_order - b.display_order)
       .filter((link) => {
         const destination = link.url.trim().replace(/\/+$/, "");
@@ -59,11 +60,11 @@ export function Footer({ company, socialLinks = [], pages, links }: FooterProps)
 
   const renderModalContent = () => {
     if (modalType === "terms") {
-      const content = isRTL ? company.terms_ar : company.terms_en;
+      const content = isArabic ? company.terms_ar : company.terms_en;
       return content ? content : t("footer.termsUnavailable");
     }
     if (modalType === "rules") {
-      const content = isRTL ? company.rules_ar : company.rules_en;
+      const content = isArabic ? company.rules_ar : company.rules_en;
       return content ? content : t("footer.rulesUnavailable");
     }
     return "";
@@ -80,7 +81,7 @@ export function Footer({ company, socialLinks = [], pages, links }: FooterProps)
   };
 
   return (
-    <footer className="site-footer relative bg-brand-surface border-t border-white/10 pt-16 sm:pt-24 pb-6">
+    <SiteRegion region="footer"><footer className="site-footer relative bg-brand-surface border-t border-white/10 pt-16 sm:pt-24 pb-6">
       <div className="shell relative">
         {showInvitation && (
           <Reveal className="footer-invitation sloped-rule-bottom">
@@ -113,26 +114,14 @@ export function Footer({ company, socialLinks = [], pages, links }: FooterProps)
             )}
           </Reveal>
         )}
-        <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1.2fr] gap-10 lg:gap-16 py-12 sm:py-16">
+        <div className="site-footer-grid grid grid-cols-1 md:grid-cols-[2fr_1fr_1.2fr] gap-10 lg:gap-16 py-12 sm:py-16">
           <div className="space-y-5">
             <Link
               href={`/${locale}`}
               className="flex items-center gap-3 group w-fit"
             >
-              <ContentImage
-                src={
-                  siteIcon(company)
-                }
-                alt={t("common.brandIconAlt", { companyName: locale === "ar" ? company.company_name_ar : company.company_name_en })}
-                className="h-9 w-9 object-contain"
-                width={40} height={40} />
-              <ContentImage
-                src={
-                  siteLogo(company)
-                }
-                alt={t("common.brandLogoAlt", { companyName: locale === "ar" ? company.company_name_ar : company.company_name_en })}
-                className="h-7 w-auto object-contain"
-                fallbackText={company.company_name_en} width={240} height={60} />
+              <BrandImage company={company} icon className="h-10 w-10 shrink-0" />
+              <BrandImage company={company} className="h-7 min-w-0 max-w-[min(36vw,15rem)]" />
             </Link>
             {(locale === "ar" ? company.address_ar : company.address_en) ? (
               <p className="text-sm text-ink-muted max-w-md leading-relaxed font-sans">
@@ -194,13 +183,14 @@ export function Footer({ company, socialLinks = [], pages, links }: FooterProps)
         <div className="pt-6 border-t border-white/10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 text-xs text-ink-muted font-sans">
           <div>
             © {new Date().getFullYear()}{" "}
-            {isRTL
+            {isArabic
               ? company.company_name_ar || company.company_name_en
               : company.company_name_en}
             {" · "}
             {t("footer.allRights")}
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center gap-4">
+            <SiteModeSwitch locale={locale} />
             <button
               onClick={() => setModalType("rules")}
               className="footer-link bg-transparent border-none cursor-pointer"
@@ -223,6 +213,6 @@ export function Footer({ company, socialLinks = [], pages, links }: FooterProps)
         title={renderModalTitle()}
         content={renderModalContent()}
       />
-    </footer>
+    </footer></SiteRegion>
   );
 }

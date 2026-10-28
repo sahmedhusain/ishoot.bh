@@ -100,7 +100,7 @@ export function StockChangeModal({ target, locations, currency, onClose, onDone 
           )}
           {receipt && (
             <Field label={formatMessage(copy.unitCost, { currency })}>
-              {(id) => <Input id={id} name="unitCost" type="number" min={0} step="0.001" inputMode="decimal" value={form.unitCost} onChange={(e) => set({ unitCost: e.target.value })} className="rounded-lg" />}
+              {(id) => <Input id={id} name="unitCost" type="number" min={0} step="any" inputMode="decimal" value={form.unitCost} onChange={(e) => set({ unitCost: e.target.value })} className="rounded-lg" />}
             </Field>
           )}
           {!receipt && (

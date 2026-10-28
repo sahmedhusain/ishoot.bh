@@ -1,3 +1,4 @@
+import { isValidEmail } from "../constants/validation";
 import crypto from "node:crypto";
 import { Prisma } from "@prisma/client";
 import { getWebsiteTranslations, serverMessages } from "@platform/locales";
@@ -393,7 +394,7 @@ export async function queueBroadcast(id: string) {
   const members = (
     await segmentMembers(readRules(broadcast.segment.rules))
   ).filter(
-    (m) => m.marketingOptIn && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m.email),
+    (m) => m.marketingOptIn && isValidEmail(m.email),
   );
   if (!members.length) throw new Error(serverMessages.broadcastNoRecipients);
   await db.$transaction([

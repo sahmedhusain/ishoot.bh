@@ -30,6 +30,11 @@ export async function saveWebsiteDraftAction(value: unknown, revision: number) {
     await requireFeatureEnabled("cms");
     validateActionArguments("saveWebsiteDraftAction", { value, revision });
     const config = validateWebsiteConfig(value);
+    for (const document of config.documents ?? []) {
+      if (!document.url.startsWith("/")) continue;
+      const upload = await db.uploadObject.findUnique({ where: { fileUrl: document.url }, select: { isPublic: true, claimedAt: true, mimeType: true } });
+      if (!upload?.isPublic || !upload.claimedAt || upload.mimeType !== "application/pdf") throw new Error(serverMessages.invalidUploadedFile);
+    }
     // Site-wide tracking and code only change with the custom-code permission (it runs on every page).
     const stored = validateWebsiteConfig((await getWebsiteEditor()).draft);
     if (

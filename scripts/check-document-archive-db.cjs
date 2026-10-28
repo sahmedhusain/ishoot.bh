@@ -26,7 +26,7 @@ async function main() {
       const leaveType = await tx.leaveType.findUniqueOrThrow({ where: { code: "annual" } });
       await tx.leaveRequest.create({ data: { employeeId: employee.id, leaveTypeId: leaveType.id, startDate: day(30), endDate: day(31), days: 2, reason: "Trip", status: "pending", attachmentUrl: url("ticket") } });
       const category = await tx.expenseCategory.findFirstOrThrow();
-      const expense = await tx.expense.create({ data: { categoryId: category.id, descriptionEn: `${tag} taxi`, descriptionAr: "سيارة أجرة", amount: 5, expenseDate: new Date(), receiptUrl: url("taxi"), createdById: admin.id } });
+      const expense = await tx.expense.create({ data: { currency: "BHD", categoryId: category.id, descriptionEn: `${tag} taxi`, descriptionAr: "سيارة أجرة", amount: 5, expenseDate: new Date(), receiptUrl: url("taxi"), createdById: admin.id } });
       // The same receipt also uploaded as an attachment: listed once, as the attachment.
       await tx.attachment.create({ data: { fileName: `${tag}-taxi.pdf`, fileUrl: url("taxi"), entityType: "expense", entityId: expense.id, uploadedById: admin.id } });
       await tx.attachment.create({ data: { fileName: `${tag}-contract.pdf`, fileUrl: url("contract"), entityType: "employee", entityId: employee.id, uploadedById: admin.id } });

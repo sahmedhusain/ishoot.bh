@@ -9,6 +9,7 @@ import {
   CurrencyDisplay,
   FloatingSurface,
   Input,
+  PhoneInput,
   Select,
 } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
@@ -395,16 +396,10 @@ export function NewSaleView({
           </Field>
           <Field label={copy.phone}>
             {(id) => (
-              <Input
+              <PhoneInput
                 id={id}
-                type="tel"
-                dir="ltr"
-                maxLength={40}
                 value={customer.phone}
-                onChange={(e) =>
-                  setCustomer({ ...customer, phone: e.target.value })
-                }
-                className="rounded-lg"
+                onChange={(phone) => setCustomer({ ...customer, phone })}
               />
             )}
           </Field>

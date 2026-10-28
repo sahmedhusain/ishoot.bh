@@ -3,23 +3,11 @@ import { serverMessages } from "@platform/locales";
 import { db } from "../db";
 import { referencePrefixFor } from "../constants/requests";
 import { getNextSequenceNumber } from "../queries/sequence";
-import { parsePhoneNumberFromString } from "libphonenumber-js";
+import { formatPhoneE164 } from "../constants/phone";
+import { isValidEmail, normalizeEmail } from "../constants/validation";
 
-export function normalizeToE164(
-  phone: string,
-  defaultCountry = "BH",
-): string | null {
-  try {
-    const clean = phone.trim();
-    if (!clean) return null;
-    const parsed = parsePhoneNumberFromString(clean, defaultCountry as any);
-    if (parsed && parsed.isValid()) {
-      return parsed.format("E.164");
-    }
-    return null;
-  } catch {
-    return null;
-  }
+export function normalizeToE164(phone: string, defaultCountry?: string): string | null {
+  return formatPhoneE164(phone, undefined, defaultCountry) || null;
 }
 
 export interface ResolveLeadInput {
@@ -59,8 +47,10 @@ export interface ResolvedLeadResult {
 export async function resolveIncomingLead(
   data: ResolveLeadInput,
 ): Promise<ResolvedLeadResult> {
-  const emailNorm = data.email.trim().toLowerCase();
-  const phoneE164 = data.phone ? normalizeToE164(data.phone, "BH") : null;
+  if (data.email && !isValidEmail(data.email)) throw new Error(serverMessages.customerEmailInvalid);
+  const emailNorm = normalizeEmail(data.email);
+  const company = data.phone ? await db.companySetting.findUnique({ where: { singleton: 1 }, select: { country: true } }) : null;
+  const phoneE164 = data.phone ? normalizeToE164(data.phone, company?.country ?? undefined) : null;
   if (data.phone && !phoneE164)
     throw new Error(serverMessages.invalidPhoneNumber);
   const intent = data.intent || "inquiry";

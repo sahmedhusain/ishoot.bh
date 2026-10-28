@@ -1,3 +1,4 @@
+import { isLocale } from "@platform/locales/registry";
 import { NextRequest, NextResponse } from "next/server";
 import {
   confirmReturn,
@@ -27,7 +28,7 @@ async function handle(req: NextRequest) {
     const result = attemptId ? await confirmReturn(attemptId, params) : null;
     const home = new URL("/", process.env.WEB_URL || req.nextUrl.origin);
     if (!result) return NextResponse.redirect(home, 303);
-    const locale = result.order.locale === "en" ? "en" : "ar";
+    const locale = isLocale(result.order.locale) ? result.order.locale : "en";
     const target =
       result.state === "paid"
         ? `/${locale}/checkout/done?number=${encodeURIComponent(result.order.number)}`

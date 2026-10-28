@@ -19,7 +19,7 @@ import {
   Users,
   FileText,
 } from "lucide-react";
-import { Button, StatusBadge, formatDate } from "@platform/ui";
+import { Button, PhoneInput, StatusBadge, formatDate } from "@platform/ui";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
   updateMyProfileAction,
@@ -49,7 +49,7 @@ export function UserProfileView({
   myRequests,
 }: UserProfileViewProps) {
   const router = useRouter();
-  const { isRTL, t, locale } = useAdminLocale();
+  const { isArabic, t, locale } = useAdminLocale();
 
   // Contact Form (Immediate Update)
   const [phone, setPhone] = React.useState(user.phone || "");
@@ -250,20 +250,11 @@ export function UserProfileView({
                 >
                   {t.shared.phoneNumber}
                 </label>
-                <div className="relative" dir="ltr">
-                  <Phone className="w-4 h-4 text-ink-muted absolute left-3 top-2.5 rtl:right-3 rtl:left-auto" />
-                  <input
-                    id="profile-phone"
-                    maxLength={40}
-                    autoComplete="tel"
-                    type="tel"
-                    dir="ltr"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+973 39000000"
-                    className="w-full ps-9 pe-3 rtl:pe-9 rtl:ps-3 py-2 text-xs rounded-xl border border-outline-variant dark:border-white/10 bg-surface-raised dark:bg-black/30 text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent font-mono text-start"
-                  />
-                </div>
+                <PhoneInput
+                  id="profile-phone"
+                  value={phone}
+                  onChange={setPhone}
+                />
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
@@ -591,7 +582,7 @@ export function UserProfileView({
                     {t.userProfile.jobTitle}
                   </span>
                   <div className="font-semibold text-ink dark:text-ink mt-0.5">
-                    {isRTL
+                    {isArabic
                       ? employeeRecord.jobTitleAr || employeeRecord.jobTitleEn
                       : employeeRecord.jobTitleEn}
                   </div>
@@ -602,7 +593,7 @@ export function UserProfileView({
                     {t.shared.department}
                   </span>
                   <div className="font-semibold text-ink dark:text-ink mt-0.5">
-                    {(isRTL
+                    {(isArabic
                       ? employeeRecord.department?.nameAr
                       : employeeRecord.department?.nameEn) ||
                       employeeRecord.departmentName ||

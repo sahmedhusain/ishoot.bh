@@ -1,9 +1,10 @@
 "use client";
+import { useSiteReducedMotion } from "../site/SiteTheme";
 
 import * as React from "react";
 import { safeLegalHtml } from "../../lib/legal-html";
 import { X } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useTranslation } from "../../hooks/useTranslation";
 
 interface LegalModalProps {
@@ -20,7 +21,7 @@ export function LegalModal({
   content,
 }: LegalModalProps) {
   const { isRTL, t } = useTranslation();
-  const reduced = useReducedMotion();
+  const reduced = useSiteReducedMotion();
   const dialog = React.useRef<HTMLDialogElement>(null);
   const titleId = React.useId();
 
@@ -53,7 +54,7 @@ export function LegalModal({
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
-      className="legal-dialog m-auto w-[calc(100%-2rem)] max-w-3xl max-h-[88dvh] p-0 rounded-2xl bg-[#F8FAFC] text-slate-800 border border-slate-200 shadow-2xl backdrop:bg-black/75"
+      className="legal-dialog m-auto w-[calc(100%-2rem)] max-w-3xl max-h-[88dvh] p-0 rounded-2xl bg-m3-surface-container-low text-ink border border-m3-outline-variant shadow-2xl backdrop:bg-black/75"
       data-lenis-prevent
     >
       <motion.div
@@ -110,10 +111,10 @@ export function LegalModal({
             </div>
           )}
         </div>
-        <div className="px-6 py-4 sm:px-8 bg-slate-100 flex justify-end shrink-0">
+        <div className="px-6 py-4 sm:px-8 bg-m3-surface-container flex justify-end shrink-0">
           <button
             onClick={onClose}
-            className="min-h-11 px-6 rounded-lg bg-primary text-paper text-sm font-semibold hover:bg-tone-20 transition-colors"
+            className="min-h-11 px-6 rounded-lg bg-m3-primary text-m3-on-primary text-sm font-semibold hover:bg-tone-20 transition-colors"
           >
             {t("footer.close")}
           </button>

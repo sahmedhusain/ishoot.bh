@@ -1,4 +1,5 @@
 import { serverMessages } from "@platform/locales";
+import { getCompanySettings } from "./company-settings";
 import { db, runAtomicMutation } from "../db";
 import {
   defaultWebsiteConfig,
@@ -7,7 +8,7 @@ import {
   type PublicService,
 } from "../website-config";
 import { getActiveBanners } from "./banners";
-import { getPortfolioItems } from "./portfolio";
+import { getPortfolioItems, getPortfolioCategories } from "./portfolio";
 import { getActiveClientLogos } from "./clients";
 import { getFaqs } from "./faqs";
 import { getStatistics } from "./stats";
@@ -41,6 +42,8 @@ export async function collectWebsiteDraft(config: WebsiteConfig) {
       services,
       pages,
       articles,
+      branding,
+      categories,
     ] = await Promise.all([
       getActiveBanners(),
       getPortfolioItems(),
@@ -50,12 +53,17 @@ export async function collectWebsiteDraft(config: WebsiteConfig) {
       getPublicServices(),
       listCmsPages(),
       getPublishedArticles(),
+      getCompanySettings(),
+      getPortfolioCategories(),
     ]);
     // Query failures propagate; no redundant full-table count probes are needed.
     return {
       config: validateWebsiteConfig(config),
+      brandTheme: branding.theme as typeof branding.theme | undefined,
+      brandAssets: { logo_url: branding.logo_url, dark_logo_url: branding.dark_logo_url, icon_url: branding.icon_url, dark_icon_url: branding.dark_icon_url } as Pick<typeof branding, "logo_url" | "dark_logo_url" | "icon_url" | "dark_icon_url"> | undefined,
       banners,
       portfolio,
+      categories: categories as typeof categories | undefined,
       clients,
       faqs,
       stats,
@@ -96,8 +104,11 @@ export async function getWebsiteSnapshot(
 /** Snapshot sections an editor can change outside the Website page. */
 export const WEBSITE_SNAPSHOT_SECTIONS = [
   "config",
+  "brandTheme",
+  "brandAssets",
   "banners",
   "portfolio",
+  "categories",
   "clients",
   "faqs",
   "stats",

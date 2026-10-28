@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
-import en from "../../../../packages/locales/src/admin/en.json";
-import ar from "../../../../packages/locales/src/admin/ar.json";
+import en from "../../../../packages/locales/src/admin/en";
+import ar from "../../../../packages/locales/src/admin/ar";
 import { testDatabase } from "../../helpers";
 
 const db = testDatabase();

@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { FUNCTIONAL_CURRENCY } from "../constants/finance";
+import { companyCurrency } from "../finance/company-currency";
 import { leaveDaysRequested } from "../constants/hr";
 
 export interface TeamMemberKpis {
@@ -78,6 +78,7 @@ export async function getTeamPerformance(
   from: Date,
   to: Date,
 ): Promise<TeamMemberKpis[]> {
+  const FUNCTIONAL_CURRENCY = await companyCurrency();
   if (!memberIds.length) return [];
   const range = { gte: from, lte: to };
   const [users, quotes, invoices, payments, requests, resolved, leave] =

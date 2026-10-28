@@ -11,7 +11,6 @@ import {
   fmtDate,
   fmtMoney,
   fmtMonth,
-  fmtNumber,
   pageStyle,
   resolvePdfBrand,
   type CompanySignature,
@@ -518,7 +517,7 @@ function CertificatePage({
       </T>
       {/* A certificate states the total gross salary only — no breakdown. */}
       <Paragraph>
-        {formatMessage(h.certificateParagraph, { name: name, number: employee.employeeNumber, company: isAr ? company.company_name_ar : company.company_name_en, hireDate: fmtDate(employee.hireDate, isAr), title: isAr ? employee.jobTitleAr : employee.jobTitleEn, gross: fmtNumber(gross, 3) })}
+        {formatMessage(h.certificateParagraph, { name: name, number: employee.employeeNumber, company: isAr ? company.company_name_ar : company.company_name_en, hireDate: fmtDate(employee.hireDate, isAr), title: isAr ? employee.jobTitleAr : employee.jobTitleEn, gross: fmtMoney(gross, company.default_currency, isAr) })}
       </Paragraph>
 
       <View

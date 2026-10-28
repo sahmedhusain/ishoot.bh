@@ -293,7 +293,7 @@ export async function deleteRecurringPayAction(recurringId: string) {
   });
 }
 
-/** Record money received from a wage-support programme (e.g. Tamkeen) for a six-month claim. */
+/** Record money received from a wage-support programme (e.g. Wage support fund) for a six-month claim. */
 export async function recordSupportReimbursementAction(input: {
   employeeId: string;
   provider: string;

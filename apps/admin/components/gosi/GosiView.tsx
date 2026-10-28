@@ -1,4 +1,6 @@
 "use client";
+import { NationalitySchemeFields } from "./NationalitySchemeFields";
+import { useCompanyCurrency } from "@platform/ui";
 import { useConfirmation } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
@@ -115,6 +117,7 @@ export function GosiView({
   registrations: Registration[];
   canEdit: boolean;
 }) {
+  const companyCurrency = useCompanyCurrency();
   const { t, locale } = useAdminLocale();
   const g = t.gosi;
   const router = useRouter();
@@ -131,7 +134,7 @@ export function GosiView({
   );
   const [bulkFrom, setBulkFrom] = React.useState(firstOfNextMonth());
   const [showHistory, setShowHistory] = React.useState<string | null>(null);
-  const money = (v: number) => formatCurrencyValue(v, "BHD", isAr);
+  const money = (v: number) => formatCurrencyValue(v, companyCurrency, isAr);
 
   const run = async (work: () => Promise<unknown>, done: string) => {
     if (pending.current) return false;
@@ -268,6 +271,8 @@ export function GosiView({
           </div>
         </div>
       </section>
+
+      <NationalitySchemeFields rules={rules} disabled={!canEdit || busy} onChange={(next) => { void run(() => updateGosiRulesAction(next), g.saved); }} />
 
       <section className={card}>
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -512,7 +517,7 @@ export function GosiView({
                   dir="ltr"
                   min={0}
                   max={100}
-                  step="0.001"
+                  step="any"
                   required
                   value={form.employee_percent}
                   onChange={(e) =>
@@ -527,7 +532,7 @@ export function GosiView({
                   dir="ltr"
                   min={0}
                   max={100}
-                  step="0.001"
+                  step="any"
                   required
                   value={form.employer_percent}
                   onChange={(e) =>
@@ -556,7 +561,7 @@ export function GosiView({
                   type="number"
                   dir="ltr"
                   min={0}
-                  step="0.001"
+                  step="any"
                   value={form.min_wage}
                   onChange={(e) =>
                     setForm({ ...form, min_wage: e.target.value })
@@ -569,7 +574,7 @@ export function GosiView({
                   type="number"
                   dir="ltr"
                   min={0}
-                  step="0.001"
+                  step="any"
                   value={form.max_wage}
                   onChange={(e) =>
                     setForm({ ...form, max_wage: e.target.value })
@@ -645,7 +650,7 @@ export function GosiView({
                       dir="ltr"
                       min={0}
                       max={100}
-                      step="0.001"
+                      step="any"
                       value={tier.employee_percent}
                       onChange={(e) =>
                         setForm({
@@ -666,7 +671,7 @@ export function GosiView({
                       dir="ltr"
                       min={0}
                       max={100}
-                      step="0.001"
+                      step="any"
                       value={tier.employer_percent}
                       onChange={(e) =>
                         setForm({
@@ -1011,7 +1016,7 @@ function RegistrationForm({
                 type="number"
                 dir="ltr"
                 min={0}
-                step="0.001"
+                step="any"
                 value={form.registered_wage}
                 onChange={(e) =>
                   setForm({ ...form, registered_wage: e.target.value })
@@ -1066,7 +1071,7 @@ function RegistrationForm({
                             dir="ltr"
                             min={0}
                             max={100}
-                            step="0.001"
+                            step="any"
                             disabled={o.exempt}
                             value={o.employee_percent}
                             onChange={(e) =>
@@ -1081,7 +1086,7 @@ function RegistrationForm({
                             dir="ltr"
                             min={0}
                             max={100}
-                            step="0.001"
+                            step="any"
                             disabled={o.exempt}
                             value={o.employer_percent}
                             onChange={(e) =>
@@ -1095,7 +1100,7 @@ function RegistrationForm({
                             type="number"
                             dir="ltr"
                             min={0}
-                            step="0.001"
+                            step="any"
                             disabled={o.exempt}
                             value={o.wage}
                             aria-label={g.fields.componentWage}

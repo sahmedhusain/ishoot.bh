@@ -134,7 +134,7 @@ export function SupplierBillView({ bill, fromOrder, suppliers, currency, rights 
             {(id) => <Input id={id} maxLength={1000} value={form.note} onChange={(e) => set({ note: e.target.value })} className="rounded-lg" />}
           </Field>
           <Field label={copy.vatAmount}>
-            {(id) => <Input id={id} name="vatAmount" type="number" min={0} step="0.001" value={form.vatAmount} onChange={(e) => set({ vatAmount: e.target.value })} className="rounded-lg" />}
+            {(id) => <Input id={id} name="vatAmount" type="number" min={0} step="any" value={form.vatAmount} onChange={(e) => set({ vatAmount: e.target.value })} className="rounded-lg" />}
           </Field>
         </fieldset>
         {bill && (
@@ -167,7 +167,7 @@ export function SupplierBillView({ bill, fromOrder, suppliers, currency, rights 
               <div key={index} className="grid grid-cols-2 sm:grid-cols-12 gap-2 items-center rounded-xl border border-outline-variant p-3">
                 <Input aria-label={`${t.procurement.lines.description} ${index + 1}`} maxLength={300} value={line.description} onChange={(e) => setLines(lines.map((l, i) => (i === index ? { ...l, description: e.target.value } : l)))} className="col-span-2 sm:col-span-6 h-10 rounded-lg" />
                 <Input aria-label={`${t.procurement.lines.quantity} ${index + 1}`} type="number" min={0} step="0.001" value={line.quantity} onChange={(e) => setLines(lines.map((l, i) => (i === index ? { ...l, quantity: e.target.value } : l)))} className="sm:col-span-2 h-10 rounded-lg" />
-                <Input aria-label={`${t.procurement.lines.unitPrice} ${index + 1}`} type="number" min={0} step="0.001" value={line.unitPrice} onChange={(e) => setLines(lines.map((l, i) => (i === index ? { ...l, unitPrice: e.target.value } : l)))} className="sm:col-span-3 h-10 rounded-lg" />
+                <Input aria-label={`${t.procurement.lines.unitPrice} ${index + 1}`} type="number" min={0} step="any" value={line.unitPrice} onChange={(e) => setLines(lines.map((l, i) => (i === index ? { ...l, unitPrice: e.target.value } : l)))} className="sm:col-span-3 h-10 rounded-lg" />
                 <button type="button" aria-label={formatMessage(t.procurement.lines.remove, { number: index + 1 })} disabled={lines.length === 1} onClick={() => setLines(lines.filter((_, i) => i !== index))} className="sm:col-span-1 justify-self-end p-2 rounded-lg text-rose-600 hover:bg-rose-500/10 disabled:opacity-30"><Trash2 className="w-4 h-4" /></button>
               </div>
             ))}
@@ -256,7 +256,7 @@ export function SupplierBillView({ bill, fromOrder, suppliers, currency, rights 
           ))}
           {rights.pay && bill.amount_paid < bill.total && (
             <div className="grid sm:grid-cols-5 gap-2 items-end" data-testid="bill-payment">
-              <Field label={copy.amount}>{(id) => <Input id={id} name="paymentAmount" type="number" min={0} step="0.001" value={payment.amount} onChange={(e) => setPayment({ ...payment, amount: e.target.value })} className="rounded-lg" />}</Field>
+              <Field label={copy.amount}>{(id) => <Input id={id} name="paymentAmount" type="number" min={0} step="any" value={payment.amount} onChange={(e) => setPayment({ ...payment, amount: e.target.value })} className="rounded-lg" />}</Field>
               <Field label={copy.paidOn}>{(id) => <Input id={id} type="date" value={payment.paidOn} onChange={(e) => setPayment({ ...payment, paidOn: e.target.value })} className="rounded-lg" />}</Field>
               <Field label={copy.method}>
                 {(id) => (

@@ -27,7 +27,7 @@ interface TopbarProps {
 }
 
 export function Topbar({ contacts = [], company }: TopbarProps) {
-  const { t, isRTL } = useAdminLocale();
+  const { isArabic, t } = useAdminLocale();
   const { can } = usePermissions();
   const { resolvedTheme, setTheme } = useAdminTheme();
   const { toggleMobileOpen, isCollapsed, toggleCollapsed } = useSidebar();
@@ -37,7 +37,7 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
   };
 
   const companyTitle =
-    (isRTL ? company?.company_name_ar : company?.company_name_en) || "";
+    (isArabic ? company?.company_name_ar : company?.company_name_en) || "";
 
   return (
     <header

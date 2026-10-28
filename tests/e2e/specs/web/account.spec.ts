@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { expect, test } from "@playwright/test";
-import en from "../../../../packages/locales/src/en.json";
+import { en } from "../../../../packages/locales/src";
 import { testDatabase, watchErrors } from "../../helpers";
 
 const copy = en.account;

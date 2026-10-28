@@ -25,7 +25,7 @@ export default async function SetupPage() {
   const draft = validateWebsiteConfig(website.draft);
   const activity = company.business_activity ?? "media";
   // A draft that was never set up for an activity starts from the activity's recommendations.
-  const websiteConfig = resolveWebsiteConfig(draft.purpose ? draft : websiteConfigForActivity(activity, draft));
+  const websiteConfig = resolveWebsiteConfig(draft.purpose ? draft : websiteConfigForActivity(activity, draft), company.theme.websiteMode);
   // A fresh company starts with placeholder names; the wizard asks for the real ones.
   const placeholder = company.company_name_en === "New company";
   return (

@@ -10,7 +10,8 @@ if (!databaseUrl) {
   }
 }
 
-import { PrismaClient, type Prisma } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
+import { normalizeContactWrites } from "./services/contact-writes";
 
 const prismaClientSingleton = () => {
   const client = new PrismaClient({
@@ -19,6 +20,17 @@ const prismaClientSingleton = () => {
         url: databaseUrl,
       },
     },
+  });
+  const contactModels = new Map(Prisma.dmmf.datamodel.models.map((model) => [model.name, model.fields]));
+  client.$use(async (params, next) => {
+    if (params.model && ["create", "createMany", "update", "updateMany", "upsert"].includes(params.action)) {
+      const suppliedCountry = params.model === "CompanySetting" ? params.args.data?.country ?? params.args.create?.country ?? params.args.update?.country : undefined;
+      let country: string | undefined = typeof suppliedCountry === "string" ? suppliedCountry : undefined;
+      const getCountry = async () => country ??= (await client.companySetting.findUnique({ where: { singleton: 1 }, select: { country: true } }))?.country ?? "";
+      for (const data of params.action === "upsert" ? [params.args.create, params.args.update] : [params.args.data])
+        await normalizeContactWrites(contactModels, params.model, data, getCountry);
+    }
+    return next(params);
   });
   client.$use(async (params, next) => {
     const context = operationContext.getStore();

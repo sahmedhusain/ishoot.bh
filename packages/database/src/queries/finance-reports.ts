@@ -1,10 +1,13 @@
-import { getTranslations, formatMessage, type Locale } from "@platform/locales";
+import { getCurrencyDecimals } from "@platform/config/currency";
+import { roundMoney } from "../finance/money";
+import { companyCurrency as getAccountingCurrency } from "../finance/company-currency";
+import { getTranslations, formatMessage, isLocale } from "@platform/locales";
 import { db } from "../db";
-import { FUNCTIONAL_CURRENCY } from "../constants/finance";
+import { companyCurrency } from "../finance/company-currency";
 
 export interface FinancialSummaryReport {
   basis: "cash" | "accrual";
-  reportingCurrency: "BHD";
+  reportingCurrency: string;
   periodStart?: string;
   periodEnd?: string;
 
@@ -43,6 +46,8 @@ export async function getFinancialSummaryReport(filters: {
   dateTo?: Date;
   basis?: "cash" | "accrual";
 }): Promise<FinancialSummaryReport> {
+  const accountingCurrency = await getAccountingCurrency();
+  const FUNCTIONAL_CURRENCY = await companyCurrency();
   const basis = filters.basis || "cash";
   const dateFilter: any = {};
   if (filters.dateFrom) dateFilter.gte = filters.dateFrom;
@@ -120,13 +125,13 @@ export async function getFinancialSummaryReport(filters: {
       const invTotal = Number(p.invoice.totalAmount);
       const invVat = Number(p.invoice.vatAmount);
       const ratio = amount / invTotal;
-      const allocatedVat = Math.round(invVat * ratio * 1000) / 1000;
+      const allocatedVat = roundMoney(invVat * ratio, FUNCTIONAL_CURRENCY);
       // Other taxes are collected for the government too, so they are not revenue either.
       const allocatedOther =
-        Math.round(Number(p.invoice.otherTaxAmount ?? 0) * ratio * 1000) / 1000;
+        roundMoney(Number(p.invoice.otherTaxAmount ?? 0) * ratio, FUNCTIONAL_CURRENCY);
       cashOutputVat += allocatedVat;
       cashNetReceipts +=
-        Math.round((amount - allocatedVat - allocatedOther) * 1000) / 1000;
+        roundMoney((amount - allocatedVat - allocatedOther), FUNCTIONAL_CURRENCY);
     } else {
       cashNetReceipts += amount;
     }
@@ -230,9 +235,7 @@ export async function getFinancialSummaryReport(filters: {
     expensesNet + inputVatNonRecoverable + payrollCostsTotal + bankFeesTotal;
 
   const operatingProfit =
-    Math.round(
-      (effectiveRevenue - effectiveOperatingCosts + realizedFxGainLoss) * 1000,
-    ) / 1000;
+    roundMoney((effectiveRevenue - effectiveOperatingCosts + realizedFxGainLoss), FUNCTIONAL_CURRENCY);
 
   const netMarginPercentage =
     effectiveRevenue > 0
@@ -241,24 +244,24 @@ export async function getFinancialSummaryReport(filters: {
 
   return {
     basis,
-    reportingCurrency: "BHD",
+    reportingCurrency: accountingCurrency,
     excludedForeignCurrencyDocuments: foreignInvoices + foreignExpenses,
     periodStart: filters.dateFrom?.toISOString(),
     periodEnd: filters.dateTo?.toISOString(),
-    invoicedGross: Math.round(invoicedGross * 1000) / 1000,
-    invoicedNet: Math.round(invoicedNet * 1000) / 1000,
-    invoicedOutputVat: Math.round(invoicedOutputVat * 1000) / 1000,
-    cashGrossReceipts: Math.round(cashGrossReceipts * 1000) / 1000,
-    cashNetReceipts: Math.round(cashNetReceipts * 1000) / 1000,
-    cashOutputVat: Math.round(cashOutputVat * 1000) / 1000,
-    totalExpensesGross: Math.round(totalExpensesGross * 1000) / 1000,
-    expensesNet: Math.round(expensesNet * 1000) / 1000,
-    inputVatTotal: Math.round(inputVatTotal * 1000) / 1000,
-    inputVatRecoverable: Math.round(inputVatRecoverable * 1000) / 1000,
-    inputVatNonRecoverable: Math.round(inputVatNonRecoverable * 1000) / 1000,
-    payrollCostsTotal: Math.round(payrollCostsTotal * 1000) / 1000,
-    bankFeesTotal: Math.round(bankFeesTotal * 1000) / 1000,
-    realizedFxGainLoss: Math.round(realizedFxGainLoss * 1000) / 1000,
+    invoicedGross: roundMoney(invoicedGross, FUNCTIONAL_CURRENCY),
+    invoicedNet: roundMoney(invoicedNet, FUNCTIONAL_CURRENCY),
+    invoicedOutputVat: roundMoney(invoicedOutputVat, FUNCTIONAL_CURRENCY),
+    cashGrossReceipts: roundMoney(cashGrossReceipts, FUNCTIONAL_CURRENCY),
+    cashNetReceipts: roundMoney(cashNetReceipts, FUNCTIONAL_CURRENCY),
+    cashOutputVat: roundMoney(cashOutputVat, FUNCTIONAL_CURRENCY),
+    totalExpensesGross: roundMoney(totalExpensesGross, FUNCTIONAL_CURRENCY),
+    expensesNet: roundMoney(expensesNet, FUNCTIONAL_CURRENCY),
+    inputVatTotal: roundMoney(inputVatTotal, FUNCTIONAL_CURRENCY),
+    inputVatRecoverable: roundMoney(inputVatRecoverable, FUNCTIONAL_CURRENCY),
+    inputVatNonRecoverable: roundMoney(inputVatNonRecoverable, FUNCTIONAL_CURRENCY),
+    payrollCostsTotal: roundMoney(payrollCostsTotal, FUNCTIONAL_CURRENCY),
+    bankFeesTotal: roundMoney(bankFeesTotal, FUNCTIONAL_CURRENCY),
+    realizedFxGainLoss: roundMoney(realizedFxGainLoss, FUNCTIONAL_CURRENCY),
     operatingProfit,
     netMarginPercentage,
   };
@@ -283,7 +286,7 @@ export function escapeCsvField(val: unknown): string {
 }
 
 export interface FinancialCsvOptions {
-  locale?: Locale;
+  locale?: string;
   companyName?: string;
   currency?: string;
 }
@@ -291,7 +294,7 @@ export function generateFinancialSummaryCsv(
   report: FinancialSummaryReport,
   options: FinancialCsvOptions = {},
 ): string {
-  const t = getTranslations(options.locale ?? "en").admin;
+  const t = getTranslations(isLocale(options.locale) ? options.locale : "en").admin;
   const c = t.financialCsv;
   const row = (...cells: unknown[]) => cells.map(escapeCsvField).join(",");
   const keys = [
@@ -326,12 +329,13 @@ export function generateFinancialSummaryCsv(
       c.metric,
       formatMessage(c.amountHeader, { currency: report.reportingCurrency }),
     ),
-    ...keys.map((key) => row(c[key], report[key].toFixed(3))),
+    ...keys.map((key) => row(c[key], report[key].toFixed(getCurrencyDecimals(report.reportingCurrency)))),
     row(c.netMarginPercentage, report.netMarginPercentage.toFixed(2) + "%"),
   ].join("\n");
 }
 
-const r3 = (n: number) => Math.round(n * 1000) / 1000;
+// Preserve precision when historical currencies coexist; each document is displayed in its own minor units.
+const roundReportValue = (n: number) => Math.round(n * 1_000_000) / 1_000_000;
 
 export interface InvoiceRegisterRow {
   id: string;
@@ -351,6 +355,7 @@ export interface InvoiceRegisterRow {
 }
 
 export interface FinancialReportDetail {
+  reportingCurrency: string;
   invoices: InvoiceRegisterRow[];
   invoiceTotals: Array<{
     currency: string;
@@ -418,7 +423,7 @@ const clientName = (
 
 /**
  * Line-level detail behind the summary: every invoice in the period (any currency, with and without
- * VAT), and BHD breakdowns of costs, monthly results, clients, deals and the VAT position. Amounts
+ * VAT), and company-currency breakdowns of costs, monthly results, clients, deals and the VAT position. Amounts
  * in the breakdowns are net of VAT; payroll comes from paid payroll runs plus payroll-type expenses.
  */
 export async function getFinancialReportDetail(filters: {
@@ -426,6 +431,7 @@ export async function getFinancialReportDetail(filters: {
   dateTo?: Date;
   basis?: "cash" | "accrual";
 }): Promise<FinancialReportDetail> {
+  const FUNCTIONAL_CURRENCY = await companyCurrency();
   const basis = filters.basis || "cash";
   const range =
     filters.dateFrom || filters.dateTo
@@ -538,12 +544,12 @@ export async function getFinancialReportDetail(filters: {
       status: inv.status,
       currency: inv.currency,
       vatApplied: inv.vatEnabled && vat > 0,
-      net: r3(Number(inv.subtotal) - Number(inv.discountAmount)),
-      vat: r3(vat),
-      otherTaxes: r3(Number(inv.otherTaxAmount ?? 0)),
-      gross: r3(gross),
-      paid: r3(paid),
-      due: r3(Math.max(0, gross - paid)),
+      net: roundReportValue(Number(inv.subtotal) - Number(inv.discountAmount)),
+      vat: roundReportValue(vat),
+      otherTaxes: roundReportValue(Number(inv.otherTaxAmount ?? 0)),
+      gross: roundReportValue(gross),
+      paid: roundReportValue(paid),
+      due: roundReportValue(Math.max(0, gross - paid)),
     };
   });
   const totalsByCurrency = new Map<
@@ -558,13 +564,13 @@ export async function getFinancialReportDetail(filters: {
     };
     if (inv.vatApplied) {
       t.withVat.count++;
-      t.withVat.net = r3(t.withVat.net + inv.net);
-      t.withVat.vat = r3(t.withVat.vat + inv.vat);
-      t.withVat.gross = r3(t.withVat.gross + inv.gross);
+      t.withVat.net = roundReportValue(t.withVat.net + inv.net);
+      t.withVat.vat = roundReportValue(t.withVat.vat + inv.vat);
+      t.withVat.gross = roundReportValue(t.withVat.gross + inv.gross);
     } else {
       t.withoutVat.count++;
-      t.withoutVat.net = r3(t.withoutVat.net + inv.net);
-      t.withoutVat.gross = r3(t.withoutVat.gross + inv.gross);
+      t.withoutVat.net = roundReportValue(t.withoutVat.net + inv.net);
+      t.withoutVat.gross = roundReportValue(t.withoutVat.gross + inv.gross);
     }
     totalsByCurrency.set(inv.currency, t);
   }
@@ -623,13 +629,13 @@ export async function getFinancialReportDetail(filters: {
       gross: 0,
     };
     row.count++;
-    row.net = r3(row.net + net);
-    row.inputVat = r3(row.inputVat + inputVat);
-    row.gross = r3(row.gross + gross);
+    row.net = roundReportValue(row.net + net);
+    row.inputVat = roundReportValue(row.inputVat + inputVat);
+    row.gross = roundReportValue(row.gross + gross);
     byCategory.set(key, row);
-    expensesByKind[kind] = r3(expensesByKind[kind] + net);
+    expensesByKind[kind] = roundReportValue(expensesByKind[kind] + net);
     const scope = (e.scope ?? "internal") as keyof typeof expensesByScope;
-    expensesByScope[scope] = r3(expensesByScope[scope] + net);
+    expensesByScope[scope] = roundReportValue(expensesByScope[scope] + net);
     const m = month(monthKey(e.expenseDate));
     if (kind === "cost_of_sales") m.costOfSales += net;
     else if (kind === "payroll") m.payroll += net;
@@ -682,7 +688,7 @@ export async function getFinancialReportDetail(filters: {
         net: 0,
         invoices: 0,
       };
-      c.net = r3(c.net + net);
+      c.net = roundReportValue(c.net + net);
       c.invoices++;
       clients.set(inv.clientId, c);
     }
@@ -704,9 +710,9 @@ export async function getFinancialReportDetail(filters: {
   );
   const dealProfitability = dealIds
     .map((dealId) => {
-      const revenueNet = r3(dealRevenue.get(dealId) ?? 0);
-      const costsNet = r3(dealCosts.get(dealId) ?? 0);
-      const margin = r3(revenueNet - costsNet);
+      const revenueNet = roundReportValue(dealRevenue.get(dealId) ?? 0);
+      const costsNet = roundReportValue(dealCosts.get(dealId) ?? 0);
+      const margin = roundReportValue(revenueNet - costsNet);
       return {
         dealId,
         title: dealTitles.get(dealId) ?? dealId,
@@ -721,6 +727,7 @@ export async function getFinancialReportDetail(filters: {
     .slice(0, 15);
 
   return {
+    reportingCurrency: FUNCTIONAL_CURRENCY,
     invoices,
     invoiceTotals: Array.from(totalsByCurrency.values()),
     expensesByCategory: Array.from(byCategory.values()).sort(
@@ -732,11 +739,11 @@ export async function getFinancialReportDetail(filters: {
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([key, m]) => ({
         month: key,
-        revenueNet: r3(m.revenueNet),
-        costOfSales: r3(m.costOfSales),
-        operating: r3(m.operating),
-        payroll: r3(m.payroll),
-        profit: r3(m.revenueNet - m.costOfSales - m.operating - m.payroll),
+        revenueNet: roundReportValue(m.revenueNet),
+        costOfSales: roundReportValue(m.costOfSales),
+        operating: roundReportValue(m.operating),
+        payroll: roundReportValue(m.payroll),
+        profit: roundReportValue(m.revenueNet - m.costOfSales - m.operating - m.payroll),
       })),
     revenueByClient: Array.from(clients.values())
       .sort((a, b) => b.net - a.net)
@@ -744,15 +751,15 @@ export async function getFinancialReportDetail(filters: {
     dealProfitability,
     claims: {
       paidCount: claimsPaid._count._all,
-      paidAmount: r3(Number(claimsPaid._sum.amount ?? 0)),
-      outstandingAmount: r3(Number(claimsOutstanding._sum.amount ?? 0)),
+      paidAmount: roundReportValue(Number(claimsPaid._sum.amount ?? 0)),
+      outstandingAmount: roundReportValue(Number(claimsOutstanding._sum.amount ?? 0)),
     },
     vat: {
-      output: r3(outputVat),
-      inputRecoverable: r3(inputRecoverable),
-      inputNonRecoverable: r3(inputNonRecoverable),
-      netPayable: r3(outputVat - inputRecoverable),
-      otherTaxes: r3(otherTaxes),
+      output: roundReportValue(outputVat),
+      inputRecoverable: roundReportValue(inputRecoverable),
+      inputNonRecoverable: roundReportValue(inputNonRecoverable),
+      netPayable: roundReportValue(outputVat - inputRecoverable),
+      otherTaxes: roundReportValue(otherTaxes),
       hasVatDocuments:
         invoices.some((i) => i.vatApplied) ||
         inputRecoverable + inputNonRecoverable > 0,
@@ -766,9 +773,9 @@ export function generateFinancialDetailCsv(
   showVat: boolean,
   options: FinancialCsvOptions = {},
 ): string {
-  const t = getTranslations(options.locale ?? "en").admin;
+  const t = getTranslations(isLocale(options.locale) ? options.locale : "en").admin;
   const c = t.financialCsv;
-  const currency = options.currency ?? "BHD";
+  const currency = options.currency ?? detail.reportingCurrency;
   const row = (...cells: unknown[]) => cells.map(escapeCsvField).join(",");
   const lines = [
     "",
@@ -779,11 +786,11 @@ export function generateFinancialDetailCsv(
     lines.push(
       row(
         m.month,
-        m.revenueNet.toFixed(3),
-        m.costOfSales.toFixed(3),
-        m.operating.toFixed(3),
-        m.payroll.toFixed(3),
-        m.profit.toFixed(3),
+        m.revenueNet.toFixed(getCurrencyDecimals(currency)),
+        m.costOfSales.toFixed(getCurrencyDecimals(currency)),
+        m.operating.toFixed(getCurrencyDecimals(currency)),
+        m.payroll.toFixed(getCurrencyDecimals(currency)),
+        m.profit.toFixed(getCurrencyDecimals(currency)),
       ),
     );
   lines.push("", row(c.invoiceRegister));
@@ -823,11 +830,11 @@ export function generateFinancialDetailCsv(
             (t.statusLabels as Record<string, string>)[i.status] ?? i.status,
             i.currency,
             i.vatApplied ? c.yes : c.no,
-            i.net.toFixed(3),
-            i.vat.toFixed(3),
-            i.gross.toFixed(3),
-            i.paid.toFixed(3),
-            i.due.toFixed(3),
+            i.net.toFixed(getCurrencyDecimals(i.currency)),
+            i.vat.toFixed(getCurrencyDecimals(i.currency)),
+            i.gross.toFixed(getCurrencyDecimals(i.currency)),
+            i.paid.toFixed(getCurrencyDecimals(i.currency)),
+            i.due.toFixed(getCurrencyDecimals(i.currency)),
           )
         : row(
             i.number,
@@ -835,9 +842,9 @@ export function generateFinancialDetailCsv(
             i.client,
             (t.statusLabels as Record<string, string>)[i.status] ?? i.status,
             i.currency,
-            i.gross.toFixed(3),
-            i.paid.toFixed(3),
-            i.due.toFixed(3),
+            i.gross.toFixed(getCurrencyDecimals(i.currency)),
+            i.paid.toFixed(getCurrencyDecimals(i.currency)),
+            i.due.toFixed(getCurrencyDecimals(i.currency)),
           ),
     );
   lines.push(
@@ -857,16 +864,16 @@ export function generateFinancialDetailCsv(
         options.locale === "ar" ? c.nameAr : c.nameEn,
         c.kind,
         c.count,
-        c.net.toFixed(3),
-        ...(showVat ? [c.inputVat.toFixed(3), c.gross.toFixed(3)] : []),
+        c.net.toFixed(getCurrencyDecimals(currency)),
+        ...(showVat ? [c.inputVat.toFixed(getCurrencyDecimals(currency)), c.gross.toFixed(getCurrencyDecimals(currency))] : []),
       ),
     );
   if (showVat) {
     lines.push("", row(formatMessage(c.vatPosition, { currency })));
     lines.push(
-      row(c.outputVat, detail.vat.output.toFixed(3)),
-      row(c.recoverableInput, detail.vat.inputRecoverable.toFixed(3)),
-      row(c.netPayable, detail.vat.netPayable.toFixed(3)),
+      row(c.outputVat, detail.vat.output.toFixed(getCurrencyDecimals(currency))),
+      row(c.recoverableInput, detail.vat.inputRecoverable.toFixed(getCurrencyDecimals(currency))),
+      row(c.netPayable, detail.vat.netPayable.toFixed(getCurrencyDecimals(currency))),
     );
   }
   return lines.join("\n");

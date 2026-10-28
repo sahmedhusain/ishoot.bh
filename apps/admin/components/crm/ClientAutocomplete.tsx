@@ -7,7 +7,7 @@ import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import type { CRMContact } from "@platform/database/types";
-import { Input, Button } from "@platform/ui";
+import { Input, Button, PhoneInput } from "@platform/ui";
 import {
   Search,
   Mail,
@@ -386,16 +386,10 @@ export function ClientAutocomplete({
               <label className="block text-[11px] font-semibold text-ink dark:text-ink mb-1">
                 {t.clientAutocomplete.phoneWhatsapp}
               </label>
-              <div className="relative">
-                <Input
-                  value={newPhone}
-                  onChange={(e) => setNewPhone(e.target.value)}
-                  placeholder="+973 3900 0000"
-                  dir="ltr"
-                  className="ps-8 rtl:ps-3 rtl:pe-8 text-start"
-                />
-                <Phone className="w-3.5 h-3.5 absolute left-2.5 rtl:left-auto rtl:right-2.5 top-3 text-ink-muted pointer-events-none" />
-              </div>
+              <PhoneInput
+                value={newPhone}
+                onChange={setNewPhone}
+              />
             </div>
 
             <label className="sm:col-span-2">

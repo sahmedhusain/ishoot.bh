@@ -1,8 +1,6 @@
 "use client";
 import { Select } from "@platform/ui";
 import type { EmployeePayrollSettings } from "@platform/database/types";
-import * as React from "react";
-import { tamkeenSupports, TAMKEEN_PROVIDER } from "@platform/database/constants/hr-support";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 export const emptyPayrollSettings: EmployeePayrollSettings = {
   employee: { mode: "percentage", value: 0 },
@@ -18,8 +16,6 @@ export function PayrollSettingsFields({
 }) {
   const { t } = useAdminLocale();
   const h = t.hrExtensions;
-  const [tamkeenStart, setTamkeenStart] = React.useState("");
-  const hasTamkeen = value.supports.some((s) => s.provider.trim() === TAMKEEN_PROVIDER);
   const inputClass =
     "w-full rounded border border-outline-variant bg-transparent p-2 text-sm";
   return (
@@ -60,7 +56,7 @@ export function PayrollSettingsFields({
               type="number"
               min={0}
               max={value[key].mode === "percentage" ? 100 : undefined}
-              step="0.001"
+              step="any"
               required
               value={value[key].value}
               onChange={(e) =>
@@ -103,7 +99,7 @@ export function PayrollSettingsFields({
                 type="number"
                 min={0}
                 max={support.mode === "percentage" ? 100 : undefined}
-                step="0.001"
+                step="any"
                 value={support.value}
                 onChange={(e) => change({ value: Number(e.target.value) })}
               />
@@ -119,6 +115,7 @@ export function PayrollSettingsFields({
               <option value="percentage">{h.percentage}</option>
               <option value="fixed">{h.fixed}</option>
             </Select>
+            <label>{t.wageSupport.claimPeriod}<input className={inputClass} type="number" min={1} max={60} step={1} required value={support.claimPeriodMonths ?? 6} onChange={(event) => change({ claimPeriodMonths: Number(event.target.value) })} /></label>
             <label>
               {h.startMonth}
               <input
@@ -154,23 +151,6 @@ export function PayrollSettingsFields({
           </fieldset>
         );
       })}
-      {!hasTamkeen && (
-        <div className="flex flex-wrap items-end gap-3 rounded-lg bg-emerald-500/5 border border-emerald-500/20 p-3">
-          <label className="text-sm">
-            <span className="block font-semibold">{t.tamkeen.addTitle}</span>
-            <span className="block text-xs text-ink-muted mb-1">{t.tamkeen.addHint}</span>
-            <input type="month" className={inputClass} value={tamkeenStart} onChange={(e) => setTamkeenStart(e.target.value)} aria-label={t.tamkeen.firstMonth} />
-          </label>
-          <button
-            type="button"
-            disabled={!tamkeenStart}
-            className="px-3 py-2 rounded-lg bg-emerald-600 text-white text-sm font-semibold disabled:opacity-50"
-            onClick={() => onChange({ ...value, supports: [...value.supports, ...tamkeenSupports(tamkeenStart)] })}
-          >
-            {t.tamkeen.add}
-          </button>
-        </div>
-      )}
       <button
         type="button"
         className="text-emerald-600 underline"
@@ -181,6 +161,7 @@ export function PayrollSettingsFields({
               ...value.supports,
               {
                 provider: "",
+                claimPeriodMonths: 1,
                 mode: "percentage",
                 value: 0,
                 startMonth: "",

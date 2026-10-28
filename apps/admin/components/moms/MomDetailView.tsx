@@ -62,7 +62,7 @@ export function MomDetailView({
   currentUser,
 }: MomDetailViewProps) {
   const router = useRouter();
-  const { t, isRTL } = useAdminLocale();
+  const { isArabic, t, isRTL } = useAdminLocale();
   const { can } = usePermissions();
   const [isApproving, setIsApproving] = React.useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = React.useState(false);
@@ -641,7 +641,7 @@ export function MomDetailView({
           <DocumentFooter
             company={company}
             language={isAr ? "ar" : "en"}
-            thankYouMessage={formatMessage(t.momDetail.officialRecordOfProceedingsCommitments, { companyName: isRTL ? company.company_name_ar : company.company_name_en })}
+            thankYouMessage={formatMessage(t.momDetail.officialRecordOfProceedingsCommitments, { companyName: isArabic ? company.company_name_ar : company.company_name_en })}
             showSignature={true}
             stampUrl={company.stamp_url}
             signatureUrl={mom.signature_url || null}

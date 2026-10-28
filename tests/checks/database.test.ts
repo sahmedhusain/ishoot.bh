@@ -23,7 +23,6 @@ const SEEDED_CHECKS = [
   "check-employee-handovers-db",
   "check-employee-residency-db",
   "check-finance-db",
-  "check-fx-db",
   "check-gosi-settlement-db",
   "check-hrms-db",
   "check-hrms-pdf",

@@ -1,3 +1,6 @@
+import { isValidEmail } from "../constants/validation";
+import { companyCurrency as getAccountingCurrency } from "../finance/company-currency";
+import { normalizeContactInput } from "./contact-validation";
 import crypto from "node:crypto";
 import { getTranslations, serverMessages } from "@platform/locales";
 import { db } from "../db";
@@ -22,7 +25,7 @@ const num = (value: { toString(): string } | null | undefined) =>
   value == null ? 0 : Number(value.toString());
 const numOrNull = (value: { toString(): string } | null | undefined) =>
   value == null ? null : Number(value.toString());
-const round3 = (value: number) => Math.round(value * 1000) / 1000;
+const roundStoredAmount = (value: number) => Math.round(value * 1_000_000) / 1_000_000;
 
 // ─── Agencies ────────────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -59,6 +62,7 @@ export interface CourierAgencyInput {
 }
 
 export async function saveCourierAgency(input: CourierAgencyInput) {
+  input = await normalizeContactInput(input);
   const name = input.name.trim().slice(0, 120);
   if (!name || !(COURIER_KINDS as readonly string[]).includes(input.kind))
     throw new Error(serverMessages.courierAgencyInvalid);
@@ -70,7 +74,7 @@ export async function saveCourierAgency(input: CourierAgencyInput) {
   )
     throw new Error(serverMessages.courierTrackingUrlInvalid);
   const email = input.email.trim().toLowerCase();
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+  if (email && !isValidEmail(email))
     throw new Error(serverMessages.customerEmailInvalid);
   const fee = input.fee.trim() ? Number(input.fee) : null;
   if (fee !== null && (!Number.isFinite(fee) || fee < 0 || fee > 99_999))
@@ -81,7 +85,7 @@ export async function saveCourierAgency(input: CourierAgencyInput) {
     trackingUrl: trackingUrl || null,
     phone: input.phone.trim().slice(0, 40) || null,
     email: email || null,
-    feePerShipment: fee === null ? null : round3(fee),
+    feePerShipment: fee === null ? null : roundStoredAmount(fee),
     isActive: input.isActive,
   };
   return input.id
@@ -212,7 +216,7 @@ export async function handToAgency(
   let labelUrl: string | null = null;
   let bookedLabel: BookedCourier["label"];
   const fee = input.fee?.trim()
-    ? round3(Number(input.fee))
+    ? roundStoredAmount(Number(input.fee))
     : numOrNull(agency.feePerShipment);
   if (fee !== null && (!Number.isFinite(fee) || fee < 0 || fee > 99_999))
     throw new Error(serverMessages.productAmountInvalid);
@@ -544,8 +548,9 @@ export async function recordAgencyInvoice(
   input: AgencyInvoiceInput,
   userId: string,
 ) {
+  const accountingCurrency = await getAccountingCurrency();
   const reference = input.reference.trim().slice(0, 60);
-  const amount = round3(Number(input.amount));
+  const amount = roundStoredAmount(Number(input.amount));
   if (
     !reference ||
     !/^\d{4}-\d{2}-\d{2}$/.test(input.invoiceDate) ||
@@ -580,7 +585,7 @@ export async function recordAgencyInvoice(
         amount,
         netAmount: amount,
         taxInvoiceNumber: reference,
-        currency: company?.defaultCurrency ?? "BHD",
+        currency: company?.defaultCurrency ?? accountingCurrency,
         expenseDate: new Date(`${input.invoiceDate}T00:00:00.000Z`),
         vendorName: agency.name,
         status: "approved",
@@ -617,7 +622,7 @@ export async function listAgencyInvoices() {
     },
   });
   return rows.map((r) => {
-    const expected = round3(
+    const expected = roundStoredAmount(
       r.shipments.reduce((sum, s) => sum + num(s.agencyFee), 0),
     );
     return {
@@ -628,7 +633,7 @@ export async function listAgencyInvoices() {
       amount: num(r.amount),
       shipments: r.shipments.length,
       expected,
-      difference: round3(num(r.amount) - expected),
+      difference: roundStoredAmount(num(r.amount) - expected),
       expense_id: r.expenseId,
     };
   });

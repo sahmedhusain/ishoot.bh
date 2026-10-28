@@ -1,3 +1,4 @@
+import { BranchLocations } from "./BranchLocations";
 import { Reveal } from "../shared/Reveal";
 import { getPublicCompanySettings } from "../../lib/company";
 import { getWebsite } from "../../lib/website";
@@ -6,13 +7,11 @@ import {
   Mail,
   Phone,
   MapPin,
-  ArrowUpRight,
-  MessageSquare,
   Clock,
 } from "lucide-react";
 import { formatMessage } from "@platform/locales";
 import { pickText } from "@platform/database/constants/languages";
-import { siteTranslations } from "../../lib/site";
+import { getSite, siteTranslations } from "../../lib/site";
 
 /** The contact page's own layout: contact details beside the enquiry form. Shown by the "contact details and form" block. */
 export async function ContactBody({ locale, query }: { locale: string; query: { intent?: string; service?: string; item?: string } }) {
@@ -22,13 +21,12 @@ export async function ContactBody({ locale, query }: { locale: string; query: { 
   const t = await siteTranslations(locale);
   const item = query.item ? website.portfolio.find((entry) => entry.slug === query.item) : undefined;
   const initialMessage = item ? `${formatMessage(t.contact.aboutItem, { item: pickText(item.title_en, item.title_ar, locale) })}\n` : "";
-  const config = website.config;
+  const { config } = await getSite();
   const hours = ar ? config.hoursAr : config.hoursEn;
   const response = ar ? config.responseAr : config.responseEn;
 
   return (
     <div className="relative min-h-screen bg-brand-base text-ink overflow-hidden">
-      {/* Hero Header */}
       <header className="shell relative z-10 page-heading">
         <Reveal>
           <p className="web-eyebrow text-mint mb-5">
@@ -43,10 +41,8 @@ export async function ContactBody({ locale, query }: { locale: string; query: { 
         </Reveal>
       </header>
 
-      {/* Main Content Section */}
       <section className="relative z-10 pb-24 md:pb-32">
         <div className="shell grid lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-8 lg:gap-12 items-start">
-          {/* Aside Information Card */}
           <aside className="space-y-6 lg:sticky lg:top-28">
             <div className="border-b border-white/10 pb-5">
               <h2 className="text-2xl font-display font-bold text-white">
@@ -57,7 +53,7 @@ export async function ContactBody({ locale, query }: { locale: string; query: { 
             <div className="space-y-4 text-sm text-ink-muted">
               {company.email && (
                 <a
-                  className="flex gap-3.5 items-center p-3 rounded-xl bg-white/5 border border-white/10 hover:border-accent/60 hover:text-white transition-colors duration-150 break-all group"
+                  className="flex gap-3.5 items-center p-4 rounded-brand bg-m3-surface-container-low hover:border-accent/60 hover:text-white transition-colors duration-150 break-all group"
                   href={`mailto:${company.email}`}
                 >
                   <div className="w-9 h-9 rounded-lg bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0 text-mint ">
@@ -69,7 +65,7 @@ export async function ContactBody({ locale, query }: { locale: string; query: { 
 
               {company.phone && (
                 <a
-                  className="flex gap-3.5 items-center p-3 rounded-xl bg-white/5 border border-white/10 hover:border-accent/60 hover:text-white transition-colors duration-150 group"
+                  className="flex gap-3.5 items-center p-4 rounded-brand bg-m3-surface-container-low hover:border-accent/60 hover:text-white transition-colors duration-150 group"
                   href={`tel:${company.phone.replace(/\s/g, "")}`}
                 >
                   <div className="w-9 h-9 rounded-lg bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0 text-mint ">
@@ -81,7 +77,7 @@ export async function ContactBody({ locale, query }: { locale: string; query: { 
 
               {((ar ? company.address_ar : company.address_en) ||
                 company.address_en) && (
-                  <div className="flex gap-3.5 items-start p-3 rounded-xl bg-white/5 border border-white/10">
+                  <div className="flex gap-3.5 items-start p-4 rounded-brand bg-m3-surface-container-low">
                     <div className="w-9 h-9 rounded-lg bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0 text-mint mt-0.5">
                       <MapPin className="w-4 h-4" />
                     </div>
@@ -94,7 +90,7 @@ export async function ContactBody({ locale, query }: { locale: string; query: { 
                 )}
 
               {hours && (
-                <div className="flex gap-3.5 items-start p-3 rounded-xl bg-white/5 border border-white/10">
+                <div className="flex gap-3.5 items-start p-4 rounded-brand bg-m3-surface-container-low">
                   <div className="w-9 h-9 rounded-lg bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0 text-mint mt-0.5">
                     <Clock className="w-4 h-4" />
                   </div>
@@ -105,22 +101,9 @@ export async function ContactBody({ locale, query }: { locale: string; query: { 
               )}
             </div>
 
-            {company.whatsapp_phone && (
-              <a
-                href={`https://wa.me/${company.whatsapp_phone.replace(/\D/g, "")}`}
-                target="_blank"
-                rel="noreferrer"
-                className="w-full flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-xl bg-primary hover:bg-primary/80 border border-accent/50 text-paper font-semibold text-sm  transition-colors duration-150"
-              >
-                <MessageSquare className="w-4 h-4 text-mint" />
-                <span>{t.contact.chatWhatsapp}</span>
-                <ArrowUpRight className="w-4 h-4 rtl:-scale-x-100" />
-              </a>
-            )}
           </aside>
 
-          {/* Form Container Card */}
-          <Reveal className="contact-panel min-w-0" delay={0.08}>
+          {config.commerce.capabilities.inquiries && <Reveal className="contact-panel min-w-0" delay={0.08}>
             <ContactForm
               services={website.services}
               initialIntent={query.intent}
@@ -128,9 +111,10 @@ export async function ContactBody({ locale, query }: { locale: string; query: { 
               initialMessage={initialMessage}
               response={response}
             />
-          </Reveal>
+          </Reveal>}
         </div>
       </section>
+      <BranchLocations branches={config.commerce.branches} locale={locale} />
     </div>
   );
 }

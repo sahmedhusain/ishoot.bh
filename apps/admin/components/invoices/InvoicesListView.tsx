@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
@@ -21,6 +22,7 @@ export function InvoicesListView({
   finance,
   acceptedQuotations = [],
 }: InvoicesListViewProps) {
+  const companyCurrency = useCompanyCurrency();
   const { t, isRTL } = useAdminLocale();
   const [invoices] = React.useState<InvoiceListRow[]>(initialInvoices);
   const filteredInvoices = invoices;
@@ -120,7 +122,7 @@ export function InvoicesListView({
             {t.kpi.receivables}
           </div>
           <div className="text-xl font-bold text-ink dark:text-ink ">
-            <CurrencyDisplay amount={finance.outstanding} currency="BHD" />
+            <CurrencyDisplay amount={finance.outstanding} currency={companyCurrency} />
           </div>
         </div>
 
@@ -134,7 +136,7 @@ export function InvoicesListView({
               : "text-emerald-600 dark:text-emerald-400"
               }`}
           >
-            <CurrencyDisplay amount={finance.overdue} currency="BHD" />
+            <CurrencyDisplay amount={finance.overdue} currency={companyCurrency} />
           </div>
         </div>
 
@@ -143,7 +145,7 @@ export function InvoicesListView({
             {t.charts.discountsGiven}
           </div>
           <div className="text-xl font-bold text-primary dark:text-mint ">
-            <CurrencyDisplay amount={finance.discountsGiven} currency="BHD" />
+            <CurrencyDisplay amount={finance.discountsGiven} currency={companyCurrency} />
           </div>
         </div>
       </div>

@@ -110,10 +110,10 @@ export async function getSupportClaims(): Promise<SupportClaimRow[]> {
           anchor: l.startMonth,
           claimPeriodMonths: l.claimPeriodMonths ?? SUPPORT_CLAIM_MONTHS,
         }))
-      : supportBreakdown(fixed, settings, month).map((p) => ({
+      : supportBreakdown(fixed, settings, month, (item.calculationSnapshot as { currency?: string } | null)?.currency).map((p) => ({
           ...p,
           anchor: providerStarts.get(p.provider) ?? month,
-          claimPeriodMonths: SUPPORT_CLAIM_MONTHS,
+          claimPeriodMonths: p.claimPeriodMonths ?? SUPPORT_CLAIM_MONTHS,
         }));
     for (const part of parts) {
       const key = `${item.employeeId}|${part.provider}|${part.anchor}|${part.claimPeriodMonths}`;

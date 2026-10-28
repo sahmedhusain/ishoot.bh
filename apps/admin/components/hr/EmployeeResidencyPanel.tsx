@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency, useCompanyCountry } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
@@ -73,11 +74,16 @@ export function EmployeeResidencyPanel({
   employeeId,
   residency,
   canEdit,
+  visaExemptCountries = [],
 }: {
   employeeId: string;
   residency: EmployeeResidency;
   canEdit: boolean;
+  visaExemptCountries?: string[];
 }) {
+  const companyCurrency = useCompanyCurrency();
+  const companyCountry = useCompanyCountry();
+  const exemptions = [...visaExemptCountries, ...(companyCountry ? [companyCountry] : [])];
   const { t, locale } = useAdminLocale();
   const c = t.employeeResidency;
   const router = useRouter();
@@ -94,7 +100,7 @@ export function EmployeeResidencyPanel({
   } | null>(null);
   const [busy, setBusy] = React.useState(false);
   const id = residency.identity;
-  const money = (v: number) => formatCurrencyValue(v, "BHD", locale === "ar");
+  const money = (v: number) => formatCurrencyValue(v, companyCurrency, locale === "ar");
 
   const run = async (work: () => Promise<unknown>, done: () => void) => {
     setBusy(true);
@@ -147,7 +153,7 @@ export function EmployeeResidencyPanel({
     </div>
   );
   const visaMissing =
-    needsWorkVisa(id.nationality) &&
+    needsWorkVisa(id.nationality, exemptions) &&
     !residency.credentials.some(
       (x) => x.kind === "visa" || x.kind === "work_permit",
     );
@@ -417,7 +423,7 @@ export function EmployeeResidencyPanel({
               onClick={() =>
                 setEditing({
                   value: emptyCredential(
-                    needsWorkVisa(id.nationality) ? "visa" : "health_insurance",
+                    needsWorkVisa(id.nationality, exemptions) ? "visa" : "health_insurance",
                   ),
                 })
               }

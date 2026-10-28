@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
@@ -18,12 +19,13 @@ const toInput = (r: RecurringPayRecord): RecurringPayInput => ({ kind: r.kind, c
 
 /** Custom additions and deductions an employee gets every month; payroll adds them to each run automatically. */
 export function RecurringPayPanel({ employeeId, items, canEdit }: { employeeId: string; items: RecurringPayRecord[]; canEdit: boolean }) {
+  const companyCurrency = useCompanyCurrency();
   const { t, locale } = useAdminLocale();
   const c = t.payLines;
   const router = useRouter();
   const [editing, setEditing] = React.useState<{ id?: string; value: RecurringPayInput } | null>(null);
   const [busy, setBusy] = React.useState(false);
-  const money = (v: number) => formatCurrencyValue(v, "BHD", locale === "ar");
+  const money = (v: number) => formatCurrencyValue(v, companyCurrency, locale === "ar");
   const set = <K extends keyof RecurringPayInput>(key: K, value: RecurringPayInput[K]) => setEditing((e) => (e ? { ...e, value: { ...e.value, [key]: value } } : e));
   const run = async (work: () => Promise<unknown>, done: () => void) => {
     setBusy(true);
@@ -74,7 +76,7 @@ export function RecurringPayPanel({ employeeId, items, canEdit }: { employeeId: 
             </label>
             <label className="block">
               <span className="text-xs font-semibold text-ink mb-1 block">{c.monthlyAmount}</span>
-              <Input type="number" min={0.001} step="0.001" dir="ltr" value={editing.value.amount || ""} onChange={(e) => set("amount", Number(e.target.value))} />
+              <Input type="number" min={0} step="any" dir="ltr" value={editing.value.amount || ""} onChange={(e) => set("amount", Number(e.target.value))} />
             </label>
             <label className="block">
               <span className="text-xs font-semibold text-ink mb-1 block">{c.from}</span>

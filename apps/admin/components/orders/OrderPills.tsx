@@ -19,9 +19,9 @@ const PAYMENT_TONES: Record<string, string> = {
   refunded: "bg-rose-500/10 text-rose-700 dark:text-rose-300",
 };
 
-export function OrderStatusPill({ status }: { status: string }) {
+export function OrderStatusPill({ status, fulfilment }: { status: string; fulfilment?: string }) {
   const { t } = useAdminLocale();
-  return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${ORDER_TONES[status] ?? ""}`} data-testid="order-status">{(t.orders.statuses as Record<string, string>)[status] ?? status}</span>;
+  return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${ORDER_TONES[status] ?? ""}`} data-testid="order-status">{(fulfilment === "pickup" ? (t.orders.pickupStatuses as Record<string, string>)[status] : undefined) ?? (t.orders.statuses as Record<string, string>)[status] ?? status}</span>;
 }
 
 export function PaymentStatusPill({ status }: { status: string }) {

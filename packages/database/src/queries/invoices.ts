@@ -1,3 +1,4 @@
+import { assertCompanyCurrency } from "../finance/company-currency";
 import {
   serverTemplates,
   formatMessage,
@@ -22,7 +23,6 @@ import { allocateDocumentNumber } from "../finance/numbering";
 import { resolveSalesOwner } from "./sales-attribution";
 import {
   INVOICE_STATUS_TRANSITIONS,
-  assertSupportedCurrency,
 } from "../constants/finance";
 import { advanceDealForEvent } from "./crm";
 import {
@@ -72,7 +72,7 @@ function mapPrismaInvoiceToInvoice(inv: any): Invoice {
     total_amount: totalAmount,
     amount_paid: amountPaid,
     amount_due: amountDue,
-    currency: (inv.currency as SupportedCurrency) || "BHD",
+    currency: String(inv.currency ?? ""),
     language: (inv.language as "en" | "ar") || "ar",
     status: (inv.status as InvoiceStatus) || "draft",
     pdf_storage_path: inv.pdfStoragePath || undefined,
@@ -288,8 +288,7 @@ export async function createInvoice(data: {
   }>;
   created_by?: string;
 }): Promise<Invoice> {
-  const currency = data.currency || "BHD";
-  assertSupportedCurrency(currency);
+  const currency = await assertCompanyCurrency(data.currency);
   const issueDate = new Date(data.issue_date);
   const dueDate = new Date(data.due_date);
   if (Number.isNaN(issueDate.getTime()) || Number.isNaN(dueDate.getTime()))
@@ -343,6 +342,7 @@ export async function createInvoice(data: {
       tx,
     );
 
+    await assertCompanyCurrency(currency, tx);
     const invoice = await tx.invoice.create({
       data: {
         invoiceNumber,
@@ -460,9 +460,8 @@ export async function updateInvoice(
       if (existing.status === "void" || existing.payments.length > 0)
         throw new Error(serverMessages.voidOrPaidInvoicesCannotBeEdited);
 
-      const currency =
-        data.currency || (existing.currency as SupportedCurrency) || "BHD";
-      if (data.currency) assertSupportedCurrency(data.currency);
+      await assertCompanyCurrency(existing.currency);
+      const currency = await assertCompanyCurrency(data.currency);
       const nextIssue = data.issue_date
         ? new Date(data.issue_date)
         : existing.issueDate;

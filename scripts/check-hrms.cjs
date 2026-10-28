@@ -12,7 +12,7 @@ function load(file, mocks = {}) {
 }
 async function main() {
   const { parsePayrollSettings, calculateContributions } = load('packages/database/src/payroll-calculation.ts');
-  const settings = { employee: { mode: 'percentage', value: 8 }, employer: { mode: 'fixed', value: 120 }, supports: [{ provider: 'Tamkeen', mode: 'percentage', value: 50, startMonth: '2026-03', endMonth: '2026-05' }] };
+  const settings = { employee: { mode: 'percentage', value: 8 }, employer: { mode: 'fixed', value: 120 }, supports: [{ provider: 'Wage support fund', mode: 'percentage', value: 50, startMonth: '2026-03', endMonth: '2026-05' }] };
   assert.equal(parsePayrollSettings(null), null);
   const result = calculateContributions(1000, settings, '2026-03');
   assert.deepEqual(JSON.parse(JSON.stringify(result)), { employee: 80, employer: 120, support: 500, net: 920, employerCost: 620 });
@@ -44,8 +44,8 @@ async function main() {
     assert.equal(formatCurrencyValue(12, 'INR', ar), '12.00 ₹');
     assert.equal(formatCurrencyValue(12, 'jod', ar), ar ? '12.000 د.أ' : '12.000 JOD');
   }
-  const en = require('../packages/locales/src/admin/en.json');
-  const ar = require('../packages/locales/src/admin/ar.json');
+  const en = require('../packages/locales/src/common.cjs').withCommonCopy(require('../packages/locales/src/admin/en.json'), "admin", require('../packages/locales/src/common.cjs').commonEn);
+  const ar = require('../packages/locales/src/common.cjs').withCommonCopy(require('../packages/locales/src/admin/ar.json'), "admin", require('../packages/locales/src/common.cjs').commonAr);
   // Every admin string exists in both languages, at every depth.
   const paths = (node, prefix = '') => Object.entries(node).flatMap(([key, value]) => value && typeof value === 'object' ? paths(value, prefix + key + '.') : [prefix + key]);
   assert.deepEqual(paths(en).sort(), paths(ar).sort());

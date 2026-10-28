@@ -28,7 +28,7 @@ const dateInput = (value: string | null | undefined, label: string) => {
 const dayBefore = (value: Date) => new Date(value.getTime() - 86_400_000);
 const money = (value: number | null | undefined) => {
   if (value == null || Number.isNaN(value)) return null;
-  const v = Math.round(Number(value) * 1000) / 1000;
+  const v = Math.round(Number(value) * 1_000_000) / 1_000_000;
   if (!Number.isFinite(v) || v < 0)
     throw new Error(serverMessages.enterAmountsOfZeroOrMore);
   return v;
@@ -520,12 +520,13 @@ export function supportLinesFor(
   pay: PayParts,
   month: string,
   paidShare: number,
+  currency?: string,
 ): SupportLine[] | null {
   const list = ctx.get(employeeId);
   if (!list?.length) return null;
   return list
     .map(({ enrolment, rules }) =>
-      supportForMonth(enrolment, rules, pay, month, paidShare),
+      supportForMonth(enrolment, rules, pay, month, paidShare, currency),
     )
     .filter((l): l is SupportLine => l !== null);
 }

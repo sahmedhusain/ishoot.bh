@@ -33,7 +33,8 @@ import {
   approveAccountChange,
   rejectAccountChange,
 } from "../queries/account-changes";
-import { getLatestExchangeRate } from "../queries/fx-settlement";
+import { assertCompanyCurrency } from "../finance/company-currency";
+import { roundMoney } from "../finance/money";
 import { leaveDaysRequested } from "../constants/hr";
 import { getSignatureMode } from "../queries/signature-policies";
 import { validateSignatureImage } from "./signature-image";
@@ -63,7 +64,7 @@ interface PolicyStep {
   minDiscountPercent?: unknown;
 }
 
-/** Facts about the record that step conditions are checked against. Amounts are in BHD. */
+/** Facts about the record that step conditions are checked against. Amounts use the configured accounting currency. */
 export interface ApprovalMetrics {
   amount?: number;
   days?: number;
@@ -72,18 +73,9 @@ export interface ApprovalMetrics {
 
 const round3 = (value: number) => Math.round(value * 1000) / 1000;
 
-async function toBhd(
-  amount: number,
-  currency: string,
-  rate?: unknown,
-): Promise<number> {
-  if (currency === "BHD") return round3(amount);
-  // Rates are units of the foreign currency per 1 BHD.
-  const perBhd =
-    rate != null && Number(rate) > 0
-      ? Number(rate)
-      : (await getLatestExchangeRate("BHD", currency)).rate;
-  return perBhd > 0 ? round3(amount / perBhd) : round3(amount);
+async function toCompanyCurrency(amount: number, currency: string, _historicalRate?: unknown): Promise<number> {
+  await assertCompanyCurrency(currency);
+  return roundMoney(amount, currency);
 }
 
 function discountPercent(subtotal: unknown, discount: unknown): number {
@@ -124,7 +116,7 @@ export async function approvalMetrics(
       });
       return q
         ? {
-            amount: await toBhd(
+            amount: await toCompanyCurrency(
               Number(q.totalAmount),
               q.currency,
               q.effectiveRate,
@@ -145,7 +137,7 @@ export async function approvalMetrics(
       });
       return i
         ? {
-            amount: await toBhd(Number(i.totalAmount), i.currency),
+            amount: await toCompanyCurrency(Number(i.totalAmount), i.currency),
             discountPercent: discountPercent(i.subtotal, i.discountAmount),
           }
         : {};
@@ -155,14 +147,14 @@ export async function approvalMetrics(
         where: { id: targetId },
         select: { amount: true, currency: true },
       });
-      return e ? { amount: await toBhd(Number(e.amount), e.currency) } : {};
+      return e ? { amount: await toCompanyCurrency(Number(e.amount), e.currency) } : {};
     }
     case "expense_claim": {
       const c = await db.expenseClaim.findUnique({
         where: { id: targetId },
         select: { amount: true, currency: true },
       });
-      return c ? { amount: await toBhd(Number(c.amount), c.currency) } : {};
+      return c ? { amount: await toCompanyCurrency(Number(c.amount), c.currency) } : {};
     }
     case "payroll_run": {
       const r = await db.payrollRun.findUnique({
@@ -194,7 +186,7 @@ export async function approvalMetrics(
       });
       return h?.asset.purchaseCost != null
         ? {
-            amount: await toBhd(Number(h.asset.purchaseCost), h.asset.currency),
+            amount: await toCompanyCurrency(Number(h.asset.purchaseCost), h.asset.currency),
           }
         : {};
     }

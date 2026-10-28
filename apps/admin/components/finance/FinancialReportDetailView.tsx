@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { getCurrencyLabel } from "@platform/config/currency";
 
@@ -29,7 +30,7 @@ function Section({ title, hint, children, action }: { title: string; hint?: stri
 /** Line-level financial detail. VAT columns appear only when VAT applies (registered, or present in the period). */
 export function FinancialReportDetailView({ detail, showVat }: { detail: FinancialReportDetail; showVat: boolean }) {
   const { t, locale } = useAdminLocale();
-  const bhd = getCurrencyLabel("BHD", locale === "ar");
+  const bhd = getCurrencyLabel(useCompanyCurrency(), locale === "ar");
   const d = t.financialDetail;
   const [vatFilter, setVatFilter] = React.useState<"all" | "with" | "without">("all");
   const [showAll, setShowAll] = React.useState(false);

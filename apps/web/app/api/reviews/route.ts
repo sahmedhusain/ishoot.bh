@@ -1,3 +1,5 @@
+import { getSite } from "../../../lib/site";
+import { isWebsitePreview } from "../../../lib/website";
 import { serverMessages } from "@platform/locales";
 
 import { requireFeatureEnabled, measureOperation } from "@platform/database";
@@ -12,6 +14,8 @@ import {
 export async function POST(req: NextRequest) {
   return measureOperation("web:reviews:POST", async () => {
     try {
+      const { config, enabled } = await getSite();
+      if (!enabled || !config.commerce.capabilities.inquiries || await isWebsitePreview()) return NextResponse.json({ error: serverMessages.runtimeSubmissionsAreTemporarilyUnavailable }, { status: 404 });
       try {
         await requireFeatureEnabled("reviews");
       } catch {

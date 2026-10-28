@@ -2,7 +2,6 @@
 import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import { formatMessage } from "@platform/locales";
 import { useCompanyVat } from "../../hooks/useCompanyVat";
-import { getCurrencyLabel } from "@platform/config/currency";
 
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
@@ -12,7 +11,6 @@ import { useRouter } from "next/navigation";
 import {
   CRMContact,
   CompanySettings,
-  SupportedCurrency,
   getCurrencyDisplayLabel,
   DiscountType,
   ServiceItem,
@@ -25,15 +23,9 @@ import {
   Trash2,
   Calculator,
   CheckCircle2,
-  Globe2,
   Layers,
-  RefreshCw,
 } from "lucide-react";
-import type { FxBoardRow } from "@platform/database/queries/fx-settlement";
 import { createQuotationAction } from "../../app/actions/quotations";
-import { refreshExchangeRatesAction } from "../../app/actions/finance";
-import { convertFromBhd } from "../../lib/fx-client";
-import { adminTranslations } from "../../lib/translations-bilingual";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { ClientAutocomplete } from "../crm/ClientAutocomplete";
 import { toast } from "sonner";
@@ -44,8 +36,6 @@ interface LineItemDraft {
   descriptionAr: string;
   quantity: number;
   unitPrice: number;
-  /** The catalogue price in BHD, kept so the line re-prices when the quotation currency changes. */
-  basePriceBhd?: number | null;
 }
 
 interface NewQuotationFormViewProps {
@@ -55,8 +45,6 @@ interface NewQuotationFormViewProps {
   preselectedClientId?: string;
   dealId?: string;
   inquiryId?: string;
-  /** Units of each quotable currency per 1 BHD, with the rate source. */
-  fxBoard: FxBoardRow[];
   /** The issuer's discount limit in % (null = unlimited). */
   discountLimit?: number | null;
   /** The company sends every quotation for approval regardless of discount. */
@@ -73,15 +61,13 @@ export function NewQuotationFormView({
   preselectedClientId,
   dealId,
   inquiryId,
-  fxBoard: initialFxBoard,
   discountLimit = null,
   alwaysNeedsApproval = false,
   salesPeople = [],
   currentUserId,
 }: NewQuotationFormViewProps) {
   const router = useRouter();
-  const { isRTL, t, locale } = useAdminLocale();
-  const bhd = getCurrencyLabel("BHD", locale === "ar");
+  const { isArabic, isRTL, t, locale } = useAdminLocale();
   const qfT = t.quotationForm;
 
   const [contacts, setContacts] = React.useState<CRMContact[]>(initialContacts);
@@ -96,36 +82,10 @@ export function NewQuotationFormView({
   }, [contacts, selectedContactId]);
 
   // Quotation Meta
-  const [currency, setCurrency] = React.useState<SupportedCurrency>("BHD");
+  const currency = company?.default_currency ?? "";
   const [language, setLanguage] = React.useState<"en" | "ar">("ar");
   const [validUntilDays, setValidUntilDays] = React.useState(30);
   const [salesOwnerId, setSalesOwnerId] = React.useState(currentUserId ?? "");
-  const [fxBoard, setFxBoard] = React.useState(initialFxBoard);
-  const [refreshingFx, setRefreshingFx] = React.useState(false);
-  const fxRates = React.useMemo(() => Object.fromEntries(fxBoard.map((row) => [row.currency, row.perBhd])), [fxBoard]);
-  const fxRow = fxBoard.find((row) => row.currency === currency);
-  const refreshRates = async () => {
-    setRefreshingFx(true);
-    try {
-      const res = await refreshExchangeRatesAction();
-      setFxBoard(res.board);
-      if (res.live) toast.success(qfT.fxRefreshed);
-      else toast.error(qfT.fxRefreshFailed);
-    } catch (err) {
-      toast.error(errorMessage(err, t, qfT.fxRefreshFailed));
-    } finally {
-      setRefreshingFx(false);
-    }
-  };
-
-  // FX Buffer State (3% default company policy for non-BHD)
-  const isNonBhd = currency !== "BHD";
-  const currentRawRate = fxRates[currency] ?? 1;
-  const fxMarginPercent = 3.0;
-  const effectiveRate = isNonBhd
-    ? Math.round(currentRawRate * (1 + fxMarginPercent / 100) * 1000000) / 1000000
-    : 1.0;
-
   // VAT & Discount
   // VAT follows the company registration only; quotations never toggle it.
 
@@ -136,34 +96,25 @@ export function NewQuotationFormView({
 
   // Bilingual Terms
   const [termsEn, setTermsEn] = React.useState<string>(
-    adminTranslations.en.newQuotationForm.defaultTerms,
+    company?.terms_en ?? "",
   );
   const [termsAr, setTermsAr] = React.useState<string>(
-    adminTranslations.ar.newQuotationForm.defaultTerms,
+    company?.terms_ar ?? "",
   );
 
   // Line items
   const [lineItems, setLineItems] = React.useState<LineItemDraft[]>([
     {
       serviceId: services.length > 0 ? services[0].id : null,
-      descriptionEn: services.length > 0 ? services[0].name_en : adminTranslations.en.newQuotationForm.productionServices,
-      descriptionAr: services.length > 0 ? services[0].name_ar : adminTranslations.ar.newQuotationForm.productionServices,
+      descriptionEn: services.length > 0 ? services[0].name_en : "",
+      descriptionAr: services.length > 0 ? services[0].name_ar : "",
       quantity: 1,
       unitPrice: services.length > 0 ? Number(services[0].default_rate) || 0 : 0,
-      basePriceBhd: services.length > 0 ? Number(services[0].default_rate) || 0 : null,
+
     },
   ]);
 
   const markSaved = useUnsavedChanges({ selectedContactId, currency, language, validUntilDays, salesOwnerId, discountType, discountValue, termsEn, termsAr, lineItems });
-
-  // Catalogue prices are in BHD: re-price service lines whenever the currency (and so the rate) changes.
-  React.useEffect(() => {
-    setLineItems((prev) =>
-      prev.map((item) =>
-        item.basePriceBhd == null ? item : { ...item, unitPrice: convertFromBhd(item.basePriceBhd, effectiveRate, currency) },
-      ),
-    );
-  }, [currency, effectiveRate]);
 
   const addLineItem = () => {
     setLineItems((prev) => [
@@ -204,8 +155,8 @@ export function NewQuotationFormView({
           serviceId: s.id,
           descriptionEn: s.name_en,
           descriptionAr: s.name_ar,
-          basePriceBhd: Number(s.default_rate) || 0,
-          unitPrice: convertFromBhd(Number(s.default_rate) || 0, effectiveRate, currency),
+
+          unitPrice: Number(s.default_rate) || 0,
         };
       }),
     );
@@ -487,7 +438,7 @@ export function NewQuotationFormView({
                       <input
                         type="number"
                         min="0"
-                        step="0.001"
+                        step="any"
                         value={item.unitPrice}
                         onChange={(e) => updateLineItem(index, "unitPrice", Number(e.target.value))}
                         className="w-full text-sm font-mono rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised px-3 py-1.5 text-ink dark:text-ink"
@@ -540,7 +491,7 @@ export function NewQuotationFormView({
           </Card>
         </div>
 
-        {/* Right 1 Col: Financial Parameters & FX Breakdown */}
+        {/* Right 1 Col: Financial parameters */}
         <div className="space-y-6">
           {/* Settings & Currency */}
           <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
@@ -553,17 +504,7 @@ export function NewQuotationFormView({
                 <span className="block text-xs font-medium text-ink-muted dark:text-ink-muted mb-1">
                   {qfT.currencyLabel}
                 </span>
-                <Select
-                  value={currency}
-                  onChange={(e) => setCurrency(e.target.value as SupportedCurrency)}
-                  className="w-full text-sm font-medium rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised px-3 py-2 text-ink dark:text-ink"
-                >
-                  {["BHD", ...Object.keys(fxRates)].map((code) => (
-                    <option key={code} value={code}>
-                      {getCurrencyDisplayLabel(code as SupportedCurrency, isRTL ? "ar" : "en")}
-                    </option>
-                  ))}
-                </Select>
+                <Select value={currency} disabled className="w-full"><option value={currency}>{getCurrencyDisplayLabel(currency, locale)}</option></Select>
               </label>
 
               <div>
@@ -616,39 +557,6 @@ export function NewQuotationFormView({
               )}
             </div>
 
-            {/* 3% FX Margin Indicator */}
-            {isNonBhd && (
-              <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-md border border-amber-200 dark:border-amber-900/50 space-y-1.5 text-xs text-amber-800 dark:text-amber-300">
-                <div className="font-semibold flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <Globe2 className="w-3.5 h-3.5" />
-                    <span>{formatMessage(qfT.fxNoticeTitle, { rate: fxMarginPercent })}</span>
-                  </div>
-                  <span className="font-mono text-[11px]">
-                    1 {bhd} = {currentRawRate.toFixed(4)} → {effectiveRate.toFixed(4)} {currency}
-                  </span>
-                </div>
-                <p className="text-[11px] leading-relaxed text-amber-700 dark:text-amber-400">
-                  {formatMessage(qfT.fxNoticeDesc, { rate: fxMarginPercent })}
-                </p>
-                {fxRow && (
-                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px]">
-                    <span>
-                      {formatMessage((fxRow.isFallback ? qfT.fxSourceFallback : qfT.fxSource), { provider: fxRow.provider, date: fxRow.effectiveDate })}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={refreshRates}
-                      disabled={refreshingFx}
-                      className="inline-flex items-center gap-1 font-semibold underline-offset-2 hover:underline disabled:opacity-60"
-                    >
-                      <RefreshCw className={`w-3 h-3 ${refreshingFx ? "animate-spin" : ""}`} />
-                      {qfT.fxRefresh}
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
           </Card>
 
           {/* VAT & Discounts */}
@@ -725,7 +633,7 @@ export function NewQuotationFormView({
               )}
               {otherTaxes.map((tax) => (
                 <div key={tax.code} className="flex justify-between text-white/80">
-                  <span>{isRTL ? tax.name_ar : tax.name_en} ({tax.rate}%)</span>
+                  <span>{isArabic ? tax.name_ar : tax.name_en} ({tax.rate}%)</span>
                   <span className="font-mono font-medium">+{tax.amount.toFixed(3)} {currency}</span>
                 </div>
               ))}

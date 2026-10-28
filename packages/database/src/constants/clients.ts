@@ -6,7 +6,7 @@ export type ClientKind = (typeof CLIENT_KINDS)[number];
 export const COMPANY_ORIGINS = ["local", "foreign"] as const;
 export type CompanyOrigin = (typeof COMPANY_ORIGINS)[number];
 
-/** Bahrain legal forms (MOIC), plus a branch of a foreign company. */
+/** Legacy legal-form identifiers; company-specific descriptions can use the other-form field. */
 export const LEGAL_FORMS = [
   "wll",
   "spc",
@@ -306,5 +306,5 @@ export function countryName(
 export function countryOptions(
   names: Record<string, string>,
 ): Array<{ code: string; name: string }> {
-  return Object.entries(names).map(([code, name]) => ({ code, name }));
+  return Object.entries(names).map(([code, name]) => ({ code, name })).sort((a, b) => a.name.localeCompare(b.name, "en"));
 }

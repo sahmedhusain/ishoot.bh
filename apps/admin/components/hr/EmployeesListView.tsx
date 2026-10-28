@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
@@ -34,7 +35,8 @@ export function EmployeesListView({
   canCreate = false,
   notice,
 }: EmployeesListViewProps) {
-  const { t, isRTL } = useAdminLocale();
+  const companyCurrency = useCompanyCurrency();
+  const { isArabic, t } = useAdminLocale();
   const router = useRouter();
 
   const [searchTerm, setSearchTerm] = React.useState(search);
@@ -252,8 +254,8 @@ export function EmployeesListView({
                     >
                       <td className="py-3.5 px-4">
                         <div className="font-semibold text-ink dark:text-ink">
-                          {isRTL ? emp.firstNameAr : emp.firstNameEn}{" "}
-                          {isRTL ? emp.lastNameAr : emp.lastNameEn}
+                          {isArabic ? emp.firstNameAr : emp.firstNameEn}{" "}
+                          {isArabic ? emp.lastNameAr : emp.lastNameEn}
                         </div>
                         <div className="text-xs font-mono text-ink-muted flex items-center gap-1.5 mt-0.5">
                           <span>{emp.employeeNumber}</span>
@@ -305,7 +307,7 @@ export function EmployeesListView({
                         {totalSalary > 0 ? (
                           <span className="font-semibold text-ink dark:text-ink">
                             {totalSalary.toFixed(3)}
-                            {t.shared.bhd}
+                            {companyCurrency}
                           </span>
                         ) : (
                           <span className="text-ink-muted">

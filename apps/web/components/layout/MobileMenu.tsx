@@ -1,6 +1,6 @@
 "use client";
-import { siteIcon, siteLogo } from "../../lib/brand-images";
-import { ContentImage } from "../shared/ContentImage";
+import { BrandImage } from "../site/BrandImage";
+import { SiteModeSwitch } from "../site/SiteTheme";
 
 import * as React from "react";
 import Link from "next/link";
@@ -59,7 +59,7 @@ export function MobileMenu({
         e.preventDefault();
         onClose();
       }}
-      className="fixed inset-0 m-0 w-full max-w-none h-[100dvh] max-h-none z-50 flex flex-col justify-between bg-brand-base text-white p-6 sm:p-10 animate-in fade-in duration-base ease-emphasized"
+      className="fixed inset-0 m-0 w-full max-w-none h-[100dvh] max-h-none z-50 flex flex-col overflow-y-auto overscroll-contain justify-between bg-brand-base text-white p-6 sm:p-10 animate-in fade-in duration-base ease-emphasized"
       data-lenis-prevent
     >
       <div className="flex items-center justify-between">
@@ -68,20 +68,8 @@ export function MobileMenu({
           onClick={onClose}
           className="flex items-center gap-2.5"
         >
-          <ContentImage
-            src={
-              siteIcon(company)
-            }
-            alt={t("common.brandIconAlt", { companyName: locale === "ar" ? company.company_name_ar : company.company_name_en })}
-            className="h-8 w-auto object-contain"
-            width={40} height={40} />
-          <ContentImage
-            src={
-              siteLogo(company)
-            }
-            alt={t("common.brandLogoAlt", { companyName: locale === "ar" ? company.company_name_ar : company.company_name_en })}
-            className="h-6 w-auto object-contain"
-            fallbackText={company.company_name_en} width={240} height={60} />
+          <BrandImage company={company} icon className="h-10 w-10 shrink-0" />
+          <BrandImage company={company} className="h-7 min-w-0 max-w-[min(36vw,15rem)]" />
         </Link>
         <div className="flex items-center gap-4">
           <button
@@ -110,7 +98,7 @@ export function MobileMenu({
 
       <div className="space-y-4 pt-4 border-t border-white/10">
         <div className="flex justify-center">
-          <LanguageSwitcher />
+          <SiteModeSwitch locale={locale} /><LanguageSwitcher />
         </div>
         {(locale === "ar" ? company.address_ar : company.address_en) ? (
           <div className="text-center text-xs text-ink-muted">

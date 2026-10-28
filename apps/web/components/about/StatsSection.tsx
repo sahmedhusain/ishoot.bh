@@ -5,7 +5,7 @@ import { useTranslation } from "../../hooks/useTranslation";
 import { Reveal } from "../shared/Reveal";
 
 export function StatsSection({ stats }: { stats: Statistic[] }) {
-  const { t, isRTL: ar } = useTranslation();
+  const { t, isArabic: ar } = useTranslation();
   if (!stats || !stats.length) return null;
 
   return (

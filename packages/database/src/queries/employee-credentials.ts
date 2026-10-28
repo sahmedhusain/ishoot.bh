@@ -1,3 +1,5 @@
+import { companyCurrency } from "../finance/company-currency";
+import { roundMoney, validMoneyAmount } from "../finance/money";
 import { serverMessages } from "@platform/locales";
 import { claimUploadOrLink } from "../services/uploads";
 import { db, runAtomicMutation } from "../db";
@@ -73,20 +75,25 @@ export interface EmployeeResidency {
     passport_expiry_date?: string;
   };
   credentials: EmployeeCredentialRecord[];
-  /** Recurring cost to the company per month and per year, in BHD. */
+  /** Recurring cost to the company per month and per year, in the company currency. */
   monthlyCost: number;
   yearlyCost: number;
   oneTimeCost: number;
 }
 
-const clean = (value: unknown, max = 120) =>
-  typeof value === "string" && value.trim() ? value.trim().slice(0, max) : null;
+const clean = (value: unknown, max = 120) => {
+  const text = typeof value === "string" ? value.trim() : "";
+  if (text.length > max || /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(text)) throw new Error(serverMessages.invalidInput);
+  return text || null;
+};
 const day = (value: unknown) => {
   const text = clean(value, 10);
   if (!text) return null;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(text) || !Number.isFinite(Date.parse(text)))
     throw new Error(serverMessages.invalidDate);
-  return new Date(`${text}T00:00:00Z`);
+  const date = new Date(`${text}T00:00:00Z`);
+  if (date.toISOString().slice(0, 10) !== text) throw new Error(serverMessages.invalidDate);
+  return date;
 };
 const iso = (date: Date | null | undefined) =>
   date ? date.toISOString().slice(0, 10) : undefined;
@@ -97,10 +104,10 @@ const country = (value: unknown) => {
   return code;
 };
 
-/** Identity columns for an employee; a Bahrain CPR has 9 digits. */
+/** Identity columns for an employee, using the issuing country recorded alongside them. */
 export function normalizeEmployeeIdentity(input: EmployeeIdentityInput) {
-  const cpr = clean(input.cpr_number, 20)?.replace(/\s+/g, "") ?? null;
-  if (cpr && !/^\d{9}$/.test(cpr))
+  const cpr = clean(input.cpr_number, 64)?.replace(/\s+/g, "") ?? null;
+  if (cpr && (!new RegExp("^[\\p{L}\\p{N}./-]+$", "u").test(cpr) || cpr.length > 64))
     throw new Error(serverMessages.aCPRNumberHas9Digits);
   const birth = day(input.date_of_birth);
   if (birth && (birth > new Date() || birth.getUTCFullYear() < 1920))
@@ -132,7 +139,7 @@ export function normalizeEmployeeCredential(input: EmployeeCredentialInput) {
     input.cost_amount === null ||
     Number.isNaN(input.cost_amount)
       ? null
-      : Math.round(Number(input.cost_amount) * 1000) / 1000;
+      : Math.round(Number(input.cost_amount) * 1_000_000) / 1_000_000;
   if (
     amount !== null &&
     (!Number.isFinite(amount) || amount < 0 || amount > 1_000_000)
@@ -229,6 +236,7 @@ export async function getEmployeeResidency(
   });
   if (!employee) return null;
   const credentials = employee.credentials.map(mapEmployeeCredential);
+  const currency = await companyCurrency();
   const monthly = credentials.reduce((sum, c) => sum + c.monthly_cost, 0);
   return {
     identity: {
@@ -242,8 +250,8 @@ export async function getEmployeeResidency(
       passport_expiry_date: iso(employee.passportExpiryDate),
     },
     credentials,
-    monthlyCost: Math.round(monthly * 1000) / 1000,
-    yearlyCost: Math.round(monthly * 12 * 1000) / 1000,
+    monthlyCost: roundMoney(monthly, currency),
+    yearlyCost: roundMoney(monthly * 12, currency),
     oneTimeCost: credentials
       .filter((c) => c.cost_frequency === "one_time" && c.paid_by === "company")
       .reduce((sum, c) => sum + (c.cost_amount ?? 0), 0),
@@ -271,6 +279,7 @@ export async function saveEmployeeCredential(
   actorId?: string,
 ) {
   const data = normalizeEmployeeCredential(input);
+  if (data.costAmount !== null && !validMoneyAmount(data.costAmount, await companyCurrency(), true)) throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
   return runAtomicMutation(async () => {
     const existing = input.id
       ? await db.employeeCredential.findUnique({

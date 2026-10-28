@@ -20,8 +20,6 @@ import {
   getInvoiceByIdOrNumber,
   PaymentMethod,
   SupportedCurrency,
-  refreshExchangeRates,
-  getFxBoard,
 } from "@platform/database";
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "../../lib/auth";
@@ -320,7 +318,7 @@ export async function voidInvoiceAction(id: string) {
 }
 
 export async function exportFinancialReportCsvAction(filters: {
-  locale?: "en" | "ar";
+  locale?: string;
   basis?: "cash" | "accrual";
   dateFrom?: string;
   dateTo?: string;
@@ -375,15 +373,6 @@ export async function exportFinancialReportCsvAction(filters: {
 }
 
 /** Pulls today's live rates for every supported currency; falls back silently to stored rates. */
-export async function refreshExchangeRatesAction() {
-  return measureOperation("action:refreshExchangeRatesAction", async () => {
-    await requirePermission("quotations", "create");
-    validateActionArguments("refreshExchangeRatesAction", {});
-    const live = await refreshExchangeRates({ force: true });
-    revalidatePath(ROUTES.quotations.create());
-    return { success: true, live, board: await getFxBoard() };
-  });
-}
 
 export async function createExpenseCategoryAction(data: {
   name_en: string;

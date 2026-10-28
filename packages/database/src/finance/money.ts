@@ -64,3 +64,8 @@ export function paymentStatusFor(
   if (toMinorUnits(paid, currency) <= 0) return null;
   return isFullyPaid(total, paid, currency) ? "paid" : "partially_paid";
 }
+
+/** Accepts floating-point representation noise, while rejecting fractions below the currency's minor unit. */
+export function validMoneyAmount(amount: number, currency: string, allowZero = false): boolean {
+  return Number.isFinite(amount) && (allowZero ? amount >= 0 : amount > 0) && Number.isSafeInteger(toMinorUnits(amount, currency)) && (allowZero || toMinorUnits(amount, currency) > 0) && Math.abs(amount - roundMoney(amount, currency)) <= Number.EPSILON * Math.max(1, Math.abs(amount)) * 4;
+}

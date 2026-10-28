@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 import { useConfirmation } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
@@ -22,7 +23,6 @@ import {
   Receipt,
   Clock,
   ShieldAlert,
-  Globe2,
   FileText,
   Calendar,
   Building,
@@ -89,6 +89,7 @@ export function QuotationDetailView({
 }: QuotationDetailViewProps) {
   const router = useRouter();
   const confirmAction = useConfirmation();
+  const companyCurrency = useCompanyCurrency();
   const { isRTL, t, locale } = useAdminLocale();
   const [printing, setPrinting] = React.useState(false);
   const qdT = t.quotationDetail;
@@ -117,7 +118,6 @@ export function QuotationDetailView({
 
   const isCreator = quotation.createdById === currentUserId;
   const hasDiscount = Number(quotation.discountAmount) > 0;
-  const isNonBhd = quotation.currency !== "BHD";
 
   // Status mapping
   const statusMeta: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
@@ -430,7 +430,7 @@ export function QuotationDetailView({
           )}
 
           {/* Status: Accepted -> Convert to Invoice */}
-          {quotation.status === "accepted" && !quotation.invoiceId && (
+          {quotation.status === "accepted" && !quotation.invoiceId && quotation.currency === companyCurrency && (
             <Button
               onClick={handleConvertToInvoice}
               disabled={loadingAction === "convert"}
@@ -477,39 +477,6 @@ export function QuotationDetailView({
               </span>
             )}
           </div>
-
-          {/* 3% FX Margin Notice (if non-BHD) */}
-          {isNonBhd && (
-            <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 space-y-2">
-              <div className="flex items-center gap-2 text-xs font-bold text-amber-900 dark:text-amber-300 font-mono uppercase">
-                <Globe2 className="w-4 h-4 text-amber-700" />
-                {qdT.fxLockTitle}
-              </div>
-              <div className="grid grid-cols-3 gap-3 text-xs pt-1">
-                <div>
-                  <span className="text-ink-muted">{qdT.rawMarketRate}</span>
-                  <div className="font-mono font-semibold text-ink dark:text-ink">
-                    {quotation.rawRate ? Number(quotation.rawRate).toFixed(4) : t.copy.notAvailable}
-                  </div>
-                </div>
-                <div>
-                  <span className="text-ink-muted">{qdT.fxSafetyBuffer}</span>
-                  <div className="font-mono font-semibold text-amber-700 dark:text-amber-400">
-                    +{Number(quotation.fxMarginPercent)}%
-                  </div>
-                </div>
-                <div>
-                  <span className="text-ink-muted">{qdT.effectiveRate}</span>
-                  <div className="font-mono font-semibold text-ink dark:text-ink">
-                    {quotation.effectiveRate ? Number(quotation.effectiveRate).toFixed(4) : "—"} {quotation.currency}{formatMessage(t.copy.currencyRate, { currency: "BHD" })}
-                  </div>
-                </div>
-              </div>
-              <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed pt-1 border-t border-amber-200/60 dark:border-amber-900/40">
-                {formatMessage(qdT.fxNotice, { rate: Number(quotation.fxMarginPercent) })}
-              </p>
-            </div>
-          )}
 
           {/* Line Items Table */}
           <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>

@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
 import Link from "next/link";
@@ -16,6 +17,7 @@ const METHOD_ICONS: Record<string, typeof Banknote> = {
 };
 
 export function PaymentsManagementView({ initialPayments, totals, receiptCount, invoiceCount, controls }: { initialPayments: PaymentListRow[]; totals: { currency: string; amount: number }[]; receiptCount: number; invoiceCount: number; controls?: React.ReactNode }) {
+  const companyCurrency = useCompanyCurrency();
   const { t, locale } = useAdminLocale();
   const methodLabel: Record<string, string> = {
     bank_transfer: t.paymentRecorder.bankTransfer,
@@ -46,7 +48,7 @@ export function PaymentsManagementView({ initialPayments, totals, receiptCount, 
         <Kpi icon={Wallet} tone="bg-accent/10 text-accent" label={t.kpi.totalRevenue} hint={t.paymentsView.allReconciled}>
           {totals.length ? totals.map((v) => (
             <div key={v.currency}><CurrencyDisplay amount={v.amount} currency={v.currency as never} /></div>
-          )) : <CurrencyDisplay amount={0} currency="BHD" />}
+          )) : <CurrencyDisplay amount={0} currency={companyCurrency} />}
         </Kpi>
         <Kpi icon={Receipt} tone="bg-sky-500/10 text-sky-600 dark:text-sky-400" label={t.paymentsView.issuedReceipts} hint={formatMessage(t.paymentsView.receiptsCount, { n: String(receiptCount) })}>
           {receiptCount}

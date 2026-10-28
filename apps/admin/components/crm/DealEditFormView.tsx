@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 import { errorMessage } from "../../lib/error-text";
 import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import { getCurrencyLabel } from "@platform/config/currency";
@@ -27,7 +28,7 @@ interface DealEditFormViewProps {
 export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFormViewProps) {
   const router = useRouter();
   const { t, locale } = useAdminLocale();
-  const bhd = getCurrencyLabel("BHD", locale === "ar");
+  const bhd = getCurrencyLabel(useCompanyCurrency(), locale === "ar");
 
   const [title, setTitle] = React.useState(deal.title || "");
   const [contactId, setContactId] = React.useState(deal.contact_id || "");
@@ -231,7 +232,7 @@ export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFor
               </span>
               <Input
                 type="number"
-                step="0.001"
+                step="any"
                 value={dealValue}
                 onChange={(e) => setDealValue(parseFloat(e.target.value) || 0)}
                 className=" text-primary dark:text-accent font-bold"

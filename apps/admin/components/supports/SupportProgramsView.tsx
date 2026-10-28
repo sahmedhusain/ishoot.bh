@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 import { useConfirmation } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
@@ -80,6 +81,7 @@ export function SupportProgramsView({
   filters: { program: string; status: string };
   canEdit: boolean;
 }) {
+  const companyCurrency = useCompanyCurrency();
   const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const s = t.supports;
@@ -113,7 +115,7 @@ export function SupportProgramsView({
     (Record<string, string> & { id?: string }) | null
   >(null);
   const [historyOf, setHistoryOf] = React.useState<string | null>(null);
-  const money = (v: number) => formatCurrencyValue(v, "BHD", isAr);
+  const money = (v: number) => formatCurrencyValue(v, companyCurrency, isAr);
 
   const run = async (work: () => Promise<unknown>, done: string) => {
     if (pending.current) return false;
@@ -279,7 +281,7 @@ export function SupportProgramsView({
                           effective_from: firstOfNextMonth(),
                           wage_basis: rule?.wageBasis ?? "fixed",
                           schedule: (
-                            rule?.schedule ?? [{ year: 1, percent: 70 }]
+                            rule?.schedule ?? [{ year: 1, percent: 0 }]
                           ).map((x) => ({
                             year: String(x.year),
                             percent: String(x.percent),
@@ -614,7 +616,7 @@ export function SupportProgramsView({
                 type="number"
                 dir="ltr"
                 min={0}
-                step="0.001"
+                step="any"
                 value={ruleFor.wage_cap}
                 onChange={(e) =>
                   setRuleFor({ ...ruleFor, wage_cap: e.target.value })
@@ -627,7 +629,7 @@ export function SupportProgramsView({
                 type="number"
                 dir="ltr"
                 min={0}
-                step="0.001"
+                step="any"
                 value={ruleFor.monthly_cap}
                 onChange={(e) =>
                   setRuleFor({ ...ruleFor, monthly_cap: e.target.value })
@@ -733,7 +735,7 @@ export function SupportProgramsView({
                       type="number"
                       dir="ltr"
                       min={0}
-                      step="0.001"
+                      step="any"
                       value={value}
                       onChange={(e) =>
                         setRuleFor({
@@ -1149,7 +1151,7 @@ export function SupportProgramsView({
                     type="number"
                     dir="ltr"
                     min={0}
-                    step="0.001"
+                    step="any"
                     value={enrolment.approved_amount}
                     onChange={(e) =>
                       setEnrolment({
@@ -1165,7 +1167,7 @@ export function SupportProgramsView({
                     type="number"
                     dir="ltr"
                     min={0}
-                    step="0.001"
+                    step="any"
                     value={enrolment.monthly_cap}
                     onChange={(e) =>
                       setEnrolment({

@@ -13,7 +13,7 @@ export function CinemaLightbox({
   isOpen?: boolean;
   onClose: () => void;
 }) {
-  const { t, isRTL: ar } = useTranslation();
+  const { t, isArabic: ar } = useTranslation();
   const dialog = React.useRef<HTMLDialogElement>(null);
   const open = !!item && isOpen !== false;
   React.useEffect(() => {
@@ -43,13 +43,13 @@ export function CinemaLightbox({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="m-auto w-[calc(100%-2rem)] max-w-5xl max-h-[90dvh] overflow-y-auto rounded-lg bg-tone-5 text-paper border border-white/15 p-0 backdrop:bg-black/85"
+      className="m-auto w-[calc(100%-2rem)] max-w-5xl max-h-[90dvh] overflow-y-auto rounded-lg bg-m3-surface-container-low text-ink border border-m3-outline-variant p-0 backdrop:bg-black/85"
       data-lenis-prevent
     >
       <div>
         <header className="p-5 flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs text-[#a4b9ac]">
+            <p className="text-xs text-ink-muted">
               {item.client_name} · {item.year}
             </p>
             <h2
@@ -85,7 +85,7 @@ export function CinemaLightbox({
             className="w-full max-h-[65vh] object-contain"
           />
         )}
-        <p className="p-5 text-sm leading-relaxed text-[#bdcec4]">
+        <p className="p-5 text-sm leading-relaxed text-ink-muted">
           {ar ? item.description_ar : item.description_en}
         </p>
         {item.credits && Object.values(item.credits).some(Boolean) && (
@@ -100,7 +100,7 @@ export function CinemaLightbox({
             ).map(([key, label]) =>
               item.credits?.[key] ? (
                 <div key={key}>
-                  <dt className="text-[#a4b9ac] text-xs">{label}</dt>
+                  <dt className="text-ink-muted text-xs">{label}</dt>
                   <dd className="mt-1">{item.credits[key]}</dd>
                 </div>
               ) : null,

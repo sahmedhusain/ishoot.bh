@@ -1,9 +1,10 @@
 "use client";
+import { useSiteReducedMotion } from "../site/SiteTheme";
 import * as React from "react";
 import Lenis from "lenis";
-import { MotionConfig, useReducedMotion } from "framer-motion";
+import { MotionConfig } from "framer-motion";
 export function SmoothScroll({ children }: { children: React.ReactNode }) {
-  const reduced = useReducedMotion();
+  const reduced = useSiteReducedMotion();
   React.useEffect(() => {
     if (reduced !== false || !window.matchMedia("(pointer: fine)").matches)
       return;
@@ -20,7 +21,7 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
     };
   }, [reduced]);
   return (
-    <MotionConfig reducedMotion="user" transition={{ duration: 0.3 }}>
+    <MotionConfig reducedMotion={reduced ? "always" : "user"} transition={{ duration: reduced ? 0 : 0.3 }}>
       {children}
     </MotionConfig>
   );

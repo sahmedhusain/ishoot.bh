@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
 import type { Invoice, CompanySettings } from "@platform/database/types";
@@ -18,10 +19,11 @@ interface InvoiceTemplateProps {
 }
 
 export function InvoiceTemplate({ invoice, company, signing = null }: InvoiceTemplateProps) {
+  const companyCurrency = useCompanyCurrency();
   const isAr = invoice.language === "ar";
   const t = isAr ? adminTranslations.ar : adminTranslations.en;
   const inv = t.invoice;
-  const currency = invoice.currency || "BHD";
+  const currency = invoice.currency || companyCurrency;
   // VAT on an invoice is immutable: depends strictly on the invoice's own issued snapshot
   const isVatActive = Boolean(invoice.vat_enabled && Number(invoice.vat_amount) > 0);
 

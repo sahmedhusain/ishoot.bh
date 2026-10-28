@@ -1,9 +1,9 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import en from "../../../../packages/locales/src/admin/en.json";
-import ar from "../../../../packages/locales/src/admin/ar.json";
-import uiEn from "../../../../packages/locales/src/ui/en.json";
-import uiAr from "../../../../packages/locales/src/ui/ar.json";
+import en from "../../../../packages/locales/src/admin/en";
+import ar from "../../../../packages/locales/src/admin/ar";
+import uiEn from "../../../../packages/locales/src/ui/en";
+import uiAr from "../../../../packages/locales/src/ui/ar";
 import { selectOption } from "../../select-option";
 
 async function insideViewport(page: Page, locator: Locator) {

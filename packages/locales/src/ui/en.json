@@ -2,10 +2,6 @@
   "clickToUpload": "Click to upload",
   "dropFiles": "or drag and drop files",
   "kilobytes": "KB",
-  "confirm": "Confirm",
-  "cancel": "Cancel",
-  "close": "Close",
-  "loading": "Loading…",
   "inflow": "Inflow (revenue)",
   "outflow": "Outflow (expenses)",
   "typeToConfirm": "Type to confirm",
@@ -15,5 +11,8 @@
   "searchOptions": "Search options",
   "noOptions": "No matching options",
   "selectRequired": "Select an option to continue.",
-  "optionSeparator": ", "
+  "optionSeparator": ", ",
+  "countryCode": "Country code",
+  "phoneNational": "National phone number",
+  "invalidPhone": "Enter a valid phone number and choose its country code."
 }

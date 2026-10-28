@@ -12,7 +12,7 @@ import { BASE_ROLES, DEPARTMENT_CATALOGUE, DEPARTMENT_ROLES, activityDepartments
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Building2, Palette, Image as ImageIcon, SlidersHorizontal, ClipboardCheck, Check, Upload, Trash2, Globe, MonitorSmartphone, Ban, PartyPopper } from "lucide-react";
-import { Button, Card, Input, Select } from "@platform/ui";
+import { Button, Card, Input, Select, PhoneInput } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { getCurrencyLabel } from "@platform/config/currency";
 import { SUPPORTED_CURRENCIES } from "@platform/database/constants/finance";
@@ -425,8 +425,8 @@ export function SetupWizard(props: SetupWizardProps) {
                     <Group title={copy.company.contactTitle}>
                       <div className="grid gap-5 sm:grid-cols-2">
                         <LanguageFields name="address" label={copy.company.address} languages={languages} wide maxLength={300} en={company.addressEn ?? ""} ar={company.addressAr ?? ""} onChange={(v) => setCompany({ ...company, addressEn: v.en, addressAr: v.ar })} />
-                        {text("phone", copy.company.phone, { type: "tel" })}
-                        {text("whatsappPhone", copy.company.whatsapp, { type: "tel" })}
+                        <Field label={copy.company.phone}>{(id) => <PhoneInput id={id} value={company.phone ?? ""} onChange={(phone) => setCompany({ ...company, phone })} defaultCountryCode={company.country} />}</Field>
+                        <Field label={copy.company.whatsapp}>{(id) => <PhoneInput id={id} value={company.whatsappPhone ?? ""} onChange={(whatsappPhone) => setCompany({ ...company, whatsappPhone })} defaultCountryCode={company.country} />}</Field>
                         {text("email", copy.company.email, { type: "email" })}
                         {text("website", copy.company.website, { type: "url" })}
                         {text("mapUrl", copy.company.mapUrl, { type: "url", wide: true, placeholder: "https://maps.google.com/…" })}

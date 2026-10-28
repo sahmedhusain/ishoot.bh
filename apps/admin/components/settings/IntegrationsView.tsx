@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import {
   Button,
+  PhoneInput,
   Card,
   ConfirmDialog,
   DateDisplay,
@@ -644,14 +645,11 @@ function IntegrationCard({
             >
               {c.whatsappTest}
             </label>
-            <input
+            <PhoneInput
               id="wa-test-to"
-              type="tel"
-              dir="ltr"
               className={`${fieldClass} max-w-44`}
-              placeholder={t.copy.phoneInternational}
               value={waTo}
-              onChange={(e) => setWaTo(e.target.value)}
+              onChange={setWaTo}
             />
             <Button
               type="button"

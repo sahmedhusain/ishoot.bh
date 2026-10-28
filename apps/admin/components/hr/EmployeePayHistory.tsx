@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -17,6 +18,7 @@ export interface PayHistoryRow {
 
 /** An employee's recent salaries; each opens its payment page. */
 export function EmployeePayHistory({ rows }: { rows: PayHistoryRow[] }) {
+  const companyCurrency = useCompanyCurrency();
   const { t, locale, isRTL } = useAdminLocale();
   const Arrow = isRTL ? ChevronLeft : ChevronRight;
   const month = new Intl.DateTimeFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-BH", { month: "long", year: "numeric", timeZone: "UTC" });
@@ -30,7 +32,7 @@ export function EmployeePayHistory({ rows }: { rows: PayHistoryRow[] }) {
           <li key={row.id}>
             <Link href={ROUTES.hr.payrollItem(row.id)} className="flex items-center gap-3 py-2.5 text-sm hover:bg-ink/[0.03]">
               <span className="flex-1 text-ink dark:text-ink">{month.format(new Date(Date.UTC(row.year, row.month - 1, 1)))}</span>
-              <bdi dir="ltr" className="font-mono text-ink dark:text-ink">{money.format(row.netSalary)} {t.shared.bhd}</bdi>
+              <bdi dir="ltr" className="font-mono text-ink dark:text-ink">{money.format(row.netSalary)} {companyCurrency}</bdi>
               <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${row.paymentStatus === "paid" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-surface-sunken/10 text-ink-muted dark:text-ink"}`}>
                 {row.paymentStatus === "paid" ? t.payroll.statusPaid : (t.hrExtensions as Record<string, string>)[row.runStatus] ?? row.runStatus}
               </span>

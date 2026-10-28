@@ -1,3 +1,4 @@
+import { isValidEmail } from "../constants/validation";
 import { serverMessages } from "@platform/locales";
 import { db } from "../db";
 import { COVERAGE_SENTIMENTS } from "../constants/outreach";
@@ -41,7 +42,7 @@ export async function saveMediaContact(input: MediaContactInput) {
   const outlet = input.outlet.trim().slice(0, 120);
   if (!name || !outlet) throw new Error(serverMessages.mediaContactInvalid);
   const email = input.email.trim().toLowerCase();
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+  if (email && !isValidEmail(email))
     throw new Error(serverMessages.customerEmailInvalid);
   const data = {
     name,

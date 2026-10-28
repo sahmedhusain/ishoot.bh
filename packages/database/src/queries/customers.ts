@@ -1,3 +1,4 @@
+import { isLocale } from "@platform/locales/registry";
 import {
   createHash,
   randomBytes,
@@ -7,15 +8,16 @@ import {
 import bcrypt from "bcryptjs";
 import { serverMessages } from "@platform/locales";
 import { db } from "../db";
+import { isValidEmail, normalizeEmail } from "../constants/validation";
+import { isValidPhone, formatPhoneE164 } from "../constants/phone";
 
 /** How long a sign-in lasts on one device. */
 export const CUSTOMER_SESSION_DAYS = 30;
 const CODE_MINUTES = 10;
 const CODE_ATTEMPTS = 5;
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const normalizeCustomerEmail = (email: string) =>
-  email.trim().toLowerCase().slice(0, 254);
+  normalizeEmail(email);
 const sha256 = (text: string) =>
   createHash("sha256").update(text).digest("hex");
 
@@ -90,7 +92,7 @@ export async function signUpCustomer(input: {
   marketingOptIn?: boolean;
 }) {
   const email = normalizeCustomerEmail(input.email);
-  if (!EMAIL.test(email)) throw new Error(serverMessages.customerEmailInvalid);
+  if (!isValidEmail(email)) throw new Error(serverMessages.customerEmailInvalid);
   const name = checkName(input.name);
   checkPassword(input.password);
   if (await db.customer.findUnique({ where: { email }, select: { id: true } }))
@@ -101,7 +103,7 @@ export async function signUpCustomer(input: {
       email,
       name,
       passwordHash: await bcrypt.hash(input.password, 12),
-      locale: input.locale === "en" ? "en" : "ar",
+      locale: isLocale(input.locale) ? input.locale : "en",
       marketingOptIn: !!input.marketingOptIn,
       crmContactId,
     },
@@ -162,7 +164,7 @@ export async function endCustomerSession(token: string | undefined | null) {
 /** A six-digit sign-in code for this e-mail (stored hashed); the caller e-mails it. */
 export async function issueCustomerCode(emailInput: string) {
   const email = normalizeCustomerEmail(emailInput);
-  if (!EMAIL.test(email)) throw new Error(serverMessages.customerEmailInvalid);
+  if (!isValidEmail(email)) throw new Error(serverMessages.customerEmailInvalid);
   const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
   await db.customerAuthCode.updateMany({
     where: { email, usedAt: null },
@@ -229,7 +231,7 @@ export async function verifyCustomerCode(
         email,
         name: clean,
         emailVerifiedAt: new Date(),
-        locale: locale === "en" ? "en" : "ar",
+        locale: isLocale(locale) ? locale : "en",
         crmContactId,
       },
     }),
@@ -276,7 +278,7 @@ export async function customerFromProvider(
         name,
         [key]: input.sub,
         emailVerifiedAt: new Date(),
-        locale: input.locale === "en" ? "en" : "ar",
+        locale: isLocale(input.locale) ? input.locale : "en",
         crmContactId,
       },
     }),
@@ -294,14 +296,18 @@ export async function updateCustomerProfile(
   },
 ) {
   const name = checkName(input.name);
-  const phone = input.phone.trim().slice(0, 40) || null;
+  let phone = input.phone.trim().slice(0, 40) || null;
+  if (phone) {
+    if (!isValidPhone(phone)) throw new Error(serverMessages.invalidInput);
+    phone = formatPhoneE164(phone);
+  }
   if (input.password) checkPassword(input.password);
   const customer = await db.customer.update({
     where: { id: customerId },
     data: {
       name,
       phone,
-      locale: input.locale === "en" ? "en" : "ar",
+      locale: isLocale(input.locale) ? input.locale : "en",
       marketingOptIn: input.marketingOptIn,
       ...(input.password
         ? { passwordHash: await bcrypt.hash(input.password, 12) }
@@ -368,6 +374,9 @@ export async function saveCustomerAddress(
   };
   if (!data.name || !data.phone || !data.line1 || !data.city || !data.country)
     throw new Error(serverMessages.customerAddressIncomplete);
+  if (!isValidPhone(data.phone))
+    throw new Error(serverMessages.invalidInput);
+  data.phone = formatPhoneE164(data.phone);
   if (
     (await db.customerAddress.count({ where: { customerId } })) >= 20 &&
     !input.id

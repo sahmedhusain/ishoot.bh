@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
@@ -70,6 +71,7 @@ export function RequestDetailView({
   canDecideApproval,
   canSell,
 }: RequestDetailViewProps) {
+  const companyCurrency = useCompanyCurrency();
   const router = useRouter();
   const { isRTL, t } = useAdminLocale();
 
@@ -879,7 +881,7 @@ export function RequestDetailView({
                         {q.quotationNumber}
                       </Link>
                       <div className="text-[11px] text-ink-muted">
-                        <CurrencyDisplay amount={q.totalAmount} currency={q.currency || "BHD"} />
+                        <CurrencyDisplay amount={q.totalAmount} currency={q.currency || companyCurrency} />
                       </div>
                     </div>
                     <div className="flex items-center gap-3">

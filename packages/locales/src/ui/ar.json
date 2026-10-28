@@ -2,10 +2,6 @@
   "clickToUpload": "انقر لرفع الملفات",
   "dropFiles": "أو اسحب الملفات وأفلتها",
   "kilobytes": "كيلوبايت",
-  "confirm": "تأكيد",
-  "cancel": "إلغاء",
-  "close": "إغلاق",
-  "loading": "جارٍ التحميل…",
   "inflow": "التدفقات الداخلة (الإيرادات)",
   "outflow": "التدفقات الخارجة (المصاريف)",
   "typeToConfirm": "اكتب للتأكيد",
@@ -15,5 +11,8 @@
   "searchOptions": "البحث في الخيارات",
   "noOptions": "لا توجد خيارات مطابقة",
   "selectRequired": "اختر خياراً للمتابعة.",
-  "optionSeparator": "، "
+  "optionSeparator": "، ",
+  "countryCode": "رمز الدولة",
+  "phoneNational": "رقم الهاتف دون رمز الدولة",
+  "invalidPhone": "أدخل رقم هاتف صحيحًا واختر رمز الدولة."
 }

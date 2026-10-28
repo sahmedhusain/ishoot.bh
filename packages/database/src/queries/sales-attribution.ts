@@ -1,6 +1,7 @@
+import { roundMoney } from "../finance/money";
 import { serverMessages } from "@platform/locales";
 import { db, runAtomicMutation } from "../db";
-import { FUNCTIONAL_CURRENCY } from "../constants/finance";
+import { companyCurrency } from "../finance/company-currency";
 
 export type AttributedDocument = "quotation" | "invoice";
 
@@ -217,6 +218,7 @@ export async function commissionsForRange(
   range: { gte: Date; lt: Date },
   userIds?: string[],
 ) {
+  const FUNCTIONAL_CURRENCY = await companyCurrency();
   const payments = await db.payment.findMany({
     where: {
       paymentDate: range,
@@ -262,16 +264,17 @@ export async function commissionsForRange(
   return byOwner;
 }
 
-export const commissionAmount = (collectedNet: number, ratePercent: number) =>
-  Math.round(collectedNet * ratePercent * 10) / 1000;
+export const commissionAmount = (collectedNet: number, ratePercent: number, currency?: string) =>
+  currency ? roundMoney(collectedNet * ratePercent / 100, currency) : Math.round(collectedNet * ratePercent * 10) / 1000;
 
 /**
- * Commission is earned on money collected in the month (net of VAT, BHD) on invoices credited to
+ * Commission is earned on money collected in the month (net of VAT, company currency) on invoices credited to
  * the salesperson, at their commission rate. Closed, paid work is what counts.
  */
 export async function getCommissionStatement(
   month: string,
 ): Promise<CommissionRow[]> {
+  const currency = await companyCurrency();
   const range = monthRange(month);
   const [byOwner, people, payouts, policy, payrollStaff] = await Promise.all([
     commissionsForRange(range),
@@ -313,7 +316,7 @@ export async function getCommissionStatement(
       const earned = byOwner.get(u.id);
       const rate =
         u.commissionRatePercent == null ? 0 : Number(u.commissionRatePercent);
-      const collectedNet = Math.round((earned?.net ?? 0) * 1000) / 1000;
+      const collectedNet = roundMoney(earned?.net ?? 0, currency);
       const payout = payouts.find((p) => p.userId === u.id);
       return {
         userId: u.id,
@@ -322,7 +325,7 @@ export async function getCommissionStatement(
         ratePercent: rate,
         invoices: earned?.invoices.size ?? 0,
         collectedNet,
-        commission: commissionAmount(collectedNet, rate),
+        commission: commissionAmount(collectedNet, rate, currency),
         payout: payout
           ? {
               id: payout.id,
@@ -344,6 +347,7 @@ export async function recordCommissionPayout(
   month: string,
   actorId: string,
 ) {
+  const FUNCTIONAL_CURRENCY = await companyCurrency();
   return runAtomicMutation(async () => {
     const row = (await getCommissionStatement(month)).find(
       (r) => r.userId === userId,
@@ -392,6 +396,7 @@ export async function recordCommissionPayout(
     return db.commissionPayout.create({
       data: {
         userId,
+        currency: FUNCTIONAL_CURRENCY,
         periodMonth: month,
         basisAmount: row.collectedNet,
         ratePercent: row.ratePercent,

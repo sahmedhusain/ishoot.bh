@@ -1,3 +1,6 @@
+import { CollectionCard } from "../../../../components/portfolio/CollectionCard";
+import { catalogueProductPrices } from "@platform/database/queries/store";
+import { PublicDocuments } from "../../../../components/blocks/PublicDocuments";
 import { ContentImage } from "../../../../components/shared/ContentImage";
 import { Reveal } from "../../../../components/shared/Reveal";
 import { notFound, permanentRedirect } from "next/navigation";
@@ -5,13 +8,13 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, ArrowUpRight, MapPin } from "lucide-react";
 import { pickText } from "@platform/database/constants/languages";
 import { getSite, siteTranslations } from "../../../../lib/site";
-import { collectionHref, formatPrice } from "../../../../lib/site-copy";
+import { collectionHref, formatPrice, collectionGridClass } from "../../../../lib/site-copy";
 import { publicSiteUrl } from "../../../../lib/site-url";
 import { ArticleView, liveArticles } from "../../../../components/articles/ArticleViews";
 import { isWebsitePreview } from "../../../../lib/website";
 import { db, storeProductForItem } from "@platform/database";
 import { AddToCart } from "../../../../components/store/AddToCart";
-import { currentCustomer, storeEnabled } from "../../../../lib/customer";
+import { currentCustomer, storeEnabled, orderingEnabled } from "../../../../lib/customer";
 import { WishlistButton } from "../../../../components/account/WishlistButton";
 
 /** One catalogue item: a project, product, property, dish, program… shown with the details its activity uses. */
@@ -21,7 +24,7 @@ export default async function CollectionItemPage({
   params: Promise<{ locale: string; collection: string; slug: string }>;
 }) {
   const { locale, collection, slug } = await params;
-  const [{ website, info }, t, preview] = await Promise.all([getSite(), siteTranslations(locale), isWebsitePreview()]);
+  const [{ website, info, config }, t, preview] = await Promise.all([getSite(), siteTranslations(locale), isWebsitePreview()]);
   if (!website) notFound();
   if (collection === info.articles.slug && collection !== info.collection.slug) {
     // Scheduled articles stay hidden until their time, except in preview.
@@ -37,12 +40,14 @@ export default async function CollectionItemPage({
     if (collection === "works") permanentRedirect(collectionHref(info, locale, slug));
     notFound();
   }
+  if (!preview && config.pages.find(page => page.id === "works")?.visible === false) notFound();
   const isRTL = locale === "ar";
 
   const item = website.portfolio.find((project) => project.slug === slug);
   // With the online store on, items can be saved to the customer's wishlist.
   const storeOn = !!item && (await storeEnabled());
-  const customer = storeOn ? { signedIn: true, profile: await currentCustomer() } : null;
+  const customer = storeOn && config.commerce.capabilities.accounts && config.commerce.capabilities.wishlist ? { signedIn: true, profile: await currentCustomer() } : null;
+  const canOrder = storeOn && !preview && (await orderingEnabled());
   const storeProduct = storeOn && !preview ? await storeProductForItem(item!.id) : null;
   const store = customer
     ? { signedIn: !!customer.profile, saved: !!customer.profile && !!(await db.wishlistItem.findUnique({ where: { customerId_catalogueItemId: { customerId: customer.profile.id, catalogueItemId: item!.id } }, select: { id: true } })) }
@@ -57,7 +62,7 @@ export default async function CollectionItemPage({
   const description = pickText(item.description_en, item.description_ar, locale);
   const subtitle = pickText(item.subtitle_en, item.subtitle_ar, locale);
   const priceNote = pickText(item.price_note_en, item.price_note_ar, locale);
-  const price = item.price !== undefined ? formatPrice(item.price, info.currency, locale) : "";
+  const price = storeProduct && !canOrder ? formatPrice(storeProduct.price, info.currency, locale) : !storeProduct && item.price !== undefined ? formatPrice(item.price, info.currency, locale) : "";
   const videoUrl = item.full_video_url || item.preview_video_url;
   const ArrowBackIcon = isRTL ? ArrowRight : ArrowLeft;
   const meta = [item.client_name, item.year, item.location].filter(Boolean);
@@ -67,19 +72,10 @@ export default async function CollectionItemPage({
   const enquire = `/${locale}/contact?intent=quote_request&item=${encodeURIComponent(item.slug)}`;
   const hasDetails = !!price || item.attributes.length > 0 || credits.length > 0 || !!item.external_url;
 
-  return (
-    <article className="shell page-heading space-y-10 sm:space-y-14">
-      <div>
-        <Link
-          href={collectionHref(info, locale)}
-          className="inline-flex items-center gap-2 text-sm text-ink-muted hover:text-accent transition-colors"
-        >
-          <ArrowBackIcon className="w-4 h-4" />
-          <span>{t.portfolio.backToWorks}</span>
-        </Link>
-      </div>
-
-      <Reveal className="space-y-4">
+  const relatedItems = config.commerce.relatedItems === false ? [] : website.portfolio.filter(entry => entry.id !== item.id && (!item.category_id || entry.category_id === item.category_id)).slice(0, 3);
+  const relatedPrices = storeOn && !preview ? await catalogueProductPrices(relatedItems.map(entry => entry.id)) : new Map<string, number>();
+  const overview = (
+    <Reveal className="space-y-4">
         {meta.length ? (
           <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-mint uppercase tracking-widest">
             {meta.map((value, index) => (
@@ -93,17 +89,32 @@ export default async function CollectionItemPage({
         ) : null}
         <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white font-display">{title}</h1>
         {subtitle ? <p className="max-w-3xl text-lg text-ink-muted">{subtitle}</p> : null}
-        {storeProduct ? <AddToCart product={storeProduct} currency={info.currency} /> : null}
+        {storeProduct && canOrder ? <AddToCart product={storeProduct} currency={info.currency} /> : null}
         {store ? <WishlistButton itemId={item.id} initiallySaved={store.saved} signedIn={store.signedIn} next={`/${locale}/${collection}/${slug}`} /> : null}
       </Reveal>
-
-      <Reveal className={`relative w-full overflow-hidden rounded-brand bg-black ${layout === "product" ? "aspect-[4/3] sm:aspect-[16/9]" : "aspect-video"}`}>
+  );
+  const media = (
+    <Reveal className={`relative w-full overflow-hidden rounded-brand bg-m3-surface-container ${layout === "product" ? "aspect-square" : "aspect-video"}`}>
         {videoUrl ? (
           <video src={videoUrl} poster={item.thumbnail_url} controls playsInline className="w-full h-full object-cover" />
         ) : (
           <ContentImage src={item.thumbnail_url} alt={title} className={`w-full h-full ${layout === "product" ? "object-contain" : "object-cover"}`} />
         )}
       </Reveal>
+  );
+  return (
+    <article className="shell page-heading space-y-10 sm:space-y-14">
+      <div>
+        <Link
+          href={collectionHref(info, locale)}
+          className="inline-flex items-center gap-2 text-sm text-ink-muted hover:text-accent transition-colors"
+        >
+          <ArrowBackIcon className="w-4 h-4" />
+          <span>{t.portfolio.backToWorks}</span>
+        </Link>
+      </div>
+
+      {layout === "product" ? <div className="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-start">{media}{overview}</div> : <>{overview}{media}</>}
 
       {gallery.length ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -113,6 +124,7 @@ export default async function CollectionItemPage({
         </div>
       ) : null}
 
+      <PublicDocuments locale={locale} itemSlug={item.slug} />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-12 pt-8 border-t border-white/10">
         <div className="md:col-span-2 space-y-4">
           <h2 className="text-xl font-bold text-white font-display">{t.portfolio.productionOverview}</h2>
@@ -165,6 +177,7 @@ export default async function CollectionItemPage({
           ) : null}
         </aside>
       </div>
+      {relatedItems.length > 0 && <section className="space-y-6 border-t border-m3-outline-variant pt-10"><h2 className="text-2xl font-display font-bold">{t.portfolio.related}</h2><div className={collectionGridClass(layout)}>{relatedItems.map(entry => <CollectionCard key={entry.id} item={relatedPrices.has(entry.id) ? { ...entry, price: relatedPrices.get(entry.id) } : entry} layout={layout} />)}</div></section>}
     </article>
   );
 }

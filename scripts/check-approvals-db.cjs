@@ -70,7 +70,7 @@ async function main() {
         ],
       });
       await assert.rejects(updateApprovalPolicy("expense_claim", { enabled: true, allowSelfApproval: false, autoApproveRoles: [], steps: [{ approverMode: "manager", minDays: 2 }] }), /does not apply/);
-      const claim = (amount) => tx.expenseClaim.create({ data: { claimNumber: `CLM-T-${stamp}-${amount}`, claimantId: accountant.id, amount, expenseDate: new Date("2199-05-01"), reason: "Taxi", receiptUrl: "/uploads/x.pdf" } });
+      const claim = (amount) => tx.expenseClaim.create({ data: { currency: "BHD", claimNumber: `CLM-T-${stamp}-${amount}`, claimantId: accountant.id, amount, expenseDate: new Date("2199-05-01"), reason: "Taxi", receiptUrl: "/uploads/x.pdf" } });
       const small = await claim(120);
       const smallReq = await submitForApproval({ targetType: "expense_claim", targetId: small.id, requesterId: accountant.id });
       assert.deepEqual(smallReq.approverIds, [manager.id]);

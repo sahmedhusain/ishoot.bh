@@ -1,11 +1,12 @@
 "use client";
+import { useSiteReducedMotion } from "../site/SiteTheme";
 
 import * as React from "react";
 import { Star, MessageSquarePlus, Quote } from "lucide-react";
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
 import { ReviewSubmissionModal } from "./ReviewSubmissionModal";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import type { Review } from "@platform/database/types";
 
 export function ReviewsSection({
@@ -23,17 +24,17 @@ export function ReviewsSection({
     | "companyEn"
   >[];
 }) {
-  const reduced = useReducedMotion();
-  const { t, isRTL: ar } = useTranslation();
+  const reduced = useSiteReducedMotion();
+  const { t, isArabic: ar, site } = useTranslation();
   const [modalOpen, setModalOpen] = React.useState(false);
 
   return (
     <section
       id="reviews"
-      className="relative bg-[#F8FAFC] text-[#0F172A] py-20 sm:py-28 border-t border-slate-200"
+      className="relative bg-m3-surface text-ink py-20 sm:py-28 border-t border-m3-outline-variant"
     >
       <div className="shell space-y-12">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-slate-200">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-m3-outline-variant">
           <motion.div
             initial={reduced ? false : { opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -44,10 +45,10 @@ export function ReviewsSection({
             <SectionBadge className="!text-accent-pressed">
               {t("reviews.sectionLabel")}
             </SectionBadge>
-            <h2 className="text-3xl sm:text-5xl font-display font-bold tracking-tight text-slate-950 leading-tight">
+            <h2 className="text-3xl sm:text-5xl font-display font-bold tracking-tight text-ink leading-tight">
               {t("reviews.headline")}
             </h2>
-            <p className="text-sm sm:text-base text-slate-600 font-sans max-w-xl leading-relaxed">
+            <p className="text-sm sm:text-base text-ink-muted font-sans max-w-xl leading-relaxed">
               {t("reviews.subtitle")}
             </p>
           </motion.div>
@@ -61,14 +62,14 @@ export function ReviewsSection({
               delay: reduced ? 0 : 0.08,
             }}
           >
-            <button
+            {site?.commerce?.capabilities.inquiries !== false && <button
               type="button"
               onClick={() => setModalOpen(true)}
-              className="inline-flex min-h-11 items-center gap-2 px-5 py-2.5 rounded-md bg-white hover:bg-slate-100 text-accent-pressed border border-slate-300 font-semibold text-sm transition-colors duration-150 cursor-pointer"
+              className="inline-flex min-h-11 items-center gap-2 px-5 py-2.5 rounded-md bg-m3-surface-container-low hover:bg-m3-surface-container text-accent-pressed border border-m3-outline font-semibold text-sm transition-colors duration-150 cursor-pointer"
             >
               <MessageSquarePlus className="w-4 h-4" />
               <span>{t("reviews.writeReviewBtn")}</span>
-            </button>
+            </button>}
           </motion.div>
         </div>
 
@@ -84,7 +85,7 @@ export function ReviewsSection({
                   duration: reduced ? 0 : 0.45,
                   delay: reduced ? 0 : Math.min(idx * 0.06, 0.18),
                 }}
-                className="relative p-6 sm:p-8 rounded-lg bg-white border border-slate-200 flex flex-col justify-between space-y-6"
+                className="relative p-6 sm:p-8 rounded-lg bg-m3-surface-container-low border border-m3-outline-variant flex flex-col justify-between space-y-6"
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -106,7 +107,7 @@ export function ReviewsSection({
                     <Quote className="w-5 h-5 text-ink-muted" />
                   </div>
 
-                  <blockquote className="text-sm sm:text-base leading-relaxed text-slate-800 font-sans italic">
+                  <blockquote className="text-sm sm:text-base leading-relaxed text-ink font-sans italic">
                     &quot;
                     {ar
                       ? review.quoteAr || review.quoteEn
@@ -115,14 +116,14 @@ export function ReviewsSection({
                   </blockquote>
                 </div>
 
-                <figcaption className="pt-4 border-t border-slate-200 flex flex-col font-sans">
-                  <strong className="text-sm font-bold text-slate-950">
+                <figcaption className="pt-4 border-t border-m3-outline-variant flex flex-col font-sans">
+                  <strong className="text-sm font-bold text-ink">
                     {ar
                       ? review.authorAr || review.authorEn
                       : review.authorEn || review.authorAr}
                   </strong>
                   {(review.companyAr || review.companyEn) && (
-                    <span className="text-xs text-slate-600 mt-0.5">
+                    <span className="text-xs text-ink-muted mt-0.5">
                       {ar ? review.companyAr : review.companyEn}
                     </span>
                   )}
@@ -131,7 +132,7 @@ export function ReviewsSection({
             ))}
           </div>
         ) : (
-          <div className="p-8 text-center rounded-2xl bg-white border border-slate-200 text-slate-600 text-sm">
+          <div className="p-8 text-center rounded-2xl bg-m3-surface-container-low border border-m3-outline-variant text-ink-muted text-sm">
             {t("reviews.empty")}
           </div>
         )}

@@ -1,4 +1,6 @@
 "use client";
+import { useSiteReducedMotion, useSiteMotionTransition, useSiteTheme } from "../site/SiteTheme";
+import { useHeroContent } from "./HeroActions";
 import { ContentImage } from "../shared/ContentImage";
 import * as React from "react";
 import Link from "next/link";
@@ -7,14 +9,16 @@ import { safeWebsiteUrl } from "@platform/database/website-config";
 import { useTranslation } from "../../hooks/useTranslation";
 import { collectionHref } from "../../lib/site-copy";
 import { ArrowUpRight, Pause, Play } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 export function CinemaHero({ banners, companyName }: { banners: HeroBanner[]; companyName: { en: string; ar: string } }) {
-  const { t, locale, isRTL: ar, site } = useTranslation();
+  const { t, locale, site } = useTranslation();
   const catalogue = site ? collectionHref(site, locale) : `/${locale}/works`;
   const [index, setIndex] = React.useState(0);
   const [paused, setPaused] = React.useState(false);
   const [visible, setVisible] = React.useState(true);
-  const reduced = useReducedMotion();
+  const reduced = useSiteReducedMotion();
+  const theme = useSiteTheme();
+  const transition = useSiteMotionTransition();
   const section = React.useRef<HTMLElement>(null);
   const video = React.useRef<HTMLVideoElement>(null);
   const banner = banners[index % Math.max(1, banners.length)];
@@ -40,24 +44,15 @@ export function CinemaHero({ banners, companyName }: { banners: HeroBanner[]; co
     if (!moving || banners.length < 2) return;
     const timer = setInterval(
       () => setIndex((i) => (i + 1) % banners.length),
-      8000,
+      (theme?.design.bannerIntervalSeconds ?? 8) * 1000,
     );
     return () => clearInterval(timer);
-  }, [moving, banners.length]);
+  }, [moving, banners.length, theme?.design.bannerIntervalSeconds]);
   React.useEffect(() => {
     if (moving) video.current?.play().catch(() => { });
     else video.current?.pause();
   }, [moving, banner?.id]);
-  const title = banner
-    ? ar
-      ? banner.title_ar
-      : banner.title_en
-    : "";
-  const subtitle = banner
-    ? ar
-      ? banner.subtitle_ar
-      : banner.subtitle_en
-    : "";
+  const { heading: title, subtitle, primaryLabel, exploreLabel } = useHeroContent(banner, companyName[locale === "ar" ? "ar" : "en"], t("hero.fallbackSubtitle"));
   let href = safeWebsiteUrl(
     banner?.cta_link || "",
     `/${locale}/contact?intent=quote_request`,
@@ -71,7 +66,8 @@ export function CinemaHero({ banners, companyName }: { banners: HeroBanner[]; co
       ref={section}
       id="home"
       data-hero="true"
-      className="relative min-h-[88svh] flex items-end bg-tone-10 overflow-hidden"
+      data-hero-height={theme?.design.heroHeight ?? "comfortable"}
+      className="on-media relative flex items-end bg-tone-10 overflow-hidden"
     >
       <div className="absolute inset-0" aria-hidden="true">
         {banner?.media_type === "video" ? (
@@ -100,19 +96,19 @@ export function CinemaHero({ banners, companyName }: { banners: HeroBanner[]; co
             className="w-full h-full object-cover"
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-brand-base via-brand-base/60 to-brand-base/30" />
-        <div className="absolute inset-0 bg-gradient-to-b from-brand-base/85 via-brand-base/30 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-m3-scrim" style={{ opacity: (theme?.design.heroOverlayOpacity ?? 45) / 100 }} />
+        <div className="absolute inset-0 bg-gradient-to-b from-m3-scrim/50 via-m3-scrim/10 to-transparent pointer-events-none" />
       </div>
 
-      <div className="shell relative pt-40 pb-16 md:pb-24">
+      <div className="site-hero-content shell relative pt-40 pb-16 md:pb-24">
         <motion.div
           key={banner?.id || "fallback"}
           initial={reduced ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: reduced ? 0 : 0.45, ease: [0.2, 0, 0, 1] }}
+          transition={transition}
           className="max-w-5xl"
         >
-          <p className="web-eyebrow text-mint mb-6">{t("hero.eyebrow", { companyName: companyName[locale] })}</p>
+          <p className="web-eyebrow text-mint mb-6">{t("hero.eyebrow", { companyName: companyName[locale === "ar" ? "ar" : "en"] })}</p>
           <h1 className="font-display text-5xl sm:text-6xl lg:text-8xl leading-[1.04] tracking-tight font-bold whitespace-pre-line text-white">
             {title}
           </h1>
@@ -124,15 +120,14 @@ export function CinemaHero({ banners, companyName }: { banners: HeroBanner[]; co
           <div className="mt-9 flex flex-wrap items-center gap-5">
             <div>
               <Link href={href} className="web-button">
-                {(ar ? banner?.cta_label_ar : banner?.cta_label_en) ||
-                  t("hero.ideaAction")}
+                {primaryLabel}
                 <ArrowUpRight className="w-4 h-4 rtl:-scale-x-100" />
               </Link>
             </div>
             {href.replace(/[?#].*$/, "") !== catalogue && (
               <div>
                 <Link href={catalogue} className="web-hero-secondary">
-                  <span>{t("hero.explore")}</span>
+                  <span>{exploreLabel}</span>
                   <ArrowUpRight
                     aria-hidden="true"
                     className="w-4 h-4 rtl:-scale-x-100"

@@ -1,3 +1,6 @@
+import { Promotions } from "../../../components/store/Promotions";
+import { catalogueProductPrices } from "@platform/database/queries/store";
+import { storeEnabled } from "../../../lib/customer";
 import { Reveal } from "../../../components/shared/Reveal";
 import { isWebsitePreview } from "../../../lib/website";
 import { notFound, permanentRedirect } from "next/navigation";
@@ -14,14 +17,14 @@ export default async function CollectionPage({
   searchParams,
 }: {
   params: Promise<{ locale: string; collection: string }>;
-  searchParams: Promise<{ category?: string }>;
+  searchParams: Promise<{ category?: string; q?: string; page?: string }>;
 }) {
   const { locale, collection } = await params;
   const [{ website, config, info }, isPreview, t, query] = await Promise.all([getSite(), isWebsitePreview(), siteTranslations(locale), searchParams]);
   if (!website) notFound();
   // The same address level also holds the articles list and the company's own pages.
   if (collection === info.articles.slug && collection !== info.collection.slug)
-    return <ArticlesIndex articles={liveArticles(website.articles)} locale={locale} base={`/${locale}/${info.articles.slug}`} category={typeof query.category === "string" ? query.category.slice(0, 40) : ""} />;
+    return <ArticlesIndex articles={liveArticles(website.articles)} locale={locale} base={`/${locale}/${info.articles.slug}`} query={query} />;
   if (collection !== info.collection.slug) {
     const page = findPage(website.pages, { slug: collection }, isPreview);
     if (page) return <CmsPageView page={page} locale={locale} />;
@@ -37,8 +40,9 @@ export default async function CollectionPage({
     notFound();
   }
 
-  const items = website.portfolio;
-  const categories = Array.from(
+  const prices = await storeEnabled() ? await catalogueProductPrices(website.portfolio.map(item => item.id)) : new Map<string, number>();
+  const items = website.portfolio.map(item => prices.has(item.id) ? { ...item, price: prices.get(item.id) } : item);
+  const categories = website.categories ?? Array.from(
     new Map(
       items
         .filter((item) => item.category)
@@ -59,6 +63,9 @@ export default async function CollectionPage({
           </p>
         </Reveal>
 
+      </div>
+      <Promotions locale={locale} placement="catalogue" category={typeof query.category === "string" ? query.category : ""} />
+      <div className="shell pb-16">
         <PortfolioGrid items={items} categories={categories} layout={info.collection.layout} />
       </div>
     </div>

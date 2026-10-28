@@ -1,7 +1,7 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
-import en from "../../packages/locales/src/admin/en.json";
-import ar from "../../packages/locales/src/admin/ar.json";
+import en from "../../packages/locales/src/admin/en";
+import ar from "../../packages/locales/src/admin/ar";
 import {
   INTEGRATION_PROVIDERS,
   integrationSetupLinks,

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { randomUUID } from "node:crypto";
-import en from "../../../../packages/locales/src/admin/en.json";
-import ar from "../../../../packages/locales/src/admin/ar.json";
+import en from "../../../../packages/locales/src/admin/en";
+import ar from "../../../../packages/locales/src/admin/ar";
 import { testDatabase } from "../../helpers";
 
 const db =
@@ -13,7 +13,7 @@ let paymentId = "";
 test.beforeEach(async () => {
   quotationId = componentId = invoiceId = paymentId = "";
   const quotation = await db.quotation.create({
-    data: {
+    data: { currency: "BHD",
       quotationNumber: `E2E-${randomUUID()}`,
       status: "issued",
       validUntilDate: new Date("2050-12-31"),
@@ -30,7 +30,7 @@ test.beforeEach(async () => {
   });
   componentId = component.id;
   const invoice = await db.invoice.create({
-    data: {
+    data: { currency: "BHD",
       invoiceNumber: `E2E-${randomUUID()}`,
       dueDate: new Date("2050-12-31"),
       subtotal: 1,
@@ -40,7 +40,7 @@ test.beforeEach(async () => {
   });
   invoiceId = invoice.id;
   const payment = await db.payment.create({
-    data: { invoiceId, receiptNumber: `E2E-${randomUUID()}`, amount: 1 },
+    data: { currency: "BHD", invoiceId, receiptNumber: `E2E-${randomUUID()}`, amount: 1 },
   });
   paymentId = payment.id;
 });

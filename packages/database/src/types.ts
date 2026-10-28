@@ -40,8 +40,7 @@ export interface Profile {
   updated_at: string;
 }
 
-export type SupportedCurrency =
-  "BHD" | "SAR" | "AED" | "KWD" | "OMR" | "QAR" | "USD" | "EUR" | "GBP";
+export type SupportedCurrency = string;
 
 export interface CurrencyConfig {
   code: SupportedCurrency;
@@ -77,7 +76,7 @@ export const CURRENCY_CONFIGS = Object.fromEntries(
 
 export function getCurrencyDisplayLabel(
   code: SupportedCurrency,
-  locale: "en" | "ar" = "en",
+  locale: string = "en",
 ): string {
   const cfg = CURRENCY_CONFIGS[code];
   if (!cfg) return code;
@@ -260,14 +259,7 @@ export interface ClientLogo {
 
 export interface StudioEquipment {
   id: string;
-  category:
-    | "cameras"
-    | "lenses"
-    | "lighting"
-    | "audio_grading"
-    | "stages"
-    | "grip"
-    | "audio";
+  category: string;
   model_name: string;
   name_ar?: string;
   brand?: string;
@@ -580,14 +572,7 @@ export type InvoiceStatus =
 export type DiscountType = "none" | "percentage" | "fixed";
 export type DeliveryChannel = "email" | "whatsapp" | "print" | "download";
 
-export type ServiceCategory =
-  | "pre_production"
-  | "production"
-  | "post_production"
-  | "studio_rental"
-  | "equipment"
-  | "consulting"
-  | "other";
+export type ServiceCategory = string;
 
 export interface ServiceItem {
   id: string;
@@ -597,7 +582,7 @@ export interface ServiceItem {
   category: ServiceCategory;
   description_en?: string;
   description_ar?: string;
-  unit: "hour" | "day" | "project" | "unit" | "minute";
+  unit: string;
   default_rate: number;
   is_active: boolean;
   display_order: number;
@@ -1593,6 +1578,7 @@ export interface ContributionSetting {
   value: number;
 }
 export interface EmployeeSupport extends ContributionSetting {
+  claimPeriodMonths?: number;
   provider: string;
   startMonth: string;
   endMonth: string;

@@ -1,4 +1,6 @@
 "use client";
+import { LANGUAGES } from "@platform/locales/registry";
+import { useCompanyCountry } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
@@ -6,14 +8,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowLeft, Building2, CheckCircle2, Landmark, Plus, Star, Trash2, User, UserCog, UserPlus } from "lucide-react";
-import { Button, Card, Input, Select } from "@platform/ui";
+import { Button, Card, Input, PhoneInput, Select } from "@platform/ui";
 import type { ClientContactPersonInput, ClientProfileInput, CRMContact } from "@platform/database/types";
 import { CONTACT_TYPES } from "@platform/config/constants";
 import {
   CLIENT_KINDS,
   GOVERNMENT_TYPES,
   INDUSTRIES,
-  LEGAL_FORMS,
   countryOptions,
   type ClientKind,
 } from "@platform/database/constants/clients";
@@ -56,6 +57,7 @@ function Section({ title, children, aside }: { title: string; children: React.Re
 /** Create or edit a client: individual, company (local with CR, or foreign) or government entity. */
 export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contact?: CRMContact; defaultPaymentTermsDays: number }) {
   const router = useRouter();
+  const companyCountry = useCompanyCountry();
   const { t } = useAdminLocale();
   const c = t.clients;
   const f = c.form;
@@ -87,7 +89,7 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
     payment_terms_days: contact?.payment_terms_days,
     contact_type: contact?.contact_type ?? "client",
     notes: contact?.notes ?? "",
-    address: { country: "BH", ...(contact?.address_details ?? {}) },
+    address: { country: companyCountry ?? "", ...(contact?.address_details ?? {}) },
   }));
   const [persons, setPersons] = React.useState<Person[]>(() =>
     contact?.contact_persons?.length
@@ -110,8 +112,8 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
 
   const isOrg = kind !== "individual";
   const local = kind === "company" && values.company_origin !== "foreign";
-  const bahrainAddress = (values.address?.country || "BH") === "BH";
-  const orgCountry = kind === "company" ? (local ? "BH" : values.registration_country) : values.registration_country || "BH";
+  const bahrainAddress = values.address?.country === "BH";
+  const orgCountry = kind === "company" ? (local ? values.registration_country || companyCountry : values.registration_country) : values.registration_country || companyCountry;
   const showVat = vat.enabled || isOrg;
 
   const submit = async (event: React.FormEvent) => {
@@ -236,7 +238,7 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
                   <Input type="email" dir="ltr" value={values.email ?? ""} onChange={(e) => set("email", e.target.value)} />
                 </Field>
                 <Field label={f.phone}>
-                  <Input type="tel" dir="ltr" value={values.phone ?? ""} onChange={(e) => set("phone", e.target.value)} placeholder="+973" />
+                  <PhoneInput value={values.phone ?? ""} onChange={(val) => set("phone", val)} />
                 </Field>
                 <Field label={f.jobTitle}>
                   <Input value={values.job_title ?? ""} onChange={(e) => set("job_title", e.target.value)} />
@@ -260,17 +262,12 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
                 {kind === "company" ? (
                   <>
                     <Field label={f.legalForm}>
-                      <Select value={values.legal_form ?? ""} onChange={(e) => set("legal_form", e.target.value)}>
-                        <option value="">{f.select}</option>
-                        {LEGAL_FORMS.map((form) => (
-                          <option key={form} value={form}>{c.legalForms[form]}</option>
-                        ))}
-                      </Select>
+                      <Input value={values.legal_form ?? ""} onChange={(event) => set("legal_form", event.target.value)} maxLength={100} />
                     </Field>
                     {local ? (
                       <>
-                        <Field label={f.crNumber} hint={f.crNumberHint} required>
-                          <Input required dir="ltr" inputMode="numeric" pattern="\d{1,7}-\d{1,3}" value={values.cr_number ?? ""} onChange={(e) => set("cr_number", e.target.value)} placeholder="142859-1" />
+                        <Field label={f.crNumber} hint={orgCountry === "BH" ? f.crNumberHint : undefined} required>
+                          <Input required dir="ltr" pattern={orgCountry === "BH" ? "\\d{1,7}-\\d{1,3}" : undefined} value={values.cr_number ?? ""} onChange={(e) => set("cr_number", e.target.value)} />
                         </Field>
                         <Field label={f.crExpiry}>
                           <Input type="date" value={values.cr_expiry_date ?? ""} onChange={(e) => set("cr_expiry_date", e.target.value)} />
@@ -279,7 +276,7 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
                     ) : (
                       <>
                         <Field label={f.registrationCountry} required>
-                          {countrySelect(values.registration_country, (v) => set("registration_country", v), true, "BH")}
+                          {countrySelect(values.registration_country, (v) => set("registration_country", v), true, companyCountry)}
                         </Field>
                         <Field label={f.registrationNumber} hint={f.registrationNumberHint} required>
                           <Input required dir="ltr" value={values.registration_number ?? ""} onChange={(e) => set("registration_number", e.target.value)} />
@@ -298,7 +295,7 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
                       </Select>
                     </Field>
                     <Field label={f.entityCountry}>
-                      {countrySelect(values.registration_country || "BH", (v) => set("registration_country", v), false)}
+                      {countrySelect(values.registration_country || companyCountry, (v) => set("registration_country", v), false)}
                     </Field>
                     <Field label={f.supplierNumber} hint={f.supplierNumberHint}>
                       <Input dir="ltr" value={values.supplier_number ?? ""} onChange={(e) => set("supplier_number", e.target.value)} />
@@ -313,12 +310,8 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
                   <Input dir="ltr" inputMode={orgCountry === "BH" ? "numeric" : undefined} value={values.vat_number ?? ""} onChange={(e) => set("vat_number", e.target.value)} />
                 </Field>
                 <Field label={f.industry}>
-                  <Select value={values.industry ?? ""} onChange={(e) => set("industry", e.target.value)}>
-                    <option value="">{f.select}</option>
-                    {INDUSTRIES.map((industry) => (
-                      <option key={industry} value={industry}>{c.industries[industry]}</option>
-                    ))}
-                  </Select>
+                  <Input value={values.industry ?? ""} onChange={(event) => set("industry", event.target.value)} list="client-industry-options" maxLength={100} />
+                  <datalist id="client-industry-options">{INDUSTRIES.map((industry) => <option key={industry} value={industry}>{c.industries[industry]}</option>)}</datalist>
                 </Field>
                 <Field label={f.website}>
                   <Input dir="ltr" type="text" inputMode="url" value={values.website ?? ""} onChange={(e) => set("website", e.target.value)} placeholder={t.copy.websiteExample} />
@@ -383,7 +376,7 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
                         <Input type="email" dir="ltr" value={p.email ?? ""} onChange={(e) => setPerson(p.key, { email: e.target.value })} />
                       </Field>
                       <Field label={f.poc.phone}>
-                        <Input type="tel" dir="ltr" value={p.phone ?? ""} onChange={(e) => setPerson(p.key, { phone: e.target.value })} placeholder="+973" />
+                        <PhoneInput value={p.phone ?? ""} onChange={(val) => setPerson(p.key, { phone: val })} />
                       </Field>
                       <Field label={f.poc.notes}>
                         <Input value={p.notes ?? ""} onChange={(e) => setPerson(p.key, { notes: e.target.value })} />
@@ -452,8 +445,7 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
               <Field label={f.preferredLanguage}>
                 <Select value={values.preferred_language ?? ""} onChange={(e) => set("preferred_language", (e.target.value || undefined) as ClientProfileInput["preferred_language"])}>
                   <option value="">{f.languageDefault}</option>
-                  <option value="ar">{f.languageAr}</option>
-                  <option value="en">{f.languageEn}</option>
+                  {LANGUAGES.map((language) => <option key={language.code} value={language.code}>{language.name}</option>)}
                 </Select>
               </Field>
               <Field label={f.notes} wide>

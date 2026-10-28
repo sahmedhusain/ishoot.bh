@@ -1,24 +1,28 @@
 "use client";
+import { useSiteReducedMotion } from "../site/SiteTheme";
 
 import * as React from "react";
+import { categoryAncestors } from "@platform/database/constants/website-commerce";
+import type { PortfolioCategory } from "@platform/database/types";
 import Link from "next/link";
+import type { CollectionLayout } from "@platform/database/website-presets";
 import type { PortfolioItem } from "@platform/database/types";
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
 import { ArrowUpRight } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { CinemaLightbox } from "./CinemaLightbox";
-import { CollectionCard, collectionGridClass } from "./CollectionCard";
-import { collectionHref } from "../../lib/site-copy";
+import { CollectionCard } from "./CollectionCard";
+import { collectionHref, collectionGridClass } from "../../lib/site-copy";
 
-export function WorksSection({ items }: { items: PortfolioItem[] }) {
-  const { t, locale, isRTL: ar, site } = useTranslation();
-  const layout = site?.collection.layout ?? "media";
-  const reduced = useReducedMotion();
+export function WorksSection({ items, categories: categoryChoices, title, presentation, filterable = true, limit, list = false }: { items: PortfolioItem[]; categories?: PortfolioCategory[]; title?: string; presentation?: CollectionLayout; filterable?: boolean; limit?: number; list?: boolean }) {
+  const { t, locale, isArabic: ar, site } = useTranslation();
+  const layout = presentation ?? site?.collection.layout ?? "media";
+  const reduced = useSiteReducedMotion();
   const [category, setCategory] = React.useState("all");
   const [selected, setSelected] = React.useState<PortfolioItem | null>(null);
 
-  const categories = Array.from(
+  const categories = categoryChoices ?? Array.from(
     new Map(
       items.filter((i) => i.category).map((i) => [i.category!.id, i.category!]),
     ).values(),
@@ -31,19 +35,19 @@ export function WorksSection({ items }: { items: PortfolioItem[] }) {
   );
 
   const shown = featured
-    .filter((item) => category === "all" || item.category_id === category)
+    .filter((item) => !filterable || category === "all" || categoryAncestors(item.category?.slug ?? "", site?.commerce?.categoryParents).includes(categories.find(choice => choice.id === category)?.slug ?? ""))
     // Two wide project cards per row, three products or listings per row: two full rows either way.
-    .slice(0, layout === "product" || layout === "listing" ? 6 : 4);
+    .slice(0, limit ?? (layout === "product" || layout === "listing" ? 6 : 4));
 
   if (!items.length) return null;
 
   return (
     <section
       id="portfolio"
-      className="relative z-30 py-20 sm:py-28 bg-[#F8FAFC] text-[#0F172A] border-t border-slate-200 overflow-hidden"
+      className="relative z-30 py-20 sm:py-28 bg-m3-surface text-ink border-t border-m3-outline-variant overflow-hidden"
     >
       <div className="shell relative z-10 space-y-10">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-slate-200">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-m3-outline-variant">
           <motion.div
             initial={reduced ? false : { opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -54,10 +58,10 @@ export function WorksSection({ items }: { items: PortfolioItem[] }) {
             <SectionBadge className="!text-accent-pressed">
               {t("portfolio.badge")}
             </SectionBadge>
-            <h2 className="text-3xl sm:text-5xl font-display font-bold tracking-tight text-slate-950 leading-tight">
-              {t("portfolio.title")}
+            <h2 className="text-3xl sm:text-5xl font-display font-bold tracking-tight text-ink leading-tight">
+              {title || t("portfolio.title")}
             </h2>
-            <p className="text-sm sm:text-base text-slate-600 font-sans max-w-xl leading-relaxed">
+            <p className="text-sm sm:text-base text-ink-muted font-sans max-w-xl leading-relaxed">
               {t("portfolio.subtitle")}
             </p>
           </motion.div>
@@ -73,7 +77,7 @@ export function WorksSection({ items }: { items: PortfolioItem[] }) {
             }}
           >
             <Link
-              className="inline-flex min-h-11 gap-2 items-center px-5 py-2.5 rounded-md bg-white hover:bg-slate-100 text-accent-pressed border border-slate-300 text-sm font-semibold transition-colors duration-150"
+              className="inline-flex min-h-11 gap-2 items-center px-5 py-2.5 rounded-md bg-m3-surface-container-low hover:bg-m3-surface-container text-accent-pressed border border-m3-outline text-sm font-semibold transition-colors duration-150"
               href={site ? collectionHref(site, locale) : `/${locale}`}
             >
               <span>{t("portfolio.filterAll")}</span>
@@ -82,7 +86,7 @@ export function WorksSection({ items }: { items: PortfolioItem[] }) {
           </motion.div>
         </div>
 
-        <div className="flex flex-wrap gap-2.5">
+        {filterable && <div className="flex flex-wrap gap-2.5">
           {[
             {
               id: "all",
@@ -103,17 +107,17 @@ export function WorksSection({ items }: { items: PortfolioItem[] }) {
                 aria-pressed={isSelected}
                 onClick={() => setCategory(c.id)}
                 className={`min-h-11 px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors duration-150 cursor-pointer ${isSelected
-                  ? "bg-[var(--web-accent)] text-white border border-[var(--web-accent)]"
-                  : "bg-white text-slate-600 hover:text-slate-950 border border-slate-300 hover:border-slate-400"
+                  ? "bg-m3-primary text-m3-on-primary border border-m3-primary"
+                  : "bg-m3-surface-container-low text-ink-muted hover:text-ink border border-m3-outline hover:border-m3-outline"
                   }`}
               >
                 {ar ? c.nameAr : c.nameEn}
               </button>
             );
           })}
-        </div>
+        </div>}
 
-        <div className={collectionGridClass(layout)}>
+        <div className={list ? "grid gap-6" : collectionGridClass(layout)}>
           {shown.map((item, index) => (
             <motion.div
               key={item.id}
@@ -126,7 +130,7 @@ export function WorksSection({ items }: { items: PortfolioItem[] }) {
                 delay: reduced ? 0 : Math.min(index * 0.08, 0.2),
               }}
             >
-              <CollectionCard item={item} layout={layout} tone="light" onOpen={setSelected} />
+              <CollectionCard horizontal={list} item={item} layout={layout} tone="light" onOpen={setSelected} />
             </motion.div>
           ))}
         </div>

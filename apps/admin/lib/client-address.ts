@@ -24,7 +24,7 @@ export function formatClientAddress(
   const label = (template: string, value?: string) =>
     value ? formatMessage(template, { v: value }) : "";
   const parts =
-    (address.country || "BH") === "BH"
+    address.country === "BH"
       ? [
           label(labels.building, address.building),
           label(labels.unit, address.unit),

@@ -241,7 +241,7 @@ export const ACTIVITY_PRESETS: Record<BusinessActivity, ActivityPreset> = {
     collection: {
       slug: "menu",
       layout: "product",
-      fields: ["subtitle", "price", "attributes"],
+      fields: ["subtitle", "price", "attributes", "gallery"],
     },
     sections: ["portfolio", "about", "reviews", "stats", "faq"],
     pages: ALL_PAGES,
@@ -256,6 +256,8 @@ export const ACTIVITY_PRESETS: Record<BusinessActivity, ActivityPreset> = {
       reviews: true,
       products: true,
       procurement: true,
+      store: true,
+      delivery: true,
     },
   },
   services: {

@@ -107,7 +107,7 @@ export function RfqView({ rfq, suppliers, currency, canEdit, canOrder }: { rfq: 
             {rfq.lines.map((l) => (
               <div key={l.id} className="grid grid-cols-2 sm:grid-cols-[1fr_9rem_7rem] gap-2 items-center">
                 <span className="col-span-2 sm:col-span-1 text-sm text-ink">{`${l.description} × ${l.quantity}`}</span>
-                <Input aria-label={`${t.procurement.lines.unitPrice} · ${l.description}`} placeholder={t.procurement.lines.unitPrice} type="number" min={0} step="0.001" value={entry.prices[l.id]?.unitPrice ?? ""} onChange={(e) => setEntry({ ...entry, prices: { ...entry.prices, [l.id]: { ...entry.prices[l.id], unitPrice: e.target.value } } })} className="h-9 rounded-lg" />
+                <Input aria-label={`${t.procurement.lines.unitPrice} · ${l.description}`} placeholder={t.procurement.lines.unitPrice} type="number" min={0} step="any" value={entry.prices[l.id]?.unitPrice ?? ""} onChange={(e) => setEntry({ ...entry, prices: { ...entry.prices, [l.id]: { ...entry.prices[l.id], unitPrice: e.target.value } } })} className="h-9 rounded-lg" />
                 <Input aria-label={`${copy.leadTime} · ${l.description}`} placeholder={copy.leadTime} type="number" min={0} max={365} value={entry.prices[l.id]?.leadTimeDays ?? ""} onChange={(e) => setEntry({ ...entry, prices: { ...entry.prices, [l.id]: { ...entry.prices[l.id], leadTimeDays: e.target.value } } })} className="h-9 rounded-lg" />
               </div>
             ))}

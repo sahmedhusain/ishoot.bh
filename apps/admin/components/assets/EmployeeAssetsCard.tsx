@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
 import Link from "next/link";
@@ -16,6 +17,7 @@ export function EmployeeAssetsCard({ held, pending, value, own, canOpenAssets }:
   own: boolean;
   canOpenAssets: boolean;
 }) {
+  const companyCurrency = useCompanyCurrency();
   const { t, locale } = useAdminLocale();
   const a = t.assets;
   const isAr = locale === "ar";
@@ -27,7 +29,7 @@ export function EmployeeAssetsCard({ held, pending, value, own, canOpenAssets }:
           <h2 className="flex items-center gap-2 text-base font-bold text-ink"><Laptop className="h-4 w-4 text-accent" />{own ? a.myAssets : a.assetsHeld}</h2>
           <p className="text-xs text-ink-muted mt-0.5">{own ? a.myAssetsHint : a.assetsHeldHint}</p>
         </div>
-        {value > 0 && !own ? <span className="text-xs text-ink-muted">{formatMessage(a.heldValue, { amount: formatCurrencyValue(value, "BHD", isAr) })}</span> : null}
+        {value > 0 && !own ? <span className="text-xs text-ink-muted">{formatMessage(a.heldValue, { amount: formatCurrencyValue(value, companyCurrency, isAr) })}</span> : null}
       </div>
       {pending.length ? (
         <ul className="space-y-2">

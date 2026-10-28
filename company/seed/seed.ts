@@ -2978,7 +2978,7 @@ async function main() {
     {
       id: "expcat-08",
       slug: "gosi",
-      nameEn: "GOSI & Social Insurance",
+      nameEn: "Pensions & Social Insurance",
       nameAr: "التأمينات الاجتماعية",
       color: "#0284C7",
       displayOrder: 8,
@@ -4734,8 +4734,8 @@ async function main() {
   ];
 
   const empMap: Record<string, any> = {};
-  // Bahrain social insurance (SIO) defaults: 7% employee, 12% employer. Payroll cannot run without them.
-  const SIO_SETTINGS = {
+  // Bahrain social insurance (CONTRIBUTIONS) defaults: 7% employee, 12% employer. Payroll cannot run without them.
+  const CONTRIBUTION_SETTINGS = {
     employee: { mode: "percentage", value: 7 },
     employer: { mode: "percentage", value: 12 },
     supports: [],
@@ -4771,7 +4771,7 @@ async function main() {
         housingAllowance,
         transportAllowance,
         otherAllowances: 0.0,
-        payrollSettings: SIO_SETTINGS,
+        payrollSettings: CONTRIBUTION_SETTINGS,
         effectiveFrom: empFields.hireDate,
         isCurrent: true,
       },

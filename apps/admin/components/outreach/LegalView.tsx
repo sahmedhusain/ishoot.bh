@@ -65,7 +65,7 @@ function MatterForm({ initial, currency, people, onDone, onCancel }: { initial: 
           </Select>
         )}
       </Field>
-      <Field label={formatMessage(copy.fields.amount, { currency })}>{(id) => <Input id={id} type="number" min={0} step="0.001" value={form.amountAtStake} onChange={(e) => setForm({ ...form, amountAtStake: e.target.value })} className="rounded-lg" />}</Field>
+      <Field label={formatMessage(copy.fields.amount, { currency })}>{(id) => <Input id={id} type="number" min={0} step="any" value={form.amountAtStake} onChange={(e) => setForm({ ...form, amountAtStake: e.target.value })} className="rounded-lg" />}</Field>
       <div className="sm:col-span-3"><Field label={copy.fields.description}>{(id) => <Textarea id={id} rows={3} maxLength={10000} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="rounded-lg" />}</Field></div>
       {form.status === "closed" && <div className="sm:col-span-3"><Field label={copy.fields.outcome}>{(id) => <Textarea id={id} name="matterOutcome" rows={2} maxLength={10000} value={form.outcome} onChange={(e) => setForm({ ...form, outcome: e.target.value })} className="rounded-lg" />}</Field></div>}
       {error && <p role="alert" className="sm:col-span-3 text-sm text-rose-600">{error}</p>}

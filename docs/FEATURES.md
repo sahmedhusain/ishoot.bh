@@ -53,7 +53,7 @@ What the admin system does, by area, and the rules behind it. The exact routes a
 
 - **CRM:** web inquiries are de-duplicated into clients and deals. The deal pipeline has stages, and client profiles cover individuals, local and foreign companies and government, with points of contact and an ABC ranking.
 - **Quotations to invoices:** quotations convert to invoices under a row lock, so one quotation never produces two invoices. Discounts above the company or per-user limit need approval.
-- **Invoices and payments:** line items, VAT and other taxes, multiple currencies with recorded exchange rates, receipts with their own numbering, and overdue tracking. `pnpm db:check-integrity` audits totals, statuses and numbering.
+- **Invoices and payments:** line items, VAT and other taxes, the configured company currency without conversion or FX margins, receipts with their own numbering, and overdue tracking. `pnpm db:check-integrity` audits totals, statuses and numbering.
 - **Expenses and claims:** categories, recurring expenses, staff expense claims with approval and payment, and sales commissions.
 
 ## HR and payroll
@@ -65,7 +65,7 @@ What the admin system does, by area, and the rules behind it. The exact routes a
 - **Salary documents:** employees request payslips (up to 24 months at once) and salary certificates from their profile; HR issues them. Delivery is by email (through the retrying outbox) or WhatsApp as a private PDF. Issuing needs `employees:edit` and `payroll:read`.
 - **Final settlements:** unpaid approved payroll, missing months, outstanding commission, approved claims, unused leave, employer indemnity (including fractions of a year), recurring items and remaining recoveries. Calculated and manual rows are kept separate. Payment is refused if an included balance changed since calculation. Service before the first payroll record is flagged for HR review.
 - **Leave and handovers:** leave types can require a handover. Exit and leave handovers reassign open cases to one person, across a team, or case by case, return company assets, and run an HR checklist with approval.
-- **Statutory references** (Bahrain presets, editable per company): [Law 14/2022](https://lloc.gov.bh/Legislation/HTM/K1422) pension schedule; [SIO salary guide](https://www.sio.gov.bh/reports/pdf/SIO_Salary_English) (end-of-service uses basic salary plus social allowance); [Labour Law 36/2012, Art. 116](https://lloc.gov.bh/Legislation/HTM/K3612) indemnity; [Tamkeen plan](https://www.tamkeen.bh/wp-content/uploads/2024/03/EN-2024-Annual-Plan-Final.pdf) (employer unemployment contributions). Another jurisdiction needs its own rules configured.
+- **Company policy:** contribution schedules, country-to-scheme mappings, wage-support programmes, claim periods and indemnity cutoffs are configured by the company. No named fund or government programme is a universal platform rule.
 
 ## Assets
 

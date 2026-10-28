@@ -1,3 +1,4 @@
+import { getSite } from "../../../../../lib/site";
 import { measureOperation } from "@platform/database";
 import { FONT_UPLOAD_URL } from "@platform/database/constants/theme";
 import { NextRequest, NextResponse } from "next/server";
@@ -21,7 +22,7 @@ export async function GET(
     if (
       folder !== "brand" ||
       !(
-        /^[a-zA-Z0-9_-]+\.(png|jpg|jpeg|webp)$/.test(name) ||
+        /^[a-zA-Z0-9_-]+\.(pdf|png|jpg|jpeg|webp)$/.test(name) ||
         FONT_UPLOAD_URL.test(`/api/files/brand/${name}`)
       )
     )
@@ -31,6 +32,11 @@ export async function GET(
       select: { isPublic: true, mimeType: true },
     });
     if (!upload?.isPublic) return new NextResponse(null, { status: 404 });
+    const document = upload.mimeType === "application/pdf";
+    if (document) {
+      const { config } = await getSite();
+      if (!config.commerce.capabilities.downloads || !config.documents?.some(doc => doc.url === `/api/files/${folder}/${name}`)) return new NextResponse(null, { status: 404 });
+    }
     try {
       if (isSupabaseStorageConfigured() && upload) {
         const location = uploadStorageLocation(
@@ -55,7 +61,8 @@ export async function GET(
           headers: {
             "Content-Type": upload.mimeType,
             "Content-Length": String(info.size),
-            "Cache-Control": "public, max-age=31536000, immutable",
+            "Cache-Control": document ? "private, no-store" : "public, max-age=31536000, immutable",
+            ...(document ? { "Content-Disposition": `attachment; filename="${name}"` } : {}),
             "X-Content-Type-Options": "nosniff",
           },
         },

@@ -1,15 +1,16 @@
 "use client";
+import { useSiteReducedMotion } from "../site/SiteTheme";
 
 import * as React from "react";
 import type { Faq } from "@platform/database/types";
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
 import { ChevronDown } from "lucide-react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export function FAQSection({ faqs }: { faqs: Faq[] }) {
-  const { t, isRTL: ar } = useTranslation();
-  const reduced = useReducedMotion();
+  const { t, isArabic: ar } = useTranslation();
+  const reduced = useSiteReducedMotion();
   const [openIndex, setOpenIndex] = React.useState<number | null>(null);
 
   if (!faqs || !faqs.length) return null;

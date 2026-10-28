@@ -36,7 +36,7 @@ export function WishlistButton({ itemId, initiallySaved, signedIn, next }: { ite
         }
       }}
     >
-      <Heart className={`w-4 h-4 ${saved ? "fill-current text-rose-400" : ""}`} aria-hidden="true" />
+      <Heart className={`w-4 h-4 ${saved ? "fill-current text-m3-error" : ""}`} aria-hidden="true" />
       {text}
     </button>
   );

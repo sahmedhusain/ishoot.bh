@@ -1,3 +1,5 @@
+import type { CollectionLayout } from "../website-presets";
+import type { SiteTone } from "../constants/website-design";
 // Website pages are lists of blocks. Runtime-free: the admin editor, the server actions and the website share it.
 // Text is stored per language ({ en, ar }); a single-language company writes both sides at once (mirrorBilingual).
 
@@ -27,6 +29,8 @@ export const BLOCK_TYPES = [
   "leader",
   "pillars",
   "equipment",
+  "locations",
+  "downloads",
 ] as const;
 export type BlockType = (typeof BLOCK_TYPES)[number];
 
@@ -45,6 +49,8 @@ export const DATA_BLOCKS: readonly BlockType[] = [
   "leader",
   "pillars",
   "equipment",
+  "locations",
+  "downloads",
 ];
 
 /** Blocks only people with the custom-code permission (cms_code:edit) may add or change. */
@@ -67,7 +73,7 @@ export type EmbedPreset = (typeof EMBED_PRESETS)[number];
 
 export interface BlockData {
   hero: {
-    style: "cinematic" | "split" | "centered";
+    style: "inherit" | "cinematic" | "split" | "centered";
     title: LocalText;
     subtitle: LocalText;
   };
@@ -90,6 +96,8 @@ export interface BlockData {
   catalogue: {
     title: LocalText;
     layout: "grid" | "list";
+    presentation?: CollectionLayout | "inherit";
+    category?: string;
     filterable: boolean;
     limit: number;
   };
@@ -122,12 +130,15 @@ export interface BlockData {
   leader: { title: LocalText };
   pillars: { title: LocalText };
   equipment: { title: LocalText };
+  locations: { title: LocalText };
+  downloads: { title: LocalText };
 }
 
 export type Block<T extends BlockType = BlockType> = {
   id: string;
   type: T;
   visible: boolean;
+  tone?: SiteTone;
   data: BlockData[T];
 };
 
@@ -137,7 +148,7 @@ const none = () => text();
 /** A new block of a type, with empty or sensible starting values. */
 export function newBlockData<T extends BlockType>(type: T): BlockData[T] {
   const data: { [K in BlockType]: () => BlockData[K] } = {
-    hero: () => ({ style: "split", title: none(), subtitle: none() }),
+    hero: () => ({ style: "inherit", title: none(), subtitle: none() }),
     about: () => ({ title: none() }),
     rich_text: () => ({ html: none(), doc: { en: null, ar: null } }),
     image_text: () => ({
@@ -153,6 +164,8 @@ export function newBlockData<T extends BlockType>(type: T): BlockData[T] {
     catalogue: () => ({
       title: none(),
       layout: "grid",
+      presentation: "inherit",
+      category: "",
       filterable: true,
       limit: 12,
     }),
@@ -185,6 +198,8 @@ export function newBlockData<T extends BlockType>(type: T): BlockData[T] {
     leader: () => ({ title: none() }),
     pillars: () => ({ title: none() }),
     equipment: () => ({ title: none() }),
+    locations: () => ({ title: none() }),
+    downloads: () => ({ title: none() }),
   };
   return data[type]() as BlockData[T];
 }

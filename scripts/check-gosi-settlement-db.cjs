@@ -113,13 +113,13 @@ async function main() {
   const gratuity = require("../packages/database/src/hr/final-settlement.ts");
   assert.ok(
     gratuity.leavingIndemnity({
-      rules: gratuity.DEFAULT_GRATUITY_RULES,
+      rules: { ...gratuity.DEFAULT_GRATUITY_RULES, enabled: true, appliesTo: ["expat"], serviceUntil: "2024-02-29" },
       category: "expat",
       hireDate: D("2023-10-01"),
       lastWorkingDay: D("2024-01-01"),
       monthlyWage: 1000,
     }).amount > 0,
-    "fractional-year service earns employer indemnity before the SIO cutoff",
+    "fractional-year service earns employer indemnity before the configured cutoff",
   );
 
   try {
@@ -268,13 +268,13 @@ async function main() {
           assert.equal((await registration(local.id)).category, "bahraini");
           assert.equal((await registration(expat.id)).category, "expat");
 
-          // ---- support: Tamkeen for the local hire, 70% capped at 400 for a secondary-school graduate
+          // ---- support: Wage support fund for the local hire, 70% capped at 400 for a secondary-school graduate
           const program = await tx.supportProgram.create({
             data: {
               code: `t_tamkeen_${Date.now()}`,
               nameEn: "T",
               nameAr: "ت",
-              provider: "Tamkeen",
+              provider: "Wage support fund",
               claimPeriodMonths: 3,
               prorate: true,
             },
@@ -456,7 +456,7 @@ async function main() {
             data: { userId: user.id },
           });
           await tx.expenseClaim.create({
-            data: {
+            data: { currency: "BHD",
               claimNumber: `CLM-T-${Date.now()}`,
               claimantId: user.id,
               amount: 45.5,
@@ -756,7 +756,7 @@ async function main() {
           const customClaim = claimRows.find(
             (c) =>
               c.employeeId === local.id &&
-              c.provider === "Tamkeen" &&
+              c.provider === "Wage support fund" &&
               c.periodStart === "2199-05",
           );
           assert.equal(
@@ -792,7 +792,7 @@ async function main() {
     if (error !== rollback) throw error;
   }
   console.log(
-    "Social insurance and settlement checks passed and rolled back: dated rate changes, the 1st-of-month rule, service bands, registered wages and exemptions, Tamkeen schedule with qualification caps, partial approval and proration, and a final settlement from calculation through approval, signing and payment.",
+    "Social insurance and settlement checks passed and rolled back: dated rate changes, the 1st-of-month rule, service bands, registered wages and exemptions, Wage support fund schedule with qualification caps, partial approval and proration, and a final settlement from calculation through approval, signing and payment.",
   );
 }
 

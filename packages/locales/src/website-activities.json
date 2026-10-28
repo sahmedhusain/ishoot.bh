@@ -1764,5 +1764,280 @@
         "slug": "blog"
       }
     }
+  },
+  "media": {
+    "en": {
+      "nav": {
+        "works": "Works",
+        "equipment": "Gear Locker",
+        "bookNow": "Book Production"
+      },
+      "hero": {
+        "badge": "Cinema Production House",
+        "headline": "CINEMA IN EVERY FRAME.",
+        "subheadline": "Commercial cinematography, aerial drone capture, DaVinci Resolve color grading, and creative studio productions based in Bahrain.",
+        "fallbackTitle": "Stories in motion.\nAn impression that stays.",
+        "ideaAction": "Tell us your idea",
+        "explore": "Explore our work",
+        "caption": "From an idea to the screen"
+      },
+      "services": {
+        "badge": "Capabilities",
+        "title": "PRECISION PRODUCTION PILLARS",
+        "subtitle": "End-to-end creative visual execution engineered for high-impact commercial brands.",
+        "cinema": {
+          "title": "Commercial Cinematography",
+          "desc": "High-end television commercials, brand films, and documentary narratives shot on cinema-grade systems.",
+          "specs": []
+        },
+        "aerial": {
+          "title": "Heavy-Lift & FPV Aerial Capture",
+          "desc": "Licensed Bahrain civil aviation drone operations capturing monumental landscapes, industrial sites, and dynamic vehicular chases.",
+          "specs": [
+            "Heavy-Lift RED Drone",
+            "Custom FPV Pro Rigs",
+            "Dual-Operator Control"
+          ]
+        },
+        "photography": {
+          "title": "Commercial Photography",
+          "desc": "High-fashion, automotive, architectural, and luxury product photography with studio lighting mastery.",
+          "specs": []
+        },
+        "color": {
+          "title": "DaVinci Resolve HDR Color Grading",
+          "desc": "Dedicated post-production color suite equipped with reference OLED mastering displays for true cinema DCI-P3 color fidelity.",
+          "specs": [
+            "DaVinci Studio Cloud",
+            "Sony BVM Reference Monitor",
+            "ACES & Dolby Vision"
+          ]
+        },
+        "studio": {
+          "title": "Studio & Soundstage",
+          "desc": "Acoustically treated studio space with modular set construction, grid lighting, and seamless cycloramas."
+        },
+        "requestProposal": "Request Custom Production Quote",
+        "commercial": {
+          "title": "High-End Commercial Cinematography",
+          "desc": "Full-scale commercial productions for television broadcast, cinema screens, and brand campaign campaigns at the highest visual standards.",
+          "specs": [
+            "RED V-Raptor XL 8K",
+            "ARRI Master Primes T1.3",
+            "Full Cinema G&E Crew"
+          ]
+        },
+        "headline": "PRECISION PRODUCTION PILLARS"
+      },
+      "portfolio": {
+        "badge": "Selected Works",
+        "title": "THE ARCHIVE",
+        "subtitle": "Curated commercial campaigns, narrative films, and visual masterworks.",
+        "filterAll": "All Projects",
+        "viewProject": "View Project",
+        "credits": "Production Credits",
+        "dop": "Cinematography",
+        "backToWorks": "Back to Archive",
+        "showcaseTitle": "Certified Cinema Masterpieces",
+        "viewFullArchive": "View Full Cinematography Archive",
+        "productionOverview": "Overview & Details"
+      },
+      "clients": {
+        "marqueeBadge": "TRUSTED BY VISIONARY BRANDS"
+      },
+      "about": {
+        "title": "ARCHITECTS OF VISUAL IMPACT",
+        "headline": "Visual stories crafted for ambitious brands.",
+        "behindTheScenes": "Behind The Scenes · On Location",
+        "discoverStudio": "Discover Studio Story & Crew",
+        "pillars": {
+          "badge": "Pillars of Craft",
+          "title": "Engineering Precision & Visual Artistry"
+        },
+        "stats": {
+          "badge": "Studio in numbers"
+        },
+        "studioImageAlt": "Company workplace and team"
+      },
+      "contact": {
+        "subtitle": "Tell us about your production vision, timeline, and objectives. Our producers will connect within 24 hours.",
+        "projectDetails": "Project Brief & Objectives",
+        "submit": "Submit Production Inquiry",
+        "projectDetailsPlaceholder": "Tell us about your campaign goals, shoot locations, and desired deliverables...",
+        "studioInfo": "Studio Information",
+        "whatsappDesc": "Connect directly with one of our producers on WhatsApp for quick inquiries.",
+        "servicesList": [
+          "Commercial Cinematography",
+          "Aerial & FPV Cinematography",
+          "Commercial Photography",
+          "DaVinci Resolve Color Grading",
+          "Studio & Gear Rental",
+          "Documentary Production"
+        ],
+        "intents": {
+          "quoteRequestDesc": "Tell us about your production so we can understand the scope and prepare a quote."
+        },
+        "directStudioLine": "Contact the studio",
+        "projectRefPlaceholder": "https://example.com/reference or campaign link",
+        "shootLocation": "Shoot location / city (optional)",
+        "shootLocationPlaceholder": "e.g. Manama, Seef, or Riyadh",
+        "messagePlaceholder": "Tell us about your campaign goals, shoot locations, and desired deliverables..."
+      },
+      "footer": {
+        "invitationTitle": "Your next story. Made together.",
+        "invitationAction": "Discuss your project"
+      },
+      "reviews": {
+        "headline": "Trusted by Industry Leaders",
+        "subtitle": "Our commitment to visual perfection has built enduring partnerships with Bahrain's most prestigious organizations.",
+        "modal": {
+          "subtitle": "Your feedback guides our cinematic craftsmanship",
+          "quotePlaceholder": "Describe how our cinema cameras, production crew, and deliverables exceeded your vision..."
+        }
+      },
+      "faq": {
+        "headline": "Production Insights & Workflows",
+        "subtitle": "Clear, transparent answers about our production workflows, cinema equipment, and commercial licensing."
+      },
+      "cta": {
+        "requestTreatment": "Request Quote & Shoot Session"
+      }
+    },
+    "ar": {
+      "nav": {
+        "equipment": "خزانة المعدات",
+        "bookNow": "احجز إنتاجك"
+      },
+      "hero": {
+        "badge": "دار إنتاج سينمائي",
+        "headline": "سينما في كل إطار.",
+        "subheadline": "تصوير سينمائي إعلاني، تصوير جوي بطائرات الدرون، تصحيح ألوان دافينشي ريزولف، وإنتاجات استوديو إبداعية في مملكة البحرين.",
+        "fallbackTitle": "قصص تُرى.\nوأثر يبقى.",
+        "ideaAction": "ناقش مشروعك",
+        "explore": "استكشف أعمالنا",
+        "caption": "من الفكرة إلى الشاشة"
+      },
+      "services": {
+        "badge": "قدراتنا الإنتاجية",
+        "title": "ركائز الإنتاج الفني الدقيق",
+        "subtitle": "نوفر منظومة إنتاج سينمائي متكاملة من الفكرة والسيناريو، إلى التصوير بكاميرات 8K، وتصحيح الألوان في الاستوديو.",
+        "cinema": {
+          "title": "التصوير السينمائي التجاري",
+          "desc": "إعلانات تلفزيونية راقية، وأفلام ترويجية، وروايات وثائقية ملتقطة بأحدث كاميرات السينما العالمية.",
+          "specs": []
+        },
+        "aerial": {
+          "title": "تصوير جوي سينمائي وFPV احترافي",
+          "desc": "عمليات تصوير جوي مرخصة من شؤون الطيران المدني لتوثيق المشاريع المعمارية والصناعية ومطاردات السيارات الحماسية.",
+          "specs": [
+            "طائرات درون تحمل ريد",
+            "طائرات FPV سريعة",
+            "تحكم ثنائي بالملاحة والكاميرا"
+          ]
+        },
+        "photography": {
+          "title": "التصوير الفوتوغرافي الإعلاني",
+          "desc": "تصوير الأزياء الراقية، السيارات، الهندسة المعمارية، والمنتجات الفاخرة بإضاءة استوديو متقنة.",
+          "specs": []
+        },
+        "color": {
+          "title": "تصحيح ألوان سينمائي في استوديو دافينشي",
+          "desc": "استوديو تصحيح ألوان متقدم مزود بشاشات ماسترينغ سينمائية لمعايرة الألوان السينمائية وتصدير ماستر 4K/HDR.",
+          "specs": [
+            "سحابة دافينشي ستوديو",
+            "شاشة مرجعية سوني",
+            "معايرة دولبي فيجن وACES"
+          ]
+        },
+        "studio": {
+          "title": "استوديو ومساحة إنتاج متكاملة",
+          "desc": "مساحة استوديو معزولة صوتياً مع ديكورات معيارية، شبكة إضاءة علوية، وخلفيات سايك مقوسة سلسة."
+        },
+        "requestProposal": "طلب تسعير إنتاجي مخصص",
+        "commercial": {
+          "title": "إنتاج إعلانات سينمائية عالية الجودة",
+          "desc": "إنتاج إعلانات تجارية متكاملة مخصصة للبث التلفزيوني والسينمائي وحملات العلامات التجارية بأعلى المعايير البصرية.",
+          "specs": [
+            "كاميرات ريد 8K",
+            "طقم عدسات آري T1.3",
+            "طاقم إضاءة وتصوير كامل"
+          ]
+        },
+        "headline": "قدرات سينمائية بلا حدود"
+      },
+      "portfolio": {
+        "badge": "مختارات من الأعمال",
+        "title": "أرشيف الإنتاج",
+        "subtitle": "حملات إعلانية منتقاة، أفلام روائية، وأعمال بصرية رائدة.",
+        "filterAll": "جميع المشاريع",
+        "viewProject": "عرض المشروع",
+        "credits": "فريق الإنتاج",
+        "dop": "التصوير",
+        "backToWorks": "العودة إلى الأعمال",
+        "showcaseTitle": "تحف سينمائية معتمدة",
+        "viewFullArchive": "عرض جميع الأعمال والمشاريع في الأرشيف",
+        "productionOverview": "نظرة عامة والتفاصيل"
+      },
+      "clients": {
+        "marqueeBadge": "شركاء الإبداع والعلامات التجارية"
+      },
+      "about": {
+        "title": "مهندسو التأثير البصري والسينمائي",
+        "headline": "قصص بصرية نصنعها للعلامات الطموحة.",
+        "behindTheScenes": "خلف الكواليس · موقع التصوير",
+        "discoverStudio": "تعرف على قصة الاستوديو وفريق العمل",
+        "pillars": {
+          "badge": "أركان الحرفة السينمائية",
+          "title": "الدقة الفنية والابتكار الإبداعي"
+        },
+        "stats": {
+          "badge": "الاستوديو بالأرقام"
+        },
+        "studioImageAlt": "فريقنا وبيئة العمل في الشركة"
+      },
+      "contact": {
+        "subtitle": "شاركنا رؤيتك لمشروعك الإنتاجي، والجدول الزمني، والأهداف. وسيتواصل معك فريق الإنتاج خلال 24 ساعة.",
+        "projectDetails": "تفاصيل المشروع وأهدافه",
+        "submit": "إرسال طلب الإنتاج",
+        "projectDetailsPlaceholder": "اشرح لنا رؤيتك الإنتاجية، المواقع المحددة، ومخرجات التسليم المطلوبة...",
+        "studioInfo": "معلومات الاستوديو",
+        "whatsappDesc": "تواصل مباشرة مع أحد منتجينا عبر تطبيق واتساب للحصول على استجابة سريعة.",
+        "servicesList": [
+          "تصوير سينمائي إعلاني",
+          "تصوير جوي و FPV",
+          "تصوير فوتوغرافي تجاري",
+          "تصحيح ألوان دافينشي",
+          "استئجار استوديو ومعدات",
+          "إنتاج وثائقي"
+        ],
+        "intents": {
+          "quoteRequestDesc": "أخبرنا عن مشروعك لنساعدك في تحديد نطاقه وتكلفته."
+        },
+        "directStudioLine": "تواصل مع الاستوديو",
+        "projectRefPlaceholder": "https://example.com/reference أو رابط الحملة",
+        "shootLocation": "موقع التصوير / المدينة (اختياري)",
+        "shootLocationPlaceholder": "مثال: المنامة، السيف، أو الرياض",
+        "messagePlaceholder": "أخبرنا عن أهداف حملتك الإعلانية، ومواقع التصوير، والمخرجات المطلوبة..."
+      },
+      "footer": {
+        "invitationTitle": "فكرتك القادمة. نرويها معاً.",
+        "invitationAction": "ناقش مشروعك"
+      },
+      "reviews": {
+        "headline": "ثقة كبرى العلامات التجارية",
+        "subtitle": "التزامنا التام بالكمال البصري أثمر عن شراكات متينة مع أعرق المؤسسات في البحرين والخليج.",
+        "modal": {
+          "subtitle": "ملاحظاتك تساعدنا على مواصلة التميز السينمائي",
+          "quotePlaceholder": "شاركنا انطباعك عن جودة التصوير، المعدات، الإخراج، والالتزام بالمواعيد..."
+        }
+      },
+      "faq": {
+        "headline": "معلومات وسير العمل الإنتاجي",
+        "subtitle": "إجابات شفافة ومباشرة عن معداتنا السينمائية، وجداول التصوير، ورخص التشغيل."
+      },
+      "cta": {
+        "requestTreatment": "طلب تسعير وجلسة تصوير"
+      }
+    }
   }
 }

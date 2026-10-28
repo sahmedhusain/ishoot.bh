@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { googleFontsHref, normalizeTheme, themeStylesheet } from "@platform/database/constants/theme";
+import { googleFontsHref, normalizeTheme, themeStylesheet, websiteThemeStylesheet } from "@platform/database/constants/theme";
 
 /**
  * Only in a preview shown inside the admin's setup wizard: the admin sends the theme being edited (applied at
@@ -19,9 +19,8 @@ export function PreviewBridge({ adminOrigin }: { adminOrigin: string }) {
       if (event.data.type === "platform:theme") {
         const theme = normalizeTheme(event.data.theme);
         const style = document.getElementById("company-theme");
-        if (style) style.textContent = themeStylesheet(theme);
-        document.documentElement.classList.remove("light", "dark");
-        if (theme.websiteMode) document.documentElement.classList.add(theme.websiteMode);
+        if (style) style.textContent = themeStylesheet(theme) + websiteThemeStylesheet(theme);
+
         const href = googleFontsHref(theme);
         let link = document.getElementById("preview-fonts") as HTMLLinkElement | null;
         if (href && !link) {

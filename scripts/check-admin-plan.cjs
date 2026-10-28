@@ -291,9 +291,7 @@ async function runTests() {
     "../services/approval-engine": {
       submitForApproval: async () => ({ approvalRequestId: "apr-1", status: "pending", finalized: false, approverIds: [] }),
     },
-    "./fx-settlement": {
-      getLatestExchangeRate: async () => ({ rate: 1.0, isFallback: false, provider: "parity", effectiveDate: new Date() }),
-    },
+    "../finance/company-currency": { companyCurrency: async () => "BHD", assertCompanyCurrency: async (requested) => { if (requested && requested !== "BHD") throw new Error("Company currency required"); return "BHD"; } },
     "./crm": { advanceDealForEvent: async () => false },
     "../finance/vat": { companyVat: async () => ({ vatEnabled: true, vatPercentage: 10 }), companyTaxes: async () => [], documentTaxRows: () => [], mapDocumentTaxLines: () => [] },
     "./sales-attribution": { resolveSalesOwner: async (requested, issuer) => requested || issuer || null },

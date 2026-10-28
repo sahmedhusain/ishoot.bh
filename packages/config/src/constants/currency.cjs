@@ -1,6 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CURRENCY_SYMBOLS = void 0;
+// ISO 4217 active currencies and funds; source: SIX list-one.xml, 2026-10-28.
+const currencyReference = require("./currencies.json");
+exports.CURRENCY_CODES = currencyReference.map(({ code }) => code).filter((code) => !["XTS", "XXX"].includes(code));
+exports.isCurrencyCode = (code) => typeof code === "string" && exports.CURRENCY_CODES.includes(code);
 exports.getCurrencySymbol = getCurrencySymbol;
 exports.getCurrencyDecimals = getCurrencyDecimals;
 exports.getCurrencyLabel = getCurrencyLabel;
@@ -96,11 +100,13 @@ function getCurrencySymbol(code, unicode = true) {
 exports.ARABIC_CURRENCY_LABELS = { BHD: "د.ب", KWD: "د.ك", QAR: "ر.ق", SAR: "ر.س", AED: "د.إ", OMR: "ر.ع", EGP: "ج.م", JOD: "د.أ" };
 /** The currency's symbol; on Arabic screens a Latin abbreviation (BHD, KD, SAR…) becomes its Arabic one. Official signs stay. */
 function getCurrencyLabel(code, isArabic = false, unicode = true) {
-  const normalized = (code || "BHD").trim().toUpperCase();
+  const normalized = (code || "").trim().toUpperCase();
   const symbol = getCurrencySymbol(normalized, unicode);
   return isArabic && /[A-Za-z]/.test(symbol) && exports.ARABIC_CURRENCY_LABELS[normalized] ? exports.ARABIC_CURRENCY_LABELS[normalized] : symbol;
 }
 function getCurrencyDecimals(code) {
+  const reference = currencyReference.find((item) => item.code === code.trim().toUpperCase());
+  if (reference?.minorUnits != null) return reference.minorUnits;
   try {
     return (
       new Intl.NumberFormat("en", {

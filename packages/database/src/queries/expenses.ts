@@ -1,14 +1,10 @@
+import { roundMoney, validMoneyAmount } from "../finance/money";
+import { assertCompanyCurrency } from "../finance/company-currency";
 import { serverMessages } from "@platform/locales";
-import { assertSupportedCurrency } from "../constants/finance";
-import { getCompanySettings } from "./company-settings";
 import { db, runAtomicMutation } from "../db";
 import { claimUploadOrLink } from "../services/uploads";
 import { Expense, ExpenseCategory, SupportedCurrency } from "../types";
 
-function supportedOrThrow(code: string) {
-  assertSupportedCurrency(code);
-  return code;
-}
 
 function mapCategory(c: any): ExpenseCategory {
   return {
@@ -56,7 +52,7 @@ export function mapExpense(e: any): Expense {
     description_en: e.descriptionEn,
     description_ar: e.descriptionAr || undefined,
     amount: Number(e.amount),
-    currency: (e.currency as SupportedCurrency) || "BHD",
+    currency: String(e.currency ?? ""),
     expense_date: e.expenseDate.toISOString().split("T")[0],
     vendor_name: e.vendorName || undefined,
     receipt_url: e.receiptUrl || undefined,
@@ -240,6 +236,8 @@ export async function createExpense(
   if (!Number.isFinite(inputVat) || inputVat < 0 || inputVat >= expense.amount)
     throw new Error(serverMessages.inputVatMustBeLessThanThe);
   return runAtomicMutation(async () => {
+    const currency = await assertCompanyCurrency(expense.currency);
+    if (!validMoneyAmount(expense.amount, currency) || !validMoneyAmount(inputVat, currency, true)) throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
     const link = await resolveExpenseLink(expense);
     if (expense.category_id) {
       const category = await db.expenseCategory.findUnique({
@@ -261,11 +259,9 @@ export async function createExpense(
         descriptionAr: expense.description_ar || null,
         amount: expense.amount,
         inputVatAmount: inputVat,
-        netAmount: Math.round((expense.amount - inputVat) * 1000) / 1000,
+        netAmount: roundMoney(expense.amount - inputVat, currency),
         isVatRecoverable: expense.is_vat_recoverable ?? true,
-        currency: supportedOrThrow(
-          expense.currency || (await getCompanySettings()).default_currency,
-        ),
+        currency,
         createdById: ownerId || null,
         expenseDate: expense.expense_date
           ? new Date(expense.expense_date)
@@ -349,7 +345,13 @@ export async function updateExpense(
       (!Number.isFinite(data.amount) || data.amount <= 0)
     )
       throw new Error(serverMessages.expenseAmountMustBePositive);
+    const existing = await db.expense.findUnique({ where: { id } });
+    if (!existing) return null;
+    await assertCompanyCurrency(existing.currency);
+    if (data.amount !== undefined && !validMoneyAmount(data.amount, existing.currency)) throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
     const updateData: any = {};
+    if (data.amount !== undefined) updateData.netAmount = roundMoney(data.amount - Number(existing.inputVatAmount), existing.currency);
+    if (data.amount !== undefined && Number(existing.inputVatAmount) >= data.amount) throw new Error(serverMessages.inputVatMustBeLessThanThe);
     if (data.category_id !== undefined)
       updateData.categoryId = data.category_id;
     if (
@@ -373,7 +375,7 @@ export async function updateExpense(
       updateData.descriptionAr = data.description_ar;
     if (data.amount !== undefined) updateData.amount = data.amount;
     if (data.currency !== undefined) {
-      assertSupportedCurrency(data.currency);
+      await assertCompanyCurrency(data.currency);
       updateData.currency = data.currency;
     }
     if (data.expense_date !== undefined)

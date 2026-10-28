@@ -1,4 +1,5 @@
 "use server";
+import { assertCompanyCurrency } from "@platform/database/finance/company-currency";
 import { serverMessages } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@platform/database";
@@ -467,26 +468,16 @@ export async function convertInquiryToClientAction(inquiryId: string) {
       });
 
       // 4. Create Deal
-      let estimatedValue = 0;
-      if (inquiry.budgetRange) {
-        const numbers = inquiry.budgetRange
-          .replace(/,/g, "")
-          .match(/\d+(?:\.\d+)?/g);
-        if (numbers && numbers.length > 0) {
-          estimatedValue = /^(under|not sure)/i.test(inquiry.budgetRange)
-            ? 0
-            : Number(numbers[0]) || 0;
-        }
-      }
-
-      const dealTitle = `${inquiry.companyName || inquiry.name} — Production Project`;
+      // A translated budget label is not a monetary quote; the owner prices the lead later.
+      const dealTitle = inquiry.companyName || inquiry.name;
       const servicesList = inquiry.serviceType || "";
 
       const deal = await tx.crmDeal.create({
         data: {
           sourceInquiryId: inquiryId,
           title: dealTitle,
-          dealValue: estimatedValue,
+          dealValue: 0,
+          currency: await assertCompanyCurrency(undefined, tx),
           dealStage: "lead",
           contactId: contact.id,
           notes: `Services requested: ${servicesList}\nClient message: ${inquiry.message || ""}`,

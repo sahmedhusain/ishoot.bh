@@ -61,6 +61,7 @@ for (const key of [
 ])
   report[key] = 12.345;
 const detail = {
+  reportingCurrency: "BHD",
   monthly: [],
   invoices: [],
   expensesByCategory: [],

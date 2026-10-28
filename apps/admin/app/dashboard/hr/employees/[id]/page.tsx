@@ -1,3 +1,4 @@
+import { getHrPolicy } from "@platform/database";
 import { EmployeeAttachments } from "../../../../../components/hr/EmployeeAttachments";
 import { SalaryDocumentsView } from "../../../../../components/hr/SalaryDocumentsView";
 import {
@@ -126,6 +127,7 @@ export default async function EmployeeDetailPage({
       />
       {residency && (
         <EmployeeResidencyPanel
+          visaExemptCountries={(await getHrPolicy()).visaExemptCountries}
           employeeId={id}
           residency={residency}
           canEdit={canEdit}

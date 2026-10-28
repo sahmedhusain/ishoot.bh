@@ -1,3 +1,4 @@
+import { phoneSearchVariants } from "../constants/phone";
 import { Prisma } from "@prisma/client";
 import { serverMessages } from "@platform/locales";
 import { db } from "../db";
@@ -71,7 +72,7 @@ export async function listShipments(
         OR: [
           { number: { contains: q, mode: "insensitive" } },
           { recipientName: { contains: q, mode: "insensitive" } },
-          { recipientPhone: { contains: q } },
+          ...phoneSearchVariants(q).map((value) => ({ recipientPhone: { contains: value } })),
           { order: { number: { contains: q, mode: "insensitive" } } },
         ],
       },

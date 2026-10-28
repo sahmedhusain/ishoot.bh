@@ -1,7 +1,12 @@
+import { commonEn, commonAr, withCommonCopy } from "./common.cjs";
+export { getCommonTranslations, getUiTranslations } from "./additional";
+import { additionalTranslations, getCommonTranslations } from "./additional";
+import { type Locale } from "./registry";
+export { LANGUAGES, isLocale, isRtlLocale, type Locale } from "./registry";
 import enBase from "./en.json";
 import arBase from "./ar.json";
-import adminEn from "./admin/en.json";
-import adminAr from "./admin/ar.json";
+import adminEn from "./admin/en";
+import adminAr from "./admin/ar";
 import websiteActivities from "./website-activities.json";
 import { deepMerge, type DeepPartial } from "./merge";
 import { withAdminActivity } from "./admin-activity";
@@ -15,19 +20,22 @@ export {
 export const serverMessages = adminEn.serverErrors.messages;
 export const serverTemplates = adminEn.serverErrors.templates;
 
-export type Locale = "en" | "ar";
 
 // The admin dictionary lives in its own files so the admin client can load it without the website copy.
-const en = { ...enBase, admin: adminEn };
-const ar: typeof en = { ...arBase, admin: adminAr };
+const en = { ...withCommonCopy(enBase, "web", commonEn), admin: adminEn };
+const ar: typeof en = { ...withCommonCopy(arBase, "web", commonAr), admin: adminAr };
 
 export type TranslationKeys = typeof en;
 export type AdminTranslationKeys = typeof adminEn;
 
-const translations: Record<Locale, TranslationKeys> = { en, ar };
+const translations: Partial<Record<Locale, TranslationKeys>> = { en, ar };
 
 export function getTranslations(locale: Locale): TranslationKeys {
-  return translations[locale] || translations.en;
+  if (translations[locale]) return translations[locale]!;
+  const common = getCommonTranslations(locale);
+  const dictionary = withCommonCopy(deepMerge(en, additionalTranslations[locale] as never), "web", common);
+  dictionary.admin = withCommonCopy(dictionary.admin, "admin", common);
+  return translations[locale] = dictionary;
 }
 
 export function getNestedTranslation(obj: any, path: string): string {
@@ -46,7 +54,7 @@ export function getNestedTranslation(obj: any, path: string): string {
 
 export { en, ar };
 
-/** Website wording an activity changes; the base dictionary is the media wording. */
+/** Website wording an activity changes; the base dictionary is activity-neutral. */
 export type WebsiteCopyOverlay = DeepPartial<TranslationKeys>;
 
 const activityCopy = websiteActivities as unknown as Record<
@@ -54,16 +62,16 @@ const activityCopy = websiteActivities as unknown as Record<
   Partial<Record<Locale, WebsiteCopyOverlay>>
 >;
 
-/** The wording an activity layers over the base website copy ("media" uses the base as it is). */
+/** The wording an activity layers over the base website copy. */
 export function websiteActivityCopy(
   locale: Locale,
   activity: string | null | undefined,
 ): WebsiteCopyOverlay {
-  if (!activity || activity === "media" || !activityCopy[activity]) return {};
+  if (!activity || !activityCopy[activity]) return {};
   return deepMerge(
     {} as WebsiteCopyOverlay,
-    activityCopy._common?.[locale] as never,
-    activityCopy[activity]?.[locale] as never,
+    activityCopy._common?.[locale === "ar" ? "ar" : "en"] as never,
+    activityCopy[activity]?.[locale === "ar" ? "ar" : "en"] as never,
   );
 }
 
@@ -85,5 +93,7 @@ export function getAdminTranslations(
   locale: Locale,
   activity?: string | null,
 ): AdminTranslationKeys {
-  return withAdminActivity(getTranslations(locale).admin, locale, activity);
+  const common = getCommonTranslations(locale);
+  const base = deepMerge(withAdminActivity(getTranslations(locale).admin, locale === "ar" ? "ar" : "en", activity), additionalTranslations[locale]?.admin as never);
+  return withCommonCopy(base, "admin", common);
 }

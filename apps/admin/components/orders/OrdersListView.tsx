@@ -17,6 +17,7 @@ interface Row {
   name: string;
   channel: string;
   status: string;
+  fulfilment: string;
   payment_status: string;
   payment_method: string;
   total: number;
@@ -74,7 +75,7 @@ export function OrdersListView({ rows, total, page, pageSize, filters, currency,
               <li key={o.id}>
                 <Link href={ROUTES.orders.detail(o.id)} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 hover:bg-ink/[0.02]">
                   <span className="font-mono text-xs font-semibold text-ink" dir="ltr">{o.number}</span>
-                  <OrderStatusPill status={o.status} />
+                  <OrderStatusPill status={o.status} fulfilment={o.fulfilment} />
                   <PaymentStatusPill status={o.payment_status} />
                   <span className="text-sm text-ink"><bdi dir="auto">{o.name}</bdi></span>
                   <span className="text-xs text-ink-muted">{(copy.channels as Record<string, string>)[o.channel]}</span>

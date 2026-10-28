@@ -1,26 +1,5 @@
 {
   "common": {
-    "loading": "Loading...",
-    "save": "Save",
-    "saved": "Saved successfully",
-    "cancel": "Cancel",
-    "delete": "Delete",
-    "edit": "Edit",
-    "create": "Create",
-    "search": "Search...",
-    "filter": "Filter",
-    "all": "All",
-    "status": "Status",
-    "actions": "Actions",
-    "date": "Date",
-    "view": "View",
-    "download": "Download",
-    "print": "Print",
-    "sendEmail": "Send via Email",
-    "sendWhatsapp": "Send via WhatsApp",
-    "notes": "Notes",
-    "yes": "Yes",
-    "no": "No",
     "confirmDelete": "Are you sure you want to delete this item? This action cannot be undone.",
     "backToTop": "Back to top",
     "online": "Online",
@@ -36,22 +15,27 @@
     "openMenu": "Open menu",
     "menu": "Navigation menu",
     "closeMenu": "Close menu",
-    "close": "Close",
     "website": "Website",
     "returnHome": "Return home",
     "errorTitle": "Content is temporarily unavailable",
     "errorDescription": "Please try loading this page again.",
-    "retry": "Retry",
     "returnHomeEnglish": "Return home (English)",
-    "examplePreview": "Example website"
+    "examplePreview": "Example website",
+    "themeAppearance": "Website appearance",
+    "themeModes": {
+      "light": "Light",
+      "dark": "Dark",
+      "mixed": "Mixed"
+    },
+    "documentsAndDownloads": "Documents and downloads"
   },
   "nav": {
     "home": "Home",
-    "works": "Works",
+    "works": "Our work",
     "about": "About",
     "contact": "Contact",
-    "equipment": "Gear Locker",
-    "bookNow": "Book Production",
+    "equipment": "Resources",
+    "bookNow": "Get in touch",
     "switchLang": "العربية",
     "adminPortal": "Admin Portal",
     "webSettings": "Website Settings",
@@ -60,132 +44,100 @@
     "cart": "Cart"
   },
   "hero": {
-    "badge": "Cinema Production House",
-    "headline": "CINEMA IN EVERY FRAME.",
-    "subheadline": "Commercial cinematography, aerial drone capture, DaVinci Resolve color grading, and creative studio productions based in Bahrain.",
+    "badge": "Made for your business",
+    "headline": "A better way forward.",
+    "subheadline": "Discover our services, explore our work and talk with our team.",
     "exploreWorks": "Explore Works",
     "startProject": "Start a Project",
     "audioOn": "Sound On",
     "audioOff": "Sound Off",
     "scroll": "Scroll to Discover",
-    "fallbackTitle": "Stories in motion.\nAn impression that stays.",
-    "fallbackSubtitle": "Visual production from the first idea to the final frame. Based in Bahrain.",
+    "fallbackTitle": "Your next step,\nmade possible.",
+    "fallbackSubtitle": "From the first conversation to the final delivery.",
     "eyebrow": "Welcome to {companyName}",
-    "ideaAction": "Tell us your idea",
-    "explore": "Explore our work",
-    "caption": "From an idea to the screen",
+    "ideaAction": "Get in touch",
+    "explore": "See our work",
+    "caption": "Ideas. Expertise. Possibilities.",
     "slideLabel": "Slide",
     "pause": "Pause motion",
     "resume": "Resume motion"
   },
   "showreel": {
-    "badge": "2026 Showreel",
-    "title": "VISION CRAFTED IN MOTION",
-    "subtitle": "A curated collection of our commercial films, brand narratives, and aerial cinema across Bahrain and the Arabian Gulf.",
-    "playShowreel": "Play Full Showreel",
-    "watchIn4k": "Watch in 4K",
-    "streamTitle": "4K Cinema Stream"
+    "badge": "Watch more",
+    "title": "Discover our work",
+    "subtitle": "A closer look at what we do.",
+    "playShowreel": "Play video",
+    "watchIn4k": "Watch video",
+    "streamTitle": "Video"
   },
   "services": {
-    "badge": "Capabilities",
-    "title": "PRECISION PRODUCTION PILLARS",
-    "subtitle": "End-to-end creative visual execution engineered for high-impact commercial brands.",
-    "cinema": {
-      "title": "Commercial Cinematography",
-      "desc": "High-end television commercials, brand films, and documentary narratives shot on cinema-grade systems.",
-      "specs": []
-    },
-    "aerial": {
-      "title": "Heavy-Lift & FPV Aerial Capture",
-      "desc": "Licensed Bahrain civil aviation drone operations capturing monumental landscapes, industrial sites, and dynamic vehicular chases.",
-      "specs": [
-        "Heavy-Lift RED Drone",
-        "Custom FPV Pro Rigs",
-        "Dual-Operator Control"
-      ]
-    },
-    "photography": {
-      "title": "Commercial Photography",
-      "desc": "High-fashion, automotive, architectural, and luxury product photography with studio lighting mastery.",
-      "specs": []
-    },
-    "color": {
-      "title": "DaVinci Resolve HDR Color Grading",
-      "desc": "Dedicated post-production color suite equipped with reference OLED mastering displays for true cinema DCI-P3 color fidelity.",
-      "specs": [
-        "DaVinci Studio Cloud",
-        "Sony BVM Reference Monitor",
-        "ACES & Dolby Vision"
-      ]
-    },
-    "studio": {
-      "title": "Studio & Soundstage",
-      "desc": "Acoustically treated studio space with modular set construction, grid lighting, and seamless cycloramas."
-    },
+    "badge": "What we offer",
+    "title": "What we offer",
+    "subtitle": "Everything we provide, explained clearly so you can choose with confidence.",
     "sectionIndex": "(02)",
-    "requestProposal": "Request Custom Production Quote",
-    "commercial": {
-      "title": "High-End Commercial Cinematography",
-      "desc": "Full-scale commercial productions for television broadcast, cinema screens, and brand campaign campaigns at the highest visual standards.",
-      "specs": [
-        "RED V-Raptor XL 8K",
-        "ARRI Master Primes T1.3",
-        "Full Cinema G&E Crew"
-      ]
-    },
+    "requestProposal": "Request a quote",
     "soundstage": {
-      "title": "Acoustic Soundstage & Cyclorama",
-      "desc": "250m² soundproof facility in Seef District with 60kW 3-phase power, 6m overhead lighting grid, and infinite curve cyclorama.",
-      "specs": [
-        "250m² Soundstage",
-        "Overhead Lighting Grid",
-        "Soundproof Control Booth"
-      ]
+      "title": "",
+      "desc": "",
+      "specs": []
     },
     "sectionLabel": "Capabilities",
-    "headline": "PRECISION PRODUCTION PILLARS"
+    "headline": "What we offer"
   },
   "portfolio": {
-    "badge": "Selected Works",
-    "title": "THE ARCHIVE",
-    "subtitle": "Curated commercial campaigns, narrative films, and visual masterworks.",
-    "filterAll": "All Projects",
-    "filterCommercial": "Commercials",
-    "filterAerial": "Aerial & FPV",
-    "filterPhotography": "Photography",
-    "filterColor": "Color Grading",
-    "viewProject": "View Project",
+    "badge": "Selected work",
+    "title": "Our work",
+    "subtitle": "A closer look at what we do and the people we do it for.",
+    "filterAll": "All work",
+    "filterCommercial": "Projects",
+    "filterAerial": "Other work",
+    "filterPhotography": "Gallery",
+    "filterColor": "Services",
+    "viewProject": "View details",
     "watchTrailer": "Watch Trailer",
-    "credits": "Production Credits",
-    "director": "Director",
-    "dop": "Cinematography",
-    "colorist": "Colorist",
-    "editor": "Editor",
-    "sound": "Sound Design",
+    "credits": "Project team",
+    "director": "Lead",
+    "dop": "Project lead",
+    "colorist": "Team member",
+    "editor": "Contributor",
+    "sound": "Project team",
     "client": "Client",
     "year": "Year",
     "category": "Category",
-    "backToWorks": "Back to Archive",
+    "backToWorks": "Back to our work",
     "sectionIndex": "(03)",
     "sectionLabel": "Works & Projects Archive",
-    "showcaseTitle": "Certified Cinema Masterpieces",
-    "showcaseSubtitle": "Explore selected commercial films captured for government entities, financial institutions, and GCC brands.",
-    "viewFullArchive": "View Full Cinematography Archive",
-    "productionOverview": "Production Overview",
+    "showcaseTitle": "Selected work",
+    "showcaseSubtitle": "Explore a selection of our work and projects.",
+    "viewFullArchive": "View our work",
+    "productionOverview": "Overview",
     "categories": {
-      "all": "All Projects",
-      "commercials": "Commercials",
-      "aerial": "Aerial & FPV",
-      "documentaries": "Documentaries"
+      "all": "All projects",
+      "commercials": "Projects",
+      "aerial": "Other work",
+      "documentaries": "Case studies"
     },
-    "allWork": "All work"
+    "allWork": "All work",
+    "related": "You may also be interested in",
+    "searchCatalogue": "Search catalogue",
+    "searchPlaceholder": "Search by name or specification",
+    "sortBy": "Sort by",
+    "sortFeatured": "Featured",
+    "sortName": "Name",
+    "sortNewest": "Newest",
+    "sortPriceAsc": "Price: low to high",
+    "sortPriceDesc": "Price: high to low",
+    "resultsCount": "{count} results",
+    "noResults": "No results. Try another search or category.",
+    "clearFilters": "Clear filters",
+    "resultPages": "Result pages"
   },
   "clients": {
     "badge": "Trust & Pedigree",
     "title": "TRUSTED BY VISIONARY BRANDS",
-    "subtitle": "Collaborating with market leaders, government entities, and global enterprises across the GCC.",
-    "marqueeBadge": "TRUSTED BY VISIONARY BRANDS",
-    "regionTag": "BAHRAIN · GCC",
+    "subtitle": "The customers and partners we work with.",
+    "marqueeBadge": "Trusted by",
+    "regionTag": "Our clients",
     "label": "Our clients",
     "pause": "Pause logo movement",
     "resume": "Resume logo movement",
@@ -193,140 +145,127 @@
   },
   "about": {
     "badge": "About the company",
-    "title": "ARCHITECTS OF VISUAL IMPACT",
+    "title": "Who we are",
     "subtitle": "Learn about our company, our team and the work we do.",
     "storyTitle": "OUR ETHOS",
-    "storyP1": "We believe that true visual impact is created at the intersection of technical discipline and unconstrained creative curiosity. Every production is crafted with absolute reverence for composition, dynamic range, and authentic emotion.",
-    "storyP2": "From national television campaigns to international brand anthems, our team brings cinema cameras, precision lighting rigs, and state-of-the-art post-production suites to elevate brand prestige.",
-    "ceoTitle": "Founder & Creative Director",
-    "ceoName": "Sayed Ahmed Husain",
-    "ceoQuote": "We don't merely capture light; we shape the way memories, emotions, and brands resonate through time.",
-    "gearTitle": "THE GEAR LOCKER",
-    "gearSubtitle": "In-house owned cinema equipment calibrated for pristine optical performance.",
-    "statFilms": "180+ Commercials Delivered",
-    "statYears": "8+ Years of Craft",
-    "statAwards": "14 Regional Awards",
-    "statClients": "65+ GCC Enterprise Clients",
+    "storyP1": "",
+    "storyP2": "",
+    "ceoTitle": "Leadership",
+    "ceoName": "",
+    "ceoQuote": "",
+    "gearTitle": "Resources",
+    "gearSubtitle": "Explore our resources and capabilities.",
+    "statFilms": "",
+    "statYears": "",
+    "statAwards": "",
+    "statClients": "",
     "sectionIndex": "(01)",
     "sectionLabel": "About Us",
-    "headline": "Visual stories crafted for ambitious brands.",
-    "behindTheScenes": "Behind The Scenes · On Location",
+    "headline": "A team built around the people we serve.",
+    "behindTheScenes": "Our team at work",
     "shootCaption": "Our team at work",
     "missionLabel": "Our Mission",
-    "mission": "Empower market leaders to tell their brand narratives with uncompromised visual precision and emotional depth.",
+    "mission": "",
     "visionLabel": "Our Vision",
-    "discoverStudio": "Discover Studio Story & Crew",
-    "gearAll": "All Gear",
-    "gearCameras": "Cinema Cameras",
-    "gearLenses": "Cinema Glass",
-    "gearLighting": "Lighting Rigs",
-    "gearAudioGrading": "Mastering Suite",
-    "gearStages": "Soundstage",
-    "statFilmsValue": "180+",
-    "statFilmsLabel": "Commercials Delivered",
-    "statYearsValue": "8+",
-    "statYearsLabel": "Years of Craft",
-    "statAwardsValue": "14",
-    "statAwardsLabel": "Regional Awards",
-    "statClientsValue": "65+",
-    "statClientsLabel": "GCC Enterprise Clients",
-    "recTag": "REC · 8K VV",
-    "gccTag": "100% GCC",
-    "coloristTag": "DaVinci Certified",
+    "discoverStudio": "Discover our story and team",
+    "gearAll": "All resources",
+    "gearCameras": "Equipment",
+    "gearLenses": "Tools",
+    "gearLighting": "Facilities",
+    "gearAudioGrading": "Technology",
+    "gearStages": "Locations",
+    "statFilmsValue": "",
+    "statFilmsLabel": "Projects",
+    "statYearsValue": "",
+    "statYearsLabel": "Years of experience",
+    "statAwardsValue": "",
+    "statAwardsLabel": "Achievements",
+    "statClientsValue": "",
+    "statClientsLabel": "Customers",
+    "recTag": "",
+    "gccTag": "",
+    "coloristTag": "",
     "pillars": {
-      "badge": "Pillars of Craft",
-      "title": "Engineering Precision & Visual Artistry",
+      "badge": "What we stand for",
+      "title": "The values behind our work",
       "p1": {
-        "number": "01",
-        "title": "Cinematic Optics & Framing",
-        "desc": "8K VistaVision multi-format capture using RED V-Raptor XL systems paired with ARRI Master Primes for pristine optical rendering.",
-        "tag": "8K VistaVision"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p2": {
-        "number": "02",
-        "title": "DaVinci Resolve HDR Grading",
-        "desc": "Dedicated post-production suite with Sony BVM reference monitoring to design bespoke film-emulation color palettes.",
-        "tag": "DCI-P3 Colorist"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p3": {
-        "number": "03",
-        "title": "Narrative Direction & Motion",
-        "desc": "Crafting visual treatments, scripts, and rhythmic editing pacing that turn corporate briefs into memorable cinema.",
-        "tag": "Narrative Craft"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p4": {
-        "number": "04",
-        "title": "Licensed Heavy-Lift & FPV Drones",
-        "desc": "Full Civil Aviation Authority (BCAA) licensed aerial drone operations capturing monumental landscapes and high-speed chases.",
-        "tag": "BCAA Licensed"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       }
     },
     "stats": {
-      "badge": "Studio in numbers",
-      "verified": "Verified Production Data",
-      "tvcs": "High-End TVCs",
-      "leadership": "Cinema Leadership",
-      "trophies": "Regional Trophies",
-      "enterprises": "GCC Enterprises"
+      "badge": "In numbers",
+      "verified": "Company information",
+      "tvcs": "Projects",
+      "leadership": "Experience",
+      "trophies": "Achievements",
+      "enterprises": "Customers"
     },
     "gear": {
-      "calibrated": "Calibrated"
+      "calibrated": "Resource"
     },
-    "studioImageAlt": "Cinema camera and lens",
-    "studioImageCaption": "Inside the studio"
+    "studioImageAlt": "Our team and workplace",
+    "studioImageCaption": "Inside our workplace"
   },
   "contact": {
     "badge": "Initiate Collaboration",
     "title": "LET'S CREATE TOGETHER",
-    "subtitle": "Tell us about your production vision, timeline, and objectives. Our producers will connect within 24 hours.",
+    "subtitle": "Tell us what you need and how we can help.",
     "fullName": "Full Name",
-    "email": "Email Address",
-    "phone": "Phone Number",
     "company": "Company / Organization",
     "servicesNeeded": "Services Required",
-    "budgetRange": "Anticipated Budget (BHD)",
+    "budgetRange": "Budget",
     "timeline": "Target Timeline",
-    "projectDetails": "Project Brief & Objectives",
-    "submit": "Submit Production Inquiry",
+    "projectDetails": "Your requirements",
+    "submit": "Send inquiry",
     "submitting": "Sending…",
     "successTitle": "Inquiry Received",
     "successMessage": "Thank you for your message. Our team will follow up using the contact details you provided.",
     "errorTitle": "Submission Notice",
     "errorMessage": "Unable to send your request. Please use the company contact details to reach us directly.",
     "timelinePlaceholder": "e.g. November 2026",
-    "projectDetailsPlaceholder": "Tell us about your campaign goals, shoot locations, and desired deliverables...",
-    "studioInfo": "Studio Information",
-    "workingHours": "Sun – Thu: 9:00 AM – 6:00 PM",
+    "projectDetailsPlaceholder": "Tell us about your requirements and preferred timeline.",
+    "studioInfo": "Company information",
+    "workingHours": "",
     "immediateResponse": "What happens next",
     "whatsappConcierge": "Direct WhatsApp Concierge",
-    "whatsappDesc": "Connect directly with one of our producers on WhatsApp for quick inquiries.",
+    "whatsappDesc": "Contact our team with your questions.",
     "openWhatsapp": "Open WhatsApp Chat →",
-    "servicesList": [
-      "Commercial Cinematography",
-      "Aerial & FPV Cinematography",
-      "Commercial Photography",
-      "DaVinci Resolve Color Grading",
-      "Studio & Gear Rental",
-      "Documentary Production"
-    ],
+    "servicesList": [],
     "emailSubject": "Thank you for contacting us",
     "budgetRanges": [
-      "< 800 BHD",
-      "800 – 2,000 BHD",
-      "2,000 – 5,000 BHD",
-      "5,000 – 10,000 BHD",
-      "> 10,000 BHD"
+      "To be discussed"
     ],
-    "fullNamePlaceholder": "e.g. Sayed Ahmed",
+    "fullNamePlaceholder": "Your full name",
     "emailPlaceholder": "name@company.com",
-    "phonePlaceholder": "+973 3900 0000",
-    "companyPlaceholder": "e.g. Batelco / Agency",
+    "phonePlaceholder": "National phone number",
+    "companyPlaceholder": "Company or organization",
     "intents": {
       "title": "How can we help?",
       "inquiry": "Inquiry",
       "inquiryDesc": "Ask about our services or talk through an idea.",
       "quoteRequest": "Request a quote",
-      "quoteRequestDesc": "Tell us about your production so we can understand the scope and prepare a quote.",
+      "quoteRequestDesc": "Tell us what you need so we can prepare an accurate quote.",
       "complaint": "Complaint",
       "complaintDesc": "Tell us what happened. Our team will follow up privately.",
       "suggestion": "Suggestion",
@@ -334,7 +273,7 @@
       "review": "Rate & review",
       "reviewDesc": "Share your experience. Reviews are checked before they appear publicly."
     },
-    "directStudioLine": "Contact the studio",
+    "directStudioLine": "Contact our team",
     "directLineToTeam": "A direct line to our team",
     "makeYourselfHeard": "Talk to our team",
     "displayName": "Display name",
@@ -354,12 +293,12 @@
     "timelineQuarter": "Within 1–3 months",
     "timelineFlexible": "Flexible / Planning stage",
     "projectRefLabel": "Project reference / link (optional)",
-    "projectRefPlaceholder": "https://example.com/reference or campaign link",
-    "shootLocation": "Shoot location / city (optional)",
-    "shootLocationPlaceholder": "e.g. Manama, Seef, or Riyadh",
+    "projectRefPlaceholder": "https://example.com/reference",
+    "shootLocation": "Location / city (optional)",
+    "shootLocationPlaceholder": "City or location",
     "messageDetails": "Message details",
     "yourMessage": "Your message",
-    "messagePlaceholder": "Tell us about your campaign goals, shoot locations, and desired deliverables...",
+    "messagePlaceholder": "Tell us what you need and any details that help us respond…",
     "reviewQuoteLabel": "Your review and testimonial",
     "starRatingLabel": "Rating (1 to 5 stars)",
     "validationEmailOrPhone": "Add an email address or phone number so we can reply.",
@@ -380,7 +319,20 @@
     "formNote": "Use an email address or phone number we can reply to.",
     "ratingOption": "{value} out of 5 stars",
     "anonymousSuggestion": "Anonymous suggestion",
-    "aboutItem": "About: {item}"
+    "aboutItem": "About: {item}",
+    "ourLocations": "Our locations",
+    "directions": "Directions",
+    "pickupAvailable": "Pickup available",
+    "attachments": {
+      "title": "Attach an optional reference (PDF or image)",
+      "intro": "Files stay private to the team handling your request. Upload access lasts ten minutes.",
+      "uploadFailed": "Upload failed. Use a valid file within 10 minutes, up to 10 MB and 3 files.",
+      "fileAttached": "File attached to your request.",
+      "uploadFailedGeneric": "Upload failed.",
+      "fileInputHelp": "PDF or image, up to 10 MB (up to 3 files)",
+      "uploading": "Attaching…",
+      "attachFile": "Attach file"
+    }
   },
   "footer": {
     "allRights": "All rights reserved.",
@@ -394,11 +346,10 @@
     "rulesModalTitle": "Privacy & Security",
     "termsUnavailable": "Terms of Conditions are not currently available.",
     "rulesUnavailable": "Privacy & Security policy is not currently available.",
-    "close": "Close",
     "rules": "Privacy & Security",
     "invitationLabel": "Let’s talk",
-    "invitationTitle": "Your next story. Made together.",
-    "invitationAction": "Discuss your project",
+    "invitationTitle": "Let’s work together.",
+    "invitationAction": "Get in touch",
     "registrationLabel": "Commercial Registration"
   },
   "financials": {
@@ -438,7 +389,7 @@
     "layout_1": "ltr",
     "layout_2": "font-sans",
     "page_3": "View Full Archive",
-    "page_4": "Studio Information",
+    "page_4": "Company information",
     "page_6": "Sun – Thu: 9:00 AM – 6:00 PM",
     "page_7": "Immediate Response",
     "page_8": "Direct WhatsApp Concierge",
@@ -496,128 +447,64 @@
   },
   "stats": {
     "sectionIndex": "(04)",
-    "items": [
-      {
-        "value": "150+",
-        "label": "Commercial Films Delivered",
-        "sub": "For GCC Brands & Corporations"
-      },
-      {
-        "value": "8K",
-        "label": "RAW Cinema Resolution",
-        "sub": "RED V-Raptor & ARRI ALEXA LF"
-      },
-      {
-        "value": "100%",
-        "label": "Licensed Aerial Drone Ops",
-        "sub": "Bahrain Civil Aviation Authority"
-      },
-      {
-        "value": "10+",
-        "label": "Years of Industry Excellence",
-        "sub": "Headquartered in Manama, Seef"
-      }
-    ],
-    "sectionLabel": "Studio Metrics & Standards"
+    "items": [],
+    "sectionLabel": "Company in numbers"
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "BAHRAIN",
-    "items": [
-      {
-        "id": "rev-1",
-        "client": "National Bank of Bahrain (NBB)",
-        "author": "Marketing & Brand Director",
-        "quote": "the team delivered an exceptional TV commercial campaign that exceeded our highest cinematic expectations. Their color grading and drone shots were world-class.",
-        "year": "2026"
-      },
-      {
-        "id": "rev-2",
-        "client": "Zain Bahrain",
-        "author": "Corporate Communications Lead",
-        "quote": "The professionalism of the camera crew and the precision of the 8K footage transformed our brand film. Truly the finest cinema house in Bahrain.",
-        "year": "2025"
-      },
-      {
-        "id": "rev-3",
-        "client": "Bahrain Economic Development Board (EDB)",
-        "author": "Head of Destination Marketing",
-        "quote": "Working with the team on our national investment film showcase was seamless. They captured our architectural landmarks with stunning lighting and depth.",
-        "year": "2025"
-      }
-    ],
+    "bahrain": "",
+    "items": [],
     "sectionLabel": "Client & Partner Testimonials",
-    "headline": "Trusted by Industry Leaders",
-    "subtitle": "Our commitment to visual perfection has built enduring partnerships with Bahrain's most prestigious organizations.",
+    "headline": "What our customers say",
+    "subtitle": "Honest feedback from the people and organisations we work with.",
     "writeReviewBtn": "Rate & Review Us",
     "modal": {
       "title": "Rate Your Experience",
-      "subtitle": "Your feedback guides our cinematic craftsmanship",
+      "subtitle": "Your feedback helps us improve",
       "thankYouTitle": "Thank You For Your Review!",
       "thankYouDesc": "Your review has been submitted for moderation and will appear on our live testimonials once verified by our team.",
-      "close": "Close",
       "starRating": "Your Rating",
       "fullName": "Full Name *",
       "fullNamePlaceholder": "e.g. Sara Ahmed",
       "company": "Company / Brand (Optional)",
       "companyPlaceholder": "e.g. Example Holdings",
       "quote": "Your Review & Testimonial *",
-      "quotePlaceholder": "Describe how our cinema cameras, production crew, and deliverables exceeded your vision...",
+      "quotePlaceholder": "Tell us about your experience with our team…",
       "validationError": "Please provide your name and review quote.",
-      "cancel": "Cancel",
-      "submit": "Submit Review",
-      "submitting": "Submitting..."
+      "submit": "Submit Review"
     },
     "empty": "Worked with us? We'd love to hear your feedback."
   },
   "faq": {
     "sectionIndex": "(06)",
-    "items": [
-      {
-        "question": "What camera systems and lenses do you use for commercial shoots?",
-        "answer": "We shoot primarily on RED V-Raptor 8K, ARRI ALEXA Mini LF, and Sony FX9 camera systems paired with ARRI Master Primes, Cooke Anamorphic, and Leica Cine lenses."
-      },
-      {
-        "question": "Are your aerial drone operators licensed for commercial filming in Bahrain?",
-        "answer": "Yes, all our heavy-lift RED drone and custom FPV operators are fully licensed and certified by the Bahrain Civil Aviation Authority (BCAA) with full public liability insurance."
-      },
-      {
-        "question": "How long does post-production and DaVinci Resolve color grading take?",
-        "answer": "Standard post-production timelines range from 5 to 14 business days depending on visual effects, sound design complexity, and color grading review rounds."
-      },
-      {
-        "question": "Can you manage pre-production, casting, and permits for GCC projects?",
-        "answer": "Absolutely. We handle end-to-end pre-production including location scouting, ministry permits, actor casting, storyboard creation, and set building across Bahrain and Saudi Arabia."
-      }
-    ],
+    "items": [],
     "sectionLabel": "Frequently Asked Questions",
-    "headline": "Production Insights & Workflows",
-    "subtitle": "Clear, transparent answers about our production workflows, cinema equipment, and commercial licensing."
+    "headline": "Questions we are often asked",
+    "subtitle": "Straight answers about how we work, what to expect and how to get started."
   },
   "cta": {
-    "badge": "Ready to Launch Your Next Film",
-    "titleLine1": "CINEMA IN EVERY FRAME.",
-    "titleLine2": "Let's Create a Masterpiece Together.",
-    "description": "Connect directly with our producers to discuss project concepts, filming schedules, and financial estimates.",
+    "badge": "Start a conversation",
+    "titleLine1": "Your next step.",
+    "titleLine2": "Let’s work together.",
+    "description": "Talk with our team about your requirements and next steps.",
     "whatsapp": "Instant WhatsApp Chat",
-    "requestTreatment": "Request Quote & Shoot Session",
+    "requestTreatment": "Request a quote",
     "rights": "All rights reserved."
   },
   "preloader": {
-    "initializing": "INITIALIZING CINEMA",
     "load": "LOAD",
-    "slogan": "CINEMA IN EVERY FRAME · 8K PRODUCTION",
+    "slogan": "Welcome",
     "skipHint": "Click anywhere to enter"
   },
   "email": {
     "confirmation": {
       "subject": "Thank you for contacting {companyName}",
       "title": "Thank you for contacting us, {name}!",
-      "receivedMessage": "We have received your project brief. Our production team is reviewing your requirements and will connect with you within 24 hours to coordinate initial discussions.",
+      "receivedMessage": "We have received your message. Our team will review your requirements and get back to you.",
       "servicesRequested": "Services Requested:",
-      "urgentInquiries": "For urgent production inquiries, you may reach us directly via WhatsApp or reply to this message.",
+      "urgentInquiries": "You can reply to this message to contact our team.",
       "warmRegards": "Warm regards,",
-      "productionTeam": "The {companyName} Production Team"
+      "productionTeam": "The {companyName} team"
     },
     "notification": {
       "subject": "🔔 New Inquiry: {fullName}",
@@ -706,7 +593,6 @@
     "badge": "Newsroom",
     "title": "News & updates",
     "subtitle": "What we have been working on, announcements and press releases.",
-    "allCategories": "All",
     "empty": "Nothing published yet.",
     "readMore": "Read more",
     "back": "All articles",
@@ -724,7 +610,12 @@
       "update": "Updates",
       "post": "Posts",
       "press_release": "Press releases"
-    }
+    },
+    "searchArticles": "Search articles",
+    "searchPlaceholder": "Search by title or topic",
+    "resultsCount": "{count} results",
+    "clearFilters": "Clear filters",
+    "articlePages": "Article pages"
   },
   "account": {
     "title": "My account",
@@ -736,7 +627,6 @@
       "signUp": "Create an account"
     },
     "name": "Full name",
-    "email": "E-mail",
     "password": "Password",
     "passwordHint": "At least 8 characters.",
     "newPassword": "New password (leave empty to keep it)",
@@ -760,17 +650,12 @@
       "wishlist": "Wishlist",
       "privacy": "Delete my account"
     },
-    "phone": "Phone",
     "language": "E-mail language",
-    "save": "Save",
     "saved": "Saved.",
     "addAddress": "Add address",
-    "editAddress": "Edit",
-    "removeAddress": "Remove",
     "address": {
       "label": "Label (home, work…)",
       "name": "Recipient",
-      "phone": "Phone",
       "line1": "Street address",
       "line2": "Building, flat, more details",
       "area": "Area",
@@ -813,6 +698,7 @@
       "email_unavailable": "We cannot send e-mail right now. Please sign in another way.",
       "storeCartChanged": "Some items changed price or are no longer available. Please check your cart.",
       "couponCannotBeUsed": "That coupon cannot be used for this order.",
+      "pickupBranchUnavailable": "Choose an active pickup branch. The selected branch may no longer be available.",
       "storeFulfilmentRequired": "Choose delivery or pickup.",
       "storePaymentMethodInvalid": "Choose a way to pay.",
       "storeSignInRequired": "Please sign in to check out.",
@@ -843,11 +729,26 @@
       "problem": "Something is wrong",
       "message": "Tell us what you need",
       "send": "Send",
-      "cancel": "Cancel",
       "sent": "Thank you. Your request {reference} is with our team."
+    },
+    "orderAttachments": {
+      "title": "Attachments and transfer evidence",
+      "intro": "Files are private to you and authorized staff. Uploading transfer evidence leaves payment pending staff review.",
+      "fileLimit": "The file limit is 10 MB.",
+      "uploadFailed": "Upload failed. Use a valid PDF, PNG, JPEG or WebP file.",
+      "uploaded": "File uploaded for review.",
+      "uploadFailedGeneric": "Upload failed.",
+      "inputHelp": "PDF or image, up to 10 MB (10 files maximum)",
+      "uploading": "Uploading…",
+      "upload": "Upload file",
+      "printReceipt": "Print receipt"
     }
   },
   "store": {
+    "pickupStatuses": {
+      "shipped": "Ready for collection",
+      "delivered": "Collected"
+    },
     "addToCart": "Add to cart",
     "added": "Added to your cart.",
     "chooseOption": "Choose {option}",
@@ -929,7 +830,6 @@
     "testMode": "Test mode: no real money is taken.",
     "payFailedTitle": "The payment was not completed",
     "payFailedText": "Nothing was taken. Your order {number} is kept for a while, so you can try again.",
-    "tryAgain": "Try paying again",
     "payPendingTitle": "We are waiting for the payment",
     "payPendingText": "The payment gateway has not confirmed the payment for order {number} yet. We will e-mail you once it does.",
     "linkInvalid": "This payment link is not valid.",
@@ -968,7 +868,25 @@
     "trackAgency": "Carried by {agency}, tracking number {number}",
     "trackAtAgency": "Track at {agency}",
     "payReviewTitle": "Your payment needs review",
-    "payReviewText": "We could not reconcile the gateway payment for order {number}. Please contact the store. Do not pay again while the team checks the existing payment."
+    "payReviewText": "We could not reconcile the gateway payment for order {number}. Please contact the store. Do not pay again while the team checks the existing payment.",
+    "removeItem": "Remove item",
+    "removeCoupon": "Remove coupon",
+    "offersAndAnnouncements": "Offers and announcements",
+    "minimumOrder": "Minimum order",
+    "pickupBranch": "Pickup branch",
+    "chooseBranch": "Choose a branch",
+    "noPickupBranch": "No pickup branch is currently available.",
+    "directions": "Directions",
+    "deliveryPin": "Delivery pin (optional)",
+    "deliveryPinHelp": "Your written address determines service coverage and fees. Add a precise location to help the driver, or continue without it.",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "locating": "Locating…",
+    "useDeviceLocation": "Use device location",
+    "locationUnavailable": "Location is unavailable. Enter coordinates or your address manually.",
+    "locationFailed": "Could not get your location. You can continue with the written address.",
+    "orderReview": "Order review",
+    "editCart": "Edit cart"
   },
   "marketing": {
     "unsubscribe": "Stop these e-mails",

@@ -1,3 +1,7 @@
+import { getCurrencyDecimals } from "@platform/config/currency";
+import { isLocale } from "@platform/locales/registry";
+import { getSite } from "../../../../lib/site";
+import { isWebsitePreview } from "../../../../lib/website";
 import { NextRequest, NextResponse } from "next/server";
 import {
   formatMessage,
@@ -24,6 +28,7 @@ import {
   jsonError,
   sameOrigin,
   storeEnabled,
+  orderingEnabled,
 } from "../../../../lib/customer";
 import { campaignFrom } from "../../../../lib/utm";
 
@@ -65,6 +70,9 @@ export async function POST(
     const { action } = await context.params;
     if (!(await storeEnabled()))
       return NextResponse.json({ error: "unavailable" }, { status: 404 });
+    const { config } = await getSite();
+    if ((!["quote", "delivery"].includes(action) && await isWebsitePreview()) || (action === "order" && !(await orderingEnabled())) || (action === "delivery" && !config.commerce.capabilities.delivery))
+      return NextResponse.json({ error: "unavailable" }, { status: 404 });
     if (!sameOrigin(req))
       return NextResponse.json({ error: "generic" }, { status: 403 });
     const body = ((await req.json().catch(() => ({}))) ?? {}) as Record<
@@ -97,7 +105,7 @@ export async function POST(
           return NextResponse.json({ error: "generic" }, { status: 404 });
         const started = await startOrderPayment(orderId, {
           url: siteUrl(req),
-          locale: str(body.locale, 2) === "en" ? "en" : "ar",
+          locale: isLocale(body.locale) ? body.locale : "en",
         });
         return NextResponse.json(
           "redirectUrl" in started
@@ -113,12 +121,13 @@ export async function POST(
         return NextResponse.json({ error: "generic" }, { status: 404 });
       await consumeAbuseLimit("store-order-ip", ip(req), 10, 600);
       const customer = await currentCustomer();
-      const locale = str(body.locale, 2) === "en" ? "en" : "ar";
+      const locale = isLocale(body.locale) ? body.locale : "en";
       const address = (body.address ?? null) as Record<string, unknown> | null;
       const order = await placeOrder({
         lines: cartLines(body.lines),
         couponCode: str(body.couponCode, 30),
         fulfilment,
+        pickupBranchId: str(body.pickupBranchId, 60) || null,
         address: address
           ? {
               name: str(address.name, 120),
@@ -129,6 +138,7 @@ export async function POST(
               city: str(address.city, 80),
               country: str(address.country, 80),
               postalCode: str(address.postalCode, 20),
+              ...(config.commerce.collectCoordinates ? { latitude: address.latitude as number | null | undefined, longitude: address.longitude as number | null | undefined } : {}),
             }
           : null,
         name: customer?.name || str(body.name, 120),
@@ -175,18 +185,19 @@ export async function POST(
 /** The order confirmation e-mail, in the customer's language. Failing to send never undoes the order. */
 async function sendConfirmation(
   orderId: string,
-  locale: "en" | "ar",
+  locale: import("@platform/locales/registry").Locale,
   site: string,
 ) {
   const order = await getOrder(orderId);
   if (!order?.email) return;
   const t = getWebsiteTranslations(locale).store.confirmationEmail;
-  const money = (value: number) => `${value.toFixed(3)} ${order.currency}`;
+  const money = (value: number) => `${value.toFixed(getCurrencyDecimals(order.currency))} ${order.currency}`;
   // The delivery's tracking page, when the order is delivered by the company.
   const token = (await orderTrackingTokens([order.id])).get(order.id);
   const trackLink = token
     ? `<p><a href="${escapeEmailHtml(`${site}/${locale}/track/${token}`)}">${escapeEmailHtml(getWebsiteTranslations(locale).store.track)}</a></p>`
     : "";
+  const pickup = order.pickup_branch ? `<p>${escapeEmailHtml(locale === "ar" ? order.pickup_branch.nameAr : order.pickup_branch.nameEn)}<br>${escapeEmailHtml(locale === "ar" ? order.pickup_branch.addressAr : order.pickup_branch.addressEn)}<br>${escapeEmailHtml(locale === "ar" ? order.pickup_branch.hoursAr : order.pickup_branch.hoursEn)}</p>` : "";
   const rows = order.lines
     .map(
       (l) =>
@@ -196,7 +207,7 @@ async function sendConfirmation(
   await sendEmail({
     to: order.email,
     subject: formatMessage(t.subject, { number: order.number }),
-    html: `<p>${escapeEmailHtml(formatMessage(t.greeting, { name: order.name }))}</p><p>${escapeEmailHtml(formatMessage(t.body, { number: order.number }))}</p><table>${rows}</table><p><strong>${escapeEmailHtml(t.total)}: ${money(order.total)}</strong></p>${trackLink}`,
+    html: `<p>${escapeEmailHtml(formatMessage(t.greeting, { name: order.name }))}</p><p>${escapeEmailHtml(formatMessage(t.body, { number: order.number }))}</p><table>${rows}</table><p><strong>${escapeEmailHtml(t.total)}: ${money(order.total)}</strong></p>${pickup}${trackLink}`,
     idempotencyKey: `order-confirmation:${order.id}`,
   }).catch(() => undefined);
 }

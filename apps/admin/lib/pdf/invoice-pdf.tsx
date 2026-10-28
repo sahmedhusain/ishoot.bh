@@ -1,6 +1,7 @@
 import { formatMessage } from "@platform/locales";
 import { Document, Page, View } from "@react-pdf/renderer";
 import type { Invoice } from "@platform/database/types";
+import { formatDocumentPhone } from "@platform/database";
 import {
   currencyLabel,
   Letterhead,
@@ -87,7 +88,7 @@ function InvoiceBody({ k, invoice, brand, variant = "invoice", quotationTerms, s
           <T style={{ fontSize: 10, fontWeight: "bold" }}>{clientCompany || clientName}</T>
           {clientCompany && clientName && clientCompany !== clientName ? <Field label={d.attention} value={clientName} /> : null}
           {invoice.contact?.email ? <T style={{ fontSize: 8, color: C.body, marginTop: 1.5 }}>{invoice.contact.email}</T> : null}
-          {invoice.contact?.phone ? <T style={{ fontSize: 8, color: C.body, marginTop: 1.5 }}>{invoice.contact.phone}</T> : null}
+          {invoice.contact?.phone ? <T style={{ fontSize: 8, color: C.body, marginTop: 1.5 }}>{formatDocumentPhone(invoice.contact.phone, company.country)}</T> : null}
           {clientAddress ? <T style={{ fontSize: 8, color: C.body, marginTop: 1.5 }}>{clientAddress}</T> : null}
           {invoice.contact?.cr_number ? <Field label={d.crNo} value={invoice.contact.cr_number} /> : null}
           {isVatActive && invoice.contact?.vat_number ? <Field label={d.vatNo} value={invoice.contact.vat_number} strong /> : null}

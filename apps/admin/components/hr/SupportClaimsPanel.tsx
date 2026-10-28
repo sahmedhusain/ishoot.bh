@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { getCurrencyLabel } from "@platform/config/currency";
 
@@ -13,11 +14,11 @@ import { recordSupportReimbursementAction } from "../../app/actions/payroll";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
-/** Six-monthly wage-support claims (Tamkeen) built from approved payroll, with receipts. */
+/** Six-monthly wage-support claims (Wage support fund) built from approved payroll, with receipts. */
 export function SupportClaimsPanel({ claims, canRecord }: { claims: SupportClaimRow[]; canRecord: boolean }) {
   const { t, locale } = useAdminLocale();
-  const bhd = getCurrencyLabel("BHD", locale === "ar");
-  const c = t.tamkeen;
+  const bhd = getCurrencyLabel(useCompanyCurrency(), locale === "ar");
+  const c = t.wageSupport;
   const [filter, setFilter] = React.useState<"open" | "all">("open");
   const rows = claims.filter((r) => filter === "all" || r.status !== "received");
   const sum = (status: SupportClaimRow["status"]) => claims.filter((r) => r.status === status).reduce((acc, r) => acc + r.accrued, 0);
@@ -67,7 +68,7 @@ export function SupportClaimsPanel({ claims, canRecord }: { claims: SupportClaim
 
 function ClaimRow({ row, canRecord }: { row: SupportClaimRow; canRecord: boolean }) {
   const { t } = useAdminLocale();
-  const c = t.tamkeen;
+  const c = t.wageSupport;
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [amount, setAmount] = React.useState(String(row.accrued));
@@ -125,7 +126,7 @@ function ClaimRow({ row, canRecord }: { row: SupportClaimRow; canRecord: boolean
             <div className="flex flex-wrap items-end justify-end gap-2">
               <label className="text-[11px] text-ink-muted space-y-1">
                 <span className="block">{c.amountReceived}</span>
-                <input type="number" min={0} step="0.001" className={field} value={amount} onChange={(e) => setAmount(e.target.value)} />
+                <input type="number" min={0} step="any" className={field} value={amount} onChange={(e) => setAmount(e.target.value)} />
               </label>
               <label className="text-[11px] text-ink-muted space-y-1">
                 <span className="block">{c.receivedDate}</span>

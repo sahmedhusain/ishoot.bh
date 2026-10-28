@@ -21,17 +21,17 @@ export function AboutSection({ company, imageUrl }: AboutSectionProps) {
   return (
     <section
       id="about"
-      className="relative bg-[#F8FAFC] text-[#0F172A] py-20 sm:py-28 border-t border-slate-200"
+      className="relative bg-m3-surface text-ink py-20 sm:py-28 border-t border-m3-outline-variant"
     >
       <div className="shell space-y-12 sm:space-y-16">
         <Reveal className="max-w-5xl space-y-5">
           <SectionBadge className="!text-accent-pressed">
             {t("about.sectionLabel")}
           </SectionBadge>
-          <h2 className="font-display text-[clamp(2rem,4.5vw,4.25rem)] leading-[1.12] tracking-tight font-bold text-slate-950">
+          <h2 className="font-display text-[clamp(2rem,4.5vw,4.25rem)] leading-[1.12] tracking-tight font-bold text-ink">
             {(ar ? company?.mission_ar : company?.mission_en) || t("about.headline")}
           </h2>
-          <p className="font-sans text-[clamp(1.05rem,1.8vw,1.4rem)] leading-relaxed text-slate-600 max-w-3xl">
+          <p className="font-sans text-[clamp(1.05rem,1.8vw,1.4rem)] leading-relaxed text-ink-muted max-w-3xl">
             {ar ? company?.about_text_ar : company?.about_text_en}
           </p>
         </Reveal>
@@ -39,7 +39,7 @@ export function AboutSection({ company, imageUrl }: AboutSectionProps) {
         <div className="grid gap-10 lg:gap-16 lg:grid-cols-[minmax(0,440px)_1fr] items-center">
           {imageUrl && <Reveal>
             <figure>
-              <div className="aspect-[4/5] overflow-hidden rounded-lg bg-slate-200">
+              <div className="aspect-[4/5] overflow-hidden rounded-lg bg-m3-surface-container-high">
                 <ContentImage
                   src={imageUrl}
                   alt={t("about.behindTheScenes")}
@@ -53,7 +53,7 @@ export function AboutSection({ company, imageUrl }: AboutSectionProps) {
                 <span className="text-xs font-semibold text-accent-pressed">
                   {t("about.behindTheScenes")}
                 </span>
-                <p className="text-sm leading-relaxed text-slate-600">
+                <p className="text-sm leading-relaxed text-ink-muted">
                   {ar ? company?.company_name_ar : company?.company_name_en}
                 </p>
               </figcaption>
@@ -61,12 +61,12 @@ export function AboutSection({ company, imageUrl }: AboutSectionProps) {
           </Reveal>}
 
           <div className="space-y-8">
-            <Reveal className="pb-8 border-b border-slate-200">
+            <Reveal className="pb-8 border-b border-m3-outline-variant">
               <h3 className="flex items-center gap-3 text-sm font-semibold text-accent-pressed mb-4">
                 <Target aria-hidden="true" className="w-5 h-5" />
                 {t("about.missionLabel")}
               </h3>
-              <p className="text-base sm:text-lg leading-relaxed text-slate-700 max-w-xl">
+              <p className="text-base sm:text-lg leading-relaxed text-ink-muted max-w-xl">
                 {(ar ? company?.mission_ar : company?.mission_en) || ""}
               </p>
             </Reveal>
@@ -75,7 +75,7 @@ export function AboutSection({ company, imageUrl }: AboutSectionProps) {
                 <Eye aria-hidden="true" className="w-5 h-5" />
                 {t("about.visionLabel")}
               </h3>
-              <p className="text-base sm:text-lg leading-relaxed text-slate-700 max-w-xl">
+              <p className="text-base sm:text-lg leading-relaxed text-ink-muted max-w-xl">
                 {(ar ? company?.vision_ar : company?.vision_en) || ""}
               </p>
             </Reveal>

@@ -51,7 +51,6 @@
     "test:approvals": "node scripts/check-approvals.cjs",
     "test:approvals-db": "node scripts/check-approvals-db.cjs",
     "test:finance-db": "node scripts/check-finance-db.cjs",
-    "test:fx-db": "node scripts/check-fx-db.cjs",
     "test:claims-db": "node scripts/check-claims-db.cjs",
     "test:sales-db": "node scripts/check-sales-db.cjs",
     "test:support-db": "node scripts/check-support-db.cjs",

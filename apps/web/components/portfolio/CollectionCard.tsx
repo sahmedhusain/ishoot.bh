@@ -7,6 +7,7 @@ import type { CollectionLayout } from "@platform/database/website-presets";
 import { pickText } from "@platform/database/constants/languages";
 import { useTranslation } from "../../hooks/useTranslation";
 import { collectionHref, formatPrice } from "../../lib/site-copy";
+import { useSiteTone } from "../site/SiteTheme";
 import { ContentImage } from "../shared/ContentImage";
 
 const ASPECT: Record<CollectionLayout, string> = {
@@ -30,18 +31,20 @@ function useItemFacts(item: PortfolioItem) {
  * One catalogue item, drawn for the website's layout. Video projects open in the lightbox (`onOpen`);
  * everything else links to its own page.
  */
-export function CollectionCard({ item, layout, tone = "dark", onOpen }: { item: PortfolioItem; layout: CollectionLayout; tone?: "dark" | "light"; onOpen?: (item: PortfolioItem) => void }) {
+export function CollectionCard({ item, layout, tone: propTone, onOpen, horizontal = false }: { item: PortfolioItem; layout: CollectionLayout; tone?: "dark" | "light"; horizontal?: boolean; onOpen?: (item: PortfolioItem) => void }) {
   const { t, locale, site } = useTranslation();
+  const siteTone = useSiteTone();
+  const tone = propTone ?? (siteTone === "light" ? "light" : "dark");
   const { title, subtitle, project, price, priceNote } = useItemFacts(item);
   const isVideo = Boolean(item.full_video_url || item.preview_video_url);
   const light = tone === "light";
-  const heading = light ? "text-slate-950 group-hover:text-accent-pressed" : "text-white group-hover:text-mint";
-  const muted = light ? "text-slate-600" : "text-ink-muted";
+  const heading = light ? "text-ink group-hover:text-accent-pressed" : "text-white group-hover:text-mint";
+  const muted = light ? "text-ink-muted" : "text-ink-muted";
   const facts = item.attributes.slice(0, 3);
 
   const body = (
     <>
-      <div className={`relative overflow-hidden rounded-brand ${ASPECT[layout]} ${light ? "bg-slate-200" : "bg-black/40"}`}>
+      <div className={`relative overflow-hidden rounded-brand ${ASPECT[layout]} ${light ? "bg-m3-surface-container-high" : "bg-black/40"}`}>
         <ContentImage
           src={item.thumbnail_url}
           alt={title}
@@ -51,7 +54,7 @@ export function CollectionCard({ item, layout, tone = "dark", onOpen }: { item: 
           className="h-full w-full object-cover transition-transform duration-300 ease-out motion-safe:group-hover:scale-[1.025]"
         />
         {layout === "media" || layout === "case" ? (
-          <span className="absolute bottom-3 end-3 flex h-11 w-11 items-center justify-center rounded-full bg-[var(--web-accent)] text-white transition-colors duration-150 group-hover:bg-mint group-hover:text-brand-base">
+          <span className="absolute bottom-3 end-3 flex h-11 w-11 items-center justify-center rounded-full bg-m3-primary text-m3-on-primary transition-colors duration-150 group-hover:bg-mint group-hover:text-brand-base">
             {isVideo ? <Play className="h-4 w-4 fill-current" /> : <ArrowUpRight className="h-4 w-4 rtl:-scale-x-100" />}
           </span>
         ) : null}
@@ -68,7 +71,7 @@ export function CollectionCard({ item, layout, tone = "dark", onOpen }: { item: 
         <div className="flex items-baseline justify-between gap-3">
           <h3 className={`font-display text-lg font-bold transition-colors sm:text-xl ${heading}`}>{title}</h3>
           {layout === "media" && item.year ? <span className={`shrink-0 text-xs font-semibold ${muted}`}>{item.year}</span> : null}
-          {layout === "product" && price ? <span className={`shrink-0 text-sm font-bold ${light ? "text-slate-950" : "text-white"}`}>{price}</span> : null}
+          {layout === "product" && price ? <span className={`shrink-0 text-sm font-bold ${light ? "text-ink" : "text-white"}`}>{price}</span> : null}
         </div>
         {layout === "media" && item.client_name ? <p className={`text-xs font-medium sm:text-sm ${muted}`}>{item.client_name}</p> : null}
         {layout !== "media" && subtitle ? <p className={`text-sm ${muted}`}>{subtitle}</p> : null}
@@ -82,7 +85,7 @@ export function CollectionCard({ item, layout, tone = "dark", onOpen }: { item: 
         {(layout === "listing" || layout === "product") && facts.length ? (
           <ul className="flex flex-wrap gap-1.5 pt-1">
             {facts.map((fact) => (
-              <li key={fact.labelEn + fact.valueEn} className={`rounded-full px-2.5 py-0.5 text-[11px] ${light ? "bg-slate-200/70 text-slate-700" : "bg-white/10 text-ink"}`}>
+              <li key={fact.labelEn + fact.valueEn} className={`rounded-full px-2.5 py-0.5 text-[11px] ${light ? "bg-m3-surface-container-high/70 text-ink-muted" : "bg-white/10 text-ink"}`}>
                 {pickText(fact.valueEn, fact.valueAr, locale)} {pickText(fact.labelEn, fact.labelAr, locale)}
               </li>
             ))}
@@ -93,21 +96,32 @@ export function CollectionCard({ item, layout, tone = "dark", onOpen }: { item: 
   );
 
   const label = `${t("portfolio.viewProject")}: ${title}`;
-  const className = "group block w-full text-start";
   if (layout === "media" && onOpen)
     return (
-      <button type="button" onClick={() => onOpen(item)} className={className} aria-label={label}>
+      <button
+        type="button"
+        onClick={() => onOpen(item)}
+        className={
+          horizontal
+            ? "group grid w-full grid-cols-[6rem_minmax(0,1fr)] items-center gap-4 text-start sm:grid-cols-[10rem_minmax(0,1fr)]"
+            : "group block w-full text-start"
+        }
+        aria-label={label}
+      >
         {body}
       </button>
     );
   return (
-    <Link href={site ? collectionHref(site, locale, item.slug) : `/${locale}`} className={className} aria-label={label}>
+    <Link
+      href={site ? collectionHref(site, locale, item.slug) : `/${locale}`}
+      className={
+        horizontal
+          ? "group grid w-full grid-cols-[6rem_minmax(0,1fr)] items-center gap-4 text-start sm:grid-cols-[10rem_minmax(0,1fr)]"
+          : "group block w-full text-start"
+      }
+      aria-label={label}
+    >
       {body}
     </Link>
   );
-}
-
-/** Grid columns for a layout: wide cards for projects, three across for products and listings. */
-export function collectionGridClass(layout: CollectionLayout) {
-  return layout === "product" || layout === "listing" ? "grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3" : "grid grid-cols-1 gap-x-8 gap-y-12 md:grid-cols-2";
 }

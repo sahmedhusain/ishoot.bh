@@ -102,7 +102,7 @@ export function AssetForm({ categories, asset, employees = [], onDone }: { categ
         ) : null}
         <Field label={a.fields.location}><Input value={value.location ?? ""} onChange={(e) => set("location", e.target.value)} /></Field>
         <Field label={a.fields.purchaseDate}><Input type="date" value={value.purchase_date ?? ""} onChange={(e) => set("purchase_date", e.target.value)} /></Field>
-        <Field label={a.fields.purchaseCost}><Input type="number" min={0} step="0.001" dir="ltr" value={value.purchase_cost ?? ""} onChange={(e) => set("purchase_cost", e.target.value === "" ? undefined : Number(e.target.value))} /></Field>
+        <Field label={a.fields.purchaseCost}><Input type="number" min={0} step="any" dir="ltr" value={value.purchase_cost ?? ""} onChange={(e) => set("purchase_cost", e.target.value === "" ? undefined : Number(e.target.value))} /></Field>
         <Field label={a.fields.supplier}><Input value={value.supplier ?? ""} onChange={(e) => set("supplier", e.target.value)} /></Field>
         <Field label={a.fields.invoiceReference}><Input dir="ltr" value={value.invoice_reference ?? ""} onChange={(e) => set("invoice_reference", e.target.value)} /></Field>
         <Field label={a.fields.warrantyUntil}><Input type="date" value={value.warranty_until ?? ""} onChange={(e) => set("warranty_until", e.target.value)} /></Field>

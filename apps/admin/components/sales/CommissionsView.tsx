@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { getCurrencyLabel } from "@platform/config/currency";
 
@@ -24,7 +25,7 @@ function shiftMonth(month: string, delta: number) {
 
 export function CommissionsView({ month, rows, canRecord, canSetRates }: { month: string; rows: CommissionRow[]; canRecord: boolean; canSetRates: boolean }) {
   const { t, locale } = useAdminLocale();
-  const bhd = getCurrencyLabel("BHD", locale === "ar");
+  const bhd = getCurrencyLabel(useCompanyCurrency(), locale === "ar");
   const c = t.commissions;
   const router = useRouter();
   const [busy, setBusy] = React.useState<string | null>(null);

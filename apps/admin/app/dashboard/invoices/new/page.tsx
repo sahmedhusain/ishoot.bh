@@ -1,5 +1,7 @@
+import { redirect } from "next/navigation";
+import { ROUTES } from "../../../../constants/routes";
 import { requirePagePermission } from "../../../../lib/auth";
-import { getCRMContactById, getAllServices, getAcceptedQuotationsUninvoiced, getQuotationById, getFxBoard, listSalesPeople } from "@platform/database";
+import { getCRMContactById, getAllServices, getAcceptedQuotationsUninvoiced, getQuotationById, listSalesPeople } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { NewInvoiceFormView } from "../../../../components/invoices/NewInvoiceFormView";
 
@@ -14,11 +16,10 @@ export default async function NewInvoicePage({
   await requirePagePermission("contacts", "read");
   const params = await searchParams;
 
-  const [acceptedQuotations, company, services, fxBoard, salesPeople] = await Promise.all([
+  const [acceptedQuotations, company, services, salesPeople] = await Promise.all([
     getAcceptedQuotationsUninvoiced(),
     getCachedCompanySettings(),
     getAllServices({ isActive: true }),
-    getFxBoard(),
     listSalesPeople(),
   ]);
 
@@ -28,6 +29,8 @@ export default async function NewInvoicePage({
       acceptedQuotations.find((q) => q.id === params.quotationId) ||
       (await getQuotationById(params.quotationId));
   }
+
+  if (preselectedQuotation && preselectedQuotation.currency !== company.default_currency) redirect(ROUTES.quotations.detail(preselectedQuotation.id));
 
   const effectiveClientId =
     params?.clientId || preselectedQuotation?.clientId || undefined;
@@ -45,7 +48,7 @@ export default async function NewInvoicePage({
       acceptedQuotations={acceptedQuotations}
       preselectedQuotation={preselectedQuotation}
       dealId={params?.dealId}
-      fxRates={Object.fromEntries(fxBoard.map((row) => [row.currency, row.perBhd]))}
+
       salesPeople={salesPeople}
       currentUserId={actor.id}
     />

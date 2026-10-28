@@ -1,3 +1,4 @@
+import { isValidEmail } from "../constants/validation";
 import {
   serverTemplates,
   formatMessage,
@@ -268,7 +269,7 @@ export async function createSigningLink(
     if (validUntil < expiresAt) expiresAt = validUntil;
   }
   const email = options.recipientEmail?.trim() || doc.clientEmail || null;
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+  if (email && !isValidEmail(email))
     throw new Error(serverMessages.enterAValidEMailAddress);
   const token = crypto.randomBytes(32).toString("base64url");
   await db.clientSignature.updateMany({

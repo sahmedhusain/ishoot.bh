@@ -1,7 +1,9 @@
+import { assertCompanyCurrency } from "../finance/company-currency";
 import { serverMessages } from "@platform/locales";
 import { claimUploadOrLink } from "../services/uploads";
 import {
   paymentStatusFor,
+  validMoneyAmount,
   roundMoney,
   sumMoney,
   toMinorUnits,
@@ -32,7 +34,7 @@ function mapPayment(p: any): Payment {
     receipt_number: p.receiptNumber,
     payment_date: p.paymentDate.toISOString().split("T")[0],
     amount: Number(p.amount),
-    currency: (p.currency as SupportedCurrency) || "BHD",
+    currency: String(p.currency ?? ""),
     payment_method: (p.paymentMethod as PaymentMethod) || "bank_transfer",
     reference_number: p.referenceNumber || undefined,
     notes: p.notes || undefined,
@@ -261,6 +263,8 @@ export async function createPayment(paymentData: {
           ? "Mark the invoice as sent before recording payments"
           : "Invoice is not payable",
       );
+    await assertCompanyCurrency(payable.currency, tx);
+    if (!validMoneyAmount(paymentData.amount, payable.currency)) throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
     if (paymentData.currency && paymentData.currency !== payable.currency)
       throw new Error(serverMessages.paymentCurrencyMustMatchInvoice);
     const paid = sumMoney(

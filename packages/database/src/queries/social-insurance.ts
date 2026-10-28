@@ -1,3 +1,5 @@
+import { companyCurrency } from "../finance/company-currency";
+import { isCountryCode } from "../constants/clients";
 import { serverMessages } from "@platform/locales";
 import type { Prisma } from "@prisma/client";
 import { db, runAtomicMutation } from "../db";
@@ -31,31 +33,35 @@ const dateInput = (
   return date;
 };
 const dayBefore = (value: Date) => new Date(value.getTime() - 86_400_000);
-/** GCC nationals other than Bahrainis are insured under the GCC extension of their own scheme. */
-const GCC = new Set(["SA", "KW", "AE", "QA", "OM"]);
 
 // ---------- Rules ----------
 
 export async function getGosiRules(): Promise<GosiRules> {
   const row = await db.gosiSettings.findUnique({ where: { id: "default" } });
   return {
+    currency: await companyCurrency(),
     firstOfMonthRule: row?.firstOfMonthRule ?? true,
     wageSource: row?.wageSource === "contract" ? "contract" : "registered",
+    nationalityCategories: (row?.nationalityCategories ?? {}) as Record<string, InsuredCategory>,
   };
 }
 
 export async function updateGosiRules(input: GosiRules, actorId: string) {
   if (!["contract", "registered"].includes(input.wageSource))
     throw new Error(serverMessages.chooseTheWageContributionsAreWorked);
+  const categories = input.nationalityCategories ?? {};
+  if (Object.entries(categories).some(([country, category]) => (country !== "*" && !isCountryCode(country)) || !(INSURED_CATEGORIES as readonly string[]).includes(category))) throw new Error(serverMessages.invalidInput);
   await db.gosiSettings.upsert({
     where: { id: "default" },
     update: {
+      nationalityCategories: categories,
       firstOfMonthRule: !!input.firstOfMonthRule,
       wageSource: input.wageSource,
       updatedById: actorId,
     },
     create: {
       id: "default",
+      nationalityCategories: categories,
       firstOfMonthRule: !!input.firstOfMonthRule,
       wageSource: input.wageSource,
       updatedById: actorId,
@@ -421,7 +427,7 @@ export async function deleteEmployeeGosiRecord(id: string) {
   });
 }
 
-/** Registers Bahrainis and expatriates by nationality. GCC nationals need their home-country scheme configured individually. */
+/** Registers only explicitly configured nationality groups; existing employee registrations remain unchanged. */
 export async function registerUnregisteredEmployees(
   effectiveFromInput: string,
   actorId: string,
@@ -436,19 +442,12 @@ export async function registerUnregisteredEmployees(
     where: { status: { not: "terminated" }, gosiRecords: { none: {} } },
     select: { id: true, nationality: true },
   });
+  const rules = await getGosiRules();
   let registered = 0;
   const skipped: string[] = [];
   for (const e of employees) {
-    if (!e.nationality || GCC.has(e.nationality)) {
-      skipped.push(e.id);
-      continue;
-    }
-    const category: InsuredCategory =
-      e.nationality === "BH"
-        ? "bahraini"
-        : GCC.has(e.nationality)
-          ? "gcc"
-          : "expat";
+    const category = e.nationality ? rules.nationalityCategories?.[e.nationality] ?? rules.nationalityCategories?.["*"] : undefined;
+    if (!category) { skipped.push(e.id); continue; }
     await db.employeeGosiRecord.create({
       data: { employeeId: e.id, category, effectiveFrom, createdById: actorId },
     });

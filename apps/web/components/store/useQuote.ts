@@ -16,16 +16,21 @@ export function useQuote(
 ) {
   const [quote, setQuote] = React.useState<CartQuote | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const [failed, setFailed] = React.useState(false);
+  const [attempt, setAttempt] = React.useState(0);
+  const retry = React.useCallback(() => setAttempt(value => value + 1), []);
   const key = JSON.stringify([
     lines,
     couponCode,
     fulfilment,
     place?.area.trim(),
     place?.city.trim(),
+    attempt,
   ]);
   React.useEffect(() => {
     let live = true;
     setLoading(true);
+    setFailed(false);
     const timer = setTimeout(
       () => {
         fetch("/api/store/quote", {
@@ -38,9 +43,9 @@ export function useQuote(
             address: place ?? null,
           }),
         })
-          .then((r) => r.json())
+          .then((r) => { if (!r.ok) throw new Error("quote_unavailable"); return r.json(); })
           .then((data: CartQuote) => live && setQuote(data))
-          .catch(() => live && setQuote(null))
+          .catch(() => { if (live) { setQuote(null); setFailed(true); } })
           .finally(() => live && setLoading(false));
       },
       place ? 350 : 0,
@@ -52,5 +57,5 @@ export function useQuote(
     // The key holds everything the request depends on.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
-  return { quote, loading };
+  return { quote, loading, failed, retry };
 }

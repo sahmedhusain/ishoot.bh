@@ -1,3 +1,5 @@
+import { phoneSearchVariants } from "../constants/phone";
+import { normalizeContactInput } from "./contact-validation";
 import { Prisma } from "@prisma/client";
 import { serverMessages } from "@platform/locales";
 import { db } from "../db";
@@ -56,6 +58,7 @@ export async function listSuppliers(
               { companyName: { contains: text, mode: "insensitive" } },
               { firstName: { contains: text, mode: "insensitive" } },
               { email: { contains: text, mode: "insensitive" } },
+              ...phoneSearchVariants(text).map((value) => ({ phone: { contains: value } })),
             ],
           }
         : {}),
@@ -99,6 +102,7 @@ export interface SupplierInput {
 }
 
 export async function saveSupplier(input: SupplierInput) {
+  input = await normalizeContactInput(input);
   const companyName = input.companyName.trim().slice(0, 200);
   const contactName = input.contactName.trim().slice(0, 200);
   if (!companyName && !contactName)

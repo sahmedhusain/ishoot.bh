@@ -12,10 +12,14 @@
   },
   "exports": {
     ".": "./src/index.ts",
-    "./admin/en": "./src/admin/en.json",
-    "./admin/ar": "./src/admin/ar.json",
+    "./admin/en": "./src/admin/en.ts",
+    "./admin/ar": "./src/admin/ar.ts",
     "./admin-activity": "./src/admin-activity.ts",
-    "./ui/en": "./src/ui/en.json",
-    "./ui/ar": "./src/ui/ar.json"
+    "./ui/en": "./src/ui/en.ts",
+    "./ui/ar": "./src/ui/ar.ts",
+    "./registry": "./src/registry.ts",
+    "./additional": "./src/additional.ts",
+    "./merge": "./src/merge.ts",
+    "./common": "./src/common.cjs"
   }
 }

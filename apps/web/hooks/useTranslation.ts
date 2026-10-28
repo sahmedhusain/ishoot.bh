@@ -1,4 +1,5 @@
 "use client";
+import { deepMerge } from "@platform/locales/merge";
 
 import * as React from "react";
 import { useLocale } from "./useLocale";
@@ -20,7 +21,7 @@ export function useTranslation() {
       getWebsiteTranslations(
         locale,
         site?.activity,
-        site ? siteCopyOverrides(site, locale) : undefined,
+        site ? deepMerge(siteCopyOverrides(site, locale), site.interfaceCopy?.[locale] as never) : undefined,
       ),
     [locale, site],
   );
@@ -30,5 +31,5 @@ export function useTranslation() {
     return values ? formatMessage(template, values) : template;
   }
 
-  return { t, locale, isRTL, translations, site };
+  return { t, locale, isRTL, isArabic: locale === "ar", translations, site };
 }

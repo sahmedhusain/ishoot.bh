@@ -12,7 +12,6 @@ import {
   Building,
   User,
   Mail,
-  Phone,
   CheckCircle2,
   Clock,
   Layers,
@@ -21,7 +20,7 @@ import {
   HelpCircle,
   Sparkles,
 } from "lucide-react";
-import { Select, Button } from "@platform/ui";
+import { Select, Button, PhoneInput } from "@platform/ui";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { createConsolidatedRequestAction } from "../../app/actions/requests";
 import type { CRMContact, ServiceItem } from "@platform/database";
@@ -46,7 +45,7 @@ export function NewRequestFormView({
   services,
 }: NewRequestFormViewProps) {
   const router = useRouter();
-  const { t, isRTL } = useAdminLocale();
+  const { isArabic, t } = useAdminLocale();
 
   const [requestType, setRequestType] = React.useState<
     "SR" | "inquiry" | "quote_request"
@@ -375,17 +374,10 @@ export function NewRequestFormView({
               <label className="block text-xs font-semibold text-ink dark:text-ink mb-1.5">
                 {t.newRequestForm.phoneWhatsapp}
               </label>
-              <div className="relative" dir="ltr">
-                <Phone className="w-4 h-4 text-ink-muted absolute left-3 top-2.5 rtl:right-3 rtl:left-auto" />
-                <input
-                  type="tel"
-                  dir="ltr"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+973 39000000"
-                  className="w-full ps-9 pe-3 rtl:pe-9 rtl:ps-3 py-2 text-xs rounded-xl border border-outline-variant dark:border-white/10 bg-surface-raised dark:bg-black/30 text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent font-mono text-start"
-                />
-              </div>
+              <PhoneInput
+                value={phone}
+                onChange={setPhone}
+              />
             </div>
           </div>
         </div>
@@ -418,7 +410,7 @@ export function NewRequestFormView({
                         : "border-outline-variant dark:border-white/10 bg-surface-raised dark:bg-white/[0.02] text-ink dark:text-ink hover:border-outline-variant"
                         }`}
                     >
-                      {isRTL ? svc.name_ar : svc.name_en}
+                      {isArabic ? svc.name_ar : svc.name_en}
                     </button>
                   );
                 })}

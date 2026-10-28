@@ -6,7 +6,6 @@ import {
   Button, Badge,
   Modal,
   Input,
-  Select,
   ConfirmDialog
 } from "@platform/ui";
 import { Plus, Trash2, CheckCircle2, Filter, Pencil } from "lucide-react";
@@ -29,7 +28,7 @@ export function EquipmentManagementView({
   const { t, locale } = useAdminLocale();
   const [equipment, setEquipment] =
     React.useState<StudioEquipment[]>(initialEquipment);
-  const [selectedCategory, setSelectedCategory] = React.useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = React.useState<string>("");
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(
     null,
@@ -39,24 +38,19 @@ export function EquipmentManagementView({
   const [modelName, setModelName] = React.useState("");
   const [nameAr, setNameAr] = React.useState("");
   const [category, setCategory] =
-    React.useState<StudioEquipment["category"]>("cameras");
+    React.useState<StudioEquipment["category"]>("");
   const [brand, setBrand] = React.useState("");
   const [specification, setSpecification] = React.useState("");
   const [editingId, setEditingId] = React.useState<string | null>(null);
   const [quantity, setQuantity] = React.useState<number>(1);
 
   const categories = [
-    { value: "all", label: t.actions.all },
-    { value: "cameras", label: t.equipmentView.categories.cameras },
-    { value: "lenses", label: t.equipmentView.categories.lenses },
-    { value: "lighting", label: t.equipmentView.categories.lighting },
-    { value: "audio", label: t.equipmentView.categories.audio },
-    { value: "grip", label: t.equipmentView.categories.grip },
-    { value: "drones", label: t.equipmentView.categories.drones },
+    { value: "", label: t.actions.all },
+    ...Array.from(new Set(equipment.map((item) => item.category).filter(Boolean))).map((value) => ({ value, label: value })),
   ];
 
   const filteredItems =
-    selectedCategory === "all"
+    selectedCategory === ""
       ? equipment
       : equipment.filter((eq) => eq.category === selectedCategory);
 
@@ -73,7 +67,7 @@ export function EquipmentManagementView({
     setEditingId(item?.id ?? null);
     setModelName(item?.model_name ?? "");
     setNameAr(item?.name_ar ?? "");
-    setCategory(item?.category ?? "cameras");
+    setCategory(item?.category ?? "");
     setBrand(item?.brand ?? "");
     setSpecification(item?.specification ?? "");
     setQuantity(item?.quantity ?? 1);
@@ -264,29 +258,8 @@ export function EquipmentManagementView({
               <span className="text-xs text-ink mb-1.5 block">
                 {t.equipmentView.category}
               </span>
-              <Select
-                value={category}
-                onChange={(e) => setCategory(e.target.value as any)}
-              >
-                <option value="cameras" className="bg-surface text-ink">
-                  {t.equipmentView.categories.cameras}
-                </option>
-                <option value="lenses" className="bg-surface text-ink">
-                  {t.equipmentView.categories.lenses}
-                </option>
-                <option value="lighting" className="bg-surface text-ink">
-                  {t.equipmentView.categories.lighting}
-                </option>
-                <option value="audio" className="bg-surface text-ink">
-                  {t.equipmentView.categories.audio}
-                </option>
-                <option value="grip" className="bg-surface text-ink">
-                  {t.equipmentView.categories.grip}
-                </option>
-                <option value="drones" className="bg-surface text-ink">
-                  {t.equipmentView.categories.drones}
-                </option>
-              </Select>
+              <Input value={category} onChange={(event) => setCategory(event.target.value)} list="resource-categories" maxLength={80} required />
+              <datalist id="resource-categories">{categories.filter((item) => item.value).map((item) => <option key={item.value} value={item.value} />)}</datalist>
             </label>
             <label>
               <span className="text-xs text-ink mb-1.5 block">

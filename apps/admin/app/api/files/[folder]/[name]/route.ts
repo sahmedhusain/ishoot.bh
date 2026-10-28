@@ -111,10 +111,10 @@ export async function GET(
         )
           return new NextResponse(null, { status: 403 });
       }
-      if (isSupabaseStorageConfigured() && upload) {
+      if (isSupabaseStorageConfigured()) {
         const location = uploadStorageLocation(
           `/api/files/${folder}/${name}`,
-          upload.isPublic,
+          upload?.isPublic ?? false,
         );
         const url = await generateDownloadUrl(location.bucket, location.path);
         // Never cache redirects beyond the short lifetime of their signed URL.

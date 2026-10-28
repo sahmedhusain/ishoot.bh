@@ -1,63 +1,33 @@
 "use client";
+import { useSiteReducedMotion } from "../site/SiteTheme";
 
 import * as React from "react";
 import { StudioEquipment } from "@platform/database";
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
-import {
-  Camera,
-  Aperture,
-  Sun,
-  Sliders,
-  Warehouse
-} from "lucide-react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface EquipmentGridProps {
   equipment: StudioEquipment[];
 }
 
 export function EquipmentGrid({ equipment }: EquipmentGridProps) {
-  const reduced = useReducedMotion();
+  const reduced = useSiteReducedMotion();
   const { t } = useTranslation();
-  const [selectedCategory, setSelectedCategory] = React.useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = React.useState<string>("");
 
   const categories = [
-    { id: "all", label: t("about.gearAll") },
-    {
-      id: "cameras",
-      label: t("about.gearCameras"),
-      icon: <Camera className="w-4 h-4" />,
-    },
-    {
-      id: "lenses",
-      label: t("about.gearLenses"),
-      icon: <Aperture className="w-4 h-4" />,
-    },
-    {
-      id: "lighting",
-      label: t("about.gearLighting"),
-      icon: <Sun className="w-4 h-4" />,
-    },
-    {
-      id: "audio_grading",
-      label: t("about.gearAudioGrading"),
-      icon: <Sliders className="w-4 h-4" />,
-    },
-    {
-      id: "stages",
-      label: t("about.gearStages"),
-      icon: <Warehouse className="w-4 h-4" />,
-    },
+    { id: "", label: t("about.gearAll") },
+    ...Array.from(new Set(equipment.map((item) => item.category).filter(Boolean))).map((category) => ({ id: category, label: category })),
   ];
 
   const filteredEquipment =
-    selectedCategory === "all"
+    selectedCategory === ""
       ? equipment
       : equipment.filter((eq) => eq.category === selectedCategory);
 
   return (
-    <section className="relative z-30 bg-[#F8FAFC] text-[#0F172A] py-20 sm:py-28 border-t border-slate-200">
+    <section className="relative z-30 bg-m3-surface text-ink py-20 sm:py-28 border-t border-m3-outline-variant">
       <div className="shell space-y-10">
         <motion.div
           initial={reduced ? false : { opacity: 0, y: 16 }}
@@ -69,7 +39,7 @@ export function EquipmentGrid({ equipment }: EquipmentGridProps) {
           <SectionBadge className="!text-accent-pressed">
             {t("about.gearTitle")}
           </SectionBadge>
-          <h3 className="text-3xl sm:text-5xl font-bold tracking-tight text-slate-950 font-display">
+          <h3 className="text-3xl sm:text-5xl font-bold tracking-tight text-ink font-display">
             {t("about.gearSubtitle")}
           </h3>
         </motion.div>
@@ -91,8 +61,8 @@ export function EquipmentGrid({ equipment }: EquipmentGridProps) {
               onClick={() => setSelectedCategory(cat.id)}
               aria-pressed={selectedCategory === cat.id}
               className={`min-h-11 px-4 py-2 rounded-md text-xs font-bold transition-colors duration-150 cursor-pointer ${selectedCategory === cat.id
-                ? "bg-primary text-paper border border-accent"
-                : "bg-white text-slate-700 hover:text-slate-950 border border-slate-200 shadow-2xs"
+                ? "bg-primary text-primary-foreground border border-accent"
+                : "bg-m3-surface-container-low text-ink-muted hover:text-ink border border-m3-outline-variant shadow-2xs"
                 }`}
             >
               <span>{cat.label}</span>
@@ -117,7 +87,7 @@ export function EquipmentGrid({ equipment }: EquipmentGridProps) {
                   duration: reduced ? 0 : 0.25,
                   delay: reduced ? 0 : Math.min(idx * 0.04, 0.16),
                 }}
-                className="group relative rounded-lg bg-white border border-slate-200 hover:border-accent transition-colors duration-150 p-6 sm:p-8 flex flex-col justify-between space-y-6 overflow-hidden"
+                className="group relative rounded-lg bg-m3-surface-container-low border border-m3-outline-variant hover:border-accent transition-colors duration-150 p-6 sm:p-8 flex flex-col justify-between space-y-6 overflow-hidden"
               >
                 <div className="space-y-3 relative z-10">
                   <div className="flex items-center justify-between font-sans">
@@ -127,16 +97,13 @@ export function EquipmentGrid({ equipment }: EquipmentGridProps) {
                         gear.category.replace("_", " ")}{" "}
                       &gt;&gt;
                     </span>
-                    <span className="text-[10px] font-bold text-primary">
-                      &lt;&lt; {t("about.gear.calibrated")} &gt;&gt;
-                    </span>
                   </div>
 
                   <div>
-                    <h4 className="text-lg sm:text-2xl font-bold text-slate-900 group-hover:text-primary transition-colors font-display">
+                    <h4 className="text-lg sm:text-2xl font-bold text-ink group-hover:text-primary transition-colors font-display">
                       {gear.model_name}
                     </h4>
-                    <p className="mt-1 text-xs sm:text-sm text-slate-600 font-sans leading-relaxed">
+                    <p className="mt-1 text-xs sm:text-sm text-ink-muted font-sans leading-relaxed">
                       {gear.specification}
                     </p>
                   </div>

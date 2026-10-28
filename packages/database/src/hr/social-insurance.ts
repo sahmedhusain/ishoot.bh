@@ -1,7 +1,8 @@
+import { roundMoney } from "../finance/money";
 /**
- * Social insurance (GOSI / SIO) contributions and wage-support programmes, with no database access.
+ * Social insurance (pension fund) contributions and wage-support programmes, with no database access.
  *
- * Contributions are monthly and never prorated: GOSI counts the month in full when the employee is employed on its
+ * Contributions are monthly and never prorated: the configured policy counts the month in full when the employee is employed on its
  * 1st day, and not at all for a month they join after the 1st. Rates are dated components, so a change in the law
  * is a new component from its effective date and every past month keeps the rates it was paid under.
  */
@@ -61,6 +62,8 @@ export interface GosiProfile {
 export interface GosiRules {
   firstOfMonthRule: boolean;
   wageSource: "contract" | "registered";
+  nationalityCategories?: Record<string, InsuredCategory>;
+  currency?: string;
 }
 
 export interface PayParts {
@@ -184,6 +187,7 @@ export function monthlyContributions(input: {
   month: number;
 }): MonthlyContributions {
   const { profile, rules, pay, year, month } = input;
+  const r3 = (value: number) => rules.currency ? roundMoney(value, rules.currency) : Math.round((value + Number.EPSILON) * 1000) / 1000;
   const none = (
     reason: MonthlyContributions["reason"],
   ): MonthlyContributions => ({
@@ -220,7 +224,7 @@ export function monthlyContributions(input: {
       override?.employeePercent ?? tier?.employeePercent ?? c.employeePercent;
     const employerPercent =
       override?.employerPercent ?? tier?.employerPercent ?? c.employerPercent;
-    // The wage registered with GOSI replaces the contract pay when the company declares one.
+    // The wage registered with the pension fund replaces the contract pay when the company declares one.
     let wage =
       c.wageBasis === "fixed" &&
       rules.wageSource === "registered" &&
@@ -351,7 +355,9 @@ export function supportForMonth(
   pay: PayParts,
   month: string,
   paidShare = 1,
+  currency?: string,
 ): SupportLine | null {
+  const r3 = (value: number) => currency ? roundMoney(value, currency) : Math.round((value + Number.EPSILON) * 1000) / 1000;
   if (
     !(PAYING_SUPPORT_STATUSES as readonly string[]).includes(enrolment.status)
   )

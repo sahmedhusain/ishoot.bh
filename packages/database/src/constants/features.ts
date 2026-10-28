@@ -12,8 +12,8 @@ export const DEFAULT_FEATURE_MODULES = [
   },
   {
     moduleKey: "calendar",
-    nameEn: "Production Calendar",
-    nameAr: "جدول الإنتاج",
+    nameEn: "Work Calendar",
+    nameAr: "جدول العمل",
   },
   {
     moduleKey: "equipment",

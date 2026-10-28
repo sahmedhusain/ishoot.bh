@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 
 import type { Payment, CompanySettings } from "@platform/database/types";
 import { formatCurrencyValue } from "@platform/ui";
@@ -22,11 +23,12 @@ export function ReceiptTemplate({
   locale = "en",
   signing = null,
 }: ReceiptTemplateProps) {
+  const companyCurrency = useCompanyCurrency();
   const isAr = locale === "ar";
   const dir = isAr ? "rtl" : "ltr";
   const t = isAr ? adminTranslations.ar : adminTranslations.en;
   const rcpt = t.receipt;
-  const currency = payment.currency || "BHD";
+  const currency = payment.currency || companyCurrency;
 
   const invoice = payment.invoice;
   const isPaidInFull = invoice ? invoice.amount_due <= 0 : true;

@@ -1,3 +1,6 @@
+import { inquiryUploadToken } from "@platform/database/services/inquiry-upload-token";
+import { signInSecret } from "../../../lib/customer";
+import { isWebsitePreview } from "../../../lib/website";
 import {
   serverMessages,
   formatMessage,
@@ -5,6 +8,7 @@ import {
 } from "@platform/locales";
 
 import { requireFeatureEnabled, measureOperation } from "@platform/database";
+import { resolveWebsiteConfig } from "@platform/database/website-config";
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "node:crypto";
 import {
@@ -12,7 +16,10 @@ import {
   getCompanySettings,
   getWebsiteSnapshot,
   db,
-  normalizeToE164,
+  isValidEmail,
+  isValidPhone,
+  formatPhoneE164,
+  normalizeEmail,
 } from "@platform/database";
 import { sendEmail } from "@platform/email";
 import { campaignFrom } from "../../../lib/utm";
@@ -34,8 +41,10 @@ const escape = (value: string) =>
 export async function POST(req: NextRequest) {
   return measureOperation("web:inquiry:POST", async () => {
     try {
+      if (await isWebsitePreview()) return NextResponse.json({ error: serverMessages.runtimeSubmissionsAreTemporarilyUnavailable }, { status: 404 });
       try {
         await requireFeatureEnabled("crm_deals");
+        await requireFeatureEnabled("cms");
       } catch {
         return NextResponse.json(
           { error: serverMessages.runtimeSubmissionsAreTemporarilyUnavailable },
@@ -57,14 +66,16 @@ export async function POST(req: NextRequest) {
         textField(body, "fullName", 200, intent !== "suggestion") ||
         getTranslations(locale === "ar" ? "ar" : "en").contact
           .anonymousSuggestion;
-      const email = textField(body, "email", 254).toLowerCase();
-      const phone = textField(body, "phone", 40);
+      const rawEmail = textField(body, "email", 254);
+      const rawPhone = textField(body, "phone", 40);
       if (
-        (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) ||
-        (phone && !normalizeToE164(phone)) ||
-        (intent !== "suggestion" && !email && !phone)
+        (rawEmail && !isValidEmail(rawEmail)) ||
+        (rawPhone && !isValidPhone(rawPhone)) ||
+        (intent !== "suggestion" && !rawEmail && !rawPhone)
       )
         throw new Error(serverMessages.invalidInput);
+      const email = rawEmail ? normalizeEmail(rawEmail) : "";
+      const phone = rawPhone ? formatPhoneE164(rawPhone) : "";
       const serviceIds = body.services ?? [];
       if (
         !Array.isArray(serviceIds) ||
@@ -72,7 +83,9 @@ export async function POST(req: NextRequest) {
         serviceIds.some((id) => typeof id !== "string")
       )
         throw new Error(serverMessages.invalidInput);
-      const available = (await getWebsiteSnapshot()).services;
+      const website = await getWebsiteSnapshot();
+      if (!resolveWebsiteConfig(website.config).commerce.capabilities.inquiries) return NextResponse.json({ error: serverMessages.runtimeSubmissionsAreTemporarilyUnavailable }, { status: 404 });
+      const available = website.services;
       const selected = available.filter((service) =>
         serviceIds.includes(service.id),
       );
@@ -193,8 +206,13 @@ export async function POST(req: NextRequest) {
             .catch(() => {});
         }
       }
+      let uploadToken: string | undefined;
+      if (resolveWebsiteConfig(website.config).commerce.inquiryAttachments !== false) {
+        try { uploadToken = inquiryUploadToken(resolved.inquiryId, signInSecret()); } catch {}
+      }
       return NextResponse.json({
         success: true,
+        uploadToken,
         reference: resolved.reference,
         confirmationSent,
       });

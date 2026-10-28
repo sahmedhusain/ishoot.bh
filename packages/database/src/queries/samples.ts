@@ -272,6 +272,9 @@ export function exampleSnapshot(activity: BusinessActivity): WebsiteSnapshot {
   ];
   return {
     config,
+    categories: Array.from(new Map(portfolio.filter(item => item.category).map(item => [item.category!.slug, item.category!])).values()),
+    brandTheme: undefined as import("../constants/theme").BrandTheme | undefined,
+    brandAssets: undefined as import("./website").WebsiteSnapshot["brandAssets"] | undefined,
     banners,
     portfolio,
     clients: [],

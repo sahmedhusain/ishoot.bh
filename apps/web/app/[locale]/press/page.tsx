@@ -1,3 +1,4 @@
+import { PublicDocuments } from "../../../components/blocks/PublicDocuments";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Download, Mail, Newspaper } from "lucide-react";
@@ -39,12 +40,13 @@ export default async function PressPage({ params }: { params: Promise<{ locale: 
             </ul>
           )}
         </section>
+        <PublicDocuments locale={locale} />
         <section className="grid gap-4 sm:grid-cols-2" aria-labelledby="press-kit">
           <h2 id="press-kit" className="sm:col-span-2 text-xl font-bold text-white">{t.press.kit}</h2>
           <div className="rounded-2xl border border-white/10 p-5 space-y-2">
             <h3 className="font-semibold text-white">{t.press.about}</h3>
             <p className="text-sm text-ink-muted">{[name, about].filter(Boolean).join(" — ")}</p>
-            {company.logo_url && (
+            {company.logo_url && info.commerce?.capabilities.downloads !== false && (
               <a href={company.logo_url} download className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--web-accent)] hover:underline"><Download className="w-4 h-4" aria-hidden="true" />{t.press.logo}</a>
             )}
           </div>

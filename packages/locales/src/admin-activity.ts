@@ -1,7 +1,7 @@
 // The admin dictionary is activity-neutral; an activity whose own vocabulary reads better (a media studio's
 // shoots, gear and post-production) layers it on top. Kept apart from index.ts so the admin client can
 // import it without the website dictionaries.
-import type adminEn from "./admin/en.json";
+import type adminEn from "./admin/en";
 import adminActivities from "./admin-activities.json";
 import { deepMerge, type DeepPartial } from "./merge";
 

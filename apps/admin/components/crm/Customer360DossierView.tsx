@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
 import { RelatedListControls } from "../shared/RelatedListControls";
@@ -41,6 +42,7 @@ export function Customer360DossierView({
   actions,
   standing,
 }: Customer360DossierViewProps) {
+  const companyCurrency = useCompanyCurrency();
   const { t, locale } = useAdminLocale();
   const [activeTab, setActiveTab] = React.useState<
     "overview" | "interactions" | "deals" | "finance" | "vault"
@@ -57,7 +59,7 @@ export function Customer360DossierView({
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
       {dossier.pagination ? <RelatedListControls pagination={dossier.pagination} /> : null}
       {Object.entries(metrics.balancesByCurrency)
-        .filter(([currency]) => currency !== "BHD")
+        .filter(([currency]) => currency !== companyCurrency)
         .map(([currency, amounts]) => (
           <div
             key={currency}
@@ -172,7 +174,7 @@ export function Customer360DossierView({
             <DollarSign className="w-4 h-4 text-accent" />
           </div>
           <div className="text-2xl font-bold  text-ink dark:text-ink">
-            <CurrencyDisplay amount={metrics.totalLtv} currency="BHD" />
+            <CurrencyDisplay amount={metrics.totalLtv} currency={companyCurrency} />
           </div>
           <div className="text-[11px] text-accent  flex items-center justify-between">
             <span>
@@ -198,7 +200,7 @@ export function Customer360DossierView({
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
           </div>
           <div className="text-2xl font-bold  text-emerald-600 dark:text-emerald-400">
-            <CurrencyDisplay amount={metrics.totalPaid} currency="BHD" />
+            <CurrencyDisplay amount={metrics.totalPaid} currency={companyCurrency} />
           </div>
           <div className="text-[11px] text-ink-muted dark:text-ink-muted ">
             {metrics.settledReceiptsCount || payments.length}{" "}
@@ -217,7 +219,7 @@ export function Customer360DossierView({
           <div
             className={`text-2xl font-bold  ${metrics.totalOutstanding > 0 ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400"}`}
           >
-            <CurrencyDisplay amount={metrics.totalOutstanding} currency="BHD" />
+            <CurrencyDisplay amount={metrics.totalOutstanding} currency={companyCurrency} />
           </div>
           <div className="text-[11px] text-ink-muted dark:text-ink-muted ">
             {metrics.totalOutstanding > 0
@@ -244,7 +246,7 @@ export function Customer360DossierView({
             </span>
             <span>
               {t.customer360.avgDeal}:{" "}
-              <CurrencyDisplay amount={metrics.avgDealSize || 0} currency="BHD" />
+              <CurrencyDisplay amount={metrics.avgDealSize || 0} currency={companyCurrency} />
             </span>
           </div>
         </Card>

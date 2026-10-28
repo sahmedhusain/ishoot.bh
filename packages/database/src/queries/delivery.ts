@@ -21,7 +21,7 @@ const num = (value: { toString(): string } | null | undefined) =>
   value == null ? 0 : Number(value.toString());
 const numOrNull = (value: { toString(): string } | null | undefined) =>
   value == null ? null : Number(value.toString());
-const round3 = (value: number) => Math.round(value * 1000) / 1000;
+const roundStoredAmount = (value: number) => Math.round(value * 1_000_000) / 1_000_000;
 
 // ─── Settings ────────────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -174,7 +174,7 @@ export async function saveDeliveryZone(input: DeliveryZoneInput) {
     const value = Number(text || 0);
     if (!Number.isFinite(value) || value < 0 || value > 99_999_999)
       throw new Error(serverMessages.productAmountInvalid);
-    return round3(value);
+    return roundStoredAmount(value);
   };
   const nameEn = input.nameEn.trim().slice(0, 120);
   const nameAr = input.nameAr.trim().slice(0, 120);

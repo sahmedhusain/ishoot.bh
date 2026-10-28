@@ -17,7 +17,7 @@ export default function ErrorPage({
       <button
         type="button"
         onClick={reset}
-        className="rounded-lg bg-emerald-900 px-4 py-2 text-white"
+        className="min-h-11 rounded-lg bg-m3-primary px-4 py-2 text-m3-on-primary"
       >
         {t("common.retry")}
       </button>

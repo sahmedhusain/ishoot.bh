@@ -25,7 +25,7 @@ export function NewUserFormView({
   roles: Array<{ id: string; nameEn: string; nameAr: string }>;
 }) {
   const router = useRouter();
-  const { t, isRTL } = useAdminLocale();
+  const { isArabic, t } = useAdminLocale();
 
   const [employeeId, setEmployeeId] = React.useState("");
   const [error, setError] = React.useState("");
@@ -175,7 +175,7 @@ export function NewUserFormView({
                     value={r.id}
                     className="bg-surface text-ink"
                   >
-                    {isRTL ? r.nameAr : r.nameEn}
+                    {isArabic ? r.nameAr : r.nameEn}
                   </option>
                 ))}
               </Select>

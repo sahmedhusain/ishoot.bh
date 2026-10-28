@@ -1,3 +1,5 @@
+import { roundMoney, validMoneyAmount } from "../finance/money";
+import { companyCurrency as getAccountingCurrency, assertCompanyCurrency } from "../finance/company-currency";
 import {
   serverTemplates,
   formatMessage,
@@ -15,7 +17,6 @@ import {
   computeEmployeePayroll,
   daysInMonth,
   dayKey,
-  r3,
   utcDay,
   type DayPortion,
   type LeaveInWindow,
@@ -54,7 +55,8 @@ export {
   SETTLEMENT_STATUSES,
 } from "../constants/settlements";
 
-const GCC = new Set(["SA", "KW", "AE", "QA", "OM"]);
+// Retain stored precision when summing existing settlement lines.
+const roundStoredAmount = (value: number) => Math.round(value * 1_000_000) / 1_000_000;
 const DAY = 86_400_000;
 const monthKey = (year: number, month: number) =>
   `${year}-${String(month).padStart(2, "0")}`;
@@ -169,6 +171,8 @@ export async function calculateSettlement(
   employeeId: string,
   lastWorkingDay: Date,
 ) {
+  const accountingCurrency = await getAccountingCurrency();
+  const r3 = (value: number) => roundMoney(value, accountingCurrency);
   const employee = await db.employee.findUnique({
     where: { id: employeeId },
     include: {
@@ -387,7 +391,7 @@ export async function calculateSettlement(
         category: "not_employed",
         labelEn: `Days after the last working day: ${label.en}`,
         labelAr: `الأيام بعد آخر يوم عمل: ${label.ar}`,
-        amount: partMonthPay(fixedPay, after, end),
+        amount: partMonthPay(fixedPay, after, end, accountingCurrency),
         details: { from: dayKey(after), to: dayKey(end) },
       });
     }
@@ -405,7 +409,7 @@ export async function calculateSettlement(
       employeeShare = scheme.employee;
       employerContributions += scheme.employer;
     } else if (settings && employee.hireDate <= start) {
-      const legacy = calculateContributions(fixedPay, settings, month);
+      const legacy = calculateContributions(fixedPay, settings, month, accountingCurrency);
       employeeShare = legacy.employee;
       employerContributions += legacy.employer;
     }
@@ -498,7 +502,7 @@ export async function calculateSettlement(
       });
       const paidAmount = Number(paid?.amount ?? 0);
       const basis = r3(earned?.net ?? 0);
-      const amount = r3(commissionAmount(basis, rate) - paidAmount);
+      const amount = r3(commissionAmount(basis, rate, accountingCurrency) - paidAmount);
       if (amount > 0)
         lines.push({
           kind: "addition",
@@ -636,7 +640,7 @@ export async function calculateSettlement(
       },
     });
     for (const claim of claims) {
-      if (claim.currency !== "BHD") {
+      if (claim.currency !== accountingCurrency) {
         warnings.push(`foreign_currency_claim:${claim.claimNumber}`);
         continue;
       }
@@ -656,7 +660,7 @@ export async function calculateSettlement(
       warnings.push(`claims_awaiting_approval:${pendingClaims}`);
   }
 
-  // 7. Leaving indemnity for staff outside the SIO end-of-service scheme.
+  // 7. Leaving indemnity for staff covered by the configured indemnity policy.
   const profile = profileInForce(
     gosi.profiles.get(employeeId) ?? [],
     lastWorkingDay.getUTCFullYear(),
@@ -664,13 +668,10 @@ export async function calculateSettlement(
   );
   const category =
     profile?.category ??
-    (employee.nationality === "BH"
-      ? "bahraini"
-      : employee.nationality && GCC.has(employee.nationality)
-        ? "gcc"
-        : "expat");
+    gosi.rules.nationalityCategories?.[employee.nationality ?? ""] ?? gosi.rules.nationalityCategories?.["*"] ?? "exempt";
   const indemnity = leavingIndemnity({
     rules: rules.gratuity,
+    currency: accountingCurrency,
     category,
     hireDate: employee.hireDate,
     lastWorkingDay,
@@ -708,6 +709,7 @@ export async function calculateSettlement(
       .map((l) => ({ ...l, amount: r3(l.amount) })),
     employerContributions: r3(employerContributions),
     calculation: {
+      currency: accountingCurrency,
       lastWorkingDay: dayKey(lastWorkingDay),
       hireDate: dayKey(employee.hireDate),
       category,
@@ -725,7 +727,7 @@ export async function calculateSettlement(
 
 function totalsOf(lines: Array<{ kind: string; amount: unknown }>) {
   const sum = (kind: string) =>
-    r3(
+    roundStoredAmount(
       lines
         .filter((l) => l.kind === kind)
         .reduce((total, l) => total + Number(l.amount), 0),
@@ -735,7 +737,7 @@ function totalsOf(lines: Array<{ kind: string; amount: unknown }>) {
   return {
     totalAdditions: additions,
     totalDeductions: deductions,
-    netAmount: r3(additions - deductions),
+    netAmount: roundStoredAmount(additions - deductions),
   };
 }
 
@@ -822,6 +824,7 @@ export async function createFinalSettlement(
           lastWorkingDay.getUTCFullYear(),
         ),
         employeeId: input.employee_id,
+        currency: await assertCompanyCurrency(),
         handoverId: input.handover_id || null,
         reason: input.reason,
         lastWorkingDay,
@@ -837,6 +840,7 @@ export async function createFinalSettlement(
 async function editable(id: string) {
   const settlement = await db.finalSettlement.findUnique({ where: { id } });
   if (!settlement) throw new Error(serverMessages.settlementNotFound);
+  await assertCompanyCurrency(settlement.currency);
   if (!["draft", "rejected"].includes(settlement.status))
     throw new Error(
       formatMessage(serverTemplates.theSettlementIsXItCanOnlyBeChanged, {
@@ -890,6 +894,7 @@ export async function setFinalSettlementManualLines(
   id: string,
   lines: SettlementManualLine[],
 ) {
+  const currency = await getAccountingCurrency();
   if (lines.length > 40)
     throw new Error(serverMessages.aSettlementCanHaveAtMost40);
   const drafts = lines.map((l, i) => {
@@ -904,7 +909,8 @@ export async function setFinalSettlementManualLines(
     const labelAr = l.label_ar?.trim().slice(0, 160) || labelEn;
     if (!labelEn)
       throw new Error(serverMessages.everyAdditionAndDeductionNeedsA);
-    const amount = r3(Number(l.amount));
+    const amount = Number(l.amount);
+    if (!validMoneyAmount(amount, currency)) throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
     if (!Number.isFinite(amount) || amount <= 0 || amount > 1_000_000)
       throw new Error(serverMessages.everyLineNeedsAnAmountAbove);
     return {
@@ -1013,7 +1019,7 @@ export async function signFinalSettlementAsEmployee(
 
 /**
  * Records payment. Everything the settlement paid out is closed with it: the salaries and claims it included,
- * recurring pay and loans, wage support and the GOSI registration end, and the employee is marked as left.
+ * recurring pay and loans, wage support and the pension registration end, and the employee is marked as left.
  */
 export async function payFinalSettlement(
   id: string,
@@ -1089,6 +1095,7 @@ export async function payFinalSettlement(
           update: { amount: { increment: line.amount }, recordedById: actorId },
           create: {
             userId,
+            currency: settlement.currency,
             periodMonth,
             amount: line.amount,
             basisAmount: Number(details.basis),

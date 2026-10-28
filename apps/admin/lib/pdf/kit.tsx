@@ -9,7 +9,7 @@ import * as React from "react";
 import { Image, Text, View, type Styles } from "@react-pdf/renderer";
 import { getCurrencyDecimals, getCurrencyLabel } from "@platform/config/currency";
 
-import { db } from "@platform/database";
+import { db, formatDocumentPhone } from "@platform/database";
 import type { CompanySettings } from "@platform/database/types";
 import { resolveConfiguredPdfAsset } from "./configured-asset";
 import { DEFAULT_THEME, mix } from "@platform/database/constants/theme";
@@ -247,7 +247,7 @@ export function docKit(locale: DocLocale) {
           <Text fixed style={{ position: "absolute", bottom: 6, right: 40, width: 120, textAlign: "right", fontSize: 6.5, color: C.muted }} render={({ pageNumber, totalPages }) => pageLabel(pageNumber, totalPages)} />
         </View>
       );
-    const contact = [company.phone, company.email, company.website?.replace(/^https?:\/\//, "")].filter(Boolean).join("   ·   ");
+    const contact = [company.phone ? formatDocumentPhone(company.phone, company.country) : "", company.email, company.website?.replace(/^https?:\/\//, "")].filter(Boolean).join("   ·   ");
     return (
       <View fixed style={{ position: "absolute", bottom: 0, left: 40, right: 40, height: FOOTER_HEIGHT, paddingTop: 12 }}>
         <View style={{ height: 0.8, backgroundColor: C.accent }} />

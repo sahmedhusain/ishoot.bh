@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { getCurrencyLabel } from "@platform/config/currency";
 
@@ -26,7 +27,7 @@ interface TeamPerformanceViewProps {
 
 export function TeamPerformanceView({ period, from, to, members, history, managers, managerId }: TeamPerformanceViewProps) {
   const { t, locale } = useAdminLocale();
-  const bhd = getCurrencyLabel("BHD", locale === "ar");
+  const bhd = getCurrencyLabel(useCompanyCurrency(), locale === "ar");
   const k = t.team;
   const router = useRouter();
   const [open, setOpen] = React.useState<string | null>(null);

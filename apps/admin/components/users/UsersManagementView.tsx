@@ -1,4 +1,5 @@
 "use client";
+import { PhoneInput } from "@platform/ui";
 import { ModalFooter, useConfirmation } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
@@ -81,7 +82,7 @@ export function UsersManagementView({
   const modalFormId = React.useId();
 
   const confirmAction = useConfirmation();
-  const { t, isRTL } = useAdminLocale();
+  const { isArabic, t } = useAdminLocale();
   const { role: actorRole } = usePermissions();
 
   const router = useRouter();
@@ -126,14 +127,14 @@ export function UsersManagementView({
   const [role, setRole] = React.useState<UserRole>("employee");
   const [phone, setPhone] = React.useState("");
   const [departmentId, setDepartmentId] = React.useState("");
-  const departmentName = (u: Profile) => (isRTL ? u.department_name_ar || u.department_name_en : u.department_name_en || u.department_name_ar);
+  const departmentName = (u: Profile) => (isArabic ? u.department_name_ar || u.department_name_en : u.department_name_en || u.department_name_ar);
   const [managerId, setManagerId] = React.useState("");
   const [saving, setSaving] = React.useState(false);
   const [successMsg, setSuccessMsg] = React.useState("");
 
   const allRoles = roles.map((r) => ({
     key: r.id as UserRole,
-    name: isRTL ? r.nameAr : r.nameEn,
+    name: isArabic ? r.nameAr : r.nameEn,
     color: "rgb(var(--brand-accent))",
   }));
 
@@ -276,7 +277,7 @@ export function UsersManagementView({
             <Select name="departmentId" defaultValue={filters.departmentId} aria-label={t.roles.department} className="py-1.5 px-2 text-xs rounded-xl bg-surface-sunken border border-outline-variant">
               <option value="all">{t.usersBulk.allDepartments}</option>
               <option value="none">{t.usersBulk.noDepartment}</option>
-              {departments.map((d) => <option key={d.id} value={d.id}>{isRTL ? d.name_ar : d.name_en}</option>)}
+              {departments.map((d) => <option key={d.id} value={d.id}>{isArabic ? d.name_ar : d.name_en}</option>)}
             </Select>
             <Select name="status" defaultValue={filters.status} aria-label={t.usersView.statusHeader} className="py-1.5 px-2 text-xs rounded-xl bg-surface-sunken border border-outline-variant">
               {(["all", "active", "suspended", "archived", "inactive"] as const).map((status) => <option key={status} value={status}>{t.usersBulk.statuses[status]}</option>)}
@@ -296,7 +297,7 @@ export function UsersManagementView({
               <Select value={bulkDepartment} onChange={(e) => setBulkDepartment(e.target.value)} aria-label={t.usersBulk.changeDepartment} className="py-1.5 px-2 rounded-xl bg-surface border border-outline-variant">
                 <option value="">{t.usersBulk.changeDepartment}</option>
                 <option value="__none">{t.usersBulk.noDepartment}</option>
-                {departments.map((d) => <option key={d.id} value={d.id}>{isRTL ? d.name_ar : d.name_en}</option>)}
+                {departments.map((d) => <option key={d.id} value={d.id}>{isArabic ? d.name_ar : d.name_en}</option>)}
               </Select>
               <Button type="button" size="sm" variant="outline" disabled={!bulkDepartment || bulkBusy} onClick={() => applyBulk({ departmentId: bulkDepartment === "__none" ? "" : bulkDepartment })}>{t.usersBulk.apply}</Button>
               <button type="button" className="ms-auto text-ink-muted hover:text-ink" onClick={() => setSelected([])}>{t.usersBulk.clear}</button>
@@ -609,7 +610,7 @@ export function UsersManagementView({
                 <option value="">{t.departmentsSettings.nobody}</option>
                 {departments.map((d) => (
                   <option key={d.id} value={d.id}>
-                    {isRTL ? d.name_ar : d.name_en}
+                    {isArabic ? d.name_ar : d.name_en}
                   </option>
                 ))}
               </Select>
@@ -620,10 +621,9 @@ export function UsersManagementView({
             <span className="text-ink-muted font-medium">
               <bdi dir="ltr">{t.usersView.phone}</bdi>
             </span>
-            <Input
-              placeholder={t.usersView.phonePlaceholder}
+            <PhoneInput
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={setPhone}
               dir="ltr"
               className="text-start"
             />

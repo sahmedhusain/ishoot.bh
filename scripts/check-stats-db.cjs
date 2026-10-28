@@ -24,9 +24,9 @@ async function main() {
       for (const name of ["projects_delivered", "clients_served", "team_members", "portfolio_projects", "five_star_reviews"]) before[name] = Number(await value(preset(name)));
       const a = await tx.crmContact.create({ data: { firstName: "Stat", lastName: "A" } });
       const b = await tx.crmContact.create({ data: { firstName: "Stat", lastName: "B" } });
-      await tx.crmDeal.create({ data: { title: "Won", dealStage: "closed_won", contactId: a.id } });
-      await tx.crmDeal.create({ data: { title: "Lost", dealStage: "closed_lost", contactId: a.id } });
-      const inv = (clientId, status, n) => tx.invoice.create({ data: { invoiceNumber: `STAT-${stamp}-${n}`, clientId, status, dueDate: new Date() } });
+      await tx.crmDeal.create({ data: { currency: "BHD", title: "Won", dealStage: "closed_won", contactId: a.id } });
+      await tx.crmDeal.create({ data: { currency: "BHD", title: "Lost", dealStage: "closed_lost", contactId: a.id } });
+      const inv = (clientId, status, n) => tx.invoice.create({ data: { currency: "BHD", invoiceNumber: `STAT-${stamp}-${n}`, clientId, status, dueDate: new Date() } });
       await inv(a.id, "sent", 1); await inv(a.id, "paid", 2); await inv(b.id, "draft", 3); await inv(b.id, "void", 4);
       const emp = (status, n) => tx.employee.create({ data: { employeeNumber: `STAT-${stamp}-${n}`, firstNameEn: "S", lastNameEn: "T", firstNameAr: "س", lastNameAr: "ت", jobTitleEn: "Crew", jobTitleAr: "طاقم", hireDate: new Date(), status } });
       await emp("active", 1); await emp("terminated", 2);

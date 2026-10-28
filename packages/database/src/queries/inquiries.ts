@@ -138,7 +138,7 @@ export async function getRequestsPage(filters: RequestFilters = {}, page = 1) {
     where.workflowStatus = filters.workflowStatus;
   if (filters.search) {
     const term = filters.search.trim().slice(0, 200);
-    where.OR = ["name", "email", "companyName", "message", "reference"].map(
+    where.OR = ["name", "email", "phone", "companyName", "message", "reference"].map(
       (field) => ({ [field]: { contains: term, mode: "insensitive" } }),
     );
   }

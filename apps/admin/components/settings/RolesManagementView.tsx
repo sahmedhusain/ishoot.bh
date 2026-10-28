@@ -22,7 +22,7 @@ const MATRIX_ACTIONS = ALL_ACTIONS.filter((action): action is Exclude<Permission
 export function RolesManagementView({ initialRoles }: { initialRoles: RoleWithGrants[] }) {
   const modalFormId = React.useId();
 
-  const { t, isRTL } = useAdminLocale();
+  const { isArabic, t } = useAdminLocale();
   const labels = t.permissionLabels;
   const [roles, setRoles] = React.useState(initialRoles);
   React.useEffect(() => setRoles(initialRoles), [initialRoles]);
@@ -120,7 +120,7 @@ export function RolesManagementView({ initialRoles }: { initialRoles: RoleWithGr
             <div>
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="font-bold text-lg dark:text-ink">{isRTL ? role.nameAr : role.nameEn}</h3>
+                  <h3 className="font-bold text-lg dark:text-ink">{isArabic ? role.nameAr : role.nameEn}</h3>
                   <Badge variant={role.isSystem ? "emerald" : "default"} className="mt-1">
                     {role.isSystem ? t.rolesView.systemRole : t.rolesView.customRole}
                   </Badge>

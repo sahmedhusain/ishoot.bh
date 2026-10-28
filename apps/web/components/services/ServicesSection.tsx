@@ -1,4 +1,5 @@
 "use client";
+import { useSiteReducedMotion } from "../site/SiteTheme";
 import { ContentImage } from "../shared/ContentImage";
 
 import Link from "next/link";
@@ -7,15 +8,15 @@ import { safeWebsiteUrl } from "@platform/database/website-config";
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
 import { ArrowUpRight } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 
 export function ServicesSection({
   services = [],
 }: {
   services?: PublicService[];
 }) {
-  const { t, isRTL: ar, locale } = useTranslation();
-  const reduced = useReducedMotion();
+  const { t, isArabic: ar, locale } = useTranslation();
+  const reduced = useSiteReducedMotion();
 
   if (!services.length) return null;
 

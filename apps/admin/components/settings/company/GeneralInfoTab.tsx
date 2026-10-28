@@ -1,8 +1,11 @@
 "use client";
+import { countryIso } from "@platform/config/phone";
+import { CURRENCY_CODES, getCurrencyDecimals, getCurrencyLabel } from "@platform/config/currency";
+import { countryOptions } from "@platform/database/constants/clients";
 
 import * as React from "react";
 import type { CompanySettings } from "@platform/database/types";
-import { Card, Input } from "@platform/ui";
+import { Card, Input, PhoneInput, Select } from "@platform/ui";
 import {
   Building2,
   Phone,
@@ -86,12 +89,11 @@ export function GeneralInfoTab({
             <span className="text-xs font-medium text-ink dark:text-ink">
               {t.companySettingsView.defaultCurrency}
             </span>
-            <Input
-              disabled
-              value={`${settings.default_currency} (${settings.currency_decimals} ${t.companySettingsView.decimalsWord})`}
-              className=" bg-surface-raised dark:bg-surface-raised/50 opacity-80 rounded-lg"
-            />
+            <Select value={settings.default_currency} onChange={(event) => setSettings({ ...settings, default_currency: event.target.value, currency_decimals: getCurrencyDecimals(event.target.value) })}>{CURRENCY_CODES.map((code) => <option key={code} value={code}>{code} · {getCurrencyLabel(code)}</option>)}</Select>
+            <span className="block text-xs text-ink-muted">{t.companySettingsView.currencyHint}</span>
           </label>
+
+          <label className="block space-y-1.5"><span className="text-xs font-medium">{t.companySettingsTabs.country}</span><Select value={countryIso(settings.country) ?? settings.country ?? ""} onChange={(event) => setSettings({ ...settings, country: event.target.value })}><option value="">{t.companySettingsTabs.country}</option>{countryOptions(t.countries).map((country) => <option key={country.code} value={country.code}>{country.name}</option>)}</Select></label>
 
           <label className="block space-y-1.5">
             <span className="text-xs font-medium text-ink dark:text-ink">
@@ -142,12 +144,10 @@ export function GeneralInfoTab({
             <span className="text-xs font-medium text-ink dark:text-ink">
               <bdi dir="ltr">{t.companySettingsTabs.phone}</bdi>
             </span>
-            <Input
+            <PhoneInput
+              defaultCountryCode={settings.country}
               value={settings.phone || ""}
-              onChange={(e) =>
-                setSettings({ ...settings, phone: e.target.value })
-              }
-              className=" rounded-lg"
+              onChange={(phone) => setSettings({ ...settings, phone })}
             />
           </label>
 
@@ -155,12 +155,10 @@ export function GeneralInfoTab({
             <span className="text-xs font-medium text-ink dark:text-ink">
               {t.companySettingsTabs.whatsapp}
             </span>
-            <Input
+            <PhoneInput
+              defaultCountryCode={settings.country}
               value={settings.whatsapp_phone || ""}
-              onChange={(e) =>
-                setSettings({ ...settings, whatsapp_phone: e.target.value })
-              }
-              className=" rounded-lg"
+              onChange={(whatsapp_phone) => setSettings({ ...settings, whatsapp_phone })}
             />
           </label>
 

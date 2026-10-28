@@ -35,8 +35,10 @@ export function WebsiteEditor({
   publication,
   company,
   sampleCount,
+  categories,
 }: {
   config: ResolvedWebsiteConfig;
+  categories?: { slug: string; name_en: string; name_ar: string }[];
   company: { languages: ContentLanguage[]; primaryLanguage: ContentLanguage; activity: BusinessActivity | null; hasWhatsapp: boolean };
   deliveryStatus?: string;
   sampleCount: number;
@@ -201,6 +203,7 @@ export function WebsiteEditor({
         <p className="text-xs">{t.websiteEditor.emptyContentStaysHiddenSave}</p>
       </section>
       <WebsiteSetupFields
+        categories={categories}
         config={draft}
         onChange={change}
         languages={company.languages}

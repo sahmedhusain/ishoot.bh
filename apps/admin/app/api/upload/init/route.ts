@@ -115,8 +115,8 @@ export async function POST(req: NextRequest) {
             "icon_dark",
             "icon",
           ].includes(entityId)) ||
-        entityType === "cms_asset";
-      if (publicBrand && fileType === "application/pdf")
+        entityType === "cms_asset" || entityType === "cms_document";
+      if ((publicBrand && entityType !== "cms_document" && fileType === "application/pdf") || (entityType === "cms_document" && fileType !== "application/pdf"))
         return NextResponse.json(
           { error: serverMessages.runtimeBrandAssetsMustBeImages },
           { status: 415 },

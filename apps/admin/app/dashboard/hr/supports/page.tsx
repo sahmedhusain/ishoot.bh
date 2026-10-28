@@ -10,7 +10,7 @@ import { SupportClaimsPanel } from "../../../../components/hr/SupportClaimsPanel
 
 export const dynamic = "force-dynamic";
 
-/** Wage-support programmes (e.g. Tamkeen): their dated terms, each employee's application and decision, and claims. */
+/** Wage-support programmes (e.g. Wage support fund): their dated terms, each employee's application and decision, and claims. */
 export default async function SupportsPage({
   searchParams,
 }: {

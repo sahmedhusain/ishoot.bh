@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 import { getCurrencyLabel } from "@platform/config/currency";
 import { errorMessage } from "../../lib/error-text";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -14,7 +15,6 @@ import {
   TrendingUp,
   HelpCircle,
   DollarSign,
-  Globe,
 } from "lucide-react";
 import { exportFinancialReportCsvAction } from "../../app/actions/finance";
 import { toast } from "sonner";
@@ -36,7 +36,7 @@ export function FinancialReportsView({
   showVat = true,
 }: FinancialReportsViewProps) {
   const { t, locale } = useAdminLocale();
-  const bhd = getCurrencyLabel("BHD", locale === "ar");
+  const bhd = getCurrencyLabel(useCompanyCurrency(), locale === "ar");
   const router = useRouter();
   const [exporting, setExporting] = React.useState(false);
 
@@ -350,34 +350,7 @@ export function FinancialReportsView({
       </div>
 
       {/* FX & Settlement Realization */}
-      <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-ink dark:text-ink font-mono border-b border-outline-variant pb-3 flex items-center gap-2">
-          <Globe className="w-4 h-4 text-accent" />
-          {t.financialReports.n3MultiCurrencySettlementAnd}
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
-          <div>
-            <span className="text-ink-muted block mb-1">{t.financialReports.commercialPricingPolicy}</span>
-            <p className="text-ink-muted dark:text-ink-muted leading-relaxed text-[11px]">
-              {t.financialReports.foreignCurrencyQuotationsUsdSar}
-            </p>
-          </div>
-          <div>
-            <span className="text-ink-muted block mb-1">{t.financialReports.bankSettlementReconciliation}</span>
-            <p className="text-ink-muted dark:text-ink-muted leading-relaxed text-[11px]">
-              {t.financialReports.actualBankSettlementCreditsIn}
-            </p>
-          </div>
-          <div className="p-4 bg-surface-raised dark:bg-surface-raised/50 rounded-md border border-outline-variant space-y-1">
-            <span className="text-ink-muted uppercase font-mono text-[10px]">{t.financialReports.realizedFxImpactBhd}</span>
-            <div className={`text-xl font-bold font-mono ${report.realizedFxGainLoss >= 0 ? "text-emerald-600" : "text-red-500"}`}>
-              {report.realizedFxGainLoss >= 0 ? `+${report.realizedFxGainLoss.toFixed(3)}` : report.realizedFxGainLoss.toFixed(3)} {bhd}
-            </div>
-            <div className="text-[11px] text-ink-muted">{t.financialReports.netFxGainLossOn}</div>
-          </div>
-        </div>
-      </Card>
+      
     </div>
   );
 }

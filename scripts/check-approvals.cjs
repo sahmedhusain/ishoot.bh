@@ -190,9 +190,7 @@ function createEngine(db, finalized) {
       approveSignatureChange: async () => { },
       rejectSignatureChange: async () => { },
     },
-    "../queries/fx-settlement": {
-      getLatestExchangeRate: async () => ({ rate: 1 }),
-    },
+    "../finance/company-currency": { companyCurrency: async () => "BHD", assertCompanyCurrency: async (requested) => { if (requested && requested !== "BHD") throw new Error("Company currency required"); return "BHD"; } },
     "../queries/account-changes": {
       approveAccountChange: async () => { },
       rejectAccountChange: async () => { },

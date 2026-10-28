@@ -3,9 +3,10 @@ import {
   getCurrencyLabel,
 } from "@platform/config/currency";
 import type { WebsiteCopyOverlay } from "@platform/locales";
-import type { ContentLanguage } from "@platform/database/constants/languages";
+import type { Locale } from "@platform/locales/registry";
 import type {
   BusinessActivity,
+  CollectionLayout,
   HeroStyle,
   InquiryOptions,
 } from "@platform/database/website-presets";
@@ -17,14 +18,17 @@ import type {
 /** What every page needs to know about this company's website (from the published config and company settings). */
 export interface SiteInfo {
   activity: BusinessActivity;
-  languages: ContentLanguage[];
-  primaryLanguage: ContentLanguage;
+  languages: Locale[];
+  primaryLanguage: Locale;
+  interfaceCopy?: Record<string, Record<string, unknown>>;
   collection: WebsiteCollection;
   articles: WebsiteArticles;
   heroStyle: HeroStyle;
   inquiry: InquiryOptions;
   whatsappButton: boolean;
+  commerce?: import("@platform/database/constants/website-commerce").WebsiteCommerce;
   showEquipment: boolean;
+  footerInvitation?: boolean;
   currency: string;
 }
 
@@ -68,4 +72,9 @@ export function formatPrice(amount: number, currency: string, locale: string) {
   ).format(amount);
   const label = getCurrencyLabel(currency, locale === "ar", false);
   return locale === "ar" ? `${number} ${label}` : `${label} ${number}`;
+}
+
+/** Grid columns for a layout: wide cards for projects, three across for products and listings. */
+export function collectionGridClass(layout: CollectionLayout) {
+  return layout === "product" || layout === "listing" ? "grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3" : "grid grid-cols-1 gap-x-8 gap-y-12 md:grid-cols-2";
 }

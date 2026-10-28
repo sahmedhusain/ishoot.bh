@@ -90,7 +90,7 @@ function DriverCash({ entry, money, currency, canSettle, onDone, onError }: { en
       </ul>
       {canSettle && (
         <div className="grid sm:grid-cols-3 gap-3 items-end">
-          <Field label={formatMessage(copy.received, { currency })}>{(id) => <Input id={id} name="cashReceived" type="number" min={0} step="0.001" value={received} onChange={(e) => setReceived(e.target.value)} className="rounded-lg" />}</Field>
+          <Field label={formatMessage(copy.received, { currency })}>{(id) => <Input id={id} name="cashReceived" type="number" min={0} step="any" value={received} onChange={(e) => setReceived(e.target.value)} className="rounded-lg" />}</Field>
           <Field label={copy.note}>{(id) => <Input id={id} maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} className="rounded-lg" />}</Field>
           <Button type="button" size="sm" variant="primary" className="rounded-full" disabled={busy} onClick={() => void settle()} data-testid="cash-settle">{copy.settle}</Button>
         </div>

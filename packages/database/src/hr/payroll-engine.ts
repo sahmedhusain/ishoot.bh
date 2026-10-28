@@ -1,3 +1,4 @@
+import { roundMoney } from "../finance/money";
 import {
   serverTemplates,
   formatMessage,
@@ -7,10 +8,13 @@ import {
 /**
  * Payroll and leave arithmetic with no database access, so every rule can be unit tested.
  *
- * Money is BHD rounded to 3 decimals. Dates are handled as UTC calendar days ("YYYY-MM-DD").
+ * Money follows the company currency; historical snapshots without currency retain three decimal places. Dates are handled as UTC calendar days ("YYYY-MM-DD").
  */
 
 export interface HrPolicyRules {
+  /** Calculation context from company settings, never an independently editable payroll currency. */
+  currency?: string;
+  visaExemptCountries?: string[];
   salaryTiming: "arrears" | "current";
   payDay: number;
   attendanceCutoffDay: number | null;
@@ -33,6 +37,7 @@ export interface HrPolicyRules {
 }
 
 export const DEFAULT_HR_POLICY: HrPolicyRules = {
+  visaExemptCountries: [],
   salaryTiming: "arrears",
   payDay: 1,
   attendanceCutoffDay: null,
@@ -383,6 +388,7 @@ export function computeEmployeePayroll(
   input: EmployeePayrollInput,
 ): PayrollBreakdown {
   const { policy, window, holidays, pay } = input;
+  const r3 = (value: number) => policy.currency ? roundMoney(value, policy.currency) : Math.round(value * 1000) / 1000;
   const fixedPay = r3(pay.basic + pay.housing + pay.transport + pay.other);
   const salaryDays = daysInMonth(
     window.salaryStart.getUTCFullYear(),
@@ -599,7 +605,9 @@ export function payrollTotals(
     | "otherDeductions"
   >,
   employeeContribution: number,
+  currency?: string,
 ) {
+  const r3 = (value: number) => currency ? roundMoney(value, currency) : Math.round(value * 1000) / 1000;
   const gross = r3(
     b.fixedPay + b.overtimePay + b.shiftAllowance + b.commission + b.bonus,
   );

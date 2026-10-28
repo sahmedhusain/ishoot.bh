@@ -1,3 +1,5 @@
+import { companyCurrency } from "../finance/company-currency";
+import { isCountryCode } from "../constants/clients";
 import {
   serverTemplates,
   formatMessage,
@@ -16,8 +18,11 @@ import {
 
 export async function getHrPolicy(): Promise<HrPolicyRules> {
   const row = await db.hrPolicy.findUnique({ where: { id: "default" } });
-  if (!row) return DEFAULT_HR_POLICY;
+  const currency = await companyCurrency();
+  if (!row) return { ...DEFAULT_HR_POLICY, currency };
   return {
+    currency,
+    visaExemptCountries: row.visaExemptCountries,
     salaryTiming: row.salaryTiming as HrPolicyRules["salaryTiming"],
     payDay: row.payDay,
     attendanceCutoffDay: row.attendanceCutoffDay,
@@ -40,6 +45,7 @@ export async function getHrPolicy(): Promise<HrPolicyRules> {
 }
 
 export function validateHrPolicy(input: HrPolicyRules): HrPolicyRules {
+  if (input.visaExemptCountries !== undefined && (!Array.isArray(input.visaExemptCountries) || input.visaExemptCountries.some((country) => !isCountryCode(country)))) throw new Error(serverMessages.invalidInput);
   const int = (value: number, min: number, max: number, label: string) => {
     if (!Number.isInteger(value) || value < min || value > max)
       throw new Error(
@@ -106,7 +112,7 @@ export async function updateHrPolicy(
   input: HrPolicyRules,
   actorId: string,
 ): Promise<HrPolicyRules> {
-  const data = validateHrPolicy(input);
+  const { currency: _currency, ...data } = validateHrPolicy(input);
   await db.hrPolicy.upsert({
     where: { id: "default" },
     update: { ...data, updatedById: actorId },

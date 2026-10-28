@@ -1,3 +1,4 @@
+import { assertRecordInScope } from "./data-scope";
 import { serverMessages } from "@platform/locales";
 import {
   db,
@@ -44,6 +45,13 @@ export async function requireAttachmentAccess(
   entityId: string,
   action: PermissionAction,
 ) {
+  if (entityType === "inquiry") {
+    const user = await requirePermission("requests", action);
+    const inquiry = await db.inquiry.findUnique({ where: { id: entityId }, select: { assignedToId: true } });
+    if (!inquiry) throw new Error(serverMessages.attachmentTargetNotFound);
+    await assertRecordInScope("requests", inquiry.assignedToId);
+    return user;
+  }
   if (entityType === "employee" && (!entityId || entityId === "pending"))
     throw new Error(serverMessages.createTheEmployeeBeforeAttachingDocuments);
   if (
@@ -81,7 +89,7 @@ export async function requireAttachmentAccess(
       await requireShipmentAccess(entityId, action === "read" ? "read" : "edit")
     ).user;
   }
-  if (entityType === "cms_asset") {
+  if (entityType === "cms_asset" || entityType === "cms_document") {
     const resource = CMS_ASSET_RESOURCES.find((r) => r === entityId);
     if (!resource) throw new Error(serverMessages.unsupportedAttachmentType);
     return requirePermission(resource, action);

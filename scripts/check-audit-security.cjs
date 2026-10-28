@@ -195,7 +195,7 @@ async function main() {
     users.updateUserAction("t", { password: "short" }),
     /Password must/,
   );
-  const translations = require("../packages/locales/src/en.json");
+  const translations = require("../packages/locales/src/common.cjs").withCommonCopy(require("../packages/locales/src/en.json"), "web", require("../packages/locales/src/common.cjs").commonEn);
   const emailTemplates = load(
     "packages/email/src/templates/html-templates.ts",
     { "@platform/locales": { getTranslations: () => translations } },

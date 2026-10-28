@@ -1,4 +1,7 @@
 "use client";
+import { Select, PhoneInput } from "@platform/ui";
+import { InquiryAttachments } from "./InquiryAttachments";
+import { field as publicField } from "../account/ui";
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import { ArrowUpRight, Check, Star } from "lucide-react";
@@ -28,10 +31,10 @@ export function ContactForm({
   initialMessage?: string;
   response?: string;
 }) {
-  const { t, locale, isRTL: ar, site } = useTranslation();
+  const { t, locale, isArabic: ar, site } = useTranslation();
   // Which optional questions the website settings ask on a quote request.
   const ask = site?.inquiry ?? { budget: true, timeline: true, location: true, reference: false };
-  const currency = getCurrencyLabel(site?.currency ?? "BHD", ar, false);
+  const currency = getCurrencyLabel(site?.currency ?? "", ar, false);
   const [intent, setIntent] = React.useState<Intent>(
     intents.includes(initialIntent as Intent)
       ? (initialIntent as Intent)
@@ -45,6 +48,7 @@ export function ContactForm({
   const [error, setError] = React.useState("");
   const [success, setSuccess] = React.useState<{
     reference?: string;
+    uploadToken?: string;
     confirmationSent?: boolean;
   } | null>(null);
   const submission = React.useRef({ payload: "", key: "" });
@@ -67,8 +71,7 @@ export function ContactForm({
   ];
 
   const sales = intent === "inquiry" || intent === "quote_request";
-  const field =
-    "w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-neutral-500 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors duration-150 font-sans";
+  const field = publicField;
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -164,7 +167,7 @@ export function ContactForm({
         className="py-10 space-y-6 text-center select-none"
         role="status"
       >
-        <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/10">
+        <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-m3-primary border border-emerald-500/40 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/10">
           <Check className="w-8 h-8" />
         </div>
         <h2 className="text-3xl font-display font-bold text-white">
@@ -193,9 +196,10 @@ export function ContactForm({
             {t("contact.savedNotice")}
           </p>
         )}
+        {success.uploadToken && <InquiryAttachments token={success.uploadToken} locale={locale} />}
         <button
           type="button"
-          className="px-6 py-3 rounded-xl bg-[var(--web-accent)] hover:bg-tone-15 text-white font-semibold text-xs transition-colors duration-150 shadow-lg shadow-accent/20 cursor-pointer"
+          className="px-6 py-3 rounded-xl bg-m3-primary hover:brightness-95 text-m3-on-primary font-semibold text-xs transition-colors duration-150 shadow-lg shadow-accent/20 cursor-pointer"
           onClick={() => {
             setSuccess(null);
             submission.current = { payload: "", key: "" };
@@ -226,7 +230,7 @@ export function ContactForm({
               <label
                 key={value}
                 className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-colors duration-150 cursor-pointer flex items-center gap-2 ${isSelected
-                  ? "bg-accent text-paper border border-accent"
+                  ? "bg-accent text-accent-foreground border border-accent"
                   : "bg-brand-base text-ink-muted hover:text-white border border-white/10 hover:border-white/20"
                   }`}
               >
@@ -310,14 +314,10 @@ export function ContactForm({
               <span className="text-xs font-semibold text-ink font-sans">
                 {t("contact.phone")}
               </span>
-              <input
+              <PhoneInput
                 name="phone"
                 autoComplete="tel"
-                type="tel"
-                maxLength={40}
-                dir="ltr"
-                placeholder={t("contact.phonePlaceholder")}
-                className={field}
+                className="bg-brand-surface border-white/10 text-white rounded-brand min-h-12"
               />
             </label>
           </div>
@@ -366,7 +366,7 @@ export function ContactForm({
                 <span className="text-xs font-semibold text-ink font-sans">
                   {t("contact.estimatedBudget")}
                 </span>
-                <select className={field} name="budget" defaultValue="">
+                <Select className={field} name="budget" defaultValue="">
                   <option value="" className="bg-brand-surface text-ink-muted">
                     {t("contact.chooseRangeOptional")}
                   </option>
@@ -385,7 +385,7 @@ export function ContactForm({
                   <option value="5000_plus" className="bg-brand-surface text-white">
                     {t("contact.budget5000Plus", { currency })}
                   </option>
-                </select>
+                </Select>
               </label>
             )}
 
@@ -394,7 +394,7 @@ export function ContactForm({
                 <span className="text-xs font-semibold text-ink font-sans">
                   {t("contact.targetTimeline")}
                 </span>
-                <select className={field} name="timeline" defaultValue="">
+                <Select className={field} name="timeline" defaultValue="">
                   <option value="" className="bg-brand-surface text-ink-muted">
                     {t("contact.chooseTimelineOptional")}
                   </option>
@@ -410,7 +410,7 @@ export function ContactForm({
                   <option value="flexible" className="bg-brand-surface text-white">
                     {t("contact.timelineFlexible")}
                   </option>
-                </select>
+                </Select>
               </label>
             )}
 
@@ -521,7 +521,7 @@ export function ContactForm({
           <div
             id="contact-error"
             role="alert"
-            className="p-4 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-sans"
+            className="p-4 rounded-xl bg-rose-500/15 border border-rose-500/30 text-m3-error text-xs font-sans"
           >
             {error}
           </div>
@@ -536,7 +536,7 @@ export function ContactForm({
 
           <button
             disabled={busy}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[var(--web-accent)] hover:bg-tone-15 text-white font-bold text-xs sm:text-sm transition-colors duration-150 disabled:opacity-50 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-m3-primary hover:brightness-95 text-m3-on-primary font-bold text-xs sm:text-sm transition-colors duration-150 disabled:opacity-50 cursor-pointer"
             type="submit"
           >
             <span>

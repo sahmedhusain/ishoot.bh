@@ -1,4 +1,6 @@
-import { getReviews } from "@platform/database";
+import { Promotions } from "../../components/store/Promotions";
+import { storeEnabled } from "../../lib/customer";
+import { getReviews, catalogueProductPrices } from "@platform/database";
 import { pickText } from "@platform/database/constants/languages";
 import { getSite } from "../../lib/site";
 import { CinemaHero } from "../../components/hero/CinemaHero";
@@ -29,6 +31,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   if (page === null) notFound();
   if (page) return <CmsPageView page={page} locale={locale} />;
   const website = snapshot;
+  const prices = await storeEnabled() ? await catalogueProductPrices(website.portfolio.map(item => item.id)) : new Map<string, number>();
+  const catalogueItems = website.portfolio.map(item => prices.has(item.id) ? { ...item, price: prices.get(item.id) } : item);
   const name = pickText(company.company_name_en, company.company_name_ar, locale);
   const tagline = pickText(company.tagline_en, company.tagline_ar, locale);
   // Full-screen media needs a banner; without one the centred headline opens the page.
@@ -37,7 +41,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     about: <AboutSection imageUrl={website.config.aboutImageUrl} clientLogos={website.clients} company={company} />,
     clients: <LogoMarquee logos={website.clients} />,
     services: <ServicesSection services={website.services} />,
-    portfolio: <WorksSection items={website.portfolio} />,
+    portfolio: <WorksSection items={catalogueItems} categories={website.categories} />,
     stats: <StatsSection stats={website.stats} />,
     reviews: <ReviewsSection reviews={reviews} />,
     faq: <FAQSection faqs={website.faqs} />,
@@ -67,6 +71,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       ) : (
         <CenteredHero banners={website.banners} title={name} subtitle={tagline} />
       )}
+      <Promotions locale={locale} placement="home" />
       {sections.map((section) => (
         <div key={section.id} data-slope={section.slope} data-reveal={REVEAL_SECTIONS.includes(section.id) ? "" : undefined}>
           {components[section.id]}

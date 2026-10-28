@@ -28,10 +28,9 @@ export const COST_FREQUENCIES = [
 ] as const;
 export type CostFrequency = (typeof COST_FREQUENCIES)[number];
 
-/** GCC nationals work in Bahrain without a visa or work permit. */
-export const GCC_COUNTRIES = ["BH", "SA", "AE", "KW", "QA", "OM"] as const;
-export const needsWorkVisa = (nationality?: string | null) =>
-  !!nationality && !(GCC_COUNTRIES as readonly string[]).includes(nationality);
+/** Residency applicability follows the company's configured exemptions. */
+export const needsWorkVisa = (nationality?: string | null, exemptCountries: readonly string[] = []) =>
+  !!nationality && !exemptCountries.includes(nationality);
 
 /** Documents expiring within this many days are flagged and HR is notified. */
 export const EXPIRY_WARNING_DAYS = 60;

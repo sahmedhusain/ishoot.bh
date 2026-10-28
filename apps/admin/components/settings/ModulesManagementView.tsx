@@ -12,7 +12,7 @@ interface ModulesManagementViewProps {
 }
 
 export function ModulesManagementView({ initialToggles }: ModulesManagementViewProps) {
-  const { t, isRTL } = useAdminLocale();
+  const { isArabic, t } = useAdminLocale();
   const [toggles, setToggles] = React.useState(initialToggles);
   const [loadingId, setLoadingId] = React.useState<string | null>(null);
 
@@ -65,7 +65,7 @@ export function ModulesManagementView({ initialToggles }: ModulesManagementViewP
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="font-bold text-ink dark:text-ink">
-                  {isRTL ? toggle.nameAr : toggle.nameEn}
+                  {isArabic ? toggle.nameAr : toggle.nameEn}
                 </h3>
                 <p className="text-xs text-ink-muted dark:text-ink-muted  mt-1">
                   {t.copy.idLabel}{toggle.moduleKey}

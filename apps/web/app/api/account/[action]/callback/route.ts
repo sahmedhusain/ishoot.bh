@@ -14,7 +14,7 @@ import {
   setCustomerCookie,
   signInCredentials,
   signInSecret,
-  storeEnabled,
+  accountsEnabled,
 } from "../../../../../lib/customer";
 import { publicSiteUrl } from "../../../../../lib/site-url";
 
@@ -40,7 +40,7 @@ async function complete(
   };
   if (
     (provider !== "google" && provider !== "apple") ||
-    !(await storeEnabled())
+    !(await accountsEnabled())
   )
     return fail("generic");
   if (

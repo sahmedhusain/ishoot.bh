@@ -8,6 +8,7 @@ import { ArrowLeft, Copy, CreditCard, Link2, Loader2, Paperclip } from "lucide-r
 import { Button, Card, CurrencyDisplay, Input, Select, formatCurrencyValue, formatDate } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import type { OrderRecord, orderPaymentAttempts, requestsForOrder } from "@platform/database";
+import { formatDocumentPhone } from "@platform/database/constants/phone";
 import { ORDER_TRANSITIONS, type OrderStatus } from "@platform/database/constants/store";
 import { ROUTES } from "../../constants/routes";
 import { recheckOrderPaymentAction, addOrderNoteAction, issueOrderInvoiceAction, moveOrderAction, recordOrderPaymentAction, recordOrderRefundAction } from "../../app/actions/orders";
@@ -29,12 +30,16 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
   const [note, setNote] = React.useState("");
   const [payment, setPayment] = React.useState({ amount: String(Math.max(0, Math.round((order.total - order.amount_paid) * 1000) / 1000)), method: "cash", reference: "", proofUrl: "" });
   const [refund, setRefund] = React.useState({ amount: "", reason: "" });
+  const [currentStatus, setCurrentStatus] = React.useState<OrderStatus>(order.status as OrderStatus);
+  React.useEffect(() => {
+    setCurrentStatus(order.status as OrderStatus);
+  }, [order.status]);
   const [busy, setBusy] = React.useState(false);
   const [message, setMessage] = React.useState<{ tone: "ok" | "error"; text: string } | null>(null);
   const money = (value: number) => formatCurrencyValue(value, order.currency, locale === "ar");
   const gatewayName = (id: string) => (t.integrations.providers as Record<string, { name: string }>)[id]?.name ?? id;
   const paidOnline = attempts.find((a) => a.status === "paid" && a.amount > a.amount_refunded);
-  const next = (ORDER_TRANSITIONS[order.status as OrderStatus] ?? []).filter((s) => s !== "paid");
+  const next = (ORDER_TRANSITIONS[currentStatus] ?? []).filter((s) => s !== "paid");
 
   const run = async (task: () => Promise<unknown>, done = copy.saved) => {
     setBusy(true);
@@ -50,7 +55,7 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
     }
   };
   const eventText = (e: OrderRecord["events"][number]) => {
-    if (e.kind === "status") return formatMessage(copy.events.status, { status: (t.orders.statuses as Record<string, string>)[e.status ?? ""] ?? e.status ?? "" });
+    if (e.kind === "status") return formatMessage(copy.events.status, { status: (order.fulfilment === "pickup" ? (t.orders.pickupStatuses as Record<string, string>)[e.status ?? ""] : undefined) ?? (t.orders.statuses as Record<string, string>)[e.status ?? ""] ?? e.status ?? "" });
     if (e.kind === "payment" || e.kind === "refund") return formatMessage(copy.events[e.kind], { amount: money(e.amount ?? 0) });
     return copy.events.note;
   };
@@ -65,20 +70,20 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
           </Link>
           <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink flex flex-wrap items-center gap-3">
             <span dir="ltr">{order.number}</span>
-            <OrderStatusPill status={order.status} />
+            <OrderStatusPill status={currentStatus} fulfilment={order.fulfilment} />
             <PaymentStatusPill status={order.payment_status} />
           </h1>
           <p className="text-xs text-ink-muted mt-1">{[(t.orders.channels as Record<string, string>)[order.channel], (t.orders.paymentMethods as Record<string, string>)[order.payment_method], formatDate(order.placed_at, locale, "time")].join(" · ")}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {rights.edit && next.map((status) => (
-            <Button key={status} type="button" size="sm" variant={status === "cancelled" || status === "returned" ? "ghost" : "primary"} className={`rounded-full ${status === "cancelled" ? "text-rose-600" : ""}`} disabled={busy} onClick={() => () => { const description = (copy.moveConfirm as Record<string, string>)[status]; const onConfirm = () => run(() => moveOrderAction(order.id, status, note)); if (description) confirmAction({ description, onConfirm }); else void onConfirm(); }} data-testid={`order-move-${status}`}>
-              {(copy.moveTo as Record<string, string>)[status]}
+          {rights.edit && next.map((targetStatus) => (
+            <Button key={targetStatus} type="button" size="sm" variant={targetStatus === "cancelled" || targetStatus === "returned" ? "ghost" : "primary"} className={`rounded-full ${targetStatus === "cancelled" ? "text-rose-600" : ""}`} disabled={busy} onClick={() => { const description = (copy.moveConfirm as Record<string, string>)[targetStatus]; const onConfirm = () => run(async () => { await moveOrderAction(order.id, targetStatus, note); setCurrentStatus(targetStatus as OrderStatus); }); if (description) confirmAction({ description, onConfirm }); else void onConfirm(); }} data-testid={`order-move-${targetStatus}`}>
+              {order.fulfilment === "pickup" && targetStatus === "shipped" ? copy.readyForCollection : order.fulfilment === "pickup" && targetStatus === "delivered" ? copy.markCollected : (copy.moveTo as Record<string, string>)[targetStatus]}
             </Button>
           ))}
           {order.invoice ? (
             <Link href={ROUTES.invoices.detail(order.invoice.id)} className="inline-flex items-center rounded-full border border-outline-variant px-3 h-9 text-sm hover:border-accent" data-testid="order-invoice">{formatMessage(copy.invoice, { number: order.invoice.invoiceNumber })}</Link>
-          ) : rights.invoice && !["cancelled"].includes(order.status) ? (
+          ) : rights.invoice && !["cancelled"].includes(currentStatus) ? (
             <Button type="button" size="sm" variant="outline" className="rounded-full" disabled={busy} onClick={() => run(() => issueOrderInvoiceAction(order.id))}>{copy.issueInvoice}</Button>
           ) : null}
           {busy && <Loader2 className="w-4 h-4 animate-spin self-center" aria-hidden="true" />}
@@ -91,14 +96,16 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
           <h2 className="font-bold text-ink mb-2">{copy.customer}</h2>
           <p className="font-semibold text-ink"><bdi dir="auto">{order.name}</bdi></p>
           {order.email && <p className="text-ink-muted" dir="ltr"><bdi dir="ltr">{order.email}</bdi></p>}
-          {order.phone && <p className="text-ink-muted" dir="ltr"><bdi dir="ltr">{order.phone}</bdi></p>}
+          {order.phone && <p className="text-ink-muted" dir="ltr"><bdi dir="ltr">{formatDocumentPhone(order.phone)}</bdi></p>}
           {order.note && <p className="text-ink-muted pt-2 whitespace-pre-line">{order.note}</p>}
         </Card>
         <Card className="p-5 space-y-1 text-sm" data-page-section>
           <h2 className="font-bold text-ink mb-2">{order.fulfilment === "pickup" ? copy.pickup : copy.deliverTo}</h2>
+          {order.address?.latitude != null && order.address.longitude != null && <a className="text-primary underline min-h-11 inline-flex items-center" href={`https://www.google.com/maps/dir/?api=1&destination=${order.address.latitude},${order.address.longitude}`} target="_blank" rel="noreferrer">{copy.deliveryPin}</a>}
+          {order.pickup_branch && <p className="text-ink-muted whitespace-pre-line">{locale === "ar" ? order.pickup_branch.hoursAr : order.pickup_branch.hoursEn}</p>}
           {order.address && (
             <>
-              <p className="font-semibold text-ink"><bdi dir="auto">{order.address.name}</bdi> · <span dir="ltr"><bdi dir="ltr">{order.address.phone}</bdi></span></p>
+              <p className="font-semibold text-ink"><bdi dir="auto">{order.address.name}</bdi> · <span dir="ltr"><bdi dir="ltr">{formatDocumentPhone(order.address.phone)}</bdi></span></p>
               <p className="text-ink-muted">{[order.address.line1, order.address.line2, order.address.area, order.address.city, order.address.country, order.address.postalCode].filter(Boolean).join(", ")}</p>
             </>
           )}
@@ -128,11 +135,11 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
       </Card>
 
       <div className="grid md:grid-cols-2 gap-4">
-        {rights.edit && order.amount_paid < order.total && !["cancelled", "returned"].includes(order.status) && (
+        {rights.edit && order.amount_paid < order.total && !["cancelled", "returned"].includes(currentStatus) && (
           <Card className="p-5 space-y-3" data-testid="order-payment" data-page-section>
             <h2 className="font-bold text-ink">{copy.recordPayment}</h2>
             <div className="grid grid-cols-2 gap-3">
-              <Field label={copy.amount}>{(id) => <Input id={id} name="paymentAmount" type="number" min={0} step="0.001" value={payment.amount} onChange={(e) => setPayment({ ...payment, amount: e.target.value })} className="rounded-lg" />}</Field>
+              <Field label={copy.amount}>{(id) => <Input id={id} name="paymentAmount" type="number" min={0} step="any" value={payment.amount} onChange={(e) => setPayment({ ...payment, amount: e.target.value })} className="rounded-lg" />}</Field>
               <Field label={copy.method}>
                 {(id) => (
                   <Select id={id} value={payment.method} onChange={(e) => setPayment({ ...payment, method: e.target.value })} className="rounded-lg">
@@ -166,7 +173,7 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
           <Card className="p-5 space-y-3" data-page-section>
             <h2 className="font-bold text-ink">{copy.refund}</h2>
             <div className="grid grid-cols-2 gap-3">
-              <Field label={copy.amount}>{(id) => <Input id={id} name="refundAmount" type="number" min={0} step="0.001" value={refund.amount} onChange={(e) => setRefund({ ...refund, amount: e.target.value })} className="rounded-lg" />}</Field>
+              <Field label={copy.amount}>{(id) => <Input id={id} name="refundAmount" type="number" min={0} step="any" value={refund.amount} onChange={(e) => setRefund({ ...refund, amount: e.target.value })} className="rounded-lg" />}</Field>
               <Field label={copy.refundReason}>{(id) => <Input id={id} maxLength={500} value={refund.reason} onChange={(e) => setRefund({ ...refund, reason: e.target.value })} className="rounded-lg" />}</Field>
             </div>
             {paidOnline && <p className="text-xs text-ink-muted">{formatMessage(copy.refundOnline, { gateway: gatewayName(paidOnline.gateway) })}</p>}

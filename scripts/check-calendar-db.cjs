@@ -215,7 +215,7 @@ async function main() {
           assert.equal(await leaveFor(bob), 0);
 
           await tx.crmDeal.create({
-            data: {
+            data: { currency: "BHD",
               title: "Shoot X",
               shootDate: D("2199-03-20"),
               assignedTo: alice.id,

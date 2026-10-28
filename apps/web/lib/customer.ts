@@ -1,3 +1,5 @@
+import { pickupAvailable } from "@platform/database/constants/website-commerce";
+import { getSite } from "./site";
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
@@ -7,6 +9,8 @@ import {
   customerFromSession,
   db,
   isFeatureEnabled,
+  getStoreSettings,
+  onlinePaymentAvailable,
 } from "@platform/database";
 import { decryptIntegrationCredentials } from "@platform/database/services/integration-credentials";
 
@@ -37,7 +41,19 @@ export function signInSecret() {
 }
 
 /** Customer accounts exist only while the online store module is on. */
-export const storeEnabled = () => isFeatureEnabled("store");
+export const storeEnabled = cache(async () => {
+  if (!(await isFeatureEnabled("store"))) return false;
+  const { enabled, website, config } = await getSite();
+  return enabled && !!website && config.commerce.capabilities.shop;
+});
+export const accountsEnabled = async () => (await storeEnabled()) && (await getSite()).config.commerce.capabilities.accounts;
+export const orderingEnabled = cache(async () => {
+  if (!(await storeEnabled())) return false;
+  const [{ config }, settings] = await Promise.all([getSite(), getStoreSettings()]);
+  const capabilities = config.commerce.capabilities;
+  const payment = settings.cod_enabled || settings.bank_transfer_enabled || await onlinePaymentAvailable();
+  return payment && capabilities.ordering && (capabilities.accounts || settings.guest_checkout) && ((capabilities.delivery && settings.delivery_enabled) || (pickupAvailable(config.commerce) && settings.pickup_enabled));
+});
 
 /** Google or Apple sign-in credentials when that integration is on, else null. */
 export async function signInCredentials(provider: "google" | "apple") {

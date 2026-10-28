@@ -1,13 +1,14 @@
+import { roundMoney } from "../finance/money";
 import { serverMessages } from "@platform/locales";
 /**
  * Final settlement arithmetic with no database access: leaving indemnity and unused leave.
- * Money is BHD rounded to 3 decimals; dates are UTC calendar days.
+ * Money follows the supplied currency; legacy snapshots retain three decimals. Dates are UTC calendar days.
  */
 import { monthsOfService, r3 } from "./payroll-engine";
 
 export interface GratuityRules {
   enabled: boolean;
-  /** Insured categories that earn an indemnity from the employer (Bahrainis are covered by SIO). */
+  /** Insured categories that earn an indemnity from the employer. */
   appliesTo: string[];
   wageBasis: "basic" | "fixed";
   /** Years paid at `firstYearsMonths` per year; later years at `laterYearsMonths`. */
@@ -16,19 +17,19 @@ export interface GratuityRules {
   laterYearsMonths: number;
   /** Service shorter than this earns nothing. */
   minServiceMonths: number;
-  /** Service after this date is covered by the SIO end-of-service scheme instead (null: all service counts). */
+  /** Optional service cutoff where another fund takes responsibility (null: all service counts). */
   serviceUntil: string | null;
 }
 
 export const DEFAULT_GRATUITY_RULES: GratuityRules = {
-  enabled: true,
-  appliesTo: ["expat"],
+  enabled: false,
+  appliesTo: [],
   wageBasis: "basic",
   firstYears: 3,
   firstYearsMonths: 0.5,
   laterYearsMonths: 1,
   minServiceMonths: 0,
-  serviceUntil: "2024-02-29",
+  serviceUntil: null,
 };
 
 export function parseGratuityRules(value: unknown): GratuityRules {
@@ -92,6 +93,7 @@ export function leavingIndemnity(input: {
   hireDate: Date;
   lastWorkingDay: Date;
   monthlyWage: number;
+  currency?: string;
 }) {
   const { rules } = input;
   const none = (reason: string) => ({ amount: 0, years: 0, reason });
@@ -112,7 +114,7 @@ export function leavingIndemnity(input: {
   const months =
     first * rules.firstYearsMonths + later * rules.laterYearsMonths;
   return {
-    amount: r3(input.monthlyWage * months),
+    amount: input.currency ? roundMoney(input.monthlyWage * months, input.currency) : r3(input.monthlyWage * months),
     years: Math.round(years * 1000) / 1000,
     months: Math.round(months * 1000) / 1000,
     reason: "due",
@@ -154,9 +156,10 @@ export function accruedLeaveToDate(input: {
 }
 
 /** Pay for part of a month: the calendar share of the month's fixed pay. */
-export function partMonthPay(fixedPay: number, from: Date, to: Date) {
+export function partMonthPay(fixedPay: number, from: Date, to: Date, currency?: string) {
   const days = new Date(
     Date.UTC(from.getUTCFullYear(), from.getUTCMonth() + 1, 0),
   ).getUTCDate();
-  return r3((fixedPay * inclusiveDays(from, to)) / days);
+  const amount = (fixedPay * inclusiveDays(from, to)) / days;
+  return currency ? roundMoney(amount, currency) : r3(amount);
 }

@@ -1,9 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useCurrencyLocale } from "./currency-display";
-import en from "@platform/locales/ui/en";
-import ar from "@platform/locales/ui/ar";
+import { useUiCopy } from "./copy/use-ui-copy";
 import {
   Upload,
   X,
@@ -39,8 +37,7 @@ export function ProofUploader({
   onChange,
   maxFiles = 5,
 }: ProofUploaderProps) {
-  const locale = useCurrencyLocale();
-  const copy = locale.startsWith("ar") ? ar : en;
+  const copy = useUiCopy();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -135,6 +132,7 @@ export function ProofUploader({
 
                 <button
                   type="button"
+                  aria-label={`${copy.remove}: ${file.name}`}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleRemove(file.id);

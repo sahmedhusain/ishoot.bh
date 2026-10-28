@@ -1,17 +1,18 @@
+import { serverMessages } from "@platform/locales";
 import { db } from "../db";
 import { StudioEquipment } from "../types";
 
 function mapEquipment(i: any): StudioEquipment {
   return {
     id: i.id,
-    category: (i.category as any) || "cameras",
+    category: i.category || "",
     model_name: i.nameEn,
     name_ar: i.nameAr,
     brand: i.brand || undefined,
     specification: i.specification || i.descriptionEn || i.nameAr,
     description_en: i.descriptionEn || undefined,
     description_ar: i.descriptionAr || undefined,
-    quantity: i.quantity || 1,
+    quantity: i.quantity ?? 1,
     image_url: i.imageUrl || undefined,
     display_order: i.displayOrder,
     created_at: i.createdAt.toISOString(),
@@ -37,6 +38,14 @@ export async function getAllEquipment(): Promise<StudioEquipment[]> {
   return getStudioEquipment();
 }
 
+function validateEquipment(data: Partial<StudioEquipment>) {
+  for (const [key, value, max] of [["category", data.category, 80], ["model_name", data.model_name, 160], ["name_ar", data.name_ar, 160], ["brand", data.brand, 160], ["specification", data.specification, 4000]] as const) {
+    if (value !== undefined && (typeof value !== "string" || value.trim().length > max || ((key === "category" || key === "model_name") && !value.trim()))) throw new Error(serverMessages.invalidInput);
+  }
+  if (data.quantity !== undefined && (!Number.isInteger(data.quantity) || data.quantity < 0)) throw new Error(serverMessages.invalidInput);
+  if (data.display_order !== undefined && (!Number.isInteger(data.display_order) || data.display_order < 0)) throw new Error(serverMessages.invalidInput);
+}
+
 export async function createEquipment(data: {
   category: StudioEquipment["category"];
   model_name: string;
@@ -46,10 +55,11 @@ export async function createEquipment(data: {
   quantity?: number;
   display_order?: number;
 }): Promise<StudioEquipment> {
+  validateEquipment(data);
   const created = await db.studioEquipment.create({
     data: {
-      category: data.category,
-      nameEn: data.model_name,
+      category: data.category.trim(),
+      nameEn: data.model_name.trim(),
       nameAr: data.name_ar || data.model_name,
       brand: data.brand || null,
       specification: data.specification || null,
@@ -66,9 +76,10 @@ export async function updateEquipment(
   data: Partial<StudioEquipment>,
 ): Promise<StudioEquipment | null> {
   try {
+    validateEquipment(data);
     const updateData: any = {};
-    if (data.category !== undefined) updateData.category = data.category;
-    if (data.model_name !== undefined) updateData.nameEn = data.model_name;
+    if (data.category !== undefined) updateData.category = data.category.trim();
+    if (data.model_name !== undefined) updateData.nameEn = data.model_name.trim();
     if (data.name_ar !== undefined) updateData.nameAr = data.name_ar;
     if (data.brand !== undefined) updateData.brand = data.brand;
     if (data.specification !== undefined) {

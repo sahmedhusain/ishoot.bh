@@ -231,7 +231,7 @@ function amount(value: string, optional = false) {
   const parsed = Number(text || "0");
   if (!Number.isFinite(parsed) || parsed < 0 || parsed > 99_999_999)
     throw new Error(serverMessages.productAmountInvalid);
-  return Math.round(parsed * 1000) / 1000;
+  return Math.round(parsed * 1_000_000) / 1_000_000;
 }
 
 function validProductImage(value: string) {

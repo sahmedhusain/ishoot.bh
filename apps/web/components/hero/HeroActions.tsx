@@ -17,10 +17,21 @@ function useHeroLinks(banner?: HeroBanner) {
   return { primary, catalogue };
 }
 
+export function useHeroContent(banner?: HeroBanner, fallbackTitle = "", fallbackSubtitle = "") {
+  const { t, locale, site } = useTranslation();
+  const override = site?.interfaceCopy?.[locale]?.hero as Record<string, unknown> | undefined;
+  const text = (key: string) => typeof override?.[key] === "string" ? override[key] as string : "";
+  return {
+    heading: text("headline") || (locale === "ar" ? banner?.title_ar : banner?.title_en) || fallbackTitle || t("hero.fallbackTitle"),
+    subtitle: text("subheadline") || (locale === "ar" ? banner?.subtitle_ar : banner?.subtitle_en) || fallbackSubtitle,
+    primaryLabel: text("startProject") || (locale === "ar" ? banner?.cta_label_ar : banner?.cta_label_en) || t("hero.ideaAction"),
+    exploreLabel: text("exploreWorks") || t("hero.explore"),
+  };
+}
+
 export function HeroActions({ banner, tone = "dark" }: { banner?: HeroBanner; tone?: "dark" | "brand" }) {
-  const { t, isRTL: ar } = useTranslation();
   const { primary, catalogue } = useHeroLinks(banner);
-  const label = (ar ? banner?.cta_label_ar : banner?.cta_label_en) || t("hero.ideaAction");
+  const { primaryLabel: label, exploreLabel } = useHeroContent(banner);
   return (
     <div className="flex flex-wrap items-center gap-4">
       <Link href={primary} className={tone === "brand" ? "web-button !bg-white !text-tone-10 hover:!bg-tone-90" : "web-button"}>
@@ -29,7 +40,7 @@ export function HeroActions({ banner, tone = "dark" }: { banner?: HeroBanner; to
       </Link>
       {primary.replace(/[?#].*$/, "") !== catalogue ? (
         <Link href={catalogue} className="web-hero-secondary">
-          <span>{t("hero.explore")}</span>
+          <span>{exploreLabel}</span>
           <ArrowUpRight aria-hidden="true" className="h-4 w-4 rtl:-scale-x-100" />
         </Link>
       ) : null}

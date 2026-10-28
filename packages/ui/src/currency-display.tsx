@@ -19,13 +19,18 @@ export interface CurrencyDisplayProps {
 // React's server build (route handlers, PDF rendering) has no createContext; amounts there pass their locale explicitly.
 const CurrencyLocaleContext = typeof createContext === "function" ? createContext<string>("en") : null;
 export const useCurrencyLocale: () => string = CurrencyLocaleContext ? () => useContext(CurrencyLocaleContext) : () => "en";
+const CompanyCurrencyContext = typeof createContext === "function" ? createContext<string>("") : null;
+export const useCompanyCurrency: () => string = CompanyCurrencyContext ? () => useContext(CompanyCurrencyContext) : () => "";
+export function CompanyCurrencyProvider({ currency, children }: { currency?: string; children: React.ReactNode }) {
+  return CompanyCurrencyContext ? <CompanyCurrencyContext.Provider value={currency ?? ""}>{children}</CompanyCurrencyContext.Provider> : <>{children}</>;
+}
 export function CurrencyLocaleProvider({ value, children }: { value: string; children: React.ReactNode }) {
   return CurrencyLocaleContext ? <CurrencyLocaleContext.Provider value={value}>{children}</CurrencyLocaleContext.Provider> : <>{children}</>;
 }
 
 export function formatCurrencyValue(
   amount: number | string,
-  currency: string = "BHD",
+  currency: string = "",
   isAr: boolean = false,
   unicode: boolean = true,
 ): string {
@@ -42,11 +47,13 @@ export function formatCurrencyValue(
 
 export function CurrencyDisplay({
   amount,
-  currency = "BHD",
+  currency: suppliedCurrency,
   locale,
   className = "",
 }: CurrencyDisplayProps) {
   const contextLocale = useCurrencyLocale();
+  const companyCurrency = useCompanyCurrency();
+  const currency = suppliedCurrency ?? companyCurrency;
   const isAr = (locale ?? contextLocale) === "ar";
   const element = useRef<HTMLSpanElement>(null);
   const [unicode, setUnicode] = useState(true);

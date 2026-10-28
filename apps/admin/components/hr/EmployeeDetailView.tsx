@@ -1,4 +1,6 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
+import { PhoneInput } from "@platform/ui";
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import {
@@ -39,8 +41,9 @@ export function EmployeeDetailView({
   canViewPay = false,
   canEditPay = false,
 }: EmployeeDetailViewProps) {
+  const companyCurrency = useCompanyCurrency();
   const router = useRouter();
-  const { isRTL, t, locale } = useAdminLocale();
+  const { isArabic, isRTL, t, locale } = useAdminLocale();
 
   const [isEditing, setIsEditing] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
@@ -143,8 +146,8 @@ export function EmployeeDetailView({
               </span>
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-ink dark:text-ink mt-1">
-              {isRTL ? employee.firstNameAr : employee.firstNameEn}{" "}
-              {isRTL ? employee.lastNameAr : employee.lastNameEn}
+              {isArabic ? employee.firstNameAr : employee.firstNameEn}{" "}
+              {isArabic ? employee.lastNameAr : employee.lastNameEn}
             </h1>
           </div>
         </div>
@@ -274,10 +277,9 @@ export function EmployeeDetailView({
                 <span className="block text-xs font-medium text-ink dark:text-ink mb-1">
                   <bdi dir="ltr">{t.employeeDetail.phone}</bdi>
                 </span>
-                <input
-                  type="text"
+                <PhoneInput
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={setPhone}
                   className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
                 />
               </label>
@@ -455,7 +457,7 @@ export function EmployeeDetailView({
                   <span className="text-xs font-mono font-bold text-primary dark:text-mint">
                     {t.employeeDetail.totalGross}
                     {totalMonthlyGross.toFixed(3)}
-                    {t.shared.bhd}
+                    {companyCurrency}
                   </span>
                 </div>
 
@@ -464,28 +466,28 @@ export function EmployeeDetailView({
                     <span className="text-ink-muted">{t.employeeDetail.basicSalary}</span>
                     <div className="font-mono font-semibold text-ink dark:text-ink text-sm">
                       {basicSalary.toFixed(3)}
-                      {t.shared.bhd}
+                      {companyCurrency}
                     </div>
                   </div>
                   <div className="p-3 bg-surface-raised dark:bg-surface-raised/40 rounded border border-outline-variant dark:border-white/5 space-y-1">
                     <span className="text-ink-muted">{t.shared.housingAllowance}</span>
                     <div className="font-mono font-semibold text-ink dark:text-ink text-sm">
                       {housingAllowance.toFixed(3)}
-                      {t.shared.bhd}
+                      {companyCurrency}
                     </div>
                   </div>
                   <div className="p-3 bg-surface-raised dark:bg-surface-raised/40 rounded border border-outline-variant dark:border-white/5 space-y-1">
                     <span className="text-ink-muted">{t.shared.transport}</span>
                     <div className="font-mono font-semibold text-ink dark:text-ink text-sm">
                       {transportAllowance.toFixed(3)}
-                      {t.shared.bhd}
+                      {companyCurrency}
                     </div>
                   </div>
                   <div className="p-3 bg-surface-raised dark:bg-surface-raised/40 rounded border border-outline-variant dark:border-white/5 space-y-1">
                     <span className="text-ink-muted">{t.shared.otherAllowances}</span>
                     <div className="font-mono font-semibold text-ink dark:text-ink text-sm">
                       {otherAllowances.toFixed(3)}
-                      {t.shared.bhd}
+                      {companyCurrency}
                     </div>
                   </div>
                 </div>

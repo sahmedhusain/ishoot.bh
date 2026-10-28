@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 import { errorMessage } from "../../lib/error-text";
 import { useConfirmation } from "@platform/ui";
 
@@ -22,7 +23,7 @@ import {
 } from "../../app/actions/services";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { usePermissions } from "../../hooks/usePermissions";
-import { SERVICE_CATEGORIES, SERVICE_UNITS } from "@platform/config/constants";
+import { SERVICE_UNITS } from "@platform/config/constants";
 import { pickText, type ContentLanguage } from "@platform/database/constants/languages";
 import { LanguageFields } from "../setup/LanguageFields";
 
@@ -35,13 +36,16 @@ export function ServicesManagementView({
   initialServices,
   languages,
 }: ServicesManagementViewProps) {
+  const companyCurrency = useCompanyCurrency();
   const confirmAction = useConfirmation();
-  const { isRTL, t } = useAdminLocale();
+  const { isArabic, t } = useAdminLocale();
   const bilingual = languages.length > 1;
   const { can } = usePermissions();
   const canWrite = can("invoices", "write");
   const canDelete = can("invoices", "delete");
   const [services, setServices] = React.useState<ServiceItem[]>(initialServices);
+  const categoryValues = Array.from(new Set(services.map((service) => service.category))).filter(Boolean).sort((a, b) => a.localeCompare(b));
+  const SERVICE_CATEGORIES = [{ value: "all", labelEn: t.serviceCatalogue.all, labelAr: t.serviceCatalogue.all, colorClass: "bg-m3-primary-container text-m3-on-primary-container" }, ...categoryValues.map((value) => ({ value, labelEn: value, labelAr: value, colorClass: "bg-m3-secondary-container text-m3-on-secondary-container" }))];
   const [activeCategory, setActiveCategory] = React.useState("all");
   const [searchTerm, setSearchTerm] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<"all" | "active" | "inactive">("all");
@@ -59,8 +63,8 @@ export function ServicesManagementView({
   const [formCode, setFormCode] = React.useState("");
   const [formNameEn, setFormNameEn] = React.useState("");
   const [formNameAr, setFormNameAr] = React.useState("");
-  const [formCategory, setFormCategory] = React.useState<ServiceCategory>("production");
-  const [formUnit, setFormUnit] = React.useState<"hour" | "day" | "project" | "unit" | "minute">("day");
+  const [formCategory, setFormCategory] = React.useState<ServiceCategory>("");
+  const [formUnit, setFormUnit] = React.useState<string>("unit");
   const [formRate, setFormRate] = React.useState<number>(0);
   const [formDescEn, setFormDescEn] = React.useState("");
   const [formDescAr, setFormDescAr] = React.useState("");
@@ -72,8 +76,8 @@ export function ServicesManagementView({
     setFormCode("");
     setFormNameEn("");
     setFormNameAr("");
-    setFormCategory("production");
-    setFormUnit("day");
+    setFormCategory("");
+    setFormUnit("unit");
     setFormRate(0);
     setFormDescEn("");
     setFormDescAr("");
@@ -236,7 +240,7 @@ export function ServicesManagementView({
             <DollarSign className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
           </div>
           <div className="text-xl font-bold text-ink dark:text-ink ">
-            <CurrencyDisplay amount={avgRate} currency="BHD" />
+            <CurrencyDisplay amount={avgRate} currency={companyCurrency} />
           </div>
         </div>
 
@@ -264,7 +268,7 @@ export function ServicesManagementView({
                 : "text-ink-muted hover:bg-surface-sunken dark:text-ink dark:hover:bg-surface-raised"
                 }`}
             >
-              <span>{isRTL ? cat.labelAr : cat.labelEn}</span>
+              <span>{isArabic ? cat.labelAr : cat.labelEn}</span>
               {cat.value !== "all" && (
                 <span className={`text-[10px] px-1.5 py-0.2 rounded-full  ${isActive ? "bg-primary/20 dark:bg-mint/20" : "bg-surface-sunken dark:bg-surface-raised text-ink-muted"
                   }`}>
@@ -328,8 +332,8 @@ export function ServicesManagementView({
                 </tr>
               ) : (
                 filteredServices.map((service) => {
-                  const catConfig = SERVICE_CATEGORIES.find((c) => c.value === service.category) || SERVICE_CATEGORIES[1];
-                  const unitLabel = isRTL
+                  const catConfig = SERVICE_CATEGORIES.find((c) => c.value === service.category) || { labelEn: service.category, labelAr: service.category, colorClass: "bg-m3-secondary-container text-m3-on-secondary-container" };
+                  const unitLabel = isArabic
                     ? SERVICE_UNITS.find((u) => u.value === service.unit)?.labelAr || service.unit
                     : SERVICE_UNITS.find((u) => u.value === service.unit)?.labelEn || service.unit;
 
@@ -357,13 +361,13 @@ export function ServicesManagementView({
                       ) : null}
                       <td className="py-3 px-4">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-medium border ${catConfig.colorClass}`}>
-                          {isRTL ? catConfig.labelAr : catConfig.labelEn}
+                          {isArabic ? catConfig.labelAr : catConfig.labelEn}
                         </span>
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex flex-col">
                           <span className="font-bold text-ink dark:text-ink ">
-                            <CurrencyDisplay amount={service.default_rate} currency="BHD" />
+                            <CurrencyDisplay amount={service.default_rate} currency={companyCurrency} />
                           </span>
                           <span className="text-[10px] text-ink-muted">
                             {unitLabel}
@@ -432,17 +436,8 @@ export function ServicesManagementView({
                 <label htmlFor={`${serviceFormId}-category`} className="text-xs font-semibold text-ink dark:text-ink block mb-1">
                   {t.servicesView.categoryLabel} *
                 </label>
-                <Select
-                  id={`${serviceFormId}-category`}
-                  value={formCategory}
-                  onChange={(e: any) => setFormCategory(e.target.value)}
-                  className="w-full text-xs bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-outline-variant rounded-xl px-3 py-2 text-ink dark:text-ink focus:outline-none focus:ring-1 focus:ring-accent"
-                >
-                  <option value="production">{t.servicesView.categoryProduction}</option>
-                  <option value="post_production">{t.servicesView.categoryPost}</option>
-                  <option value="equipment">{t.servicesView.categoryEquipment}</option>
-                  <option value="other">{t.servicesView.categoryOther}</option>
-                </Select>
+                <Input id={`${serviceFormId}-category`} value={formCategory} onChange={(event) => setFormCategory(event.target.value)} list={`${serviceFormId}-categories`} required maxLength={100} />
+                <datalist id={`${serviceFormId}-categories`}>{categoryValues.map((category) => <option key={category} value={category} />)}</datalist>
               </div>
             </div>
 
@@ -467,7 +462,7 @@ export function ServicesManagementView({
                 </label>
                 <Input
                   type="number"
-                  step="0.001"
+                  step="any"
                   min="0"
                   placeholder={t.servicesView.ratePlaceholder}
                   id={`${serviceFormId}-rate`}
@@ -481,18 +476,8 @@ export function ServicesManagementView({
                 <label htmlFor={`${serviceFormId}-unit`} className="text-xs font-semibold text-ink dark:text-ink block mb-1">
                   {t.servicesView.unitLabel} *
                 </label>
-                <Select
-                  id={`${serviceFormId}-unit`}
-                  value={formUnit}
-                  onChange={(e: any) => setFormUnit(e.target.value)}
-                  className="w-full text-xs bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-outline-variant rounded-xl px-3 py-2 text-ink dark:text-ink focus:outline-none focus:ring-1 focus:ring-accent"
-                >
-                  {SERVICE_UNITS.map((u) => (
-                    <option key={u.value} value={u.value}>
-                      {isRTL ? u.labelAr : u.labelEn}
-                    </option>
-                  ))}
-                </Select>
+                <Input id={`${serviceFormId}-unit`} value={formUnit} onChange={(event) => setFormUnit(event.target.value)} list={`${serviceFormId}-units`} required maxLength={100} />
+                <datalist id={`${serviceFormId}-units`}>{Array.from(new Set([...SERVICE_UNITS.map((unit) => unit.value), ...services.map((service) => service.unit)])).map((unit) => <option key={unit} value={unit} />)}</datalist>
               </div>
             </div>
 

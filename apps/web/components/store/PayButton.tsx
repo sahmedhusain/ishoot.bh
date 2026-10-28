@@ -65,7 +65,7 @@ export function PayButton({ token, locale, autoStart }: { token: string; locale:
 
   if (hosted)
     return (
-      <div className="space-y-3 rounded-2xl border border-white/10 bg-white p-4 text-slate-900" data-testid="pay-widget">
+      <div className="space-y-3 rounded-2xl border border-white/10 bg-m3-surface-container-low p-4 text-ink" data-testid="pay-widget">
         {hosted.testMode && <p className="text-xs font-semibold text-amber-700">{t("store.testMode")}</p>}
         <form action={hosted.returnUrl} className="paymentWidgets" data-brands={hosted.widget.brands} />
       </div>
@@ -78,7 +78,7 @@ export function PayButton({ token, locale, autoStart }: { token: string; locale:
         {busy ? t("store.redirecting") : t("store.payNow")}
       </button>
       <p className="text-xs text-ink-muted">{t("store.payCardHint")}</p>
-      {error && <p role="alert" className="text-sm text-rose-400">{error}</p>}
+      {error && <p role="alert" className="text-sm text-m3-error">{error}</p>}
     </div>
   );
 }

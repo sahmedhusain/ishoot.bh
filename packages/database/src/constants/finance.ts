@@ -1,28 +1,10 @@
 import { serverTemplates, formatMessage } from "@platform/locales";
 // Finance rules shared by queries and the UI. Runtime-free.
 
-/** Currencies the business trades in: the six GCC currencies plus USD, EUR and GBP. BHD is the book currency. */
-export const SUPPORTED_CURRENCIES = [
-  "BHD",
-  "SAR",
-  "AED",
-  "KWD",
-  "OMR",
-  "QAR",
-  "USD",
-  "EUR",
-  "GBP",
-] as const;
-/** Mirrors SupportedCurrency in types.ts (spelled out there for the action schema generator). */
-export type SupportedCurrencyCode = (typeof SUPPORTED_CURRENCIES)[number];
-export function isSupportedCurrency(
-  code: unknown,
-): code is SupportedCurrencyCode {
-  return (
-    typeof code === "string" &&
-    (SUPPORTED_CURRENCIES as readonly string[]).includes(code)
-  );
-}
+export { CURRENCY_CODES as SUPPORTED_CURRENCIES } from "@platform/config/currency";
+import { CURRENCY_CODES as SUPPORTED_CURRENCIES, isCurrencyCode } from "@platform/config/currency";
+export type SupportedCurrencyCode = string;
+export const isSupportedCurrency = isCurrencyCode;
 
 export function assertSupportedCurrency(
   code: unknown,
@@ -81,9 +63,6 @@ export const OPEN_QUOTATION_STATUSES = [
   "issued",
   "accepted",
 ] as const satisfies readonly QuotationStatus[];
-
-/** Functional (reporting) currency. */
-export const FUNCTIONAL_CURRENCY = "BHD";
 
 /** Manual invoice status changes. Payment statuses (partially_paid/paid) are derived from payments, never set by hand. */
 export const INVOICE_STATUS_TRANSITIONS: Record<string, readonly string[]> = {

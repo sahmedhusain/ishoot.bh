@@ -1,6 +1,6 @@
 import { Document, Page, View, renderToBuffer } from "@react-pdf/renderer";
 import type { CompanySettings } from "@platform/database/types";
-import type { PurchaseOrderRecord } from "@platform/database";
+import { type PurchaseOrderRecord, formatDocumentPhone } from "@platform/database";
 import { Letterhead, C, fmtDate, fmtMoney, fmtNumber, pageStyle, resolvePdfBrand, docKit, type CompanySignature, type DocKit, type PdfBrand } from "./kit";
 
 function PurchaseOrderBody({ k, order, brand, signing }: { k: DocKit; order: PurchaseOrderRecord; brand: PdfBrand; signing: CompanySignature | null }) {
@@ -25,7 +25,7 @@ function PurchaseOrderBody({ k, order, brand, signing }: { k: DocKit; order: Pur
         <Card label={p.supplier}>
           <T style={{ fontSize: 10, fontWeight: "bold" }}>{order.supplier.name}</T>
           {order.supplier.email ? <T style={{ fontSize: 8, color: C.body, marginTop: 1.5 }}>{order.supplier.email}</T> : null}
-          {order.supplier.phone ? <T style={{ fontSize: 8, color: C.body, marginTop: 1.5 }}>{order.supplier.phone}</T> : null}
+          {order.supplier.phone ? <T style={{ fontSize: 8, color: C.body, marginTop: 1.5 }}>{formatDocumentPhone(order.supplier.phone, brand.company.country)}</T> : null}
           {order.supplier.address ? <T style={{ fontSize: 8, color: C.body, marginTop: 1.5 }}>{order.supplier.address}</T> : null}
           {order.supplier.vat_number ? <Field label={t.pdfDocs.vatNo} value={order.supplier.vat_number} /> : null}
         </Card>

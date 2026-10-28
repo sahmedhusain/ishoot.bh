@@ -51,7 +51,7 @@ export function PayLinesEditor({ kind, lines, onChange }: { kind: PayLineKind; l
             ))}
           </Select>
           <input aria-label={c.description} placeholder={c.description} maxLength={120} className={`${field} col-span-12 sm:col-span-5`} value={line.label} onChange={(e) => set(line.key, { label: e.target.value })} />
-          <input aria-label={c.amount} type="number" min={0.001} step="0.001" inputMode="decimal" dir="ltr" placeholder="0.000" className={`${field} col-span-9 sm:col-span-3`} value={line.amount} onChange={(e) => set(line.key, { amount: e.target.value })} />
+          <input aria-label={c.amount} type="number" min={0} step="any" inputMode="decimal" dir="ltr" placeholder="0.000" className={`${field} col-span-9 sm:col-span-3`} value={line.amount} onChange={(e) => set(line.key, { amount: e.target.value })} />
           <button type="button" aria-label={c.remove} title={c.remove} onClick={() => onChange(lines.filter((l) => l.key !== line.key))} className="col-span-3 sm:col-span-1 h-9 rounded-lg text-ink-muted hover:text-rose-500 hover:bg-rose-500/10 flex items-center justify-center">
             <Trash2 className="h-3.5 w-3.5" />
           </button>

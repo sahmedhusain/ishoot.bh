@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import { errorMessage } from "../../lib/error-text";
 import { useCompanyVat } from "../../hooks/useCompanyVat";
@@ -27,7 +28,6 @@ import type {
 import {
   EXPENSE_CATEGORY_KINDS,
   EXPENSE_PAYMENT_METHODS,
-  SUPPORTED_CURRENCIES,
   type ExpenseScope,
 } from "@platform/database/constants/finance";
 import { createExpenseAction } from "../../app/actions/finance";
@@ -70,8 +70,7 @@ export function NewExpenseFormView({
   const [descriptionEn, setDescriptionEn] = React.useState("");
   const [descriptionAr, setDescriptionAr] = React.useState("");
   const [amount, setAmount] = React.useState<number>(0);
-  const [currency, setCurrency] =
-    React.useState<SupportedCurrency>(defaultCurrency);
+  const currency = useCompanyCurrency();
   const [inputVat, setInputVat] = React.useState<number>(0);
   const [vatRecoverable, setVatRecoverable] = React.useState(true);
   const [vendorName, setVendorName] = React.useState("");
@@ -307,7 +306,7 @@ export function NewExpenseFormView({
                 type="number"
                 required
                 min={0}
-                step="0.001"
+                step="any"
                 placeholder={nT.amountPlaceholder}
                 value={amount || ""}
                 onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
@@ -317,20 +316,7 @@ export function NewExpenseFormView({
               <label className={label} htmlFor="expense-currency">
                 {nT.currencyLabel}
               </label>
-              <Select
-                id="expense-currency"
-                className={select}
-                value={currency}
-                onChange={(e) =>
-                  setCurrency(e.target.value as SupportedCurrency)
-                }
-              >
-                {SUPPORTED_CURRENCIES.map((code) => (
-                  <option key={code} value={code}>
-                    {code}
-                  </option>
-                ))}
-              </Select>
+              <Select value={currency} disabled className="w-full"><option value={currency}>{currency}</option></Select>
             </div>
           </div>
 
@@ -344,7 +330,7 @@ export function NewExpenseFormView({
                   id="expense-vat"
                   type="number"
                   min={0}
-                  step="0.001"
+                  step="any"
                   value={inputVat || ""}
                   onChange={(e) => setInputVat(parseFloat(e.target.value) || 0)}
                 />

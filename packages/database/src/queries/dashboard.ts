@@ -1,3 +1,4 @@
+import { phoneSearchVariants } from "../constants/phone";
 import { Prisma } from "@prisma/client";
 import { db } from "../db";
 import { ROUTES } from "../constants/routes";
@@ -356,7 +357,7 @@ export async function searchRecords(
               { number: like },
               { name: like },
               { email: like },
-              { phone: { contains: q } },
+              ...phoneSearchVariants(q).map((value) => ({ phone: { contains: value } })),
             ],
           },
           orderBy: { placedAt: "desc" },

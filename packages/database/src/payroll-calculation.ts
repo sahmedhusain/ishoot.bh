@@ -1,3 +1,4 @@
+import { roundMoney } from "./finance/money";
 import { serverMessages } from "@platform/locales";
 import type { EmployeePayrollSettings } from "./types";
 
@@ -28,7 +29,8 @@ export function parsePayrollSettings(
       !support.provider?.trim() ||
       !/^\d{4}-(0[1-9]|1[0-2])$/.test(support.startMonth) ||
       !/^\d{4}-(0[1-9]|1[0-2])$/.test(support.endMonth) ||
-      support.endMonth < support.startMonth
+      support.endMonth < support.startMonth ||
+      (support.claimPeriodMonths !== undefined && (!Number.isInteger(support.claimPeriodMonths) || support.claimPeriodMonths < 1 || support.claimPeriodMonths > 60))
     )
       throw new Error(
         "Support requires a provider and a valid inclusive month range",
@@ -41,13 +43,14 @@ export function calculateContributions(
   gross: number,
   settings: EmployeePayrollSettings | null,
   month: string,
+  currency?: string,
 ) {
   if (!settings)
     throw new Error(
       "Configure employee and employer contributions before generating payroll",
     );
   parsePayrollSettings(settings);
-  const round = (value: number) => Math.round(value * 1000) / 1000;
+  const round = (value: number) => currency ? roundMoney(value, currency) : Math.round(value * 1000) / 1000;
   const amount = (part: EmployeePayrollSettings["employee"]) =>
     round(part.mode === "percentage" ? (gross * part.value) / 100 : part.value);
   const employee = amount(settings.employee);
@@ -71,20 +74,22 @@ export function calculateContributions(
   };
 }
 
-/** How a month's support splits across programmes (e.g. Tamkeen), capped like the payroll total. */
+/** How a month's support splits across programmes (a configured wage-support programme), capped like the payroll total. */
 export function supportBreakdown(
   fixedPay: number,
   settings: EmployeePayrollSettings | null,
   month: string,
+  currency?: string,
 ) {
   if (!settings) return [];
-  const round = (value: number) => Math.round(value * 1000) / 1000;
+  const round = (value: number) => currency ? roundMoney(value, currency) : Math.round(value * 1000) / 1000;
   const active = settings.supports.filter(
     (s) => s.startMonth <= month && s.endMonth >= month,
   );
   const raw = active.map((s) => ({
     provider: s.provider.trim(),
     startMonth: s.startMonth,
+    claimPeriodMonths: s.claimPeriodMonths,
     amount: round(
       s.mode === "percentage" ? (fixedPay * s.value) / 100 : s.value,
     ),

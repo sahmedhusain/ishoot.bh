@@ -1,3 +1,5 @@
+import { assertCompanyCurrency } from "../finance/company-currency";
+import { roundMoney } from "../finance/money";
 import {
   serverTemplates,
   formatMessage,
@@ -164,12 +166,15 @@ export function computePayrollLine(
   };
 }
 
+// Preserve stored precision; the payroll engine applies each run’s configured currency.
+const roundIntermediate = (value: number) => Math.round(value * 1_000_000) / 1_000_000;
+
 async function refreshPayrollTotals(runId: string) {
   const items = await db.payrollItem.findMany({
     where: { payrollRunId: runId },
   });
   const sum = (pick: (i: (typeof items)[number]) => number) =>
-    r3(items.reduce((acc, i) => acc + pick(i), 0));
+    roundIntermediate(items.reduce((acc, i) => acc + pick(i), 0));
   await db.payrollRun.update({
     where: { id: runId },
     data: {
@@ -325,8 +330,9 @@ async function buildContext(
     commissionByUser.set(
       userId,
       commissionAmount(
-        Math.round(earned.net * 1000) / 1000,
+        policy.currency ? roundMoney(earned.net, policy.currency) : r3(earned.net),
         rates.get(userId) ?? 0,
+        policy.currency,
       ),
     );
 
@@ -393,7 +399,7 @@ async function recurringPayFor(employeeIds: string[], monthKey: string) {
 /** Totals of a line set: additions are paid as `bonus`, deductions as `otherDeductions`. */
 function lineTotals(lines: Array<{ kind: string; amount: unknown }>) {
   const sum = (kind: string) =>
-    r3(
+    roundIntermediate(
       lines
         .filter((l) => l.kind === kind)
         .reduce((total, l) => total + Number(l.amount), 0),
@@ -406,6 +412,7 @@ function lineFor(
   ctx: RunContext,
   preserved: Preserved,
 ) {
+  const r3 = (value: number) => ctx.policy.currency ? roundMoney(value, ctx.policy.currency) : Math.round(value * 1000) / 1000;
   const record = employee.employmentRecords[0];
   const settings = parsePayrollSettings(record?.payrollSettings);
   const [year, monthNumber] = ctx.month.split("-").map(Number);
@@ -453,12 +460,12 @@ function lineFor(
   });
   const legacy =
     !scheme && settings
-      ? calculateContributions(breakdown.fixedPay, settings, ctx.month)
+      ? calculateContributions(breakdown.fixedPay, settings, ctx.month, ctx.policy.currency)
       : null;
   const contributions = scheme
     ? { employee: scheme.employee, employer: scheme.employer }
     : { employee: legacy!.employee, employer: legacy!.employer };
-  const totals = payrollTotals(breakdown, contributions.employee);
+  const totals = payrollTotals(breakdown, contributions.employee, ctx.policy.currency);
   // Wage support follows the share of the month actually paid (joiners, unpaid leave) when the programme prorates.
   const paidShare =
     breakdown.fixedPay > 0
@@ -476,6 +483,7 @@ function lineFor(
     pay,
     ctx.month,
     paidShare,
+    ctx.policy.currency,
   );
   const support = r3(
     Math.min(
@@ -487,7 +495,7 @@ function lineFor(
   );
   if (supportLines?.length) {
     const total = supportLines.reduce((sum, l) => sum + l.amount, 0);
-    if (total > support) {
+    if (total !== support) {
       let remaining = support;
       supportLines = supportLines.map((line, index) => {
         const amount =
@@ -521,6 +529,7 @@ function lineFor(
       adjustmentNote: preserved.adjustmentNote,
       calculationSnapshot: JSON.parse(
         JSON.stringify({
+          currency: ctx.policy.currency,
           ...(settings ?? {
             employee: { mode: "fixed", value: 0 },
             employer: { mode: "fixed", value: 0 },
@@ -576,6 +585,7 @@ async function syncCommissionPayout(
     },
     create: {
       userId,
+      currency: await assertCompanyCurrency(),
       periodMonth: month,
       amount,
       basisAmount: basis,
@@ -667,7 +677,7 @@ export async function createPayrollRun(
         line.userId,
         ctx.month,
         line.commission,
-        rate > 0 ? r3((line.commission * 100) / rate) : 0,
+        rate > 0 ? roundIntermediate((line.commission * 100) / rate) : 0,
         rate,
         actorId,
       );
@@ -757,7 +767,7 @@ export async function recalculatePayrollRun(
         line.userId,
         ctx.month,
         line.commission,
-        rate > 0 ? r3((line.commission * 100) / rate) : 0,
+        rate > 0 ? roundIntermediate((line.commission * 100) / rate) : 0,
         rate,
         actorId,
       );
@@ -827,7 +837,7 @@ export async function setPayrollItemLines(
         !(PAY_LINE_CATEGORIES[kind] as readonly string[]).includes(l.category)
       )
         throw new Error(serverMessages.chooseACategoryForEveryLine);
-      const amount = r3(Number(l.amount));
+      const amount = roundIntermediate(Number(l.amount));
       if (!Number.isFinite(amount) || amount <= 0 || amount > 1_000_000)
         throw new Error(serverMessages.everyLineNeedsAnAmountAbove);
       return {
@@ -845,7 +855,7 @@ export async function setPayrollItemLines(
   );
   const recurring = item.lines.filter((l) => l.source === "recurring");
   const { bonus, otherDeductions } = lineTotals([...drafts, ...recurring]);
-  const fixedPay = r3(
+  const fixedPay = roundIntermediate(
     Number(item.basicSalary) +
       Number(item.housingAllowance) +
       Number(item.transportAllowance) +

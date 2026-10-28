@@ -423,7 +423,7 @@ export function PortfolioManagementView({
                 <>
                   <div>
                     <label htmlFor="item-price" className="text-xs text-ink mb-1.5 block">{`${t.portfolioView.price} (${catalogue.currency})`}</label>
-                    <Input id="item-price" type="number" min={0} step="0.001" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} />
+                    <Input id="item-price" type="number" min={0} step="any" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} />
                   </div>
                   <LanguageFields name="priceNote" label={t.portfolioView.priceNote} placeholder={t.portfolioView.priceNotePlaceholder} languages={languages} maxLength={300} en={priceNote.en} ar={priceNote.ar} onChange={setPriceNote} />
                 </>

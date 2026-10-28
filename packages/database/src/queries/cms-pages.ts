@@ -1,3 +1,4 @@
+import { SITE_TONES, type SiteTone } from "../constants/website-design";
 import { randomUUID } from "node:crypto";
 import { getTranslations, serverMessages } from "@platform/locales";
 import { db } from "../db";
@@ -91,7 +92,7 @@ export function defaultCmsPages(config: ResolvedWebsiteConfig) {
   const visible = (id: string) =>
     config.pages.find((page) => page.id === id)?.visible !== false;
   const home: Block[] = [
-    block("hero", true, { style: config.heroStyle }),
+    block("hero", true, { style: "inherit" }),
     ...config.sections.flatMap((section) => {
       const type = SECTION_BLOCKS[section.id];
       return type ? [block(type, section.visible)] : [];
@@ -210,7 +211,7 @@ function cleanData(
   switch (type) {
     case "hero":
       return {
-        style: oneOf(raw.style, ["cinematic", "split", "centered"], "split"),
+        style: oneOf(raw.style, ["inherit", "cinematic", "split", "centered"], "inherit"),
         title,
         subtitle: localText(raw.subtitle, 600),
       };
@@ -253,13 +254,18 @@ function cleanData(
       };
     case "video":
       return { title, url: url(raw.url), posterUrl: url(raw.posterUrl) };
-    case "catalogue":
+    case "catalogue": {
+      const category = typeof raw.category === "string" ? raw.category.trim() : "";
+      if ((raw.category !== undefined && typeof raw.category !== "string") || category.length > 80 || (category && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(category))) throw new Error(serverMessages.cmsBlocksInvalid);
       return {
+        category,
         title,
         layout: oneOf(raw.layout, ["grid", "list"], "grid"),
+        presentation: oneOf(raw.presentation, ["inherit", "media", "case", "product", "listing"] as const, "inherit"),
         filterable: raw.filterable !== false,
         limit: count(raw.limit, 1, 60, 12),
       };
+    }
     case "cta":
       return {
         title,
@@ -342,10 +348,12 @@ export function validateBlocks(input: unknown): Block[] {
         ? raw.id
         : blockId();
     seen.add(id);
+    if (raw.tone !== undefined && !SITE_TONES.includes(raw.tone as SiteTone)) throw new Error(serverMessages.cmsBlocksInvalid);
     return {
       id,
       type,
       visible: raw.visible !== false,
+      ...(raw.tone !== undefined ? { tone: raw.tone as SiteTone } : {}),
       data: cleanData(type, (raw.data ?? {}) as Record<string, unknown>),
     } as Block;
   });

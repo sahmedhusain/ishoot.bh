@@ -1,3 +1,9 @@
+import { categoryAncestors } from "@platform/database/constants/website-commerce";
+import { Promotions } from "../store/Promotions";
+import { PublicDocuments } from "./PublicDocuments";
+import { BranchLocations } from "../contact/BranchLocations";
+import { resolveWebsiteConfig } from "@platform/database/website-config";
+import { SiteRegion } from "../site/SiteTheme";
 import type { ReactNode } from "react";
 import type { Block, BlockType } from "@platform/database/cms/blocks";
 import type { PublicCompanySettings, StudioEquipment } from "@platform/database/types";
@@ -39,6 +45,7 @@ import {
 /** What data blocks read: the published snapshot plus live reviews, equipment and the contact page body. */
 export interface BlockContext {
   locale: string;
+  home?: boolean;
   website: WebsiteSnapshot;
   company: PublicCompanySettings;
   reviews: ComponentProps<typeof ReviewsSection>["reviews"];
@@ -70,7 +77,7 @@ export function PageBlocks({ blocks, context }: { blocks: Block[]; context: Bloc
           const node = renderBlock(block, context);
           return node ? (
             <div key={block.id} data-slope={slope} data-block={block.type} data-reveal={REVEAL_HERE.includes(block.type) ? "" : undefined}>
-              {node}
+              <SiteRegion tone={block.tone}>{node}</SiteRegion>
             </div>
           ) : null;
         })}
@@ -95,16 +102,22 @@ export function PageBlocks({ blocks, context }: { blocks: Block[]; context: Bloc
         const data = block.data as Block<"hero">["data"];
         const title = pick(data.title, locale) || pickText(company.company_name_en, company.company_name_ar, locale);
         const subtitle = pick(data.subtitle, locale) || pickText(company.tagline_en, company.tagline_ar, locale);
+        const banners = website.banners.map(banner => ({ ...banner,
+          ...(pick(data.title, "en") ? { title_en: pick(data.title, "en"), title_ar: pick(data.title, "ar") } : {}),
+          ...(pick(data.subtitle, "en") ? { subtitle_en: pick(data.subtitle, "en"), subtitle_ar: pick(data.subtitle, "ar") } : {}),
+        }));
         // Full-screen media needs a banner; without one the centred headline opens the page.
-        const style = data.style === "cinematic" && !website.banners.length ? "centered" : data.style;
-        if (style === "cinematic") return <CinemaHero banners={website.banners} companyName={{ en: company.company_name_en, ar: company.company_name_ar }} />;
-        if (style === "split") return <SplitHero banners={website.banners} title={title} subtitle={subtitle} />;
-        return <CenteredHero banners={website.banners} title={title} subtitle={subtitle} />;
+        const requested = data.style === "inherit" ? resolveWebsiteConfig(website.config).heroStyle : data.style;
+        const style = requested === "cinematic" && !website.banners.length ? "centered" : requested;
+        const hero = style === "cinematic" ? <CinemaHero banners={banners} companyName={{ en: company.company_name_en, ar: company.company_name_ar }} /> : style === "split" ? <SplitHero banners={banners} title={title} subtitle={subtitle} /> : <CenteredHero banners={banners} title={title} subtitle={subtitle} />;
+        return <>{hero}{ctx.home && <Promotions locale={locale} placement="home" />}</>;
       }
       case "about":
         return <AboutSection imageUrl={website.config.aboutImageUrl} clientLogos={website.clients} company={company} />;
-      case "catalogue":
-        return <WorksSection items={website.portfolio.slice(0, (block.data as Block<"catalogue">["data"]).limit || undefined)} />;
+      case "catalogue": {
+        const data = block.data as Block<"catalogue">["data"];
+        return <WorksSection items={data.category ? website.portfolio.filter(item => categoryAncestors(item.category?.slug ?? "", resolveWebsiteConfig(website.config).commerce.categoryParents).includes(data.category!)) : website.portfolio} categories={website.categories} title={pick(data.title, locale)} presentation={data.presentation === "inherit" ? undefined : data.presentation} limit={data.limit} filterable={data.filterable && !data.category} list={data.layout === "list"} />;
+      }
       case "services":
         return titled(<ServicesSection services={website.services} />);
       case "stats":
@@ -114,9 +127,13 @@ export function PageBlocks({ blocks, context }: { blocks: Block[]; context: Bloc
       case "faq":
         return <FAQSection faqs={website.faqs} />;
       case "clients":
-        return titled(<LogoMarquee logos={website.clients} />);
+        return titled(<LogoMarquee instanceId={block.id} logos={website.clients} />);
       case "contact_form":
         return ctx.contact ?? null;
+      case "locations":
+        return <BranchLocations branches={resolveWebsiteConfig(website.config).commerce.branches} locale={locale} title={pick(title, locale)} />;
+      case "downloads":
+        return <div className="shell py-16"><PublicDocuments locale={locale} title={pick(title, locale)} /></div>;
       case "leader":
         return <CEOHero company={company} imageUrl={website.config.aboutImageUrl} />;
       case "pillars":

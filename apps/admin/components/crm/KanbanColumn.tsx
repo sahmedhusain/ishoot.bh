@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 
 import { useDroppable } from "@dnd-kit/core";
 import type { CRMDeal, DealStage } from "@platform/database/types";
@@ -19,6 +20,7 @@ export function KanbanColumn({
   deals,
   accentColor = "rgb(var(--brand-accent))",
 }: KanbanColumnProps) {
+  const companyCurrency = useCompanyCurrency();
   const { t } = useAdminLocale();
   const { setNodeRef, isOver } = useDroppable({
     id: stage,
@@ -53,7 +55,7 @@ export function KanbanColumn({
         <div className="text-[11px]  text-ink-muted dark:text-ink-muted flex justify-between items-center pt-1">
           <span>{t.deals.stageSum}</span>
           <span className="text-ink dark:text-ink font-bold">
-            <CurrencyDisplay amount={totalValue} currency="BHD" />
+            <CurrencyDisplay amount={totalValue} currency={companyCurrency} />
           </span>
         </div>
       </div>

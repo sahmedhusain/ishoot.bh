@@ -23,7 +23,7 @@ export async function createServiceAction(data: {
   category?: ServiceCategory;
   description_en?: string;
   description_ar?: string;
-  unit?: "hour" | "day" | "project" | "unit" | "minute";
+  unit?: string;
   default_rate: number;
   is_active?: boolean;
   display_order?: number;
@@ -62,7 +62,7 @@ export async function updateServiceAction(
     category: ServiceCategory;
     description_en: string;
     description_ar: string;
-    unit: "hour" | "day" | "project" | "unit" | "minute";
+    unit: string;
     default_rate: number;
     is_active: boolean;
     display_order: number;

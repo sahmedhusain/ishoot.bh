@@ -1,3 +1,4 @@
+import { assertCompanyCurrency } from "../finance/company-currency";
 import {
   formatMessage,
   getTranslations,
@@ -56,7 +57,7 @@ export async function onlinePaymentAvailable() {
  */
 export async function startOrderPayment(
   orderId: string,
-  site: { url: string; locale: "en" | "ar" },
+  site: { url: string; locale: string },
 ): Promise<StartedPayment & { attemptId: string; testMode: boolean }> {
   const active = await activePaymentGateway();
   if (!active) throw new Error(serverMessages.storePaymentMethodInvalid);
@@ -74,6 +75,7 @@ export async function startOrderPayment(
     throw new Error(serverMessages.paymentNeedsReview);
   const owed = round3(num(order.total) - num(order.amountPaid));
   if (owed <= 0) throw new Error(serverMessages.orderAlreadyPaid);
+  await assertCompanyCurrency(order.currency);
   if (Number(owed.toFixed(getCurrencyDecimals(order.currency))) !== owed)
     throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
   const attempt = await db.paymentAttempt.create({
@@ -97,7 +99,7 @@ export async function startOrderPayment(
         email: order.email ?? "",
         phone: order.phone ?? "",
       },
-      locale: site.locale,
+      locale: site.locale === "ar" ? "ar" : "en",
       returnUrl: back,
       cancelUrl: `${back}&cancelled=1`,
       webhookUrl: `${site.url}/api/store/payment/webhook/${active.id}`,

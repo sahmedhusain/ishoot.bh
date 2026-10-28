@@ -78,7 +78,6 @@ export * from "./queries/hr-settings";
 export * from "./hr/payroll-engine";
 export * from "./queries/quotations";
 export * from "./queries/requests";
-export * from "./queries/fx-settlement";
 export * from "./queries/hrms";
 export * from "./queries/departments";
 export * from "./queries/data-scope";
@@ -141,3 +140,6 @@ export { buildXlsx } from "./reports/xlsx";
 export * from "./queries/report-schedules";
 export * from "./constants/dashboard";
 export * from "./queries/dashboard";
+export * from "./constants/phone";
+export * from "./constants/validation";
+

@@ -250,7 +250,7 @@ model PortfolioItem {
   subtitleEn      String?
   subtitleAr      String?
   /// Shown in the company currency when set (products, menu items, properties, courses).
-  price           Decimal?           @db.Decimal(12, 3)
+  price           Decimal?           @db.Decimal(15, 6)
   /// Text beside the price, e.g. "per night", "from".
   priceNoteEn     String?
   priceNoteAr     String?
@@ -293,7 +293,7 @@ model StudioEquipment {
   nameEn        String
   nameAr        String
   brand         String?
-  dailyRateBhd  Decimal? @db.Decimal(10, 3)
+  dailyRateBhd  Decimal? @db.Decimal(13, 6)
   quantity      Int      @default(1)
   specification String?
   descriptionEn String?
@@ -563,8 +563,8 @@ model CrmDeal {
   sourceInquiry     Inquiry?          @relation("InquiryConversion", fields: [sourceInquiryId], references: [id], onDelete: Restrict)
   title             String
   dealStage         String            @default("lead") // DealPipelineStage.id
-  dealValue         Decimal           @default(0.000) @db.Decimal(12, 3)
-  currency          String            @default("BHD")
+  dealValue         Decimal           @default(0.000) @db.Decimal(15, 6)
+  currency          String
   probability       Int               @default(50)
   expectedCloseDate DateTime?         @db.Date
   shootDate         DateTime?         @db.Date
@@ -618,18 +618,18 @@ model Invoice {
   client           CrmContact?         @relation(fields: [clientId], references: [id], onDelete: SetNull)
   issueDate        DateTime            @default(now()) @db.Date
   dueDate          DateTime            @db.Date
-  subtotal         Decimal             @default(0.000) @db.Decimal(12, 3)
+  subtotal         Decimal             @default(0.000) @db.Decimal(15, 6)
   vatEnabled       Boolean             @default(false)
   vatPercentage    Decimal             @default(10.00) @db.Decimal(5, 2)
-  vatAmount        Decimal             @default(0.000) @db.Decimal(12, 3)
+  vatAmount        Decimal             @default(0.000) @db.Decimal(15, 6)
   /// Sum of the other taxes on this invoice (see DocumentTax); VAT stays in vatAmount.
-  otherTaxAmount   Decimal             @default(0.000) @db.Decimal(12, 3)
+  otherTaxAmount   Decimal             @default(0.000) @db.Decimal(15, 6)
   taxes            DocumentTax[]
   discountType     String              @default("none") // "none", "percentage", "fixed"
-  discountValue    Decimal             @default(0.000) @db.Decimal(12, 3)
-  discountAmount   Decimal             @default(0.000) @db.Decimal(12, 3)
-  totalAmount      Decimal             @default(0.000) @db.Decimal(12, 3)
-  currency         String              @default("BHD")
+  discountValue    Decimal             @default(0.000) @db.Decimal(15, 6)
+  discountAmount   Decimal             @default(0.000) @db.Decimal(15, 6)
+  totalAmount      Decimal             @default(0.000) @db.Decimal(15, 6)
+  currency         String
   language         String              @default("ar") // "ar", "en"
   status           String              @default("draft") // "draft", "sent", "partially_paid", "paid", "overdue", "void"
   approvalStatus   String              @default("draft") // "draft", "submitted", "approved", "rejected"
@@ -678,8 +678,8 @@ model InvoiceLineItem {
   descriptionEn String
   descriptionAr String?
   quantity      Decimal  @default(1.00) @db.Decimal(10, 2)
-  unitPrice     Decimal  @default(0.000) @db.Decimal(12, 3)
-  lineTotal     Decimal  @default(0.000) @db.Decimal(12, 3)
+  unitPrice     Decimal  @default(0.000) @db.Decimal(15, 6)
+  lineTotal     Decimal  @default(0.000) @db.Decimal(15, 6)
   displayOrder  Int      @default(0)
 
   @@index([serviceId])
@@ -692,8 +692,8 @@ model Payment {
   invoice             Invoice             @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
   receiptNumber       String              @unique
   paymentDate         DateTime            @default(now()) @db.Date
-  amount              Decimal             @db.Decimal(12, 3)
-  currency            String              @default("BHD")
+  amount              Decimal             @db.Decimal(15, 6)
+  currency            String
   paymentMethod       String              @default("bank_transfer") // "bank_transfer", "cash", "cheque", "card", "online"
   referenceNumber     String?
   notes               String?
@@ -749,12 +749,12 @@ model Expense {
   paymentMethod      String?
   descriptionEn      String
   descriptionAr      String?
-  amount             Decimal          @db.Decimal(12, 3)
-  netAmount          Decimal          @default(0.000) @db.Decimal(12, 3)
-  inputVatAmount     Decimal          @default(0.000) @db.Decimal(12, 3)
+  amount             Decimal          @db.Decimal(15, 6)
+  netAmount          Decimal          @default(0.000) @db.Decimal(15, 6)
+  inputVatAmount     Decimal          @default(0.000) @db.Decimal(15, 6)
   isVatRecoverable   Boolean          @default(true)
   taxInvoiceNumber   String?
-  currency           String           @default("BHD")
+  currency           String
   expenseDate        DateTime         @default(now()) @db.Date
   vendorName         String?
   receiptUrl         String?
@@ -1031,11 +1031,11 @@ model Service {
   code          String?           @unique
   nameEn        String
   nameAr        String
-  category      String            @default("production") // "pre_production", "production", "post_production", "studio_rental", "equipment", "consulting"
+  category      String            @default("general")
   descriptionEn String?
   descriptionAr String?
   unit          String            @default("day") // "hour", "day", "project", "unit", "minute"
-  defaultRate   Decimal           @default(0.000) @db.Decimal(12, 3)
+  defaultRate   Decimal           @default(0.000) @db.Decimal(15, 6)
   isActive      Boolean           @default(true)
   displayOrder  Int               @default(0)
   isPublic      Boolean           @default(false)
@@ -1289,17 +1289,17 @@ model Quotation {
   issueDate      DateTime @default(now()) @db.Date
   validUntilDate DateTime @db.Date
 
-  subtotal       Decimal       @default(0.000) @db.Decimal(12, 3)
+  subtotal       Decimal       @default(0.000) @db.Decimal(15, 6)
   vatEnabled     Boolean       @default(false)
   vatPercentage  Decimal       @default(10.00) @db.Decimal(5, 2)
-  vatAmount      Decimal       @default(0.000) @db.Decimal(12, 3)
-  otherTaxAmount Decimal       @default(0.000) @db.Decimal(12, 3)
+  vatAmount      Decimal       @default(0.000) @db.Decimal(15, 6)
+  otherTaxAmount Decimal       @default(0.000) @db.Decimal(15, 6)
   taxes          DocumentTax[]
   discountType   String        @default("none") // "none", "percentage", "fixed"
-  discountValue  Decimal       @default(0.000) @db.Decimal(12, 3)
-  discountAmount Decimal       @default(0.000) @db.Decimal(12, 3)
-  totalAmount    Decimal       @default(0.000) @db.Decimal(12, 3)
-  currency       String        @default("BHD")
+  discountValue  Decimal       @default(0.000) @db.Decimal(15, 6)
+  discountAmount Decimal       @default(0.000) @db.Decimal(15, 6)
+  totalAmount    Decimal       @default(0.000) @db.Decimal(15, 6)
+  currency       String
   language       String        @default("ar") // "ar", "en"
 
   status             String   @default("draft") // "draft", "submitted", "approved", "issued", "accepted", "declined", "expired", "cancelled"
@@ -1307,7 +1307,7 @@ model Quotation {
   approvalRevision   Int      @default(1)
   contentHash        String?
   rawRate            Decimal? @db.Decimal(14, 6)
-  fxMarginPercent    Decimal  @default(3.00) @db.Decimal(5, 2)
+  fxMarginPercent    Decimal  @default(0.00) @db.Decimal(5, 2)
   effectiveRate      Decimal? @db.Decimal(14, 6)
 
   pdfStoragePath  String?
@@ -1350,8 +1350,8 @@ model QuotationLineItem {
   descriptionEn String
   descriptionAr String?
   quantity      Decimal   @default(1.00) @db.Decimal(10, 2)
-  unitPrice     Decimal   @default(0.000) @db.Decimal(12, 3)
-  lineTotal     Decimal   @default(0.000) @db.Decimal(12, 3)
+  unitPrice     Decimal   @default(0.000) @db.Decimal(15, 6)
+  lineTotal     Decimal   @default(0.000) @db.Decimal(15, 6)
   orderIndex    Int       @default(0)
 
   @@index([quotationId])
@@ -1600,7 +1600,7 @@ model ApprovalPolicyStep {
   userId             String?
   permission         String? // "resource:action"
   /// The step applies only when every set condition holds; otherwise it is skipped.
-  minAmount          Decimal?       @db.Decimal(14, 3) // BHD
+  minAmount          Decimal?       @db.Decimal(17, 6) // BHD
   minDays            Decimal?       @db.Decimal(6, 2)
   minDiscountPercent Decimal?       @db.Decimal(5, 2)
   /// After this many hours waiting at this step, the escalation approver is added.
@@ -1689,8 +1689,8 @@ model DocumentFx {
   id             String   @id @default(uuid())
   documentType   String // "quotation", "invoice"
   documentId     String
-  baseAmount     Decimal  @db.Decimal(12, 3)
-  targetAmount   Decimal  @db.Decimal(12, 3)
+  baseAmount     Decimal  @db.Decimal(15, 6)
+  targetAmount   Decimal  @db.Decimal(15, 6)
   rawRate        Decimal  @db.Decimal(14, 6)
   marginPercent  Decimal  @default(3.00) @db.Decimal(5, 2)
   effectiveRate  Decimal  @db.Decimal(14, 6)
@@ -1706,8 +1706,8 @@ model PaymentAllocation {
   payment         Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
   invoiceId       String
   invoice         Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
-  allocatedAmount Decimal  @db.Decimal(12, 3)
-  currency        String   @default("BHD")
+  allocatedAmount Decimal  @db.Decimal(15, 6)
+  currency        String
   allocatedAt     DateTime @default(now())
 
   @@index([paymentId])
@@ -1719,11 +1719,11 @@ model BankSettlement {
   paymentId        String   @unique
   payment          Payment  @relation(fields: [paymentId], references: [id], onDelete: Restrict)
   settlementDate   DateTime @db.Date
-  receivedAmount   Decimal  @db.Decimal(12, 3)
+  receivedAmount   Decimal  @db.Decimal(15, 6)
   receivedCurrency String
-  settledAmountBhd Decimal  @db.Decimal(12, 3)
-  bankFeeBhd       Decimal  @default(0.000) @db.Decimal(12, 3)
-  fxGainLossBhd    Decimal  @default(0.000) @db.Decimal(12, 3)
+  settledAmountBhd Decimal  @db.Decimal(15, 6)
+  bankFeeBhd       Decimal  @default(0.000) @db.Decimal(15, 6)
+  fxGainLossBhd    Decimal  @default(0.000) @db.Decimal(15, 6)
   bankReference    String?
   status           String   @default("settled") // "settled", "unreconciled"
   createdAt        DateTime @default(now())
@@ -1821,10 +1821,10 @@ model EmploymentRecord {
   employeeId         String
   employee           Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   contractType       String    @default("full_time") // "full_time", "part_time", "contract"
-  basicSalary        Decimal   @db.Decimal(12, 3)
-  housingAllowance   Decimal   @default(0.000) @db.Decimal(12, 3)
-  transportAllowance Decimal   @default(0.000) @db.Decimal(12, 3)
-  otherAllowances    Decimal   @default(0.000) @db.Decimal(12, 3)
+  basicSalary        Decimal   @db.Decimal(15, 6)
+  housingAllowance   Decimal   @default(0.000) @db.Decimal(15, 6)
+  transportAllowance Decimal   @default(0.000) @db.Decimal(15, 6)
+  otherAllowances    Decimal   @default(0.000) @db.Decimal(15, 6)
   payrollSettings    Json?
   effectiveFrom      DateTime  @db.Date
   effectiveTo        DateTime? @db.Date
@@ -1882,6 +1882,7 @@ model LeaveAdjustment {
 
 /// Company-wide payroll and attendance rules (single row, id "default"), edited in HR settings.
 model HrPolicy {
+  visaExemptCountries String[] @default([])
   id                  String   @id @default("default")
   /// "arrears": pay day falls in the next month and pays the previous month; "current": pay day is inside the month.
   salaryTiming        String   @default("arrears")
@@ -1906,8 +1907,8 @@ model HrPolicy {
   unmarkedDays        String   @default("present")
   prorateJoiners      Boolean  @default(true)
   commissionInPayroll Boolean  @default(true)
-  /// Leaving indemnity for staff outside the SIO end-of-service scheme (see GratuityRules in hr/final-settlement.ts).
-  gratuityRules       Json     @default("{\"enabled\": true, \"appliesTo\": [\"expat\"], \"wageBasis\": \"basic\", \"firstYears\": 3, \"firstYearsMonths\": 0.5, \"laterYearsMonths\": 1, \"minServiceMonths\": 0, \"serviceUntil\": \"2024-02-29\"}")
+  /// Leaving indemnity for staff outside the configured pension end-of-service scheme (see GratuityRules in hr/final-settlement.ts).
+  gratuityRules       Json     @default("{\"enabled\": false, \"appliesTo\": [], \"wageBasis\": \"basic\", \"firstYears\": 3, \"firstYearsMonths\": 0.5, \"laterYearsMonths\": 1, \"minServiceMonths\": 0, \"serviceUntil\": null}")
   /// Pay used for the daily rate of unused annual leave paid out on leaving: "basic" or "fixed".
   leaveEncashmentBase String   @default("fixed")
   updatedById         String?
@@ -1929,7 +1930,7 @@ model ShiftType {
   nameAr         String
   /// "fixed" BHD per shift, or "percent" of the daily rate.
   allowanceMode  String            @default("fixed")
-  allowanceValue Decimal           @default(0) @db.Decimal(10, 3)
+  allowanceValue Decimal           @default(0) @db.Decimal(13, 6)
   isActive       Boolean           @default(true)
   attendance     AttendanceEntry[]
 }
@@ -1993,8 +1994,8 @@ model BenefitPlan {
   nameEn               String
   nameAr               String
   coverageDetails      String?  @db.Text
-  employerContribution Decimal  @default(0.000) @db.Decimal(12, 3)
-  employeeContribution Decimal  @default(0.000) @db.Decimal(12, 3)
+  employerContribution Decimal  @default(0.000) @db.Decimal(15, 6)
+  employeeContribution Decimal  @default(0.000) @db.Decimal(15, 6)
   createdAt            DateTime @default(now())
 }
 
@@ -2009,10 +2010,10 @@ model PayrollRun {
   attendanceEnd     DateTime?     @db.Date
   payDate           DateTime?     @db.Date
   status            String        @default("draft") // "draft", "calculated", "submitted", "approved", "paid", "closed"
-  totalGross        Decimal       @default(0.000) @db.Decimal(12, 3)
-  totalDeductions   Decimal       @default(0.000) @db.Decimal(12, 3)
-  totalNet          Decimal       @default(0.000) @db.Decimal(12, 3)
-  totalEmployerCost Decimal       @default(0.000) @db.Decimal(12, 3)
+  totalGross        Decimal       @default(0.000) @db.Decimal(15, 6)
+  totalDeductions   Decimal       @default(0.000) @db.Decimal(15, 6)
+  totalNet          Decimal       @default(0.000) @db.Decimal(15, 6)
+  totalEmployerCost Decimal       @default(0.000) @db.Decimal(15, 6)
   approvedById      String?
   approvedAt        DateTime?
   paidAt            DateTime?
@@ -2029,32 +2030,32 @@ model PayrollItem {
   payrollRun          PayrollRun        @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
   employeeId          String
   employee            Employee          @relation(fields: [employeeId], references: [id], onDelete: Restrict)
-  basicSalary         Decimal           @default(0.000) @db.Decimal(12, 3)
-  housingAllowance    Decimal           @default(0.000) @db.Decimal(12, 3)
-  transportAllowance  Decimal           @default(0.000) @db.Decimal(12, 3)
-  otherAllowances     Decimal           @default(0.000) @db.Decimal(12, 3)
-  grossSalary         Decimal           @default(0.000) @db.Decimal(12, 3)
-  gosiEmployee        Decimal           @default(0.000) @db.Decimal(12, 3)
-  gosiEmployer        Decimal           @default(0.000) @db.Decimal(12, 3)
-  externalSupport     Decimal           @default(0.000) @db.Decimal(12, 3)
+  basicSalary         Decimal           @default(0.000) @db.Decimal(15, 6)
+  housingAllowance    Decimal           @default(0.000) @db.Decimal(15, 6)
+  transportAllowance  Decimal           @default(0.000) @db.Decimal(15, 6)
+  otherAllowances     Decimal           @default(0.000) @db.Decimal(15, 6)
+  grossSalary         Decimal           @default(0.000) @db.Decimal(15, 6)
+  gosiEmployee        Decimal           @default(0.000) @db.Decimal(15, 6)
+  gosiEmployer        Decimal           @default(0.000) @db.Decimal(15, 6)
+  externalSupport     Decimal           @default(0.000) @db.Decimal(15, 6)
   calculationSnapshot Json?
-  otherDeductions     Decimal           @default(0.000) @db.Decimal(12, 3)
+  otherDeductions     Decimal           @default(0.000) @db.Decimal(15, 6)
   /// One-off incentives and bonuses for the month (not subject to GOSI).
-  bonus               Decimal           @default(0.000) @db.Decimal(12, 3)
-  overtimePay         Decimal           @default(0.000) @db.Decimal(12, 3)
-  shiftAllowance      Decimal           @default(0.000) @db.Decimal(12, 3)
-  commission          Decimal           @default(0.000) @db.Decimal(12, 3)
+  bonus               Decimal           @default(0.000) @db.Decimal(15, 6)
+  overtimePay         Decimal           @default(0.000) @db.Decimal(15, 6)
+  shiftAllowance      Decimal           @default(0.000) @db.Decimal(15, 6)
+  commission          Decimal           @default(0.000) @db.Decimal(15, 6)
   /// Absent days, half days and pay for days before joining.
-  absenceDeduction    Decimal           @default(0.000) @db.Decimal(12, 3)
+  absenceDeduction    Decimal           @default(0.000) @db.Decimal(15, 6)
   /// Unpaid share of leave (unpaid and half-paid leave).
-  leaveDeduction      Decimal           @default(0.000) @db.Decimal(12, 3)
-  latenessDeduction   Decimal           @default(0.000) @db.Decimal(12, 3)
+  leaveDeduction      Decimal           @default(0.000) @db.Decimal(15, 6)
+  latenessDeduction   Decimal           @default(0.000) @db.Decimal(15, 6)
   /// Attendance and leave counts behind the figures, shown on the employee's payment page.
   attendanceSummary   Json?
   adjustmentNote      String?
   editedById          String?
   editedAt            DateTime?
-  netSalary           Decimal           @default(0.000) @db.Decimal(12, 3)
+  netSalary           Decimal           @default(0.000) @db.Decimal(15, 6)
   paymentStatus       String            @default("pending") // "pending", "paid"
   paidAt              DateTime?
   paidById            String?
@@ -2111,8 +2112,8 @@ model ExpenseClaim {
   claimNumber      String           @unique
   claimantId       String
   claimant         User             @relation("ExpenseClaimClaimant", fields: [claimantId], references: [id], onDelete: Restrict)
-  amount           Decimal          @db.Decimal(12, 3)
-  currency         String           @default("BHD")
+  amount           Decimal          @db.Decimal(15, 6)
+  currency         String
   expenseDate      DateTime         @db.Date
   reason           String
   categoryId       String?
@@ -2169,10 +2170,10 @@ model CommissionPayout {
   userId        String
   user          User         @relation("CommissionPayee", fields: [userId], references: [id], onDelete: Restrict)
   periodMonth   String // YYYY-MM
-  basisAmount   Decimal      @db.Decimal(12, 3)
+  basisAmount   Decimal      @db.Decimal(15, 6)
   ratePercent   Decimal      @db.Decimal(5, 2)
-  amount        Decimal      @db.Decimal(12, 3)
-  currency      String       @default("BHD")
+  amount        Decimal      @db.Decimal(15, 6)
+  currency      String
   expenseId     String?      @unique
   expense       Expense?     @relation(fields: [expenseId], references: [id], onDelete: SetNull)
   /// Set when the commission is paid with the salary instead of as a separate expense.
@@ -2193,8 +2194,8 @@ model SupportReimbursement {
   provider       String
   periodStart    String // YYYY-MM, first month of the claim
   periodEnd      String // YYYY-MM, last month of the claim
-  claimedAmount  Decimal  @db.Decimal(12, 3)
-  receivedAmount Decimal  @db.Decimal(12, 3)
+  claimedAmount  Decimal  @db.Decimal(15, 6)
+  receivedAmount Decimal  @db.Decimal(15, 6)
   receivedOn     DateTime @db.Date
   reference      String?
   recordedById   String
@@ -2319,7 +2320,7 @@ model DocumentTax {
   nameAr             String
   ratePercent        Decimal    @db.Decimal(5, 2)
   registrationNumber String?
-  amount             Decimal    @db.Decimal(12, 3)
+  amount             Decimal    @db.Decimal(15, 6)
   displayOrder       Int        @default(0)
 
   @@index([invoiceId])
@@ -2342,7 +2343,7 @@ model EmployeeCredential {
   issueDate      DateTime? @db.Date
   expiryDate     DateTime? @db.Date
   sponsor        String?
-  costAmount     Decimal?  @db.Decimal(12, 3)
+  costAmount     Decimal?  @db.Decimal(15, 6)
   costCurrency   String    @default("BHD")
   /// "one_time" | "monthly" | "yearly" | "term"
   costFrequency  String?
@@ -2368,7 +2369,7 @@ model PayrollItemLine {
   kind          String
   category      String
   label         String
-  amount        Decimal     @db.Decimal(12, 3)
+  amount        Decimal     @db.Decimal(15, 6)
   note          String?
   /// "manual" | "recurring"
   source        String      @default("manual")
@@ -2388,7 +2389,7 @@ model EmployeeRecurringPay {
   kind       String
   category   String
   label      String
-  amount     Decimal  @db.Decimal(12, 3)
+  amount     Decimal  @db.Decimal(15, 6)
   /// YYYY-MM, inclusive.
   startMonth String
   endMonth   String?
@@ -2411,10 +2412,10 @@ model RecurringExpense {
   vendorName       String?
   /// Account, contract or subscriber number with the vendor.
   reference        String?
-  amount           Decimal          @db.Decimal(12, 3)
-  inputVatAmount   Decimal          @default(0.000) @db.Decimal(12, 3)
+  amount           Decimal          @db.Decimal(15, 6)
+  inputVatAmount   Decimal          @default(0.000) @db.Decimal(15, 6)
   isVatRecoverable Boolean          @default(true)
-  currency         String           @default("BHD")
+  currency         String
   paymentMethod    String?
   /// "weekly" | "monthly" | "quarterly" | "semiannual" | "yearly"
   frequency        String
@@ -2463,8 +2464,8 @@ model Asset {
   model            String?
   serialNumber     String?
   purchaseDate     DateTime?       @db.Date
-  purchaseCost     Decimal?        @db.Decimal(12, 3)
-  currency         String          @default("BHD")
+  purchaseCost     Decimal?        @db.Decimal(15, 6)
+  currency         String
   supplier         String?
   invoiceReference String?
   warrantyUntil    DateTime?       @db.Date
@@ -2510,7 +2511,7 @@ model AssetHandover {
   damageNotes         String?
   /// Where a returned asset goes once the return is approved: available | maintenance | lost | retired.
   returnStatus        String?
-  damageCharge        Decimal?  @db.Decimal(12, 3)
+  damageCharge        Decimal?  @db.Decimal(15, 6)
   /// A damage charge recovered from the next salary.
   deductFromSalary    Boolean   @default(false)
   notes               String?
@@ -2620,10 +2621,11 @@ model SignatureRequest {
 
 /// Company-wide social insurance rules (single row "default").
 model GosiSettings {
+  nationalityCategories Json @default("{}")
   id               String   @id @default("default")
   /// Due in full for a month the employee is employed on its 1st day; not due for a month joined after the 1st.
   firstOfMonthRule Boolean  @default(true)
-  /// "contract" pay, or the wage "registered" with GOSI when an employee has one.
+  /// "contract" pay, or the wage "registered" with the pension fund when an employee has one.
   wageSource       String   @default("registered")
   updatedById      String?
   updatedAt        DateTime @default(now()) @updatedAt
@@ -2638,14 +2640,14 @@ model GosiComponent {
   nameAr          String
   /// Insured categories it applies to: "bahraini", "gcc", "expat".
   appliesTo       String[]  @default([])
-  employeePercent Decimal   @default(0) @db.Decimal(6, 3)
-  employerPercent Decimal   @default(0) @db.Decimal(6, 3)
+  employeePercent Decimal   @default(0) @db.Decimal(9, 6)
+  employerPercent Decimal   @default(0) @db.Decimal(9, 6)
   /// Rates by completed years of service: [{ fromYears, employeePercent, employerPercent }].
   serviceTiers    Json      @default("[]")
   /// "basic" | "basic_housing" | "fixed" (basic + all fixed allowances)
   wageBasis       String    @default("fixed")
-  minWage         Decimal?  @db.Decimal(12, 3)
-  maxWage         Decimal?  @db.Decimal(12, 3)
+  minWage         Decimal?  @db.Decimal(15, 6)
+  maxWage         Decimal?  @db.Decimal(15, 6)
   effectiveFrom   DateTime  @db.Date
   effectiveTo     DateTime? @db.Date
   isActive        Boolean   @default(true)
@@ -2666,7 +2668,7 @@ model EmployeeGosiRecord {
   /// "bahraini" | "gcc" | "expat" | "exempt"
   category           String
   registrationNumber String?
-  registeredWage     Decimal?  @db.Decimal(12, 3)
+  registeredWage     Decimal?  @db.Decimal(15, 6)
   /// [{ code, employeePercent?, employerPercent?, exempt? }]
   overrides          Json      @default("[]")
   effectiveFrom      DateTime  @db.Date
@@ -2705,8 +2707,8 @@ model SupportProgramRule {
   wageBasis         String         @default("fixed")
   /// [{ year, percent }]
   schedule          Json           @default("[]")
-  wageCap           Decimal?       @db.Decimal(12, 3)
-  monthlyCap        Decimal?       @db.Decimal(12, 3)
+  wageCap           Decimal?       @db.Decimal(15, 6)
+  monthlyCap        Decimal?       @db.Decimal(15, 6)
   /// [{ qualification, cap }]
   qualificationCaps Json           @default("[]")
   notes             String?
@@ -2733,8 +2735,8 @@ model EmployeeSupport {
   startMonth      String
   endMonth        String?
   approvedPercent Decimal?               @db.Decimal(5, 2)
-  approvedAmount  Decimal?               @db.Decimal(12, 3)
-  monthlyCap      Decimal?               @db.Decimal(12, 3)
+  approvedAmount  Decimal?               @db.Decimal(15, 6)
+  monthlyCap      Decimal?               @db.Decimal(15, 6)
   notes           String?
   createdById     String?
   events          EmployeeSupportEvent[]
@@ -2771,11 +2773,11 @@ model FinalSettlement {
   lastWorkingDay        DateTime              @db.Date
   /// draft | submitted | approved | rejected | paid | cancelled
   status                String                @default("draft")
-  currency              String                @default("BHD")
-  totalAdditions        Decimal               @default(0) @db.Decimal(12, 3)
-  totalDeductions       Decimal               @default(0) @db.Decimal(12, 3)
-  netAmount             Decimal               @default(0) @db.Decimal(12, 3)
-  employerContributions Decimal               @default(0) @db.Decimal(12, 3)
+  currency              String
+  totalAdditions        Decimal               @default(0) @db.Decimal(15, 6)
+  totalDeductions       Decimal               @default(0) @db.Decimal(15, 6)
+  netAmount             Decimal               @default(0) @db.Decimal(15, 6)
+  employerContributions Decimal               @default(0) @db.Decimal(15, 6)
   calculation           Json                  @default("{}")
   notes                 String?
   createdById           String
@@ -2805,7 +2807,7 @@ model FinalSettlementLine {
   category     String
   labelEn      String
   labelAr      String
-  amount       Decimal         @db.Decimal(12, 3)
+  amount       Decimal         @db.Decimal(15, 6)
   /// "auto" lines are recalculated; "manual" lines are kept.
   source       String          @default("auto")
   details      Json?
@@ -2969,8 +2971,8 @@ model Product {
   brand           String?
   /// piece | box | pack | kg | g | l | ml | m | hour | service
   unit            String           @default("piece")
-  cost            Decimal          @default(0) @db.Decimal(12, 3)
-  price           Decimal          @default(0) @db.Decimal(12, 3)
+  cost            Decimal          @default(0) @db.Decimal(15, 6)
+  price           Decimal          @default(0) @db.Decimal(15, 6)
   /// VAT is charged at the company rate unless the product is exempt.
   vatExempt       Boolean          @default(false)
   imageUrls       String[]         @default([])
@@ -3002,8 +3004,8 @@ model ProductVariant {
   barcode      String?  @unique
   /// The English value of each option, in the product's option order.
   optionValues String[] @default([])
-  price        Decimal? @db.Decimal(12, 3)
-  cost         Decimal? @db.Decimal(12, 3)
+  price        Decimal? @db.Decimal(15, 6)
+  cost         Decimal? @db.Decimal(15, 6)
   isActive     Boolean  @default(true)
   sortOrder    Int      @default(0)
   createdAt    DateTime @default(now())
@@ -3054,8 +3056,8 @@ model StockItem {
   /// Weighted average unit cost of what is on hand, in the company currency.
   averageCost     Decimal   @default(0) @db.Decimal(14, 4)
   /// Alert when available stock falls to this; null for no alert.
-  reorderPoint    Decimal?  @db.Decimal(14, 3)
-  reorderQuantity Decimal?  @db.Decimal(14, 3)
+  reorderPoint    Decimal?  @db.Decimal(17, 6)
+  reorderQuantity Decimal?  @db.Decimal(17, 6)
   /// When the last low-stock alert went out, so one dip alerts once.
   lowAlertedAt    DateTime?
   updatedAt       DateTime  @updatedAt
@@ -3085,9 +3087,9 @@ model StockLevel {
   location   StockLocation @relation(fields: [locationId], references: [id], onDelete: Restrict)
   /// The batch id, or "" when the product is not batch-tracked.
   batchKey   String        @default("")
-  onHand     Decimal       @default(0) @db.Decimal(14, 3)
+  onHand     Decimal       @default(0) @db.Decimal(17, 6)
   /// Held for confirmed orders and not yet shipped.
-  reserved   Decimal       @default(0) @db.Decimal(14, 3)
+  reserved   Decimal       @default(0) @db.Decimal(17, 6)
   updatedAt  DateTime      @updatedAt
 
   @@unique([productId, variantKey, locationId, batchKey])
@@ -3105,7 +3107,7 @@ model StockMovement {
   location    StockLocation @relation(fields: [locationId], references: [id], onDelete: Restrict)
   batchKey    String        @default("")
   /// Signed: positive into the location, negative out of it.
-  quantity    Decimal       @db.Decimal(14, 3)
+  quantity    Decimal       @db.Decimal(17, 6)
   /// Unit cost in the company currency: what was paid for receipts, the average cost for everything else.
   unitCost    Decimal       @default(0) @db.Decimal(14, 4)
   /// What caused it, e.g. purchase_order, order, stock_count, transfer, manual.
@@ -3156,9 +3158,9 @@ model StockCountLine {
   locationId String
   batchKey   String     @default("")
   /// On hand when the count started.
-  expected   Decimal    @db.Decimal(14, 3)
+  expected   Decimal    @db.Decimal(17, 6)
   /// Empty until counted.
-  counted    Decimal?   @db.Decimal(14, 3)
+  counted    Decimal?   @db.Decimal(17, 6)
   note       String?
 
   @@unique([countId, productId, variantKey, locationId, batchKey])
@@ -3175,7 +3177,7 @@ model PurchaseRequisition {
   neededBy       DateTime?                 @db.Date
   note           String?
   decisionNote   String?
-  estimatedTotal Decimal                   @default(0) @db.Decimal(12, 3)
+  estimatedTotal Decimal                   @default(0) @db.Decimal(15, 6)
   lines          PurchaseRequisitionLine[]
   rfqs           Rfq[]
   purchaseOrders PurchaseOrder[]
@@ -3194,8 +3196,8 @@ model PurchaseRequisitionLine {
   productId         String?
   variantKey        String              @default("")
   description       String
-  quantity          Decimal             @db.Decimal(14, 3)
-  estimatedUnitCost Decimal?            @db.Decimal(12, 3)
+  quantity          Decimal             @db.Decimal(17, 6)
+  estimatedUnitCost Decimal?            @db.Decimal(15, 6)
   sortOrder         Int                 @default(0)
 }
 
@@ -3225,7 +3227,7 @@ model RfqLine {
   productId   String?
   variantKey  String     @default("")
   description String
-  quantity    Decimal    @db.Decimal(14, 3)
+  quantity    Decimal    @db.Decimal(17, 6)
   sortOrder   Int        @default(0)
   quotes      RfqQuote[]
 }
@@ -3270,9 +3272,9 @@ model PurchaseOrder {
   terms         String?
   vatEnabled    Boolean              @default(false)
   vatPercentage Decimal              @default(0) @db.Decimal(5, 2)
-  subtotal      Decimal              @default(0) @db.Decimal(12, 3)
-  vatAmount     Decimal              @default(0) @db.Decimal(12, 3)
-  total         Decimal              @default(0) @db.Decimal(12, 3)
+  subtotal      Decimal              @default(0) @db.Decimal(15, 6)
+  vatAmount     Decimal              @default(0) @db.Decimal(15, 6)
+  total         Decimal              @default(0) @db.Decimal(15, 6)
   sentAt        DateTime?
   /// email | whatsapp | printed
   sentVia       String?
@@ -3297,12 +3299,12 @@ model PurchaseOrderLine {
   productId        String?
   variantKey       String             @default("")
   description      String
-  quantity         Decimal            @db.Decimal(14, 3)
+  quantity         Decimal            @db.Decimal(17, 6)
   unitPrice        Decimal            @db.Decimal(12, 4)
   /// Accepted into stock so far (rejected items are not counted here).
-  receivedQuantity Decimal            @default(0) @db.Decimal(14, 3)
-  rejectedQuantity Decimal            @default(0) @db.Decimal(14, 3)
-  billedQuantity   Decimal            @default(0) @db.Decimal(14, 3)
+  receivedQuantity Decimal            @default(0) @db.Decimal(17, 6)
+  rejectedQuantity Decimal            @default(0) @db.Decimal(17, 6)
+  billedQuantity   Decimal            @default(0) @db.Decimal(17, 6)
   sortOrder        Int                @default(0)
   receiptLines     GoodsReceiptLine[]
   billLines        SupplierBillLine[]
@@ -3328,8 +3330,8 @@ model GoodsReceiptLine {
   receipt          GoodsReceipt      @relation(fields: [receiptId], references: [id], onDelete: Cascade)
   orderLineId      String
   orderLine        PurchaseOrderLine @relation(fields: [orderLineId], references: [id], onDelete: Restrict)
-  quantity         Decimal           @db.Decimal(14, 3)
-  rejectedQuantity Decimal           @default(0) @db.Decimal(14, 3)
+  quantity         Decimal           @db.Decimal(17, 6)
+  rejectedQuantity Decimal           @default(0) @db.Decimal(17, 6)
   rejectReason     String?
   batchNumber      String?
   expiryDate       DateTime?         @db.Date
@@ -3350,10 +3352,10 @@ model SupplierBill {
   dueDate         DateTime?          @db.Date
   /// draft | approved | partially_paid | paid | cancelled
   status          String             @default("draft")
-  subtotal        Decimal            @default(0) @db.Decimal(12, 3)
-  vatAmount       Decimal            @default(0) @db.Decimal(12, 3)
-  total           Decimal            @default(0) @db.Decimal(12, 3)
-  amountPaid      Decimal            @default(0) @db.Decimal(12, 3)
+  subtotal        Decimal            @default(0) @db.Decimal(15, 6)
+  vatAmount       Decimal            @default(0) @db.Decimal(15, 6)
+  total           Decimal            @default(0) @db.Decimal(15, 6)
+  amountPaid      Decimal            @default(0) @db.Decimal(15, 6)
   /// The expense recorded when the bill is approved.
   expenseId       String?            @unique
   /// Approved although the three-way match found differences, with the reason.
@@ -3380,7 +3382,7 @@ model SupplierBillLine {
   orderLineId String?
   orderLine   PurchaseOrderLine? @relation(fields: [orderLineId], references: [id], onDelete: SetNull)
   description String
-  quantity    Decimal            @db.Decimal(14, 3)
+  quantity    Decimal            @db.Decimal(17, 6)
   unitPrice   Decimal            @db.Decimal(12, 4)
   sortOrder   Int                @default(0)
 }
@@ -3389,7 +3391,7 @@ model SupplierPayment {
   id          String       @id @default(uuid())
   billId      String
   bill        SupplierBill @relation(fields: [billId], references: [id], onDelete: Cascade)
-  amount      Decimal      @db.Decimal(12, 3)
+  amount      Decimal      @db.Decimal(15, 6)
   paidOn      DateTime     @db.Date
   /// bank_transfer | cash | cheque | card | other
   method      String
@@ -3485,9 +3487,9 @@ model StoreSettings {
   id                  String   @id @default("default")
   guestCheckout       Boolean  @default(true)
   deliveryEnabled     Boolean  @default(true)
-  deliveryFee         Decimal  @default(0) @db.Decimal(12, 3)
+  deliveryFee         Decimal  @default(0) @db.Decimal(15, 6)
   /// Delivery is free from this order subtotal; null for never.
-  freeDeliveryOver    Decimal? @db.Decimal(12, 3)
+  freeDeliveryOver    Decimal? @db.Decimal(15, 6)
   pickupEnabled       Boolean  @default(false)
   codEnabled          Boolean  @default(true)
   bankTransferEnabled Boolean  @default(false)
@@ -3510,14 +3512,14 @@ model PaymentAttempt {
   sessionId        String?
   /// The gateway's id for the captured payment (refunds use it).
   gatewayPaymentId String?
-  amount           Decimal    @db.Decimal(12, 3)
+  amount           Decimal    @db.Decimal(15, 6)
   currency         String
   /// created | pending | paid | failed | expired | review
   status           String     @default("created")
   testMode         Boolean    @default(false)
   /// The receipt recorded when it was paid.
   paymentId        String?
-  amountRefunded   Decimal    @default(0) @db.Decimal(12, 3)
+  amountRefunded   Decimal    @default(0) @db.Decimal(15, 6)
   failureReason    String?
   createdAt        DateTime   @default(now())
   paidAt           DateTime?
@@ -3545,8 +3547,8 @@ model Coupon {
   code      String    @unique
   /// percent | fixed
   kind      String
-  value     Decimal   @db.Decimal(12, 3)
-  minOrder  Decimal?  @db.Decimal(12, 3)
+  value     Decimal   @db.Decimal(15, 6)
+  minOrder  Decimal?  @db.Decimal(15, 6)
   startsAt  DateTime?
   endsAt    DateTime?
   maxUses   Int?
@@ -3577,14 +3579,14 @@ model SalesOrder {
   /// delivery | pickup
   fulfilment      String            @default("delivery")
   shippingAddress Json?
-  subtotal        Decimal           @db.Decimal(12, 3)
-  discountAmount  Decimal           @default(0) @db.Decimal(12, 3)
+  subtotal        Decimal           @db.Decimal(15, 6)
+  discountAmount  Decimal           @default(0) @db.Decimal(15, 6)
   couponCode      String?
-  vatAmount       Decimal           @default(0) @db.Decimal(12, 3)
-  deliveryFee     Decimal           @default(0) @db.Decimal(12, 3)
-  total           Decimal           @db.Decimal(12, 3)
-  amountPaid      Decimal           @default(0) @db.Decimal(12, 3)
-  amountRefunded  Decimal           @default(0) @db.Decimal(12, 3)
+  vatAmount       Decimal           @default(0) @db.Decimal(15, 6)
+  deliveryFee     Decimal           @default(0) @db.Decimal(15, 6)
+  total           Decimal           @db.Decimal(15, 6)
+  amountPaid      Decimal           @default(0) @db.Decimal(15, 6)
+  amountRefunded  Decimal           @default(0) @db.Decimal(15, 6)
   currency        String
   /// en | ar: the language of messages about this order.
   locale          String            @default("ar")
@@ -3622,13 +3624,13 @@ model SalesOrderLine {
   variantKey       String     @default("")
   sku              String
   description      String
-  quantity         Decimal    @db.Decimal(14, 3)
-  unitPrice        Decimal    @db.Decimal(12, 3)
+  quantity         Decimal    @db.Decimal(17, 6)
+  unitPrice        Decimal    @db.Decimal(15, 6)
   vatExempt        Boolean    @default(false)
-  lineTotal        Decimal    @db.Decimal(12, 3)
+  lineTotal        Decimal    @db.Decimal(15, 6)
   /// Where the stock is held for this line (none for products without stock).
   locationId       String?
-  returnedQuantity Decimal    @default(0) @db.Decimal(14, 3)
+  returnedQuantity Decimal    @default(0) @db.Decimal(17, 6)
   sortOrder        Int        @default(0)
 }
 
@@ -3641,7 +3643,7 @@ model SalesOrderEvent {
   kind      String
   status    String?
   note      String?
-  amount    Decimal?   @db.Decimal(12, 3)
+  amount    Decimal?   @db.Decimal(15, 6)
   byId      String?
   createdAt DateTime   @default(now())
 
@@ -3673,9 +3675,9 @@ model DeliveryZone {
   nameAr    String
   /// Areas or cities the zone covers (matched without case or spacing); empty covers everywhere else.
   areas     String[]       @default([])
-  fee       Decimal        @default(0) @db.Decimal(12, 3)
-  minOrder  Decimal?       @db.Decimal(12, 3)
-  freeOver  Decimal?       @db.Decimal(12, 3)
+  fee       Decimal        @default(0) @db.Decimal(15, 6)
+  minOrder  Decimal?       @db.Decimal(15, 6)
+  freeOver  Decimal?       @db.Decimal(15, 6)
   isActive  Boolean        @default(true)
   sortOrder Int            @default(0)
   slots     DeliverySlot[]
@@ -3725,8 +3727,8 @@ model Shipment {
   recipientPhone          String
   address                 Json
   /// Cash to collect on delivery.
-  codAmount               Decimal         @default(0) @db.Decimal(12, 3)
-  codCollected            Decimal         @default(0) @db.Decimal(12, 3)
+  codAmount               Decimal         @default(0) @db.Decimal(15, 6)
+  codCollected            Decimal         @default(0) @db.Decimal(15, 6)
   /// Opens the customer's tracking page.
   trackingToken           String          @unique
   attempts                Int             @default(0)
@@ -3760,7 +3762,7 @@ model Shipment {
   /// The agency's shipping label (a private file), when its API provides one.
   labelUrl                String?
   /// What the agency charges for it, for checking its invoice.
-  agencyFee               Decimal?        @db.Decimal(12, 3)
+  agencyFee               Decimal?        @db.Decimal(15, 6)
   agencyInvoiceId         String?
   agencyInvoice           AgencyInvoice?  @relation(fields: [agencyInvoiceId], references: [id], onDelete: SetNull)
   /// When the agency's tracking was last read.
@@ -3836,8 +3838,8 @@ model CodSettlement {
   driver      Employee?      @relation("CodSettlementDriver", fields: [driverId], references: [id], onDelete: Restrict)
   agencyId    String?
   agency      CourierAgency? @relation(fields: [agencyId], references: [id], onDelete: Restrict)
-  expected    Decimal        @db.Decimal(12, 3)
-  received    Decimal        @db.Decimal(12, 3)
+  expected    Decimal        @db.Decimal(15, 6)
+  received    Decimal        @db.Decimal(15, 6)
   note        String?
   settledById String?
   settledAt   DateTime       @default(now())
@@ -3857,7 +3859,7 @@ model CourierAgency {
   phone          String?
   email          String?
   /// Usual charge per shipment.
-  feePerShipment Decimal?        @db.Decimal(12, 3)
+  feePerShipment Decimal?        @db.Decimal(15, 6)
   isActive       Boolean         @default(true)
   shipments      Shipment[]
   invoices       AgencyInvoice[]
@@ -3874,7 +3876,7 @@ model AgencyInvoice {
   /// The agency's invoice number.
   reference   String
   invoiceDate DateTime      @db.Date
-  amount      Decimal       @db.Decimal(12, 3)
+  amount      Decimal       @db.Decimal(15, 6)
   expenseId   String?       @unique
   createdById String?
   shipments   Shipment[]
@@ -3988,8 +3990,8 @@ model Campaign {
   status      String      @default("planned")
   startDate   DateTime?   @db.Date
   endDate     DateTime?   @db.Date
-  budget      Decimal     @default(0) @db.Decimal(12, 3)
-  spend       Decimal     @default(0) @db.Decimal(12, 3)
+  budget      Decimal     @default(0) @db.Decimal(15, 6)
+  spend       Decimal     @default(0) @db.Decimal(15, 6)
   /// The utm_campaign value its links carry.
   utmCampaign String      @unique
   couponCode  String?
@@ -4103,7 +4105,7 @@ model LegalMatter {
   /// The next hearing or deadline.
   nextDate      DateTime?          @db.Date
   assigneeId    String?
-  amountAtStake Decimal?           @db.Decimal(14, 3)
+  amountAtStake Decimal?           @db.Decimal(17, 6)
   description   String?            @db.Text
   outcome       String?            @db.Text
   createdById   String?

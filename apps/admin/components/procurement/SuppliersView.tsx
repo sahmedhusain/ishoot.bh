@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Pencil, Plus, Search, Truck } from "lucide-react";
-import { Button, Card, Input, formatCurrencyValue } from "@platform/ui";
+import { Button, Card, Input, PhoneInput, formatCurrencyValue } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import type { SupplierInput, SupplierRecord } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
@@ -69,7 +69,7 @@ export function SuppliersView({ suppliers, performance, currency, search, canEdi
             {field("companyName", copy.companyName, { maxLength: 200 })}
             {field("contactName", copy.contactName, { maxLength: 200 })}
             {field("email", copy.email, { type: "email", dir: "ltr", maxLength: 254 })}
-            {field("phone", copy.phone, { type: "tel", dir: "ltr", maxLength: 40 })}
+            <Field label={copy.phone}>{(id) => <PhoneInput id={id} value={draft.phone} onChange={(phone) => setDraft({ ...draft, phone })} />}</Field>
             {field("vatNumber", copy.vatNumber, { dir: "ltr", maxLength: 40 })}
             <div className="grid grid-cols-2 gap-3">
               {field("leadTimeDays", copy.leadTime, { type: "number", min: 0, max: 365 })}

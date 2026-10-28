@@ -154,7 +154,7 @@ async function runScenario2_ConcurrentPaymentSettlementRace() {
 }
 
 async function runScenario3_HeavyLoadHRMSandGosi() {
-  console.log("\n--- Scenario 3: 100-Employee HRMS, GOSI & Tamkeen Complex Matrix Computation ---");
+  console.log("\n--- Scenario 3: 100-Employee HRMS, GOSI & Wage support fund Complex Matrix Computation ---");
   const t0 = performance.now();
   const D = (str) => new Date(`${str}T00:00:00Z`);
 
@@ -234,14 +234,14 @@ async function runScenario3_HeavyLoadHRMSandGosi() {
       assert(contrib.employee > 0, "Bahraini employee contribution must be > 0");
     }
 
-    // 2. Tamkeen wage support calculation
+    // 2. Wage support fund wage support calculation
     const supportYear = (i % 3) + 1; // Year 1, 2, or 3
     const supportPct = supportYear === 1 ? 70 : supportYear === 2 ? 50 : 30;
     const qualification = i % 3 === 0 ? "diploma" : i % 3 === 1 ? "bachelor" : "master";
     const cap = qualification === "diploma" ? 500 : qualification === "bachelor" ? 600 : 800;
     const supportedWage = Math.min(basicSalary + housing, cap);
     const tamkeenAmount = (supportedWage * supportPct) / 100;
-    assert(tamkeenAmount <= cap, "Tamkeen support cannot exceed cap");
+    assert(tamkeenAmount <= cap, "Wage support fund support cannot exceed cap");
   }
 
   const elapsed = performance.now() - t0;

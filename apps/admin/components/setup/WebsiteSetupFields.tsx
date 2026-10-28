@@ -1,6 +1,11 @@
 "use client";
 
 import * as React from "react";
+import { WebsiteCommerceFields } from "./WebsiteCommerceFields";
+import { WebsitePromotionsFields } from "./WebsitePromotionsFields";
+import { WebsiteDocumentsFields } from "./WebsiteDocumentsFields";
+import { WebsiteLanguageFields } from "./WebsiteLanguageFields";
+import { WebsiteDesignFields } from "./WebsiteDesignFields";
 import { ArrowDown, ArrowUp, Check, Eye, EyeOff, RotateCcw } from "lucide-react";
 import { Input, Select } from "@platform/ui";
 import type { ContentLanguage } from "@platform/database/constants/languages";
@@ -80,9 +85,10 @@ export interface WebsiteSetupFieldsProps {
   /** The company's activity, marked as recommended in the type picker. */
   companyActivity?: BusinessActivity | null;
   hasWhatsapp: boolean;
+  categories?: { slug: string; name_en: string; name_ar: string }[];
 }
 
-export function WebsiteSetupFields({ config, onChange, languages, primaryLanguage, companyActivity, hasWhatsapp }: WebsiteSetupFieldsProps) {
+export function WebsiteSetupFields({ config, onChange, languages, primaryLanguage, companyActivity, categories }: WebsiteSetupFieldsProps) {
   const { t, locale } = useAdminLocale();
   const copy = t.setupWizard.website;
   const activities = t.setupWizard.company.activities;
@@ -149,6 +155,12 @@ export function WebsiteSetupFields({ config, onChange, languages, primaryLanguag
           </div>
         </dl>
       </Section>
+
+      <WebsitePromotionsFields promotions={config.promotions ?? []} onChange={promotions => set({ promotions })} />
+      <WebsiteDocumentsFields documents={config.documents ?? []} onChange={documents => set({ documents })} />
+      <WebsiteCommerceFields categories={categories} commerce={config.commerce} onChange={commerce => set({ commerce })} />
+      <WebsiteLanguageFields config={config} onChange={onChange} languages={languages} />
+      <WebsiteDesignFields design={config.design} onChange={design => set({ design })} />
 
       <Section title={copy.catalogueTitle} hint={copy.catalogueHint}>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -251,10 +263,7 @@ export function WebsiteSetupFields({ config, onChange, languages, primaryLanguag
           {(Object.keys(config.inquiry) as (keyof InquiryOptions)[]).map((key) => (
             <Toggle key={key} label={copy.inquiry[key]} checked={config.inquiry[key]} onChange={(value) => set({ inquiry: { ...config.inquiry, [key]: value } })} />
           ))}
-          <Toggle label={copy.whatsappButton} hint={hasWhatsapp ? undefined : copy.whatsappMissing} checked={config.whatsappButton} onChange={(whatsappButton) => set({ whatsappButton })} />
-          {config.purpose === "media" || config.purpose === "events" || config.showEquipment ? (
-            <Toggle label={copy.equipment} checked={config.showEquipment} onChange={(showEquipment) => set({ showEquipment })} />
-          ) : null}
+          <Toggle label={copy.equipment} checked={config.showEquipment} onChange={(showEquipment) => set({ showEquipment })} />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <LanguageFields name="hours" label={copy.hours} languages={languages} placeholder={copy.hoursPlaceholder} en={config.hoursEn} ar={config.hoursAr} onChange={(v) => set({ hoursEn: v.en, hoursAr: v.ar })} />

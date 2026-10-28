@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 import { errorMessage } from "../../lib/error-text";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
@@ -52,6 +53,7 @@ export function PayrollManagementView({
   canCreate = false,
   canPay = false,
 }: PayrollManagementViewProps) {
+  const companyCurrency = useCompanyCurrency();
   const modalFormId = React.useId();
 
   const { t, locale, isRTL } = useAdminLocale();
@@ -248,7 +250,7 @@ export function PayrollManagementView({
           <div className="text-2xl font-bold font-mono text-ink dark:text-ink">
             {totalNetDisbursed.toFixed(3)}{" "}
             <span className="text-xs font-normal text-ink-muted">
-              {t.shared.bhd}
+              {companyCurrency}
             </span>
           </div>
           <div className="text-xs text-ink-muted">{t.payrollManagement.netPaidAcrossAllRuns}</div>
@@ -261,7 +263,7 @@ export function PayrollManagementView({
           <div className="text-2xl font-bold font-mono text-ink dark:text-ink">
             {totalEmployerCosts.toFixed(3)}{" "}
             <span className="text-xs font-normal text-ink-muted">
-              {t.shared.bhd}
+              {companyCurrency}
             </span>
           </div>
           <div className="text-xs text-ink-muted">{t.payrollManagement.includingStatutoryEmployerContributions}</div>
@@ -364,7 +366,7 @@ export function PayrollManagementView({
                       </span>
                       <span className="font-mono font-semibold text-ink dark:text-ink">
                         {Number(run.totalGross).toFixed(3)}
-                        {t.shared.bhd}
+                        {companyCurrency}
                       </span>
                     </div>
 
@@ -374,7 +376,7 @@ export function PayrollManagementView({
                       </span>
                       <span className="font-mono font-semibold text-amber-600">
                         -{Number(run.totalDeductions).toFixed(3)}
-                        {t.shared.bhd}
+                        {companyCurrency}
                       </span>
                     </div>
 
@@ -384,7 +386,7 @@ export function PayrollManagementView({
                       </span>
                       <span className="font-mono font-bold text-primary dark:text-mint">
                         {Number(run.totalNet).toFixed(3)}
-                        {t.shared.bhd}
+                        {companyCurrency}
                       </span>
                     </div>
 
@@ -394,7 +396,7 @@ export function PayrollManagementView({
                       </span>
                       <span className="font-mono font-semibold text-ink dark:text-ink">
                         {Number(run.totalEmployerCost).toFixed(3)}
-                        {t.shared.bhd}
+                        {companyCurrency}
                       </span>
                     </div>
 

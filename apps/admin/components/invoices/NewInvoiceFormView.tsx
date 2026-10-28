@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 import { useUnsavedChanges, useNavigationGuard } from "../../hooks/useUnsavedChanges";
 import { useConfirmation } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
@@ -39,9 +40,8 @@ import {
 } from "lucide-react";
 import { createInvoiceAction } from "../../app/actions/finance";
 import { convertQuotationToInvoiceAction } from "../../app/actions/quotations";
-import { convertFromBhd } from "../../lib/fx-client";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-import { CURRENCY_CONFIGS, calculateInvoiceTotals, getCurrencyDisplayLabel } from "@platform/database/types";
+import { calculateInvoiceTotals } from "@platform/database/types";
 import { ClientAutocomplete } from "../crm/ClientAutocomplete";
 import { toast } from "sonner";
 
@@ -54,8 +54,6 @@ interface NewInvoiceFormViewProps {
   preselectedQuotation?: Quotation | null;
   /** Deal this invoice bills (from a deal page link). */
   dealId?: string;
-  /** Units of each supported currency per 1 BHD; service catalogue prices are in BHD. */
-  fxRates?: Record<string, number>;
   /** People an invoice can be credited to; defaults to its quotation's salesperson, else the issuer. */
   salesPeople?: { id: string; name: string }[];
   currentUserId?: string;
@@ -65,7 +63,6 @@ export function NewInvoiceFormView({
   initialContacts,
   company,
   services = [],
-  fxRates = {},
   salesPeople = [],
   currentUserId,
   preselectedClientId,
@@ -73,10 +70,11 @@ export function NewInvoiceFormView({
   preselectedQuotation,
   dealId,
 }: NewInvoiceFormViewProps) {
+  const companyCurrency = useCompanyCurrency();
   const router = useRouter();
   const confirmAction = useConfirmation();
   const { requestNavigation } = useNavigationGuard();
-  const { t, locale, isRTL } = useAdminLocale();
+  const { isArabic, t, locale, isRTL } = useAdminLocale();
 
   const [contacts, setContacts] = React.useState<CRMContact[]>(initialContacts);
   const [submitting, setSubmitting] = React.useState(false);
@@ -95,7 +93,7 @@ export function NewInvoiceFormView({
   }, [contacts, selectedContactId]);
 
   const [currency, setCurrency] = React.useState<SupportedCurrency>(
-    (company?.default_currency as SupportedCurrency) || "BHD",
+    (company?.default_currency as SupportedCurrency) || companyCurrency,
   );
   const [salesOwnerId, setSalesOwnerId] = React.useState(
     (preselectedQuotation as { salesOwnerId?: string | null } | null | undefined)?.salesOwnerId ?? currentUserId ?? "",
@@ -450,18 +448,7 @@ export function NewInvoiceFormView({
                 <span className="text-xs font-medium text-ink-muted dark:text-ink-muted">
                   {t.invoiceForm.currencyLabel}
                 </span>
-                <Select
-                  value={currency}
-                  onChange={(e) =>
-                    setCurrency(e.target.value as SupportedCurrency)
-                  }
-                >
-                  {Object.keys(CURRENCY_CONFIGS).map((code) => (
-                    <option key={code} value={code}>
-                      {getCurrencyDisplayLabel(code as SupportedCurrency, locale === "ar" ? "ar" : "en")}
-                    </option>
-                  ))}
-                </Select>
+                <Select value={currency} disabled className="w-full"><option value={currency}>{currency}</option></Select>
               </label>
 
               {salesPeople.length > 0 && (
@@ -551,7 +538,7 @@ export function NewInvoiceFormView({
                         const s = services.find((srv) => srv.id === sId);
                         if (s) {
                           const next = [...lineItems];
-                          const price = convertFromBhd(Number(s.default_rate) || 0, fxRates[currency] ?? 1, currency);
+                          const price = Number(s.default_rate) || 0;
                           next[index] = {
                             ...next[index],
                             service_id: s.id,
@@ -754,7 +741,7 @@ export function NewInvoiceFormView({
 
                 {otherTaxes.map((tax) => (
                   <div key={tax.code} className="flex justify-between text-ink-muted dark:text-ink-muted">
-                    <span>{isRTL ? tax.name_ar : tax.name_en} ({tax.rate}%)</span>
+                    <span>{isArabic ? tax.name_ar : tax.name_en} ({tax.rate}%)</span>
                     <span className="font-mono font-medium">
                       {(totals.taxes.find((x) => x.code === tax.code)?.amount ?? 0).toFixed(3)} {currency}
                     </span>

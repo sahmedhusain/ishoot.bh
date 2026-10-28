@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Button, SegmentedButton } from "@platform/ui";
-import { Check, Globe, Laptop, Moon, RotateCcw, Sun } from "lucide-react";
+import { LANGUAGES, isLocale } from "@platform/locales/registry";
+import { Button, Select, SegmentedButton } from "@platform/ui";
+import { Check, Laptop, Moon, RotateCcw, Sun } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { useAdminTheme, type AdminTheme } from "../../hooks/useAdminTheme";
 import {
@@ -107,23 +108,7 @@ export function PreferencesView() {
             />
           </ChoiceRow>
           <ChoiceRow label={t.preferences.sysLangTitle}>
-            <SegmentedButton<"ar" | "en">
-              label={t.preferences.sysLangTitle}
-              value={locale}
-              onChange={setLocale}
-              options={[
-                {
-                  value: "ar",
-                  label: t.preferences.arabicLabel,
-                  icon: <Globe />,
-                },
-                {
-                  value: "en",
-                  label: t.preferences.englishLabel,
-                  icon: <Globe />,
-                },
-              ]}
-            />
+            <Select aria-label={t.preferences.sysLangTitle} value={locale} onChange={(event) => { if (isLocale(event.target.value)) setLocale(event.target.value); }} className="min-w-48">{LANGUAGES.map((language) => <option key={language.code} value={language.code}>{language.name}</option>)}</Select>
           </ChoiceRow>
         </div>
       </section>

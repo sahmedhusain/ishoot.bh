@@ -9,7 +9,8 @@ type Tab = "password" | "code" | "signUp";
 
 /** Signing in to the website: password, an e-mailed code, a new account, or Google / Apple when set up. */
 export function AccountSignIn({ locale, providers, notice, next }: { locale: string; providers: { google: boolean; apple: boolean }; notice: string; next: string }) {
-  const { t } = useTranslation();
+  const { t, isRTL } = useTranslation();
+  const tabsId = "customer-sign-in";
   const router = useRouter();
   const [tab, setTab] = React.useState<Tab>("password");
   const [form, setForm] = React.useState({ name: "", email: "", password: "", code: "", marketingOptIn: false });
@@ -55,13 +56,21 @@ export function AccountSignIn({ locale, providers, notice, next }: { locale: str
 
         <div role="tablist" aria-label={t("account.signInTitle")} className="mt-8 grid grid-cols-3 gap-2">
           {(["password", "code", "signUp"] as const).map((id) => (
-            <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => { setTab(id); setError(""); setCodeSent(false); }} className={`rounded-xl px-3 py-2.5 text-xs sm:text-sm font-semibold transition-colors ${tab === id ? "bg-white/10 text-white" : "text-ink-muted hover:text-white"}`}>
+            <button key={id} id={`${tabsId}-${id}`} type="button" role="tab" aria-selected={tab === id} tabIndex={tab === id ? 0 : -1} aria-controls={`${tabsId}-panel`} onKeyDown={event => {
+              if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+              event.preventDefault();
+              const tabs: Tab[] = ["password", "code", "signUp"];
+              const step = (event.key === "ArrowRight" ? 1 : -1) * (isRTL ? -1 : 1);
+              const index = event.key === "Home" ? 0 : event.key === "End" ? 2 : (tabs.indexOf(id) + step + 3) % 3;
+              setTab(tabs[index]); setError(""); setCodeSent(false);
+              document.getElementById(`${tabsId}-${tabs[index]}`)?.focus();
+            }} onClick={() => { setTab(id); setError(""); setCodeSent(false); }} className={`rounded-xl px-3 py-2.5 text-xs sm:text-sm font-semibold transition-colors ${tab === id ? "bg-m3-secondary-container text-m3-on-secondary-container" : "text-ink-muted hover:text-white"}`}>
               {t(`account.tabs.${id}`)}
             </button>
           ))}
         </div>
 
-        <form onSubmit={submit} className="mt-6 space-y-5" data-testid="account-form">
+        <form id={`${tabsId}-panel`} role="tabpanel" aria-labelledby={`${tabsId}-${tab}`} onSubmit={submit} className="mt-6 space-y-5" data-testid="account-form">
           {(tab === "signUp" || (tab === "code" && codeSent)) && (
             <label className="block space-y-2">
               <span className={label}>{t("account.name")}</span>
@@ -94,7 +103,7 @@ export function AccountSignIn({ locale, providers, notice, next }: { locale: str
               {t("account.marketing")}
             </label>
           )}
-          {error && <p role="alert" className="text-sm text-rose-400">{error}</p>}
+          {error && <p role="alert" className="text-sm text-m3-error">{error}</p>}
           <button type="submit" disabled={busy} className={`${primaryButton} w-full`} data-testid="account-submit">
             {busy ? t("account.working") : tab === "password" ? t("account.signIn") : tab === "signUp" ? t("account.signUp") : codeSent ? t("account.verify") : t("account.sendCode")}
           </button>

@@ -52,7 +52,7 @@ export function ImageTextBlock({ data, locale }: { data: BlockData["image_text"]
           {pick(data.title, locale) && <h2 className="text-3xl sm:text-4xl font-display font-bold text-white leading-tight">{pick(data.title, locale)}</h2>}
           <p className="text-base sm:text-lg text-ink-muted leading-relaxed whitespace-pre-line">{pick(data.text, locale)}</p>
           {href && pick(data.buttonLabel, locale) && (
-            <Link href={href} className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-paper border border-accent/40 hover:bg-primary/85 transition-colors">
+            <Link href={href} className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground border border-accent/40 hover:bg-primary/85 transition-colors">
               {pick(data.buttonLabel, locale)}
               <ArrowUpRight className="w-4 h-4 rtl:-scale-x-100" />
             </Link>
@@ -106,7 +106,7 @@ export function CtaBlock({ data, locale }: { data: BlockData["cta"]; locale: str
   const href = safeWebsiteUrl(data.buttonUrl) || `/${locale}/contact`;
   return (
     <Section>
-      <Reveal className="rounded-3xl border border-accent/30 bg-gradient-to-br from-primary/40 to-brand-surface p-8 sm:p-12 text-center space-y-5">
+      <Reveal className="rounded-3xl border border-m3-outline-variant bg-m3-secondary-container text-m3-on-secondary-container p-8 sm:p-12 text-center space-y-5">
         <h2 className="text-3xl sm:text-5xl font-display font-bold text-white">{pick(data.title, locale)}</h2>
         {pick(data.text, locale) && <p className="text-ink-muted max-w-2xl mx-auto leading-relaxed">{pick(data.text, locale)}</p>}
         {pick(data.buttonLabel, locale) && (
@@ -195,7 +195,7 @@ export function EmbedBlock({ data, locale }: { data: BlockData["embed"]; locale:
           src={src}
           title={pick(data.title, locale) || data.preset}
           loading="lazy"
-          className={`w-full rounded-3xl border border-white/10 bg-white ${tall ? "h-[720px]" : "aspect-video"}`}
+          className={`w-full rounded-3xl border border-white/10 bg-m3-surface-container-low ${tall ? "h-[720px]" : "aspect-video"}`}
           allow="encrypted-media; picture-in-picture; fullscreen"
           referrerPolicy="strict-origin-when-cross-origin"
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"

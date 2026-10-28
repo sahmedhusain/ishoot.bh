@@ -1,3 +1,4 @@
+import { RequestAttachments } from "../../../../components/requests/RequestAttachments";
 import { notFound } from "next/navigation";
 import { requireRecordInScope } from "../../../../lib/data-scope";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
@@ -41,11 +42,12 @@ export default async function RequestDetailPage({
   }));
 
   // Replying to the customer, and the order the request is about.
-  const [contact, replies, cannedReplies, canReply] = await Promise.all([
+  const [contact, replies, cannedReplies, canReply, files] = await Promise.all([
     db.inquiry.findUnique({ where: { id }, select: { email: true, phone: true, phoneE164: true, locale: true, order: { select: { id: true, number: true } } } }),
     requestReplies(id),
     listCannedReplies(true),
     hasPermission("requests", "edit"),
+    db.attachment.findMany({ where: { entityType: "inquiry", entityId: id }, select: { id: true, fileName: true, fileUrl: true }, orderBy: { createdAt: "asc" } }),
   ]);
 
   return (
@@ -57,6 +59,7 @@ export default async function RequestDetailPage({
         canDecideApproval={!!pendingApproval && canDecideApproval(pendingApproval, currentUser)}
         canSell={leadsWrite && contactsWrite && dealsWrite}
       />
+      <RequestAttachments files={files} />
       <ServiceReplyPanel requestId={id} customerLocale={contact?.locale ?? "ar"} hasEmail={!!contact?.email} hasPhone={!!(contact?.phoneE164 || contact?.phone)} order={contact?.order ?? null} replies={replies} cannedReplies={cannedReplies} canReply={canReply} />
     </div>
   );

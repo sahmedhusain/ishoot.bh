@@ -242,7 +242,7 @@ export const ROUTES = {
     }) => withQuery("/dashboard/hr/handovers", query),
     handover: (id: string) => `/dashboard/hr/handovers/${encode(id)}`,
     settings: "/dashboard/hr/settings",
-    gosi: "/dashboard/hr/gosi",
+    gosi: "/dashboard/hr/pensions",
     supports: (query?: { program?: string | null; status?: string | null }) =>
       withQuery("/dashboard/hr/supports", query),
     settlements: (query?: { status?: string | null }) =>

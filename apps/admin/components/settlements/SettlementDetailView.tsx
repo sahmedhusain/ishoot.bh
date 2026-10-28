@@ -507,8 +507,8 @@ export function SettlementDetailView({
                       required
                       type="number"
                       dir="ltr"
-                      min={0.001}
-                      step="0.001"
+                      min={0}
+                      step="any"
                       value={m.amount}
                       onChange={(e) => set({ amount: e.target.value })}
                     />

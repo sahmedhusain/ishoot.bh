@@ -273,7 +273,7 @@ async function main() {
               make: async () =>
                 (
                   await tx.expenseClaim.create({
-                    data: {
+                    data: { currency: "BHD",
                       claimNumber: `FLOW-${stamp}-${Math.random().toString(36).slice(2, 7)}`,
                       claimantId: requester.id,
                       amount: 25,
@@ -325,7 +325,7 @@ async function main() {
                   where: { code: "other" },
                 });
                 const asset = await tx.asset.create({
-                  data: {
+                  data: { currency: "BHD",
                     assetTag: `AST-FLOW-${stamp}-${Math.random().toString(36).slice(2, 7)}`,
                     categoryId: category.id,
                     name: "Flow asset",
@@ -433,7 +433,7 @@ async function main() {
                 });
                 return (
                   await tx.finalSettlement.create({
-                    data: {
+                    data: { currency: "BHD",
                       reference: `SET-FLOW-${stamp}-${Math.random()}`,
                       employeeId: employee.id,
                       reason: "resignation",

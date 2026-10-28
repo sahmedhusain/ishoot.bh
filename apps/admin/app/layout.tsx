@@ -1,8 +1,10 @@
+import { cookies } from "next/headers";
+import { getAdminTranslations, isLocale, isRtlLocale } from "@platform/locales";
 import "./globals.css";
 import "./admin-design.css";
 import "./page-regions.css";
 import { appearanceBootstrapScript } from "../lib/admin-appearance";
-import { OverlayScrollbarsProvider, ConfirmationProvider } from "@platform/ui";
+import { OverlayScrollbarsProvider, ConfirmationProvider, PhoneCountryProvider, CompanyCurrencyProvider } from "@platform/ui";
 import {
   googleFontsHref,
   normalizeTheme,
@@ -25,12 +27,15 @@ export default async function RootLayout({
   // The company theme (colours, fonts, radius) becomes CSS variables; the default theme is used if the
   // database is unreachable so the error and login pages still render.
   const company = await getCachedCompanySettings().catch(() => null);
+  const savedLocale = (await cookies()).get("platform_admin_locale")?.value;
+  const initialLocale = isLocale(savedLocale) ? savedLocale : company?.primary_language ?? "ar";
+  const initialTranslations = getAdminTranslations(initialLocale, company?.business_activity);
   const theme = normalizeTheme(company?.theme);
   const fontsHref = googleFontsHref(theme);
   return (
     <html
-      lang="ar"
-      dir="rtl"
+      lang={initialLocale}
+      dir={isRtlLocale(initialLocale) ? "rtl" : "ltr"}
       suppressHydrationWarning
       className={theme.defaultMode === "light" ? "light" : "dark"}
     >
@@ -58,10 +63,10 @@ export default async function RootLayout({
       </head>
       <body data-admin-app className="min-h-screen bg-surface text-ink antialiased font-sans selection:bg-secondary-container selection:text-on-secondary-container transition-colors duration-base ease-standard">
         <AdminThemeProvider defaultTheme={theme.defaultMode}>
-          <AdminLocaleProvider activity={company?.business_activity}>
-            <ConfirmationProvider>
+          <AdminLocaleProvider activity={company?.business_activity} initialLocale={initialLocale} initialTranslations={initialTranslations}>
+            <CompanyCurrencyProvider currency={company?.default_currency}><PhoneCountryProvider country={company?.country}><ConfirmationProvider>
               <UnsavedChangesProvider><OverlayScrollbarsProvider />{children}</UnsavedChangesProvider>
-            </ConfirmationProvider>
+            </ConfirmationProvider></PhoneCountryProvider></CompanyCurrencyProvider>
             <Toaster richColors closeButton position="top-right" />
           </AdminLocaleProvider>
         </AdminThemeProvider>

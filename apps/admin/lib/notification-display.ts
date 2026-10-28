@@ -6,7 +6,7 @@ import { ROUTES } from "@platform/database/constants/routes";
 export function notificationText(
   n: Notification,
   t: AdminTranslations,
-  locale: "ar" | "en",
+  locale: string,
 ) {
   const entry = n.message_key
     ?.split(".")
@@ -77,7 +77,7 @@ export function notificationHref(n: Notification): string | null {
       return null;
   }
 }
-export function notificationAge(date: string, locale: "ar" | "en") {
+export function notificationAge(date: string, locale: string) {
   const seconds = Math.max(0, (Date.now() - new Date(date).getTime()) / 1000);
   const format = new Intl.RelativeTimeFormat(
     locale === "ar" ? "ar-BH-u-nu-latn" : "en",

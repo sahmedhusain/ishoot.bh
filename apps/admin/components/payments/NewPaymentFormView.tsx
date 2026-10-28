@@ -365,9 +365,9 @@ export function NewPaymentFormView({
               <Input
                 type="number"
                 required
-                min={0.001}
-                step={0.001}
-                placeholder="0.000"
+                min={0}
+                step="any"
+                placeholder="0"
                 value={amount || ""}
                 onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
                 className=" text-lg font-bold text-accent"

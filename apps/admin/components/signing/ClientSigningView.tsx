@@ -1,4 +1,5 @@
 "use client";
+import { getCurrencyDecimals, getCurrencyLabel } from "@platform/config/currency";
 import { formatMessage } from "@platform/locales";
 /* eslint-disable @next/next/no-img-element -- brand artwork is served as-is on this public page. */
 
@@ -9,7 +10,6 @@ import type { ClientSignableDocument } from "@platform/database";
 type Labels = ReturnType<typeof import("@platform/locales").getTranslations>["admin"]["clientSigning"];
 type State = "open" | "signed" | "expired" | "revoked" | "unavailable" | "invalid";
 
-const AR_CURRENCY: Record<string, string> = { BHD: "د.ب", KWD: "د.ك", QAR: "ر.ق", SAR: "ر.س", AED: "د.إ", OMR: "ر.ع" };
 
 /** The client's review-and-sign page. Western digits in both languages; layout follows the document language. */
 export function ClientSigningView({
@@ -43,9 +43,9 @@ export function ClientSigningView({
   const canvas = React.useRef<HTMLCanvasElement>(null);
   const drawing = React.useRef(false);
 
-  const decimals = doc?.currency === "BHD" || doc?.currency === "KWD" || doc?.currency === "OMR" ? 3 : 2;
+  const decimals = getCurrencyDecimals(doc?.currency ?? "");
   const amount = (v: number) => v.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
-  const money = (v: number) => (isAr ? `${amount(v)} ${AR_CURRENCY[doc?.currency ?? ""] ?? doc?.currency}` : `${doc?.currency} ${amount(v)}`);
+  const money = (v: number) => (isAr ? `${amount(v)} ${getCurrencyLabel(doc?.currency ?? "", true, false)}` : `${doc?.currency} ${amount(v)}`);
   const date = (v: string) => new Intl.DateTimeFormat(isAr ? "ar-BH-u-nu-latn" : "en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Bahrain" }).format(new Date(v));
   const fill = (text: string) => formatMessage(text, { company: company.name, email: company.email, phone: company.phone });
 

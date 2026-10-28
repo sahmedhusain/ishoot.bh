@@ -94,7 +94,7 @@ async function main() {
     403,
   );
   invoice = await db.invoice.create({
-    data: {
+    data: { currency: "BHD",
       invoiceNumber: prefix,
       dueDate: new Date(),
       language: "en",

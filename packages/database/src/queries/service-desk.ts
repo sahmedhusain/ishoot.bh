@@ -1,3 +1,4 @@
+import { isValidEmail } from "../constants/validation";
 import {
   formatMessage,
   getTranslations,
@@ -139,7 +140,7 @@ export async function replyToRequest(
   if (!request) throw new Error(serverMessages.requestNotFound);
   let whatsappLink: string | null = null;
   if (input.channel === "email") {
-    if (!request.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(request.email))
+    if (!request.email || !isValidEmail(request.email))
       throw new Error(serverMessages.serviceReplyNoEmail);
     const company = await db.companySetting.findFirst({
       select: { companyNameEn: true, companyNameAr: true },
@@ -215,7 +216,7 @@ export async function createOrderHelpRequest(
     orderId: string;
     kind: "question" | "problem";
     message: string;
-    locale: "en" | "ar";
+    locale: string;
   },
 ) {
   const order = await db.salesOrder.findFirst({

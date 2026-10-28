@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import en from "../../../../packages/locales/src/en.json";
+import { en } from "../../../../packages/locales/src";
 import { cronSecret, ports } from "../../../../playwright.config";
 import { testDatabase, watchErrors } from "../../helpers";
 import {

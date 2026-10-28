@@ -79,8 +79,8 @@ export function StoreSettingsView({ settings, coupons, gateways, currency, langu
           {toggle("pickupEnabled")}
           {toggle("deliveryEnabled")}
           <span />
-          <Field label={formatMessage(copy.deliveryFee, { currency })}>{(id) => <Input id={id} name="deliveryFee" type="number" min={0} step="0.001" value={form.deliveryFee} onChange={(e) => setForm({ ...form, deliveryFee: e.target.value })} className="rounded-lg" />}</Field>
-          <Field label={formatMessage(copy.freeDeliveryOver, { currency })}>{(id) => <Input id={id} type="number" min={0} step="0.001" value={form.freeDeliveryOver} onChange={(e) => setForm({ ...form, freeDeliveryOver: e.target.value })} className="rounded-lg" />}</Field>
+          <Field label={formatMessage(copy.deliveryFee, { currency })}>{(id) => <Input id={id} name="deliveryFee" type="number" min={0} step="any" value={form.deliveryFee} onChange={(e) => setForm({ ...form, deliveryFee: e.target.value })} className="rounded-lg" />}</Field>
+          <Field label={formatMessage(copy.freeDeliveryOver, { currency })}>{(id) => <Input id={id} type="number" min={0} step="any" value={form.freeDeliveryOver} onChange={(e) => setForm({ ...form, freeDeliveryOver: e.target.value })} className="rounded-lg" />}</Field>
           {toggle("codEnabled")}
           {toggle("bankTransferEnabled")}
           {form.bankTransferEnabled && <LanguageFields label={copy.bankInstructions} languages={languages} multiline wide maxLength={2000} en={form.bankInstructionsEn} ar={form.bankInstructionsAr} onChange={({ en, ar }) => setForm({ ...form, bankInstructionsEn: en, bankInstructionsAr: ar })} />}
@@ -126,8 +126,8 @@ export function StoreSettingsView({ settings, coupons, gateways, currency, langu
                 </Select>
               )}
             </Field>
-            <Field label={copy.value}>{(id) => <Input id={id} name="couponValue" type="number" min={0} step="0.001" value={coupon.value} onChange={(e) => setCoupon({ ...coupon, value: e.target.value })} className="rounded-lg" />}</Field>
-            <Field label={copy.minOrder}>{(id) => <Input id={id} type="number" min={0} step="0.001" value={coupon.minOrder} onChange={(e) => setCoupon({ ...coupon, minOrder: e.target.value })} className="rounded-lg" />}</Field>
+            <Field label={copy.value}>{(id) => <Input id={id} name="couponValue" type="number" min={0} step="any" value={coupon.value} onChange={(e) => setCoupon({ ...coupon, value: e.target.value })} className="rounded-lg" />}</Field>
+            <Field label={copy.minOrder}>{(id) => <Input id={id} type="number" min={0} step="any" value={coupon.minOrder} onChange={(e) => setCoupon({ ...coupon, minOrder: e.target.value })} className="rounded-lg" />}</Field>
             <Field label={copy.startsAt}>{(id) => <Input id={id} type="date" value={coupon.startsAt} onChange={(e) => setCoupon({ ...coupon, startsAt: e.target.value })} className="rounded-lg" />}</Field>
             <Field label={copy.endsAt}>{(id) => <Input id={id} type="date" value={coupon.endsAt} onChange={(e) => setCoupon({ ...coupon, endsAt: e.target.value })} className="rounded-lg" />}</Field>
             <Field label={copy.maxUses}>{(id) => <Input id={id} type="number" min={1} value={coupon.maxUses} onChange={(e) => setCoupon({ ...coupon, maxUses: e.target.value })} className="rounded-lg" />}</Field>

@@ -110,7 +110,7 @@ export function PaymentRecorder({
             </label>
             <Input
               type="number"
-              step="0.001"
+              step="any"
               max={invoice.amount_due}
               required
               value={amount}

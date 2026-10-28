@@ -25,7 +25,7 @@ const {
   remapLegacyPublicFiles,
 } = require("../company/tools/company-profile.ts");
 const { DEFAULT_FEATURE_MODULES } = require("../packages/database/src/constants/features.ts");
-const roleNames = { en: require("../packages/locales/src/admin/en.json").roles, ar: require("../packages/locales/src/admin/ar.json").roles };
+const roleNames = { en: require("../packages/locales/src/common.cjs").withCommonCopy(require("../packages/locales/src/admin/en.json"), "admin", require("../packages/locales/src/common.cjs").commonEn).roles, ar: require("../packages/locales/src/common.cjs").withCommonCopy(require("../packages/locales/src/admin/ar.json"), "admin", require("../packages/locales/src/common.cjs").commonAr).roles };
 const { createRequire } = require("node:module");
 const bcrypt = createRequire(
   require.resolve("../packages/database/package.json"),

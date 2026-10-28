@@ -1,3 +1,6 @@
+import { isLocale } from "@platform/locales/registry";
+import { isWebsitePreview } from "../../../../lib/website";
+import { getSite } from "../../../../lib/site";
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getWebsiteTranslations, formatMessage } from "@platform/locales";
@@ -35,7 +38,7 @@ import {
   setCustomerCookie,
   signInCredentials,
   signInSecret,
-  storeEnabled,
+  accountsEnabled,
 } from "../../../../lib/customer";
 import { publicSiteUrl } from "../../../../lib/site-url";
 
@@ -61,7 +64,9 @@ export async function POST(
 ) {
   return measureOperation("web:account:POST", async () => {
     const { action } = await context.params;
-    if (!(await storeEnabled()))
+    if ((await isWebsitePreview()) || !(await accountsEnabled()))
+      return NextResponse.json({ error: "unavailable" }, { status: 404 });
+    if (action === "wishlist" && !(await getSite()).config.commerce.capabilities.wishlist)
       return NextResponse.json({ error: "unavailable" }, { status: 404 });
     if (!sameOrigin(req))
       return NextResponse.json({ error: "generic" }, { status: 403 });
@@ -71,7 +76,7 @@ export async function POST(
     } catch {
       return NextResponse.json({ error: "generic" }, { status: 400 });
     }
-    const locale = str(body.locale, 2) === "en" ? "en" : "ar";
+    const locale = isLocale(body.locale) ? body.locale : "en";
     try {
       switch (action) {
         case "sign-up": {
@@ -194,7 +199,7 @@ export async function POST(
               orderId: str(body.orderId, 60),
               kind: body.kind === "problem" ? "problem" : "question",
               message: str(body.message, 5000),
-              locale: str(body.locale, 2) === "en" ? "en" : "ar",
+              locale: isLocale(body.locale) ? body.locale : "en",
             },
           );
           return NextResponse.json({
@@ -231,10 +236,10 @@ export async function GET(
 ) {
   return measureOperation("web:account:GET", async () => {
     const { action } = await context.params;
-    const locale =
-      req.nextUrl.searchParams.get("locale") === "en" ? "en" : "ar";
+    const requestedLocale = req.nextUrl.searchParams.get("locale");
+    const locale = isLocale(requestedLocale) ? requestedLocale : "en";
     const back = new URL(`/${locale}/account`, req.url);
-    if ((action !== "google" && action !== "apple") || !(await storeEnabled()))
+    if ((action !== "google" && action !== "apple") || !(await accountsEnabled()))
       return NextResponse.redirect(back);
     const credentials = await signInCredentials(action);
     if (!credentials) return NextResponse.redirect(back);

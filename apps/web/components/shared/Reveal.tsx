@@ -1,7 +1,8 @@
 "use client";
+import { useSiteReducedMotion } from "../site/SiteTheme";
 
 import type { ReactNode } from "react";
-import { motion, useAnimationControls, useReducedMotion } from "framer-motion";
+import { motion, useAnimationControls } from "framer-motion";
 
 /** One-time entrance; content stays visible until motion preferences resolve. */
 export function Reveal({
@@ -13,7 +14,7 @@ export function Reveal({
   className?: string;
   delay?: number;
 }) {
-  const reduced = useReducedMotion();
+  const reduced = useSiteReducedMotion();
   const controls = useAnimationControls();
   return (
     <motion.div

@@ -119,7 +119,7 @@ function StopCard({ stop }: { stop: DriverStop }) {
             {stop.cod_amount > 0 && (
               <label className="block space-y-1 text-xs">
                 <span className="font-medium text-ink">{copy.collected}</span>
-                <Input type="number" min={0} step="0.001" name="driverCollected" value={collected} onChange={(e) => setCollected(e.target.value)} className="rounded-lg" />
+                <Input type="number" min={0} step="any" name="driverCollected" value={collected} onChange={(e) => setCollected(e.target.value)} className="rounded-lg" />
               </label>
             )}
             <div className="flex gap-2">

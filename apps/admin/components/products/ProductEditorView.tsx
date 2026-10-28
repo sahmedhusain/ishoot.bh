@@ -214,10 +214,10 @@ export function ProductEditorView({ product, categories, currency, languages, ca
           <h2 className="font-bold text-ink">{copy.pricing}</h2>
           <div className="grid sm:grid-cols-3 gap-4 items-start">
             <Field label={formatMessage(copy.price, { currency })}>
-              {(id) => <Input id={id} name="price" type="number" min={0} step="0.001" inputMode="decimal" value={form.price} onChange={(e) => set("price", e.target.value)} className="rounded-lg" />}
+              {(id) => <Input id={id} name="price" type="number" min={0} step="any" inputMode="decimal" value={form.price} onChange={(e) => set("price", e.target.value)} className="rounded-lg" />}
             </Field>
             <Field label={formatMessage(copy.cost, { currency })} hint={margin != null ? formatMessage(copy.margin, { percent: margin }) : undefined}>
-              {(id) => <Input id={id} name="cost" type="number" min={0} step="0.001" inputMode="decimal" value={form.cost} onChange={(e) => set("cost", e.target.value)} className="rounded-lg" />}
+              {(id) => <Input id={id} name="cost" type="number" min={0} step="any" inputMode="decimal" value={form.cost} onChange={(e) => set("cost", e.target.value)} className="rounded-lg" />}
             </Field>
             <div className="space-y-2 pt-6">
               {([["vatExempt", copy.vatExempt, copy.vatExemptHint], ["trackStock", copy.trackStock, copy.trackStockHint], ...(form.trackStock ? ([["trackBatches", t.inventory.product.trackBatches, t.inventory.product.trackBatchesHint]] as const) : []), ["isActive", copy.isActive, ""]] as const).map(([key, label, hint]) => (
@@ -324,8 +324,8 @@ export function ProductEditorView({ product, categories, currency, languages, ca
                           <th scope="row" className="px-3 py-2 text-start font-medium whitespace-nowrap">{label}</th>
                           <td className="px-3 py-2"><Input aria-label={`${copy.sku} · ${label}`} dir="ltr" maxLength={60} value={draft.sku} onChange={(e) => setVariant(values, { sku: e.target.value })} className="h-9 min-w-[140px] rounded-lg font-mono text-xs" /></td>
                           <td className="px-3 py-2"><Input aria-label={`${copy.barcode} · ${label}`} dir="ltr" maxLength={40} value={draft.barcode} onChange={(e) => setVariant(values, { barcode: e.target.value })} className="h-9 min-w-[120px] rounded-lg font-mono text-xs" /></td>
-                          <td className="px-3 py-2"><Input aria-label={`${formatMessage(copy.price, { currency })} · ${label}`} type="number" min={0} step="0.001" placeholder={form.price} value={draft.price} onChange={(e) => setVariant(values, { price: e.target.value })} className="h-9 w-28 rounded-lg" /></td>
-                          <td className="px-3 py-2"><Input aria-label={`${formatMessage(copy.cost, { currency })} · ${label}`} type="number" min={0} step="0.001" placeholder={form.cost} value={draft.cost} onChange={(e) => setVariant(values, { cost: e.target.value })} className="h-9 w-28 rounded-lg" /></td>
+                          <td className="px-3 py-2"><Input aria-label={`${formatMessage(copy.price, { currency })} · ${label}`} type="number" min={0} step="any" placeholder={form.price} value={draft.price} onChange={(e) => setVariant(values, { price: e.target.value })} className="h-9 w-28 rounded-lg" /></td>
+                          <td className="px-3 py-2"><Input aria-label={`${formatMessage(copy.cost, { currency })} · ${label}`} type="number" min={0} step="any" placeholder={form.cost} value={draft.cost} onChange={(e) => setVariant(values, { cost: e.target.value })} className="h-9 w-28 rounded-lg" /></td>
                           <td className="px-3 py-2"><input type="checkbox" aria-label={`${copy.variantActive} · ${label}`} className="h-4 w-4 accent-accent" checked={draft.isActive} onChange={(e) => setVariant(values, { isActive: e.target.checked })} /></td>
                         </tr>
                       );

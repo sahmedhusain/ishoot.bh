@@ -1,4 +1,6 @@
 "use client";
+import { BUSINESS_ACTIVITIES, ACTIVITY_PRESETS, type BusinessActivity } from "@platform/database/website-presets";
+import { INDUSTRY_PAGES, industryPageBlocks } from "@platform/database/cms/industry-pages";
 import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 
 import * as React from "react";
@@ -22,11 +24,13 @@ import { RichTextEditor } from "./RichTextEditor";
 const blockId = () => Math.random().toString(36).slice(2, 10);
 
 /** The page editor: address, titles, SEO and the blocks, added, reordered, duplicated, hidden or removed. */
-export function PageEditorView({ page, languages, canCode, catalogueSlug }: { page: CmsPageRecord; languages: readonly ContentLanguage[]; canCode: boolean; catalogueSlug: string }) {
+export function PageEditorView({ page, languages, canCode, catalogueSlug, activity }: { activity: BusinessActivity; page: CmsPageRecord; languages: readonly ContentLanguage[]; canCode: boolean; catalogueSlug: string }) {
   const { t, locale } = useAdminLocale();
   const copy = t.cmsPages;
   const router = useRouter();
   const [draft, setDraft] = React.useState(page);
+  const [presetActivity, setPresetActivity] = React.useState(activity);
+  const [presetIndex, setPresetIndex] = React.useState(0);
   const markSaved = useUnsavedChanges(draft);
   const [open, setOpen] = React.useState<string | null>(null);
   const [adding, setAdding] = React.useState<BlockType | "">("");
@@ -120,7 +124,7 @@ export function PageEditorView({ page, languages, canCode, catalogueSlug }: { pa
       case "hero":
         return (
           <>
-            {select(block, "style", copy.fields.heroStyle, ["cinematic", "split", "centered"], copy.heroStyles)}
+            {select(block, "style", copy.fields.heroStyle, ["inherit", "cinematic", "split", "centered"], { ...copy.heroStyles, inherit: copy.fields.websiteDefault })}
             {text(block, "title", copy.fields.title)}
             {text(block, "subtitle", copy.fields.subtitle, { max: 600 })}
             <p className="sm:col-span-2 text-xs text-ink-muted">{copy.hints.hero}</p>
@@ -191,7 +195,9 @@ export function PageEditorView({ page, languages, canCode, catalogueSlug }: { pa
       case "catalogue":
         return (
           <>
+            <Field label={copy.fields.categorySlug}>{id => <Input id={id} value={String(d.category ?? "")} maxLength={80} dir="ltr" onChange={e => patchBlock(block.id, { category: e.target.value } as never)} />}</Field>
             {select(block, "layout", copy.fields.layout, ["grid", "list"], copy.layouts)}
+            {select(block, "presentation", copy.fields.catalogueCardStyle, ["inherit", "media", "case", "product", "listing"], { ...t.setupWizard.website.layouts, inherit: copy.fields.websiteDefault })}
             <Field label={copy.fields.limit}>{(id) => <Input id={id} type="number" min={1} max={60} value={Number(d.limit)} onChange={(e) => patchBlock(block.id, { limit: Number(e.target.value) || 12 } as never)} className="rounded-lg w-28" />}</Field>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={d.filterable !== false} onChange={(e) => patchBlock(block.id, { filterable: e.target.checked } as never)} />
@@ -331,6 +337,20 @@ export function PageEditorView({ page, languages, canCode, catalogueSlug }: { pa
         </p>
       )}
 
+      {!page.id && <Card className="p-5 space-y-4">
+        <h2 className="font-semibold">{copy.presetTitle}</h2>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Select aria-label={copy.presetActivity} value={presetActivity} onChange={e => { setPresetActivity(e.target.value as BusinessActivity); setPresetIndex(0); }}>{BUSINESS_ACTIVITIES.map(value => <option key={value} value={value}>{t.setupWizard.company.activities[value].name}</option>)}</Select>
+          <Select aria-label={copy.presetPage} value={String(presetIndex)} onChange={e => setPresetIndex(Number(e.target.value))}>{INDUSTRY_PAGES[presetActivity].map((preset, index) => <option key={preset.slug} value={index}>{locale === "ar" ? preset.ar : preset.en}</option>)}</Select>
+        </div>
+        <p className="text-sm text-ink-muted">{INDUSTRY_PAGES[presetActivity][presetIndex].blocks.map(type => copy.types[type]).join(" · ")}</p>
+        <p className="text-xs text-ink-muted">{copy.presetNotice}</p>
+        <Button type="button" variant="outline" disabled={!!draft.title_en || !!draft.title_ar || draft.blocks.length > 0} onClick={() => {
+          const preset = INDUSTRY_PAGES[presetActivity][presetIndex];
+          setDraft(current => ({ ...current, slug: preset.slug === catalogueSlug ? `${preset.slug}-information` : preset.slug, title_en: preset.en, title_ar: preset.ar, blocks: industryPageBlocks(preset, blockId, ACTIVITY_PRESETS[presetActivity].collection.layout), is_visible: false, in_header: false, in_footer: false }));
+        }}>{copy.presetApply}</Button>
+      </Card>}
+
       <Card className="p-5 grid sm:grid-cols-2 gap-4">
         <LanguageFields label={copy.fields.pageTitle} languages={languages} required maxLength={200} en={draft.title_en} ar={draft.title_ar} onChange={({ en, ar }) => setDraft({ ...draft, title_en: en, title_ar: ar })} />
         <Field label={copy.fields.slug} hint={builtIn ? copy.hints.slugBuiltIn : formatMessage(copy.hints.slug, { catalogue: catalogueSlug })}>
@@ -375,7 +395,7 @@ export function PageEditorView({ page, languages, canCode, catalogueSlug }: { pa
                     <button type="button" aria-label={copy.remove} onClick={() => setBlocks((blocks) => blocks.filter((b) => b.id !== block.id))} className="p-1.5 rounded-md text-rose-600 hover:bg-rose-500/10"><Trash2 className="w-3.5 h-3.5" /></button>
                   )}
                 </div>
-                {open === block.id && <div className="border-t border-outline-variant p-4 grid sm:grid-cols-2 gap-4 animate-in fade-in duration-150">{editor(block)}</div>}
+                {open === block.id && <div className="border-t border-outline-variant p-4 grid sm:grid-cols-2 gap-4 animate-in fade-in duration-150"><label className="sm:col-span-2 space-y-1 text-sm"><span>{copy.fields.sectionToneMixed}</span><Select value={block.tone ?? "inherit"} disabled={locked} onChange={e => setBlocks(blocks => blocks.map(b => b.id === block.id ? { ...b, tone: e.target.value as "inherit" | "light" | "dark" } : b))}><option value="inherit">{copy.fields.toneInherit}</option><option value="light">{copy.fields.toneLight}</option><option value="dark">{copy.fields.toneDark}</option></Select></label>{editor(block)}</div>}
               </Card>
             </li>
           );

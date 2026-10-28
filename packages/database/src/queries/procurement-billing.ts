@@ -1,3 +1,5 @@
+import { assertCompanyCurrency } from "../finance/company-currency";
+import { companyCurrency as getAccountingCurrency } from "../finance/company-currency";
 import { getTranslations, serverMessages } from "@platform/locales";
 import { db } from "../db";
 import {
@@ -470,6 +472,7 @@ export async function approveSupplierBill(
   userId: string,
   overrideReason?: string,
 ) {
+  const accountingCurrency = await getAccountingCurrency();
   const bill = await getSupplierBill(id);
   if (!bill) throw new Error(serverMessages.procurementDocumentMissing);
   if (bill.status !== "draft")
@@ -505,7 +508,7 @@ export async function approveSupplierBill(
         netAmount: bill.subtotal,
         inputVatAmount: bill.vat_amount,
         taxInvoiceNumber: bill.supplier_ref || null,
-        currency: company?.defaultCurrency ?? "BHD",
+        currency: await assertCompanyCurrency(company?.defaultCurrency ?? accountingCurrency),
         expenseDate: new Date(`${bill.bill_date}T00:00:00.000Z`),
         vendorName: bill.supplier.name,
         receiptUrl: bill.attachment_url,

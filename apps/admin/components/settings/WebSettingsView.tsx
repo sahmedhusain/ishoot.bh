@@ -1,4 +1,5 @@
 "use client";
+import { PhoneInput } from "@platform/ui";
 import { domainOrigin } from "@platform/database/constants/domains";
 import { DomainSettingsCard } from "./DomainSettingsCard";
 
@@ -762,15 +763,9 @@ export function WebSettingsView({
                     <Phone className="w-3.5 h-3.5 text-emerald-500" />
                     <span>{t.webSettingsView.waPhone}</span>
                   </span>
-                  <Input
-                    placeholder={t.webSettingsView.phonePlaceholder}
+                  <PhoneInput
                     value={settings.whatsapp_phone || ""}
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        whatsapp_phone: e.target.value,
-                      })
-                    }
+                    onChange={(whatsapp_phone) => setSettings({ ...settings, whatsapp_phone })}
                     dir="ltr"
                   />
                 </label>
@@ -780,11 +775,9 @@ export function WebSettingsView({
                     <Phone className="w-3.5 h-3.5 text-ink-muted" />
                     <span>{t.webSettingsView.studioPhone}</span>
                   </span>
-                  <Input
+                  <PhoneInput
                     value={settings.phone}
-                    onChange={(e) =>
-                      setSettings({ ...settings, phone: e.target.value })
-                    }
+                    onChange={(phone) => setSettings({ ...settings, phone })}
                     dir="ltr"
                   />
                 </label>

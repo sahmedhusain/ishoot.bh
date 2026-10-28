@@ -51,7 +51,7 @@ export function LinesEditor({ lines, onChange, products, priceLabel, showPrice =
               <Input aria-label={copy.description} placeholder={product ? name(product) : copy.description} disabled={readOnly} maxLength={300} value={line.description} onChange={(e) => set(index, { description: e.target.value })} className="col-span-2 sm:col-span-3 h-10 rounded-lg" />
             )}
             <Input aria-label={`${copy.quantity} ${index + 1}`} type="number" min={0} step="0.001" inputMode="decimal" disabled={readOnly} value={line.quantity} onChange={(e) => set(index, { quantity: e.target.value })} className="sm:col-span-1 h-10 rounded-lg" />
-            {showPrice && <Input aria-label={`${priceLabel} ${index + 1}`} placeholder={priceLabel} type="number" min={0} step="0.001" inputMode="decimal" disabled={readOnly} value={line.unitPrice} onChange={(e) => set(index, { unitPrice: e.target.value })} className="sm:col-span-2 h-10 rounded-lg" />}
+            {showPrice && <Input aria-label={`${priceLabel} ${index + 1}`} placeholder={priceLabel} type="number" min={0} step="any" inputMode="decimal" disabled={readOnly} value={line.unitPrice} onChange={(e) => set(index, { unitPrice: e.target.value })} className="sm:col-span-2 h-10 rounded-lg" />}
             <div className="col-span-2 sm:col-span-2 flex items-center justify-between gap-2 h-10">
               {showPrice && <span className="text-sm tabular-nums text-ink-muted" title={copy.lineTotal}>{total.toFixed(3)}</span>}
               {!readOnly && (

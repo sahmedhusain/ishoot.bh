@@ -1,7 +1,8 @@
+import { roundMoney, validMoneyAmount } from "../finance/money";
+import { assertCompanyCurrency } from "../finance/company-currency";
 import { serverMessages } from "@platform/locales";
 import { db, runAtomicMutation } from "../db";
 import {
-  assertSupportedCurrency,
   EXPENSE_PAYMENT_METHODS,
 } from "../constants/finance";
 import { claimUploadOrLink } from "../services/uploads";
@@ -114,14 +115,15 @@ export async function createExpenseClaim(
   const reason = input.reason?.trim();
   if (!reason || reason.length > 1000)
     throw new Error(serverMessages.explainWhatTheExpenseWasFor);
-  const currency = input.currency || "BHD";
-  assertSupportedCurrency(currency);
+  const currency = await assertCompanyCurrency(input.currency);
+  if (!validMoneyAmount(input.amount, currency)) throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
   if (!input.receiptUrl)
     throw new Error(serverMessages.attachAPhotoOrScanOfThe);
   const date = new Date(input.expenseDate);
   if (Number.isNaN(date.getTime()) || date > new Date(Date.now() + 86400000))
     throw new Error(serverMessages.enterTheDateYouPaid);
   return runAtomicMutation(async () => {
+    await assertCompanyCurrency(currency);
     if (
       input.categoryId &&
       !(await db.expenseCategory.findFirst({
@@ -159,7 +161,7 @@ export async function createExpenseClaim(
       data: {
         claimNumber: await getNextSequenceNumber("CLM", date.getUTCFullYear()),
         claimantId,
-        amount: Math.round(input.amount * 1000) / 1000,
+        amount: roundMoney(input.amount, currency),
         currency,
         expenseDate: date,
         reason,

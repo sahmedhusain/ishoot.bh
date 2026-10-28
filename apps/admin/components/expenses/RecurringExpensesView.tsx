@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
@@ -23,9 +24,9 @@ import { errorMessage } from "../../lib/error-text";
 const FREQUENCIES = ["weekly", "monthly", "quarterly", "semiannual", "yearly"] as const;
 const PAYMENT_METHODS = ["bank_transfer", "card", "cash", "cheque", "online"] as const;
 const today = () => new Date(Date.now() + 3 * 3600000).toISOString().slice(0, 10);
-const empty = (): RecurringExpenseInput => ({
+const empty = (currency: string): RecurringExpenseInput => ({
   title_en: "", title_ar: "", category_id: "", vendor_name: "", reference: "", amount: 0, input_vat_amount: 0, is_vat_recoverable: true,
-  currency: "BHD", payment_method: "bank_transfer", frequency: "monthly", start_date: today(), end_date: "", auto_record: false,
+  currency, payment_method: "bank_transfer", frequency: "monthly", start_date: today(), end_date: "", auto_record: false,
   remind_days_before: 3, is_active: true, notes: "",
 });
 const toInput = (r: RecurringExpenseRecord): RecurringExpenseInput => ({
@@ -47,6 +48,7 @@ function Field({ label, hint, children, wide }: { label: string; hint?: string; 
 
 /** Periodic company bills: what is due, what they cost a month, and recording or skipping each due date. */
 export function RecurringExpensesView({ items, categories, canWrite, canDelete }: { items: RecurringExpenseRecord[]; categories: ExpenseCategory[]; canWrite: boolean; canDelete: boolean }) {
+  const companyCurrency = useCompanyCurrency();
   const { t, locale } = useAdminLocale();
   const c = t.recurringExpenses;
   const vat = useCompanyVat();
@@ -55,7 +57,7 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
   const [recording, setRecording] = React.useState<{ id: string; amount: string } | null>(null);
   const [busy, setBusy] = React.useState(false);
   const isAr = locale === "ar";
-  const money = (v: number, currency = "BHD") => formatCurrencyValue(v, currency, isAr);
+  const money = (v: number, currency = companyCurrency) => formatCurrencyValue(v, currency, isAr);
   const set = <K extends keyof RecurringExpenseInput>(key: K, value: RecurringExpenseInput[K]) => setEditing((e) => (e ? { ...e, value: { ...e.value, [key]: value } } : e));
 
   const run = async (work: () => Promise<unknown>, success: string, done?: () => void) => {
@@ -73,7 +75,7 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
   };
 
   const active = items.filter((i) => i.is_active);
-  const bhd = active.filter((i) => i.currency === "BHD");
+  const bhd = active.filter((i) => i.currency === companyCurrency);
   const monthly = bhd.reduce((sum, i) => sum + i.monthly_equivalent, 0);
   const dueSoon = active.filter((i) => i.days_until <= Math.max(7, i.remind_days_before));
   const overdue = active.filter((i) => i.days_until < 0 && !i.auto_record);
@@ -94,7 +96,7 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
           </div>
         </div>
         {canWrite && !editing ? (
-          <Button size="sm" className="gap-1.5 self-start" onClick={() => setEditing({ value: empty() })}><Plus className="h-4 w-4" />{c.add}</Button>
+          <Button size="sm" className="gap-1.5 self-start" onClick={() => setEditing({ value: empty(companyCurrency) })}><Plus className="h-4 w-4" />{c.add}</Button>
         ) : null}
       </div>
 
@@ -129,9 +131,9 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
             </Field>
             <Field label={c.fields.vendor}><Input value={editing.value.vendor_name ?? ""} onChange={(e) => set("vendor_name", e.target.value)} /></Field>
             <Field label={c.fields.reference} hint={c.fields.referenceHint}><Input dir="ltr" value={editing.value.reference ?? ""} onChange={(e) => set("reference", e.target.value)} /></Field>
-            <Field label={c.fields.amount}><Input type="number" min={0.001} step="0.001" dir="ltr" value={editing.value.amount || ""} onChange={(e) => set("amount", Number(e.target.value))} /></Field>
+            <Field label={c.fields.amount}><Input type="number" min={0} step="any" dir="ltr" value={editing.value.amount || ""} onChange={(e) => set("amount", Number(e.target.value))} /></Field>
             {vat.enabled ? (
-              <Field label={c.fields.inputVat}><Input type="number" min={0} step="0.001" dir="ltr" value={editing.value.input_vat_amount || ""} onChange={(e) => set("input_vat_amount", Number(e.target.value))} /></Field>
+              <Field label={c.fields.inputVat}><Input type="number" min={0} step="any" dir="ltr" value={editing.value.input_vat_amount || ""} onChange={(e) => set("input_vat_amount", Number(e.target.value))} /></Field>
             ) : null}
             <Field label={c.fields.paymentMethod}>
               <Select value={editing.value.payment_method ?? ""} onChange={(e) => set("payment_method", e.target.value)}>
@@ -229,7 +231,7 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
                       {canWrite ? (
                         recording?.id === r.id ? (
                           <span className="inline-flex items-center gap-1.5">
-                            <input aria-label={c.actualAmount} type="number" min={0.001} step="0.001" dir="ltr" className="h-8 w-24 rounded-lg border border-outline-variant bg-surface-sunken/60 px-2 text-xs" value={recording.amount} onChange={(e) => setRecording({ id: r.id, amount: e.target.value })} />
+                            <input aria-label={c.actualAmount} type="number" min={0} step="any" dir="ltr" className="h-8 w-24 rounded-lg border border-outline-variant bg-surface-sunken/60 px-2 text-xs" value={recording.amount} onChange={(e) => setRecording({ id: r.id, amount: e.target.value })} />
                             <button type="button" disabled={busy} onClick={() => run(() => recordRecurringExpenseAction(r.id, Number(recording.amount) !== r.amount ? { amount: Number(recording.amount) } : {}), c.recorded, () => setRecording(null))} className="rounded-lg bg-primary px-2.5 py-1.5 text-[11px] font-semibold text-primary-foreground">{c.confirmRecord}</button>
                             <button type="button" aria-label={t.actions.cancel} onClick={() => setRecording(null)} className="rounded-lg p-1.5 text-ink-muted"><X className="h-3.5 w-3.5" /></button>
                           </span>

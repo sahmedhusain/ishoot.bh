@@ -1,3 +1,4 @@
+import { isValidEmail } from "../constants/validation";
 import {
   serverTemplates,
   formatMessage,
@@ -56,7 +57,7 @@ export async function createSignatureRequest(
         }),
       );
     const email = options.recipientEmail?.trim() || null;
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    if (email && !isValidEmail(email))
       throw new Error(serverMessages.enterAValidEMailAddress);
     const token = crypto.randomBytes(32).toString("base64url");
     await db.signatureRequest.updateMany({

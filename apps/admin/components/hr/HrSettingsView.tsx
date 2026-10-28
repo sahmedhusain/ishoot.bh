@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
@@ -7,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CalendarDays, Clock, Pencil, Plus, Trash2, Wallet } from "lucide-react";
 import { Select, ModalFooter, Button, Card, ConfirmDialog, DateDisplay, Modal } from "@platform/ui";
+import { countryOptions } from "@platform/database/constants/clients";
 import type { HrPolicyRules } from "@platform/database/hr/payroll-engine";
 import { payrollWindow } from "@platform/database/hr/payroll-engine";
 import type { LeaveTypeView, ShiftTypeView } from "@platform/database/queries/hr-settings";
@@ -114,6 +116,7 @@ function PolicyForm({ policy, editable }: { policy: HrPolicyRules; editable: boo
         </Section>
 
         <Section title={h.week} icon={<CalendarDays className="w-4 h-4" />}>
+          <label className={labelClass}><span>{h.visaExemptCountries}</span><Select multiple value={form.visaExemptCountries ?? []} onChange={(event) => set("visaExemptCountries", Array.from(event.target.selectedOptions, (option) => option.value))}>{countryOptions(t.countries).map((country) => <option key={country.code} value={country.code}>{country.name}</option>)}</Select><span className="block text-xs text-ink-muted">{h.visaExemptCountriesHint}</span></label>
           <fieldset>
             <legend className="mb-1.5 text-xs font-medium text-ink dark:text-ink">{h.weekendDays}</legend>
             <div className="flex flex-wrap gap-1.5">
@@ -415,6 +418,7 @@ function Holidays({ holidays, year, editable }: { holidays: Holiday[]; year: num
 }
 
 function Shifts({ shiftTypes, editable }: { shiftTypes: ShiftTypeView[]; editable: boolean }) {
+  const companyCurrency = useCompanyCurrency();
   const modalFormId = React.useId();
 
   const { t, locale } = useAdminLocale();
@@ -445,7 +449,7 @@ function Shifts({ shiftTypes, editable }: { shiftTypes: ShiftTypeView[]; editabl
             <li key={shift.id} className={`flex flex-wrap items-center gap-3 px-4 py-2.5 text-sm ${shift.isActive ? "" : "opacity-60"}`}>
               <span className="min-w-0 flex-1 text-ink dark:text-ink">{locale === "ar" ? shift.nameAr : shift.nameEn} <bdi dir="ltr" className="text-[11px] text-ink-muted">{shift.code}</bdi></span>
               <span className="text-xs text-ink-muted dark:text-ink">
-                <bdi dir="ltr">{shift.allowanceMode === "fixed" ? `${shift.allowanceValue.toFixed(3)} ${t.shared.bhd}` : `${shift.allowanceValue}%`}</bdi>
+                <bdi dir="ltr">{shift.allowanceMode === "fixed" ? `${shift.allowanceValue.toFixed(3)} ${companyCurrency}` : `${shift.allowanceValue}%`}</bdi>
               </span>
               {editable && <Button type="button" variant="ghost" size="sm" aria-label={h.edit} onClick={() => setEditing(shift)}><Pencil className="w-3.5 h-3.5" /></Button>}
             </li>
@@ -468,7 +472,7 @@ function Shifts({ shiftTypes, editable }: { shiftTypes: ShiftTypeView[]; editabl
                   <option value="percent">{h.allowancePercent}</option>
                 </Select>
               </label>
-              <label className={labelClass}>&nbsp;<input type="number" dir="ltr" min={0} step="0.001" className={fieldClass} value={editing.allowanceValue} onChange={(e) => setEditing({ ...editing, allowanceValue: Number(e.target.value) })} /></label>
+              <label className={labelClass}>&nbsp;<input type="number" dir="ltr" min={0} step="any" className={fieldClass} value={editing.allowanceValue} onChange={(e) => setEditing({ ...editing, allowanceValue: Number(e.target.value) })} /></label>
             </div>
             <label className="flex items-center gap-2 text-sm text-ink dark:text-ink">
               <input type="checkbox" className="accent-accent" checked={editing.isActive} onChange={(e) => setEditing({ ...editing, isActive: e.target.checked })} />

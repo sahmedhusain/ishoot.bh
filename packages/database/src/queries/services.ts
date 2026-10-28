@@ -1,3 +1,4 @@
+import { serverMessages } from "@platform/locales";
 import { db } from "../db";
 import { ServiceItem, ServiceCategory } from "../types";
 
@@ -71,20 +72,21 @@ export async function createService(data: {
   category?: ServiceCategory;
   description_en?: string;
   description_ar?: string;
-  unit?: "hour" | "day" | "project" | "unit" | "minute";
+  unit?: string;
   default_rate: number;
   is_active?: boolean;
   display_order?: number;
 }): Promise<ServiceItem> {
+  validateServiceInput(data);
   const created = await db.service.create({
     data: {
       code: data.code || null,
       nameEn: data.name_en,
       nameAr: data.name_ar,
-      category: data.category || "production",
+      category: data.category?.trim() || "general",
       descriptionEn: data.description_en || null,
       descriptionAr: data.description_ar || null,
-      unit: data.unit || "day",
+      unit: data.unit?.trim() || "unit",
       defaultRate: data.default_rate,
       isActive: data.is_active !== undefined ? data.is_active : true,
       displayOrder: data.display_order ?? 0,
@@ -102,12 +104,13 @@ export async function updateService(
     category: ServiceCategory;
     description_en: string;
     description_ar: string;
-    unit: "hour" | "day" | "project" | "unit" | "minute";
+    unit: string;
     default_rate: number;
     is_active: boolean;
     display_order: number;
   }>,
 ): Promise<ServiceItem> {
+  validateServiceInput(data);
   const updateData: any = {};
   if (data.code !== undefined) updateData.code = data.code || null;
   if (data.name_en !== undefined) updateData.nameEn = data.name_en;
@@ -141,4 +144,9 @@ export async function deleteService(id: string): Promise<boolean> {
     console.error("Error deleting service:", e);
     throw e;
   }
+}
+
+function validateServiceInput(data: { name_en?: string; name_ar?: string; category?: string; unit?: string; default_rate?: number }) {
+  for (const value of [data.name_en, data.name_ar, data.category, data.unit]) if (value !== undefined && (!value.trim() || value.length > 200 || /[\u0000-\u001f]/.test(value))) throw new Error(serverMessages.invalidInput);
+  if (data.default_rate !== undefined && (!Number.isFinite(data.default_rate) || data.default_rate < 0 || data.default_rate > 999_999_999)) throw new Error(serverMessages.productAmountInvalid);
 }

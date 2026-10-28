@@ -1,10 +1,10 @@
 // Shared look of the account forms (the contact form's fields and buttons).
 export const field =
-  "w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-neutral-500 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors duration-150 font-sans";
+  "w-full px-4 py-3 rounded-brand bg-m3-surface-container-low border border-m3-outline text-m3-on-surface text-sm placeholder:text-ink-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors duration-150 font-sans";
 export const primaryButton =
-  "inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[var(--web-accent)] hover:bg-tone-15 text-paper font-bold text-sm transition-colors duration-150 disabled:opacity-50 cursor-pointer";
+  "inline-flex items-center justify-center gap-2 px-6 py-3 rounded-brand bg-m3-primary hover:brightness-95 text-m3-on-primary font-bold text-sm transition-colors duration-150 disabled:opacity-50 cursor-pointer";
 export const secondaryButton =
-  "inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-white/15 text-white text-sm font-semibold hover:bg-white/5 transition-colors duration-150 disabled:opacity-50 cursor-pointer";
+  "inline-flex items-center justify-center gap-2 px-5 py-3 rounded-brand border border-m3-outline text-m3-primary text-sm font-semibold hover:bg-white/5 transition-colors duration-150 disabled:opacity-50 cursor-pointer";
 export const label = "text-xs font-semibold text-ink font-sans";
 
 /** Posts to the account API; resolves with the JSON body or throws the error key. */

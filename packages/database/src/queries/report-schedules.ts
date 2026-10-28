@@ -1,3 +1,4 @@
+import { isValidEmail } from "../constants/validation";
 import { serverMessages } from "@platform/locales";
 import { db } from "../db";
 import {
@@ -57,7 +58,7 @@ export async function saveReportSchedule(
     !(REPORT_FORMATS as readonly string[]).includes(input.format) ||
     !recipients.length ||
     recipients.length > 20 ||
-    recipients.some((r) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(r))
+    recipients.some((r) => !isValidEmail(r))
   )
     throw new Error(serverMessages.reportScheduleInvalid);
   return db.reportSchedule.create({

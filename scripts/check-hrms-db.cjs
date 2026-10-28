@@ -16,7 +16,7 @@ async function main() {
     await db.$transaction(tx => transactionContext.run(tx, async () => {
       const actor = await tx.user.findFirstOrThrow({ where: { role: 'super_admin', isActive: true }, select: { id: true } });
       const hireDate = new Date('2198-01-01T00:00:00Z');
-      const employee = await createEmployee({ firstNameEn: 'HRMS', lastNameEn: 'Test', firstNameAr: 'اختبار', lastNameAr: 'الموظف', jobTitleEn: 'Test employee', jobTitleAr: 'موظف اختبار', hireDate, basicSalary: 1000, housingAllowance: 100, payrollSettings: { employee: { mode: 'percentage', value: 8 }, employer: { mode: 'fixed', value: 120 }, supports: [{ provider: 'Tamkeen test', mode: 'percentage', value: 50, startMonth: '2199-01', endMonth: '2199-02' }] } }, actor.id);
+      const employee = await createEmployee({ firstNameEn: 'HRMS', lastNameEn: 'Test', firstNameAr: 'اختبار', lastNameAr: 'الموظف', jobTitleEn: 'Test employee', jobTitleAr: 'موظف اختبار', hireDate, basicSalary: 1000, housingAllowance: 100, payrollSettings: { employee: { mode: 'percentage', value: 8 }, employer: { mode: 'fixed', value: 120 }, supports: [{ provider: 'Wage support fund test', mode: 'percentage', value: 50, startMonth: '2199-01', endMonth: '2199-02' }] } }, actor.id);
       assert.equal(employee.userId, null, 'Employees must exist before login accounts');
       const record = employee.employmentRecords[0];
       await updateEmployee(employee.id, { transportAllowance: 25 }, actor.id);

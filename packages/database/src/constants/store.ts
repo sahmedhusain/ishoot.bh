@@ -1,3 +1,4 @@
+import { roundMoney } from "../finance/money";
 // The online store's order flow and price arithmetic. Runtime-free: the cart, checkout and server agree.
 
 export const ORDER_STATUSES = [
@@ -45,7 +46,6 @@ export const canMoveOrder = (from: string, to: string) =>
 /** Statuses whose stock is still held (reserved) rather than gone. */
 export const RESERVED_STATUSES: OrderStatus[] = ["placed", "paid", "packing"];
 
-const round3 = (value: number) => Math.round(value * 1000) / 1000;
 
 export interface PricedLine {
   unitPrice: number;
@@ -64,6 +64,7 @@ export interface CouponTerms {
  * on the taxable goods after the discount and on delivery.
  */
 export function priceOrder(input: {
+  currency?: string;
   lines: PricedLine[];
   vatPercentage: number;
   coupon?: CouponTerms | null;
@@ -71,6 +72,7 @@ export function priceOrder(input: {
   freeDeliveryOver?: number | null;
   delivery: boolean;
 }) {
+  const round3 = (value: number) => input.currency ? roundMoney(value, input.currency) : Math.round(value * 1000) / 1000;
   const subtotal = round3(
     input.lines.reduce((sum, l) => sum + round3(l.unitPrice * l.quantity), 0),
   );

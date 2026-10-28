@@ -396,6 +396,9 @@ importers:
       '@platform/locales':
         specifier: workspace:*
         version: link:../../packages/locales
+      '@platform/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@prisma/client':
         specifier: 5.22.0
         version: 5.22.0(prisma@5.22.0)
@@ -470,6 +473,9 @@ importers:
 
   packages/config:
     dependencies:
+      libphonenumber-js:
+        specifier: ^1.13.14
+        version: 1.13.14
       tailwindcss-animate:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.19(yaml@2.9.1))

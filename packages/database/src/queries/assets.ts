@@ -1,3 +1,5 @@
+import { validMoneyAmount } from "../finance/money";
+import { companyCurrency as getAccountingCurrency, assertCompanyCurrency } from "../finance/company-currency";
 import { serverMessages } from "@platform/locales";
 import type { Prisma } from "@prisma/client";
 import { db, runAtomicMutation } from "../db";
@@ -348,6 +350,7 @@ export const ASSET_SORTS = [
 ] as const;
 
 export async function listAssets(filters: AssetFilters = {}) {
+  const accountingCurrency = await getAccountingCurrency();
   const and: Prisma.AssetWhereInput[] = [];
   const q = filters.q?.trim().slice(0, 100);
   if (q)
@@ -390,7 +393,7 @@ export async function listAssets(filters: AssetFilters = {}) {
     }),
     db.asset.groupBy({ by: ["status"], _count: { _all: true } }),
     db.asset.aggregate({
-      where: { status: { notIn: ["retired", "lost"] }, currency: "BHD" },
+      where: { status: { notIn: ["retired", "lost"] }, currency: accountingCurrency },
       _sum: { purchaseCost: true },
     }),
   ]);
@@ -449,7 +452,7 @@ function normalizeAsset(input: AssetInput, specFields: SpecField[]) {
     input.purchase_cost === null ||
     Number.isNaN(input.purchase_cost)
       ? null
-      : Math.round(Number(input.purchase_cost) * 1000) / 1000;
+      : Number(input.purchase_cost);
   if (cost !== null && (!Number.isFinite(cost) || cost < 0))
     throw new Error(serverMessages.enterAValidCost);
   const specs: Record<string, string> = {};
@@ -494,6 +497,12 @@ export async function saveAsset(
     });
     if (!category) throw new Error(serverMessages.chooseTheAssetSCategory);
     const data = normalizeAsset(input, asSpecFields(category.specFields));
+    const currency = await assertCompanyCurrency();
+    if (data.purchaseCost !== null && !validMoneyAmount(data.purchaseCost, currency, true)) throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
+    if (id && input.purchase_cost !== undefined) {
+      const existing = await db.asset.findUniqueOrThrow({ where: { id }, select: { currency: true } });
+      await assertCompanyCurrency(existing.currency);
+    }
     if (data.serialNumber) {
       const clash = await db.asset.findFirst({
         where: {
@@ -544,6 +553,7 @@ export async function saveAsset(
     return db.asset.create({
       data: {
         ...data,
+        currency,
         categoryId: category.id,
         assetTag,
         status: "available",

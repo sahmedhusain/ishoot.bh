@@ -1,3 +1,4 @@
+import { isValidEmail } from "../constants/validation";
 import {
   serverTemplates,
   formatMessage,
@@ -29,7 +30,7 @@ export async function requestProfileChange(
     throw new Error(serverMessages.profileSecurityError7);
   if (
     proposed.email !== undefined &&
-    (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(proposed.email.trim()) ||
+    (!isValidEmail(proposed.email.trim()) ||
       proposed.email.trim().length > 254)
   )
     throw new Error(serverMessages.enterAValidEMailAddress);

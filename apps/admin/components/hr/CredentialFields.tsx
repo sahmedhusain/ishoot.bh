@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyCurrency } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
@@ -64,6 +65,7 @@ export function CredentialFields({
   /** Set once the employee exists, so a copy can be uploaded; before that only a link can be given. */
   employeeId?: string;
 }) {
+  const companyCurrency = useCompanyCurrency();
   const { t, locale } = useAdminLocale();
   const c = t.employeeResidency;
   const countries = React.useMemo(
@@ -180,7 +182,7 @@ export function CredentialFields({
         <Input
           type="number"
           min={0}
-          step="0.001"
+          step="any"
           value={hasCost ? value.cost_amount : ""}
           onChange={(e) =>
             set(
@@ -238,7 +240,7 @@ export function CredentialFields({
       </Field>
       {perMonth > 0 && value.paid_by !== "employee" ? (
         <p className="sm:col-span-2 lg:col-span-4 text-[11px] text-ink-muted">
-          {formatMessage(c.perMonthHint, { amount: formatCurrencyValue(perMonth, "BHD", locale === "ar"), yearly: formatCurrencyValue(perMonth * 12, "BHD", locale === "ar") })}
+          {formatMessage(c.perMonthHint, { amount: formatCurrencyValue(perMonth, companyCurrency, locale === "ar"), yearly: formatCurrencyValue(perMonth * 12, companyCurrency, locale === "ar") })}
         </p>
       ) : null}
       <div className="sm:col-span-2 lg:col-span-4">

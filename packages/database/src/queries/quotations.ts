@@ -13,11 +13,10 @@ import { discountDecision } from "../finance/discount-policy";
 import { resolveSalesOwner } from "./sales-attribution";
 import {
   OPEN_QUOTATION_STATUSES,
-  assertSupportedCurrency,
 } from "../constants/finance";
 import { submitForApproval } from "../services/approval-engine";
 import { assertActorNotOnLeave } from "./leave";
-import { getLatestExchangeRate } from "./fx-settlement";
+import { assertCompanyCurrency } from "../finance/company-currency";
 import { advanceDealForEvent } from "./crm";
 import {
   companyTaxes,
@@ -41,7 +40,6 @@ export async function createQuotation(
     discountValue?: number;
     termsEn?: string | null;
     termsAr?: string | null;
-    rawRate?: number | null;
     /** Salesperson credited with the quotation; defaults to the issuer. */
     salesOwnerId?: string | null;
     lineItems: {
@@ -55,8 +53,7 @@ export async function createQuotation(
 ): Promise<Quotation> {
   await assertActorNotOnLeave(actorId);
 
-  const currency = data.currency || "BHD";
-  assertSupportedCurrency(currency);
+  const currency = await assertCompanyCurrency(data.currency);
   const quotationNumber = await getNextSequenceNumber("QTE");
 
   // Same totals rules as invoices (validation, per-currency rounding).
@@ -96,23 +93,8 @@ export async function createQuotation(
     otherTaxes,
   );
 
-  // 3% FX margin: built into customer quote total if non-BHD and rawRate is provided
-  // Rates are quoted as units of the quotation currency per 1 BHD, so the margin raises what the client pays.
-  let rawRate =
-    currency === "BHD"
-      ? 1
-      : data.rawRate
-        ? Number(data.rawRate)
-        : (await getLatestExchangeRate("BHD", currency)).rate;
-  const fxMarginPercent = 3.0; // 3% margin
-  let effectiveRate = rawRate;
-
-  if (currency !== "BHD") {
-    effectiveRate =
-      Math.round(rawRate * (1 + fxMarginPercent / 100) * 1000000) / 1000000;
-  }
-
   const quotation = await db.$transaction(async (tx) => {
+    await assertCompanyCurrency(currency, tx);
     const q = await tx.quotation.create({
       data: {
         quotationNumber,
@@ -134,9 +116,9 @@ export async function createQuotation(
         otherTaxAmount,
         taxes: { create: documentTaxRows(otherTaxes, taxes) },
         totalAmount,
-        rawRate: currency !== "BHD" ? rawRate : null,
-        fxMarginPercent,
-        effectiveRate: currency !== "BHD" ? effectiveRate : null,
+        rawRate: null,
+        fxMarginPercent: 0,
+        effectiveRate: null,
         status: "draft",
         termsEn: data.termsEn || null,
         termsAr: data.termsAr || null,
@@ -224,25 +206,8 @@ export async function updateQuotation(
     );
   }
 
-  const currency = data.currency || existing.currency;
-  assertSupportedCurrency(currency);
-  let rawRate = existing.rawRate ? Number(existing.rawRate) : null;
-  let fxMarginPercent = Number(existing.fxMarginPercent);
-  let effectiveRate = existing.effectiveRate
-    ? Number(existing.effectiveRate)
-    : null;
-
-  if (
-    currency !== "BHD" &&
-    data.currency &&
-    data.currency !== existing.currency
-  ) {
-    const fxInfo = await getLatestExchangeRate("BHD", currency);
-    rawRate = fxInfo.rate;
-    fxMarginPercent = 3.0;
-    effectiveRate =
-      Math.round(rawRate * (1 + fxMarginPercent / 100) * 1000000) / 1000000;
-  }
+  await assertCompanyCurrency(existing.currency);
+  const currency = await assertCompanyCurrency(data.currency);
 
   const { vatEnabled, vatPercentage } = await companyVat();
   const otherTaxes = await companyTaxes("quotation");
@@ -323,9 +288,9 @@ export async function updateQuotation(
         vatAmount,
         otherTaxAmount,
         totalAmount,
-        rawRate,
-        fxMarginPercent,
-        effectiveRate,
+        rawRate: null,
+        fxMarginPercent: 0,
+        effectiveRate: null,
         termsEn: data.termsEn !== undefined ? data.termsEn : undefined,
         termsAr: data.termsAr !== undefined ? data.termsAr : undefined,
         revision: { increment: 1 },
@@ -647,6 +612,7 @@ export async function convertQuotationToInvoice(
     dueDate.setDate(dueDate.getDate() + (company?.paymentTermsDays ?? 30));
     const invoiceNumber = await allocateDocumentNumber("invoice", issueDate);
 
+    await assertCompanyCurrency(quotation.currency);
     const inv = await db.invoice.create({
       data: {
         invoiceNumber,
@@ -889,6 +855,7 @@ export async function listQuotations(filters: {
 export async function getAcceptedQuotationsUninvoiced(): Promise<Quotation[]> {
   const records = await db.quotation.findMany({
     where: {
+      currency: await assertCompanyCurrency(),
       status: "accepted",
       invoiceId: null,
     },

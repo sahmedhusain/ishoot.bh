@@ -1,12 +1,12 @@
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import { getTranslations, formatMessage } from "@platform/locales";
-import { getPublicCompanySettings } from "../lib/company";
+import { getSite } from "../lib/site";
 import { publicSiteUrl } from "../lib/site-url";
 
 export async function generateMetadata(): Promise<Metadata> {
   const [company, metadataBase] = await Promise.all([
-    getPublicCompanySettings(),
+    getSite().then(site => site.company),
     publicSiteUrl(),
   ]);
   const { seo } = getTranslations("en");
@@ -32,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export async function generateViewport(): Promise<Viewport> {
-  const company = await getPublicCompanySettings().catch(() => null);
+  const company = await getSite().then(site => site.company).catch(() => null);
   return {
     themeColor: company?.theme.primary,
     width: "device-width",

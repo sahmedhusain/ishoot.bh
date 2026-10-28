@@ -54,6 +54,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     const [query, setQuery] = React.useState("");
     const [active, setActive] = React.useState(-1);
     const [error, setError] = React.useState("");
+    const [palette, setPalette] = React.useState<React.CSSProperties>({});
     const [direction, setDirection] = React.useState<"ltr" | "rtl">("ltr");
     const typed = React.useRef({ value: "", time: 0 });
     const owner = React.useRef<string | undefined>(undefined);
@@ -142,6 +143,20 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     }, []);
     const show = (direction = 1) => {
       if (props.disabled) return;
+      const computed = getComputedStyle(trigger.current!);
+      // Portaled menus keep their anchor's scoped palette, including mixed website sections.
+      setPalette({
+        ...Object.fromEntries(
+          Array.from(computed)
+            .filter((name) =>
+              /^--(md-sys-color-|m3-color-|brand-|site-|web-|admin-)/.test(
+                name,
+              ),
+            )
+            .map((name) => [name, computed.getPropertyValue(name)]),
+        ),
+        colorScheme: computed.colorScheme,
+      });
       setDirection(
         getComputedStyle(trigger.current!).direction === "rtl" ? "rtl" : "ltr",
       );
@@ -231,7 +246,8 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           ),
         ).filter(
           (element) =>
-            element.getClientRects().length && element.tabIndex >= 0 &&
+            element.getClientRects().length &&
+            element.tabIndex >= 0 &&
             !element.closest(
               '[hidden], [inert], [aria-hidden="true"], [data-select-popup]',
             ),
@@ -400,7 +416,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           createPortal(
             <div
               ref={refs.setFloating}
-              style={floatingStyles}
+              style={{ ...floatingStyles, ...palette }}
               data-select-popup
               dir={direction}
               data-dialog-scope-owner={owner.current}
