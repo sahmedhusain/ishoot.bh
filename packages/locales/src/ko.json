@@ -62,7 +62,18 @@
     "phoneNumber": "전화번호",
     "language": "언어",
     "submitting": "제출 중...",
-    "sendWhatsApp": "WhatsApp으로 전송"
+    "sendWhatsApp": "WhatsApp으로 전송",
+    "saving": "저장 중…",
+    "confirmAction": "작업 확인",
+    "update": "업데이트",
+    "add": "추가",
+    "downloadPdf": "PDF 다운로드",
+    "printDocument": "문서 인쇄",
+    "back": "뒤로",
+    "refresh": "새로고침",
+    "none": "없음",
+    "url": "링크",
+    "currency": "통화"
   },
   "nav": {
     "home": "홈",
@@ -955,7 +966,15 @@
     "optionSeparator": ", ",
     "countryCode": "국가 번호",
     "phoneNational": "국내 전화번호",
-    "invalidPhone": "올바른 전화번호를 입력하고 국가 번호를 선택하세요."
+    "invalidPhone": "올바른 전화번호를 입력하고 국가 번호를 선택하세요.",
+    "confirm": "확인",
+    "cancel": "취소",
+    "close": "닫기",
+    "loading": "불러오는 중…",
+    "save": "저장",
+    "delete": "삭제",
+    "edit": "수정",
+    "search": "검색"
   },
   "admin": {
     "actions": {},

@@ -62,7 +62,18 @@
     "phoneNumber": "Numéro de téléphone",
     "language": "Langue",
     "submitting": "Envoi en cours...",
-    "sendWhatsApp": "Envoyer via WhatsApp"
+    "sendWhatsApp": "Envoyer via WhatsApp",
+    "saving": "Enregistrement…",
+    "confirmAction": "Confirmer l'action",
+    "update": "Mettre à jour",
+    "add": "Ajouter",
+    "downloadPdf": "Télécharger le PDF",
+    "printDocument": "Imprimer le document",
+    "back": "Retour",
+    "refresh": "Actualiser",
+    "none": "Aucun",
+    "url": "Lien",
+    "currency": "Devise"
   },
   "nav": {
     "home": "Accueil",
@@ -1019,7 +1030,15 @@
     "optionSeparator": ", ",
     "countryCode": "Indicatif du pays",
     "phoneNational": "Numéro de téléphone national",
-    "invalidPhone": "Entrez un numéro de téléphone valide et choisissez son indicatif pays."
+    "invalidPhone": "Entrez un numéro de téléphone valide et choisissez son indicatif pays.",
+    "confirm": "Confirmer",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "loading": "Chargement…",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "search": "Rechercher"
   },
   "admin": {
     "actions": {}

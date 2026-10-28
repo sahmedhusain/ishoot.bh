@@ -62,7 +62,18 @@
     "phoneNumber": "Номер телефона",
     "language": "Язык",
     "submitting": "Отправка...",
-    "sendWhatsApp": "Отправить через WhatsApp"
+    "sendWhatsApp": "Отправить через WhatsApp",
+    "saving": "Сохранение…",
+    "confirmAction": "Подтвердить действие",
+    "update": "Обновить",
+    "add": "Добавить",
+    "downloadPdf": "Скачать PDF",
+    "printDocument": "Печать документа",
+    "back": "Назад",
+    "refresh": "Обновить",
+    "none": "Нет",
+    "url": "Ссылка",
+    "currency": "Валюта"
   },
   "nav": {
     "home": "Главная",
@@ -1019,7 +1030,15 @@
     "optionSeparator": ", ",
     "countryCode": "Код страны",
     "phoneNational": "Номер телефона без кода страны",
-    "invalidPhone": "Введите корректный номер телефона и выберите код страны."
+    "invalidPhone": "Введите корректный номер телефона и выберите код страны.",
+    "confirm": "Подтвердить",
+    "cancel": "Отмена",
+    "close": "Закрыть",
+    "loading": "Загрузка…",
+    "save": "Сохранить",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "search": "Поиск"
   },
   "admin": {
     "actions": {}

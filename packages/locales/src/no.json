@@ -62,7 +62,18 @@
     "phoneNumber": "Telefonnummer",
     "language": "Språk",
     "submitting": "Sender...",
-    "sendWhatsApp": "Send via WhatsApp"
+    "sendWhatsApp": "Send via WhatsApp",
+    "saving": "Lagrer…",
+    "confirmAction": "Bekreft handling",
+    "update": "Oppdater",
+    "add": "Legg til",
+    "downloadPdf": "Last ned PDF",
+    "printDocument": "Skriv ut dokument",
+    "back": "Tilbake",
+    "refresh": "Oppdater",
+    "none": "Ingen",
+    "url": "Lenke",
+    "currency": "Valuta"
   },
   "nav": {
     "home": "Hjem",
@@ -955,7 +966,15 @@
     "optionSeparator": ", ",
     "countryCode": "Landskode",
     "phoneNational": "Nasjonalt telefonnummer",
-    "invalidPhone": "Oppgi et gyldig telefonnummer og velg landskoden."
+    "invalidPhone": "Oppgi et gyldig telefonnummer og velg landskoden.",
+    "confirm": "Bekreft",
+    "cancel": "Avbryt",
+    "close": "Lukk",
+    "loading": "Laster inn…",
+    "save": "Lagre",
+    "delete": "Slett",
+    "edit": "Rediger",
+    "search": "Søk"
   },
   "admin": {
     "actions": {}

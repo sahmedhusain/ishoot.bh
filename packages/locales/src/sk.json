@@ -62,7 +62,18 @@
     "phoneNumber": "Numer telefonu",
     "language": "Język",
     "submitting": "Przesyłanie...",
-    "sendWhatsApp": "Odeslat přes WhatsApp"
+    "sendWhatsApp": "Odeslat přes WhatsApp",
+    "saving": "Ukladá sa…",
+    "confirmAction": "Potvrdiť akciu",
+    "update": "Aktualizovať",
+    "add": "Pridať",
+    "downloadPdf": "Stiahnuť PDF",
+    "printDocument": "Tlačiť dokument",
+    "back": "Späť",
+    "refresh": "Obnoviť",
+    "none": "Žiadny",
+    "url": "Odkaz",
+    "currency": "Mena"
   },
   "nav": {
     "home": "Domov",
@@ -955,7 +966,15 @@
     "optionSeparator": ", ",
     "countryCode": "Kod kraju",
     "phoneNational": "Krajowy numer telefonu",
-    "invalidPhone": "Wprowadź prawidłowy numer telefonu i wybierz kod kraju."
+    "invalidPhone": "Wprowadź prawidłowy numer telefonu i wybierz kod kraju.",
+    "confirm": "Potwierdź",
+    "cancel": "Zrušiť",
+    "close": "Zavrieť",
+    "loading": "Ładowanie…",
+    "save": "Uložiť",
+    "delete": "Odstrániť",
+    "edit": "Upraviť",
+    "search": "Hľadať"
   },
   "admin": {
     "actions": {

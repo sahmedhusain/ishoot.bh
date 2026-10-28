@@ -62,7 +62,18 @@
     "phoneNumber": "Numero di telefono",
     "language": "Lingua",
     "submitting": "Invio in corso...",
-    "sendWhatsApp": "Invia tramite WhatsApp"
+    "sendWhatsApp": "Invia tramite WhatsApp",
+    "saving": "Se salvează…",
+    "confirmAction": "Confirmă acțiunea",
+    "update": "Actualizează",
+    "add": "Adaugă",
+    "downloadPdf": "Descarcă PDF",
+    "printDocument": "Imprimă documentul",
+    "back": "Înapoi",
+    "refresh": "Reîmprospătează",
+    "none": "Niciunul",
+    "url": "Link",
+    "currency": "Monedă"
   },
   "nav": {
     "home": "Acasă",
@@ -955,7 +966,15 @@
     "optionSeparator": ", ",
     "countryCode": "Prefisso internazionale",
     "phoneNational": "Numero di telefono nazionale",
-    "invalidPhone": "Inserisci un numero di telefono valido e seleziona il prefisso internazionale."
+    "invalidPhone": "Inserisci un numero di telefono valido e seleziona il prefisso internazionale.",
+    "confirm": "Conferma",
+    "cancel": "Anulează",
+    "close": "Închide",
+    "loading": "Caricamento in corso…",
+    "save": "Salvează",
+    "delete": "Șterge",
+    "edit": "Editează",
+    "search": "Caută"
   },
   "admin": {
     "actions": {

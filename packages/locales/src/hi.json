@@ -62,7 +62,18 @@
     "phoneNumber": "फ़ोन नंबर",
     "language": "भाषा",
     "submitting": "सबमिट किया जा रहा है...",
-    "sendWhatsApp": "व्हाट्सएप द्वारा भेजें"
+    "sendWhatsApp": "व्हाट्सएप द्वारा भेजें",
+    "saving": "सहेजा जा रहा है…",
+    "confirmAction": "कार्रवाई की पुष्टि करें",
+    "update": "अपडेट करें",
+    "add": "जोड़ें",
+    "downloadPdf": "PDF डाउनलोड करें",
+    "printDocument": "दस्तावेज़ प्रिंट करें",
+    "back": "वापस",
+    "refresh": "रीफ्रेश करें",
+    "none": "कोई नहीं",
+    "url": "लिंक",
+    "currency": "मुद्रा"
   },
   "nav": {
     "home": "होम",
@@ -955,7 +966,15 @@
     "optionSeparator": ", ",
     "countryCode": "देश का कोड",
     "phoneNational": "राष्ट्रीय फ़ोन नंबर",
-    "invalidPhone": "एक मान्य फ़ोन नंबर दर्ज करें और उसका देश कोड चुनें।"
+    "invalidPhone": "एक मान्य फ़ोन नंबर दर्ज करें और उसका देश कोड चुनें।",
+    "confirm": "पुष्टि करें",
+    "cancel": "रद्द करें",
+    "close": "बंद करें",
+    "loading": "लोड हो रहा है…",
+    "save": "सहेजें",
+    "delete": "हटाएं",
+    "edit": "संपादित करें",
+    "search": "खोजें"
   },
   "admin": {
     "actions": {}

@@ -62,7 +62,18 @@
     "phoneNumber": "Telefonnummer",
     "language": "Språk",
     "submitting": "Skickar...",
-    "sendWhatsApp": "Lähetä WhatsAppilla"
+    "sendWhatsApp": "Lähetä WhatsAppilla",
+    "saving": "Tallennetaan…",
+    "confirmAction": "Vahvista toiminto",
+    "update": "Päivitä",
+    "add": "Lisää",
+    "downloadPdf": "Lataa PDF",
+    "printDocument": "Tulosta asiakirja",
+    "back": "Takaisin",
+    "refresh": "Päivitä",
+    "none": "Ei mitään",
+    "url": "Linkki",
+    "currency": "Valuutta"
   },
   "nav": {
     "home": "Etusivu",
@@ -955,7 +966,15 @@
     "optionSeparator": ", ",
     "countryCode": "Landskod",
     "phoneNational": "Nationellt telefonnummer",
-    "invalidPhone": "Ange ett giltigt telefonnummer och välj dess landskod."
+    "invalidPhone": "Ange ett giltigt telefonnummer och välj dess landskod.",
+    "confirm": "Bekräfta",
+    "cancel": "Peruuta",
+    "close": "Sulje",
+    "loading": "Laddar…",
+    "save": "Tallenna",
+    "delete": "Poista",
+    "edit": "Muokkaa",
+    "search": "Hae"
   },
   "admin": {
     "actions": {

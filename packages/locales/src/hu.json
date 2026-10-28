@@ -62,7 +62,18 @@
     "phoneNumber": "Telefonnummer",
     "language": "Sprache",
     "submitting": "Wird übermittelt...",
-    "sendWhatsApp": "Per WhatsApp senden"
+    "sendWhatsApp": "Per WhatsApp senden",
+    "saving": "Mentés…",
+    "confirmAction": "Művelet megerősítése",
+    "update": "Frissítés",
+    "add": "Hozzáadás",
+    "downloadPdf": "PDF letöltése",
+    "printDocument": "Dokumentum nyomtatása",
+    "back": "Vissza",
+    "refresh": "Frissítés",
+    "none": "Nincs",
+    "url": "Hivatkozás",
+    "currency": "Pénznem"
   },
   "nav": {
     "home": "Főoldal",
@@ -955,7 +966,15 @@
     "optionSeparator": ", ",
     "countryCode": "Ländervorwahl",
     "phoneNational": "Nationale Telefonnummer",
-    "invalidPhone": "Geben Sie eine gültige Telefonnummer ein und wählen Sie die passende Ländervorwahl."
+    "invalidPhone": "Geben Sie eine gültige Telefonnummer ein und wählen Sie die passende Ländervorwahl.",
+    "confirm": "Bestätigen",
+    "cancel": "Mégse",
+    "close": "Bezárás",
+    "loading": "Wird geladen…",
+    "save": "Mentés",
+    "delete": "Törlés",
+    "edit": "Szerkesztés",
+    "search": "Keresés"
   },
   "admin": {
     "actions": {

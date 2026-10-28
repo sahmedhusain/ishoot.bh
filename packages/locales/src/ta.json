@@ -62,7 +62,18 @@
     "phoneNumber": "फ़ोन नंबर",
     "language": "भाषा",
     "submitting": "सबमिट किया जा रहा है...",
-    "sendWhatsApp": "व्हाट्सएप द्वारा भेजें"
+    "sendWhatsApp": "व्हाट्सएप द्वारा भेजें",
+    "saving": "சேமிக்கப்படுகிறது…",
+    "confirmAction": "செயலை உறுதிப்படுத்து",
+    "update": "புதுப்பி",
+    "add": "சேர்",
+    "downloadPdf": "PDF பதிவிறக்கு",
+    "printDocument": "ஆவணத்தை அச்சிடு",
+    "back": "பின்செல்",
+    "refresh": "புதுப்பி",
+    "none": "எதுவுமில்லை",
+    "url": "இணைப்பு",
+    "currency": "நாணயம்"
   },
   "nav": {
     "home": "முகப்பு",
@@ -955,7 +966,15 @@
     "optionSeparator": ", ",
     "countryCode": "देश का कोड",
     "phoneNational": "राष्ट्रीय फ़ोन नंबर",
-    "invalidPhone": "एक मान्य फ़ोन नंबर दर्ज करें और उसका देश कोड चुनें।"
+    "invalidPhone": "एक मान्य फ़ोन नंबर दर्ज करें और उसका देश कोड चुनें।",
+    "confirm": "पुष्टि करें",
+    "cancel": "ரத்துசெய்",
+    "close": "மூடு",
+    "loading": "लोड हो रहा है…",
+    "save": "சேமி",
+    "delete": "நீக்கு",
+    "edit": "திருத்து",
+    "search": "தேடு"
   },
   "admin": {
     "actions": {

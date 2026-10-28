@@ -62,7 +62,18 @@
     "phoneNumber": "Telefoonnummer",
     "language": "Taal",
     "submitting": "Bezig met verzenden...",
-    "sendWhatsApp": "Stuur via WhatsApp"
+    "sendWhatsApp": "Stuur via WhatsApp",
+    "saving": "Stoor tans…",
+    "confirmAction": "Bevestig aksie",
+    "update": "Dateer op",
+    "add": "Voeg by",
+    "downloadPdf": "Laai PDF af",
+    "printDocument": "Druk dokument",
+    "back": "Terug",
+    "refresh": "Verfris",
+    "none": "Geen",
+    "url": "Skakel",
+    "currency": "Geldeenheid"
   },
   "nav": {
     "home": "Tuis",
@@ -955,7 +966,15 @@
     "optionSeparator": ", ",
     "countryCode": "Landcode",
     "phoneNational": "Nationaal telefoonnummer",
-    "invalidPhone": "Voer een geldig telefoonnummer in en kies de bijbehorende landcode."
+    "invalidPhone": "Voer een geldig telefoonnummer in en kies de bijbehorende landcode.",
+    "confirm": "Bevestigen",
+    "cancel": "Kanselleer",
+    "close": "Sluit",
+    "loading": "Laden…",
+    "save": "Stoor",
+    "delete": "Vee uit",
+    "edit": "Wysig",
+    "search": "Soek"
   },
   "admin": {
     "actions": {

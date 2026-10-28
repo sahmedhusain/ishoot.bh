@@ -62,7 +62,18 @@
     "phoneNumber": "Номер телефона",
     "language": "Язык",
     "submitting": "Отправка...",
-    "sendWhatsApp": "Αποστολή μέσω WhatsApp"
+    "sendWhatsApp": "Αποστολή μέσω WhatsApp",
+    "saving": "Αποθήκευση…",
+    "confirmAction": "Επιβεβαίωση ενέργειας",
+    "update": "Ενημέρωση",
+    "add": "Προσθήκη",
+    "downloadPdf": "Λήψη PDF",
+    "printDocument": "Εκτύπωση εγγράφου",
+    "back": "Πίσω",
+    "refresh": "Ανανέωση",
+    "none": "Κανένα",
+    "url": "Σύνδεσμος",
+    "currency": "Νόμισμα"
   },
   "nav": {
     "home": "Αρχική",
@@ -1019,7 +1030,15 @@
     "optionSeparator": ", ",
     "countryCode": "Код страны",
     "phoneNational": "Номер телефона без кода страны",
-    "invalidPhone": "Введите корректный номер телефона и выберите код страны."
+    "invalidPhone": "Введите корректный номер телефона и выберите код страны.",
+    "confirm": "Подтвердить",
+    "cancel": "Ακύρωση",
+    "close": "Κλείσιμο",
+    "loading": "Загрузка…",
+    "save": "Αποθήκευση",
+    "delete": "Διαγραφή",
+    "edit": "Επεξεργασία",
+    "search": "Αναζήτηση"
   },
   "admin": {
     "actions": {

@@ -62,7 +62,18 @@
     "phoneNumber": "Telefon Numarası",
     "language": "Dil",
     "submitting": "Gönderiliyor...",
-    "sendWhatsApp": "WhatsApp orqali yuborish"
+    "sendWhatsApp": "WhatsApp orqali yuborish",
+    "saving": "Saqlanmoqda…",
+    "confirmAction": "Amalni tasdiqlash",
+    "update": "Yangilash",
+    "add": "Qo'shish",
+    "downloadPdf": "PDF yuklab olish",
+    "printDocument": "Hujjatni chop etish",
+    "back": "Orqaga",
+    "refresh": "Yangilash",
+    "none": "Yo'q",
+    "url": "Havola",
+    "currency": "Valyuta"
   },
   "nav": {
     "home": "Ana sayfa",
@@ -1019,7 +1030,15 @@
     "optionSeparator": ", ",
     "countryCode": "Ülke kodu",
     "phoneNational": "Ulusal telefon numarası",
-    "invalidPhone": "Geçerli bir telefon numarası girin ve ülke kodunu seçin."
+    "invalidPhone": "Geçerli bir telefon numarası girin ve ülke kodunu seçin.",
+    "confirm": "Onayla",
+    "cancel": "Bekor qilish",
+    "close": "Yopish",
+    "loading": "Yükleniyor…",
+    "save": "Saqlash",
+    "delete": "O'chirish",
+    "edit": "Tahrirlash",
+    "search": "Qidirish"
   },
   "admin": {
     "actions": {

@@ -62,7 +62,18 @@
     "phoneNumber": "شماره تلفن",
     "language": "زبان",
     "submitting": "در حال ارسال...",
-    "sendWhatsApp": "ارسال در واتس‌اپ"
+    "sendWhatsApp": "ارسال در واتس‌اپ",
+    "saving": "در حال ذخیره…",
+    "confirmAction": "تأیید اقدام",
+    "update": "به‌روزرسانی",
+    "add": "افزودن",
+    "downloadPdf": "دانلود PDF",
+    "printDocument": "چاپ سند",
+    "back": "بازگشت",
+    "refresh": "تازه‌سازی",
+    "none": "هیچ",
+    "url": "پیوند",
+    "currency": "واحد پول"
   },
   "nav": {
     "home": "خانه",
@@ -955,7 +966,15 @@
     "optionSeparator": "، ",
     "countryCode": "کد کشور",
     "phoneNational": "شماره تلفن بدون کد کشور",
-    "invalidPhone": "شماره تلفن معتبری وارد کرده و کد کشور را انتخاب کنید."
+    "invalidPhone": "شماره تلفن معتبری وارد کرده و کد کشور را انتخاب کنید.",
+    "confirm": "تایید",
+    "cancel": "لغو",
+    "close": "بستن",
+    "loading": "در حال بارگذاری…",
+    "save": "ذخیره",
+    "delete": "حذف",
+    "edit": "ویرایش",
+    "search": "جستجو"
   },
   "admin": {
     "actions": {}

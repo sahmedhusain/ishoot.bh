@@ -62,7 +62,18 @@
     "phoneNumber": "Telefonnummer",
     "language": "Språk",
     "submitting": "Skickar...",
-    "sendWhatsApp": "Skicka via WhatsApp"
+    "sendWhatsApp": "Skicka via WhatsApp",
+    "saving": "Sparar…",
+    "confirmAction": "Bekräfta åtgärd",
+    "update": "Uppdatera",
+    "add": "Lägg till",
+    "downloadPdf": "Ladda ner PDF",
+    "printDocument": "Skriv ut dokument",
+    "back": "Tillbaka",
+    "refresh": "Uppdatera",
+    "none": "Ingen",
+    "url": "Länk",
+    "currency": "Valuta"
   },
   "nav": {
     "home": "Hem",
@@ -955,7 +966,15 @@
     "optionSeparator": ", ",
     "countryCode": "Landskod",
     "phoneNational": "Nationellt telefonnummer",
-    "invalidPhone": "Ange ett giltigt telefonnummer och välj dess landskod."
+    "invalidPhone": "Ange ett giltigt telefonnummer och välj dess landskod.",
+    "confirm": "Bekräfta",
+    "cancel": "Avbryt",
+    "close": "Stäng",
+    "loading": "Laddar…",
+    "save": "Spara",
+    "delete": "Ta bort",
+    "edit": "Redigera",
+    "search": "Sök"
   },
   "admin": {
     "actions": {}

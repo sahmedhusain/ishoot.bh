@@ -62,7 +62,18 @@
     "phoneNumber": "Nambari ya Simu",
     "language": "Lugha",
     "submitting": "Inatuma...",
-    "sendWhatsApp": "Tuma kupitia WhatsApp"
+    "sendWhatsApp": "Tuma kupitia WhatsApp",
+    "saving": "Inahifadhi…",
+    "confirmAction": "Thibitisha Kitendo",
+    "update": "Sasisha",
+    "add": "Ongeza",
+    "downloadPdf": "Pakua PDF",
+    "printDocument": "Chapisha Hati",
+    "back": "Nyuma",
+    "refresh": "Onyesha upya",
+    "none": "Hakuna",
+    "url": "Kiungo",
+    "currency": "Sarafu"
   },
   "nav": {
     "home": "Mwanzo",
@@ -955,7 +966,15 @@
     "optionSeparator": ", ",
     "countryCode": "Msimbo wa nchi",
     "phoneNational": "Nambari ya simu ya kitaifa",
-    "invalidPhone": "Weka nambari sahihi ya simu na uchague msimbo wa nchi yake."
+    "invalidPhone": "Weka nambari sahihi ya simu na uchague msimbo wa nchi yake.",
+    "confirm": "Thibitisha",
+    "cancel": "Ghairi",
+    "close": "Funga",
+    "loading": "Inapakia…",
+    "save": "Hifadhi",
+    "delete": "Futa",
+    "edit": "Hariri",
+    "search": "Tafuta"
   },
   "admin": {
     "actions": {}

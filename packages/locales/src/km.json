@@ -62,7 +62,18 @@
     "phoneNumber": "Номер телефона",
     "language": "Язык",
     "submitting": "Отправка...",
-    "sendWhatsApp": "Отправить через WhatsApp"
+    "sendWhatsApp": "Отправить через WhatsApp",
+    "saving": "កំពុងរក្សាទុក…",
+    "confirmAction": "បញ្ជាក់សកម្មភាព",
+    "update": "ធ្វើបច្ចុប្បន្នភាព",
+    "add": "បន្ថែម",
+    "downloadPdf": "ទាញយក PDF",
+    "printDocument": "បោះពុម្ពឯកសារ",
+    "back": "ថយក្រោយ",
+    "refresh": "ផ្ទុកឡើងវិញ",
+    "none": "គ្មាន",
+    "url": "តំណ",
+    "currency": "រូបិយប័ណ្ណ"
   },
   "nav": {
     "home": "ទំព័រដើម",
@@ -1019,7 +1030,15 @@
     "optionSeparator": ", ",
     "countryCode": "Код страны",
     "phoneNational": "Номер телефона без кода страны",
-    "invalidPhone": "Введите корректный номер телефона и выберите код страны."
+    "invalidPhone": "Введите корректный номер телефона и выберите код страны.",
+    "confirm": "Подтвердить",
+    "cancel": "បោះបង់",
+    "close": "បិទ",
+    "loading": "Загрузка…",
+    "save": "រក្សាទុក",
+    "delete": "លុប",
+    "edit": "កែសម្រួល",
+    "search": "ស្វែងរក"
   },
   "admin": {
     "actions": {

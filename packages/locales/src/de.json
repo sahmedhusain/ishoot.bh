@@ -62,7 +62,18 @@
     "phoneNumber": "Telefonnummer",
     "language": "Sprache",
     "submitting": "Wird übermittelt...",
-    "sendWhatsApp": "Per WhatsApp senden"
+    "sendWhatsApp": "Per WhatsApp senden",
+    "saving": "Speichern…",
+    "confirmAction": "Aktion bestätigen",
+    "update": "Aktualisieren",
+    "add": "Hinzufügen",
+    "downloadPdf": "PDF herunterladen",
+    "printDocument": "Dokument drucken",
+    "back": "Zurück",
+    "refresh": "Aktualisieren",
+    "none": "Keine",
+    "url": "Link",
+    "currency": "Währung"
   },
   "nav": {
     "home": "Startseite",
@@ -955,7 +966,15 @@
     "optionSeparator": ", ",
     "countryCode": "Ländervorwahl",
     "phoneNational": "Nationale Telefonnummer",
-    "invalidPhone": "Geben Sie eine gültige Telefonnummer ein und wählen Sie die passende Ländervorwahl."
+    "invalidPhone": "Geben Sie eine gültige Telefonnummer ein und wählen Sie die passende Ländervorwahl.",
+    "confirm": "Bestätigen",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "loading": "Wird geladen…",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "search": "Suchen"
   },
   "admin": {
     "actions": {}

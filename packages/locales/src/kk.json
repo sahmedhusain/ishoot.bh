@@ -62,7 +62,18 @@
     "phoneNumber": "Номер телефона",
     "language": "Язык",
     "submitting": "Отправка...",
-    "sendWhatsApp": "WhatsApp арқылы жіберу"
+    "sendWhatsApp": "WhatsApp арқылы жіберу",
+    "saving": "Сақталуда…",
+    "confirmAction": "Әрекетті растау",
+    "update": "Жаңарту",
+    "add": "Қосу",
+    "downloadPdf": "PDF жүктеп алу",
+    "printDocument": "Құжатты басып шығару",
+    "back": "Артқа",
+    "refresh": "Жаңарту",
+    "none": "Жоқ",
+    "url": "Сілтеме",
+    "currency": "Валюта"
   },
   "nav": {
     "home": "Басты бет",
@@ -1019,7 +1030,15 @@
     "optionSeparator": ", ",
     "countryCode": "Ел коды",
     "phoneNational": "Номер телефона без кода страны",
-    "invalidPhone": "Введите корректный номер телефона и выберите код страны."
+    "invalidPhone": "Введите корректный номер телефона и выберите код страны.",
+    "confirm": "Подтвердить",
+    "cancel": "Болдырмау",
+    "close": "Жабу",
+    "loading": "Загрузка…",
+    "save": "Сақтау",
+    "delete": "Жою",
+    "edit": "Өңдеу",
+    "search": "Іздеу"
   },
   "admin": {
     "actions": {

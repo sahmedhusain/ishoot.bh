@@ -62,7 +62,18 @@
     "phoneNumber": "Номер телефона",
     "language": "Язык",
     "submitting": "Отправка...",
-    "sendWhatsApp": "Адправіць праз WhatsApp"
+    "sendWhatsApp": "Адправіць праз WhatsApp",
+    "saving": "Захаванне…",
+    "confirmAction": "Пацвердзіць дзеянне",
+    "update": "Абнавіць",
+    "add": "Дадаць",
+    "downloadPdf": "Спампаваць PDF",
+    "printDocument": "Друк дакумента",
+    "back": "Назад",
+    "refresh": "Абнавіць",
+    "none": "Няма",
+    "url": "Спасылка",
+    "currency": "Валюта"
   },
   "nav": {
     "home": "Галоўная",
@@ -1019,7 +1030,15 @@
     "optionSeparator": ", ",
     "countryCode": "Код страны",
     "phoneNational": "Номер телефона без кода страны",
-    "invalidPhone": "Введите корректный номер телефона и выберите код страны."
+    "invalidPhone": "Введите корректный номер телефона и выберите код страны.",
+    "confirm": "Подтвердить",
+    "cancel": "Адмена",
+    "close": "Закрыць",
+    "loading": "Загрузка…",
+    "save": "Захаваць",
+    "delete": "Выдаліць",
+    "edit": "Рэдагаваць",
+    "search": "Пошук"
   },
   "admin": {
     "actions": {

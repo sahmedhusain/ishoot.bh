@@ -62,7 +62,18 @@
     "phoneNumber": "Номер телефона",
     "language": "Язык",
     "submitting": "Отправка...",
-    "sendWhatsApp": "Отправить через WhatsApp"
+    "sendWhatsApp": "Отправить через WhatsApp",
+    "saving": "Хадгалж байна…",
+    "confirmAction": "Үйлдлийг баталгаажуулах",
+    "update": "Шинэчлэх",
+    "add": "Нэмэх",
+    "downloadPdf": "PDF татах",
+    "printDocument": "Баримт бичиг хэвлэх",
+    "back": "Буцах",
+    "refresh": "Сэргээх",
+    "none": "Байхгүй",
+    "url": "Холбоос",
+    "currency": "Валют"
   },
   "nav": {
     "home": "Нүүр",
@@ -1019,7 +1030,15 @@
     "optionSeparator": ", ",
     "countryCode": "Код страны",
     "phoneNational": "Номер телефона без кода страны",
-    "invalidPhone": "Введите корректный номер телефона и выберите код страны."
+    "invalidPhone": "Введите корректный номер телефона и выберите код страны.",
+    "confirm": "Подтвердить",
+    "cancel": "Цуцлах",
+    "close": "Хаах",
+    "loading": "Загрузка…",
+    "save": "Хадгалах",
+    "delete": "Устгах",
+    "edit": "Засах",
+    "search": "Хайх"
   },
   "admin": {
     "actions": {

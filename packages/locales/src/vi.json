@@ -62,7 +62,18 @@
     "phoneNumber": "Số điện thoại",
     "language": "Ngôn ngữ",
     "submitting": "Đang gửi...",
-    "sendWhatsApp": "Gửi qua WhatsApp"
+    "sendWhatsApp": "Gửi qua WhatsApp",
+    "saving": "Đang lưu…",
+    "confirmAction": "Xác nhận hành động",
+    "update": "Cập nhật",
+    "add": "Thêm",
+    "downloadPdf": "Tải xuống PDF",
+    "printDocument": "In tài liệu",
+    "back": "Quay lại",
+    "refresh": "Làm mới",
+    "none": "Không có",
+    "url": "Liên kết",
+    "currency": "Tiền tệ"
   },
   "nav": {
     "home": "Trang chủ",
@@ -955,7 +966,15 @@
     "optionSeparator": ", ",
     "countryCode": "Mã quốc gia",
     "phoneNational": "Số điện thoại quốc gia",
-    "invalidPhone": "Nhập số điện thoại hợp lệ và chọn mã quốc gia."
+    "invalidPhone": "Nhập số điện thoại hợp lệ và chọn mã quốc gia.",
+    "confirm": "Xác nhận",
+    "cancel": "Hủy",
+    "close": "Đóng",
+    "loading": "Đang tải…",
+    "save": "Lưu",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "search": "Tìm kiếm"
   },
   "admin": {
     "actions": {},

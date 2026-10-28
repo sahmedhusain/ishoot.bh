@@ -62,7 +62,18 @@
     "phoneNumber": "Nambari ya Simu",
     "language": "Lugha",
     "submitting": "Inatuma...",
-    "sendWhatsApp": "Tuma kupitia WhatsApp"
+    "sendWhatsApp": "Tuma kupitia WhatsApp",
+    "saving": "Ana ajiye…",
+    "confirmAction": "Tabbatar da Aiki",
+    "update": "Sabunta",
+    "add": "Ƙara",
+    "downloadPdf": "Sauke PDF",
+    "printDocument": "Buga Takarda",
+    "back": "Baya",
+    "refresh": "Sabunta",
+    "none": "Babu",
+    "url": "Hanyar haɗi",
+    "currency": "Kudi"
   },
   "nav": {
     "home": "Mwanzo",
@@ -955,7 +966,15 @@
     "optionSeparator": ", ",
     "countryCode": "Msimbo wa nchi",
     "phoneNational": "Nambari ya simu ya kitaifa",
-    "invalidPhone": "Weka nambari sahihi ya simu na uchague msimbo wa nchi yake."
+    "invalidPhone": "Weka nambari sahihi ya simu na uchague msimbo wa nchi yake.",
+    "confirm": "Thibitisha",
+    "cancel": "Soke",
+    "close": "Rufe",
+    "loading": "Inapakia…",
+    "save": "Ajiye",
+    "delete": "Goge",
+    "edit": "Gyara",
+    "search": "Bincika"
   },
   "admin": {
     "actions": {

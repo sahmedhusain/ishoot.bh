@@ -62,7 +62,18 @@
     "phoneNumber": "Nambari ya Simu",
     "language": "Lugha",
     "submitting": "Inatuma...",
-    "sendWhatsApp": "Tuma kupitia WhatsApp"
+    "sendWhatsApp": "Tuma kupitia WhatsApp",
+    "saving": "በማስቀመጥ ላይ…",
+    "confirmAction": "እርምጃውን አረጋግጥ",
+    "update": "አዘምን",
+    "add": "አክል",
+    "downloadPdf": "PDF አውርድ",
+    "printDocument": "ሰነድ አትም",
+    "back": "ተመለስ",
+    "refresh": "አድስ",
+    "none": "ምንም",
+    "url": "አገናኝ",
+    "currency": "ምንዛሬ"
   },
   "nav": {
     "home": "Mwanzo",
@@ -955,7 +966,15 @@
     "optionSeparator": ", ",
     "countryCode": "Msimbo wa nchi",
     "phoneNational": "Nambari ya simu ya kitaifa",
-    "invalidPhone": "Weka nambari sahihi ya simu na uchague msimbo wa nchi yake."
+    "invalidPhone": "Weka nambari sahihi ya simu na uchague msimbo wa nchi yake.",
+    "confirm": "Thibitisha",
+    "cancel": "ሰርዝ",
+    "close": "ዝጋ",
+    "loading": "Inapakia…",
+    "save": "አስቀምጥ",
+    "delete": "አጥፋ",
+    "edit": "አርትዕ",
+    "search": "ፈልግ"
   },
   "admin": {
     "actions": {

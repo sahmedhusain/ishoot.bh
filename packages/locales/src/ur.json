@@ -62,7 +62,18 @@
     "phoneNumber": "فون نمبر",
     "language": "زبان",
     "submitting": "ارسال کیا جا رہا ہے...",
-    "sendWhatsApp": "واٹس ایپ کے ذریعے بھیجیں"
+    "sendWhatsApp": "واٹس ایپ کے ذریعے بھیجیں",
+    "saving": "محفوظ ہو رہا ہے…",
+    "confirmAction": "عمل کی تصدیق کریں",
+    "update": "اپ ڈیٹ کریں",
+    "add": "شامل کریں",
+    "downloadPdf": "PDF ڈاؤن لوڈ کریں",
+    "printDocument": "دستاویز پرنٹ کریں",
+    "back": "واپس",
+    "refresh": "تازہ کریں",
+    "none": "کوئی نہیں",
+    "url": "لنک",
+    "currency": "کرنسی"
   },
   "nav": {
     "home": "ہوم",
@@ -955,7 +966,15 @@
     "optionSeparator": "، ",
     "countryCode": "ملکی کوڈ",
     "phoneNational": "قومی فون نمبر",
-    "invalidPhone": "ایک درست فون نمبر درج کریں اور اس کا ملکی کوڈ منتخب کریں۔"
+    "invalidPhone": "ایک درست فون نمبر درج کریں اور اس کا ملکی کوڈ منتخب کریں۔",
+    "confirm": "تصدیق کریں",
+    "cancel": "منسوخ کریں",
+    "close": "بند کریں",
+    "loading": "لوڈ ہو رہا ہے…",
+    "save": "محفوظ کریں",
+    "delete": "حذف کریں",
+    "edit": "ترمیم کریں",
+    "search": "تلاش کریں"
   },
   "admin": {
     "actions": {}

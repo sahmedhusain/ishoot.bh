@@ -62,7 +62,18 @@
     "phoneNumber": "Telefonnummer",
     "language": "Språk",
     "submitting": "Skickar...",
-    "sendWhatsApp": "Lähetä WhatsAppilla"
+    "sendWhatsApp": "Lähetä WhatsAppilla",
+    "saving": "Salvestamine…",
+    "confirmAction": "Kinnita toiming",
+    "update": "Uuenda",
+    "add": "Lisa",
+    "downloadPdf": "Laadi alla PDF",
+    "printDocument": "Prindi dokument",
+    "back": "Tagasi",
+    "refresh": "Värskenda",
+    "none": "Mitte ühtegi",
+    "url": "Link",
+    "currency": "Valuuta"
   },
   "nav": {
     "home": "Avaleht",
@@ -955,7 +966,15 @@
     "optionSeparator": ", ",
     "countryCode": "Landskod",
     "phoneNational": "Nationellt telefonnummer",
-    "invalidPhone": "Ange ett giltigt telefonnummer och välj dess landskod."
+    "invalidPhone": "Ange ett giltigt telefonnummer och välj dess landskod.",
+    "confirm": "Bekräfta",
+    "cancel": "Tühista",
+    "close": "Sulge",
+    "loading": "Laddar…",
+    "save": "Salvesta",
+    "delete": "Kustuta",
+    "edit": "Muuda",
+    "search": "Otsi"
   },
   "admin": {
     "actions": {

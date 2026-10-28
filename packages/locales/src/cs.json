@@ -62,7 +62,18 @@
     "phoneNumber": "Numer telefonu",
     "language": "Język",
     "submitting": "Przesyłanie...",
-    "sendWhatsApp": "Odeslat přes WhatsApp"
+    "sendWhatsApp": "Odeslat přes WhatsApp",
+    "saving": "Ukládání…",
+    "confirmAction": "Potvrdit akci",
+    "update": "Aktualizovat",
+    "add": "Přidat",
+    "downloadPdf": "Stáhnout PDF",
+    "printDocument": "Tisknout dokument",
+    "back": "Zpět",
+    "refresh": "Obnovit",
+    "none": "Žádný",
+    "url": "Odkaz",
+    "currency": "Měna"
   },
   "nav": {
     "home": "Domů",
@@ -955,7 +966,15 @@
     "optionSeparator": ", ",
     "countryCode": "Kod kraju",
     "phoneNational": "Krajowy numer telefonu",
-    "invalidPhone": "Wprowadź prawidłowy numer telefonu i wybierz kod kraju."
+    "invalidPhone": "Wprowadź prawidłowy numer telefonu i wybierz kod kraju.",
+    "confirm": "Potwierdź",
+    "cancel": "Zrušit",
+    "close": "Zavřít",
+    "loading": "Ładowanie…",
+    "save": "Uložit",
+    "delete": "Smazat",
+    "edit": "Upravit",
+    "search": "Hledat"
   },
   "admin": {
     "actions": {

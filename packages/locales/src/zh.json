@@ -62,7 +62,18 @@
     "phoneNumber": "电话号码",
     "language": "语言",
     "submitting": "正在提交...",
-    "sendWhatsApp": "通过 WhatsApp 发送"
+    "sendWhatsApp": "通过 WhatsApp 发送",
+    "saving": "保存中…",
+    "confirmAction": "确认操作",
+    "update": "更新",
+    "add": "添加",
+    "downloadPdf": "下载 PDF",
+    "printDocument": "打印文档",
+    "back": "返回",
+    "refresh": "刷新",
+    "none": "无",
+    "url": "链接",
+    "currency": "货币"
   },
   "nav": {
     "home": "首页",
@@ -955,7 +966,15 @@
     "optionSeparator": "， ",
     "countryCode": "国家/地区代码",
     "phoneNational": "国内电话号码",
-    "invalidPhone": "请输入有效的电话号码并选择国家/地区代码。"
+    "invalidPhone": "请输入有效的电话号码并选择国家/地区代码。",
+    "confirm": "确认",
+    "cancel": "取消",
+    "close": "关闭",
+    "loading": "加载中…",
+    "save": "保存",
+    "delete": "删除",
+    "edit": "编辑",
+    "search": "搜索"
   },
   "admin": {
     "actions": {}

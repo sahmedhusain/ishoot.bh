@@ -62,7 +62,18 @@
     "phoneNumber": "Numero ng Telepono",
     "language": "Wika",
     "submitting": "Isinusumite...",
-    "sendWhatsApp": "Ipadala sa pamamagitan ng WhatsApp"
+    "sendWhatsApp": "Ipadala sa pamamagitan ng WhatsApp",
+    "saving": "Nagse-save…",
+    "confirmAction": "Kumpirmahin ang Pagkilos",
+    "update": "I-update",
+    "add": "Magdagdag",
+    "downloadPdf": "I-download ang PDF",
+    "printDocument": "I-print ang Dokumento",
+    "back": "Bumalik",
+    "refresh": "I-refresh",
+    "none": "Wala",
+    "url": "Link",
+    "currency": "Pera"
   },
   "nav": {
     "home": "Tahanan",
@@ -955,7 +966,15 @@
     "optionSeparator": ", ",
     "countryCode": "Code ng bansa",
     "phoneNational": "Pambansang numero ng telepono",
-    "invalidPhone": "Maglagay ng wastong numero ng telepono at piliin ang country code nito."
+    "invalidPhone": "Maglagay ng wastong numero ng telepono at piliin ang country code nito.",
+    "confirm": "Kumpirmahin",
+    "cancel": "Kanselahin",
+    "close": "Isara",
+    "loading": "Naglo-load…",
+    "save": "I-save",
+    "delete": "I-delete",
+    "edit": "I-edit",
+    "search": "Maghanap"
   },
   "admin": {
     "actions": {}

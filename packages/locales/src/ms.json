@@ -62,7 +62,18 @@
     "phoneNumber": "Nombor Telefon",
     "language": "Bahasa",
     "submitting": "Menghantar...",
-    "sendWhatsApp": "Hantar melalui WhatsApp"
+    "sendWhatsApp": "Hantar melalui WhatsApp",
+    "saving": "Menyimpan…",
+    "confirmAction": "Sahkan Tindakan",
+    "update": "Kemas kini",
+    "add": "Tambah",
+    "downloadPdf": "Muat turun PDF",
+    "printDocument": "Cetak Dokumen",
+    "back": "Kembali",
+    "refresh": "Segarkan",
+    "none": "Tiada",
+    "url": "Pautan",
+    "currency": "Mata Wang"
   },
   "nav": {
     "home": "Laman utama",
@@ -955,7 +966,15 @@
     "optionSeparator": ", ",
     "countryCode": "Kod negara",
     "phoneNational": "Nombor telefon kebangsaan",
-    "invalidPhone": "Masukkan nombor telefon yang sah dan pilih kod negaranya."
+    "invalidPhone": "Masukkan nombor telefon yang sah dan pilih kod negaranya.",
+    "confirm": "Sahkan",
+    "cancel": "Batal",
+    "close": "Tutup",
+    "loading": "Memuatkan…",
+    "save": "Simpan",
+    "delete": "Padam",
+    "edit": "Edit",
+    "search": "Cari"
   },
   "admin": {
     "actions": {}

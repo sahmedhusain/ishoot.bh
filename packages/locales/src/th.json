@@ -62,7 +62,18 @@
     "phoneNumber": "หมายเลขโทรศัพท์",
     "language": "ภาษา",
     "submitting": "กำลังส่ง...",
-    "sendWhatsApp": "ส่งทาง WhatsApp"
+    "sendWhatsApp": "ส่งทาง WhatsApp",
+    "saving": "กำลังบันทึก…",
+    "confirmAction": "ยืนยันการดำเนินการ",
+    "update": "อัปเดต",
+    "add": "เพิ่ม",
+    "downloadPdf": "ดาวน์โหลด PDF",
+    "printDocument": "พิมพ์เอกสาร",
+    "back": "ย้อนกลับ",
+    "refresh": "รีเฟรช",
+    "none": "ไม่มี",
+    "url": "ลิงก์",
+    "currency": "สกุลเงิน"
   },
   "nav": {
     "home": "หน้าแรก",
@@ -955,7 +966,15 @@
     "optionSeparator": ", ",
     "countryCode": "รหัสประเทศ",
     "phoneNational": "หมายเลขโทรศัพท์ในประเทศ",
-    "invalidPhone": "โปรดระบุหมายเลขโทรศัพท์ที่ถูกต้องและเลือกรหัสประเทศ"
+    "invalidPhone": "โปรดระบุหมายเลขโทรศัพท์ที่ถูกต้องและเลือกรหัสประเทศ",
+    "confirm": "ยืนยัน",
+    "cancel": "ยกเลิก",
+    "close": "ปิด",
+    "loading": "กำลังโหลด…",
+    "save": "บันทึก",
+    "delete": "ลบ",
+    "edit": "แก้ไข",
+    "search": "ค้นหา"
   },
   "admin": {
     "actions": {}

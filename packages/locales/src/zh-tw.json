@@ -62,7 +62,18 @@
     "phoneNumber": "電話號碼",
     "language": "語言",
     "submitting": "正在提交...",
-    "sendWhatsApp": "通過 WhatsApp 發送"
+    "sendWhatsApp": "通過 WhatsApp 發送",
+    "saving": "儲存中…",
+    "confirmAction": "確認操作",
+    "update": "更新",
+    "add": "新增",
+    "downloadPdf": "下載 PDF",
+    "printDocument": "列印文件",
+    "back": "返回",
+    "refresh": "重新整理",
+    "none": "無",
+    "url": "連結",
+    "currency": "貨幣"
   },
   "nav": {
     "home": "首頁",
@@ -955,7 +966,15 @@
     "optionSeparator": "， ",
     "countryCode": "國家/地區代碼",
     "phoneNational": "國內電話號碼",
-    "invalidPhone": "請輸入有效的電話號碼並選擇國家/地區代碼。"
+    "invalidPhone": "請輸入有效的電話號碼並選擇國家/地區代碼。",
+    "confirm": "確認",
+    "cancel": "取消",
+    "close": "關閉",
+    "loading": "加載中…",
+    "save": "保存",
+    "delete": "刪除",
+    "edit": "編輯",
+    "search": "搜索"
   },
   "admin": {
     "actions": {}

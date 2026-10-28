@@ -62,7 +62,18 @@
     "phoneNumber": "מספר טלפון",
     "language": "שפה",
     "submitting": "שולח...",
-    "sendWhatsApp": "שלח ב-WhatsApp"
+    "sendWhatsApp": "שלח ב-WhatsApp",
+    "saving": "שומר…",
+    "confirmAction": "אשר פעולה",
+    "update": "עדכן",
+    "add": "הוסף",
+    "downloadPdf": "הורד PDF",
+    "printDocument": "הדפס מסמך",
+    "back": "חזרה",
+    "refresh": "רענן",
+    "none": "ללא",
+    "url": "קישור",
+    "currency": "מטבע"
   },
   "nav": {
     "home": "בית",
@@ -955,7 +966,15 @@
     "optionSeparator": ", ",
     "countryCode": "קידומת מדינה",
     "phoneNational": "מספר טלפון לאומי",
-    "invalidPhone": "הזן מספר טלפון תקין ובחר את קידומת המדינה."
+    "invalidPhone": "הזן מספר טלפון תקין ובחר את קידומת המדינה.",
+    "confirm": "אישור",
+    "cancel": "ביטול",
+    "close": "סגור",
+    "loading": "טוען…",
+    "save": "שמור",
+    "delete": "מחק",
+    "edit": "ערוך",
+    "search": "חיפוש"
   },
   "admin": {
     "actions": {}

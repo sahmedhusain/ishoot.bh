@@ -62,7 +62,18 @@
     "phoneNumber": "Telefoonnummer",
     "language": "Taal",
     "submitting": "Bezig met verzenden...",
-    "sendWhatsApp": "Verzenden via WhatsApp"
+    "sendWhatsApp": "Verzenden via WhatsApp",
+    "saving": "Opslaan…",
+    "confirmAction": "Actie bevestigen",
+    "update": "Bijwerken",
+    "add": "Toevoegen",
+    "downloadPdf": "PDF downloaden",
+    "printDocument": "Document afdrukken",
+    "back": "Terug",
+    "refresh": "Vernieuwen",
+    "none": "Geen",
+    "url": "Link",
+    "currency": "Valuta"
   },
   "nav": {
     "home": "Home",
@@ -955,7 +966,15 @@
     "optionSeparator": ", ",
     "countryCode": "Landcode",
     "phoneNational": "Nationaal telefoonnummer",
-    "invalidPhone": "Voer een geldig telefoonnummer in en kies de bijbehorende landcode."
+    "invalidPhone": "Voer een geldig telefoonnummer in en kies de bijbehorende landcode.",
+    "confirm": "Bevestigen",
+    "cancel": "Annuleren",
+    "close": "Sluiten",
+    "loading": "Laden…",
+    "save": "Opslaan",
+    "delete": "Verwijderen",
+    "edit": "Bewerken",
+    "search": "Zoeken"
   },
   "admin": {
     "actions": {}

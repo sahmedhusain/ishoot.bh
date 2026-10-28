@@ -62,7 +62,18 @@
     "phoneNumber": "Telefon Numarası",
     "language": "Dil",
     "submitting": "Gönderiliyor...",
-    "sendWhatsApp": "WhatsApp ile gönder"
+    "sendWhatsApp": "WhatsApp ile gönder",
+    "saving": "Kaydediliyor…",
+    "confirmAction": "İşlemi onayla",
+    "update": "Güncelle",
+    "add": "Ekle",
+    "downloadPdf": "PDF İndir",
+    "printDocument": "Belgeyi Yazdır",
+    "back": "Geri",
+    "refresh": "Yenile",
+    "none": "Yok",
+    "url": "Bağlantı",
+    "currency": "Para Birimi"
   },
   "nav": {
     "home": "Ana sayfa",
@@ -1019,7 +1030,15 @@
     "optionSeparator": ", ",
     "countryCode": "Ülke kodu",
     "phoneNational": "Ulusal telefon numarası",
-    "invalidPhone": "Geçerli bir telefon numarası girin ve ülke kodunu seçin."
+    "invalidPhone": "Geçerli bir telefon numarası girin ve ülke kodunu seçin.",
+    "confirm": "Onayla",
+    "cancel": "İptal",
+    "close": "Kapat",
+    "loading": "Yükleniyor…",
+    "save": "Kaydet",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "search": "Ara"
   },
   "admin": {
     "actions": {}

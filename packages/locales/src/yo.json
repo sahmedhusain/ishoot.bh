@@ -62,7 +62,18 @@
     "phoneNumber": "Nambari ya Simu",
     "language": "Lugha",
     "submitting": "Inatuma...",
-    "sendWhatsApp": "Tuma kupitia WhatsApp"
+    "sendWhatsApp": "Tuma kupitia WhatsApp",
+    "saving": "N fipamọ…",
+    "confirmAction": "Jẹrisi Iṣe",
+    "update": "Ṣe imudojuiwọn",
+    "add": "Ṣafikun",
+    "downloadPdf": "Gbaa PDF wọle",
+    "printDocument": "Tẹ Iwe sita",
+    "back": "Pada",
+    "refresh": "Sọ di titun",
+    "none": "Kò si",
+    "url": "Ọna asopọ",
+    "currency": "Owo"
   },
   "nav": {
     "home": "Mwanzo",
@@ -955,7 +966,15 @@
     "optionSeparator": ", ",
     "countryCode": "Msimbo wa nchi",
     "phoneNational": "Nambari ya simu ya kitaifa",
-    "invalidPhone": "Weka nambari sahihi ya simu na uchague msimbo wa nchi yake."
+    "invalidPhone": "Weka nambari sahihi ya simu na uchague msimbo wa nchi yake.",
+    "confirm": "Thibitisha",
+    "cancel": "Fagilee",
+    "close": "Paade",
+    "loading": "Inapakia…",
+    "save": "Fipamọ",
+    "delete": "Paarẹ",
+    "edit": "Satunkọ",
+    "search": "Wa"
   },
   "admin": {
     "actions": {

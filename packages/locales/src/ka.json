@@ -62,7 +62,18 @@
     "phoneNumber": "Номер телефона",
     "language": "Язык",
     "submitting": "Отправка...",
-    "sendWhatsApp": "გაგზავნა WhatsApp-ით"
+    "sendWhatsApp": "გაგზავნა WhatsApp-ით",
+    "saving": "ინახება…",
+    "confirmAction": "მოქმედების დადასტურება",
+    "update": "განახლება",
+    "add": "დამატება",
+    "downloadPdf": "PDF-ის ჩამოტვირთვა",
+    "printDocument": "დოკუმენტის ბეჭდვა",
+    "back": "უკან",
+    "refresh": "განახლება",
+    "none": "არცერთი",
+    "url": "ბმული",
+    "currency": "ვალუტა"
   },
   "nav": {
     "home": "მთავარი",
@@ -1019,7 +1030,15 @@
     "optionSeparator": ", ",
     "countryCode": "Код страны",
     "phoneNational": "Номер телефона без кода страны",
-    "invalidPhone": "Введите корректный номер телефона и выберите код страны."
+    "invalidPhone": "Введите корректный номер телефона и выберите код страны.",
+    "confirm": "Подтвердить",
+    "cancel": "გაუქმება",
+    "close": "დახურვა",
+    "loading": "Загрузка…",
+    "save": "შენახვა",
+    "delete": "წაშლა",
+    "edit": "რედაქტირება",
+    "search": "ძებნა"
   },
   "admin": {
     "actions": {

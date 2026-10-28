@@ -62,7 +62,18 @@
     "phoneNumber": "Номер телефона",
     "language": "Язык",
     "submitting": "Отправка...",
-    "sendWhatsApp": "Ուղարկել WhatsApp-ով"
+    "sendWhatsApp": "Ուղարկել WhatsApp-ով",
+    "saving": "Պահպանվում է…",
+    "confirmAction": "Հաստատել գործողությունը",
+    "update": "Թարմացնել",
+    "add": "Ավելացնել",
+    "downloadPdf": "Ներբեռնել PDF",
+    "printDocument": "Տպել փաստաթուղթը",
+    "back": "Հետ",
+    "refresh": "Թարմացնել",
+    "none": "Ոչ մի",
+    "url": "Հղում",
+    "currency": "Արժույթ"
   },
   "nav": {
     "home": "Գլխավոր",
@@ -1019,7 +1030,15 @@
     "optionSeparator": ", ",
     "countryCode": "Код страны",
     "phoneNational": "Номер телефона без кода страны",
-    "invalidPhone": "Введите корректный номер телефона и выберите код страны."
+    "invalidPhone": "Введите корректный номер телефона и выберите код страны.",
+    "confirm": "Подтвердить",
+    "cancel": "Չեղարկել",
+    "close": "Փակել",
+    "loading": "Загрузка…",
+    "save": "Պահպանել",
+    "delete": "Ջնջել",
+    "edit": "Խմբագրել",
+    "search": "Որոնել"
   },
   "admin": {
     "actions": {

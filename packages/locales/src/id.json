@@ -62,7 +62,18 @@
     "phoneNumber": "Nomor Telepon",
     "language": "Bahasa",
     "submitting": "Mengirimkan...",
-    "sendWhatsApp": "Kirim via WhatsApp"
+    "sendWhatsApp": "Kirim via WhatsApp",
+    "saving": "Menyimpan…",
+    "confirmAction": "Konfirmasi Tindakan",
+    "update": "Perbarui",
+    "add": "Tambah",
+    "downloadPdf": "Unduh PDF",
+    "printDocument": "Cetak Dokumen",
+    "back": "Kembali",
+    "refresh": "Segarkan",
+    "none": "Tidak ada",
+    "url": "Tautan",
+    "currency": "Mata Uang"
   },
   "nav": {
     "home": "Beranda",
@@ -955,7 +966,15 @@
     "optionSeparator": ", ",
     "countryCode": "Kode negara",
     "phoneNational": "Nomor telepon nasional",
-    "invalidPhone": "Masukkan nomor telepon yang valid dan pilih kode negaranya."
+    "invalidPhone": "Masukkan nomor telepon yang valid dan pilih kode negaranya.",
+    "confirm": "Konfirmasi",
+    "cancel": "Batal",
+    "close": "Tutup",
+    "loading": "Memuat…",
+    "save": "Simpan",
+    "delete": "Hapus",
+    "edit": "Edit",
+    "search": "Cari"
   },
   "admin": {
     "actions": {}
