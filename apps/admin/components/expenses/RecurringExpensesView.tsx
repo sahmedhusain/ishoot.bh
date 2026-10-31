@@ -75,8 +75,8 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
   };
 
   const active = items.filter((i) => i.is_active);
-  const bhd = active.filter((i) => i.currency === companyCurrency);
-  const monthly = bhd.reduce((sum, i) => sum + i.monthly_equivalent, 0);
+  const inBaseCurrency = active.filter((i) => i.currency === companyCurrency);
+  const monthly = inBaseCurrency.reduce((sum, i) => sum + i.monthly_equivalent, 0);
   const dueSoon = active.filter((i) => i.days_until <= Math.max(7, i.remind_days_before));
   const overdue = active.filter((i) => i.days_until < 0 && !i.auto_record);
   const title = (r: RecurringExpenseRecord) => (isAr && r.title_ar) || r.title_en;

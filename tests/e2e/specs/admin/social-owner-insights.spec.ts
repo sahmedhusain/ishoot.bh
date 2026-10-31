@@ -116,7 +116,7 @@ for (const locale of ["en", "ar"] as const)
         );
       }
       const formatter = new Intl.DateTimeFormat(
-        locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB",
+        locale === "ar" ? "ar-u-nu-latn" : "en-GB",
         { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" },
       );
       await expect(panel.getByTestId("owner-period")).toContainText(
@@ -132,7 +132,7 @@ for (const locale of ["en", "ar"] as const)
           panel.getByTestId("owner-metric-views").locator("dd"),
         ).toHaveText(
           new Intl.NumberFormat(
-            locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB",
+            locale === "ar" ? "ar-u-nu-latn" : "en-GB",
           ).format(12345 + days),
         );
       }

@@ -130,6 +130,9 @@ const addDays = (d: Date, n: number) => new Date(d.getTime() + n * DAY);
 const minDate = (a: Date, b: Date) => (a < b ? a : b);
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 const round3 = (n: number) => Math.round(n * 1000) / 1000;
+const BAHRAIN_MOBILE_PREFIXES = ["32", "33", "34", "35", "36", "37", "39"] as const;
+const randomBahrainPhone = () =>
+  `+973 ${pick(BAHRAIN_MOBILE_PREFIXES)}${String(int(0, 99)).padStart(2, "0")} ${int(1000, 9999)}`;
 
 // ---------------------------------------------------------------- reference vocabulary
 const FIRST = [
@@ -565,6 +568,7 @@ export async function seedVolume(
     const slug = `${first[0]}.${last[0].replace(/^Al-/, "")}`.toLowerCase();
     const email = `${slug}${index}@example.com`;
     const hireDate = daysAgo(int(120, 2400));
+    const phone = randomBahrainPhone();
     let userId: string | null = null;
     if (plan.role) {
       const user = await prisma.user.create({
@@ -574,7 +578,7 @@ export async function seedVolume(
           passwordHash: ctx.passwordHash,
           role: plan.role,
           department: plan.dept,
-          phone: `+973 3${int(100, 999)} ${int(1000, 9999)}`,
+          phone,
           managerId: managerByDept[plan.dept],
           isActive: true,
         },
@@ -595,7 +599,7 @@ export async function seedVolume(
         firstNameAr: first[1],
         lastNameAr: last[1],
         email: userId ? email : null,
-        phone: `+973 3${int(100, 999)} ${int(1000, 9999)}`,
+        phone,
         cprNumber: String(int(800000000, 999999999)),
         jobTitleEn: plan.titleEn,
         jobTitleAr: plan.titleAr,
@@ -663,7 +667,7 @@ export async function seedVolume(
       email = email.replace("@", `${n}@`);
     usedEmails.add(email);
     let phone;
-    do phone = `+973 3${int(200, 999)} ${int(1000, 9999)}`;
+    do phone = randomBahrainPhone();
     while (usedPhones.has(phone));
     usedPhones.add(phone);
     const jobTitle = pick(JOB_TITLES);
@@ -671,6 +675,7 @@ export async function seedVolume(
       client_kind: "company",
       company_origin: "local",
       cr_number: `${100000 + contacts.length}-1`,
+      registration_country: "BH",
       first_name: first[0],
       last_name: last[0],
       email,

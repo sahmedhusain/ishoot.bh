@@ -14,7 +14,7 @@ const db = new PrismaClient({ datasources: { db: { url: url.toString() } } });
 async function main() {
   const preset = demoPreset(process.env.SEED_PRESET || "all", process.env.SEED_STYLE);
   const company = await db.companySetting.findFirstOrThrow();
-  const profile = loadCompanyProfile("demo");
+  const profile = loadCompanyProfile(process.env.COMPANY_PROFILE || "demo");
   assert.equal(company.companyNameEn, profile.company.companyNameEn);
   assert.equal(company.businessActivity, preset.activity);
   const content = await db.websiteContent.findUniqueOrThrow({ where: { id: "main" } });

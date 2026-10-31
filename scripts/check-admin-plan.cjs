@@ -30,6 +30,8 @@ function loadTs(file, mocks) {
     exports: mod.exports,
     require: (id) => {
       id = ((i, m) => i in m ? i : (i.startsWith('@platform/database/') && '@platform/database' in m ? '@platform/database' : i))(id, mocks);
+      if (id === "../finance/company-currency" && !(id in mocks)) return loadTs("packages/database/src/finance/company-currency.ts", { "../db": mocks["../db"] });
+      if (id === "./contact-validation" && !(id in mocks)) return loadTs("packages/database/src/queries/contact-validation.ts", { "../db": mocks["../db"] });
       if (id in mocks) return mocks[id];
       if (id.startsWith("node:")) return require(id);
       const real = realConstants(file, id);
@@ -191,6 +193,7 @@ async function runTests() {
   const reportQueries = loadTs("packages/database/src/queries/finance-reports.ts", {
     "../db": {
       db: {
+        companySetting: { findUniqueOrThrow: async () => ({ defaultCurrency: "BHD" }) },
         invoice: { findMany: async () => mockInvoices, count: async () => 0 },
         payment: { findMany: async () => mockPayments },
         expense: { findMany: async () => mockExpenses, count: async () => 0 },

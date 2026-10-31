@@ -206,7 +206,7 @@ export function SignaturePad({ currentUrl, changes }: { currentUrl?: string | nu
                   <ContentImage src={c.signatureUrl} alt="" className="max-h-full max-w-full object-contain" />
                 </div>
                 <span className={`px-2 py-0.5 rounded-full font-semibold ${statusStyle[c.status]}`}>{s.status[c.status]}</span>
-                <span className="text-ink-muted">{new Date(c.createdAt).toLocaleString(locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB")}</span>
+                <span className="text-ink-muted">{new Date(c.createdAt).toLocaleString(locale === "ar" ? "ar-u-nu-latn" : "en-GB")}</span>
                 {c.reviewedBy && <span className="text-ink-muted">· {formatMessage(s.by, { name: c.reviewedBy })}</span>}
                 {c.reviewNotes && <span className="text-ink-muted italic">“{c.reviewNotes}”</span>}
               </li>

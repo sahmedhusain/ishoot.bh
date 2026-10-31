@@ -5,8 +5,8 @@ import { StockCountsView } from "../../../../components/inventory/StockCountsVie
 export const dynamic = "force-dynamic";
 
 export default async function StockCountsPage() {
-  await requirePagePermission("inventory", "read");
+  const actor = await requirePagePermission("inventory", "read");
   await requireFeatureEnabled("products");
-  const [counts, warehouses, categories, canCreate] = await Promise.all([listStockCounts(), listWarehouses(), listProductCategories(), hasPermission("inventory", "create")]);
+  const [counts, warehouses, categories, canCreate] = await Promise.all([listStockCounts(actor.id), listWarehouses(actor.id), listProductCategories(), hasPermission("inventory", "create")]);
   return <StockCountsView counts={counts} warehouses={warehouses} categories={categories} canCreate={canCreate} />;
 }

@@ -566,6 +566,7 @@ export function Sidebar() {
           { href: ROUTES.products.categories, label: t.products.navCategories, icon: FolderTree, resource: "products", moduleKey: "products" },
           { href: ROUTES.inventory.stock, label: t.inventory.nav.stock, icon: Boxes, resource: "inventory", moduleKey: "products" },
           { href: ROUTES.inventory.movements(), label: t.inventory.nav.movements, icon: History, resource: "inventory", moduleKey: "products" },
+          { href: ROUTES.inventory.transfers, label: t.stockTransfers.title, icon: Truck, resource: "inventory", moduleKey: "products" },
           { href: ROUTES.inventory.counts, label: t.inventory.nav.counts, icon: ClipboardCheck, resource: "inventory", moduleKey: "products" },
           { href: ROUTES.inventory.warehouses, label: t.inventory.nav.warehouses, icon: Warehouse, resource: "inventory", moduleKey: "products" },
         ],

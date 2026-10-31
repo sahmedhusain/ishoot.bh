@@ -109,12 +109,12 @@
     "resume": "Beweging hervatten"
   },
   "showreel": {
-    "badge": "Showreel 2026",
-    "title": "VISIE GECREËERD IN BEWEGING",
-    "subtitle": "Een samengestelde selectie van onze reclamefilms, merkverhalen en cinematografische luchtopnames in Bahrein en de Arabische Golf.",
-    "playShowreel": "Volledige showreel afspelen",
-    "watchIn4k": "Bekijk in 4K",
-    "streamTitle": "4K Cinema Stream"
+    "badge": "Kyk meer",
+    "title": "Ontdek ons werk",
+    "subtitle": "'n Nadere blik op wat ons doen.",
+    "playShowreel": "Speel video",
+    "watchIn4k": "Kyk video",
+    "streamTitle": "Video"
   },
   "services": {
     "badge": "Wat wij bieden",
@@ -122,11 +122,6 @@
     "subtitle": "Alles wat we leveren, helder uitgelegd zodat u met vertrouwen kunt kiezen.",
     "sectionIndex": "(02)",
     "requestProposal": "Offerte aanvragen",
-    "soundstage": {
-      "title": "Akoestische Soundstage & Cyclorama",
-      "desc": "Geluidsdichte studio van 250 m² in het Seef-district met 60 kW 3-fasen stroom, 6 meter hoog lichtraster en naadloze cyclorama-wand.",
-      "specs": []
-    },
     "sectionLabel": "Mogelijkheden",
     "headline": "Wat wij bieden"
   },
@@ -135,7 +130,7 @@
     "title": "Projekte",
     "subtitle": "Een nadere blik op wat we doen en voor wie we het doen.",
     "filterAll": "Al het werk",
-    "filterCommercial": "Commercials",
+    "filterCommercial": "Projects",
     "filterAerial": "Luchtopnames & FPV",
     "filterPhotography": "Fotografie",
     "filterColor": "Kleurcorrectie",
@@ -159,7 +154,7 @@
     "productionOverview": "Overzicht",
     "categories": {
       "all": "Alle projecten",
-      "commercials": "Commercials",
+      "commercials": "Projects",
       "aerial": "Luchtopnames & FPV",
       "documentaries": "Documentaires"
     },
@@ -194,76 +189,76 @@
     "title": "Wie we zijn",
     "subtitle": "Lees meer over ons bedrijf, ons team en het werk dat we leveren.",
     "storyTitle": "ONZE VISIE & ETHOS",
-    "storyP1": "Wij geloven dat werkelijke visuele impact ontstaat op het snijvlak van technische discipline en grenzeloze creatieve nieuwsgierigheid. Elke productie wordt met absolute toewijding vervaardigd voor compositie, dynamisch bereik en authentieke emotie.",
-    "storyP2": "Van nationale televisiecampagnes tot internationale merkfilms: ons team zet bioscoopcamera's, uiterst precieze belichtingsinstallaties en ultramoderne postproductiefaciliteiten in om merkprestige te versterken.",
+    "storyP1": "",
+    "storyP2": "",
     "ceoTitle": "Oprichter & Creatief Directeur",
-    "ceoName": "Sayed Ahmed Husain",
-    "ceoQuote": "We vangen niet enkel licht; we geven vorm aan hoe herinneringen, emoties en merken door de tijd heen blijven resoneren.",
+    "ceoName": "",
+    "ceoQuote": "",
     "gearTitle": "ONZE UITRUSTING",
-    "gearSubtitle": "Eigen hoogwaardige filmapparatuur, gekalibreerd voor vlekkeloze optische prestaties.",
-    "statFilms": "180+ Reclamefilms Opgeleverd",
-    "statYears": "8+ Jaar Vakmanschap",
-    "statAwards": "14 Regionale Prijzen",
-    "statClients": "65+ GCC Ondernemingen als Klant",
+    "gearSubtitle": "Explore our resources and capabilities.",
+    "statFilms": "",
+    "statYears": "",
+    "statAwards": "",
+    "statClients": "",
     "sectionIndex": "(01)",
     "sectionLabel": "Over Ons",
     "headline": "Een team gebouwd rond de mensen die we van dienst zijn.",
     "behindTheScenes": "Ons team aan het werk",
     "shootCaption": "Ons team aan het werk",
     "missionLabel": "Onze Missie",
-    "mission": "Marktleiders in staat stellen hun merkverhalen te vertellen met compromisloze visuele precisie en emotionele diepgang.",
+    "mission": "",
     "visionLabel": "Onze Visie",
     "discoverStudio": "Ontdek ons verhaal en team",
     "gearAll": "Alle apparatuur",
-    "gearCameras": "Cinema Camera's",
-    "gearLenses": "Cinema Lenzen",
+    "gearCameras": "Equipment",
+    "gearLenses": "Tools",
     "gearLighting": "Belichtingssets",
     "gearAudioGrading": "Mastering Suite",
-    "gearStages": "Soundstage",
-    "statFilmsValue": "180+",
-    "statFilmsLabel": "Reclamefilms Opgeleverd",
-    "statYearsValue": "8+",
+    "gearStages": "Locations",
+    "statFilmsValue": "",
+    "statFilmsLabel": "Projects",
+    "statYearsValue": "",
     "statYearsLabel": "Jaar Vakmanschap",
-    "statAwardsValue": "14",
+    "statAwardsValue": "",
     "statAwardsLabel": "Regionale Prijzen",
-    "statClientsValue": "65+",
+    "statClientsValue": "",
     "statClientsLabel": "GCC Ondernemingen als Klant",
-    "recTag": "OPNAME · 8K VV",
-    "gccTag": "100% GCC",
-    "coloristTag": "DaVinci Gecertificeerd",
+    "recTag": "",
+    "gccTag": "",
+    "coloristTag": "",
     "pillars": {
       "badge": "Waar we voor staan",
       "title": "De waarden achter ons werk",
       "p1": {
-        "number": "01",
-        "title": "Cinematografische Optiek & Kadrering",
-        "desc": "8K VistaVision multiformaat-opnames met RED V-Raptor XL-systemen gekoppeld aan ARRI Master Primes voor ongeëvenaarde beeldscherpte en karakter.",
-        "tag": "8K VistaVision"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p2": {
-        "number": "02",
-        "title": "DaVinci Resolve HDR Kleurcorrectie",
-        "desc": "Gespecialiseerde postproductieruimte met Sony BVM referentiemonitors om unieke film-emulerende kleurpaletten te ontwerpen.",
-        "tag": "DCI-P3 Colorist"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p3": {
-        "number": "03",
-        "title": "Verhalende Regie & Beweging",
-        "desc": "Ontwikkeling van visuele concepten, scenario's en ritmische montages die zakelijke briefings omtoveren tot gedenkwaardige cinema.",
-        "tag": "Verhalend Vakmanschap"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p4": {
-        "number": "04",
-        "title": "Gelicentieerde Heavy-Lift & FPV Drones",
-        "desc": "Volledig door de BCAA gecertificeerde drone-operaties voor het vastleggen van monumentale landschappen en snelle achtervolgingen.",
-        "tag": "BCAA Gecertificeerd"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       }
     },
     "stats": {
       "badge": "In cijfers",
       "verified": "Geverifieerde Productiegegevens",
-      "tvcs": "Hoogwaardige TVC's",
-      "leadership": "Cinematografisch Leiderschap",
+      "tvcs": "Projects",
+      "leadership": "Experience",
       "trophies": "Regionale Onderscheidingen",
       "enterprises": "GCC Ondernemingen"
     },
@@ -341,7 +336,7 @@
     "projectRefLabel": "Projectreferentie / link (optioneel)",
     "projectRefPlaceholder": "https://voorbeeld.nl/referentie",
     "shootLocation": "Locatie / stad (optioneel)",
-    "shootLocationPlaceholder": "bijv. Manama",
+    "shootLocationPlaceholder": "Stad of ligging",
     "messageDetails": "Berichtdetails",
     "yourMessage": "Uw bericht",
     "messagePlaceholder": "Vertel ons wat u nodig heeft en eventuele details die ons helpen te antwoorden…",
@@ -399,7 +394,7 @@
     "registrationLabel": "Handelsregister"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "Btw",
     "vatNa": "Btw: Niet van toepassing",
     "subtotal": "Subtotaal",
@@ -443,7 +438,7 @@
     "page_10": "WhatsApp-chat openen →",
     "page_11": "Productie-overzicht",
     "contactform_12": "bijv. november 2026",
-    "contactform_13": "Vertel ons over uw campagnedoelen, filmlocaties en gewenste opleveringen...",
+    "contactform_13": "Tell us about your goals, locations, and requirements...",
     "languageswitcher_14": "Overschakelen naar Arabisch",
     "cinemalightbox_16": "Regisseur:",
     "cinemalightbox_17": "Cinematograaf:",
@@ -498,7 +493,6 @@
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "BAHREIN",
     "items": [],
     "sectionLabel": "Aanbevelingen van Kliënte & Partners",
     "headline": "Wat onze klanten zeggen",
@@ -529,8 +523,8 @@
     "subtitle": "Duidelijke antwoorden over onze werkwijze, wat u kunt verwachten en hoe u van start gaat."
   },
   "cta": {
-    "badge": "Klaar om uw volgende film te starten",
-    "titleLine1": "CINEMA IN ELK BEELD.",
+    "badge": "Start a conversation",
+    "titleLine1": "Your next step.",
     "titleLine2": "Laten we samen een meesterwerk creëren.",
     "description": "Neem rechtstreeks contact op met onze producenten om projectconcepten, draaischema's en kostenramingen te bespreken.",
     "whatsapp": "Direct chatten via WhatsApp",
@@ -539,7 +533,7 @@
   },
   "preloader": {
     "load": "LADEN",
-    "slogan": "CINEMA IN ELK BEELD · 8K PRODUCTIE",
+    "slogan": "Welcome",
     "skipHint": "Klik ergens om verder te gaan"
   },
   "email": {

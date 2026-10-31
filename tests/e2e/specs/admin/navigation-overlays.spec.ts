@@ -53,18 +53,19 @@ for (const locale of ["en", "ar"] as const)
         { locale, theme },
       );
       await page.goto("/dashboard");
-      const trigger = page.getByRole("button", {
-        name: t.quickJump.universalSearch,
-      });
-      await trigger.click();
-      const palette = page.getByRole("dialog", {
-        name: t.quickJump.universalSearch,
-        exact: true,
-      });
-      const search = palette.getByRole("combobox", {
+      const search = page.getByRole("combobox", {
         name: t.quickJump.searchLabel,
         exact: true,
       });
+      await search.click();
+      const palette = page.getByRole("listbox", {
+        name: t.quickJump.resultsLabel,
+        exact: true,
+      });
+      await expect(search).toHaveAttribute("aria-expanded", "true");
+      await expect(
+        page.getByRole("dialog", { name: t.quickJump.universalSearch }),
+      ).toHaveCount(0);
       await expect(search).toBeFocused();
       await search.fill("q");
       await expect(palette).toContainText(t.quickJump.helper);
@@ -247,14 +248,15 @@ for (const locale of ["en", "ar"] as const) {
       locale,
     );
     await page.goto("/dashboard");
-    await page
-      .getByRole("button", { name: t.quickJump.universalSearch })
-      .click();
-    const palette = page.getByRole("dialog", {
-      name: t.quickJump.universalSearch,
+    const input = page.getByRole("combobox", {
+      name: t.quickJump.searchLabel,
       exact: true,
     });
-    const input = palette.getByRole("combobox");
+    await input.click();
+    const palette = page.getByRole("listbox", {
+      name: t.quickJump.resultsLabel,
+      exact: true,
+    });
     const missing = `missing-${randomUUID()}`;
     let oldFetched = false,
       newFetched = false;
@@ -282,10 +284,7 @@ for (const locale of ["en", "ar"] as const) {
       await input.fill(marker);
       await expect.poll(() => oldFetched).toBe(true);
       await input.fill(missing);
-      await expect(palette.getByRole("listbox")).toHaveAttribute(
-        "aria-busy",
-        "true",
-      );
+      await expect(palette).toHaveAttribute("aria-busy", "true");
       releaseOld();
       await expect.poll(() => newFetched).toBe(true);
       await expect(palette.getByRole("option")).toHaveCount(0);
@@ -304,7 +303,7 @@ for (const locale of ["en", "ar"] as const) {
         : route.continue(),
     );
     await input.fill(`failure-${randomUUID()}`);
-    await expect(palette.getByRole("alert")).toHaveText(
+    await expect(page.getByRole("alert")).toHaveText(
       locale === "ar" ? t.quickJump.searchFailed : "Test search failure",
     );
     await expect(palette.getByRole("option")).toHaveCount(0);
@@ -321,14 +320,16 @@ for (const locale of ["en", "ar"] as const) {
     );
     await login(page, users.driver.email, users.driver.password);
     await expect(page).toHaveURL(/\/dashboard/);
-    await page
-      .getByRole("button", { name: t.quickJump.universalSearch })
-      .click();
-    const palette = page.getByRole("dialog", {
-      name: t.quickJump.universalSearch,
+    const input = page.getByRole("combobox", {
+      name: t.quickJump.searchLabel,
       exact: true,
     });
-    await palette.getByRole("combobox").fill(marker);
+    await input.click();
+    const palette = page.getByRole("listbox", {
+      name: t.quickJump.resultsLabel,
+      exact: true,
+    });
+    await input.fill(marker);
     await expect(palette).toContainText(t.quickJump.noMatches);
     await expect(palette.getByRole("option")).toHaveCount(0);
   });

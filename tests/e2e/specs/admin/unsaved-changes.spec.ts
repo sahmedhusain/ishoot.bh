@@ -67,12 +67,12 @@ for (const locale of ["en", "ar"] as const)
       await expect(page).toHaveURL(/\/articles\/new$/);
 
       await page.keyboard.press("ControlOrMeta+k");
-      const palette = page.getByRole("dialog", {
-        name: t.quickJump.universalSearch,
+      const palette = page.getByRole("listbox", {
+        name: t.quickJump.resultsLabel,
         exact: true,
       });
       await expect(palette).toBeVisible();
-      const search = palette.getByRole("combobox", {
+      const search = page.getByRole("combobox", {
         name: t.quickJump.searchLabel,
         exact: true,
       });

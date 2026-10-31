@@ -22,7 +22,7 @@ export function formatDate(
     return `${year}-${month}-${day}`;
   }
 
-  const localeTag = locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB";
+  const localeTag = locale === "ar" ? "ar-u-nu-latn" : "en-GB";
 
   const options: Intl.DateTimeFormatOptions =
     format === "long"

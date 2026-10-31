@@ -109,12 +109,12 @@
     "resume": "Vozobnovitь animaciю"
   },
   "showreel": {
-    "badge": "Šouril 2026",
-    "title": "VIDENIE, VOPLOЩЁNNOE V DVIŽENII",
-    "subtitle": "Izbrannaя kollekciя naših kommerčeskih filьmov, istoriй brendov i aэrosъёmki v Bahreйne i stranah Arabskogo zaliva.",
-    "playShowreel": "Smotretь polnый šouril",
-    "watchIn4k": "Smotretь v 4K",
-    "streamTitle": "Kinopotok v 4K"
+    "badge": "Poglejte več",
+    "title": "Odkrijte naše delo",
+    "subtitle": "Bližji vpogled v to, kar počnemo.",
+    "playShowreel": "Predvajaj video",
+    "watchIn4k": "Ogled videa",
+    "streamTitle": "Video"
   },
   "services": {
     "badge": "Čto mы predlagaem",
@@ -122,15 +122,6 @@
     "subtitle": "Vse napravleniя našeй rabotы, opisannыe prozračno dlя uverennogo vыbora.",
     "sectionIndex": "(02)",
     "requestProposal": "Zaprositь rasčёt",
-    "soundstage": {
-      "title": "Akustičeskiй sъёmočnый pavilьon i ciklorama",
-      "desc": "Zvukoizolirovannый pavilьon ploщadью 250 m² v raйone Sif s 3-faznыm pitaniem 60 kVt, podvesnoй osvetitelьnoй fermoй 6 m i besšovnoй cikloramoй.",
-      "specs": [
-        "Sъёmočnый pavilьon 250 m²",
-        "Podvesnaя sistema osveщeniя",
-        "Zvukoizolirovannaя apparatnaя"
-      ]
-    },
     "sectionLabel": "Naši vozmožnosti",
     "headline": "Čto mы predlagaem"
   },
@@ -198,24 +189,24 @@
     "title": "Kto mы",
     "subtitle": "Uznaйte o našeй kompanii, našeй komande i podhode k sozdaniю video.",
     "storyTitle": "NAŠA FILOSOFIЯ",
-    "storyP1": "Mы verim, čto podlinnoe vizualьnoe vozdeйstvie roždaetsя na stыke tehničeskoй disciplinы i bezgraničnoй tvorčeskoй svobodы. Každaя naša sъёmka sozdaёtsя s glubokim vnimaniem k kompozicii, dinamičeskomu diapazonu i iskrennim эmociяm.",
-    "storyP2": "Ot nacionalьnыh televizionnыh kampaniй do masštabnыh imidževыh filьmov brendov — naša komanda ispolьzuet kinokamerы vыsšego klassa, točnый svet i peredovыe montažno-tonirovočnыe kompleksы dlя ukrepleniя statusa vašego brenda.",
+    "storyP1": "",
+    "storyP2": "",
     "ceoTitle": "Osnovatelь i kreativnый direktor",
-    "ceoName": "Saйed Ahmed Huseйn",
-    "ceoQuote": "Mы ne prosto ulavlivaem svet — mы formiruem to, kak vospominaniя, эmocii i brendы otzыvaюtsя skvozь vremя.",
+    "ceoName": "",
+    "ceoQuote": "",
     "gearTitle": "ARSENAL OBORUDOVANIЯ",
     "gearSubtitle": "Sobstvennый park kinooborudovaniя, otkalibrovannый dlя bezuprečnoй optičeskoй točnosti.",
-    "statFilms": "Bolee 180 snяtыh reklamnыh rolikov",
-    "statYears": "Bolee 8 let masterstva",
-    "statAwards": "14 regionalьnыh nagrad",
-    "statClients": "Bolee 65 korporativnыh klientov v stranah Zaliva",
+    "statFilms": "",
+    "statYears": "",
+    "statAwards": "",
+    "statClients": "",
     "sectionIndex": "(01)",
     "sectionLabel": "O nas",
     "headline": "Tim, obъedinёnnaя zabotoй o klientah.",
     "behindTheScenes": "Naša komanda za rabotoй",
     "shootCaption": "Naša komanda na sъёmkah",
     "missionLabel": "Naša missiя",
-    "mission": "Pomogatь lideram rыnka rasskazыvatь istorii svoih brendov s beskompromissnoй vizualьnoй točnostью i эmocionalьnoй glubinoй.",
+    "mission": "",
     "visionLabel": "Naše videnie",
     "discoverStudio": "Uznaйte našu istoriю i poznakomьtesь s komandoй",
     "gearAll": "Vsё oborudovanie",
@@ -224,43 +215,43 @@
     "gearLighting": "Osvetitelьnыe priborы",
     "gearAudioGrading": "Studiя masteringa",
     "gearStages": "Sъёmočnый pavilьon",
-    "statFilmsValue": "180+",
+    "statFilmsValue": "",
     "statFilmsLabel": "Snяtыh reklamnыh rolikov",
-    "statYearsValue": "8+",
+    "statYearsValue": "",
     "statYearsLabel": "Let masterstva",
-    "statAwardsValue": "14",
+    "statAwardsValue": "",
     "statAwardsLabel": "Regionalьnыh nagrad",
-    "statClientsValue": "65+",
+    "statClientsValue": "",
     "statClientsLabel": "Korporativnыh klientov v Zalive",
-    "recTag": "REC · 8K VV",
-    "gccTag": "100% GCC",
-    "coloristTag": "Sertificirovano DaVinci",
+    "recTag": "",
+    "gccTag": "",
+    "coloristTag": "",
     "pillars": {
       "badge": "Naši orientirы",
       "title": "Vrednosti, na kotorыh stroitsя naša rabota",
       "p1": {
-        "number": "01",
-        "title": "Kinematografičeskaя optika i postroenie kadra",
-        "desc": "Mulьtiformatnaя sъёmka v razrešenii 8K VistaVision na kamerы RED V-Raptor XL v svяzke s optikoй ARRI Master Primes dlя bezuprečnoй kartinki.",
-        "tag": "8K VistaVision"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p2": {
-        "number": "02",
-        "title": "Cvetokorrekciя HDR v DaVinci Resolve",
-        "desc": "Specializirovannaя montažno-tonirovočnaя studiя s эtalonnыm monitorom Sony BVM dlя sozdaniя avtorskih plёnočnыh cvetovыh palitr.",
-        "tag": "Kolorist DCI-P3"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p3": {
-        "number": "03",
-        "title": "Režissura povestvovaniя i dinamika",
-        "desc": "Sozdanie vizualьnыh эksplikaciй, scenariev i ritmičnogo montaža, prevraщaющih korporativnыe brifы v zahvatыvaющee kino.",
-        "tag": "Iskusstvo povestvovaniя"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p4": {
-        "number": "04",
-        "title": "Licenzirovannыe tяžёlыe i FPV-dronы",
-        "desc": "Polnostью sertificirovannыe Upravleniem graždanskoй aviacii Bahreйna (BCAA) polёtы dronov dlя sъёmki masštabnыh peйzažeй i dinamičnыh scen.",
-        "tag": "Licenziя BCAA"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       }
     },
     "stats": {
@@ -345,7 +336,7 @@
     "projectRefLabel": "Referens ili ssыlka na proekt (neobяzatelьno)",
     "projectRefPlaceholder": "https://example.com/reference",
     "shootLocation": "Lokaciя / gorod (neobяzatelьno)",
-    "shootLocationPlaceholder": "naprimer, Manama",
+    "shootLocationPlaceholder": "Mesto ali lokacija",
     "messageDetails": "Detali soobщeniя",
     "yourMessage": "Vaše soobщenie",
     "messagePlaceholder": "Opišite zadaču i lюbыe detali, kotorыe pomogut nam točnee otvetitь…",
@@ -403,7 +394,7 @@
     "registrationLabel": "Kommerčeskiй reestr (CR)"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "NDS",
     "vatNa": "NDS: Ne primenяetsя",
     "subtotal": "Poditog",
@@ -497,56 +488,12 @@
   },
   "stats": {
     "sectionIndex": "(04)",
-    "items": [
-      {
-        "value": "150+",
-        "label": "Snяtыh reklamnыh filьmov",
-        "sub": "Dlя brendov i korporaciй Zaliva"
-      },
-      {
-        "value": "8K",
-        "label": "Razrešenie sъёmki Cinema RAW",
-        "sub": "RED V-Raptor i ARRI ALEXA LF"
-      },
-      {
-        "value": "100%",
-        "label": "Licenzirovannыe polёtы dronov",
-        "sub": "Upravlenie graždanskoй aviacii Bahreйna"
-      },
-      {
-        "value": "10+",
-        "label": "Let liderstva v industrii",
-        "sub": "Štab-kvartira v Maname, Sif"
-      }
-    ],
+    "items": [],
     "sectionLabel": "Pokazateli i standartы studii"
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "BAHREЙN",
-    "items": [
-      {
-        "id": "rev-1",
-        "client": "Nacionalьnый bank Bahreйna (NBB)",
-        "author": "Direktor po marketingu i brendu",
-        "quote": "Tim sozdala vыdaющuюsя televizionnuю reklamnuю kampaniю, prevzošedšuю naši samыe smelыe ožidaniя. Cvetokorrekciя i sъёmka s drona vыpolnenы na mirovom urovne.",
-        "year": "2026"
-      },
-      {
-        "id": "rev-2",
-        "client": "Zain Bahrain",
-        "author": "Rukovoditelь otdela korporativnыh kommunikaciй",
-        "quote": "Professionalizm operatorskoй gruppы i bezukoriznennaя čёtkostь materiala v 8K preobrazili filьm o našem brende. Poistine lučšaя kinostudiя v Bahreйne.",
-        "year": "2025"
-      },
-      {
-        "id": "rev-3",
-        "client": "Sovet эkonomičeskogo razvitiя Bahreйna (EDB)",
-        "author": "Rukovoditelь napravleniя marketinga territoriй",
-        "quote": "Sotrudničestvo s komandoй nad filьmom o nacionalьnыh investiciяh prošlo bezuprečno. Oni zapečatleli naši arhitekturnыe dostoprimečatelьnosti s potrяsaющim svetom i glubinoй.",
-        "year": "2025"
-      }
-    ],
+    "items": [],
     "sectionLabel": "Utisci klientov i partnёrov",
     "headline": "Čto govorяt naši klientы",
     "subtitle": "Iskrennie otzыvы lюdeй i organizaciй, s kotorыmi mы sotrudničaem.",
@@ -570,24 +517,7 @@
   },
   "faq": {
     "sectionIndex": "(06)",
-    "items": [
-      {
-        "question": "Kakie kamerы i obъektivы vы ispolьzuete dlя sъёmki reklamы?",
-        "answer": "Mы snimaem preimuщestvenno na sistemы RED V-Raptor 8K, ARRI ALEXA Mini LF i Sony FX9 v sočetanii s obъektivami ARRI Master Primes, Cooke Anamorphic i Leica Cine."
-      },
-      {
-        "question": "Imeюt li vaši operatorы dronov licenzii na kommerčeskuю sъёmku v Bahreйne?",
-        "answer": "Da, vse naši operatorы tяžёlыh dronov pod kamerы RED i manёvrennыh FPV polnostью sertificirovanы Upravleniem graždanskoй aviacii Bahreйna (BCAA) i imeюt polnuю strahovku graždanskoй otvetstvennosti."
-      },
-      {
-        "question": "Skolьko vremeni zanimaet postproizvodstvo i cvetokorrekciя v DaVinci Resolve?",
-        "answer": "Standartnыe sroki postproizvodstva sostavlяюt ot 5 do 14 rabočih dneй v zavisimosti ot vizualьnыh эffektov, složnosti saund-dizaйna i količestva pravok po cvetu."
-      },
-      {
-        "question": "Zanimaetesь li vы preprodakšnom, kastingom i razrešeniяmi dlя proektov v stranah Zaliva?",
-        "answer": "Bezuslovno. Mы berёm na sebя polnый cikl podgotovki: vыbor lokaciй, polučenie razrešeniй ministerstv, kasting aktёrov, razrabotku raskadrovok i stroitelьstvo dekoraciй v Bahreйne i Saudovskoй Aravii."
-      }
-    ],
+    "items": [],
     "sectionLabel": "Často zadavaemыe voprosы",
     "headline": "Otvetы na populяrnыe voprosы",
     "subtitle": "Prяmыe otvetы o tom, kak mы rabotaem, čego ožidatь i kak načatь."
@@ -603,7 +533,7 @@
   },
   "preloader": {
     "load": "ZAGRUZKA",
-    "slogan": "KINO V KAŽDOM KADRE · PROIZVODSTVO V 8K",
+    "slogan": "Welcome",
     "skipHint": "Nažmite v lюbom meste dlя vhoda"
   },
   "email": {

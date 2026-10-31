@@ -70,11 +70,11 @@ export function HandoverSigningView({
   const [error, setError] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
   const date = (v: string) =>
-    new Intl.DateTimeFormat(isAr ? "ar-BH-u-nu-latn" : "en-GB", {
+    new Intl.DateTimeFormat(isAr ? "ar-u-nu-latn" : "en-GB", {
       day: "numeric",
       month: "long",
       year: "numeric",
-      timeZone: "Asia/Bahrain",
+      timeZone: (company as any).timeZone || "UTC",
     }).format(new Date(v.length === 10 ? `${v}T00:00:00Z` : v));
   const pdf = (lang: "ar" | "en", download = false) =>
     `/api/acknowledge/${encodeURIComponent(token)}/pdf?locale=${lang}${download ? "&download=true" : ""}`;

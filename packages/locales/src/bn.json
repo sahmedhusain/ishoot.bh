@@ -122,11 +122,6 @@
     "subtitle": "আমরা যা কিছু প্রদান করি, তা স্পষ্টভাবে তুলে ধরা হয়েছে যাতে আপনি আস্থার সাথে বেছে নিতে পারেন।",
     "sectionIndex": "(02)",
     "requestProposal": "উদ্ধৃতি বা কোট অনুরোধ করুন",
-    "soundstage": {
-      "title": "",
-      "desc": "",
-      "specs": []
-    },
     "sectionLabel": "সক্ষমতা",
     "headline": "আমরা যা প্রদান করি"
   },
@@ -399,7 +394,7 @@
     "registrationLabel": "বাণিজ্যিক নিবন্ধন (CR)"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "ভ্যাট (VAT)",
     "vatNa": "ভ্যাট: প্রযোজ্য নয়",
     "subtotal": "উপমোট",
@@ -498,7 +493,6 @@
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "",
     "items": [],
     "sectionLabel": "ক্লায়েন্ট ও অংশীদারদের প্রশংসাপত্র",
     "headline": "আমাদের গ্রাহকরা কী বলেন",

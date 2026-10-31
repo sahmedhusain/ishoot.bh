@@ -26,9 +26,27 @@ export function useTranslation() {
     [locale, site],
   );
 
+  const defaultValues: MessageValues = React.useMemo(() => {
+    const name = site ? (locale === "ar" ? (site.companyNameAr || site.companyNameEn) : (site.companyNameEn || site.companyNameAr)) : "";
+    return {
+      companyName: name || "",
+      year: new Date().getFullYear(),
+      currency: site?.currency || "USD",
+    };
+  }, [site, locale]);
+
   function t(path: string, values?: MessageValues): string {
     const template = getNestedTranslation(translations, path);
-    return values ? formatMessage(template, values) : template;
+    if (!template || typeof template !== "string") return template;
+    const merged = values ? { ...defaultValues, ...values } : defaultValues;
+    if (values || /\{[A-Za-z0-9_]+\}/.test(template)) {
+      try {
+        return formatMessage(template, merged);
+      } catch {
+        return template;
+      }
+    }
+    return template;
   }
 
   return { t, locale, isRTL, isArabic: locale === "ar", translations, site };

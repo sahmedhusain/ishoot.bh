@@ -71,7 +71,7 @@ export async function POST(
     if (!(await storeEnabled()))
       return NextResponse.json({ error: "unavailable" }, { status: 404 });
     const { config } = await getSite();
-    if ((!["quote", "delivery"].includes(action) && await isWebsitePreview()) || (action === "order" && !(await orderingEnabled())) || (action === "delivery" && !config.commerce.capabilities.delivery))
+    if ((!["quote", "delivery", "regions"].includes(action) && await isWebsitePreview()) || (action === "order" && !(await orderingEnabled())) || (action === "delivery" && !config.commerce.capabilities.delivery))
       return NextResponse.json({ error: "unavailable" }, { status: 404 });
     if (!sameOrigin(req))
       return NextResponse.json({ error: "generic" }, { status: 403 });
@@ -85,6 +85,11 @@ export async function POST(
       const area = place
         ? { area: str(place.area, 80), city: str(place.city, 80) }
         : null;
+      if (action === "regions") {
+        const { listStoreRegions } = await import("@platform/database");
+        const regions = await listStoreRegions();
+        return NextResponse.json(regions.filter((r) => r.isEnabled));
+      }
       if (action === "quote")
         return NextResponse.json(
           await quoteCart({
@@ -92,6 +97,7 @@ export async function POST(
             couponCode: str(body.couponCode, 30),
             fulfilment,
             address: area,
+            regionCode: str(body.regionCode, 20) || undefined,
           }),
         );
       // Delivery times (and whether the area is served) for the checkout.
@@ -128,6 +134,7 @@ export async function POST(
         couponCode: str(body.couponCode, 30),
         fulfilment,
         pickupBranchId: str(body.pickupBranchId, 60) || null,
+        regionCode: str(body.regionCode, 20) || undefined,
         address: address
           ? {
               name: str(address.name, 120),

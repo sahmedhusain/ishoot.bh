@@ -314,7 +314,7 @@ export function ClientSignaturePanel({
               <p className="text-xs text-ink-muted dark:text-ink">
                 {formatMessage(s.linkNotice, {
                   date: new Intl.DateTimeFormat(
-                    locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB",
+                    locale === "ar" ? "ar-u-nu-latn" : "en-GB",
                     { dateStyle: "long", timeStyle: "short" },
                   ).format(new Date(link.expiresAt))
                 })}

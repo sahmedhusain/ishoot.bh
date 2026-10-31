@@ -182,8 +182,8 @@ export function AttendanceSheetView({ sheet, canEdit }: { sheet: AttendanceSheet
   const monthKey = (y: number, m: number) => `${y}-${String(m).padStart(2, "0")}`;
   const prev = sheet.month === 1 ? monthKey(sheet.year - 1, 12) : monthKey(sheet.year, sheet.month - 1);
   const next = sheet.month === 12 ? monthKey(sheet.year + 1, 1) : monthKey(sheet.year, sheet.month + 1);
-  const title = new Intl.DateTimeFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-BH", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(sheet.year, sheet.month - 1, 1)));
-  const weekday = new Intl.DateTimeFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-BH", { weekday: "narrow", timeZone: "UTC" });
+  const title = new Intl.DateTimeFormat(locale === "ar" ? "ar-u-nu-latn" : "en-GB", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(sheet.year, sheet.month - 1, 1)));
+  const weekday = new Intl.DateTimeFormat(locale === "ar" ? "ar-u-nu-latn" : "en-GB", { weekday: "narrow", timeZone: "UTC" });
   const PrevIcon = isRTL ? ChevronRight : ChevronLeft;
   const NextIcon = isRTL ? ChevronLeft : ChevronRight;
 

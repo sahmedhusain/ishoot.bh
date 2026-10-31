@@ -169,7 +169,7 @@ export function AccountDashboard({ locale, customer, addresses, wishlist, orders
                 <li key={o.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3 text-sm" data-testid={`account-order-${o.number}`}>
                   <Link href={`/${locale}/account/orders/${o.id}`} className="font-mono text-xs font-semibold text-m3-primary underline min-h-11 inline-flex items-center" dir="ltr">{o.number}</Link>
                   <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-xs">{o.fulfilment === "pickup" && ["shipped", "delivered"].includes(o.status) ? t(`store.pickupStatuses.${o.status}`) : t(`store.statuses.${o.status}`)}</span>
-                  <span className="text-ink-muted">{new Date(o.placed_at).toLocaleDateString(locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB")}</span>
+                  <span className="text-ink-muted">{new Date(o.placed_at).toLocaleDateString(locale === "ar" ? "ar-u-nu-latn" : "en-GB")}</span>
                   <span className="text-ink-muted">{t("store.orderItems", { count: o.lines.reduce((sum, l) => sum + l.quantity, 0) })}</span>
                   {o.tracking_token && <Link href={`/${locale}/track/${o.tracking_token}`} className="text-xs font-semibold text-[var(--web-accent)] hover:underline">{t("store.track")}</Link>}
                   <span className="ms-auto font-semibold text-white">{formatPrice(o.total, o.currency, locale)}</span>

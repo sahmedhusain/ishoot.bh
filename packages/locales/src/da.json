@@ -122,11 +122,6 @@
     "subtitle": "Alt det, vi leverer, forklaret klart, så du kan vælge med tillid.",
     "sectionIndex": "(02)",
     "requestProposal": "Få et tilbud",
-    "soundstage": {
-      "title": "",
-      "desc": "",
-      "specs": []
-    },
     "sectionLabel": "Kapacitet",
     "headline": "Hvad vi tilbyder"
   },
@@ -399,7 +394,7 @@
     "registrationLabel": "CVR-nummer"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "Moms",
     "vatNa": "Moms: Ikke relevant",
     "subtotal": "Subtotal",
@@ -498,7 +493,6 @@
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "",
     "items": [],
     "sectionLabel": "Kunde- og partnerudtalelser",
     "headline": "Hvad vores kunder siger",

@@ -9,6 +9,7 @@ generator client {
 }
 
 model User {
+  branchGrants BranchGrant[]
   id                        String            @id @default(uuid())
   email                     String            @unique
   fullName                  String
@@ -104,6 +105,12 @@ model User {
   announcementReceipts       AnnouncementReceipt[]
   cmsArticles                CmsArticle[]           @relation("CmsArticleAuthor")
   dashboardLayout            DashboardLayout?
+  cashierSessions            CashierSession[]       @relation("UserCashierSessions")
+  openedShifts               RetailShift[]          @relation("UserOpenedShifts")
+  closedShifts               RetailShift[]          @relation("UserClosedShifts")
+  retailClosings             RetailClosing[]        @relation("UserRetailClosings")
+  paymentCollections         PaymentCollection[]    @relation("UserPaymentCollections")
+  attributedCommissions      CommissionSnapshot[]   @relation("UserAttributedCommissions")
 
   @@index([role])
   @@index([departmentId])
@@ -136,10 +143,15 @@ model CompanySetting {
   bankIban          String?
   bankAccountNumber String?
   bankSwift         String?
+  timeZone          String? @default("Asia/Bahrain")
   logoUrl           String?
   darkLogoUrl       String?
+  fullLogoUrl       String?
+  darkFullLogoUrl   String?
   iconUrl           String?
   darkIconUrl       String?
+  documentHeaderUrl String?
+  documentFooterUrl String?
   stampUrl          String?
   signatureUrl      String?
   paymentTermsDays  Int     @default(30)
@@ -2959,6 +2971,9 @@ model ProductCategory {
 
 /// Something the company sells or buys and keeps in stock. Prices are in the company currency.
 model Product {
+  packagingUnits ProductPackagingUnit[]
+  stockSerials StockSerial[]
+  serialGenerations SerialGeneration[]
   id              String           @id @default(uuid())
   sku             String           @unique
   barcode         String?          @unique
@@ -3016,6 +3031,8 @@ model ProductVariant {
 
 /// A place stock is kept. Every warehouse has at least one location (its main one); shelves and bins are more.
 model Warehouse {
+  branchId       String?
+  branch         Branch? @relation(fields: [branchId], references: [id], onDelete: Restrict)
   id             String          @id @default(uuid())
   code           String          @unique
   nameEn         String
@@ -3033,6 +3050,9 @@ model Warehouse {
 }
 
 model StockLocation {
+  serials StockSerial[]
+  packages StockPackage[]
+  generations SerialGeneration[]
   id          String          @id @default(uuid())
   warehouseId String
   warehouse   Warehouse       @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
@@ -4163,4 +4183,461 @@ model DashboardLayout {
   /// [{ id, size }] from the widget catalogue (constants/dashboard.ts), normalised on every read and write.
   widgets   Json
   updatedAt DateTime @updatedAt
+}
+
+/// A business location, distinct from its warehouses and registers.
+model Branch {
+  id                String   @id @default(uuid())
+  code              String   @unique
+  name              String
+  timeZone          String
+  businessDayStart  Int      @default(0)
+  isActive          Boolean  @default(true)
+  revision          Int      @default(1)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  warehouses        Warehouse[]
+  grants            BranchGrant[]
+  registers         RetailRegister[]
+  shifts            RetailShift[]
+  closings          RetailClosing[]
+  paymentMethods    PaymentMethodConfig[]
+  collections       PaymentCollection[]
+  regions           StoreRegion[]
+}
+
+/// Scope is additional to resource permissions, never a replacement for them.
+model BranchGrant {
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  id        String @id @default(uuid())
+  branchId  String
+  branch    Branch @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  userId    String
+  canManage Boolean @default(false)
+  @@unique([branchId, userId])
+  @@index([userId])
+}
+
+/// Conversion snapshots on documents preserve old packaging definitions.
+model ProductPackagingUnit {
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  id          String   @id @default(uuid())
+  productId   String
+  code        String
+  name        String
+  baseUnits   Decimal  @db.Decimal(17, 6)
+  indivisible Boolean  @default(true)
+  barcode     String?  @unique
+  revision    Int      @default(1)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  @@unique([productId, code, revision])
+}
+
+/// Identity is not another stock balance. Every active unit belongs to existing stock.
+model StockSerial {
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  location StockLocation? @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  id                 String   @id @default(uuid())
+  code               String   @unique
+  productId          String
+  variantKey         String   @default("")
+  batchKey           String   @default("")
+  locationId         String?
+  manufacturerSerial String?
+  manufacturerScope  String?
+  status             String   @default("reserved")
+  packageId          String?
+  package            StockPackage? @relation(fields: [packageId], references: [id], onDelete: Restrict)
+  generationId       String
+  generation         SerialGeneration @relation(fields: [generationId], references: [id], onDelete: Restrict)
+  revision           Int      @default(1)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  @@unique([manufacturerScope, manufacturerSerial])
+  @@index([productId, variantKey, locationId, batchKey, status])
+}
+
+model SerialGeneration {
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  location StockLocation @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  id             String   @id @default(uuid())
+  idempotencyKey String   @unique
+  requestHash    String
+  productId      String
+  variantKey     String   @default("")
+  batchKey       String   @default("")
+  locationId     String
+  quantity       Int
+  createdById    String
+  createdAt      DateTime @default(now())
+  serials        StockSerial[]
+}
+
+model StockPackage {
+  location StockLocation @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  id           String   @id @default(uuid())
+  code         String   @unique
+  kind         String   @default("carton")
+  locationId   String
+  parentId     String?
+  parent       StockPackage? @relation("PackageTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children     StockPackage[] @relation("PackageTree")
+  status       String   @default("open")
+  sealNumber   String?
+  revision     Int      @default(1)
+  createdById  String
+  createdAt    DateTime @default(now())
+  serials      StockSerial[]
+  contents     PackageContent[]
+}
+
+/// Nonserialized contents only; serialized membership is StockSerial.packageId.
+model PackageContent {
+  id          String @id @default(uuid())
+  packageId   String
+  package     StockPackage @relation(fields: [packageId], references: [id], onDelete: Restrict)
+  productId   String
+  variantKey  String @default("")
+  batchKey    String @default("")
+  quantity    Decimal @db.Decimal(17, 6)
+  @@unique([packageId, productId, variantKey, batchKey])
+}
+
+model StockTraceEvent {
+  id          String   @id @default(uuid())
+  entityType  String
+  entityId    String
+  revision    Int
+  action      String
+  actorId     String
+  details     Json
+  createdAt   DateTime @default(now())
+  @@index([entityType, entityId, createdAt])
+}
+
+model LabelPrintJob {
+  id             String   @id @default(uuid())
+  idempotencyKey String   @unique
+  requestHash    String
+  template       Json
+  labels         Json
+  status         String   @default("generated")
+  originalJobId  String?
+  createdById    String
+  confirmedById  String?
+  confirmedAt    DateTime?
+  createdAt      DateTime @default(now())
+}
+
+model AccountingAccount {
+  id       String @id @default(uuid())
+  code     String @unique
+  name     String
+  kind     String
+  isActive Boolean @default(true)
+  lines    JournalLine[]
+}
+
+model AccountingPeriod {
+  id        String @id @default(uuid())
+  name      String @unique
+  startsOn  DateTime @db.Date
+  endsOn    DateTime @db.Date
+  status    String @default("open")
+  closedById String?
+  closedAt  DateTime?
+  entries   JournalEntry[]
+}
+
+/// Posted records are append-only; corrections are linked reversing entries.
+model JournalEntry {
+  id             String @id @default(uuid())
+  sourceKey      String @unique
+  requestHash    String
+  periodId       String
+  period         AccountingPeriod @relation(fields: [periodId], references: [id], onDelete: Restrict)
+  postingDate    DateTime @db.Date
+  currency       String
+  memo           String
+  branchId       String?
+  reversalOfId   String? @unique
+  reversalOf     JournalEntry? @relation("JournalReversal", fields: [reversalOfId], references: [id], onDelete: Restrict)
+  reversal       JournalEntry? @relation("JournalReversal")
+  createdById    String
+  createdAt      DateTime @default(now())
+  lines          JournalLine[]
+  @@index([periodId, postingDate])
+  @@index([branchId, postingDate])
+}
+
+model JournalLine {
+  id        String @id @default(uuid())
+  entryId   String
+  entry     JournalEntry @relation(fields: [entryId], references: [id], onDelete: Restrict)
+  accountId String
+  account   AccountingAccount @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  debit     Decimal @db.Decimal(20, 6)
+  credit    Decimal @db.Decimal(20, 6)
+  memo      String?
+  @@index([accountId, entryId])
+}
+
+model StockAllocation {
+  id               String @id @default(uuid())
+  number           String @unique
+  kind             String
+  sourceLocationId String
+  transitLocationId String
+  destinationLocationId String
+  status           String @default("requested")
+  revision         Int @default(1)
+  createdById      String
+  approvedById     String?
+  carrierId        String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  lines            StockAllocationLine[]
+  acknowledgments  StockAcknowledgment[]
+}
+
+model StockAllocationLine {
+  id           String @id @default(uuid())
+  allocationId String
+  allocation   StockAllocation @relation(fields: [allocationId], references: [id], onDelete: Restrict)
+  productId    String
+  variantKey   String @default("")
+  batchKey     String @default("")
+  requested    Decimal @db.Decimal(17, 6)
+  dispatched   Decimal @default(0) @db.Decimal(17, 6)
+  received     Decimal @default(0) @db.Decimal(17, 6)
+  rejected     Decimal @default(0) @db.Decimal(17, 6)
+  unitSnapshot Json
+  serialIds    String[]
+  @@unique([allocationId, productId, variantKey, batchKey])
+}
+
+/// A live acknowledgment references an immutable snapshot, not mutable screen data.
+model StockAcknowledgment {
+  id           String @id @default(uuid())
+  allocationId String
+  allocation   StockAllocation @relation(fields: [allocationId], references: [id], onDelete: Restrict)
+  revision     Int
+  stage        String
+  actorId      String
+  signerName   String
+  statement    String
+  manifest     Json
+  manifestHash String
+  signature    String
+  createdAt    DateTime @default(now())
+  @@unique([allocationId, revision, stage, actorId])
+}
+
+model RetailRegister {
+  id        String           @id @default(uuid())
+  branchId  String
+  branch    Branch           @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  code      String
+  name      String
+  isActive  Boolean          @default(true)
+  revision  Int              @default(1)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  drawers   CashDrawer[]
+  sessions  CashierSession[]
+
+  @@unique([branchId, code])
+  @@index([branchId])
+}
+
+model CashDrawer {
+  id             String           @id @default(uuid())
+  registerId     String
+  register       RetailRegister   @relation(fields: [registerId], references: [id], onDelete: Restrict)
+  code           String
+  name           String
+  currency       String           @default("BHD")
+  openingFloat   Decimal          @default(0) @db.Decimal(20, 6)
+  currentBalance Decimal          @default(0) @db.Decimal(20, 6)
+  isActive       Boolean          @default(true)
+  revision       Int              @default(1)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  sessions       CashierSession[]
+
+  @@unique([registerId, code])
+  @@index([registerId])
+}
+
+model CashierSession {
+  id             String              @id @default(uuid())
+  registerId     String
+  register       RetailRegister      @relation(fields: [registerId], references: [id], onDelete: Restrict)
+  drawerId       String
+  drawer         CashDrawer          @relation(fields: [drawerId], references: [id], onDelete: Restrict)
+  cashierId      String
+  cashier        User                @relation("UserCashierSessions", fields: [cashierId], references: [id], onDelete: Restrict)
+  shiftId        String?
+  shift          RetailShift?        @relation(fields: [shiftId], references: [id], onDelete: Restrict)
+  openedAt       DateTime            @default(now())
+  closedAt       DateTime?
+  openingFloat   Decimal             @db.Decimal(20, 6)
+  closingFloat   Decimal?            @db.Decimal(20, 6)
+  expectedCash   Decimal             @default(0) @db.Decimal(20, 6)
+  actualCash     Decimal             @default(0) @db.Decimal(20, 6)
+  cashDifference Decimal             @default(0) @db.Decimal(20, 6)
+  totalSales     Decimal             @default(0) @db.Decimal(20, 6)
+  totalReturns   Decimal             @default(0) @db.Decimal(20, 6)
+  status         String              @default("open")
+  note           String?
+  revision       Int                 @default(1)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  collections    PaymentCollection[]
+
+  @@index([registerId, status])
+  @@index([cashierId, status])
+}
+
+model RetailShift {
+  id          String           @id @default(uuid())
+  branchId    String
+  branch      Branch           @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  shiftNumber String           @unique
+  openedById  String
+  openedBy    User             @relation("UserOpenedShifts", fields: [openedById], references: [id], onDelete: Restrict)
+  closedById  String?
+  closedBy    User?            @relation("UserClosedShifts", fields: [closedById], references: [id], onDelete: Restrict)
+  openedAt    DateTime         @default(now())
+  closedAt    DateTime?
+  status      String           @default("open")
+  revision    Int              @default(1)
+  sessions    CashierSession[]
+
+  @@index([branchId, status])
+}
+
+model RetailClosing {
+  id           String   @id @default(uuid())
+  branchId     String
+  branch       Branch   @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  level        String
+  targetId     String
+  businessDate DateTime @db.Date
+  closedAt     DateTime @default(now())
+  closedById   String
+  closedBy     User     @relation("UserRetailClosings", fields: [closedById], references: [id], onDelete: Restrict)
+  totalSales   Decimal  @db.Decimal(20, 6)
+  totalReturns Decimal  @db.Decimal(20, 6)
+  totalCash    Decimal  @db.Decimal(20, 6)
+  totalCard    Decimal  @db.Decimal(20, 6)
+  totalOther   Decimal  @db.Decimal(20, 6)
+  cashVariance Decimal  @db.Decimal(20, 6)
+  snapshot     Json
+  signature    String?
+  journalId    String?
+  status       String   @default("closed")
+  revision     Int      @default(1)
+
+  @@index([branchId, level, businessDate])
+  @@index([targetId, level])
+}
+
+model PaymentMethodConfig {
+  id                String   @id @default(uuid())
+  branchId          String
+  branch            Branch   @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  code              String
+  nameEn            String
+  nameAr            String
+  isEnabled         Boolean  @default(true)
+  allowChange       Boolean  @default(false)
+  requiresReference Boolean  @default(false)
+  surchargeRate     Decimal  @default(0) @db.Decimal(5, 4)
+  sortOrder         Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([branchId, code])
+  @@index([branchId])
+}
+
+model PaymentCollection {
+  id              String          @id @default(uuid())
+  number          String          @unique
+  branchId        String
+  branch          Branch          @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  sessionId       String?
+  session         CashierSession? @relation(fields: [sessionId], references: [id], onDelete: Restrict)
+  orderId         String?
+  invoiceId       String?
+  amount          Decimal         @db.Decimal(20, 6)
+  currency        String
+  methodCode      String
+  referenceNumber String?
+  evidence        Json?
+  status          String          @default("collected")
+  collectedById   String
+  collectedBy     User            @relation("UserPaymentCollections", fields: [collectedById], references: [id], onDelete: Restrict)
+  collectedAt     DateTime        @default(now())
+
+  @@index([branchId, methodCode, status])
+  @@index([sessionId])
+}
+
+model CommissionRule {
+  id            String               @id @default(uuid())
+  code          String               @unique
+  name          String
+  rate          Decimal              @db.Decimal(5, 4)
+  effectiveFrom DateTime             @db.Date
+  effectiveTo   DateTime?            @db.Date
+  version       Int                  @default(1)
+  isActive      Boolean              @default(true)
+  createdAt     DateTime             @default(now())
+  snapshots     CommissionSnapshot[]
+}
+
+model CommissionSnapshot {
+  id                 String              @id @default(uuid())
+  orderId            String
+  orderLineId        String?
+  attributedUserId   String
+  attributedUser     User                @relation("UserAttributedCommissions", fields: [attributedUserId], references: [id], onDelete: Restrict)
+  ruleId             String
+  rule               CommissionRule      @relation(fields: [ruleId], references: [id], onDelete: Restrict)
+  ruleVersion        Int
+  ruleRate           Decimal             @db.Decimal(5, 4)
+  basisAmount        Decimal             @db.Decimal(20, 6)
+  commissionAmount   Decimal             @db.Decimal(20, 6)
+  currency           String
+  status             String              @default("earned")
+  reversalOfId       String?             @unique
+  reversalOf         CommissionSnapshot? @relation("CommissionReversal", fields: [reversalOfId], references: [id], onDelete: Restrict)
+  reversal           CommissionSnapshot? @relation("CommissionReversal")
+  calculationDetails Json
+  earnedAt           DateTime            @default(now())
+  createdById        String
+
+  @@index([attributedUserId, status, earnedAt])
+  @@index([orderId])
+}
+
+model StoreRegion {
+  id              String   @id @default(uuid())
+  code            String   @unique
+  nameEn          String
+  nameAr          String
+  currency        String
+  defaultLanguage String   @default("en")
+  branchId        String
+  branch          Branch   @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  isEnabled       Boolean  @default(true)
+  priceMultiplier Decimal  @default(1.0000) @db.Decimal(10, 4)
+  settings        Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([branchId])
 }

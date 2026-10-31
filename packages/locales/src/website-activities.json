@@ -3,53 +3,53 @@
     "en": {
       "about": {
         "title": "Who we are",
-        "headline": "A team built around the people we serve.",
+        "headline": "A team built around the people we serve at {companyName}.",
         "discoverStudio": "Discover our story and team",
         "behindTheScenes": "Our team at work",
         "pillars": {
           "badge": "What we stand for",
-          "title": "The values behind our work"
+          "title": "The values behind our work at {companyName}"
         },
         "stats": {
           "badge": "In numbers"
         },
-        "studioImageAlt": "Our team and workplace"
+        "studioImageAlt": "{companyName} team and workplace"
       },
       "services": {
         "badge": "What we offer",
         "title": "Our services",
-        "subtitle": "Everything we provide, explained clearly so you can choose with confidence."
+        "subtitle": "Everything {companyName} provides, explained clearly so you can choose with confidence."
       },
       "faq": {
         "headline": "Questions we are often asked",
-        "subtitle": "Straight answers about how we work, what to expect and how to get started."
+        "subtitle": "Straight answers about how we work at {companyName}, what to expect and how to get started."
       },
       "reviews": {
         "headline": "What our customers say",
-        "subtitle": "Honest feedback from the people and organisations we work with.",
+        "subtitle": "Honest feedback from the people and organisations {companyName} works with.",
         "modal": {
-          "subtitle": "Your feedback helps us improve",
-          "quotePlaceholder": "Tell us about your experience with our team…"
+          "subtitle": "Your feedback helps {companyName} improve",
+          "quotePlaceholder": "Tell us about your experience with {companyName}…"
         }
       },
       "clients": {
         "marqueeBadge": "Trusted by"
       },
       "hero": {
-        "caption": "Welcome — take a look around"
+        "caption": "Welcome to {companyName} — take a look around"
       },
       "contact": {
         "directStudioLine": "Contact our team",
-        "messagePlaceholder": "Tell us what you need and any details that help us respond…",
+        "messagePlaceholder": "Tell us what you need from {companyName} and any details that help us respond…",
         "intents": {
-          "quoteRequestDesc": "Tell us what you need so we can prepare an accurate quote."
+          "quoteRequestDesc": "Tell us what you need so we can prepare an accurate quote for {companyName}."
         },
         "shootLocation": "Location / city (optional)",
-        "shootLocationPlaceholder": "e.g. Manama",
+        "shootLocationPlaceholder": "City or location",
         "projectRefPlaceholder": "https://example.com/reference"
       },
       "footer": {
-        "invitationTitle": "Let’s work together.",
+        "invitationTitle": "Let’s work together with {companyName}.",
         "invitationAction": "Get in touch"
       },
       "cta": {
@@ -59,53 +59,53 @@
     "ar": {
       "about": {
         "title": "من نحن",
-        "headline": "فريق يعمل من أجل من نخدمهم.",
+        "headline": "فريق يعمل من أجل من نخدمهم في {companyName}.",
         "discoverStudio": "تعرّف على قصتنا وفريقنا",
         "behindTheScenes": "فريقنا أثناء العمل",
         "pillars": {
           "badge": "ما نؤمن به",
-          "title": "القيم التي تقود عملنا"
+          "title": "القيم التي تقود عملنا في {companyName}"
         },
         "stats": {
           "badge": "بالأرقام"
         },
-        "studioImageAlt": "فريقنا ومقر عملنا"
+        "studioImageAlt": "فريق ومقر عمل {companyName}"
       },
       "services": {
         "badge": "ما نقدّمه",
         "title": "خدماتنا",
-        "subtitle": "كل ما نقدّمه بوضوح لتختار بثقة."
+        "subtitle": "كل ما يقدّمه {companyName} بوضوح لتختار بثقة."
       },
       "faq": {
         "headline": "أسئلة تصلنا كثيراً",
-        "subtitle": "إجابات مباشرة عن طريقة عملنا وما تتوقعه وكيف تبدأ."
+        "subtitle": "إجابات مباشرة عن طريقة عملنا في {companyName} وما تتوقعه وكيف تبدأ."
       },
       "reviews": {
         "headline": "ماذا يقول عملاؤنا",
-        "subtitle": "آراء صادقة من الأفراد والجهات التي نعمل معها.",
+        "subtitle": "آراء صادقة من الأفراد والجهات التي تعمل مع {companyName}.",
         "modal": {
-          "subtitle": "رأيك يساعدنا على التحسّن",
-          "quotePlaceholder": "أخبرنا عن تجربتك مع فريقنا…"
+          "subtitle": "رأيك يساعد {companyName} على التحسّن",
+          "quotePlaceholder": "أخبرنا عن تجربتك مع {companyName}…"
         }
       },
       "clients": {
         "marqueeBadge": "يثقون بنا"
       },
       "hero": {
-        "caption": "أهلاً بك، تفضّل بالاطلاع"
+        "caption": "أهلاً بك في {companyName}، تفضّل بالاطلاع"
       },
       "contact": {
         "directStudioLine": "تواصل مع فريقنا",
-        "messagePlaceholder": "أخبرنا بما تحتاجه وأي تفاصيل تساعدنا على الرد…",
+        "messagePlaceholder": "أخبرنا بما تحتاجه من {companyName} وأي تفاصيل تساعدنا على الرد…",
         "intents": {
-          "quoteRequestDesc": "أخبرنا بما تحتاجه لنعدّ لك عرض سعر دقيقاً."
+          "quoteRequestDesc": "أخبرنا بما تحتاجه لنعدّ لك عرض سعر دقيقاً لخدمات {companyName}."
         },
         "shootLocation": "الموقع / المدينة (اختياري)",
-        "shootLocationPlaceholder": "مثال: المنامة",
+        "shootLocationPlaceholder": "المدينة أو الموقع",
         "projectRefPlaceholder": "https://example.com/reference"
       },
       "footer": {
-        "invitationTitle": "لنعمل معاً.",
+        "invitationTitle": "لنعمل معاً مع {companyName}.",
         "invitationAction": "تواصل معنا"
       },
       "cta": {
@@ -122,7 +122,7 @@
       "portfolio": {
         "badge": "Selected work",
         "title": "Case studies",
-        "subtitle": "Campaigns and brands we have helped grow, with the results behind them.",
+        "subtitle": "Campaigns and brands {companyName} has helped grow, with the results behind them.",
         "viewProject": "View case study",
         "filterAll": "All case studies",
         "allWork": "All case studies",
@@ -137,10 +137,10 @@
         "intents": {
           "quoteRequest": "Start a project"
         },
-        "messagePlaceholder": "Tell us about your brand, your goals and the audience you want to reach…"
+        "messagePlaceholder": "Tell {companyName} about your brand, your goals and the audience you want to reach…"
       },
       "footer": {
-        "invitationTitle": "Your next campaign. Built together.",
+        "invitationTitle": "Your next campaign with {companyName}. Built together.",
         "invitationAction": "Start a project"
       },
       "articles": {
@@ -157,7 +157,7 @@
       "portfolio": {
         "badge": "مختارات من أعمالنا",
         "title": "دراسات الحالة",
-        "subtitle": "حملات وعلامات ساعدناها على النمو، مع النتائج التي حققتها.",
+        "subtitle": "حملات وعلامات ساعدتها {companyName} على النمو، مع النتائج التي حققتها.",
         "viewProject": "عرض دراسة الحالة",
         "filterAll": "جميع دراسات الحالة",
         "allWork": "جميع دراسات الحالة",
@@ -172,10 +172,10 @@
         "intents": {
           "quoteRequest": "ابدأ مشروعاً"
         },
-        "messagePlaceholder": "أخبرنا عن علامتك وأهدافك والجمهور الذي تريد الوصول إليه…"
+        "messagePlaceholder": "أخبر {companyName} عن علامتك وأهدافك والجمهور الذي تريد الوصول إليه…"
       },
       "footer": {
-        "invitationTitle": "حملتك القادمة. نبنيها معاً.",
+        "invitationTitle": "حملتك القادمة مع {companyName}. نبنيها معاً.",
         "invitationAction": "ابدأ مشروعاً"
       },
       "articles": {
@@ -194,7 +194,7 @@
       "portfolio": {
         "badge": "Our range",
         "title": "Products",
-        "subtitle": "Explore our products, find the right one and ask us anything about it.",
+        "subtitle": "Explore our products at {companyName}, find the right one and ask us anything about it.",
         "viewProject": "View product",
         "filterAll": "All products",
         "allWork": "All products",
@@ -210,12 +210,12 @@
           "quoteRequest": "Order or request a quote",
           "quoteRequestDesc": "Tell us which products and quantities you need, and where to deliver."
         },
-        "messagePlaceholder": "Which products, how many, and any delivery details…",
+        "messagePlaceholder": "Tell {companyName} which products interest you, quantities and your location…",
         "shootLocation": "Delivery area / city (optional)",
-        "shootLocationPlaceholder": "e.g. Manama"
+        "shootLocationPlaceholder": "e.g. Delivery district or city"
       },
       "footer": {
-        "invitationTitle": "Found what you need?",
+        "invitationTitle": "Found what you were looking for at {companyName}?",
         "invitationAction": "Order or ask a question"
       },
       "cta": {
@@ -235,7 +235,7 @@
       "portfolio": {
         "badge": "تشكيلتنا",
         "title": "المنتجات",
-        "subtitle": "تصفّح منتجاتنا واختر ما يناسبك واسألنا عن أي تفاصيل.",
+        "subtitle": "تصفّح منتجاتنا لدى {companyName} واختر ما يناسبك واسألنا عن أي تفاصيل.",
         "viewProject": "عرض المنتج",
         "filterAll": "جميع المنتجات",
         "allWork": "جميع المنتجات",
@@ -251,12 +251,12 @@
           "quoteRequest": "اطلب أو استفسر عن السعر",
           "quoteRequestDesc": "أخبرنا بالمنتجات والكميات التي تحتاجها ومكان التوصيل."
         },
-        "messagePlaceholder": "المنتجات والكميات وأي تفاصيل للتوصيل…",
+        "messagePlaceholder": "أخبر {companyName} بالمنتجات التي تهمك والكميات وموقعك…",
         "shootLocation": "منطقة التوصيل / المدينة (اختياري)",
-        "shootLocationPlaceholder": "مثال: المنامة"
+        "shootLocationPlaceholder": "مثال: حي التوصيل أو المدينة"
       },
       "footer": {
-        "invitationTitle": "وجدت ما تبحث عنه؟",
+        "invitationTitle": "هل وجدت ما تبحث عنه لدى {companyName}؟",
         "invitationAction": "اطلب أو اسأل"
       },
       "cta": {
@@ -278,7 +278,7 @@
       "portfolio": {
         "badge": "Our menu",
         "title": "Menu",
-        "subtitle": "Freshly prepared dishes and drinks. Ask us about ingredients, catering and reservations.",
+        "subtitle": "Freshly prepared dishes and drinks from {companyName}. Ask us about ingredients, catering and reservations.",
         "viewProject": "View dish",
         "filterAll": "Full menu",
         "allWork": "Full menu",
@@ -293,16 +293,16 @@
           "quoteRequest": "Book a table or catering",
           "quoteRequestDesc": "Tell us the date, time and number of guests, or what you need catered."
         },
-        "messagePlaceholder": "Date, time, number of guests and any requests…",
+        "messagePlaceholder": "Tell {companyName} the date, time, number of guests and any requests…",
         "shootLocation": "Event location (catering, optional)",
-        "shootLocationPlaceholder": "e.g. Juffair"
+        "shootLocationPlaceholder": "e.g. Event venue or city"
       },
       "about": {
-        "headline": "Good food, made with care.",
+        "headline": "Good food, made with care at {companyName}.",
         "behindTheScenes": "In our kitchen"
       },
       "footer": {
-        "invitationTitle": "Hungry? We are ready.",
+        "invitationTitle": "Hungry? {companyName} is ready for you.",
         "invitationAction": "Book a table"
       },
       "cta": {
@@ -322,7 +322,7 @@
       "portfolio": {
         "badge": "قائمتنا",
         "title": "القائمة",
-        "subtitle": "أطباق ومشروبات تُحضَّر بعناية. اسألنا عن المكونات والضيافة والحجوزات.",
+        "subtitle": "أطباق ومشروبات تُحضَّر بعناية لدى {companyName}. اسألنا عن المكونات والضيافة والحجوزات.",
         "viewProject": "عرض الطبق",
         "filterAll": "القائمة كاملة",
         "allWork": "القائمة كاملة",
@@ -337,16 +337,16 @@
           "quoteRequest": "احجز طاولة أو ضيافة",
           "quoteRequestDesc": "أخبرنا بالتاريخ والوقت وعدد الضيوف، أو بما تحتاجه من ضيافة."
         },
-        "messagePlaceholder": "التاريخ والوقت وعدد الضيوف وأي طلبات…",
+        "messagePlaceholder": "أخبر {companyName} بالتاريخ والوقت وعدد الضيوف وأي طلبات خاصة…",
         "shootLocation": "مكان المناسبة (للضيافة، اختياري)",
-        "shootLocationPlaceholder": "مثال: الجفير"
+        "shootLocationPlaceholder": "مثال: موقع الفعالية أو المدينة"
       },
       "about": {
-        "headline": "طعام طيب يُصنع بعناية.",
+        "headline": "طعام شهي يُحضَّر بعناية في {companyName}.",
         "behindTheScenes": "في مطبخنا"
       },
       "footer": {
-        "invitationTitle": "جائع؟ نحن جاهزون.",
+        "invitationTitle": "جائع؟ {companyName} في انتظارك.",
         "invitationAction": "احجز طاولة"
       },
       "cta": {
@@ -367,7 +367,7 @@
       "portfolio": {
         "badge": "Our track record",
         "title": "Projects",
-        "subtitle": "Engagements we have delivered and the difference they made for our clients.",
+        "subtitle": "What {companyName} does, how we work and the results you can expect.",
         "viewProject": "View project",
         "filterAll": "All projects",
         "allWork": "All projects",
@@ -383,10 +383,10 @@
           "quoteRequest": "Book a consultation",
           "quoteRequestDesc": "Tell us about your organisation and what you need help with."
         },
-        "messagePlaceholder": "Your organisation, the challenge and when you would like to start…"
+        "messagePlaceholder": "Tell {companyName} about your requirements, timeline and where the work takes place…"
       },
       "footer": {
-        "invitationTitle": "Let’s solve it together.",
+        "invitationTitle": "Ready to get started with {companyName}?",
         "invitationAction": "Book a consultation"
       },
       "cta": {
@@ -400,7 +400,7 @@
       "portfolio": {
         "badge": "سجل إنجازاتنا",
         "title": "المشاريع",
-        "subtitle": "أعمال أنجزناها والأثر الذي حققته لعملائنا.",
+        "subtitle": "ما يقدّمه {companyName} وكيف نعمل والنتائج التي يمكنك توقعها.",
         "viewProject": "عرض المشروع",
         "filterAll": "جميع المشاريع",
         "allWork": "جميع المشاريع",
@@ -416,10 +416,10 @@
           "quoteRequest": "احجز استشارة",
           "quoteRequestDesc": "أخبرنا عن جهتك وما تحتاج المساعدة فيه."
         },
-        "messagePlaceholder": "جهتك والتحدي الذي تواجهه ومتى تريد البدء…"
+        "messagePlaceholder": "أخبر {companyName} بمتطلباتك والجدول الزمني وموقع العمل…"
       },
       "footer": {
-        "invitationTitle": "لنجد الحل معاً.",
+        "invitationTitle": "جاهز للبدء مع {companyName}؟",
         "invitationAction": "احجز استشارة"
       },
       "cta": {
@@ -435,7 +435,7 @@
       "portfolio": {
         "badge": "Available now",
         "title": "Properties",
-        "subtitle": "Homes, offices and land for sale or rent, with the details you need to decide.",
+        "subtitle": "Homes, offices and land for sale or rent with {companyName}, with the details you need to decide.",
         "viewProject": "View property",
         "filterAll": "All properties",
         "allWork": "All properties",
@@ -450,12 +450,12 @@
           "quoteRequest": "Arrange a viewing",
           "quoteRequestDesc": "Tell us which property interests you and when you would like to see it."
         },
-        "messagePlaceholder": "The property, your budget and when you are free for a viewing…",
+        "messagePlaceholder": "Tell {companyName} the property, your budget and when you are free for a viewing…",
         "shootLocation": "Preferred area (optional)",
-        "shootLocationPlaceholder": "e.g. Amwaj Islands"
+        "shootLocationPlaceholder": "e.g. Neighborhood or city"
       },
       "footer": {
-        "invitationTitle": "Your next address starts here.",
+        "invitationTitle": "Your next address with {companyName} starts here.",
         "invitationAction": "Arrange a viewing"
       },
       "cta": {
@@ -469,7 +469,7 @@
       "portfolio": {
         "badge": "متاح الآن",
         "title": "العقارات",
-        "subtitle": "منازل ومكاتب وأراضٍ للبيع أو الإيجار، مع كل التفاصيل التي تحتاجها.",
+        "subtitle": "منازل ومكاتب وأراضٍ للبيع أو الإيجار مع {companyName}، مع كل التفاصيل التي تحتاجها.",
         "viewProject": "عرض العقار",
         "filterAll": "جميع العقارات",
         "allWork": "جميع العقارات",
@@ -484,12 +484,12 @@
           "quoteRequest": "رتّب معاينة",
           "quoteRequestDesc": "أخبرنا بالعقار الذي يهمك ومتى تريد معاينته."
         },
-        "messagePlaceholder": "العقار وميزانيتك والوقت المناسب للمعاينة…",
+        "messagePlaceholder": "أخبر {companyName} بالعقار المطلوب وميزانيتك والوقت المناسب للمعاينة…",
         "shootLocation": "المنطقة المفضلة (اختياري)",
-        "shootLocationPlaceholder": "مثال: جزر أمواج"
+        "shootLocationPlaceholder": "مثال: الحي أو المدينة"
       },
       "footer": {
-        "invitationTitle": "عنوانك القادم يبدأ هنا.",
+        "invitationTitle": "عنوانك القادم مع {companyName} يبدأ هنا.",
         "invitationAction": "رتّب معاينة"
       },
       "cta": {
@@ -505,7 +505,7 @@
       "portfolio": {
         "badge": "Built by us",
         "title": "Projects",
-        "subtitle": "Buildings, fit-outs and infrastructure we have delivered, on time and to standard.",
+        "subtitle": "Buildings, fit-outs and infrastructure delivered by {companyName}, on time and to standard.",
         "viewProject": "View project",
         "filterAll": "All projects",
         "allWork": "All projects",
@@ -521,12 +521,12 @@
           "quoteRequest": "Request a site visit or quote",
           "quoteRequestDesc": "Tell us about the site, the scope and your timeline."
         },
-        "messagePlaceholder": "The site, the scope of work and when you need it done…",
+        "messagePlaceholder": "Tell {companyName} about your site, drawings, scope and preferred completion date…",
         "shootLocation": "Site location (optional)",
-        "shootLocationPlaceholder": "e.g. Sitra"
+        "shootLocationPlaceholder": "e.g. Project site or district"
       },
       "footer": {
-        "invitationTitle": "Let’s build it right.",
+        "invitationTitle": "Building something new with {companyName}? Let us talk.",
         "invitationAction": "Request a quote"
       }
     },
@@ -537,7 +537,7 @@
       "portfolio": {
         "badge": "من إنجازنا",
         "title": "المشاريع",
-        "subtitle": "مبانٍ وتشطيبات وبنى تحتية سلّمناها في موعدها وبالمواصفات.",
+        "subtitle": "مبانٍ وتشطيبات وبنى تحتية نفذتها {companyName} في موعدها وبالمواصفات المطلوبة.",
         "viewProject": "عرض المشروع",
         "filterAll": "جميع المشاريع",
         "allWork": "جميع المشاريع",
@@ -553,12 +553,12 @@
           "quoteRequest": "اطلب زيارة موقع أو عرض سعر",
           "quoteRequestDesc": "أخبرنا عن الموقع ونطاق العمل والجدول الزمني."
         },
-        "messagePlaceholder": "الموقع ونطاق العمل ومتى تحتاج إنجازه…",
+        "messagePlaceholder": "أخبر {companyName} بموقعك والمخططات ونطاق العمل والموعد المستهدف للإنجاز…",
         "shootLocation": "موقع المشروع (اختياري)",
-        "shootLocationPlaceholder": "مثال: سترة"
+        "shootLocationPlaceholder": "مثال: موقع المشروع أو المنطقة"
       },
       "footer": {
-        "invitationTitle": "لنبنِه كما يجب.",
+        "invitationTitle": "تبني مشروعاً جديداً مع {companyName}؟ لنبدأ الحديث.",
         "invitationAction": "اطلب عرض سعر"
       }
     }
@@ -571,7 +571,7 @@
       "portfolio": {
         "badge": "Learn with us",
         "title": "Programs",
-        "subtitle": "Courses and programs with clear outcomes, schedules and fees.",
+        "subtitle": "Courses, workshops and qualifications offered by {companyName}.",
         "viewProject": "View program",
         "filterAll": "All programs",
         "allWork": "All programs",
@@ -586,14 +586,17 @@
           "quoteRequest": "Register or ask about a program",
           "quoteRequestDesc": "Tell us which program interests you and how many people will join."
         },
-        "messagePlaceholder": "The program, number of learners and preferred start date…"
+        "messagePlaceholder": "Tell {companyName} the course, your background and any questions you have…"
       },
       "footer": {
-        "invitationTitle": "Ready to learn something new?",
+        "invitationTitle": "Ready to learn with {companyName}?",
         "invitationAction": "Register your interest"
       },
       "cta": {
         "requestTreatment": "Register your interest"
+      },
+      "about": {
+        "headline": "Learning that opens doors with {companyName}."
       }
     },
     "ar": {
@@ -603,7 +606,7 @@
       "portfolio": {
         "badge": "تعلّم معنا",
         "title": "البرامج",
-        "subtitle": "دورات وبرامج بنتائج واضحة ومواعيد ورسوم معلنة.",
+        "subtitle": "دورات وورش عمل ومؤهلات تقدمها {companyName}.",
         "viewProject": "عرض البرنامج",
         "filterAll": "جميع البرامج",
         "allWork": "جميع البرامج",
@@ -618,14 +621,17 @@
           "quoteRequest": "سجّل أو استفسر عن برنامج",
           "quoteRequestDesc": "أخبرنا بالبرنامج الذي يهمك وعدد المشاركين."
         },
-        "messagePlaceholder": "البرنامج وعدد المتعلمين وتاريخ البدء المفضّل…"
+        "messagePlaceholder": "أخبر {companyName} بالبرنامج المطلوب وخلفيتك وأي أسئلة لديك…"
       },
       "footer": {
-        "invitationTitle": "مستعد لتعلّم شيء جديد؟",
+        "invitationTitle": "جاهز للتعلم وتطوير مهاراتك مع {companyName}؟",
         "invitationAction": "سجّل اهتمامك"
       },
       "cta": {
         "requestTreatment": "سجّل اهتمامك"
+      },
+      "about": {
+        "headline": "تعليم يفتح لك آفاقاً جديدة مع {companyName}."
       }
     }
   },
@@ -637,7 +643,7 @@
       "portfolio": {
         "badge": "Care we provide",
         "title": "Treatments",
-        "subtitle": "Our treatments and services, what to expect and how to prepare.",
+        "subtitle": "Treatments and services from {companyName}, what to expect and how to prepare.",
         "viewProject": "View treatment",
         "filterAll": "All treatments",
         "allWork": "All treatments",
@@ -652,13 +658,13 @@
           "quoteRequest": "Book an appointment",
           "quoteRequestDesc": "Tell us which treatment you need and the days that suit you."
         },
-        "messagePlaceholder": "The treatment, your preferred days and times… Please do not share medical details here."
+        "messagePlaceholder": "Tell {companyName} which treatment you need and your preferred days… Please do not share medical details here."
       },
       "about": {
-        "headline": "Care you can trust, close to home."
+        "headline": "Care you can trust from {companyName}, close to home."
       },
       "footer": {
-        "invitationTitle": "We are here when you need us.",
+        "invitationTitle": "{companyName} is here when you need us.",
         "invitationAction": "Book an appointment"
       },
       "cta": {
@@ -672,7 +678,7 @@
       "portfolio": {
         "badge": "رعايتنا",
         "title": "العلاجات",
-        "subtitle": "علاجاتنا وخدماتنا وما تتوقعه وكيف تستعد.",
+        "subtitle": "خدمات ورعاية صحية من {companyName}، مع ما يمكنك توقعه وكيفية الاستعداد.",
         "viewProject": "عرض العلاج",
         "filterAll": "جميع العلاجات",
         "allWork": "جميع العلاجات",
@@ -687,13 +693,13 @@
           "quoteRequest": "احجز موعداً",
           "quoteRequestDesc": "أخبرنا بالعلاج الذي تحتاجه والأيام المناسبة لك."
         },
-        "messagePlaceholder": "العلاج والأيام والأوقات المفضّلة… يُرجى عدم مشاركة تفاصيل طبية هنا."
+        "messagePlaceholder": "أخبر {companyName} بالخدمة المطلوبة وأوقاتك المفضلة… يرجى عدم مشاركة تفاصيل طبية حساسة هنا."
       },
       "about": {
-        "headline": "رعاية تثق بها، قريبة منك."
+        "headline": "رعاية تثق بها من {companyName}، قريبة منك دائماً."
       },
       "footer": {
-        "invitationTitle": "نحن هنا متى احتجتنا.",
+        "invitationTitle": "{companyName} هنا دائماً حين تحتاج إلينا.",
         "invitationAction": "احجز موعداً"
       },
       "cta": {
@@ -709,7 +715,7 @@
       "portfolio": {
         "badge": "Moments we created",
         "title": "Events",
-        "subtitle": "Conferences, celebrations and launches we have planned and run.",
+        "subtitle": "Conferences, celebrations and launches planned and run by {companyName}.",
         "viewProject": "View event",
         "filterAll": "All events",
         "allWork": "All events",
@@ -725,12 +731,12 @@
           "quoteRequest": "Plan an event",
           "quoteRequestDesc": "Tell us the occasion, date, venue and number of guests."
         },
-        "messagePlaceholder": "The occasion, date, expected guests and the experience you imagine…",
+        "messagePlaceholder": "Tell {companyName} the occasion, expected guests, preferred dates and venue ideas…",
         "shootLocation": "Venue / city (optional)",
-        "shootLocationPlaceholder": "e.g. Sakhir"
+        "shootLocationPlaceholder": "e.g. Venue, hall or city"
       },
       "footer": {
-        "invitationTitle": "Your next event. Unforgettable.",
+        "invitationTitle": "Planning an event? Let {companyName} take care of the details.",
         "invitationAction": "Plan your event"
       },
       "cta": {
@@ -744,7 +750,7 @@
       "portfolio": {
         "badge": "لحظات صنعناها",
         "title": "الفعاليات",
-        "subtitle": "مؤتمرات واحتفالات وإطلاقات خططنا لها ونفّذناها.",
+        "subtitle": "مؤتمرات واحتفالات وإطلاقات خططت لها ونفذتها {companyName}.",
         "viewProject": "عرض الفعالية",
         "filterAll": "جميع الفعاليات",
         "allWork": "جميع الفعاليات",
@@ -760,12 +766,12 @@
           "quoteRequest": "خطّط لفعالية",
           "quoteRequestDesc": "أخبرنا بالمناسبة والتاريخ والمكان وعدد الضيوف."
         },
-        "messagePlaceholder": "المناسبة والتاريخ وعدد الضيوف المتوقع والتجربة التي تتخيلها…",
+        "messagePlaceholder": "أخبر {companyName} بالمناسبة وعدد الضيوف المتوقع والتواريخ المفضلة…",
         "shootLocation": "المكان / المدينة (اختياري)",
-        "shootLocationPlaceholder": "مثال: الصخير"
+        "shootLocationPlaceholder": "مثال: القاعة أو الفعالية أو المدينة"
       },
       "footer": {
-        "invitationTitle": "فعاليتك القادمة. لا تُنسى.",
+        "invitationTitle": "تخطط لفعالية قادمة؟ دع {companyName} تتولى كافة التفاصيل.",
         "invitationAction": "خطّط لفعاليتك"
       },
       "cta": {
@@ -781,7 +787,7 @@
       "portfolio": {
         "badge": "Selected work",
         "title": "Our work",
-        "subtitle": "A closer look at what we do and the people we do it for.",
+        "subtitle": "Our capabilities and what {companyName} can do for you.",
         "viewProject": "View details",
         "filterAll": "All work",
         "allWork": "All work",
@@ -800,7 +806,7 @@
       "portfolio": {
         "badge": "مختارات من أعمالنا",
         "title": "أعمالنا",
-        "subtitle": "نظرة أقرب على ما نقوم به ولمن نقوم به.",
+        "subtitle": "إمكانياتنا وكل ما يمكن لـ {companyName} تقديمه لك.",
         "viewProject": "عرض التفاصيل",
         "filterAll": "جميع الأعمال",
         "allWork": "جميع الأعمال",
@@ -822,7 +828,7 @@
       "portfolio": {
         "badge": "Our shop",
         "title": "Shop",
-        "subtitle": "Everything we sell, ready to order and delivered to your door.",
+        "subtitle": "Everything {companyName} sells, ready to order and delivered to your door.",
         "viewProject": "View product",
         "filterAll": "All",
         "allWork": "All shop",
@@ -838,13 +844,14 @@
           "quoteRequest": "Ask about an order",
           "quoteRequestDesc": "Tell us what you would like to order and where to deliver it."
         },
-        "messagePlaceholder": "Products, quantities and your delivery area…"
+        "messagePlaceholder": "Tell {companyName} the products, quantities and your delivery area…",
+        "shootLocationPlaceholder": "e.g. Delivery area or city"
       },
       "about": {
-        "headline": "Shopping made simple, delivered fast."
+        "headline": "Shopping made simple, delivered fast by {companyName}."
       },
       "footer": {
-        "invitationTitle": "Something caught your eye?",
+        "invitationTitle": "Found something you like at {companyName}?",
         "invitationAction": "Ask about an order"
       },
       "cta": {
@@ -862,7 +869,7 @@
       "portfolio": {
         "badge": "متجرنا",
         "title": "المتجر",
-        "subtitle": "كل ما نبيعه، جاهز للطلب ويصل إلى بابك.",
+        "subtitle": "كل ما يبيعه متجر {companyName}، جاهز للطلب والتوصيل إلى بابك.",
         "viewProject": "عرض المنتج",
         "filterAll": "الكل",
         "allWork": "المتجر",
@@ -878,13 +885,14 @@
           "quoteRequest": "استفسر عن طلب",
           "quoteRequestDesc": "أخبرنا بما تريد طلبه وعنوان التوصيل."
         },
-        "messagePlaceholder": "المنتجات والكميات ومنطقة التوصيل…"
+        "messagePlaceholder": "أخبر {companyName} بالمنتجات والكميات المطلوبة ومنطقة التوصيل…",
+        "shootLocationPlaceholder": "مثال: منطقة التوصيل أو المدينة"
       },
       "about": {
-        "headline": "تسوّق بسهولة وتوصيل سريع."
+        "headline": "تسوق سهل وتوصيل سريع وموثوق من {companyName}."
       },
       "footer": {
-        "invitationTitle": "هل أعجبك شيء؟",
+        "invitationTitle": "هل أعجبك شيء في متجر {companyName}؟",
         "invitationAction": "استفسر عن طلب"
       },
       "cta": {
@@ -904,7 +912,7 @@
       "portfolio": {
         "badge": "Our treatments",
         "title": "Treatments",
-        "subtitle": "Hair, skin, nails and more, by people who care about the details.",
+        "subtitle": "Treatments, styles and products offered by {companyName}.",
         "viewProject": "View treatment",
         "filterAll": "All",
         "allWork": "All treatments",
@@ -920,13 +928,13 @@
           "quoteRequest": "Book an appointment",
           "quoteRequestDesc": "Tell us which treatment you would like and the days that suit you."
         },
-        "messagePlaceholder": "The treatment, your preferred day and time…"
+        "messagePlaceholder": "Tell {companyName} the treatment, preferred dates and any questions…"
       },
       "about": {
-        "headline": "Look and feel your best."
+        "headline": "Look and feel your best with {companyName}."
       },
       "footer": {
-        "invitationTitle": "Ready for some time for yourself?",
+        "invitationTitle": "Time for yourself at {companyName}.",
         "invitationAction": "Book an appointment"
       },
       "cta": {
@@ -944,7 +952,7 @@
       "portfolio": {
         "badge": "خدماتنا",
         "title": "العلاجات",
-        "subtitle": "الشعر والبشرة والأظافر وأكثر، بأيدٍ تهتم بالتفاصيل.",
+        "subtitle": "جلسات وتصفيفات ومنتجات تقدمها {companyName}.",
         "viewProject": "عرض العلاج",
         "filterAll": "الكل",
         "allWork": "العلاجات",
@@ -960,13 +968,13 @@
           "quoteRequest": "احجز موعدًا",
           "quoteRequestDesc": "أخبرنا بالعلاج الذي تريده والأيام المناسبة لك."
         },
-        "messagePlaceholder": "العلاج واليوم والوقت المفضل…"
+        "messagePlaceholder": "أخبري {companyName} بالجلسة المطلوبة والتواريخ المفضلة وأي استفسارات…"
       },
       "about": {
-        "headline": "اظهر وكن في أفضل حال."
+        "headline": "تألقي واشعري بالثقة والراحة مع {companyName}."
       },
       "footer": {
-        "invitationTitle": "هل أنت مستعد لوقت خاص بك؟",
+        "invitationTitle": "حان وقت العناية بنفسك مع {companyName}.",
         "invitationAction": "احجز موعدًا"
       },
       "cta": {
@@ -986,7 +994,7 @@
       "portfolio": {
         "badge": "Join us",
         "title": "Memberships & classes",
-        "subtitle": "Plans, classes and coaching for every level.",
+        "subtitle": "Programs, classes and memberships at {companyName}.",
         "viewProject": "View plan",
         "filterAll": "All",
         "allWork": "All memberships",
@@ -1002,13 +1010,13 @@
           "quoteRequest": "Book a free trial",
           "quoteRequestDesc": "Tell us your goals and when you would like to visit."
         },
-        "messagePlaceholder": "Your goals and the days you can train…"
+        "messagePlaceholder": "Tell {companyName} your fitness goals, experience and schedule…"
       },
       "about": {
-        "headline": "Stronger every day."
+        "headline": "Strength, stamina and health with {companyName}."
       },
       "footer": {
-        "invitationTitle": "Ready to start training?",
+        "invitationTitle": "Ready to start training with {companyName}?",
         "invitationAction": "Book a free trial"
       },
       "cta": {
@@ -1026,7 +1034,7 @@
       "portfolio": {
         "badge": "انضم إلينا",
         "title": "العضويات والحصص",
-        "subtitle": "خطط وحصص وتدريب لكل المستويات.",
+        "subtitle": "برامج وحصص واشتراكات تدريبية في {companyName}.",
         "viewProject": "عرض الخطة",
         "filterAll": "الكل",
         "allWork": "العضويات والحصص",
@@ -1042,13 +1050,13 @@
           "quoteRequest": "احجز تجربة مجانية",
           "quoteRequestDesc": "أخبرنا بأهدافك ومتى تريد الزيارة."
         },
-        "messagePlaceholder": "أهدافك والأيام التي يمكنك التمرن فيها…"
+        "messagePlaceholder": "أخبر {companyName} بأهدافك الرياضية وتجربتك والجدول المناسب لك…"
       },
       "about": {
-        "headline": "أقوى كل يوم."
+        "headline": "قوة ولياقة وصحة مستدامة مع {companyName}."
       },
       "footer": {
-        "invitationTitle": "هل أنت مستعد للبدء؟",
+        "invitationTitle": "جاهز لبدء التحدي والتدريب مع {companyName}؟",
         "invitationAction": "احجز تجربة مجانية"
       },
       "cta": {
@@ -1067,7 +1075,7 @@
       "portfolio": {
         "badge": "Our vehicles",
         "title": "Vehicles",
-        "subtitle": "Cars, services and offers, with honest advice from our team.",
+        "subtitle": "Vehicles, parts and services available at {companyName}.",
         "viewProject": "View vehicle",
         "filterAll": "All",
         "allWork": "All vehicles",
@@ -1083,13 +1091,13 @@
           "quoteRequest": "Book a test drive or service",
           "quoteRequestDesc": "Tell us which car or service you are interested in and when suits you."
         },
-        "messagePlaceholder": "The vehicle or service, and your preferred time…"
+        "messagePlaceholder": "Tell {companyName} the vehicle or service you need, model year and your questions…"
       },
       "about": {
         "headline": "Driven by trust."
       },
       "footer": {
-        "invitationTitle": "Found the right car?",
+        "invitationTitle": "Looking for your next vehicle or service with {companyName}?",
         "invitationAction": "Book a test drive"
       },
       "cta": {
@@ -1103,7 +1111,7 @@
       "portfolio": {
         "badge": "سياراتنا",
         "title": "السيارات",
-        "subtitle": "سيارات وخدمات وعروض، مع نصيحة صادقة من فريقنا.",
+        "subtitle": "مركبات وقطع غيار وخدمات صيانة متوفرة لدى {companyName}.",
         "viewProject": "عرض السيارة",
         "filterAll": "الكل",
         "allWork": "السيارات",
@@ -1119,13 +1127,13 @@
           "quoteRequest": "احجز تجربة قيادة أو صيانة",
           "quoteRequestDesc": "أخبرنا بالسيارة أو الخدمة التي تهمك والوقت المناسب."
         },
-        "messagePlaceholder": "السيارة أو الخدمة والوقت المفضل…"
+        "messagePlaceholder": "أخبر {companyName} بالمركبة أو الخدمة المطلوبة وسنة الصنع وأي استفسارات…"
       },
       "about": {
         "headline": "ثقة تقودك."
       },
       "footer": {
-        "invitationTitle": "وجدت السيارة المناسبة؟",
+        "invitationTitle": "تبحث عن سيارتك القادمة أو خدمة موثوقة مع {companyName}؟",
         "invitationAction": "احجز تجربة قيادة"
       },
       "cta": {
@@ -1141,7 +1149,7 @@
       "portfolio": {
         "badge": "What we move",
         "title": "Solutions",
-        "subtitle": "Freight, delivery and warehousing that keep your business moving.",
+        "subtitle": "Freight, warehousing and delivery solutions by {companyName}.",
         "viewProject": "View solution",
         "filterAll": "All",
         "allWork": "All solutions",
@@ -1157,13 +1165,13 @@
           "quoteRequest": "Request a shipping quote",
           "quoteRequestDesc": "Tell us what you ship, from where to where and how often."
         },
-        "messagePlaceholder": "What you ship, origin and destination, volumes and dates…"
+        "messagePlaceholder": "Tell {companyName} origin, destination, cargo type, volume and timeline…"
       },
       "about": {
         "headline": "Delivered on time, every time."
       },
       "footer": {
-        "invitationTitle": "Need something moved?",
+        "invitationTitle": "Need cargo moved? Talk to {companyName}.",
         "invitationAction": "Request a quote"
       },
       "cta": {
@@ -1177,7 +1185,7 @@
       "portfolio": {
         "badge": "ما ننقله",
         "title": "الحلول",
-        "subtitle": "شحن وتوصيل وتخزين يبقي عملك في حركة.",
+        "subtitle": "حلول شحن وتخزين وتوصيل متكاملة من {companyName}.",
         "viewProject": "عرض الحل",
         "filterAll": "الكل",
         "allWork": "الحلول",
@@ -1193,13 +1201,13 @@
           "quoteRequest": "اطلب عرض سعر للشحن",
           "quoteRequestDesc": "أخبرنا بما تشحنه ومن أين إلى أين وكم مرة."
         },
-        "messagePlaceholder": "ما تشحنه ونقطة الانطلاق والوصول والكميات والمواعيد…"
+        "messagePlaceholder": "أخبر {companyName} بنقطة الانطلاق والوجهة ونوع الشحنة وحجمها والجدول الزمني…"
       },
       "about": {
         "headline": "في الموعد، في كل مرة."
       },
       "footer": {
-        "invitationTitle": "هل تحتاج إلى نقل شيء؟",
+        "invitationTitle": "تحتاج إلى نقل شحنتك؟ استشر خبراء {companyName}.",
         "invitationAction": "اطلب عرض سعر"
       },
       "cta": {
@@ -1216,7 +1224,7 @@
       "portfolio": {
         "badge": "Where to next",
         "title": "Trips & experiences",
-        "subtitle": "Journeys and experiences we have planned for travellers like you.",
+        "subtitle": "Destinations, tours and holiday packages crafted by {companyName}.",
         "viewProject": "View trip",
         "filterAll": "All",
         "allWork": "All trips",
@@ -1232,13 +1240,13 @@
           "quoteRequest": "Plan my trip",
           "quoteRequestDesc": "Tell us where you would like to go, when, and who is travelling."
         },
-        "messagePlaceholder": "Destination, dates, number of travellers and budget…"
+        "messagePlaceholder": "Tell {companyName} where you want to go, dates, number of travelers and budget…"
       },
       "about": {
-        "headline": "Travel made unforgettable."
+        "headline": "Journeys planned with care by {companyName}."
       },
       "footer": {
-        "invitationTitle": "Where would you like to go?",
+        "invitationTitle": "Where next with {companyName}?",
         "invitationAction": "Plan my trip"
       },
       "cta": {
@@ -1256,7 +1264,7 @@
       "portfolio": {
         "badge": "إلى أين بعد ذلك",
         "title": "الرحلات والتجارب",
-        "subtitle": "رحلات وتجارب خططناها لمسافرين مثلك.",
+        "subtitle": "وجهات وجولات وباقات عطلات مصممة بعناية من {companyName}.",
         "viewProject": "عرض الرحلة",
         "filterAll": "الكل",
         "allWork": "الرحلات والتجارب",
@@ -1272,13 +1280,13 @@
           "quoteRequest": "خطط رحلتي",
           "quoteRequestDesc": "أخبرنا بوجهتك ومتى ومن سيسافر."
         },
-        "messagePlaceholder": "الوجهة والتواريخ وعدد المسافرين والميزانية…"
+        "messagePlaceholder": "أخبر {companyName} بوجهتك المفضلة والتواريخ وعدد المسافرين والميزانية…"
       },
       "about": {
-        "headline": "سفر لا يُنسى."
+        "headline": "رحلات وتجارب سياحية تخططها لك {companyName} بكل عناية."
       },
       "footer": {
-        "invitationTitle": "إلى أين تريد الذهاب؟",
+        "invitationTitle": "إلى أين ستكون رحلتك القادمة مع {companyName}؟",
         "invitationAction": "خطط رحلتي"
       },
       "cta": {
@@ -1297,7 +1305,7 @@
       "portfolio": {
         "badge": "Stay with us",
         "title": "Rooms & suites",
-        "subtitle": "Comfortable rooms and suites, with everything you need for your stay.",
+        "subtitle": "Rooms, suites and amenities at {companyName}.",
         "viewProject": "View room",
         "filterAll": "All",
         "allWork": "All rooms",
@@ -1313,13 +1321,13 @@
           "quoteRequest": "Book your stay",
           "quoteRequestDesc": "Tell us your dates, the number of guests and any requests."
         },
-        "messagePlaceholder": "Arrival and departure dates, guests and requests…"
+        "messagePlaceholder": "Tell {companyName} your check-in, check-out dates, room preference and guests…"
       },
       "about": {
-        "headline": "Your home away from home."
+        "headline": "Comfort, hospitality and calm at {companyName}."
       },
       "footer": {
-        "invitationTitle": "Ready for your stay?",
+        "invitationTitle": "We look forward to welcoming you at {companyName}.",
         "invitationAction": "Book your stay"
       },
       "cta": {
@@ -1333,7 +1341,7 @@
       "portfolio": {
         "badge": "أقم معنا",
         "title": "الغرف والأجنحة",
-        "subtitle": "غرف وأجنحة مريحة فيها كل ما تحتاجه لإقامتك.",
+        "subtitle": "غرف وأجنحة ومرافق راقية في {companyName}.",
         "viewProject": "عرض الغرفة",
         "filterAll": "الكل",
         "allWork": "الغرف والأجنحة",
@@ -1349,13 +1357,13 @@
           "quoteRequest": "احجز إقامتك",
           "quoteRequestDesc": "أخبرنا بتواريخك وعدد الضيوف وأي طلبات."
         },
-        "messagePlaceholder": "تاريخ الوصول والمغادرة والضيوف والطلبات…"
+        "messagePlaceholder": "أخبر {companyName} بتاريخ الوصول والمغادرة ونوع الغرفة وعدد الضيوف…"
       },
       "about": {
-        "headline": "بيتك بعيدًا عن البيت."
+        "headline": "راحة وضيافة وأجواء هادئة في {companyName}."
       },
       "footer": {
-        "invitationTitle": "هل أنت مستعد لإقامتك؟",
+        "invitationTitle": "نتطلع للترحيب بك وإقامتك معنا في {companyName}.",
         "invitationAction": "احجز إقامتك"
       },
       "cta": {
@@ -1372,7 +1380,7 @@
       "portfolio": {
         "badge": "How we help",
         "title": "Practice areas",
-        "subtitle": "The areas of law we practise and how we can help you.",
+        "subtitle": "The areas of law {companyName} practises and how we can help you.",
         "viewProject": "View practice area",
         "filterAll": "All",
         "allWork": "All practice areas",
@@ -1388,13 +1396,13 @@
           "quoteRequest": "Book a consultation",
           "quoteRequestDesc": "Tell us briefly about your matter; everything you share is confidential."
         },
-        "messagePlaceholder": "A short summary of your matter and how we can reach you…"
+        "messagePlaceholder": "Tell {companyName} a short summary of your matter and how we can reach you…"
       },
       "about": {
-        "headline": "Clear advice when it matters most."
+        "headline": "Clear advice when it matters most from {companyName}."
       },
       "footer": {
-        "invitationTitle": "Need legal advice?",
+        "invitationTitle": "Need legal advice? Consult with {companyName}.",
         "invitationAction": "Book a consultation"
       },
       "cta": {
@@ -1412,7 +1420,7 @@
       "portfolio": {
         "badge": "كيف نساعد",
         "title": "مجالات الممارسة",
-        "subtitle": "مجالات القانون التي نمارسها وكيف يمكننا مساعدتك.",
+        "subtitle": "مجالات القانون التي تمارسها {companyName} وكيف يمكننا مساعدتك.",
         "viewProject": "عرض المجال",
         "filterAll": "الكل",
         "allWork": "مجالات الممارسة",
@@ -1428,13 +1436,13 @@
           "quoteRequest": "احجز استشارة",
           "quoteRequestDesc": "أخبرنا باختصار عن قضيتك؛ كل ما تشاركه سري."
         },
-        "messagePlaceholder": "ملخص قصير لقضيتك وكيف نتواصل معك…"
+        "messagePlaceholder": "أخبر {companyName} بملخص موجز عن موضوعك وطريقة التواصل المناسبة…"
       },
       "about": {
-        "headline": "مشورة واضحة حين تهم أكثر."
+        "headline": "مشورة قانونية واضحة وموثوقة من {companyName}."
       },
       "footer": {
-        "invitationTitle": "هل تحتاج إلى مشورة قانونية؟",
+        "invitationTitle": "تحتاج إلى استشارة قانونية؟ تواصل مع {companyName}.",
         "invitationAction": "احجز استشارة"
       },
       "cta": {
@@ -1454,7 +1462,7 @@
       "portfolio": {
         "badge": "Our work",
         "title": "Programs",
-        "subtitle": "The programmes we run and the people they reach.",
+        "subtitle": "Programs, initiatives and the impact {companyName} makes.",
         "viewProject": "View program",
         "filterAll": "All",
         "allWork": "All programs",
@@ -1470,13 +1478,13 @@
           "quoteRequest": "Volunteer or partner with us",
           "quoteRequestDesc": "Tell us how you would like to help or partner with us."
         },
-        "messagePlaceholder": "How you would like to support or work with us…"
+        "messagePlaceholder": "Tell {companyName} how you would like to help or partner with us…"
       },
       "about": {
-        "headline": "Together we make a difference."
+        "headline": "Working together for positive change with {companyName}."
       },
       "footer": {
-        "invitationTitle": "Want to make a difference?",
+        "invitationTitle": "Join {companyName} in making a difference.",
         "invitationAction": "Get involved"
       },
       "cta": {
@@ -1494,7 +1502,7 @@
       "portfolio": {
         "badge": "عملنا",
         "title": "البرامج",
-        "subtitle": "البرامج التي ننفذها والناس الذين تصل إليهم.",
+        "subtitle": "مبادرات وبرامج والأثر الإيجابي الذي تصنعه {companyName}.",
         "viewProject": "عرض البرنامج",
         "filterAll": "الكل",
         "allWork": "البرامج",
@@ -1510,13 +1518,13 @@
           "quoteRequest": "تطوّع أو كن شريكًا",
           "quoteRequestDesc": "أخبرنا كيف تريد المساعدة أو الشراكة معنا."
         },
-        "messagePlaceholder": "كيف تريد دعمنا أو العمل معنا…"
+        "messagePlaceholder": "أخبر {companyName} كيف ترغب في المشاركة أو التعاون معنا…"
       },
       "about": {
-        "headline": "معًا نصنع الفرق."
+        "headline": "نعمل معاً من أجل إحداث تغيير إيجابي من خلال {companyName}."
       },
       "footer": {
-        "invitationTitle": "هل تريد أن تصنع فرقًا؟",
+        "invitationTitle": "شارك مع {companyName} في صنع أثر حقيقي ومستدام.",
         "invitationAction": "شارك معنا"
       },
       "cta": {
@@ -1536,7 +1544,7 @@
       "portfolio": {
         "badge": "Health & care",
         "title": "Products",
-        "subtitle": "Medicines, vitamins and care products, with advice from our pharmacists.",
+        "subtitle": "Medicines, wellness products and healthcare advice from {companyName}.",
         "viewProject": "View product",
         "filterAll": "All",
         "allWork": "All products",
@@ -1552,13 +1560,13 @@
           "quoteRequest": "Ask a pharmacist or order",
           "quoteRequestDesc": "Tell us what you need; our pharmacists will get back to you."
         },
-        "messagePlaceholder": "The products you need and your delivery area… Please do not share medical details here."
+        "messagePlaceholder": "Tell {companyName} the product or prescription you need…"
       },
       "about": {
-        "headline": "Your health, close to home."
+        "headline": "Your health in good hands at {companyName}."
       },
       "footer": {
-        "invitationTitle": "Need something for your health?",
+        "invitationTitle": "How can {companyName} help you today?",
         "invitationAction": "Ask a pharmacist"
       },
       "cta": {
@@ -1576,7 +1584,7 @@
       "portfolio": {
         "badge": "الصحة والعناية",
         "title": "المنتجات",
-        "subtitle": "أدوية وفيتامينات ومنتجات عناية، مع نصيحة من صيادلتنا.",
+        "subtitle": "أدوية ومنتجات صحية وإرشادات علاجية من {companyName}.",
         "viewProject": "عرض المنتج",
         "filterAll": "الكل",
         "allWork": "المنتجات",
@@ -1592,13 +1600,13 @@
           "quoteRequest": "اسأل الصيدلي أو اطلب",
           "quoteRequestDesc": "أخبرنا بما تحتاجه وسيعود إليك صيادلتنا."
         },
-        "messagePlaceholder": "المنتجات التي تحتاجها ومنطقة التوصيل… لا تشارك معلومات طبية هنا."
+        "messagePlaceholder": "أخبر {companyName} بالمنتج أو الوصفة الطبية التي تبحث عنها…"
       },
       "about": {
-        "headline": "صحتك، قريبة منك."
+        "headline": "صحتك وعافيتك في أيدٍ أمينة مع {companyName}."
       },
       "footer": {
-        "invitationTitle": "هل تحتاج إلى شيء لصحتك؟",
+        "invitationTitle": "كيف يمكن لصيدلية {companyName} مساعدتك اليوم؟",
         "invitationAction": "اسأل الصيدلي"
       },
       "cta": {
@@ -1617,7 +1625,7 @@
       "portfolio": {
         "badge": "What we make",
         "title": "Products",
-        "subtitle": "Products and capabilities, built to specification and on schedule.",
+        "subtitle": "Products, components and custom manufacturing by {companyName}.",
         "viewProject": "View product",
         "filterAll": "All",
         "allWork": "All products",
@@ -1633,13 +1641,13 @@
           "quoteRequest": "Request a quote",
           "quoteRequestDesc": "Tell us what you need made, the quantities and your timeline."
         },
-        "messagePlaceholder": "Specifications, quantities, delivery location and dates…"
+        "messagePlaceholder": "Tell {companyName} your specifications, volume requirements, materials and timeline…"
       },
       "about": {
         "headline": "Built to last, made to order."
       },
       "footer": {
-        "invitationTitle": "Have something to make?",
+        "invitationTitle": "Ready to manufacture with {companyName}?",
         "invitationAction": "Request a quote"
       },
       "cta": {
@@ -1653,7 +1661,7 @@
       "portfolio": {
         "badge": "ما نصنعه",
         "title": "المنتجات",
-        "subtitle": "منتجات وقدرات تُصنع حسب المواصفات وفي الموعد.",
+        "subtitle": "منتجات ومكونات وتصنيع مخصص وفق أعلى المعايير من {companyName}.",
         "viewProject": "عرض المنتج",
         "filterAll": "الكل",
         "allWork": "المنتجات",
@@ -1669,13 +1677,13 @@
           "quoteRequest": "اطلب عرض سعر",
           "quoteRequestDesc": "أخبرنا بما تريد تصنيعه والكميات والجدول الزمني."
         },
-        "messagePlaceholder": "المواصفات والكميات وموقع التسليم والمواعيد…"
+        "messagePlaceholder": "أخبر {companyName} بالمواصفات والكميات والمواد المطلوبة والجدول الزمني…"
       },
       "about": {
         "headline": "صُنع ليدوم، حسب الطلب."
       },
       "footer": {
-        "invitationTitle": "هل لديك ما تريد تصنيعه؟",
+        "invitationTitle": "جاهز لبدء التصنيع مع {companyName}؟",
         "invitationAction": "اطلب عرض سعر"
       },
       "cta": {
@@ -1692,7 +1700,7 @@
       "portfolio": {
         "badge": "Our solutions",
         "title": "Solutions & case studies",
-        "subtitle": "Software and services that solve real problems for our clients.",
+        "subtitle": "Software, platforms and digital products built by {companyName}.",
         "viewProject": "View solution",
         "filterAll": "All",
         "allWork": "All solutions",
@@ -1708,13 +1716,13 @@
           "quoteRequest": "Start a project",
           "quoteRequestDesc": "Tell us about your project, your timeline and your budget."
         },
-        "messagePlaceholder": "What you want to build or improve, timeline and budget…"
+        "messagePlaceholder": "Tell {companyName} about your stack, timeline, features and team requirements…"
       },
       "about": {
         "headline": "Technology that works for you."
       },
       "footer": {
-        "invitationTitle": "Have a project in mind?",
+        "invitationTitle": "Building your next digital product with {companyName}?",
         "invitationAction": "Talk to us"
       },
       "cta": {
@@ -1732,7 +1740,7 @@
       "portfolio": {
         "badge": "حلولنا",
         "title": "الحلول ودراسات الحالة",
-        "subtitle": "برمجيات وخدمات تحل مشكلات حقيقية لعملائنا.",
+        "subtitle": "برمجيات ومنصات ومنتجات رقمية طورتها {companyName}.",
         "viewProject": "عرض الحل",
         "filterAll": "الكل",
         "allWork": "الحلول ودراسات الحالة",
@@ -1748,13 +1756,13 @@
           "quoteRequest": "ابدأ مشروعًا",
           "quoteRequestDesc": "أخبرنا عن مشروعك وجدولك الزمني وميزانيتك."
         },
-        "messagePlaceholder": "ما تريد بناءه أو تحسينه والجدول الزمني والميزانية…"
+        "messagePlaceholder": "أخبر {companyName} عن البنية التقنية والميزات المطلوبة وفريق العمل…"
       },
       "about": {
         "headline": "تقنية تعمل لأجلك."
       },
       "footer": {
-        "invitationTitle": "هل لديك مشروع في ذهنك؟",
+        "invitationTitle": "تبني منتجك الرقمي القادم مع {companyName}؟",
         "invitationAction": "تحدث إلينا"
       },
       "cta": {
@@ -1768,275 +1776,78 @@
   "media": {
     "en": {
       "nav": {
-        "works": "Works",
-        "equipment": "Gear Locker",
-        "bookNow": "Book Production"
-      },
-      "hero": {
-        "badge": "Cinema Production House",
-        "headline": "CINEMA IN EVERY FRAME.",
-        "subheadline": "Commercial cinematography, aerial drone capture, DaVinci Resolve color grading, and creative studio productions based in Bahrain.",
-        "fallbackTitle": "Stories in motion.\nAn impression that stays.",
-        "ideaAction": "Tell us your idea",
-        "explore": "Explore our work",
-        "caption": "From an idea to the screen"
-      },
-      "services": {
-        "badge": "Capabilities",
-        "title": "PRECISION PRODUCTION PILLARS",
-        "subtitle": "End-to-end creative visual execution engineered for high-impact commercial brands.",
-        "cinema": {
-          "title": "Commercial Cinematography",
-          "desc": "High-end television commercials, brand films, and documentary narratives shot on cinema-grade systems.",
-          "specs": []
-        },
-        "aerial": {
-          "title": "Heavy-Lift & FPV Aerial Capture",
-          "desc": "Licensed Bahrain civil aviation drone operations capturing monumental landscapes, industrial sites, and dynamic vehicular chases.",
-          "specs": [
-            "Heavy-Lift RED Drone",
-            "Custom FPV Pro Rigs",
-            "Dual-Operator Control"
-          ]
-        },
-        "photography": {
-          "title": "Commercial Photography",
-          "desc": "High-fashion, automotive, architectural, and luxury product photography with studio lighting mastery.",
-          "specs": []
-        },
-        "color": {
-          "title": "DaVinci Resolve HDR Color Grading",
-          "desc": "Dedicated post-production color suite equipped with reference OLED mastering displays for true cinema DCI-P3 color fidelity.",
-          "specs": [
-            "DaVinci Studio Cloud",
-            "Sony BVM Reference Monitor",
-            "ACES & Dolby Vision"
-          ]
-        },
-        "studio": {
-          "title": "Studio & Soundstage",
-          "desc": "Acoustically treated studio space with modular set construction, grid lighting, and seamless cycloramas."
-        },
-        "requestProposal": "Request Custom Production Quote",
-        "commercial": {
-          "title": "High-End Commercial Cinematography",
-          "desc": "Full-scale commercial productions for television broadcast, cinema screens, and brand campaign campaigns at the highest visual standards.",
-          "specs": [
-            "RED V-Raptor XL 8K",
-            "ARRI Master Primes T1.3",
-            "Full Cinema G&E Crew"
-          ]
-        },
-        "headline": "PRECISION PRODUCTION PILLARS"
+        "works": "Portfolio"
       },
       "portfolio": {
         "badge": "Selected Works",
-        "title": "THE ARCHIVE",
-        "subtitle": "Curated commercial campaigns, narrative films, and visual masterworks.",
-        "filterAll": "All Projects",
-        "viewProject": "View Project",
-        "credits": "Production Credits",
-        "dop": "Cinematography",
-        "backToWorks": "Back to Archive",
-        "showcaseTitle": "Certified Cinema Masterpieces",
-        "viewFullArchive": "View Full Cinematography Archive",
-        "productionOverview": "Overview & Details"
+        "title": "Portfolio & Projects",
+        "subtitle": "Curated creative productions, visual stories, and case studies produced for {companyName} clients.",
+        "viewProject": "View project",
+        "filterAll": "All work",
+        "allWork": "All work",
+        "backToWorks": "Back to portfolio",
+        "productionOverview": "Project overview"
       },
-      "clients": {
-        "marqueeBadge": "TRUSTED BY VISIONARY BRANDS"
-      },
-      "about": {
-        "title": "ARCHITECTS OF VISUAL IMPACT",
-        "headline": "Visual stories crafted for ambitious brands.",
-        "behindTheScenes": "Behind The Scenes · On Location",
-        "discoverStudio": "Discover Studio Story & Crew",
-        "pillars": {
-          "badge": "Pillars of Craft",
-          "title": "Engineering Precision & Visual Artistry"
-        },
-        "stats": {
-          "badge": "Studio in numbers"
-        },
-        "studioImageAlt": "Company workplace and team"
+      "hero": {
+        "explore": "Explore our work",
+        "ideaAction": "Discuss a project",
+        "caption": "From concept to completion with {companyName}"
       },
       "contact": {
-        "subtitle": "Tell us about your production vision, timeline, and objectives. Our producers will connect within 24 hours.",
-        "projectDetails": "Project Brief & Objectives",
-        "submit": "Submit Production Inquiry",
-        "projectDetailsPlaceholder": "Tell us about your campaign goals, shoot locations, and desired deliverables...",
-        "studioInfo": "Studio Information",
-        "whatsappDesc": "Connect directly with one of our producers on WhatsApp for quick inquiries.",
-        "servicesList": [
-          "Commercial Cinematography",
-          "Aerial & FPV Cinematography",
-          "Commercial Photography",
-          "DaVinci Resolve Color Grading",
-          "Studio & Gear Rental",
-          "Documentary Production"
-        ],
         "intents": {
-          "quoteRequestDesc": "Tell us about your production so we can understand the scope and prepare a quote."
+          "quoteRequestDesc": "Tell us about your project so we can prepare an accurate quote for {companyName} services."
         },
-        "directStudioLine": "Contact the studio",
-        "projectRefPlaceholder": "https://example.com/reference or campaign link",
-        "shootLocation": "Shoot location / city (optional)",
-        "shootLocationPlaceholder": "e.g. Manama, Seef, or Riyadh",
-        "messagePlaceholder": "Tell us about your campaign goals, shoot locations, and desired deliverables..."
+        "messagePlaceholder": "Tell us about your project goals, scope, and desired outcomes from {companyName}…",
+        "shootLocation": "Location or city (optional)",
+        "shootLocationPlaceholder": "City or location"
+      },
+      "about": {
+        "headline": "Creative production and visual storytelling engineered around our clients at {companyName}."
       },
       "footer": {
-        "invitationTitle": "Your next story. Made together.",
-        "invitationAction": "Discuss your project"
-      },
-      "reviews": {
-        "headline": "Trusted by Industry Leaders",
-        "subtitle": "Our commitment to visual perfection has built enduring partnerships with Bahrain's most prestigious organizations.",
-        "modal": {
-          "subtitle": "Your feedback guides our cinematic craftsmanship",
-          "quotePlaceholder": "Describe how our cinema cameras, production crew, and deliverables exceeded your vision..."
-        }
-      },
-      "faq": {
-        "headline": "Production Insights & Workflows",
-        "subtitle": "Clear, transparent answers about our production workflows, cinema equipment, and commercial licensing."
+        "invitationTitle": "Let’s create something exceptional together with {companyName}.",
+        "invitationAction": "Start a project"
       },
       "cta": {
-        "requestTreatment": "Request Quote & Shoot Session"
+        "requestTreatment": "Request a quote"
       }
     },
     "ar": {
       "nav": {
-        "equipment": "خزانة المعدات",
-        "bookNow": "احجز إنتاجك"
-      },
-      "hero": {
-        "badge": "دار إنتاج سينمائي",
-        "headline": "سينما في كل إطار.",
-        "subheadline": "تصوير سينمائي إعلاني، تصوير جوي بطائرات الدرون، تصحيح ألوان دافينشي ريزولف، وإنتاجات استوديو إبداعية في مملكة البحرين.",
-        "fallbackTitle": "قصص تُرى.\nوأثر يبقى.",
-        "ideaAction": "ناقش مشروعك",
-        "explore": "استكشف أعمالنا",
-        "caption": "من الفكرة إلى الشاشة"
-      },
-      "services": {
-        "badge": "قدراتنا الإنتاجية",
-        "title": "ركائز الإنتاج الفني الدقيق",
-        "subtitle": "نوفر منظومة إنتاج سينمائي متكاملة من الفكرة والسيناريو، إلى التصوير بكاميرات 8K، وتصحيح الألوان في الاستوديو.",
-        "cinema": {
-          "title": "التصوير السينمائي التجاري",
-          "desc": "إعلانات تلفزيونية راقية، وأفلام ترويجية، وروايات وثائقية ملتقطة بأحدث كاميرات السينما العالمية.",
-          "specs": []
-        },
-        "aerial": {
-          "title": "تصوير جوي سينمائي وFPV احترافي",
-          "desc": "عمليات تصوير جوي مرخصة من شؤون الطيران المدني لتوثيق المشاريع المعمارية والصناعية ومطاردات السيارات الحماسية.",
-          "specs": [
-            "طائرات درون تحمل ريد",
-            "طائرات FPV سريعة",
-            "تحكم ثنائي بالملاحة والكاميرا"
-          ]
-        },
-        "photography": {
-          "title": "التصوير الفوتوغرافي الإعلاني",
-          "desc": "تصوير الأزياء الراقية، السيارات، الهندسة المعمارية، والمنتجات الفاخرة بإضاءة استوديو متقنة.",
-          "specs": []
-        },
-        "color": {
-          "title": "تصحيح ألوان سينمائي في استوديو دافينشي",
-          "desc": "استوديو تصحيح ألوان متقدم مزود بشاشات ماسترينغ سينمائية لمعايرة الألوان السينمائية وتصدير ماستر 4K/HDR.",
-          "specs": [
-            "سحابة دافينشي ستوديو",
-            "شاشة مرجعية سوني",
-            "معايرة دولبي فيجن وACES"
-          ]
-        },
-        "studio": {
-          "title": "استوديو ومساحة إنتاج متكاملة",
-          "desc": "مساحة استوديو معزولة صوتياً مع ديكورات معيارية، شبكة إضاءة علوية، وخلفيات سايك مقوسة سلسة."
-        },
-        "requestProposal": "طلب تسعير إنتاجي مخصص",
-        "commercial": {
-          "title": "إنتاج إعلانات سينمائية عالية الجودة",
-          "desc": "إنتاج إعلانات تجارية متكاملة مخصصة للبث التلفزيوني والسينمائي وحملات العلامات التجارية بأعلى المعايير البصرية.",
-          "specs": [
-            "كاميرات ريد 8K",
-            "طقم عدسات آري T1.3",
-            "طاقم إضاءة وتصوير كامل"
-          ]
-        },
-        "headline": "قدرات سينمائية بلا حدود"
+        "works": "معرض الأعمال"
       },
       "portfolio": {
-        "badge": "مختارات من الأعمال",
-        "title": "أرشيف الإنتاج",
-        "subtitle": "حملات إعلانية منتقاة، أفلام روائية، وأعمال بصرية رائدة.",
-        "filterAll": "جميع المشاريع",
+        "badge": "أعمال مختارة",
+        "title": "معرض الأعمال والمشاريع",
+        "subtitle": "إنتاجات إبداعية وروايات بصرية ودراسات حالة منجزة لعملاء {companyName}.",
         "viewProject": "عرض المشروع",
-        "credits": "فريق الإنتاج",
-        "dop": "التصوير",
-        "backToWorks": "العودة إلى الأعمال",
-        "showcaseTitle": "تحف سينمائية معتمدة",
-        "viewFullArchive": "عرض جميع الأعمال والمشاريع في الأرشيف",
-        "productionOverview": "نظرة عامة والتفاصيل"
+        "filterAll": "كل الأعمال",
+        "allWork": "كل الأعمال",
+        "backToWorks": "العودة إلى المعرض",
+        "productionOverview": "نظرة عامة على المشروع"
       },
-      "clients": {
-        "marqueeBadge": "شركاء الإبداع والعلامات التجارية"
-      },
-      "about": {
-        "title": "مهندسو التأثير البصري والسينمائي",
-        "headline": "قصص بصرية نصنعها للعلامات الطموحة.",
-        "behindTheScenes": "خلف الكواليس · موقع التصوير",
-        "discoverStudio": "تعرف على قصة الاستوديو وفريق العمل",
-        "pillars": {
-          "badge": "أركان الحرفة السينمائية",
-          "title": "الدقة الفنية والابتكار الإبداعي"
-        },
-        "stats": {
-          "badge": "الاستوديو بالأرقام"
-        },
-        "studioImageAlt": "فريقنا وبيئة العمل في الشركة"
+      "hero": {
+        "explore": "استكشف أعمالنا",
+        "ideaAction": "ناقش مشروعك",
+        "caption": "من الفكرة إلى الإنجاز مع {companyName}"
       },
       "contact": {
-        "subtitle": "شاركنا رؤيتك لمشروعك الإنتاجي، والجدول الزمني، والأهداف. وسيتواصل معك فريق الإنتاج خلال 24 ساعة.",
-        "projectDetails": "تفاصيل المشروع وأهدافه",
-        "submit": "إرسال طلب الإنتاج",
-        "projectDetailsPlaceholder": "اشرح لنا رؤيتك الإنتاجية، المواقع المحددة، ومخرجات التسليم المطلوبة...",
-        "studioInfo": "معلومات الاستوديو",
-        "whatsappDesc": "تواصل مباشرة مع أحد منتجينا عبر تطبيق واتساب للحصول على استجابة سريعة.",
-        "servicesList": [
-          "تصوير سينمائي إعلاني",
-          "تصوير جوي و FPV",
-          "تصوير فوتوغرافي تجاري",
-          "تصحيح ألوان دافينشي",
-          "استئجار استوديو ومعدات",
-          "إنتاج وثائقي"
-        ],
         "intents": {
-          "quoteRequestDesc": "أخبرنا عن مشروعك لنساعدك في تحديد نطاقه وتكلفته."
+          "quoteRequestDesc": "أخبرنا عن مشروعك لنعد لك عرض سعر دقيقاً لخدمات {companyName}."
         },
-        "directStudioLine": "تواصل مع الاستوديو",
-        "projectRefPlaceholder": "https://example.com/reference أو رابط الحملة",
-        "shootLocation": "موقع التصوير / المدينة (اختياري)",
-        "shootLocationPlaceholder": "مثال: المنامة، السيف، أو الرياض",
-        "messagePlaceholder": "أخبرنا عن أهداف حملتك الإعلانية، ومواقع التصوير، والمخرجات المطلوبة..."
+        "messagePlaceholder": "أخبرنا عن أهداف مشروعك، النطاق، والمخرجات المطلوبة من {companyName}…",
+        "shootLocation": "الموقع أو المدينة (اختياري)",
+        "shootLocationPlaceholder": "المدينة أو الموقع"
+      },
+      "about": {
+        "headline": "إنتاج إبداعي ورواية بصرية مصممة لتلبية تطلعات عملاء {companyName}."
       },
       "footer": {
-        "invitationTitle": "فكرتك القادمة. نرويها معاً.",
-        "invitationAction": "ناقش مشروعك"
-      },
-      "reviews": {
-        "headline": "ثقة كبرى العلامات التجارية",
-        "subtitle": "التزامنا التام بالكمال البصري أثمر عن شراكات متينة مع أعرق المؤسسات في البحرين والخليج.",
-        "modal": {
-          "subtitle": "ملاحظاتك تساعدنا على مواصلة التميز السينمائي",
-          "quotePlaceholder": "شاركنا انطباعك عن جودة التصوير، المعدات، الإخراج، والالتزام بالمواعيد..."
-        }
-      },
-      "faq": {
-        "headline": "معلومات وسير العمل الإنتاجي",
-        "subtitle": "إجابات شفافة ومباشرة عن معداتنا السينمائية، وجداول التصوير، ورخص التشغيل."
+        "invitationTitle": "لنصنع عملاً استثنائياً معاً مع {companyName}.",
+        "invitationAction": "ابدأ مشروعك"
       },
       "cta": {
-        "requestTreatment": "طلب تسعير وجلسة تصوير"
+        "requestTreatment": "اطلب عرض سعر"
       }
     }
   }

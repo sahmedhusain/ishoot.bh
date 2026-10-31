@@ -81,7 +81,7 @@ export function MomDetailView({
   const clientName = mom.client_name || t.momDetail.generalInternalMeeting;
 
   const formattedDate = new Date(mom.meeting_date).toLocaleDateString(
-    isAr ? "ar-BH-u-nu-latn" : "en-US",
+    isAr ? "ar-u-nu-latn" : "en-US",
     {
       weekday: "long",
       year: "numeric",

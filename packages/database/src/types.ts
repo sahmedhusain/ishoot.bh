@@ -135,6 +135,13 @@ export interface CompanySettings {
   bank_iban: string;
   bank_account_number: string;
   bank_swift: string;
+  time_zone?: string;
+  // Full-Sized Logo (Combined Icon + Wordmark text)
+  full_logo_url?: string;
+  dark_full_logo_url?: string;
+  // Document Letterhead Attachments (PDF Banners)
+  document_header_url?: string;
+  document_footer_url?: string;
   // Brand Wordmark (Text only)
   logo_url: string; // Dark text (for light background)
   dark_logo_url?: string; // Light text (for dark background)
@@ -609,7 +616,7 @@ export function calculateInvoiceTotals(
   discountValue: number,
   vatEnabled: boolean,
   vatPercentage: number,
-  currency: SupportedCurrency = "BHD",
+  currency: SupportedCurrency = "USD",
   /** Taxes besides VAT (company tax registry), each charged on the amount after discount. */
   otherTaxes: Array<{ code: string; rate: number }> = [],
 ) {
@@ -646,7 +653,7 @@ export function calculateInvoiceTotals(
     )
   )
     throw new Error(serverMessages.invalidInvoiceLineItems);
-  const currencyConfig = CURRENCY_CONFIGS[currency] || CURRENCY_CONFIGS.BHD;
+  const currencyConfig = CURRENCY_CONFIGS[currency] || CURRENCY_CONFIGS.USD;
   const factor = Math.pow(10, currencyConfig.decimals);
 
   const subtotalRaw = lineItems.reduce(
@@ -1070,6 +1077,11 @@ export type PublicCompanySettings = Pick<
   | "instagram_url"
   | "linkedin_url"
   | "youtube_url"
+  | "time_zone"
+  | "full_logo_url"
+  | "dark_full_logo_url"
+  | "document_header_url"
+  | "document_footer_url"
   | "logo_url"
   | "dark_logo_url"
   | "logo_text_dark_url"

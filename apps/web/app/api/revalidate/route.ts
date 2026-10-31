@@ -1,3 +1,4 @@
+import { LANGUAGES } from "@platform/locales/registry";
 import { serverMessages } from "@platform/locales";
 
 import { measureOperation } from "@platform/database";
@@ -54,12 +55,11 @@ export async function POST(req: NextRequest) {
         for (const path of paths) {
           if (typeof path === "string") {
             revalidatePath(path);
+            const locales = LANGUAGES.map((language) => language.code);
             if (path === "/") {
-              revalidatePath("/en", "layout");
-              revalidatePath("/ar", "layout");
-            } else if (!/^\/(en|ar)(\/|$)/.test(path)) {
-              revalidatePath(`/en${path}`);
-              revalidatePath(`/ar${path}`);
+              for (const locale of locales) revalidatePath(`/${locale}`, "layout");
+            } else if (!locales.some((locale) => path === `/${locale}` || path.startsWith(`/${locale}/`))) {
+              for (const locale of locales) revalidatePath(`/${locale}${path}`);
             }
           }
         }

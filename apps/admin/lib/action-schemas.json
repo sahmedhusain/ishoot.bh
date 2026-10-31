@@ -2471,6 +2471,107 @@
       }
     }
   },
+  "createCommissionRuleAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "code": {
+            "kind": "string",
+            "optional": false
+          },
+          "name": {
+            "kind": "string",
+            "optional": false
+          },
+          "rate": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "string"
+              }
+            ],
+            "optional": false
+          },
+          "effectiveFrom": {
+            "kind": "string",
+            "optional": false
+          },
+          "effectiveTo": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "recordCommissionSnapshotAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "orderId": {
+            "kind": "string",
+            "optional": false
+          },
+          "orderLineId": {
+            "kind": "string",
+            "optional": true
+          },
+          "attributedUserId": {
+            "kind": "string",
+            "optional": false
+          },
+          "basisAmount": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "string"
+              }
+            ],
+            "optional": false
+          },
+          "currency": {
+            "kind": "string",
+            "optional": false
+          },
+          "ruleCode": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "reverseCommissionSnapshotAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "snapshotId": {
+            "kind": "string",
+            "optional": false
+          },
+          "reason": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "saveAnnouncementAction": {
     "kind": "object",
     "fields": {
@@ -8281,6 +8382,117 @@
       }
     }
   },
+  "createStockPackageAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "code": {
+            "kind": "string",
+            "optional": false
+          },
+          "kind": {
+            "kind": "string",
+            "optional": true
+          },
+          "locationId": {
+            "kind": "string",
+            "optional": false
+          },
+          "parentId": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "packSerialsAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "packageId": {
+            "kind": "string",
+            "optional": false
+          },
+          "serialCodes": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "sealStockPackageAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "packageId": {
+            "kind": "string",
+            "optional": false
+          },
+          "sealNumber": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "moveStockPackageAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "packageId": {
+            "kind": "string",
+            "optional": false
+          },
+          "targetLocationId": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "unpackStockPackageAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "packageId": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "generatePayrollRunAction": {
     "kind": "object",
     "fields": {
@@ -10400,6 +10612,322 @@
       }
     }
   },
+  "saveRegisterAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "branchId": {
+            "kind": "string",
+            "optional": false
+          },
+          "code": {
+            "kind": "string",
+            "optional": false
+          },
+          "name": {
+            "kind": "string",
+            "optional": false
+          },
+          "isActive": {
+            "kind": "boolean",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveDrawerAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "registerId": {
+            "kind": "string",
+            "optional": false
+          },
+          "code": {
+            "kind": "string",
+            "optional": false
+          },
+          "name": {
+            "kind": "string",
+            "optional": false
+          },
+          "currency": {
+            "kind": "string",
+            "optional": true
+          },
+          "openingFloat": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "string"
+              }
+            ],
+            "optional": true
+          },
+          "isActive": {
+            "kind": "boolean",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "openRetailShiftAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "branchId": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "closeRetailShiftAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "shiftId": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "openCashierSessionAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "registerId": {
+            "kind": "string",
+            "optional": false
+          },
+          "drawerId": {
+            "kind": "string",
+            "optional": false
+          },
+          "openingFloat": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "string"
+              }
+            ],
+            "optional": false
+          },
+          "shiftId": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "closeCashierSessionAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "sessionId": {
+            "kind": "string",
+            "optional": false
+          },
+          "closingFloat": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "string"
+              }
+            ],
+            "optional": false
+          },
+          "actualCash": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "string"
+              }
+            ],
+            "optional": false
+          },
+          "note": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "recordPaymentCollectionAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "branchId": {
+            "kind": "string",
+            "optional": false
+          },
+          "sessionId": {
+            "kind": "string",
+            "optional": true
+          },
+          "orderId": {
+            "kind": "string",
+            "optional": true
+          },
+          "invoiceId": {
+            "kind": "string",
+            "optional": true
+          },
+          "amount": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "string"
+              }
+            ],
+            "optional": false
+          },
+          "currency": {
+            "kind": "string",
+            "optional": false
+          },
+          "methodCode": {
+            "kind": "string",
+            "optional": false
+          },
+          "referenceNumber": {
+            "kind": "string",
+            "optional": true
+          },
+          "evidence": {
+            "kind": "record",
+            "element": {
+              "kind": "unknown"
+            },
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "reversePaymentCollectionAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "collectionId": {
+            "kind": "string",
+            "optional": false
+          },
+          "reason": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "performRetailClosingAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "branchId": {
+            "kind": "string",
+            "optional": false
+          },
+          "level": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "drawer"
+              },
+              {
+                "kind": "literal",
+                "value": "session"
+              },
+              {
+                "kind": "literal",
+                "value": "shift"
+              },
+              {
+                "kind": "literal",
+                "value": "day"
+              },
+              {
+                "kind": "literal",
+                "value": "period"
+              }
+            ],
+            "optional": false
+          },
+          "targetId": {
+            "kind": "string",
+            "optional": false
+          },
+          "businessDate": {
+            "kind": "string",
+            "optional": false
+          },
+          "signature": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "upsertRoleAction": {
     "kind": "object",
     "fields": {
@@ -10678,6 +11206,218 @@
       },
       "locale": {
         "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "generateSerialLabelsAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "productId": {
+            "kind": "string",
+            "optional": false
+          },
+          "variantKey": {
+            "kind": "string",
+            "optional": false
+          },
+          "batchKey": {
+            "kind": "string",
+            "optional": false
+          },
+          "locationId": {
+            "kind": "string",
+            "optional": false
+          },
+          "quantity": {
+            "kind": "number",
+            "optional": false
+          },
+          "idempotencyKey": {
+            "kind": "string",
+            "optional": false
+          },
+          "template": {
+            "kind": "object",
+            "fields": {
+              "widthMm": {
+                "kind": "number",
+                "optional": false
+              },
+              "heightMm": {
+                "kind": "number",
+                "optional": false
+              },
+              "gapMm": {
+                "kind": "number",
+                "optional": false
+              },
+              "copies": {
+                "kind": "number",
+                "optional": false
+              }
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "confirmSerialLabelPrintingAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "jobId": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "verifyGeneratedSerialsAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "generationId": {
+            "kind": "string",
+            "optional": false
+          },
+          "scannedCodes": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "moveSerialsBetweenBinsAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "sourceLocationId": {
+            "kind": "string",
+            "optional": false
+          },
+          "destinationLocationId": {
+            "kind": "string",
+            "optional": false
+          },
+          "serials": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "code": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "revision": {
+                  "kind": "number",
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          },
+          "idempotencyKey": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "fulfillSerializedOrderAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "orderId": {
+            "kind": "string",
+            "optional": false
+          },
+          "lines": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "lineId": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "serialCodes": {
+                  "kind": "array",
+                  "element": {
+                    "kind": "string"
+                  },
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "returnSerializedOrderAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "orderId": {
+            "kind": "string",
+            "optional": false
+          },
+          "lines": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "lineId": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "serialCodes": {
+                  "kind": "array",
+                  "element": {
+                    "kind": "string"
+                  },
+                  "optional": false
+                },
+                "locationId": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "reason": {
+                  "kind": "string",
+                  "optional": true
+                }
+              }
+            },
+            "optional": false
+          }
+        },
         "optional": false
       }
     }
@@ -11440,6 +12180,26 @@
           "bank_swift": {
             "kind": "string",
             "optional": false
+          },
+          "time_zone": {
+            "kind": "string",
+            "optional": true
+          },
+          "full_logo_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "dark_full_logo_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "document_header_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "document_footer_url": {
+            "kind": "string",
+            "optional": true
           },
           "logo_url": {
             "kind": "string",
@@ -13272,6 +14032,200 @@
     "fields": {
       "id": {
         "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "requestSerialTransferAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "sourceLocationId": {
+            "kind": "string",
+            "optional": false
+          },
+          "transitLocationId": {
+            "kind": "string",
+            "optional": false
+          },
+          "destinationLocationId": {
+            "kind": "string",
+            "optional": false
+          },
+          "codes": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          },
+          "idempotencyKey": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "processSerialTransferAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "allocationId": {
+            "kind": "string",
+            "optional": false
+          },
+          "revision": {
+            "kind": "number",
+            "optional": false
+          },
+          "idempotencyKey": {
+            "kind": "string",
+            "optional": false
+          },
+          "operation": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "approve"
+              },
+              {
+                "kind": "literal",
+                "value": "dispatch"
+              },
+              {
+                "kind": "literal",
+                "value": "receive"
+              },
+              {
+                "kind": "literal",
+                "value": "close"
+              }
+            ],
+            "optional": false
+          },
+          "codes": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "previewStockHandoverAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "allocationId": {
+            "kind": "string",
+            "optional": false
+          },
+          "revision": {
+            "kind": "number",
+            "optional": false
+          },
+          "stage": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "collection"
+              },
+              {
+                "kind": "literal",
+                "value": "receipt"
+              }
+            ],
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "acknowledgeStockHandoverAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "allocationId": {
+            "kind": "string",
+            "optional": false
+          },
+          "revision": {
+            "kind": "number",
+            "optional": false
+          },
+          "stage": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "collection"
+              },
+              {
+                "kind": "literal",
+                "value": "receipt"
+              }
+            ],
+            "optional": false
+          },
+          "manifestHash": {
+            "kind": "string",
+            "optional": false
+          },
+          "signature": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "reportMissingTransferUnitsAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "allocationId": {
+            "kind": "string",
+            "optional": false
+          },
+          "revision": {
+            "kind": "number",
+            "optional": false
+          },
+          "idempotencyKey": {
+            "kind": "string",
+            "optional": false
+          },
+          "codes": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          },
+          "reason": {
+            "kind": "string",
+            "optional": false
+          }
+        },
         "optional": false
       }
     }

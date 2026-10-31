@@ -122,11 +122,6 @@
     "subtitle": "ہماری فراہم کردہ تمام خدمات، واضح تفصیلات کے ساتھ تاکہ آپ اعتماد کے ساتھ انتخاب کر سکیں۔",
     "sectionIndex": "(02)",
     "requestProposal": "کوٹیشن کی درخواست کریں",
-    "soundstage": {
-      "title": "",
-      "desc": "",
-      "specs": []
-    },
     "sectionLabel": "صلاحیتیں اور خدمات",
     "headline": "ہم کیا پیش کرتے ہیں"
   },
@@ -399,7 +394,7 @@
     "registrationLabel": "کمرشل رجسٹریشن"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "ویلیو ایڈڈ ٹیکس (VAT)",
     "vatNa": "ویٹ: لاگو نہیں",
     "subtotal": "ذیلی کل",
@@ -498,7 +493,6 @@
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "",
     "items": [],
     "sectionLabel": "کلائنٹس اور پارٹنرز کے تاثرات",
     "headline": "ہمارے کلائنٹس کیا کہتے ہیں",

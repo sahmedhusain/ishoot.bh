@@ -17,6 +17,7 @@ function load(file, mocks, jsx = false) {
     module, exports: module.exports, require(id) {
       if (jsx && id === 'react/jsx-runtime') return appRequire(id);
       id = ((i, m) => i in m ? i : (i.startsWith('@platform/database/') && '@platform/database' in m ? '@platform/database' : i))(id, mocks);
+      if (id === "../finance/company-currency" && !(id in mocks)) return load("packages/database/src/finance/company-currency.ts", { "../db": mocks["../db"] });
       if (!(id in mocks)) { const real = realConstants(file, id); if (real) return real; throw Error('Unmocked dependency: ' + id); }
       return mocks[id];
     }, console, Date, Intl, Set, Map, URLSearchParams
@@ -89,6 +90,7 @@ async function main() {
     './company-settings': {}, '../services/lead-resolver': {},
     '../db': {
       db: {
+        companySetting: { findUniqueOrThrow: async () => ({ defaultCurrency: "BHD" }) },
         crmDeal: {
           groupBy: async () => { aggregations++; return [{ dealStage: 'qualified', currency: 'BHD', _count: { _all: 2 }, _sum: { dealValue: 300 } }]; },
           findMany: async (args) => { listReads++; assert.equal(args.take, 5); return []; },

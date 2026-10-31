@@ -30,6 +30,8 @@ describe("inventory", () => {
     expect(countVariance(12, null)).toBe(0);
     expect(countVariance(1.25, 1.2)).toBe(-0.05);
     expect(roundQuantity(0.1 + 0.2)).toBe(0.3);
+    expect(roundQuantity(0.123456)).toBe(0.123456);
+    expect(countVariance(1.234567, 1.234568)).toBe(0.000001);
   });
 
   test("days to expiry count calendar days", () => {

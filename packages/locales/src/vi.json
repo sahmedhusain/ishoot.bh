@@ -109,12 +109,12 @@
     "resume": "Tiếp tục chuyển động"
   },
   "showreel": {
-    "badge": "Showreel 2026",
-    "title": "TẦM NHÌN QUA TỪNG KHUNG HÌNH CHUYỂN ĐỘNG",
-    "subtitle": "Tuyển tập phim thương mại, câu chuyện thương hiệu và điện ảnh trên không tại Bahrain và vùng Vịnh Ả Rập.",
-    "playShowreel": "Phát toàn bộ Showreel",
-    "watchIn4k": "Xem ở độ phân giải 4K",
-    "streamTitle": "Phát trực tiếp chuẩn điện ảnh 4K"
+    "badge": "Xem thêm",
+    "title": "Khám phá công việc của chúng tôi",
+    "subtitle": "Cái nhìn sâu sắc hơn về những gì chúng tôi làm.",
+    "playShowreel": "Phát video",
+    "watchIn4k": "Xem video",
+    "streamTitle": "Video"
   },
   "services": {
     "badge": "Dịch vụ của chúng tôi",
@@ -122,11 +122,6 @@
     "subtitle": "Mọi dịch vụ chúng tôi cung cấp đều được giải thích rõ ràng để bạn tự tin lựa chọn.",
     "sectionIndex": "(02)",
     "requestProposal": "Yêu cầu báo giá",
-    "soundstage": {
-      "title": "",
-      "desc": "",
-      "specs": []
-    },
     "sectionLabel": "Năng lực",
     "headline": "Những gì chúng tôi cung cấp"
   },
@@ -262,7 +257,7 @@
     "stats": {
       "badge": "Số liệu nổi bật",
       "verified": "Dữ liệu sản xuất đã được kiểm chứng",
-      "tvcs": "Phim quảng cáo TVC cao cấp",
+      "tvcs": "Projects",
       "leadership": "Vị thế dẫn đầu điện ảnh",
       "trophies": "Cúp giải thưởng khu vực",
       "enterprises": "Doanh nghiệp GCC"
@@ -292,7 +287,7 @@
     "registrationLabel": "Đăng ký kinh doanh"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "Thuế GTGT (VAT)",
     "vatNa": "VAT: Không áp dụng",
     "subtotal": "Tạm tính",
@@ -391,7 +386,6 @@
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "",
     "items": [],
     "sectionLabel": "Đánh giá từ khách hàng & đối tác",
     "headline": "Khách hàng nói gì về chúng tôi",
@@ -432,7 +426,7 @@
   },
   "preloader": {
     "load": "TẢI",
-    "slogan": "ĐIỆN ẢNH TRONG TỪNG KHUNG HÌNH · SẢN XUẤT 8K",
+    "slogan": "Welcome",
     "skipHint": "Nhấp vào bất kỳ đâu để vào"
   },
   "email": {
@@ -640,7 +634,7 @@
     "projectRefLabel": "Tài liệu tham khảo / liên kết dự án (tùy chọn)",
     "projectRefPlaceholder": "https://example.com/reference",
     "shootLocation": "Địa điểm / Thành phố (tùy chọn)",
-    "shootLocationPlaceholder": "Ví dụ: Manama",
+    "shootLocationPlaceholder": "Thành phố hoặc địa điểm",
     "messageDetails": "Chi tiết tin nhắn",
     "yourMessage": "Nội dung tin nhắn",
     "messagePlaceholder": "Hãy cho chúng tôi biết nhu cầu của bạn và bất kỳ thông tin nào giúp chúng tôi phản hồi tốt nhất…",

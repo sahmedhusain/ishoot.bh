@@ -6,15 +6,15 @@ import { InventoryStockView } from "../../../components/inventory/InventoryStock
 export const dynamic = "force-dynamic";
 
 export default async function InventoryPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  await requirePagePermission("inventory", "read");
+  const actor = await requirePagePermission("inventory", "read");
   await requireFeatureEnabled("products");
   const query = await searchParams;
   const text = (key: string) => (typeof query[key] === "string" ? (query[key] as string) : "");
   const filters = { q: text("q"), warehouse: text("warehouse"), filter: text("filter") };
   const [stock, warehouses, expiring, company, canEdit] = await Promise.all([
-    getStockOverview({ search: filters.q, warehouseId: filters.warehouse, filter: filters.filter, page: Number(text("page")) || 1 }),
-    listWarehouses(),
-    expiringBatches(30),
+    getStockOverview({ search: filters.q, warehouseId: filters.warehouse, filter: filters.filter, page: Number(text("page")) || 1 }, actor.id),
+    listWarehouses(actor.id),
+    expiringBatches(30, actor.id),
     getCachedCompanySettings(),
     hasPermission("inventory", "edit"),
   ]);

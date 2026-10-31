@@ -582,7 +582,7 @@ export async function listGosiRegistrations() {
     orderBy: [{ firstNameEn: "asc" }, { lastNameEn: "asc" }],
   });
   const ctx = await loadGosiContext(employees.map((e) => e.id));
-  const now = new Date(Date.now() + 3 * 3600000);
+  const now = new Date();
   const [year, month] = [now.getUTCFullYear(), now.getUTCMonth() + 1];
   return employees.map((e) => {
     const r = e.employmentRecords[0];

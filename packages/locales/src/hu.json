@@ -109,12 +109,12 @@
     "resume": "Bewegung fortsetzen"
   },
   "showreel": {
-    "badge": "Showreel 2026",
-    "title": "VISIONEN IN BEWEGUNG",
-    "subtitle": "Eine kuratierte Sammlung unserer Werbefilme, Markengeschichten und Luftaufnahmen in Bahrain und der Golfregion.",
-    "playShowreel": "Komplettes Showreel abspielen",
-    "watchIn4k": "In 4K ansehen",
-    "streamTitle": "4K-Kino-Stream"
+    "badge": "Tudjon meg többet",
+    "title": "Fedezze fel munkánkat",
+    "subtitle": "Közelebbi betekintés abba, amit csinálunk.",
+    "playShowreel": "Videó lejátszása",
+    "watchIn4k": "Videó megtekintése",
+    "streamTitle": "Videó"
   },
   "services": {
     "badge": "Unser Angebot",
@@ -122,11 +122,6 @@
     "subtitle": "Összess, was wir anbieten, verständlich erklärt, damit Sie mit Zuversicht wählen können.",
     "sectionIndex": "(02)",
     "requestProposal": "Angebot anfordern",
-    "soundstage": {
-      "title": "",
-      "desc": "",
-      "specs": []
-    },
     "sectionLabel": "Leistungen",
     "headline": "Was wir bieten"
   },
@@ -154,7 +149,7 @@
     "sectionIndex": "(03)",
     "sectionLabel": "Projekt- & Werkarchiv",
     "showcaseTitle": "Ausgewählte Munkáink",
-    "showcaseSubtitle": "Entdecken Sie ausgewählte Werbefilme für Regierungsbehörden, Finanzinstitute und führende Marken der Golfregion.",
+    "showcaseSubtitle": "Explore a selection of our work and projects.",
     "viewFullArchive": "Unsere Munkáink ansehen",
     "productionOverview": "Übersicht",
     "categories": {
@@ -194,24 +189,24 @@
     "title": "Wer wir sind",
     "subtitle": "Erfahren Sie mehr über unser Vállalkozás, unser Team und unsere Arbeit.",
     "storyTitle": "UNSERE PHILOSOPHIE",
-    "storyP1": "Wir glauben, dass wahre visuelle Wirkung dort entsteht, wo technische Präzision auf ungebändigte kreative Neugier trifft. Jede Produktion entsteht mit größter Hingabe an Komposition, Dynamikumfang und authentische Emotionen.",
-    "storyP2": "Von nationalen Fernsehkampagnen bis hin zu internationalen Markenfilmen bringt unser Team Kinokameras, präzise Beleuchtungssysteme und hochmoderne Postproduktions-Suiten zum Einsatz, um den Wert Ihrer Marke zu steigern.",
+    "storyP1": "",
+    "storyP2": "",
     "ceoTitle": "Gründer & Kreativdirektor",
-    "ceoName": "Sayed Ahmed Husain",
-    "ceoQuote": "Wir fangen nicht bloß Licht ein; wir gestalten die Art und Weise, wie Erinnerungen, Emotionen und Marken im Gedächtnis bleiben.",
+    "ceoName": "",
+    "ceoQuote": "",
     "gearTitle": "DIE AUSRÜSTUNG",
     "gearSubtitle": "Hauseigenes Kino-Equipment, kalibriert für makellose optische Spitzenleistung.",
-    "statFilms": "Über 180 Werbespots realisiert",
-    "statYears": "Über 8 Igenhre Handwerkskunst",
-    "statAwards": "14 regionale Auszeichnungen",
-    "statClients": "Über 65 Vállalkozásskunden in der Golfregion",
+    "statFilms": "",
+    "statYears": "",
+    "statAwards": "",
+    "statClients": "",
     "sectionIndex": "(01)",
     "sectionLabel": "Rólunk",
     "headline": "Ein Team, das sich ganz den Menschen widmet, für die wir arbeiten.",
     "behindTheScenes": "Unser Team im Einsatz",
     "shootCaption": "Unser Team im Einsatz",
     "missionLabel": "Unsere Mission",
-    "mission": "Marktführer dabei zu unterstützen, ihre Markengeschichten mit kompromissloser visueller Präzision und emotionaler Tiefe zu erzählen.",
+    "mission": "",
     "visionLabel": "Unsere Vision",
     "discoverStudio": "Entdecken Sie unsere Geschichte und unser Team",
     "gearAll": "Összesene Felszerelés",
@@ -220,43 +215,43 @@
     "gearLighting": "Lichtsysteme",
     "gearAudioGrading": "Mastering-Suite",
     "gearStages": "Studiobühne",
-    "statFilmsValue": "180+",
+    "statFilmsValue": "",
     "statFilmsLabel": "Werbespots realisiert",
-    "statYearsValue": "8+",
+    "statYearsValue": "",
     "statYearsLabel": "Igenhre Handwerkskunst",
-    "statAwardsValue": "14",
+    "statAwardsValue": "",
     "statAwardsLabel": "Regionale Auszeichnungen",
-    "statClientsValue": "65+",
+    "statClientsValue": "",
     "statClientsLabel": "Vállalkozásskunden in der Golfregion",
-    "recTag": "REC · 8K VV",
-    "gccTag": "100% Golfregion",
-    "coloristTag": "DaVinci-zertifiziert",
+    "recTag": "",
+    "gccTag": "",
+    "coloristTag": "",
     "pillars": {
       "badge": "Wofür wir stehen",
       "title": "Die Werte hinter unserer Arbeit",
       "p1": {
-        "number": "01",
-        "title": "Kino-Optiken & Bildgestaltung",
-        "desc": "Multiformat-Aufnahmen in 8K VistaVision mit RED V-Raptor XL Rendszeren kombiniert mit ARRI Master Primes für makellose optische Abbildung.",
-        "tag": "8K VistaVision"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p2": {
-        "number": "02",
-        "title": "DaVinci Resolve HDR-Grading",
-        "desc": "Eigene Postproduktions-Suite mit Sony BVM Referenzmonitoren zur Gestaltung maßgeschneiderter Film-Emulationen.",
-        "tag": "DCI-P3 Colorist"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p3": {
-        "number": "03",
-        "title": "Erzählerische Regie & Dynamik",
-        "desc": "Visuelle Konzepte, Drehbücher und ein präzises Schnitt-Timing, die Vállalkozássbriefings in unvergessliche Kinomomente verwandeln.",
-        "tag": "Erzählkunst"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p4": {
-        "number": "04",
-        "title": "Zertifizierte Schwerlast- & FPV-Drohnen",
-        "desc": "Vollständig von der Zivilluftfahrtbehörde (BCAA) lizenzierte Drohneneinsätze für monumentale Landschaften und dynamische Verfolgungsjagden.",
-        "tag": "BCAA-lizenziert"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       }
     },
     "stats": {
@@ -341,7 +336,7 @@
     "projectRefLabel": "Projektreferenz / Link (optional)",
     "projectRefPlaceholder": "https://example.com/referenz",
     "shootLocation": "Drehort / Stadt (optional)",
-    "shootLocationPlaceholder": "z. B. Manama",
+    "shootLocationPlaceholder": "Város vagy helyszín",
     "messageDetails": "Nachrichtendetails",
     "yourMessage": "Ihre Nachricht",
     "messagePlaceholder": "Beschreiben Sie Ihr Anliegen und alle Details, die uns bei der Antwort helfen...",
@@ -399,7 +394,7 @@
     "registrationLabel": "Handelsregisternummer"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "MwSt.",
     "vatNa": "MwSt.: Nicht zutreffend",
     "subtotal": "Zwischensumme",
@@ -498,7 +493,6 @@
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "BAHRAIN",
     "items": [],
     "sectionLabel": "Ügyfelek- & Partnerstimmen",
     "headline": "Was unsere Ügyfelek sagen",
@@ -529,7 +523,7 @@
     "subtitle": "Klare Antworten darauf, wie wir arbeiten, was Sie erwartet und wie Sie loslegen können."
   },
   "cta": {
-    "badge": "Bereit für Ihr nächstes Filmprojekt",
+    "badge": "Start a conversation",
     "titleLine1": "KINO IN JEDEM BILD.",
     "titleLine2": "Lassen Sie uns gemeinsam ein Meisterwerk schaffen.",
     "description": "Sprechen Sie direkt mit unseren Produzenten über Projektkonzepte, Drehpläne und Kostenschätzungen.",
@@ -539,7 +533,7 @@
   },
   "preloader": {
     "load": "LADEN",
-    "slogan": "KINO IN JEDEM BILD · 8K-PRODUKTION",
+    "slogan": "Welcome",
     "skipHint": "Klicken Sie hier, um fortzufahren"
   },
   "email": {

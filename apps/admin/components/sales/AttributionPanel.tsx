@@ -106,7 +106,7 @@ export function AttributionPanel({ entityType, entityId, info, salesPeople, canR
             {info.history.map((h) => (
               <li key={h.id} className="text-[11px] text-ink">
                 {formatMessage(a.historyLine, { from: h.from ?? "—", to: h.to, by: h.changedBy })}
-                <span className="text-ink-muted"> · {new Date(h.at).toLocaleDateString(locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB")}</span>
+                <span className="text-ink-muted"> · {new Date(h.at).toLocaleDateString(locale === "ar" ? "ar-u-nu-latn" : "en-GB")}</span>
                 {h.reason && <div className="text-ink-muted italic">“{h.reason}”</div>}
               </li>
             ))}

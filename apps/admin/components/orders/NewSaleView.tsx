@@ -12,6 +12,7 @@ import {
   PhoneInput,
   Select,
 } from "@platform/ui";
+import { roundMoney } from "@platform/database/finance/money";
 import { formatMessage } from "@platform/locales";
 import type { SaleProductOption } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
@@ -131,11 +132,7 @@ export function NewSaleView({
     });
     setQuery("");
   };
-  const total =
-    Math.round(
-      lines.reduce((sum, l) => sum + l.price * (Number(l.quantity) || 0), 0) *
-        1000,
-    ) / 1000;
+  const total = roundMoney(lines.reduce((sum, line) => sum + roundMoney(line.price * (Number(line.quantity) || 0), currency), 0), currency);
 
   const create = async () => {
     if (!lines.length) return setError(copy.noLines);

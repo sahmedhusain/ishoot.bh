@@ -106,6 +106,10 @@ export async function saveCompanyAssetAction(
         icon_light: "icon_url",
         icon_dark: "dark_icon_url",
         icon: "icon_url",
+        full_logo_light: "full_logo_url",
+        full_logo_dark: "dark_full_logo_url",
+        letterhead_header: "document_header_url",
+        letterhead_footer: "document_footer_url",
         stamp: "stamp_url",
         signature: "signature_url",
       };
@@ -140,6 +144,10 @@ export async function deleteCompanyAssetAction(assetKey: string) {
         icon_light: "icon_url",
         icon_dark: "dark_icon_url",
         icon: "icon_url",
+        full_logo_light: "full_logo_url",
+        full_logo_dark: "dark_full_logo_url",
+        letterhead_header: "document_header_url",
+        letterhead_footer: "document_footer_url",
         stamp: "stamp_url",
         signature: "signature_url",
       };

@@ -53,6 +53,8 @@ export default async function DashboardLayout({
                   company_name_ar: company.company_name_ar,
                   logo_url: company.logo_url,
                   dark_logo_url: company.dark_logo_url,
+                  full_logo_url: company.full_logo_url,
+                  dark_full_logo_url: company.dark_full_logo_url,
                   icon_url: company.icon_url,
                   dark_icon_url: company.dark_icon_url,
                 }}

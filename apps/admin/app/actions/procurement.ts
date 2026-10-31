@@ -39,6 +39,7 @@ import {
   type SupplierBillInput,
   type SupplierPaymentInput,
 } from "@platform/database";
+import { requireBranchAccess, requireStockLocationAccess } from "@platform/database/queries/branches";
 import { notifyLowStock } from "../../lib/low-stock";
 import { ROUTES } from "../../constants/routes";
 import { hasPermission, requirePermission } from "../../lib/auth";
@@ -209,6 +210,11 @@ export async function savePurchaseOrderAction(input: PurchaseOrderInput) {
       input.id ? "edit" : "create",
     );
     validateActionArguments("savePurchaseOrderAction", { input });
+    if (input.warehouseId) {
+      const warehouse = await db.warehouse.findUnique({ where: { id: input.warehouseId } });
+      if (!warehouse?.isActive || !warehouse.branchId) throw new Error("Location is unavailable or has no branch");
+      await requireBranchAccess(user.id, warehouse.branchId);
+    }
     const order = await savePurchaseOrder(input, user.id);
     await log(
       user.id,
@@ -334,6 +340,7 @@ export async function receiveGoodsAction(
     await requireFeatureEnabled("procurement");
     const user = await requirePermission("procurement", "create");
     validateActionArguments("receiveGoodsAction", { orderId, input });
+    await requireStockLocationAccess(user.id, input.locationId, true);
     const { receipt, low } = await receiveGoods(orderId, input, user.id);
     await log(user.id, "receive", "purchase_order", orderId, {
       receipt: receipt.number,

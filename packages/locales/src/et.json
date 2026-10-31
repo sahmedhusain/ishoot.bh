@@ -122,11 +122,6 @@
     "subtitle": "Allt vi tillhandahåller, tydligt förklarat så att du kan välja med trygghet.",
     "sectionIndex": "(02)",
     "requestProposal": "Begär en offert",
-    "soundstage": {
-      "title": "",
-      "desc": "",
-      "specs": []
-    },
     "sectionLabel": "Kapacitet",
     "headline": "Vad vi erbjuder"
   },
@@ -399,7 +394,7 @@
     "registrationLabel": "Organisationsnummer"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "Moms",
     "vatNa": "Moms: Ej tillämpligt",
     "subtotal": "Delsumma",
@@ -498,7 +493,6 @@
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "",
     "items": [],
     "sectionLabel": "Kund- och partnerreferenser",
     "headline": "Vad våra kunder säger",

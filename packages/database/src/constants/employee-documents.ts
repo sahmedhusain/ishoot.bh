@@ -47,7 +47,7 @@ export function expiryStatus(
     typeof date === "string"
       ? date.slice(0, 10)
       : date.toISOString().slice(0, 10);
-  const today = new Date(Date.now() + 3 * 3600000).toISOString().slice(0, 10);
+  const today = new Date().toISOString().slice(0, 10);
   const days = Math.round(
     (Date.parse(`${day}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) /
       86400000,

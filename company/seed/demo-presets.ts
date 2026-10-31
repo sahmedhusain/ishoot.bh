@@ -34,6 +34,12 @@ export function demoPreset(value: string, style?: string) {
       ...section,
       visible: true,
     }));
+    website.inquiry = {
+      budget: true,
+      timeline: true,
+      location: true,
+      reference: true,
+    };
   }
   return {
     id: value,

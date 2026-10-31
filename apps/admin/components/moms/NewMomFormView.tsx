@@ -394,6 +394,7 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
             required
             rows={5}
             placeholder={
+              t.newMomForm.agendaPlaceholder ||
               t.newMomForm.n1AirspaceDroneFilmingClearance
             }
             value={agenda}

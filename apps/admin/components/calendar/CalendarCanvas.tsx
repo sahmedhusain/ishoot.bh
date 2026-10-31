@@ -86,7 +86,7 @@ export function CalendarCanvas({
   const days = calendarMonthDays(date);
   const today = keyOf(new Date());
   const fullDate = (day: Date) =>
-    day.toLocaleDateString(locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB", {
+    day.toLocaleDateString(locale === "ar" ? "ar-u-nu-latn" : "en-GB", {
       weekday: "long",
       day: "numeric",
       month: "long",

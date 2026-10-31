@@ -57,7 +57,7 @@
     "eyebrow": "Welcome to {companyName}",
     "ideaAction": "Get in touch",
     "explore": "See our work",
-    "caption": "Ideas. Expertise. Possibilities.",
+    "caption": "Ideas. Expertise. Possibilities with {companyName}.",
     "slideLabel": "Slide",
     "pause": "Pause motion",
     "resume": "Resume motion"
@@ -73,34 +73,29 @@
   "services": {
     "badge": "What we offer",
     "title": "What we offer",
-    "subtitle": "Everything we provide, explained clearly so you can choose with confidence.",
+    "subtitle": "Everything {companyName} provides, explained clearly so you can choose with confidence.",
     "sectionIndex": "(02)",
     "requestProposal": "Request a quote",
-    "soundstage": {
-      "title": "",
-      "desc": "",
-      "specs": []
-    },
     "sectionLabel": "Capabilities",
     "headline": "What we offer"
   },
   "portfolio": {
     "badge": "Selected work",
     "title": "Our work",
-    "subtitle": "A closer look at what we do and the people we do it for.",
+    "subtitle": "A closer look at what we do at {companyName} and the clients we serve.",
     "filterAll": "All work",
     "filterCommercial": "Projects",
     "filterAerial": "Other work",
     "filterPhotography": "Gallery",
     "filterColor": "Services",
     "viewProject": "View details",
-    "watchTrailer": "Watch Trailer",
+    "watchTrailer": "Watch preview",
     "credits": "Project team",
-    "director": "Lead",
-    "dop": "Project lead",
-    "colorist": "Team member",
-    "editor": "Contributor",
-    "sound": "Project team",
+    "director": "Project lead",
+    "dop": "Lead specialist",
+    "colorist": "Specialist",
+    "editor": "Reviewer",
+    "sound": "Team member",
     "client": "Client",
     "year": "Year",
     "category": "Category",
@@ -108,7 +103,7 @@
     "sectionIndex": "(03)",
     "sectionLabel": "Works & Projects Archive",
     "showcaseTitle": "Selected work",
-    "showcaseSubtitle": "Explore a selection of our work and projects.",
+    "showcaseSubtitle": "Explore a selection of our work and projects at {companyName}.",
     "viewFullArchive": "View our work",
     "productionOverview": "Overview",
     "categories": {
@@ -135,7 +130,7 @@
   "clients": {
     "badge": "Trust & Pedigree",
     "title": "TRUSTED BY VISIONARY BRANDS",
-    "subtitle": "The customers and partners we work with.",
+    "subtitle": "The customers and partners {companyName} works with.",
     "marqueeBadge": "Trusted by",
     "regionTag": "Our clients",
     "label": "Our clients",
@@ -144,9 +139,9 @@
     "region": "Client logos; movement pauses on focus"
   },
   "about": {
-    "badge": "About the company",
+    "badge": "About {companyName}",
     "title": "Who we are",
-    "subtitle": "Learn about our company, our team and the work we do.",
+    "subtitle": "Learn about {companyName}, our team and the work we do.",
     "storyTitle": "OUR ETHOS",
     "storyP1": "",
     "storyP2": "",
@@ -154,16 +149,16 @@
     "ceoName": "",
     "ceoQuote": "",
     "gearTitle": "Resources",
-    "gearSubtitle": "Explore our resources and capabilities.",
+    "gearSubtitle": "Explore the resources and capabilities of {companyName}.",
     "statFilms": "",
     "statYears": "",
     "statAwards": "",
     "statClients": "",
     "sectionIndex": "(01)",
     "sectionLabel": "About Us",
-    "headline": "A team built around the people we serve.",
-    "behindTheScenes": "Our team at work",
-    "shootCaption": "Our team at work",
+    "headline": "A team built around the people we serve at {companyName}.",
+    "behindTheScenes": "{companyName} team at work",
+    "shootCaption": "{companyName} team at work",
     "missionLabel": "Our Mission",
     "mission": "",
     "visionLabel": "Our Vision",
@@ -187,7 +182,7 @@
     "coloristTag": "",
     "pillars": {
       "badge": "What we stand for",
-      "title": "The values behind our work",
+      "title": "The values behind our work at {companyName}",
       "p1": {
         "number": "",
         "title": "",
@@ -224,7 +219,7 @@
     "gear": {
       "calibrated": "Resource"
     },
-    "studioImageAlt": "Our team and workplace",
+    "studioImageAlt": "{companyName} workplace and team",
     "studioImageCaption": "Inside our workplace"
   },
   "contact": {
@@ -240,19 +235,19 @@
     "submit": "Send inquiry",
     "submitting": "Sending…",
     "successTitle": "Inquiry Received",
-    "successMessage": "Thank you for your message. Our team will follow up using the contact details you provided.",
+    "successMessage": "Thank you for contacting {companyName}. Our team will follow up using the contact details you provided.",
     "errorTitle": "Submission Notice",
-    "errorMessage": "Unable to send your request. Please use the company contact details to reach us directly.",
-    "timelinePlaceholder": "e.g. November 2026",
+    "errorMessage": "Unable to send your request. Please use the {companyName} contact details to reach us directly.",
+    "timelinePlaceholder": "e.g. November {year}",
     "projectDetailsPlaceholder": "Tell us about your requirements and preferred timeline.",
-    "studioInfo": "Company information",
+    "studioInfo": "{companyName} information",
     "workingHours": "",
     "immediateResponse": "What happens next",
     "whatsappConcierge": "Direct WhatsApp Concierge",
-    "whatsappDesc": "Contact our team with your questions.",
+    "whatsappDesc": "Contact the {companyName} team with your questions.",
     "openWhatsapp": "Open WhatsApp Chat →",
     "servicesList": [],
-    "emailSubject": "Thank you for contacting us",
+    "emailSubject": "Thank you for contacting {companyName}",
     "budgetRanges": [
       "To be discussed"
     ],
@@ -273,9 +268,9 @@
       "review": "Rate & review",
       "reviewDesc": "Share your experience. Reviews are checked before they appear publicly."
     },
-    "directStudioLine": "Contact our team",
-    "directLineToTeam": "A direct line to our team",
-    "makeYourselfHeard": "Talk to our team",
+    "directStudioLine": "Contact {companyName}",
+    "directLineToTeam": "A direct line to the {companyName} team",
+    "makeYourselfHeard": "Talk to the {companyName} team",
     "displayName": "Display name",
     "companyOptional": "Company (optional)",
     "servicesInterested": "Services you are interested in (optional)",
@@ -298,7 +293,7 @@
     "shootLocationPlaceholder": "City or location",
     "messageDetails": "Message details",
     "yourMessage": "Your message",
-    "messagePlaceholder": "Tell us what you need and any details that help us respond…",
+    "messagePlaceholder": "Tell us what you need from {companyName} and any details that help us respond…",
     "reviewQuoteLabel": "Your review and testimonial",
     "starRatingLabel": "Rating (1 to 5 stars)",
     "validationEmailOrPhone": "Add an email address or phone number so we can reply.",
@@ -332,7 +327,9 @@
       "fileInputHelp": "PDF or image, up to 10 MB (up to 3 files)",
       "uploading": "Attaching…",
       "attachFile": "Attach file"
-    }
+    },
+    "location": "Location / city (optional)",
+    "locationPlaceholder": "City or location"
   },
   "footer": {
     "allRights": "All rights reserved.",
@@ -353,7 +350,7 @@
     "registrationLabel": "Commercial Registration"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "VAT",
     "vatNa": "VAT: Not Applicable",
     "subtotal": "Subtotal",
@@ -393,16 +390,16 @@
     "page_6": "Sun – Thu: 9:00 AM – 6:00 PM",
     "page_7": "Immediate Response",
     "page_8": "Direct WhatsApp Concierge",
-    "page_9": "Connect directly with one of our producers on WhatsApp for quick inquiries.",
+    "page_9": "Connect directly with the {companyName} team on WhatsApp for quick inquiries.",
     "page_10": "Open WhatsApp Chat →",
-    "page_11": "Production Overview",
-    "contactform_12": "e.g. November 2026",
-    "contactform_13": "Tell us about your campaign goals, shoot locations, and desired deliverables...",
+    "page_11": "Company Overview",
+    "contactform_12": "e.g. November {year}",
+    "contactform_13": "Tell {companyName} about your requirements, project details, or any questions…",
     "languageswitcher_14": "Switch to Arabic",
-    "cinemalightbox_16": "Director:",
-    "cinemalightbox_17": "Cinematographer:",
-    "cinemalightbox_18": "Colorist:",
-    "cinemalightbox_19": "Editor:",
+    "cinemalightbox_16": "Lead:",
+    "cinemalightbox_17": "Specialist:",
+    "cinemalightbox_18": "Reviewer:",
+    "cinemalightbox_19": "Contributor:",
     "herobanner_20": "Sound On",
     "herobanner_21": "Sound Off",
     "heroslide_23": "Start a Project",
@@ -452,15 +449,14 @@
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "",
     "items": [],
     "sectionLabel": "Client & Partner Testimonials",
-    "headline": "What our customers say",
-    "subtitle": "Honest feedback from the people and organisations we work with.",
+    "headline": "What our customers say about {companyName}",
+    "subtitle": "Honest feedback from the people and organisations {companyName} works with.",
     "writeReviewBtn": "Rate & Review Us",
     "modal": {
       "title": "Rate Your Experience",
-      "subtitle": "Your feedback helps us improve",
+      "subtitle": "Your feedback helps {companyName} improve",
       "thankYouTitle": "Thank You For Your Review!",
       "thankYouDesc": "Your review has been submitted for moderation and will appear on our live testimonials once verified by our team.",
       "starRating": "Your Rating",
@@ -469,27 +465,27 @@
       "company": "Company / Brand (Optional)",
       "companyPlaceholder": "e.g. Example Holdings",
       "quote": "Your Review & Testimonial *",
-      "quotePlaceholder": "Tell us about your experience with our team…",
+      "quotePlaceholder": "Tell us about your experience with {companyName}…",
       "validationError": "Please provide your name and review quote.",
       "submit": "Submit Review"
     },
-    "empty": "Worked with us? We'd love to hear your feedback."
+    "empty": "Worked with {companyName}? We'd love to hear your feedback."
   },
   "faq": {
     "sectionIndex": "(06)",
     "items": [],
     "sectionLabel": "Frequently Asked Questions",
-    "headline": "Questions we are often asked",
-    "subtitle": "Straight answers about how we work, what to expect and how to get started."
+    "headline": "Questions often asked about {companyName}",
+    "subtitle": "Straight answers about how we work at {companyName}, what to expect and how to get started."
   },
   "cta": {
     "badge": "Start a conversation",
     "titleLine1": "Your next step.",
     "titleLine2": "Let’s work together.",
-    "description": "Talk with our team about your requirements and next steps.",
+    "description": "Talk with our team at {companyName} about your requirements and next steps.",
     "whatsapp": "Instant WhatsApp Chat",
     "requestTreatment": "Request a quote",
-    "rights": "All rights reserved."
+    "rights": "© {year} {companyName}. All rights reserved."
   },
   "preloader": {
     "load": "LOAD",
@@ -509,7 +505,7 @@
     "notification": {
       "subject": "🔔 New Inquiry: {fullName}",
       "badge": "New Lead Received",
-      "title": "{fullName} is requesting to collaborate",
+      "title": "{fullName} sent an inquiry to {companyName}",
       "fullName": "Full Name:",
       "email": "Email:",
       "phone": "Phone:",
@@ -525,7 +521,7 @@
     "invoiceDelivery": {
       "subject": "Invoice {invoiceNumber} from {companyName}",
       "greeting": "Dear {clientName},",
-      "body": "Please find attached official invoice {invoiceNumber} for your production project.",
+      "body": "Please find attached official invoice {invoiceNumber} from {companyName}.",
       "invoiceNumber": "Invoice Number:",
       "dueDate": "Payment Due Date:",
       "amountDue": "Amount Due:",
@@ -540,7 +536,7 @@
       "badgePartial": "Partial Payment Received",
       "title": "Payment Receipt Confirmation",
       "greeting": "Dear {clientName},",
-      "body": "We confirm receipt of your payment for invoice {invoiceNumber}.",
+      "body": "We confirm receipt of your payment for invoice {invoiceNumber} from {companyName}.",
       "receiptNumber": "Receipt Number:",
       "paymentMethod": "Payment Method:",
       "amountReceived": "Amount Received:",
@@ -549,7 +545,7 @@
     },
     "layout": {
       "cr": "CR: {cr}",
-      "rights": "All rights reserved."
+      "rights": "© {year} {companyName}. All rights reserved."
     },
     "inquiryReceived": {
       "subject": "We received your message — {reference}",
@@ -585,14 +581,14 @@
   },
   "seo": {
     "title": "{companyName}",
-    "description": "Learn more about our company, services and work.",
+    "description": "Learn about {companyName}, our services and our work.",
     "imageAlt": "{companyName} logo"
   },
   "articles": {
     "slug": "news",
     "badge": "Newsroom",
-    "title": "News & updates",
-    "subtitle": "What we have been working on, announcements and press releases.",
+    "title": "Latest from {companyName}",
+    "subtitle": "Updates, perspectives and news from {companyName}.",
     "empty": "Nothing published yet.",
     "readMore": "Read more",
     "back": "All articles",
@@ -615,7 +611,8 @@
     "searchPlaceholder": "Search by title or topic",
     "resultsCount": "{count} results",
     "clearFilters": "Clear filters",
-    "articlePages": "Article pages"
+    "articlePages": "Article pages",
+    "relatedArticles": "More from {companyName}"
   },
   "account": {
     "title": "My account",
@@ -896,12 +893,12 @@
   },
   "press": {
     "title": "Press",
-    "subtitle": "News from the company, and how to reach us for media enquiries.",
+    "subtitle": "News from {companyName}, and media enquiries.",
     "releases": "Press releases",
     "noReleases": "No press releases yet.",
     "kit": "Press kit",
     "logo": "Download our logo",
-    "contact": "Media enquiries",
+    "contact": "Media enquiries for {companyName}",
     "about": "About us"
   }
 }

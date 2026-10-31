@@ -1,4 +1,4 @@
-require("ts-node").register({ transpileOnly: true, skipProject: true, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true, resolveJsonModule: true } });
+require("ts-node").register({ moduleTypes: { "../packages/config/src/**/*.ts": "cjs", "packages/config/src/**/*.ts": "cjs" }, transpileOnly: true, skipProject: true, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true, resolveJsonModule: true } });
 const { realConstants } = require("./lib/real-constants.cjs");
 // Exercise actual server-action boundaries without a network or database.
 const assert = require("node:assert/strict");

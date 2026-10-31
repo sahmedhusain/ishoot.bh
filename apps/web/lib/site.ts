@@ -26,7 +26,7 @@ export const getSite = cache(async () => {
   const [settings, website, enabled] = await Promise.all([
     getPublicCompanySettings(),
     getWebsite().catch(() => null),
-    websiteModuleEnabled().catch(() => true),
+    websiteModuleEnabled().catch(() => false),
   ]);
   const company = { ...settings, ...(website?.brandAssets ?? {}), theme: website?.brandTheme ? normalizeTheme(website.brandTheme) : settings.theme };
   const config = resolveWebsiteConfig(website?.config ?? defaultWebsiteConfig, company.theme.websiteMode);
@@ -47,6 +47,8 @@ export const getSite = cache(async () => {
     showEquipment: config.showEquipment,
     footerInvitation: config.sections.find(section => section.id === "cta")?.visible ?? true,
     currency: company.default_currency,
+    companyNameEn: company.company_name_en,
+    companyNameAr: company.company_name_ar,
   };
   return { company, website, config, info, enabled };
 });

@@ -10,6 +10,7 @@ import { serverMessages } from "@platform/locales";
 import { db, runAtomicMutation } from "../db";
 import { allocateDocumentNumber } from "../finance/numbering";
 import { normalizeProductOptions, variantLabel } from "../constants/products";
+import { roundQuantity } from "../constants/inventory";
 import {
   MAX_CART_LINES,
   MAX_LINE_QUANTITY,
@@ -253,7 +254,7 @@ async function availableByItem(
   return new Map(
     levels.map((l) => [
       `${l.productId}|${l.variantKey}`,
-      round3(num(l._sum.onHand) - num(l._sum.reserved)),
+      roundQuantity(num(l._sum.onHand) - num(l._sum.reserved)),
     ]),
   );
 }
@@ -278,10 +279,22 @@ export async function quoteCart(
     couponCode?: string;
     fulfilment: "delivery" | "pickup";
     address?: { area?: string; city?: string } | null;
+    regionCode?: string;
   },
   client: Tx | typeof db = db,
 ) {
   const accountingCurrency = await getAccountingCurrency();
+  let targetCurrency = accountingCurrency;
+  let priceMultiplier = 1;
+  if (input.regionCode) {
+    const region = await client.storeRegion.findUnique({
+      where: { code: input.regionCode.trim().toUpperCase() },
+    });
+    if (region && region.isEnabled) {
+      targetCurrency = region.currency;
+      priceMultiplier = Number(region.priceMultiplier) || 1;
+    }
+  }
   const cart = input.lines
     .slice(0, MAX_CART_LINES)
     .filter((l) => Number.isFinite(l.quantity) && l.quantity > 0);
@@ -349,6 +362,9 @@ export async function quoteCart(
     const variantAr = variant
       ? variantLabel(options, variant.optionValues, "ar")
       : "";
+    const basePrice =
+      variant?.price != null ? num(variant.price) : num(product.price);
+    const unitPrice = roundMoney(basePrice * priceMultiplier, targetCurrency);
     lines.push({
       productId: product.id,
       variantKey,
@@ -360,8 +376,7 @@ export async function quoteCart(
       variantAr,
       imageUrl: product.imageUrls[0] ?? null,
       quantity,
-      unitPrice:
-        variant?.price != null ? num(variant.price) : num(product.price),
+      unitPrice,
       vatExempt: product.vatExempt,
       trackStock: product.trackStock,
     });
@@ -382,7 +397,7 @@ export async function quoteCart(
     minOrder: number | null;
   } | null = null;
   const code = input.couponCode?.trim().toUpperCase();
-  const goods = roundMoney(lines.reduce((sum, line) => sum + roundMoney(line.unitPrice * line.quantity, accountingCurrency), 0), accountingCurrency);
+  const goods = roundMoney(lines.reduce((sum, line) => sum + roundMoney(line.unitPrice * line.quantity, targetCurrency), 0), targetCurrency);
   if (code) {
     const row = await client.coupon.findUnique({ where: { code } });
     const problem = row
@@ -417,8 +432,9 @@ export async function quoteCart(
     problems.push({ productId: "", problem: "no_delivery_zone" });
   if (zone?.minOrder != null && hasAddress && goods < zone.minOrder)
     problems.push({ productId: "", problem: "below_minimum" });
+  const finalCurrency = input.regionCode ? targetCurrency : (company?.defaultCurrency ?? accountingCurrency);
   const totals = priceOrder({
-    currency: accountingCurrency,
+    currency: finalCurrency,
     lines,
     vatPercentage: company?.vatEnabled ? num(company.vatPercentage) : 0,
     coupon,
@@ -432,7 +448,7 @@ export async function quoteCart(
     lines,
     problems,
     couponCode: coupon ? code! : null,
-    currency: company?.defaultCurrency ?? accountingCurrency,
+    currency: finalCurrency,
     zoneId: hasAddress ? (zone?.id ?? null) : null,
     minOrder: zone?.minOrder ?? null,
     ...totals,
@@ -461,6 +477,7 @@ export interface PlaceOrderInput {
   fulfilment: "delivery" | "pickup";
   address?: OrderAddress | null;
   pickupBranchId?: string | null;
+  regionCode?: string;
   name: string;
   email: string;
   phone: string;
@@ -610,6 +627,7 @@ export async function placeOrder(input: PlaceOrderInput) {
         couponCode: input.couponCode,
         fulfilment: input.fulfilment,
         address,
+        regionCode: input.regionCode,
       },
       tx,
     );
@@ -1002,7 +1020,7 @@ export async function moveOrderIn(
           productId: l.productId,
           variantId: l.variantKey || undefined,
           locationId: l.locationId!,
-          quantity: round3(num(l.quantity) - num(l.returnedQuantity)),
+          quantity: roundQuantity(num(l.quantity) - num(l.returnedQuantity)),
           sourceType: "order",
           sourceId: order.id,
           note: order.number,

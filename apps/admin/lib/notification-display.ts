@@ -80,7 +80,7 @@ export function notificationHref(n: Notification): string | null {
 export function notificationAge(date: string, locale: string) {
   const seconds = Math.max(0, (Date.now() - new Date(date).getTime()) / 1000);
   const format = new Intl.RelativeTimeFormat(
-    locale === "ar" ? "ar-BH-u-nu-latn" : "en",
+    locale === "ar" ? "ar-u-nu-latn" : "en",
     { numeric: "auto" },
   );
   if (seconds < 60) return format.format(0, "minute");

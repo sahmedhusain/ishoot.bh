@@ -10,6 +10,7 @@ import {
 } from "../services/approval-engine";
 import { getNextSequenceNumber } from "./sequence";
 import { getCompanySettings } from "./company-settings";
+import { getCurrencyLabel } from "@platform/config/currency";
 
 // ---------- Templates ----------
 
@@ -85,19 +86,20 @@ export async function saveLetterTemplate(
 
 // ---------- Placeholders ----------
 
-const fmtDate = (value: Date, language: "ar" | "en") =>
-  new Intl.DateTimeFormat(language === "ar" ? "ar-BH-u-nu-latn" : "en-GB", {
+const fmtDate = (value: Date, language: "ar" | "en", timeZone = "UTC") =>
+  new Intl.DateTimeFormat(language === "ar" ? "ar-u-nu-latn" : "en-GB", {
     day: "numeric",
     month: "long",
     year: "numeric",
-    timeZone: "Asia/Bahrain",
+    timeZone,
   }).format(value);
-const fmtMoney = (value: number, language: "ar" | "en") => {
+const fmtMoney = (value: number, language: "ar" | "en", currency = "USD", decimals = 2) => {
   const amount = value.toLocaleString("en-US", {
-    minimumFractionDigits: 3,
-    maximumFractionDigits: 3,
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
   });
-  return language === "ar" ? `${amount} د.ب` : `BHD ${amount}`;
+  const symbol = getCurrencyLabel(currency, language === "ar", false);
+  return language === "ar" ? `${amount} ${symbol}` : `${symbol} ${amount}`;
 };
 
 /** The values a template's {{placeholders}} take, in one language. */
@@ -115,6 +117,9 @@ export async function letterValues(input: {
 }) {
   const isAr = input.language === "ar";
   const company = await getCompanySettings();
+  const tz = company.time_zone || "UTC";
+  const curr = company.default_currency || "USD";
+  const dec = company.currency_decimals ?? 3;
   const values: Record<string, string> = {
     "company.name":
       (isAr ? company.company_name_ar : company.company_name_en) ?? "",
@@ -122,7 +127,7 @@ export async function letterValues(input: {
     "company.address": (isAr ? company.address_ar : company.address_en) ?? "",
     "company.phone": company.phone ?? "",
     "company.email": company.email ?? "",
-    date: fmtDate(input.date ?? new Date(), input.language),
+    date: fmtDate(input.date ?? new Date(), input.language, tz),
     reference: input.reference ?? "{{reference}}",
     "recipient.name": input.recipient?.name ?? "",
     "recipient.title": input.recipient?.title ?? "",
@@ -153,14 +158,14 @@ export async function letterValues(input: {
         "employee.jobTitle": isAr ? e.jobTitleAr : e.jobTitleEn,
         "employee.department":
           (isAr ? e.department?.nameAr : e.department?.nameEn) ?? "",
-        "employee.hireDate": fmtDate(e.hireDate, input.language),
+        "employee.hireDate": fmtDate(e.hireDate, input.language, tz),
         "employee.cpr": e.cprNumber ?? "",
         "employee.nationality": e.nationality ?? "",
         "employee.passport": e.passportNumber ?? "",
         "employee.basicSalary": pay
-          ? fmtMoney(Number(pay.basicSalary), input.language)
+          ? fmtMoney(Number(pay.basicSalary), input.language, curr, dec)
           : "",
-        "employee.grossSalary": pay ? fmtMoney(gross, input.language) : "",
+        "employee.grossSalary": pay ? fmtMoney(gross, input.language, curr, dec) : "",
       });
     }
   }

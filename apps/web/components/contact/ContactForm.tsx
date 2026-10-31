@@ -417,12 +417,12 @@ export function ContactForm({
             {ask.location && (
               <label className="block space-y-2 sm:col-span-2">
                 <span className="text-xs font-semibold text-ink-muted font-sans">
-                  {t("contact.shootLocation")}
+                  {t("contact.location") || t("contact.shootLocation")}
                 </span>
                 <input
                   name="location"
                   maxLength={300}
-                  placeholder={t("contact.shootLocationPlaceholder")}
+                  placeholder={t("contact.locationPlaceholder") || t("contact.shootLocationPlaceholder")}
                   className={field}
                 />
               </label>

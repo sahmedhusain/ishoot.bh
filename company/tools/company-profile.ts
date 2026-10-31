@@ -46,6 +46,26 @@ const BRAND_SLOTS = {
     assetKeys: ["icon_dark"],
     title: "Icon for dark backgrounds",
   },
+  fullLogo: {
+    field: "fullLogoUrl",
+    assetKeys: ["full_logo_light"],
+    title: "Full-sized logo for light backgrounds",
+  },
+  darkFullLogo: {
+    field: "darkFullLogoUrl",
+    assetKeys: ["full_logo_dark"],
+    title: "Full-sized logo for dark backgrounds",
+  },
+  header: {
+    field: "documentHeaderUrl",
+    assetKeys: ["letterhead_header"],
+    title: "Document header banner",
+  },
+  footer: {
+    field: "documentFooterUrl",
+    assetKeys: ["letterhead_footer"],
+    title: "Document footer banner",
+  },
   stamp: { field: "stampUrl", assetKeys: ["stamp"], title: "Company stamp" },
   signature: {
     field: "signatureUrl",
@@ -98,6 +118,7 @@ function companyProfilesDir() {
 export function loadCompanyProfile(
   name = process.env.COMPANY_PROFILE?.trim() || "demo",
 ): CompanyProfile {
+  if (name === "all") name = "demo";
   if (!PROFILE_NAME.test(name))
     throw new Error(`Invalid company profile name: ${name}`);
   const dir = path.join(companyProfilesDir(), name);

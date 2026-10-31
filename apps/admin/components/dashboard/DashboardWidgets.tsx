@@ -123,7 +123,7 @@ export function DashboardWidget({ id, data }: { id: string; data: DashboardData 
       if (!data.cashflow) return null;
       const points = data.cashflow.map((pt) => {
         const [year, month] = pt.monthKey.split("-").map(Number);
-        return { month: new Intl.DateTimeFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-US", { month: "short" }).format(new Date(year, month - 1, 1)), revenue: pt.revenue, expenses: pt.expenses };
+        return { month: new Intl.DateTimeFormat(locale === "ar" ? "ar-u-nu-latn" : "en-US", { month: "short" }).format(new Date(year, month - 1, 1)), revenue: pt.revenue, expenses: pt.expenses };
       });
       return (
         <Panel title={title} icon={<TrendingUp className="w-3.5 h-3.5" />} href={ROUTES.finance.overview}>

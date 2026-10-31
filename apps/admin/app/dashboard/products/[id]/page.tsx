@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { hasPermission, requirePagePermission } from "../../../../lib/auth";
+import { getCurrentUser, hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { getProduct, getProductStock, isFeatureEnabled, listProductCategories, listWarehouses, purchasePriceHistory, requireFeatureEnabled } from "@platform/database";
 import { PurchasePricesCard } from "../../../../components/procurement/PurchasePricesCard";
 import { ProductStockPanel } from "../../../../components/inventory/ProductStockPanel";
@@ -12,7 +12,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   await requirePagePermission("products", "read");
   await requireFeatureEnabled("products");
   const { id } = await params;
-  const [product, categories, company, canEdit, canDelete, canPublish, canSeeStock, canEditStock] = await Promise.all([
+  const [product, categories, company, canEdit, canDelete, canPublish, canSeeStock, canEditStock, user] = await Promise.all([
     getProduct(id),
     listProductCategories(),
     getCachedCompanySettings(),
@@ -21,11 +21,12 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     hasPermission("portfolio", "create"),
     hasPermission("inventory", "read"),
     hasPermission("inventory", "edit"),
+    getCurrentUser(),
   ]);
   const showPrices = (await isFeatureEnabled("procurement")) && (await hasPermission("procurement", "read"));
   const prices = showPrices && product ? await purchasePriceHistory(product.id) : null;
   if (!product) notFound();
-  const [stock, warehouses] = canSeeStock && product.track_stock ? await Promise.all([getProductStock(product.id), listWarehouses()]) : [null, []];
+  const [stock, warehouses] = canSeeStock && product.track_stock ? await Promise.all([getProductStock(product.id, user?.id), listWarehouses(user?.id)]) : [null, []];
   const stockPanel = stock ? (
     <ProductStockPanel
       key="stock"

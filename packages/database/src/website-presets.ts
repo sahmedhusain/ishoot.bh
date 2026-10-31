@@ -763,8 +763,8 @@ export const ACTIVITY_PRESETS: Record<BusinessActivity, ActivityPreset> = {
   },
 };
 
-/** Companies set up before activities existed were built as media websites. */
-export const DEFAULT_ACTIVITY: BusinessActivity = "media";
+/** Missing activity uses neutral defaults; explicit industry selections remain unchanged. */
+export const DEFAULT_ACTIVITY: BusinessActivity = "other";
 
 export function activityPreset(activity: unknown): ActivityPreset {
   return ACTIVITY_PRESETS[

@@ -1,3 +1,4 @@
+import { getCurrencyDecimals } from "@platform/config/currency";
 import { roundMoney } from "../finance/money";
 import { companyCurrency as getAccountingCurrency } from "../finance/company-currency";
 import { serverMessages } from "@platform/locales";
@@ -5,10 +6,20 @@ import { db } from "../db";
 import { FinancialSummary } from "../types";
 import { getFinancialSummaryReport } from "./finance-reports";
 
+async function getCompanyTimeZone(): Promise<string> {
+  const setting = await db.companySetting
+    .findUnique({ where: { singleton: 1 }, select: { timeZone: true } })
+    .catch(() => null);
+  return setting?.timeZone || "UTC";
+}
+
 // SQL numeric arithmetic keeps balances exact until the public number DTO boundary.
 // One statement gives a consistent snapshot without fetching contacts or line items.
 export async function getFinancialSummary(): Promise<FinancialSummary> {
-  const accountingCurrency = await getAccountingCurrency();
+  const [accountingCurrency, timeZone] = await Promise.all([
+    getAccountingCurrency(),
+    getCompanyTimeZone(),
+  ]);
   const [row] = await db.$queryRaw<
     Array<{
       revenue: unknown;
@@ -31,7 +42,7 @@ export async function getFinancialSummary(): Promise<FinancialSummary> {
       (SELECT COALESCE(SUM(p.amount), 0) FROM "Payment" p JOIN "Invoice" i ON i.id = p."invoiceId" WHERE p.currency = ${accountingCurrency} AND i.status <> 'void') AS revenue,
       (SELECT COALESCE(SUM(amount), 0) FROM "Expense" WHERE currency = ${accountingCurrency} AND status = 'approved') AS expenses,
       COALESCE(SUM(due) FILTER (WHERE status IN ('sent', 'partially_paid', 'overdue')), 0) AS outstanding,
-      COALESCE(SUM(due) FILTER (WHERE status <> 'draft' AND "dueDate" < (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bahrain')::date), 0) AS overdue,
+      COALESCE(SUM(due) FILTER (WHERE status <> 'draft' AND "dueDate" < (CURRENT_TIMESTAMP AT TIME ZONE ${timeZone})::date), 0) AS overdue,
       COALESCE(SUM("discountAmount"), 0) AS "discountsGiven",
       COALESCE(SUM(CASE WHEN "vatEnabled" AND status <> 'draft' AND "totalAmount" > 0 THEN "vatAmount" * LEAST(1, paid / "totalAmount") ELSE 0 END), 0) AS "vatCollected"
     FROM invoices
@@ -67,20 +78,24 @@ export interface MonthlyCashflowPoint {
 export async function getMonthlyCashflow(
   monthsCount = 6,
 ): Promise<MonthlyCashflowPoint[]> {
-  const accountingCurrency = await getAccountingCurrency();
+  const [accountingCurrency, timeZone] = await Promise.all([
+    getAccountingCurrency(),
+    getCompanyTimeZone(),
+  ]);
   if (!Number.isInteger(monthsCount) || monthsCount < 1 || monthsCount > 120)
     throw new Error(serverMessages.monthCountMustBeBetween1And);
+  const decimals = getCurrencyDecimals(accountingCurrency);
   const rows = await db.$queryRaw<
     Array<{ monthKey: string; revenue: unknown; expenses: unknown }>
   >`
     WITH bounds AS (
-      SELECT date_trunc('month', CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bahrain')::date AS last_month
+      SELECT date_trunc('month', CURRENT_TIMESTAMP AT TIME ZONE ${timeZone})::date AS last_month
     ), months AS (
       SELECT generate_series(last_month - (${monthsCount} - 1) * INTERVAL '1 month', last_month, INTERVAL '1 month') AS month FROM bounds
     ), revenue AS (
       -- Same definitions as the financial report: receipts net of the VAT and other taxes they carry (allocated pro rata)...
       SELECT date_trunc('month', p."paymentDate") AS month,
-        SUM(p.amount - CASE WHEN i."totalAmount" > 0 THEN ROUND((i."vatAmount" + i."otherTaxAmount") * p.amount / i."totalAmount", 3) ELSE 0 END) AS amount
+        SUM(p.amount - CASE WHEN i."totalAmount" > 0 THEN ROUND((i."vatAmount" + i."otherTaxAmount") * p.amount / i."totalAmount", ${decimals}::integer) ELSE 0 END) AS amount
       FROM "Payment" p JOIN "Invoice" i ON i.id = p."invoiceId"
       WHERE p.currency = ${accountingCurrency} AND i.status <> 'void'
         AND p."paymentDate" >= (SELECT MIN(month) FROM months)
@@ -123,14 +138,17 @@ export async function getExpenseCategoryTotals(): Promise<
 
 // Invoice readers receive invoice metrics without expense or unrelated revenue data.
 export async function getInvoiceSummary() {
-  const accountingCurrency = await getAccountingCurrency();
+  const [accountingCurrency, timeZone] = await Promise.all([
+    getAccountingCurrency(),
+    getCompanyTimeZone(),
+  ]);
   const [row] = await db.$queryRaw<
     Array<{ outstanding: unknown; overdue: unknown; discountsGiven: unknown }>
   >`
     WITH paid AS (SELECT "invoiceId", SUM(amount) amount FROM "Payment" WHERE currency=${accountingCurrency} GROUP BY "invoiceId"),
     balances AS (SELECT i.*, GREATEST(0, i."totalAmount" - COALESCE(p.amount,0)) due FROM "Invoice" i LEFT JOIN paid p ON p."invoiceId"=i.id WHERE i.currency=${accountingCurrency} AND i.status<>'void')
     SELECT COALESCE(SUM(due) FILTER (WHERE status IN ('sent','partially_paid','overdue')),0) outstanding,
-    COALESCE(SUM(due) FILTER (WHERE status<>'draft' AND "dueDate"<(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bahrain')::date),0) overdue,
+    COALESCE(SUM(due) FILTER (WHERE status<>'draft' AND "dueDate"<(CURRENT_TIMESTAMP AT TIME ZONE ${timeZone})::date),0) overdue,
     COALESCE(SUM("discountAmount"),0) "discountsGiven" FROM balances
   `;
   return {

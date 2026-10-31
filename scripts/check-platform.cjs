@@ -1,4 +1,4 @@
-require("ts-node").register({ transpileOnly: true, skipProject: true, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true, resolveJsonModule: true } });
+require("ts-node").register({ transpileOnly: true, skipProject: true, moduleTypes: { "packages/config/src/**/*.ts": "cjs" }, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true, resolveJsonModule: true } });
 const { realConstants } = require("./lib/real-constants.cjs");
 // Run: node scripts/check-platform.cjs
 // Exercise source modules with boundary mocks; no production database writes.
@@ -27,6 +27,7 @@ function load(file, mocks) {
     exports: module.exports,
     require: (id) => {
       id = ((i, m) => i in m ? i : (i.startsWith('@platform/database/') && '@platform/database' in m ? '@platform/database' : i))(id, mocks);
+      if (id === "../finance/company-currency" && !(id in mocks)) return load("packages/database/src/finance/company-currency.ts", { "../db": mocks["../db"] });
       if (!(id in mocks)) { const real = realConstants(file, id); if (real) return real; throw new Error(`Unmocked dependency: ${id}`); }
       return mocks[id];
     },
@@ -167,12 +168,13 @@ async function main() {
     payments: [],
   };
   const db = {
+    $queryRaw: async () => [{ defaultCurrency: "BHD" }],
     invoice: { findUnique: async () => invoice },
     $transaction: async (fn) => {
       usedTransaction = true;
       try {
         return await fn({
-          $queryRaw: async () => [],
+          $queryRaw: async () => [{ defaultCurrency: "BHD" }],
           documentTax: { deleteMany: async () => { }, createMany: async () => { } },
           invoiceLineItem: {
             deleteMany: async () => {
@@ -230,7 +232,7 @@ async function main() {
       db: {
         $transaction: async (fn) =>
           fn({
-            $queryRaw: async () => [],
+            $queryRaw: async () => [{ defaultCurrency: "USD" }],
             invoice: { findUnique: async () => current },
           }),
       },
@@ -285,13 +287,14 @@ async function main() {
   const tx = {
     $queryRaw: async () => {
       locked = true;
+      return [{ defaultCurrency: "BHD" }];
     },
     inquiry: { findUnique: async () => inquiry, update: async () => { } },
     crmContact: { findUnique: async () => ({ id: "c" }) },
     crmDeal: {
       findUnique: async () => conversion ? { id: "d", contactId: "c" } : null,
       create: async (args) => {
-        assert.equal(args.data.dealValue, 5000);
+        assert.equal(args.data.dealValue, 0, "Localized budget labels must not become a monetary quote");
         dealCount++;
         return { id: "d" };
       },
@@ -304,6 +307,7 @@ async function main() {
     },
   };
   const crm = load("apps/admin/app/actions/crm.ts", {
+    "@platform/database/finance/company-currency": load("packages/database/src/finance/company-currency.ts", { "../db": { db: tx } }),
     "../../lib/inquiry-access": { requireInquiryAccess: async () => user },
     "@platform/database": { db: { $transaction: async (fn) => fn(tx) } },
     "next/cache": { revalidatePath() { } },
@@ -394,6 +398,10 @@ async function main() {
     },
     "../db": {
       db: {
+        companySetting: {
+          findUnique: async () => ({ timeZone: "UTC", defaultCurrency: "BHD" }),
+          findUniqueOrThrow: async () => ({ defaultCurrency: "BHD" }),
+        },
         $queryRaw: async () => [
           {
             revenue: "55",

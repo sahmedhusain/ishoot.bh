@@ -42,7 +42,7 @@ function mapPrismaInvoiceToInvoice(inv: any): Invoice {
   const vatAmount = Number(inv.vatAmount);
   const totalAmount = Number(inv.totalAmount);
 
-  const currencyCode = inv.currency || "BHD";
+  const currencyCode = inv.currency || "USD";
   const amountPaid = sumMoney(
     (inv.payments || []).map((p: any) => p.amount),
     currencyCode,

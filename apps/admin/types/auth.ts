@@ -4,7 +4,9 @@ export interface AuthBrandingProps {
   /** Artwork for light backgrounds. */
   logoUrl?: string | null;
   iconUrl?: string | null;
+  fullLogoUrl?: string | null;
   /** Artwork for dark backgrounds; the light version is used when missing. */
   darkLogoUrl?: string | null;
   darkIconUrl?: string | null;
+  darkFullLogoUrl?: string | null;
 }

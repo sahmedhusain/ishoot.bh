@@ -8,11 +8,7 @@
     .admin-main,
     [data-dialog-body],
     .admin-popover-body,
-    [data-overlay-scroll],
-    [class*="overflow-auto"],
-    [class*="overflow-y-auto"],
-    [class*="overflow-x-auto"],
-    [class*="overflow-scroll"]
+    [data-overlay-scroll]
   ) {
   scrollbar-width: none;
 }
@@ -25,11 +21,7 @@
     .admin-main,
     [data-dialog-body],
     .admin-popover-body,
-    [data-overlay-scroll],
-    [class*="overflow-auto"],
-    [class*="overflow-y-auto"],
-    [class*="overflow-x-auto"],
-    [class*="overflow-scroll"]
+    [data-overlay-scroll]
   )::-webkit-scrollbar {
   display: none;
 }

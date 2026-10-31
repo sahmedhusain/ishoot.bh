@@ -808,7 +808,7 @@ invalid_client: match app keys and environment. Webhook verification failure: ch
 
 **Current limits**
 
-BHD, SAR and KWD are not assumed supported. Available cards and wallets depend on the merchant region/account.
+Supported currencies, cards and wallets depend on merchant region and gateway configuration.
 
 ### العربية
 
@@ -840,7 +840,7 @@ invalid_client: طابق مفاتيح التطبيق والبيئة. فشل ال
 
 **الحدود الحالية**
 
-لا يُفترض دعم BHD أوSAR أوKWD. تتغير البطاقات والمحافظ المتاحة حسب بلد التاجر وحسابه.
+تتغير العملات والبطاقات والمحافظ المتاحة حسب إعدادات بوابة الدفع وحساب التاجر.
 
 ## Checkout.com (`checkout_com`)
 
@@ -1080,7 +1080,7 @@ Unauthorized: match entity/token/environment. Decryption errors: check the 32-by
 
 **Current limits**
 
-The current COPYandPAY contract accepts two decimal places. Amounts such as 12.345 BHD are rejected before checkout/refund, rather than rounded. Widget/wallet availability needs merchant acceptance.
+The current COPYandPAY contract accepts two decimal places. Amounts exceeding accepted precision are rejected before checkout/refund, rather than rounded. Widget/wallet availability needs merchant acceptance.
 
 ### العربية
 
@@ -1112,7 +1112,7 @@ The current COPYandPAY contract accepts two decimal places. Amounts such as 12.3
 
 **الحدود الحالية**
 
-يقبل عقد COPYandPAY الحالي منزلتين عشريتين. تُرفض مبالغ مثل 12.345 BHD قبل الدفع أوالاسترداد دون تقريب. الأداة والمحافظ تحتاج قبول التاجر.
+يقبل عقد COPYandPAY الحالي منزلتين عشريتين. تُرفض المبالغ ذات الدقة العشرية غير المدعومة قبل الدفع أو الاسترداد دون تقريب. الأداة والمحافظ تحتاج قبول التاجر.
 
 ## Aramex (`aramex`)
 

@@ -228,8 +228,8 @@ function assertSignable(
     );
 }
 
-const endOfDayBahrain = (isoDate: string) =>
-  new Date(`${isoDate}T23:59:59+03:00`);
+const endOfDayUtc = (isoDate: string) =>
+  new Date(`${isoDate}T23:59:59.999Z`);
 
 async function signedRecord(
   type: ClientSignableType,
@@ -263,7 +263,7 @@ export async function createSigningLink(
   let expiresAt = new Date(Date.now() + days * 86_400_000);
   // A quotation cannot be signed after it stops being valid.
   if (type === "quotation") {
-    const validUntil = endOfDayBahrain(doc.untilDate);
+    const validUntil = endOfDayUtc(doc.untilDate);
     if (validUntil <= new Date())
       throw new Error(serverMessages.thisQuotationHasExpiredIssueANew);
     if (validUntil < expiresAt) expiresAt = validUntil;

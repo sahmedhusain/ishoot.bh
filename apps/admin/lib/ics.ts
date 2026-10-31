@@ -36,7 +36,7 @@ const fold = (line: string) => {
 /** An iCalendar (RFC 5545) document for subscription by Google Calendar, Outlook or Apple Calendar. */
 export function buildIcs(
   events: CalendarEvent[],
-  options: { name: string; language: "ar" | "en"; origin: string },
+  options: { name: string; language: "ar" | "en"; origin: string; timeZone?: string },
 ) {
   const lines = [
     "BEGIN:VCALENDAR",
@@ -45,7 +45,7 @@ export function buildIcs(
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     `X-WR-CALNAME:${escape(options.name)}`,
-    "X-WR-TIMEZONE:Asia/Bahrain",
+    `X-WR-TIMEZONE:${options.timeZone || "UTC"}`,
     "REFRESH-INTERVAL;VALUE=DURATION:PT1H",
     "X-PUBLISHED-TTL:PT1H",
   ];

@@ -72,7 +72,7 @@ export default async function CustomerOrderPage({
           <bdi dir="ltr">{order.number}</bdi>
         </h1>
         <p className="text-ink-muted">
-          {new Intl.DateTimeFormat(ar ? "ar-BH-u-nu-latn" : "en-GB", {
+          {new Intl.DateTimeFormat(ar ? "ar-u-nu-latn" : "en-GB", {
             dateStyle: "long",
           }).format(order.placedAt)}{" "}
           ·{" "}

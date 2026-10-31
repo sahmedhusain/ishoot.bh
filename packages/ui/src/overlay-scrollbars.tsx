@@ -11,7 +11,7 @@ import "./overlay-scrollbars.css";
 OverlayScrollbars.plugin(ClickScrollPlugin);
 
 const TARGETS =
-  '.admin-settings-nav, [role=tablist], .m3-floating-surface, .m3-surface-body, .admin-main, [data-dialog-body], .admin-popover-body, [data-overlay-scroll], [class*="overflow-auto"], [class*="overflow-y-auto"], [class*="overflow-x-auto"], [class*="overflow-scroll"], [class*="overflow-y-scroll"], [class*="overflow-x-scroll"]';
+  '.admin-settings-nav, [role=tablist], .m3-floating-surface, .m3-surface-body, .admin-main, [data-dialog-body], .admin-popover-body, [data-overlay-scroll]';
 
 /** Existing elements remain the native viewport, so React children, refs and scroll events stay intact. */
 export function OverlayScrollbarsProvider() {

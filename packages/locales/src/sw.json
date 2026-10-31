@@ -122,11 +122,6 @@
     "subtitle": "Kila kitu tunachotoa, kimefafanuliwa wazi ili uweze kuchagua kwa kujiamini.",
     "sectionIndex": "(02)",
     "requestProposal": "Omba nukuu ya bei",
-    "soundstage": {
-      "title": "",
-      "desc": "",
-      "specs": []
-    },
     "sectionLabel": "Uwezo",
     "headline": "Tunachotoa"
   },
@@ -399,7 +394,7 @@
     "registrationLabel": "Usajili wa Biashara"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "Kodi",
     "vatNa": "Kodi: Haitumiki",
     "subtotal": "Jumla ndogo",
@@ -498,7 +493,6 @@
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "",
     "items": [],
     "sectionLabel": "Ushuhuda wa Wateja na Washirika",
     "headline": "Wateja wetu wanasema nini",

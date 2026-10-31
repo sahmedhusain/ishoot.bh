@@ -610,7 +610,7 @@ export async function generateSalaryDocumentPdf(
     document.id,
     document.issuedAt,
   );
-  const currency = company.default_currency || "BHD";
+  const currency = company.default_currency || "USD";
   const k = docKit(locale);
   const element = (
     <Document

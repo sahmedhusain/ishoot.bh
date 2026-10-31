@@ -380,7 +380,7 @@ export async function recordCommissionPayout(
       data: {
         categoryId: category?.id ?? null,
         scope: "internal",
-        descriptionEn: `Sales commission ${month} · ${row.name} (${row.ratePercent}% of ${row.collectedNet.toFixed(3)} BHD collected)`,
+        descriptionEn: `Sales commission ${month} · ${row.name} (${row.ratePercent}% of ${row.collectedNet.toFixed(3)} ${FUNCTIONAL_CURRENCY} collected)`,
         amount: row.commission,
         netAmount: row.commission,
         inputVatAmount: 0,

@@ -122,11 +122,6 @@
     "subtitle": "تمامی خدماتی که ارائه می‌دهیم به شکلی شفاف توضیح داده شده‌اند تا با اطمینان انتخاب کنید.",
     "sectionIndex": "(02)",
     "requestProposal": "درخواست استعلام قیمت",
-    "soundstage": {
-      "title": "",
-      "desc": "",
-      "specs": []
-    },
     "sectionLabel": "قابلیت‌ها",
     "headline": "آنچه ارائه می‌دهیم"
   },
@@ -399,7 +394,7 @@
     "registrationLabel": "شماره ثبت تجاری (CR)"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "مالیات بر ارزش افزوده",
     "vatNa": "مالیات: غیرقابل اعمال",
     "subtotal": "جمع جزئی",
@@ -498,7 +493,6 @@
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "",
     "items": [],
     "sectionLabel": "نظرات مشتریان و همکاران",
     "headline": "دیدگاه مشتریان ما",

@@ -30,7 +30,7 @@ function Section({ title, hint, children, action }: { title: string; hint?: stri
 /** Line-level financial detail. VAT columns appear only when VAT applies (registered, or present in the period). */
 export function FinancialReportDetailView({ detail, showVat }: { detail: FinancialReportDetail; showVat: boolean }) {
   const { t, locale } = useAdminLocale();
-  const bhd = getCurrencyLabel(useCompanyCurrency(), locale === "ar");
+  const currLabel = getCurrencyLabel(useCompanyCurrency(), locale === "ar");
   const d = t.financialDetail;
   const [vatFilter, setVatFilter] = React.useState<"all" | "with" | "without">("all");
   const [showAll, setShowAll] = React.useState(false);
@@ -165,7 +165,7 @@ export function FinancialReportDetailView({ detail, showVat }: { detail: Financi
                     {locale === "ar" ? c.nameAr : c.nameEn}
                     <span className="text-ink-muted">({c.count})</span>
                   </span>
-                  <span className="font-semibold text-ink">{bhd} {fmt(c.net)}</span>
+                  <span className="font-semibold text-ink">{currLabel} {fmt(c.net)}</span>
                 </div>
                 <div className="mt-1 h-1.5 rounded-full bg-ink/5 overflow-hidden">
                   <div className="h-full rounded-full" style={{ width: `${(c.net / maxCategory) * 100}%`, background: c.color }} />
@@ -181,21 +181,21 @@ export function FinancialReportDetailView({ detail, showVat }: { detail: Financi
               {(["cost_of_sales", "operating", "payroll"] as const).map((k) => (
                 <div key={k} className="rounded-2xl bg-surface-sunken p-3">
                   <dt className="text-ink-muted">{t.expenseMeta.kinds[k]}</dt>
-                  <dd className="text-base font-bold text-ink mt-1">{bhd} {fmt(detail.expensesByKind[k])}</dd>
+                  <dd className="text-base font-bold text-ink mt-1">{currLabel} {fmt(detail.expensesByKind[k])}</dd>
                 </div>
               ))}
               {(["deal", "client", "internal"] as const).map((s) => (
                 <div key={s} className="rounded-2xl border border-outline-variant p-3">
                   <dt className="text-ink-muted">{d.recordedAgainst} · {t.expenseMeta.scopes[s]}</dt>
-                  <dd className="text-sm font-bold text-ink mt-1">{bhd} {fmt(detail.expensesByScope[s])}</dd>
+                  <dd className="text-sm font-bold text-ink mt-1">{currLabel} {fmt(detail.expensesByScope[s])}</dd>
                 </div>
               ))}
               <div className="rounded-2xl border border-outline-variant p-3 col-span-2">
                 <dt className="text-ink-muted">{d.claims}</dt>
                 <dd className="text-sm text-ink mt-1">
-                  {formatMessage(d.claimsPaid, { count: String(detail.claims.paidCount) })}: <strong>{bhd} {fmt(detail.claims.paidAmount)}</strong>
+                  {formatMessage(d.claimsPaid, { count: String(detail.claims.paidCount) })}: <strong>{currLabel} {fmt(detail.claims.paidAmount)}</strong>
                   {" · "}
-                  {d.claimsOutstanding}: <strong>{bhd} {fmt(detail.claims.outstandingAmount)}</strong>
+                  {d.claimsOutstanding}: <strong>{currLabel} {fmt(detail.claims.outstandingAmount)}</strong>
                 </dd>
               </div>
             </dl>
@@ -204,10 +204,10 @@ export function FinancialReportDetailView({ detail, showVat }: { detail: Financi
           {showVat && (
             <Section title={d.vatTitle} hint={d.vatHint}>
               <dl className="px-5 pb-5 space-y-2 text-xs">
-                <div className="flex justify-between"><dt className="text-ink-muted">{d.outputVat}</dt><dd className="font-semibold text-ink">{bhd} {fmt(detail.vat.output)}</dd></div>
-                <div className="flex justify-between"><dt className="text-ink-muted">{d.inputRecoverable}</dt><dd className="font-semibold text-ink">− {bhd} {fmt(detail.vat.inputRecoverable)}</dd></div>
-                <div className="flex justify-between border-t border-outline-variant pt-2"><dt className="font-bold text-ink">{d.netVatPayable}</dt><dd className={`font-bold ${detail.vat.netPayable >= 0 ? "text-rose-600" : "text-emerald-600"}`}>{bhd} {fmt(detail.vat.netPayable)}</dd></div>
-                <div className="flex justify-between"><dt className="text-ink-muted">{d.inputNonRecoverable}</dt><dd className="text-ink">{bhd} {fmt(detail.vat.inputNonRecoverable)}</dd></div>
+                <div className="flex justify-between"><dt className="text-ink-muted">{d.outputVat}</dt><dd className="font-semibold text-ink">{currLabel} {fmt(detail.vat.output)}</dd></div>
+                <div className="flex justify-between"><dt className="text-ink-muted">{d.inputRecoverable}</dt><dd className="font-semibold text-ink">− {currLabel} {fmt(detail.vat.inputRecoverable)}</dd></div>
+                <div className="flex justify-between border-t border-outline-variant pt-2"><dt className="font-bold text-ink">{d.netVatPayable}</dt><dd className={`font-bold ${detail.vat.netPayable >= 0 ? "text-rose-600" : "text-emerald-600"}`}>{currLabel} {fmt(detail.vat.netPayable)}</dd></div>
+                <div className="flex justify-between"><dt className="text-ink-muted">{d.inputNonRecoverable}</dt><dd className="text-ink">{currLabel} {fmt(detail.vat.inputNonRecoverable)}</dd></div>
               </dl>
             </Section>
           )}
@@ -223,7 +223,7 @@ export function FinancialReportDetailView({ detail, showVat }: { detail: Financi
                   <td className="p-3 ps-5 text-ink-muted w-8">{i + 1}</td>
                   <td className="p-3"><Link href={ROUTES.crm.customer(c.clientId)} className="text-ink hover:text-accent">{c.name}</Link></td>
                   <td className="p-3 text-ink-muted">{formatMessage(d.invoiceCount, { count: String(c.invoices) })}</td>
-                  <td className="p-3 pe-5 text-end font-semibold text-ink">{bhd} {fmt(c.net)}</td>
+                  <td className="p-3 pe-5 text-end font-semibold text-ink">{currLabel} {fmt(c.net)}</td>
                 </tr>
               ))}
             </tbody>

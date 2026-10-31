@@ -122,11 +122,6 @@
     "subtitle": "ทุกบริการที่เรามอบให้ อธิบายไว้อย่างชัดเจนเพื่อให้คุณเลือกได้อย่างมั่นใจ",
     "sectionIndex": "(02)",
     "requestProposal": "ขอใบเสนอราคา",
-    "soundstage": {
-      "title": "",
-      "desc": "",
-      "specs": []
-    },
     "sectionLabel": "ขีดความสามารถ",
     "headline": "สิ่งที่เรานำเสนอ"
   },
@@ -399,7 +394,7 @@
     "registrationLabel": "ทะเบียนพาณิชย์"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "ภาษีมูลค่าเพิ่ม",
     "vatNa": "ภาษีมูลค่าเพิ่ม: ไม่ระบุ",
     "subtotal": "ยอดรวมย่อย",
@@ -498,7 +493,6 @@
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "",
     "items": [],
     "sectionLabel": "คำนิยมจากลูกค้าและพันธมิตร",
     "headline": "เสียงตอบรับจากลูกค้าของเรา",

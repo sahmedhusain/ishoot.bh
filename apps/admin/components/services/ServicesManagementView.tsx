@@ -23,6 +23,7 @@ import {
 } from "../../app/actions/services";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { usePermissions } from "../../hooks/usePermissions";
+import { getCurrencyLabel } from "@platform/config/currency";
 import { SERVICE_UNITS } from "@platform/config/constants";
 import { pickText, type ContentLanguage } from "@platform/database/constants/languages";
 import { LanguageFields } from "../setup/LanguageFields";
@@ -39,6 +40,7 @@ export function ServicesManagementView({
   const companyCurrency = useCompanyCurrency();
   const confirmAction = useConfirmation();
   const { isArabic, t } = useAdminLocale();
+  const currencyLabel = getCurrencyLabel(companyCurrency, isArabic);
   const bilingual = languages.length > 1;
   const { can } = usePermissions();
   const canWrite = can("invoices", "write");
@@ -458,7 +460,7 @@ export function ServicesManagementView({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor={`${serviceFormId}-rate`} className="text-xs font-semibold text-ink dark:text-ink block mb-1">
-                  {t.servicesView.rateLabel} ({t.financials.currency}) *
+                  {t.servicesView.rateLabel} ({currencyLabel}) *
                 </label>
                 <Input
                   type="number"

@@ -60,6 +60,22 @@ const ASSET_SLOTS: AssetSlotDef[] = [
     themeContext: "dark",
   },
   {
+    key: "full_logo_light",
+    titleKey: "fullLogoLight",
+    descKey: "fullLogoLightDesc",
+    accept: "image/svg+xml,image/png,image/webp",
+    recommended: "formatFullLogo",
+    themeContext: "light",
+  },
+  {
+    key: "full_logo_dark",
+    titleKey: "fullLogoDark",
+    descKey: "fullLogoDarkDesc",
+    accept: "image/svg+xml,image/png,image/webp",
+    recommended: "formatFullLogo",
+    themeContext: "dark",
+  },
+  {
     key: "icon_light",
     titleKey: "iconLight",
     descKey: "iconLightDesc",
@@ -175,6 +191,10 @@ export function BrandAssetsTab({
         // Also update local settings state for matched keys
         if (slot.key === "logo_light") setSettings((s) => ({ ...s, logo_url: data.fileUrl }));
         if (slot.key === "logo_dark") setSettings((s) => ({ ...s, dark_logo_url: data.fileUrl }));
+        if (slot.key === "full_logo_light") setSettings((s) => ({ ...s, full_logo_url: data.fileUrl }));
+        if (slot.key === "full_logo_dark") setSettings((s) => ({ ...s, dark_full_logo_url: data.fileUrl }));
+        if (slot.key === "letterhead_header") setSettings((s) => ({ ...s, document_header_url: data.fileUrl }));
+        if (slot.key === "letterhead_footer") setSettings((s) => ({ ...s, document_footer_url: data.fileUrl }));
         if (slot.key === "icon_light") setSettings((s) => ({ ...s, icon_url: data.fileUrl }));
         if (slot.key === "icon_dark") setSettings((s) => ({ ...s, dark_icon_url: data.fileUrl }));
         if (slot.key === "stamp") setSettings((s) => ({ ...s, stamp_url: data.fileUrl }));
@@ -197,6 +217,10 @@ export function BrandAssetsTab({
 
       if (slotKey === "logo_light") setSettings((s) => ({ ...s, logo_url: "" }));
       if (slotKey === "logo_dark") setSettings((s) => ({ ...s, dark_logo_url: "" }));
+      if (slotKey === "full_logo_light") setSettings((s) => ({ ...s, full_logo_url: "" }));
+      if (slotKey === "full_logo_dark") setSettings((s) => ({ ...s, dark_full_logo_url: "" }));
+      if (slotKey === "letterhead_header") setSettings((s) => ({ ...s, document_header_url: "" }));
+      if (slotKey === "letterhead_footer") setSettings((s) => ({ ...s, document_footer_url: "" }));
       if (slotKey === "icon_light") setSettings((s) => ({ ...s, icon_url: "" }));
       if (slotKey === "icon_dark") setSettings((s) => ({ ...s, dark_icon_url: "" }));
       if (slotKey === "stamp") setSettings((s) => ({ ...s, stamp_url: "" }));
@@ -246,20 +270,30 @@ export function BrandAssetsTab({
                 <span>{t.brandAssetsTab.lightSurfaceInvoicesLettersPrint}</span>
               </div>
               <div className="min-h-[80px] flex items-center justify-center gap-3.5 py-4">
-                {settings.icon_url ? (
+                {settings.full_logo_url ? (
                   <ContentImage
-                    src={settings.icon_url}
-                    alt={t.brandAssetsTab.brandIconLight}
-                    className="h-10 w-auto object-contain shrink-0"
+                    src={settings.full_logo_url}
+                    alt={t.branding.assets.fullLogoLight}
+                    className="h-10 w-auto object-contain"
                   />
-                ) : null}
-                {settings.logo_url ? (
-                  <ContentImage
-                    src={settings.logo_url}
-                    alt={t.brandAssetsTab.brandWordmarkDarkText}
-                    className="h-7 w-auto object-contain"
-                  />
-                ) : null}
+                ) : (
+                  <>
+                    {settings.icon_url ? (
+                      <ContentImage
+                        src={settings.icon_url}
+                        alt={t.brandAssetsTab.brandIconLight}
+                        className="h-10 w-auto object-contain shrink-0"
+                      />
+                    ) : null}
+                    {settings.logo_url ? (
+                      <ContentImage
+                        src={settings.logo_url}
+                        alt={t.brandAssetsTab.brandWordmarkDarkText}
+                        className="h-7 w-auto object-contain"
+                      />
+                    ) : null}
+                  </>
+                )}
               </div>
               <div className="text-[10px] text-ink-muted text-center ">
                 {t.copy.logoLightPreview}</div>
@@ -271,20 +305,30 @@ export function BrandAssetsTab({
                 <span>{t.brandAssetsTab.darkSurfaceWebAdminPortal}</span>
               </div>
               <div className="min-h-[80px] flex items-center justify-center gap-3.5 py-4">
-                {settings.dark_icon_url ? (
+                {settings.dark_full_logo_url ? (
                   <ContentImage
-                    src={settings.dark_icon_url}
-                    alt={t.brandAssetsTab.brandIconDark}
-                    className="h-10 w-auto object-contain shrink-0"
+                    src={settings.dark_full_logo_url}
+                    alt={t.branding.assets.fullLogoDark}
+                    className="h-10 w-auto object-contain"
                   />
-                ) : null}
-                {settings.dark_logo_url ? (
-                  <ContentImage
-                    src={settings.dark_logo_url}
-                    alt={t.brandAssetsTab.brandWordmarkLightText}
-                    className="h-7 w-auto object-contain"
-                  />
-                ) : null}
+                ) : (
+                  <>
+                    {settings.dark_icon_url ? (
+                      <ContentImage
+                        src={settings.dark_icon_url}
+                        alt={t.brandAssetsTab.brandIconDark}
+                        className="h-10 w-auto object-contain shrink-0"
+                      />
+                    ) : null}
+                    {settings.dark_logo_url ? (
+                      <ContentImage
+                        src={settings.dark_logo_url}
+                        alt={t.brandAssetsTab.brandWordmarkLightText}
+                        className="h-7 w-auto object-contain"
+                      />
+                    ) : null}
+                  </>
+                )}
               </div>
               <div className="text-[10px] text-ink/40 text-center ">
                 {t.copy.logoDarkPreview}</div>

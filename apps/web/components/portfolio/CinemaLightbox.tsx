@@ -90,21 +90,16 @@ export function CinemaLightbox({
         </p>
         {item.credits && Object.values(item.credits).some(Boolean) && (
           <dl className="grid grid-cols-2 sm:grid-cols-4 gap-4 px-5 pb-5 text-sm">
-            {(
-              [
-                ["director", t("portfolio.director")],
-                ["dop", t("portfolio.dop")],
-                ["colorist", t("portfolio.colorist")],
-                ["editor", t("portfolio.editor")],
-              ] as const
-            ).map(([key, label]) =>
-              item.credits?.[key] ? (
+            {Object.entries(item.credits).map(([key, val]) => {
+              if (!val) return null;
+              const label = t(`portfolio.${key}`) || key.charAt(0).toUpperCase() + key.slice(1);
+              return (
                 <div key={key}>
                   <dt className="text-ink-muted text-xs">{label}</dt>
-                  <dd className="mt-1">{item.credits[key]}</dd>
+                  <dd className="mt-1">{val}</dd>
                 </div>
-              ) : null,
-            )}
+              );
+            })}
           </dl>
         )}
         {!!item.gallery_urls?.length && (

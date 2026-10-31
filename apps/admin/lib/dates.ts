@@ -1,10 +1,16 @@
-/** Business timezone for dates the company sees (issue/due dates, defaults). */
-const BUSINESS_TIME_ZONE = "Asia/Bahrain";
+/** Default business timezone for dates the company sees (issue/due dates, defaults). */
+const DEFAULT_BUSINESS_TIME_ZONE =
+  typeof Intl !== "undefined"
+    ? Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"
+    : "UTC";
 
-/** YYYY-MM-DD for `date` in the business timezone (not UTC, which is a day behind after midnight Bahrain time). */
-export function businessDateString(date: Date = new Date()): string {
+/** YYYY-MM-DD for `date` in the business timezone. */
+export function businessDateString(
+  date: Date = new Date(),
+  timeZone: string = DEFAULT_BUSINESS_TIME_ZONE,
+): string {
   return new Intl.DateTimeFormat("en-CA", {
-    timeZone: BUSINESS_TIME_ZONE,
+    timeZone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",

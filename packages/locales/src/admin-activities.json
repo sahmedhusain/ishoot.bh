@@ -1,96 +1,96 @@
 {
   "media": {
     "en": {
-      "executiveOps": "Executive Studio Operations",
-      "executiveSub": "Real-time telemetry across cinema production, deal pipeline, and financial cashflow.",
+      "executiveOps": "{companyName} Operations",
+      "executiveSub": "Real-time operations, deal pipeline, and financial cashflow.",
       "nav": {
-        "calendar": "Calendar & Shoot Schedule",
+        "calendar": "Schedule & Calendar",
         "leads": "Incoming Inquiries",
-        "equipment": "Gear Inventory",
-        "stats": "Studio Statistics"
+        "equipment": "Equipment & Inventory",
+        "stats": "Business Statistics"
       },
       "actions": {
-        "newEvent": "New Shoot Event"
+        "newEvent": "New Event"
       },
       "kpi": {
-        "expensesDesc": "Gear rentals, wages, overhead"
+        "expensesDesc": "Operational costs, supplies, overhead"
       },
       "stages": {
-        "production": "In Production",
-        "post_production": "Post-Production",
-        "delivered": "Master Delivered"
+        "production": "In Progress",
+        "post_production": "Review & QA",
+        "delivered": "Completed & Delivered"
       },
       "roles": {
-        "production_manager": "Production Manager",
-        "producer": "Executive Producer",
-        "editor": "Lead Editor",
-        "operations_manager": "Production Manager",
-        "project_lead": "Executive Producer"
+        "production_manager": "Operations Lead",
+        "producer": "Project Lead",
+        "editor": "Senior Specialist",
+        "operations_manager": "Operations Manager",
+        "project_lead": "Project Lead"
       },
       "calendar": {
-        "title": "Production Schedule & Deadlines",
-        "subtitle": "Interactive Month, Week, and Day planner for cinematography shoots, meetings, and broadcast delivery milestones.",
-        "eventShoot": "Shoot",
-        "location": "Shoot Location"
+        "title": "Schedule & Milestones",
+        "subtitle": "Interactive Month, Week, and Day planner for project milestones, meetings, and delivery deadlines.",
+        "eventShoot": "Session",
+        "location": "Location"
       },
       "cms": {
-        "portfolioTitle": "Portfolio Project Archive",
-        "equipmentTitle": "Gear Locker & Soundstage Inventory"
+        "portfolioTitle": "Portfolio & Case Studies",
+        "equipmentTitle": "Equipment & Assets Inventory"
       },
       "invoice": {
-        "terms3": "Raw footage and intellectual property rights transfer once the balance is paid in full."
+        "terms3": "Intellectual property and deliverables transfer once the balance is paid in full."
       },
       "crm": {
-        "dealTitle": "Production Deals Pipeline",
+        "dealTitle": "Deals Pipeline",
         "contactTypes": {
-          "freelancer": "Freelancer / Crew"
+          "freelancer": "Contractor / Freelancer"
         },
         "stages": {
-          "production": "In Production",
-          "postProduction": "Post-Production"
+          "production": "In Progress",
+          "postProduction": "Review & QA"
         }
       },
       "invoiceForm": {
-        "deliverables": "Production Deliverables"
+        "deliverables": "Deliverables & Scope"
       },
       "companySettingsView": {
-        "googleSubtitle": "Automatic two-way sync between studio shoots, deadlines, and crew Google Calendars.",
-        "addressLabel": "Studio Address"
+        "googleSubtitle": "Automatic two-way sync between schedule deadlines and Google Calendars.",
+        "addressLabel": "Operating Address"
       },
       "deals": {
-        "shootPrefix": "Shoot: ",
-        "shootDate": "Shoot Date"
+        "shootPrefix": "Date: ",
+        "shootDate": "Scheduled Date"
       },
       "contactsView": {
-        "typeFreelancer": "Crew Freelancer"
+        "typeFreelancer": "Contractor / Freelancer"
       },
       "equipmentView": {
-        "subtitle": "Studio-owned cinema cameras, lenses, lighting packages and soundstage gear shown on the website.",
+        "subtitle": "Company tools, equipment, and assets displayed on the website.",
         "categories": {
-          "cameras": "Cinema Cameras",
-          "lighting": "Lighting Packages",
-          "grip": "Grip & Rigs"
+          "cameras": "Primary Equipment",
+          "lighting": "Field Equipment",
+          "grip": "Support & Hardware"
         }
       },
       "portfolioView": {
-        "subtitle": "Cinematic commercials, narrative films, aspect ratios, and credit dossiers.",
+        "subtitle": "Showcase projects, portfolio works, and client case studies.",
         "year": "Year",
-        "productionYear": "Production Year"
+        "productionYear": "Completion Year"
       },
       "financialView": {
-        "productionCostsDesc": "Gear rentals, soundstage lease, crew wages"
+        "productionCostsDesc": "Direct project costs, supplies, and contractor fees"
       },
       "expensesView": {
-        "subtitle": "Track production expenditures, camera rentals, crew payroll, and studio operational overhead."
+        "subtitle": "Track project expenditures, equipment purchases, contractor payroll, and operational overhead."
       },
       "dashboardView": {
-        "zeroUpcomingShoots": "Zero upcoming shoots scheduled",
-        "shootDate": "Shoot:"
+        "zeroUpcomingShoots": "Zero upcoming sessions scheduled",
+        "shootDate": "Date:"
       },
       "calendarView": {
-        "shoot": "Shoot",
-        "linkDeal": "Link with Production Deal",
-        "locationAddress": "Shoot Location / Address"
+        "shoot": "Session",
+        "linkDeal": "Link with Deal",
+        "locationAddress": "Location / Address"
       },
       "usersView": {
         "departments": {
@@ -99,72 +99,72 @@
         }
       },
       "loginView": {
-        "subtitle": "Executive Studio Workspace"
+        "subtitle": "{companyName} Workspace"
       },
       "dealsNew": {
-        "title": "Create New Production Deal",
-        "subtitle": "Launch a new cinema production opportunity in the sales pipeline",
-        "targetDateLabel": "Target Close / Shoot Date"
+        "title": "Create New Deal",
+        "subtitle": "Launch a new business opportunity in the sales pipeline",
+        "targetDateLabel": "Target Close / Execution Date"
       },
       "usersNew": {
-        "subtitle": "Add an administrator, producer, accountant, or crew member to the portal"
+        "subtitle": "Add an administrator, manager, accountant, or team member to the portal"
       },
       "security": {
         "roles": {
-          "production_manager": "Production Head",
-          "editor": "Post-Production Editor",
-          "operations_manager": "Production Head"
+          "production_manager": "Operations Head",
+          "editor": "Senior Specialist",
+          "operations_manager": "Operations Head"
         }
       },
       "customer360": {
-        "commercialDeals": "Commercial Deals & Production History"
+        "commercialDeals": "Commercial Deals & History"
       },
       "dealDossier": {
-        "shootDate": "Production / Shoot Date",
-        "productionTimelineAndLog": "Production Timeline & Log",
-        "scheduledShootDate": "Scheduled Shoot Date"
+        "shootDate": "Scheduled Date",
+        "productionTimelineAndLog": "Project Timeline & Log",
+        "scheduledShootDate": "Scheduled Date"
       },
       "dealEdit": {
-        "shootDateLabel": "Shoot / Production Date",
-        "notesLabel": "Production Scope & Notes"
+        "shootDateLabel": "Scheduled Date",
+        "notesLabel": "Project Scope & Notes"
       },
       "servicesView": {
-        "title": "Service Catalog & Production Rates",
-        "subtitle": "Manage standard cinematography, editing, grading, sound, and gear rate cards",
-        "categoryProduction": "Production & Cinematography",
-        "categoryPost": "Post-Production & Grading",
-        "categoryEquipment": "Equipment & Studio Rental",
-        "categoryCrew": "Crew & Talent"
+        "title": "Service Catalog & Pricing",
+        "subtitle": "Manage standard services, specialized offerings, and rate cards",
+        "categoryProduction": "Primary Services",
+        "categoryPost": "Specialized Services",
+        "categoryEquipment": "Equipment & Facilities",
+        "categoryCrew": "Professional Services"
       },
       "statsView": {
-        "title": "Studio Statistics"
+        "title": "{companyName} Statistics"
       },
       "webSettingsView": {
         "managePortfolio": "Portfolio Works",
-        "managePortfolioDesc": "Films, commercials, and visual projects",
-        "manageStats": "Studio Metrics",
-        "manageEquipment": "Studio Inventory",
-        "manageEquipmentDesc": "Cameras, lenses, and gear catalog",
-        "cmsCameraSystems": "{count} Camera Systems"
+        "managePortfolioDesc": "Showcase works, case studies, and client projects",
+        "manageStats": "Key Metrics",
+        "manageEquipment": "Equipment & Assets",
+        "manageEquipmentDesc": "Tools, assets, and equipment catalog",
+        "cmsCameraSystems": "{count} Units & Systems"
       },
       "portfolioManagement": {
-        "fullFilmUrl": "Full film URL"
+        "fullFilmUrl": "External project URL"
       },
       "dealEditForm": {
-        "shootDate": "Shoot Date",
-        "postProduction": "Post Production"
+        "shootDate": "Scheduled Date",
+        "postProduction": "Review & QA"
       },
       "newQuotationForm": {
-        "productionServices": "Production Services"
+        "productionServices": "Professional Services"
       },
       "newRequestForm": {
-        "productionTeam": "Production Team",
-        "postProduction": "Post-Production",
-        "commercialShootDroneStudio": "Commercial shoot, drone, studio"
+        "productionTeam": "Operations Team",
+        "postProduction": "Review Team",
+        "commercialShootDroneStudio": "Project, service or delivery request"
       },
       "generalInfoTab": {
-        "productionAndShootLiveFeed": "Production & Shoot Live Feed URL (.ics)",
-        "allScheduledShootsClientMeetings": "All scheduled shoots, client meetings, and call sheets sync in real time to Google Calendar and Apple Calendar."
+        "productionAndShootLiveFeed": "Calendar Live Feed URL (.ics)",
+        "allScheduledShootsClientMeetings": "All scheduled milestones, client meetings, and deadlines sync in real time to Google Calendar and Apple Calendar."
       },
       "requestLabels": {
         "teams": {
@@ -185,106 +185,106 @@
         "post_production": "Post-production"
       },
       "calendarSharing": {
-        "subtitle": "Your events, what colleagues share with you, and the dates of your work: leave, shoots, quotations, invoices, payroll and expiring documents."
+        "subtitle": "Your events, what colleagues share with you, and the dates of your work: leave, sessions, quotations, invoices, payroll and expiring documents."
       },
       "navigationGroups": {
         "operations": "Production & operations"
       },
       "calendarMessages": {
-        "shoot": "Shoot: {title}"
+        "shoot": "Event: {title}"
       }
     },
     "ar": {
-      "executiveOps": "إدارة العمليات والإنتاج السينمائي",
-      "executiveSub": "متابعة حية وشاملة للمشاريع السينمائية، خط صفقات الإنتاج، والتدفقات النقدية المالية.",
+      "executiveOps": "عمليات {companyName}",
+      "executiveSub": "متابعة فورية للعمليات ومسار الصفقات والتدفقات النقدية.",
       "nav": {
-        "calendar": "التقويم وجدول التصوير",
-        "leads": "طلبات الإنتاج الواردة",
-        "equipment": "خزانة المعدات والاستوديو",
-        "stats": "إحصائيات الاستوديو"
+        "calendar": "التقويم والجدول الزمني",
+        "leads": "الطلبات الواردة",
+        "equipment": "المعدات والمخزون",
+        "stats": "إحصائيات الأعمال"
       },
       "actions": {
-        "newEvent": "موعد تصوير جديد"
+        "newEvent": "موعد جديد"
       },
       "kpi": {
-        "expensesDesc": "تكاليف المعدات، الأجور، واللوجستيات"
+        "expensesDesc": "تكاليف التشغيل والتوريدات والمصروفات العامة"
       },
       "stages": {
-        "production": "قيد التصوير والإنتاج",
-        "post_production": "المونتاج وتصحيح الألوان",
-        "delivered": "تم تسليم الماستر"
+        "production": "قيد التنفيذ",
+        "post_production": "المراجعة وضمان الجودة",
+        "delivered": "تم التسليم النهائي"
       },
       "roles": {
-        "production_manager": "مدير الإنتاج والتصوير",
-        "producer": "منتج منفذ",
-        "editor": "مونتير ومحرر محتوى",
-        "operations_manager": "مدير الإنتاج والتصوير",
-        "project_lead": "منتج منفذ"
+        "production_manager": "مسؤول العمليات",
+        "producer": "مسؤول المشروع",
+        "editor": "أخصائي أول",
+        "operations_manager": "مدير العمليات",
+        "project_lead": "مسؤول المشروع"
       },
       "calendar": {
-        "title": "جدول تصوير المشاريع ومواعيد التسليم",
-        "subtitle": "عرض تفاعلي شهري وأسبوعي ويومي لجلسات التصوير السينمائي، مواعيد الاجتماعات، ومواعيد التسليم النهائية.",
-        "eventShoot": "جلسة تصوير",
-        "location": "موقع التصوير"
+        "title": "الجدول الزمني والمواعيد",
+        "subtitle": "مخطط تفاعلي للمشاريع والاجتماعات ومواعيد التسليم.",
+        "eventShoot": "جلسة عمل",
+        "location": "الموقع"
       },
       "cms": {
-        "portfolioTitle": "أرشيف الأعمال والمشاريع السينمائية",
-        "equipmentTitle": "خزانة معدات التصوير والاستوديو"
+        "portfolioTitle": "معرض الأعمال ودراسات الحالة",
+        "equipmentTitle": "المعدات ومخزون الأصول"
       },
       "invoice": {
-        "terms3": "تنتقل حقوق المواد الخام والملكية الفكرية بعد سداد الرصيد بالكامل."
+        "terms3": "تنتقل حقوق الملكية الفكرية ومخرجات العمل بعد سداد الرصيد بالكامل."
       },
       "crm": {
-        "dealTitle": "خط صفقات الإنتاج",
+        "dealTitle": "مسار الصفقات",
         "contactTypes": {
-          "freelancer": "مستقل / طاقم تصوير"
+          "freelancer": "مستقل / متعاقد"
         },
         "stages": {
-          "production": "قيد الإنتاج الفعلي",
-          "postProduction": "مرحلة ما بعد الإنتاج والمونتاج"
+          "production": "قيد التنفيذ",
+          "postProduction": "المراجعة وضمان الجودة"
         }
       },
       "invoiceForm": {
-        "deliverables": "بنود الخدمات والتصوير"
+        "deliverables": "مخرجات ونطاق العمل"
       },
       "companySettingsView": {
-        "googleSubtitle": "مزامنة مواعيد تصوير المشاريع وجلسات المونتاج تلقائياً مع تقويم Google لجميع أفراد الطاقم.",
-        "addressLabel": "عنوان مقر الاستوديو"
+        "googleSubtitle": "مزامنة تلقائية ثنائية الاتجاه بين مواعيد العمل وتقويم Google.",
+        "addressLabel": "عنوان المقر"
       },
       "deals": {
-        "shootPrefix": "التصوير: ",
-        "shootDate": "تاريخ التصوير"
+        "shootPrefix": "الموعد: ",
+        "shootDate": "تاريخ الموعد"
       },
       "contactsView": {
-        "typeFreelancer": "طاقم إنتاج مستقل"
+        "typeFreelancer": "مستقل / متعاقد"
       },
       "equipmentView": {
-        "subtitle": "أصول الاستوديو من كاميرات وعدسات ووحدات إضاءة ومعدات تصوير تُعرض على الموقع.",
+        "subtitle": "المعدات والأدوات والأصول المملوكة للشركة والمعروضة على الموقع.",
         "categories": {
-          "cameras": "كاميرات سينمائية",
-          "lighting": "إضاءة واستوديو",
-          "grip": "معدات حركة ومساند"
+          "cameras": "المعدات الأساسية",
+          "lighting": "المعدات الميدانية",
+          "grip": "أدوات الدعم والتجهيز"
         }
       },
       "portfolioView": {
-        "subtitle": "أرشيف الأفلام السينمائية والإعلانات التجارية، ملفات الماستر، ونسب العرض.",
-        "year": "سنة الإنتاج",
-        "productionYear": "سنة الإنتاج"
+        "subtitle": "المشاريع المميزة، معرض الأعمال، ودراسات الحالة للعملاء.",
+        "year": "السنة",
+        "productionYear": "سنة الإنجاز"
       },
       "financialView": {
-        "productionCostsDesc": "إيجار المعدات، مواقع التصوير، وأجور طاقم العمل"
+        "productionCostsDesc": "تكاليف المشاريع المباشرة، التوريدات، وأتعاب المتعاقدين"
       },
       "expensesView": {
-        "subtitle": "متابعة نفقات الإنتاج السينمائي، إيجار المعدات، أجور الطواقم الفنية، والتكاليف التشغيلية."
+        "subtitle": "تتبع نفقات المشاريع ومشتريات المعدات وأجور المتعاقدين والتكاليف التشغيلية."
       },
       "dashboardView": {
-        "zeroUpcomingShoots": "لا توجد مواعيد تصوير قادمة",
-        "shootDate": "تصوير:"
+        "zeroUpcomingShoots": "لا توجد جلسات أو مواعيد مجدولة",
+        "shootDate": "الموعد:"
       },
       "calendarView": {
-        "shoot": "جلسة تصوير",
-        "linkDeal": "ربط بصفقة إنتاج",
-        "locationAddress": "موقع التصوير / العنوان"
+        "shoot": "جلسة",
+        "linkDeal": "ربط بصفقة",
+        "locationAddress": "الموقع / العنوان"
       },
       "usersView": {
         "departments": {
@@ -293,72 +293,72 @@
         }
       },
       "loginView": {
-        "subtitle": "مساحة عمل إدارة الاستوديو"
+        "subtitle": "مساحة عمل {companyName}"
       },
       "dealsNew": {
-        "title": "إنشاء صفقة إنتاجية جديدة",
-        "subtitle": "إضافة فرصة إنتاج سينمائي جديدة إلى جدول الصفقات",
-        "targetDateLabel": "التاريخ المستهدف للإغلاق / التصوير"
+        "title": "إنشاء صفقة جديدة",
+        "subtitle": "إطلاق فرصة عمل جديدة في مسار المبيعات",
+        "targetDateLabel": "تاريخ الإغلاق / التنفيذ المستهدف"
       },
       "usersNew": {
-        "subtitle": "إضافة مدير نظام، منتج، محاسب، أو عضو من فريق الإنتاج"
+        "subtitle": "إضافة مسؤول أو مدير أو محاسب أو عضو فريق إلى البوابة"
       },
       "security": {
         "roles": {
-          "production_manager": "مدير شؤون الإنتاج",
-          "editor": "مونتير ومحرر الوسائط",
-          "operations_manager": "مدير شؤون الإنتاج"
+          "production_manager": "رئيس العمليات",
+          "editor": "أخصائي أول",
+          "operations_manager": "رئيس العمليات"
         }
       },
       "customer360": {
-        "commercialDeals": "الصفقات التجارية وسجل الإنتاج"
+        "commercialDeals": "الصفقات التجارية والسجل"
       },
       "dealDossier": {
-        "shootDate": "تاريخ التصوير / الإنتاج",
-        "productionTimelineAndLog": "الجدول الزمني للإنتاج والسجل",
-        "scheduledShootDate": "موعد التصوير المجدول"
+        "shootDate": "الموعد المحدد",
+        "productionTimelineAndLog": "الجدول الزمني وسجل المشروع",
+        "scheduledShootDate": "الموعد المجدول"
       },
       "dealEdit": {
-        "shootDateLabel": "تاريخ التصوير / الإنتاج",
-        "notesLabel": "نطاق الإنتاج والملاحظات"
+        "shootDateLabel": "الموعد المجدول",
+        "notesLabel": "نطاق المشروع والملاحظات"
       },
       "servicesView": {
-        "title": "دليل الخدمات وأسعار الإنتاج",
-        "subtitle": "إدارة قائمة أسعار خدمات التصوير السينمائي، المونتاج، التلوين، الصوت، وتأجير المعدات",
-        "categoryProduction": "الإنتاج والتصوير السينمائي",
-        "categoryPost": "ما بعد الإنتاج وتلوين الفيديو",
-        "categoryEquipment": "المعدات وتأجير الاستوديو",
-        "categoryCrew": "طاقم العمل والكوادر"
+        "title": "دليل الخدمات والتسعير",
+        "subtitle": "إدارة باقات الخدمات والخدمات التخصصية وبطاقات التسعير المعتمدة",
+        "categoryProduction": "الخدمات الأساسية",
+        "categoryPost": "الخدمات التخصصية",
+        "categoryEquipment": "المعدات والمرافق",
+        "categoryCrew": "الخدمات المهنية"
       },
       "statsView": {
-        "title": "إحصائيات وأرقام الاستوديو"
+        "title": "إحصائيات {companyName}"
       },
       "webSettingsView": {
-        "managePortfolio": "معرض الأعمال السينمائية",
-        "managePortfolioDesc": "الأفلام، الإعلانات، والمشاريع المرئية",
-        "manageStats": "إحصائيات الاستوديو",
-        "manageEquipment": "معدات واستوديو التصوير",
-        "manageEquipmentDesc": "الكاميرات، العدسات، ومعدات الإضاءة",
-        "cmsCameraSystems": "{count} أنظمة كاميرات"
+        "managePortfolio": "معرض الأعمال",
+        "managePortfolioDesc": "الأعمال المميزة ودراسات الحالة ومشاريع العملاء",
+        "manageStats": "المؤشرات الرئيسية",
+        "manageEquipment": "المعدات والأصول",
+        "manageEquipmentDesc": "دليل الأدوات والأصول والمعدات",
+        "cmsCameraSystems": "{count} وحدة ونظام"
       },
       "portfolioManagement": {
-        "fullFilmUrl": "الفيلم الكامل"
+        "fullFilmUrl": "رابط المشروع الخارجي"
       },
       "dealEditForm": {
-        "shootDate": "تاريخ التصوير",
-        "postProduction": "ما بعد الإنتاج"
+        "shootDate": "الموعد المحدد",
+        "postProduction": "المراجعة وضمان الجودة"
       },
       "newQuotationForm": {
-        "productionServices": "خدمات الإنتاج"
+        "productionServices": "الخدمات المهنية"
       },
       "newRequestForm": {
-        "productionTeam": "فريق الإنتاج",
-        "postProduction": "المونتاج وما بعد الإنتاج",
-        "commercialShootDroneStudio": "إنتاج تجاري، تصوير جوي، ستوديو"
+        "productionTeam": "فريق العمليات",
+        "postProduction": "فريق المراجعة",
+        "commercialShootDroneStudio": "طلب مشروع أو خدمة أو تسليم"
       },
       "generalInfoTab": {
-        "productionAndShootLiveFeed": "رابط تقويم الإنتاج والتصوير المباشر",
-        "allScheduledShootsClientMeetings": "يتم تحديث جميع مواعيد التصوير والاجتماعات وأيام الإنتاج تلقائياً في تقويم Google وتقويم Apple."
+        "productionAndShootLiveFeed": "رابط التغذية الحية للتقويم (.ics)",
+        "allScheduledShootsClientMeetings": "تتزامن جميع المواعيد واجتماعات العملاء والمهام لحظياً مع تقويم Google وتقويم Apple."
       },
       "requestLabels": {
         "teams": {
@@ -379,13 +379,13 @@
         "post_production": "ما بعد الإنتاج"
       },
       "calendarSharing": {
-        "subtitle": "أحداثك، وما يشاركه زملاؤك معك، ومواعيد عملك: الإجازات والتصوير وعروض الأسعار والفواتير والرواتب والمستندات التي تقترب من الانتهاء."
+        "subtitle": "فعالياتك ومواعيدك وما يشاركه زملاؤك ومواعيد العمل: الإجازات، الجلسات، عروض الأسعار، الفواتير، والرواتب."
       },
       "navigationGroups": {
         "operations": "الإنتاج والعمليات"
       },
       "calendarMessages": {
-        "shoot": "تصوير: {title}"
+        "shoot": "موعد: {title}"
       }
     }
   }

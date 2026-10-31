@@ -30,6 +30,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
     "test:platform": "node scripts/check-platform.cjs",
     "test:copy": "node scripts/check-i18n.cjs && node scripts/check-copy.cjs && node scripts/check-message-format.cjs",
+    "test:operations-db": "node scripts/check-operations-db.cjs",
     "test:audit-db": "node scripts/check-audit-db.cjs",
     "test:audit-security": "node scripts/check-audit-security.cjs",
     "audit:inventory": "node scripts/inventory-platform.cjs",

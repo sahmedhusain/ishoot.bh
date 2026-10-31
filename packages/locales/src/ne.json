@@ -122,11 +122,6 @@
     "subtitle": "हम जो कुछ भी प्रदान करते हैं, स्पष्ट रूप से समझाया गया है ताकि आप विश्वास के साथ चुन सकें।",
     "sectionIndex": "(02)",
     "requestProposal": "कोटेशन का अनुरोध करें",
-    "soundstage": {
-      "title": "",
-      "desc": "",
-      "specs": []
-    },
     "sectionLabel": "क्षमताएं एवं सेवाहरू",
     "headline": "हमारी सेवाहरू"
   },
@@ -399,7 +394,7 @@
     "registrationLabel": "वाणिज्यिक पंजीकरण"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "वैट (VAT)",
     "vatNa": "वैट: लागू होइन",
     "subtotal": "उप-योग",
@@ -498,7 +493,6 @@
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "",
     "items": [],
     "sectionLabel": "ग्राहकहरू एवं साझेदार समीक्षाहरू",
     "headline": "हमारे ग्राहकहरू क्या कहते हैं",

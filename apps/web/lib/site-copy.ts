@@ -30,6 +30,8 @@ export interface SiteInfo {
   showEquipment: boolean;
   footerInvitation?: boolean;
   currency: string;
+  companyNameEn?: string;
+  companyNameAr?: string;
 }
 
 /** The company's own catalogue names, layered over the activity's wording. */

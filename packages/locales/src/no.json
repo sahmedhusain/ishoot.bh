@@ -122,11 +122,6 @@
     "subtitle": "Alt vi leverer, tydelig forklart slik at du kan velge med trygghet.",
     "sectionIndex": "(02)",
     "requestProposal": "Be om et tilbud",
-    "soundstage": {
-      "title": "",
-      "desc": "",
-      "specs": []
-    },
     "sectionLabel": "Kapasitet",
     "headline": "Hva vi tilbyr"
   },
@@ -399,7 +394,7 @@
     "registrationLabel": "Organisasjonsnummer"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "MVA",
     "vatNa": "MVA: Ikke relevant",
     "subtotal": "Delsum",
@@ -498,7 +493,6 @@
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "",
     "items": [],
     "sectionLabel": "Kunde- og partneranbefalinger",
     "headline": "Hva kundene våre sier",

@@ -229,7 +229,7 @@ export function websiteConfigForActivity(
   };
 }
 
-/** Fills settings older drafts do not have from the preset of their activity (media when none is set). */
+/** Fills settings older drafts do not have from the preset of their activity (neutral when none is set). */
 export function resolveWebsiteConfig(
   config: WebsiteConfig,
   legacyMode: "light" | "dark" = "dark",
@@ -335,7 +335,7 @@ export function validateWebsiteConfig(value: unknown): WebsiteConfig {
     pages,
     ...(data.interfaceLanguages !== undefined ? { interfaceLanguages: data.interfaceLanguages as string[] } : {}),
     ...(data.primaryInterfaceLanguage !== undefined ? { primaryInterfaceLanguage: data.primaryInterfaceLanguage as string } : {}),
-    interfaceCopy,
+    ...(data.interfaceCopy !== undefined ? { interfaceCopy } : {}),
   } as WebsiteConfig;
   for (const key of Object.keys(
     websiteDefaultCopy,

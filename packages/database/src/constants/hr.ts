@@ -1,6 +1,6 @@
 // HR rules shared by leave calculations and the UI.
 
-/** Bahrain working week: Friday (5) and Saturday (6) are the weekend (JavaScript getUTCDay numbering). */
+/** Working week weekend days (JavaScript getUTCDay numbering, 0=Sun..6=Sat). Configurable per company/jurisdiction. */
 export const WEEKEND_DAYS: readonly number[] = [5, 6];
 
 export const STANDARD_WORKDAY_HOURS = 8;
@@ -11,6 +11,7 @@ export function leaveDaysRequested(
   end: Date,
   fullDay = true,
   hours?: number | null,
+  weekendDays: readonly number[] = WEEKEND_DAYS,
 ): number {
   if (!fullDay)
     return Math.min(
@@ -27,7 +28,7 @@ export function leaveDaysRequested(
     end.getUTCDate(),
   );
   while (cursor.getTime() <= last) {
-    if (!WEEKEND_DAYS.includes(cursor.getUTCDay())) days++;
+    if (!weekendDays.includes(cursor.getUTCDay())) days++;
     cursor.setUTCDate(cursor.getUTCDate() + 1);
   }
   return days;

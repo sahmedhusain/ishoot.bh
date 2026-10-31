@@ -69,6 +69,27 @@ import {
   saveLegalMatter,
   addLegalNote,
 } from "../../packages/database/src/queries/legal";
+import {
+  saveRegister,
+  saveDrawer,
+  openRetailShift,
+  closeRetailShift,
+  openCashierSession,
+  closeCashierSession,
+  recordPaymentCollection,
+  performRetailClosing,
+} from "../../packages/database/src/queries/retail";
+import {
+  createStockPackage,
+  packSerialsIntoPackage,
+  sealStockPackage,
+  moveStockPackage,
+} from "../../packages/database/src/queries/packages";
+import { saveStoreRegion } from "../../packages/database/src/queries/regional-store";
+import {
+  createCommissionRule,
+  recordCommissionSnapshot,
+} from "../../packages/database/src/queries/commissions";
 import { decideApprovalRequest } from "../../packages/database/src/services/approval-engine";
 import type { DemoPreset } from "./demo-presets";
 
@@ -317,6 +338,344 @@ export async function seedOperations(
       );
       await setStockCountStatus(count.id, "review");
       if (status === "approved") await approveStockCount(count.id, ownerId);
+    }
+
+    const mainBranch = await db.branch.upsert({
+      where: { id: "legacy-main" },
+      update: {
+        code: "MAIN",
+        name: "Headquarters & Showroom",
+        timeZone: "Asia/Bahrain",
+      },
+      create: {
+        id: "legacy-main",
+        code: "MAIN",
+        name: "Headquarters & Showroom",
+        timeZone: "Asia/Bahrain",
+        businessDayStart: 0,
+        isActive: true,
+      },
+    });
+
+    const mallBranch = await db.branch.upsert({
+      where: { code: "MALL" },
+      update: {
+        name: "City Mall Retail Branch",
+        timeZone: "Asia/Bahrain",
+      },
+      create: {
+        code: "MALL",
+        name: "City Mall Retail Branch",
+        timeZone: "Asia/Bahrain",
+        businessDayStart: 0,
+        isActive: true,
+      },
+    });
+
+    await db.branchGrant.upsert({
+      where: { branchId_userId: { branchId: mallBranch.id, userId: ownerId } },
+      update: { canManage: true },
+      create: { branchId: mallBranch.id, userId: ownerId, canManage: true },
+    });
+    await db.branchGrant.upsert({
+      where: { branchId_userId: { branchId: mallBranch.id, userId: staffId } },
+      update: { canManage: true },
+      create: { branchId: mallBranch.id, userId: staffId, canManage: true },
+    });
+    await db.branchGrant.upsert({
+      where: { branchId_userId: { branchId: mainBranch.id, userId: staffId } },
+      update: { canManage: true },
+      create: { branchId: mainBranch.id, userId: staffId, canManage: true },
+    });
+
+    const mallWarehouse = await saveWarehouse({
+      code: "DEMO-MALL",
+      nameEn: "City Mall Branch",
+      nameAr: "فرع مجمع المدينة",
+      address: "Seef District, Manama",
+      isActive: true,
+      isDefault: false,
+    });
+    await db.warehouse.update({
+      where: { id: mallWarehouse.id },
+      data: { branchId: mallBranch.id },
+    });
+    const mallFloor = await saveLocation({
+      warehouseId: mallWarehouse.id,
+      code: "SALES-FLOOR",
+      name: "Mall Sales Floor",
+      isActive: true,
+    });
+    await saveLocation({
+      warehouseId: mallWarehouse.id,
+      code: "STOREROOM",
+      name: "Mall Storeroom",
+      isActive: true,
+    });
+
+    await saveStoreRegion(
+      {
+        code: "BH",
+        nameEn: "Bahrain (Local)",
+        nameAr: "مملكة البحرين (محلي)",
+        currency: "BHD",
+        branchId: mainBranch.id,
+        priceMultiplier: "1.0000",
+        isEnabled: true,
+      },
+      ownerId,
+    );
+    await saveStoreRegion(
+      {
+        code: "SA",
+        nameEn: "Saudi Arabia",
+        nameAr: "المملكة العربية السعودية",
+        currency: "SAR",
+        branchId: mainBranch.id,
+        priceMultiplier: "10.0000",
+        isEnabled: true,
+      },
+      ownerId,
+    );
+    await saveStoreRegion(
+      {
+        code: "AE",
+        nameEn: "United Arab Emirates",
+        nameAr: "الإمارات العربية المتحدة",
+        currency: "AED",
+        branchId: mainBranch.id,
+        priceMultiplier: "9.8000",
+        isEnabled: true,
+      },
+      ownerId,
+    );
+    await saveStoreRegion(
+      {
+        code: "GLOBAL",
+        nameEn: "International Export",
+        nameAr: "التصدير الدولي",
+        currency: "USD",
+        branchId: mainBranch.id,
+        priceMultiplier: "2.6500",
+        isEnabled: true,
+      },
+      ownerId,
+    );
+
+    const regOutlet1 = await saveRegister(
+      {
+        branchId: mainBranch.id,
+        code: "POS-01",
+        name: "Showroom Main POS",
+        isActive: true,
+      },
+      ownerId,
+    );
+    const drwOutlet1 = await saveDrawer(
+      {
+        registerId: regOutlet1.id,
+        code: "DRAWER-01",
+        name: "Main Cash Drawer",
+        openingFloat: 50,
+        currency: "BHD",
+      },
+      ownerId,
+    );
+    const regOutlet2 = await saveRegister(
+      {
+        branchId: mainBranch.id,
+        code: "POS-02",
+        name: "Showroom Express POS",
+        isActive: true,
+      },
+      ownerId,
+    );
+    await saveDrawer(
+      {
+        registerId: regOutlet2.id,
+        code: "DRAWER-02",
+        name: "Express Cash Drawer",
+        openingFloat: 50,
+        currency: "BHD",
+      },
+      ownerId,
+    );
+
+    const regMall = await saveRegister(
+      {
+        branchId: mallBranch.id,
+        code: "POS-M1",
+        name: "Mall Branch POS",
+        isActive: true,
+      },
+      ownerId,
+    );
+    await saveDrawer(
+      {
+        registerId: regMall.id,
+        code: "DRAWER-M1",
+        name: "Mall Cash Drawer",
+        openingFloat: 50,
+        currency: "BHD",
+      },
+      ownerId,
+    );
+
+    const shift1 = await openRetailShift(mainBranch.id, ownerId);
+    const session1 = await openCashierSession(
+      {
+        registerId: regOutlet1.id,
+        drawerId: drwOutlet1.id,
+        openingFloat: 50,
+        shiftId: shift1.id,
+      },
+      staffId,
+    );
+    await recordPaymentCollection(
+      {
+        sessionId: session1.id,
+        branchId: mainBranch.id,
+        currency: "BHD",
+        amount: 45.0,
+        methodCode: "cash",
+        referenceNumber: "DEMO-RECEIPT-101",
+      },
+      staffId,
+    );
+    await recordPaymentCollection(
+      {
+        sessionId: session1.id,
+        branchId: mainBranch.id,
+        currency: "BHD",
+        amount: 120.0,
+        methodCode: "card",
+        referenceNumber: "DEMO-RECEIPT-102",
+      },
+      staffId,
+    );
+    await recordPaymentCollection(
+      {
+        sessionId: session1.id,
+        branchId: mainBranch.id,
+        currency: "BHD",
+        amount: 75.5,
+        methodCode: "benefit_pay",
+        referenceNumber: "DEMO-RECEIPT-103",
+      },
+      staffId,
+    );
+    await closeCashierSession(
+      {
+        sessionId: session1.id,
+        closingFloat: 50,
+        actualCash: 95.0,
+        note: "End of morning cashier session",
+      },
+      staffId,
+    );
+    await performRetailClosing(
+      {
+        branchId: mainBranch.id,
+        level: "session",
+        targetId: session1.id,
+        businessDate: day(0),
+        signature: "sig_verified",
+      },
+      staffId,
+    );
+    await closeRetailShift(shift1.id, staffId);
+    await performRetailClosing(
+      {
+        branchId: mainBranch.id,
+        level: "shift",
+        targetId: shift1.id,
+        businessDate: day(0),
+        signature: "sig_verified",
+      },
+      staffId,
+    );
+
+    const liveShift = await openRetailShift(mainBranch.id, ownerId);
+    await openCashierSession(
+      {
+        registerId: regOutlet1.id,
+        drawerId: drwOutlet1.id,
+        openingFloat: 50,
+        shiftId: liveShift.id,
+      },
+      staffId,
+    );
+
+    if (products.length > 0) {
+      const serializedProduct = products[0];
+      const genId = "demo-serial-gen-001";
+      await db.serialGeneration.upsert({
+        where: { id: genId },
+        update: {},
+        create: {
+          id: genId,
+          idempotencyKey: `gen-key-${serializedProduct.id}`,
+          requestHash: `req-hash-${serializedProduct.id}`,
+          productId: serializedProduct.id,
+          locationId: shelf.id,
+          quantity: 4,
+          createdById: ownerId,
+        },
+      });
+      for (let s = 1; s <= 4; s++) {
+        const sCode = `SN-DEMO-${serializedProduct.sku}-${s}`;
+        await db.stockSerial.upsert({
+          where: { code: sCode },
+          update: {},
+          create: {
+            code: sCode,
+            productId: serializedProduct.id,
+            locationId: shelf.id,
+            status: "available",
+            generationId: genId,
+            manufacturerSerial: `MFG-SN-${s * 1001}`,
+            manufacturerScope: "demo-mfg",
+          },
+        });
+      }
+      const pkg = await createStockPackage(
+        {
+          code: "PKG-DEMO-001",
+          kind: "pallet",
+          locationId: shelf.id,
+        },
+        ownerId,
+      );
+      await packSerialsIntoPackage(
+        pkg.id,
+        [`SN-DEMO-${serializedProduct.sku}-1`, `SN-DEMO-${serializedProduct.sku}-2`],
+        ownerId,
+      );
+      await sealStockPackage(pkg.id, "SEAL-998811", ownerId);
+      await moveStockPackage(pkg.id, mallFloor.id, ownerId);
+    }
+
+    const rule = await createCommissionRule(
+      {
+        code: "COMM-STD-05",
+        name: "Standard Sales 5%",
+        rate: 0.05,
+        effectiveFrom: day(-30),
+      },
+      ownerId,
+    );
+    const sampleOrder = await db.salesOrder.findFirst();
+    if (sampleOrder) {
+      await recordCommissionSnapshot(
+        {
+          orderId: sampleOrder.id,
+          attributedUserId: staffId,
+          basisAmount: 2400.0,
+          currency: "BHD",
+          ruleCode: rule.code,
+        },
+        financeId,
+      );
     }
   }
 

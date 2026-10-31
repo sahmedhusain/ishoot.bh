@@ -1034,7 +1034,7 @@ export async function payFinalSettlement(
   if (
     input.paid_on &&
     input.paid_on >
-      new Date(Date.now() + 3 * 3600000).toISOString().slice(0, 10)
+      new Date().toISOString().slice(0, 10)
   )
     throw new Error(serverMessages.chooseAPaymentDateThatIsNot);
   return runAtomicMutation(async () => {

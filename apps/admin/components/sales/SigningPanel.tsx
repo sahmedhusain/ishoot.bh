@@ -119,7 +119,7 @@ export function SigningPanel({
             <div className="text-ink-muted">
               {state.signedAt
                 ? new Date(state.signedAt).toLocaleString(
-                  locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB",
+                  locale === "ar" ? "ar-u-nu-latn" : "en-GB",
                 )
                 : ""}
             </div>

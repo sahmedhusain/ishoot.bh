@@ -109,12 +109,12 @@
     "resume": "Reanudar animación"
   },
   "showreel": {
-    "badge": "Showreel 2026",
-    "title": "VISIÓN FORJADA EN MOVIMIENTO",
-    "subtitle": "Una cuidada colección de nuestras películas comerciales, narrativas de marca y cinematografía aérea en Baréin y el Golfo Pérsico.",
-    "playShowreel": "Ver showreel completo",
-    "watchIn4k": "Ver en 4K",
-    "streamTitle": "Transmisión de cine en 4K"
+    "badge": "Ver más",
+    "title": "Descubra nuestro trabajo",
+    "subtitle": "Una mirada más de cerca a lo que hacemos.",
+    "playShowreel": "Reproducir video",
+    "watchIn4k": "Ver video",
+    "streamTitle": "Video"
   },
   "services": {
     "badge": "Lo que ofrecemos",
@@ -122,15 +122,6 @@
     "subtitle": "Todo lo que ofrecemos, explicado con claridad para que elijas con total confianza.",
     "sectionIndex": "(02)",
     "requestProposal": "Solicitar presupuesto",
-    "soundstage": {
-      "title": "Plató insonorizado y ciclorama acústico",
-      "desc": "Instalación insonorizada de 250 m² en el distrito de Seef con corriente trifásica de 60 kW, parrilla de iluminación cenital de 6 m y ciclorama de curva infinita.",
-      "specs": [
-        "Plató de 250 m²",
-        "Parrilla de iluminación superior",
-        "Cabina de control insonorizada"
-      ]
-    },
     "sectionLabel": "Capacidades",
     "headline": "Lo que ofrecemos"
   },
@@ -158,7 +149,7 @@
     "sectionIndex": "(03)",
     "sectionLabel": "Archivo de trabajos y proyectos",
     "showcaseTitle": "Trabajos destacados",
-    "showcaseSubtitle": "Explora una selección de películas comerciales creadas para entidades gubernamentales, instituciones financieras y marcas del CCG.",
+    "showcaseSubtitle": "Explore a selection of our work and projects.",
     "viewFullArchive": "Ver nuestros trabajos",
     "productionOverview": "Descripción general",
     "categories": {
@@ -198,24 +189,24 @@
     "title": "Quiénes somos",
     "subtitle": "Conoce nuestra empresa, nuestro equipo y el trabajo que realizamos.",
     "storyTitle": "NUESTRA FILOSOFÍA",
-    "storyP1": "Creemos que el verdadero impacto visual se genera en la convergencia entre la disciplina técnica y la curiosidad creativa ilimitada. Cada producción se elabora con absoluta reverencia por la composición, el rango dinámico y la emoción genuina.",
-    "storyP2": "Desde campañas publicitarias en televisión nacional hasta himnos de marcas internacionales, nuestro equipo despliega cámaras de cine, equipos de iluminación de precisión y suites de posproducción de vanguardia para elevar el prestigio de cada marca.",
+    "storyP1": "",
+    "storyP2": "",
     "ceoTitle": "Fundador y Director Creativo",
-    "ceoName": "Sayed Ahmed Husain",
-    "ceoQuote": "No nos limitamos a capturar la luz; moldeamos la forma en que los recuerdos, las emociones y las marcas perduran a través del tiempo.",
+    "ceoName": "",
+    "ceoQuote": "",
     "gearTitle": "NUESTRO EQUIPO TÉCNICO",
     "gearSubtitle": "Equipamiento de cine de propiedad interna calibrado para un rendimiento óptico impecable.",
-    "statFilms": "Más de 180 comerciales entregados",
-    "statYears": "Más de 8 años de experiencia",
-    "statAwards": "14 premios regionales",
-    "statClients": "Más de 65 clientes corporativos en el CCG",
+    "statFilms": "",
+    "statYears": "",
+    "statAwards": "",
+    "statClients": "",
     "sectionIndex": "(01)",
     "sectionLabel": "Acerca de nosotros",
     "headline": "Un equipo construido en torno a las personas a las que servimos.",
     "behindTheScenes": "Nuestro equipo en acción",
     "shootCaption": "Nuestro equipo en acción",
     "missionLabel": "Nuestra misión",
-    "mission": "Capacitar a los líderes del mercado para contar sus narrativas de marca con una precisión visual intransigente y una profunda resonancia emocional.",
+    "mission": "",
     "visionLabel": "Nuestra visión",
     "discoverStudio": "Descubre nuestra historia y equipo",
     "gearAll": "Todo el equipo",
@@ -224,43 +215,43 @@
     "gearLighting": "Equipos de iluminación",
     "gearAudioGrading": "Suite de masterización y audio",
     "gearStages": "Plató de rodaje",
-    "statFilmsValue": "180+",
+    "statFilmsValue": "",
     "statFilmsLabel": "Comerciales entregados",
-    "statYearsValue": "8+",
+    "statYearsValue": "",
     "statYearsLabel": "Años de experiencia",
-    "statAwardsValue": "14",
+    "statAwardsValue": "",
     "statAwardsLabel": "Premios regionales",
-    "statClientsValue": "65+",
+    "statClientsValue": "",
     "statClientsLabel": "Clientes corporativos CCG",
-    "recTag": "REC · 8K VV",
-    "gccTag": "100% GCC",
-    "coloristTag": "DaVinci Certified",
+    "recTag": "",
+    "gccTag": "",
+    "coloristTag": "",
     "pillars": {
       "badge": "Nuestros pilares",
       "title": "Los valores detrás de nuestro trabajo",
       "p1": {
-        "number": "01",
-        "title": "Óptica y encuadre cinematográfico",
-        "desc": "Captura multiformato en 8K VistaVision mediante sistemas RED V-Raptor XL combinados con objetivos ARRI Master Prime para una fidelidad óptica impecable.",
-        "tag": "8K VistaVision"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p2": {
-        "number": "02",
-        "title": "Etalonaje HDR en DaVinci Resolve",
-        "desc": "Suite de posproducción dedicada con monitoreo de referencia Sony BVM para diseñar paletas de color personalizadas que emulan película clásica.",
-        "tag": "DCI-P3 Colorist"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p3": {
-        "number": "03",
-        "title": "Dirección narrativa y movimiento",
-        "desc": "Creación de tratamientos visuales, guiones y un ritmo de montaje que convierten los encargos corporativos en piezas cinematográficas memorables.",
-        "tag": "Narrative Craft"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p4": {
-        "number": "04",
-        "title": "Drones FPV y de carga pesada certificados",
-        "desc": "Operaciones con drones certificados por la Autoridad de Aviación Civil (BCAA), capturando paisajes monumentales y tomas a alta velocidad.",
-        "tag": "BCAA Licensed"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       }
     },
     "stats": {
@@ -345,7 +336,7 @@
     "projectRefLabel": "Referencia o enlace del proyecto (opcional)",
     "projectRefPlaceholder": "https://example.com/reference",
     "shootLocation": "Ubicación o ciudad (opcional)",
-    "shootLocationPlaceholder": "ej. Manama",
+    "shootLocationPlaceholder": "Ciudad o ubicación",
     "messageDetails": "Detalles del mensaje",
     "yourMessage": "Tu mensaje",
     "messagePlaceholder": "Cuéntanos lo que necesitas y cualquier detalle que nos ayude a responderte…",
@@ -403,7 +394,7 @@
     "registrationLabel": "Registro mercantil"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "IVA",
     "vatNa": "IVA: No aplicable",
     "subtotal": "Subtotal",
@@ -497,56 +488,12 @@
   },
   "stats": {
     "sectionIndex": "(04)",
-    "items": [
-      {
-        "value": "150+",
-        "label": "Películas comerciales entregadas",
-        "sub": "Para marcas y corporaciones del CCG"
-      },
-      {
-        "value": "8K",
-        "label": "Resolución de cine RAW",
-        "sub": "RED V-Raptor y ARRI ALEXA LF"
-      },
-      {
-        "value": "100%",
-        "label": "Operaciones con drones certificadas",
-        "sub": "Autoridad de Aviación Civil de Baréin"
-      },
-      {
-        "value": "10+",
-        "label": "Años de excelencia en el sector",
-        "sub": "Con sede en Manama, Seef"
-      }
-    ],
+    "items": [],
     "sectionLabel": "Métricas y estándares del estudio"
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "BARÉIN",
-    "items": [
-      {
-        "id": "rev-1",
-        "client": "National Bank of Bahrain (NBB)",
-        "author": "Director de Marketing y Marca",
-        "quote": "el equipo realizó una campaña comercial de televisión excepcional que superó nuestras expectativas cinematográficas más exigentes. El etalonaje de color y las tomas con dron fueron de primer nivel.",
-        "year": "2026"
-      },
-      {
-        "id": "rev-2",
-        "client": "Zain Bahrain",
-        "author": "Responsable de Comunicación Corporativa",
-        "quote": "La profesionalidad del equipo de rodaje y la precisión del metraje en 8K transformaron nuestra película de marca. Sin duda, la productora de referencia en Baréin.",
-        "year": "2025"
-      },
-      {
-        "id": "rev-3",
-        "client": "Bahrain Economic Development Board (EDB)",
-        "author": "Responsable de Marketing de Destino",
-        "quote": "Trabajar con el equipo en nuestro vídeo de presentación para la inversión nacional fue una experiencia perfecta. Capturaron nuestros monumentos arquitectónicos con una iluminación y profundidad impresionantes.",
-        "year": "2025"
-      }
-    ],
+    "items": [],
     "sectionLabel": "Testimonios de clientes y socios",
     "headline": "Lo que dicen nuestros clientes",
     "subtitle": "Opiniones sinceras de las personas y organizaciones con las que trabajamos.",
@@ -570,24 +517,7 @@
   },
   "faq": {
     "sectionIndex": "(06)",
-    "items": [
-      {
-        "question": "¿Qué sistemas de cámaras y lentes utilizan para los rodajes comerciales?",
-        "answer": "Grabamos principalmente con sistemas RED V-Raptor 8K, ARRI ALEXA Mini LF y Sony FX9, equipados con lentes ARRI Master Primes, Cooke Anamorphic y Leica Cine."
-      },
-      {
-        "question": "¿Sus operadores de drones están autorizados para filmaciones comerciales en Baréin?",
-        "answer": "Sí, todos nuestros operadores de drones de carga pesada RED y FPV personalizados cuentan con licencia completa y certificación de la Autoridad de Aviación Civil de Baréin (BCAA), con seguro de responsabilidad civil."
-      },
-      {
-        "question": "¿Cuánto tiempo requiere la posproducción y el etalonaje en DaVinci Resolve?",
-        "answer": "Los plazos estándar de posproducción varían de 5 a 14 días laborables según la complejidad de los efectos visuales, el diseño de sonido y las rondas de revisión de color."
-      },
-      {
-        "question": "¿Pueden gestionar la preproducción, el casting y los permisos para proyectos en el CCG?",
-        "answer": "Totalmente. Gestionamos la preproducción integral, incluida la búsqueda de localizaciones, permisos ministeriales, casting de actores, creación de guiones gráficos y construcción de decorados en Baréin y Arabia Saudí."
-      }
-    ],
+    "items": [],
     "sectionLabel": "Preguntas frecuentes",
     "headline": "Preguntas habituales",
     "subtitle": "Respuestas directas sobre cómo trabajamos, qué esperar y cómo empezar."
@@ -603,7 +533,7 @@
   },
   "preloader": {
     "load": "CARGAR",
-    "slogan": "CINE EN CADA FOTOGRAMA · PRODUCCIÓN 8K",
+    "slogan": "Welcome",
     "skipHint": "Haz clic en cualquier lugar para entrar"
   },
   "email": {

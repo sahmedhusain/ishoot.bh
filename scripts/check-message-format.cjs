@@ -1,7 +1,7 @@
 process.env.DATABASE_URL ??= "postgresql://test:test@127.0.0.1:54322/test";
 require("ts-node").register({
   transpileOnly: true,
-  skipProject: true,
+  skipProject: true, moduleTypes: { "packages/config/src/**/*.ts": "cjs" },
   compilerOptions: {
     module: "CommonJS",
     target: "ES2022",

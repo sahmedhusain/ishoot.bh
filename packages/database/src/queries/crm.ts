@@ -1,3 +1,4 @@
+import { getCurrencyDecimals } from "@platform/config/currency";
 import { companyCurrency as getAccountingCurrency } from "../finance/company-currency";
 import { serverMessages } from "@platform/locales";
 import { phoneSearchVariants } from "../constants/phone";
@@ -560,7 +561,7 @@ export async function getCustomerDossier(
       totalLtv = 0,
       totalPaid = 0,
       totalOutstanding = 0,
-    } = balancesByCurrency.BHD || {};
+    } = balancesByCurrency[accountingCurrency] || Object.values(balancesByCurrency)[0] || {};
     const stages =
       access?.deals === false
         ? []
@@ -1146,7 +1147,7 @@ export async function globalAdminSearch(
         category: "invoices",
         id: inv.id,
         title: inv.invoiceNumber,
-        subtitle: `${Number(inv.totalAmount).toFixed(3)} ${inv.currency} • ${inv.client?.companyName || inv.client?.firstName || "Client"}`,
+        subtitle: `${Number(inv.totalAmount).toFixed(getCurrencyDecimals(inv.currency))} ${inv.currency} • ${inv.client?.companyName || inv.client?.firstName || "Client"}`,
         url: ROUTES.invoices.detail(inv.id),
         badge: inv.status,
       });
@@ -1183,7 +1184,7 @@ export async function globalAdminSearch(
         category: "deals",
         id: d.id,
         title: d.title,
-        subtitle: `${Number(d.dealValue).toFixed(3)} ${d.currency} • ${d.contact?.companyName || d.contact?.firstName || ""}`,
+        subtitle: `${Number(d.dealValue).toFixed(getCurrencyDecimals(d.currency))} ${d.currency} • ${d.contact?.companyName || d.contact?.firstName || ""}`,
         url: ROUTES.crm.deal(d.id),
         badge: d.dealStage,
       });

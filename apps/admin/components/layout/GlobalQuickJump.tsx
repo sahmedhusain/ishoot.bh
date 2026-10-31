@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Input, Modal } from "@platform/ui";
+import { Input, FloatingSurface } from "@platform/ui";
 import { errorMessage } from "../../lib/error-text";
 import { useRouter } from "next/navigation";
 import {
@@ -27,6 +27,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
 
   const inputRef = React.useRef<HTMLInputElement>(null);
   const resultsId = React.useId();
+  const panelRef = React.useRef<HTMLElement | null>(null);
   const [error, setError] = React.useState("");
 
   // Keyboard shortcut listener (Cmd+K / Ctrl+K)
@@ -34,7 +35,8 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
     function handleKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        setIsOpen((prev) => !prev);
+        inputRef.current?.focus();
+        setIsOpen(true);
       }
     }
 
@@ -74,6 +76,8 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape") { e.preventDefault(); setIsOpen(false); return; }
+    if (e.nativeEvent.isComposing) return;
     if (!results.length) return;
     if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -124,79 +128,29 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
   };
 
   return (
-    <>
-      {/* Topbar Trigger Button */}
-      <button
-        type="button"
+    <div className="w-full min-w-0">
+      <Input
+        ref={inputRef}
+        role="combobox"
+        type="search"
+        autoComplete="off"
+        aria-label={t.quickJump.searchLabel}
         aria-keyshortcuts="Meta+K Control+K"
-        aria-haspopup="dialog"
+        aria-autocomplete="list"
         aria-expanded={isOpen}
-        onClick={() => setIsOpen(true)}
-        className={
-          className ||
-          "flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-surface-sunken hover:bg-surface-sunken/70 text-ink-muted dark:bg-white/5 dark:hover:bg-white/10 dark:text-ink text-xs transition-colors border border-outline-variant/80 dark:border-white/10 w-44 sm:w-64 justify-between"
-        }
-      >
-        <span className="flex items-center gap-2 text-ink-muted dark:text-ink-muted truncate">
-          <Search className="w-3.5 h-3.5 shrink-0" />
-          <span className="truncate">{t.quickJump.universalSearch}</span>
-        </span>
-        <kbd dir="ltr" className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-surface-raised dark:bg-black/30 border border-outline-variant dark:border-white/10 text-[10px]  text-ink-muted">
-          {t.copy.shortcut}</kbd>
-      </button>
-
-      {/* Modal Dialog */}
-      <Modal kind="command" isOpen={isOpen} onClose={() => setIsOpen(false)} title={t.quickJump.universalSearch}
-        className="max-w-2xl" footer={<>
-          {/* Footer */}
-          <div className=" flex items-center justify-between text-[11px] text-ink-muted dark:text-ink-muted">
-            <span className="flex items-center gap-3">
-              <span>
-                <kbd dir="ltr" className="px-1 py-0.5 bg-surface-raised dark:bg-black/30 rounded border border-outline-variant dark:border-white/10">
-                  ↑↓
-                </kbd>{" "}
-                {t.quickJump.navigate}
-              </span>
-              <span>
-                <kbd dir="ltr" className="px-1 py-0.5 bg-surface-raised dark:bg-black/30 rounded border border-outline-variant dark:border-white/10">
-                  ↵
-                </kbd>{" "}
-                {t.quickJump.select}
-              </span>
-              <span>
-                <kbd dir="ltr" className="px-1 py-0.5 bg-surface-raised dark:bg-black/30 rounded border border-outline-variant dark:border-white/10">
-                  {t.copy.escape}</kbd>{" "}
-                {t.actions.cancel}
-              </span>
-            </span>
-            <span className=" text-[10px] text-accent font-semibold">
-              {t.quickJump.universalSearch}
-            </span>
-          </div>        </>}>
-        {/* Input Header */}
-        <div className="flex items-center gap-3">
-          <Search className="w-5 h-5 text-ink-muted shrink-0" />
-          <Input
-            role="combobox"
-            aria-label={t.quickJump.searchLabel}
-            aria-autocomplete="list"
-            aria-expanded={isOpen}
-            aria-controls={resultsId}
-            aria-activedescendant={results[selectedIndex] ? `${resultsId}-${selectedIndex}` : undefined}
-            ref={inputRef}
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={t.quickJump.placeholder}
-            className="w-full min-w-0 bg-transparent text-sm sm:text-base text-ink dark:text-ink placeholder:text-ink-muted focus:outline-none"
-          />
-          {loading && (
-            <Loader2 role="status" aria-label={t.quickJump.searching} className="w-4 h-4 text-accent animate-spin shrink-0" />
-          )}
-
-        </div>
-
+        aria-controls={isOpen ? resultsId : undefined}
+        aria-activedescendant={isOpen && results[selectedIndex] ? `${resultsId}-${selectedIndex}` : undefined}
+        value={query}
+        placeholder={t.quickJump.universalSearch}
+        className={className}
+        onFocus={() => setIsOpen(true)}
+        onChange={(event) => { setQuery(event.target.value); setIsOpen(true); }}
+        onKeyDown={handleKeyDown}
+        onBlur={(event) => { if (!panelRef.current?.contains(event.relatedTarget as Node)) setIsOpen(false); }}
+      />
+      {isOpen && <FloatingSurface ref={panelRef} anchor={inputRef.current} onClose={() => setIsOpen(false)}
+        onMouseDown={(event) => event.preventDefault()} className="p-2">
+        {loading && <Loader2 role="status" aria-label={t.quickJump.searching} className="m-3 h-4 w-4 animate-spin" />}
         {error && <p role="alert" className="py-3 text-sm text-rose-700 dark:text-rose-300">{error}</p>}
         {/* Results Body */}
         <div id={resultsId} role="listbox" aria-busy={loading} aria-label={t.quickJump.resultsLabel} className="max-h-80 overflow-y-auto p-2 divide-y divide-outline-variant dark:divide-white/5">
@@ -257,7 +211,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
           })}
         </div>
 
-      </Modal>
-    </>
+      </FloatingSurface>}
+    </div>
   );
 }

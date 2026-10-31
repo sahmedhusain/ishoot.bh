@@ -6,8 +6,8 @@ import { WarehousesView } from "../../../../components/inventory/WarehousesView"
 export const dynamic = "force-dynamic";
 
 export default async function WarehousesPage() {
-  await requirePagePermission("inventory", "read");
+  const actor = await requirePagePermission("inventory", "read");
   await requireFeatureEnabled("products");
-  const [warehouses, company, canEdit] = await Promise.all([listWarehouses(), getCachedCompanySettings(), hasPermission("inventory", "edit")]);
+  const [warehouses, company, canEdit] = await Promise.all([listWarehouses(actor.id), getCachedCompanySettings(), hasPermission("inventory", "edit")]);
   return <WarehousesView warehouses={warehouses} languages={company.content_languages} canEdit={canEdit} />;
 }

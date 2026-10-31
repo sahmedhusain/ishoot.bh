@@ -308,7 +308,7 @@ export function RequestDetailView({
                 <Calendar className="w-3.5 h-3.5" />
                 <span>
                   {new Date(request.createdAt).toLocaleDateString(
-                    isRTL ? "ar-BH-u-nu-latn" : "en-US",
+                    isRTL ? "ar-u-nu-latn" : "en-US",
                     { dateStyle: "long" },
                   )}
                 </span>
@@ -321,7 +321,7 @@ export function RequestDetailView({
                   <Clock className="w-3.5 h-3.5" />
                   <span>
                     {t.requestDetail.slaDeadline}
-                    {slaDateObj.toLocaleDateString(isRTL ? "ar-BH-u-nu-latn" : "en-US", {
+                    {slaDateObj.toLocaleDateString(isRTL ? "ar-u-nu-latn" : "en-US", {
                       dateStyle: "medium",
                     })}
                   </span>
@@ -762,7 +762,7 @@ export function RequestDetailView({
                         </span>
                         <span className="text-[10px] text-ink-muted block">
                           {new Date(comment.createdAt).toLocaleString(
-                            isRTL ? "ar-BH-u-nu-latn" : "en-US",
+                            isRTL ? "ar-u-nu-latn" : "en-US",
                           )}
                         </span>
                       </div>
@@ -824,7 +824,7 @@ export function RequestDetailView({
                     </span>
                     <span className="text-[10px] text-ink-muted font-mono ms-auto rtl:me-auto">
                       {new Date(ev.createdAt).toLocaleString(
-                        isRTL ? "ar-BH-u-nu-latn" : "en-US",
+                        isRTL ? "ar-u-nu-latn" : "en-US",
                       )}
                     </span>
                   </div>

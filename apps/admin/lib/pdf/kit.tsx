@@ -40,6 +40,7 @@ export interface PdfBrand {
   company: CompanySettings;
   logo?: Src;
   icon?: Src;
+  fullLogo?: Src;
   stamp?: Src;
   signature?: Src;
   letterheadHeader?: Src;
@@ -52,25 +53,29 @@ export async function resolvePdfBrand(company: CompanySettings): Promise<PdfBran
   C.accent = company.theme.accent;
   C.soft = mix(company.theme.primary, "#FFFFFF", 0.95);
   pageStyle.fontFamily = (await registerPdfFont(company.theme)) ? PDF_FONT : "Helvetica";
-  const [logo, icon, stamp, signature, assets] = await Promise.all([
+  const [logo, icon, fullLogo, stamp, signature, assets] = await Promise.all([
     resolveConfiguredPdfAsset(company.logo_url),
     resolveConfiguredPdfAsset(company.icon_url),
+    resolveConfiguredPdfAsset(company.full_logo_url),
     resolveConfiguredPdfAsset(company.stamp_url),
     resolveConfiguredPdfAsset(company.signature_url),
-    db.companyAsset.findMany({ where: { assetKey: { in: ["letterhead_header", "letterhead_footer"] } }, select: { assetKey: true, fileUrl: true } }),
+    db.companyAsset.findMany({ where: { assetKey: { in: ["letterhead_header", "letterhead_footer", "full_logo_light"] } }, select: { assetKey: true, fileUrl: true } }),
   ]);
   const asset = async (key: string) => {
     const url = assets.find((a) => a.assetKey === key)?.fileUrl;
     return url ? resolveConfiguredPdfAsset(url) : undefined;
   };
-  return { company, logo, icon, stamp, signature, letterheadHeader: await asset("letterhead_header"), letterheadFooter: await asset("letterhead_footer") };
+  const resolvedFullLogo = fullLogo || (await asset("full_logo_light"));
+  const letterheadHeader = (company.document_header_url ? await resolveConfiguredPdfAsset(company.document_header_url) : undefined) || (await asset("letterhead_header"));
+  const letterheadFooter = (company.document_footer_url ? await resolveConfiguredPdfAsset(company.document_footer_url) : undefined) || (await asset("letterhead_footer"));
+  return { company, logo, icon, fullLogo: resolvedFullLogo, stamp, signature, letterheadHeader, letterheadFooter };
 }
 
 // ---------------------------------------------------------------- formatting (Western digits in both languages)
 
 
 function numberLocale(isAr: boolean) {
-  return isAr ? "ar-BH-u-nu-latn" : "en-GB";
+  return isAr ? "ar-u-nu-latn" : "en-GB";
 }
 
 export function fmtNumber(value: number, decimals = 0) {
@@ -78,21 +83,21 @@ export function fmtNumber(value: number, decimals = 0) {
 }
 
 export function currencyLabel(code: string, isAr: boolean) {
-  const upper = (code || "BHD").toUpperCase();
+  const upper = (code || "USD").toUpperCase();
   return getCurrencyLabel(upper, isAr, false);
 }
 
 export function fmtMoney(value: number, code: string, isAr: boolean) {
-  const amount = fmtNumber(value, getCurrencyDecimals(code || "BHD"));
+  const amount = fmtNumber(value, getCurrencyDecimals(code || "USD"));
   const symbol = currencyLabel(code, isAr);
   return isAr ? `${amount} ${symbol}` : `${symbol} ${amount}`;
 }
 
-export function fmtDate(value: string | Date | null | undefined, isAr: boolean, month: "long" | "short" = "long") {
+export function fmtDate(value: string | Date | null | undefined, isAr: boolean, month: "long" | "short" = "long", timeZone = "UTC") {
   if (!value) return "";
   const date = typeof value === "string" ? new Date(value.length === 10 ? `${value}T00:00:00Z` : value) : value;
   if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat(numberLocale(isAr), { day: "numeric", month, year: "numeric", timeZone: "Asia/Bahrain" }).format(date);
+  return new Intl.DateTimeFormat(numberLocale(isAr), { day: "numeric", month, year: "numeric", timeZone }).format(date);
 }
 
 export function fmtMonth(year: number, month: number, isAr: boolean) {
@@ -116,6 +121,8 @@ export const pageStyle: Style = {
 };
 
 function BrandMark({ brand, height = 30 }: { brand: PdfBrand; height?: number }) {
+  if (brand.fullLogo)
+    return <Image src={brand.fullLogo} style={{ height, width: height * 3.5, objectFit: "contain" }} />;
   if (!brand.icon && !brand.logo)
     return <Text style={{ fontSize: 16, fontWeight: "bold", color: C.primary }}>{brand.company.company_name_en}</Text>;
   return (
@@ -202,7 +209,7 @@ export interface ClientAcceptance {
 
 export type DocKit = ReturnType<typeof docKit>;
 
-export function docKit(locale: DocLocale) {
+export function docKit(locale: DocLocale, timeZone = "UTC") {
   const isAr = locale === "ar";
   const t = getTranslations(locale).admin;
   const d = t.pdfDocs;
@@ -211,7 +218,7 @@ export function docKit(locale: DocLocale) {
   const textAlignFor = (align?: "start" | "end" | "center") =>
     align === "center" ? "center" : align === "end" ? (isAr ? "left" : "right") : isAr ? "right" : "left";
   const money = (value: number, code: string) => fmtMoney(value, code, isAr);
-  const date = (value: string | Date | null | undefined, month: "long" | "short" = "long") => fmtDate(value, isAr, month);
+  const date = (value: string | Date | null | undefined, month: "long" | "short" = "long") => fmtDate(value, isAr, month, timeZone);
   const pageLabel = (n: number, total: number) => formatMessage(d.page, { n: String(n), total: String(total) });
 
   /**
@@ -244,7 +251,23 @@ export function docKit(locale: DocLocale) {
       return (
         <View fixed style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: FOOTER_HEIGHT }}>
           <Image src={brand.letterheadFooter} style={{ width: "100%", height: FOOTER_HEIGHT, objectFit: "cover" }} />
-          <Text fixed style={{ position: "absolute", bottom: 6, right: 40, width: 120, textAlign: "right", fontSize: 6.5, color: C.muted }} render={({ pageNumber, totalPages }) => pageLabel(pageNumber, totalPages)} />
+          <View
+            style={{
+              position: "absolute",
+              bottom: 4,
+              [isAr ? "left" : "right"]: 40,
+              backgroundColor: "rgba(255, 255, 255, 0.88)",
+              paddingHorizontal: 8,
+              paddingVertical: 2,
+              borderRadius: 3,
+            } as Style}
+          >
+            <Text
+              fixed
+              style={{ fontSize: 6.8, color: C.body, direction: isAr ? "rtl" : "ltr" } as Style}
+              render={({ pageNumber, totalPages }) => [reference, pageLabel(pageNumber, totalPages)].filter(Boolean).join("   ·   ")}
+            />
+          </View>
         </View>
       );
     const contact = [company.phone ? formatDocumentPhone(company.phone, company.country) : "", company.email, company.website?.replace(/^https?:\/\//, "")].filter(Boolean).join("   ·   ");

@@ -68,7 +68,7 @@ const text = (value: string | null | undefined): FactValue | null =>
   value ? { kind: "text", value } : null;
 const day = (value: Date | null | undefined): FactValue | null =>
   value ? { kind: "date", value: value.toISOString().slice(0, 10) } : null;
-const money = (value: unknown, currency = "BHD"): FactValue => ({
+const money = (value: unknown, currency = "USD"): FactValue => ({
   kind: "money",
   value: Number(value ?? 0),
   currency,

@@ -41,7 +41,7 @@ const fill = (template: string, values: Record<string, string | number>) =>
 
 function useMoney() {
   const { locale, t } = useAdminLocale();
-  const format = React.useMemo(() => new Intl.NumberFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-BH", { minimumFractionDigits: 3, maximumFractionDigits: 3 }), [locale]);
+  const format = React.useMemo(() => new Intl.NumberFormat(locale === "ar" ? "ar-u-nu-latn" : "en-GB", { minimumFractionDigits: 3, maximumFractionDigits: 3 }), [locale]);
   return function money(value: number) {
     return (
       <bdi dir="ltr" className="whitespace-nowrap tabular-nums">
@@ -75,7 +75,7 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
   const editable = canEdit && (run.status === "draft" || run.status === "calculated");
   const payable = canPay && run.status === "approved" && item.paymentStatus !== "paid";
   const name = locale === "ar" ? `${employee.firstNameAr} ${employee.lastNameAr}` : `${employee.firstNameEn} ${employee.lastNameEn}`;
-  const monthLabel = new Intl.DateTimeFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-BH", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(run.year, run.month - 1, 1)));
+  const monthLabel = new Intl.DateTimeFormat(locale === "ar" ? "ar-u-nu-latn" : "en-GB", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(run.year, run.month - 1, 1)));
   const hours = (minutes: number) => Math.round((minutes / 60) * 100) / 100;
 
   const manual = detail.lines.filter((l) => l.source === "manual");

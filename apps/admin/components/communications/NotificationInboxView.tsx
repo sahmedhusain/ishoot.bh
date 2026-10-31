@@ -79,7 +79,7 @@ export function NotificationInboxView({
             <p className="whitespace-pre-wrap text-sm">{text.message}</p>
             <time className="text-xs text-ink-muted">
               {new Date(n.created_at).toLocaleString(
-                locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB",
+                locale === "ar" ? "ar-u-nu-latn" : "en-GB",
               )}
             </time>
             <div className="flex flex-wrap gap-4 text-sm">

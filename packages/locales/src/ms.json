@@ -122,11 +122,6 @@
     "subtitle": "Semua yang kami sediakan, dijelaskan dengan jelas supaya anda boleh memilih dengan yakin.",
     "sectionIndex": "(02)",
     "requestProposal": "Minta sebut harga",
-    "soundstage": {
-      "title": "",
-      "desc": "",
-      "specs": []
-    },
     "sectionLabel": "Keupayaan",
     "headline": "Perkara yang kami tawarkan"
   },
@@ -399,7 +394,7 @@
     "registrationLabel": "Pendaftaran Perniagaan"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "Cukai",
     "vatNa": "Cukai: Tidak Berkenaan",
     "subtotal": "Subjumlah",
@@ -498,7 +493,6 @@
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "",
     "items": [],
     "sectionLabel": "Testimoni Klien & Rakan Kongsi",
     "headline": "Apa kata pelanggan kami",

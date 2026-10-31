@@ -131,7 +131,7 @@ export function SalaryDocumentsView({
     {},
   );
   const monthName = (month: string) =>
-    new Intl.DateTimeFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB", {
+    new Intl.DateTimeFormat(locale === "ar" ? "ar-u-nu-latn" : "en-GB", {
       month: "short",
       timeZone: "UTC",
     }).format(new Date(`${month}-01T00:00:00Z`));
@@ -369,7 +369,7 @@ export function SalaryDocumentsView({
                         <span dir="ltr">{item.months.join(", ")} · </span>
                       )}
                       {new Date(item.createdAt).toLocaleDateString(
-                        locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB",
+                        locale === "ar" ? "ar-u-nu-latn" : "en-GB",
                       )}
                       {" · "}
                       {item.languages

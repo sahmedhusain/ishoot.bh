@@ -22,6 +22,7 @@ import {
   type TransferInput,
   type WarehouseInput,
 } from "@platform/database";
+import { requireStockLocationAccess, requireWarehouseAccess, requireStockCountAccess, requireBranchAccess } from "@platform/database/queries/branches";
 import { ROUTES } from "../../constants/routes";
 import { requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
@@ -39,6 +40,7 @@ export async function changeStockAction(input: StockChangeInput) {
     await requireFeatureEnabled("products");
     const user = await requirePermission("inventory", "edit");
     validateActionArguments("changeStockAction", { input });
+    await requireStockLocationAccess(user.id, input.locationId, true);
     const low = await changeStock(input, user.id);
     await createActivityLog({
       user_id: user.id,
@@ -62,6 +64,8 @@ export async function transferStockAction(input: TransferInput) {
     await requireFeatureEnabled("products");
     const user = await requirePermission("inventory", "edit");
     validateActionArguments("transferStockAction", { input });
+    await requireStockLocationAccess(user.id, input.fromLocationId, true);
+    await requireStockLocationAccess(user.id, input.toLocationId, true);
     const low = await transferStock(input, user.id);
     await createActivityLog({
       user_id: user.id,
@@ -122,6 +126,8 @@ export async function saveWarehouseAction(input: WarehouseInput) {
       input.id ? "edit" : "create",
     );
     validateActionArguments("saveWarehouseAction", { input });
+    const existing = input.id ? await requireWarehouseAccess(user.id, input.id, "edit") : null;
+    await requireBranchAccess(user.id, existing?.branchId ?? "legacy-main", true);
     const warehouse = await saveWarehouse(input);
     await createActivityLog({
       user_id: user.id,
@@ -143,6 +149,8 @@ export async function saveLocationAction(input: LocationInput) {
       input.id ? "edit" : "create",
     );
     validateActionArguments("saveLocationAction", { input });
+    await requireWarehouseAccess(user.id, input.warehouseId, input.id ? "edit" : "create");
+    if (input.id) await requireStockLocationAccess(user.id, input.id, true);
     const location = await saveLocation(input);
     await createActivityLog({
       user_id: user.id,
@@ -161,6 +169,7 @@ export async function createStockCountAction(input: StockCountInput) {
     await requireFeatureEnabled("products");
     const user = await requirePermission("inventory", "create");
     validateActionArguments("createStockCountAction", { input });
+    await requireWarehouseAccess(user.id, input.warehouseId, "create");
     const count = await createStockCount(input, user.id);
     await createActivityLog({
       user_id: user.id,
@@ -180,8 +189,9 @@ export async function saveCountedAction(
 ) {
   return measureOperation("action:saveCountedAction", async () => {
     await requireFeatureEnabled("products");
-    await requirePermission("inventory", "edit");
+    const user = await requirePermission("inventory", "edit");
     validateActionArguments("saveCountedAction", { countId, entries });
+    await requireStockCountAccess(user.id, countId, "edit");
     await recordCountedQuantities(countId, entries);
     revalidatePath(ROUTES.inventory.count(countId));
     return { success: true };
@@ -196,12 +206,15 @@ export async function scanCountItemAction(
 ) {
   return measureOperation("action:scanCountItemAction", async () => {
     await requireFeatureEnabled("products");
-    await requirePermission("inventory", "edit");
+    const user = await requirePermission("inventory", "edit");
     validateActionArguments("scanCountItemAction", {
       countId,
       code,
       locationId,
     });
+    const count = await requireStockCountAccess(user.id, countId, "edit");
+    const location = await requireStockLocationAccess(user.id, locationId, true);
+    if (location.warehouseId !== count.warehouseId) throw new Error("Inventory access denied");
     const found = await findByCode(code);
     if (!found) return { success: false as const };
     const lines = await db.stockCountLine.findMany({
@@ -233,6 +246,7 @@ export async function setStockCountStatusAction(
     await requireFeatureEnabled("products");
     const user = await requirePermission("inventory", "edit");
     validateActionArguments("setStockCountStatusAction", { countId, status });
+    await requireStockCountAccess(user.id, countId, "edit");
     await setStockCountStatus(countId, status);
     await createActivityLog({
       user_id: user.id,
@@ -252,6 +266,7 @@ export async function approveStockCountAction(countId: string) {
     await requireFeatureEnabled("products");
     const user = await requirePermission("inventory", "approve");
     validateActionArguments("approveStockCountAction", { countId });
+    await requireStockCountAccess(user.id, countId, "approve");
     const { low, adjusted } = await approveStockCount(countId, user.id);
     await createActivityLog({
       user_id: user.id,

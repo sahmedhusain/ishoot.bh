@@ -122,11 +122,6 @@
     "subtitle": "כל מה שאנו מספקים, מוסבר בבהירות כדי שתוכל לבחור בביטחון.",
     "sectionIndex": "(02)",
     "requestProposal": "בקש הצעת מחיר",
-    "soundstage": {
-      "title": "",
-      "desc": "",
-      "specs": []
-    },
     "sectionLabel": "יכולות",
     "headline": "מה שאנו מציעים"
   },
@@ -399,7 +394,7 @@
     "registrationLabel": "מספר רישום חברה"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "מע\"מ",
     "vatNa": "מע\"מ: לא חל",
     "subtotal": "סכום ביניים",
@@ -498,7 +493,6 @@
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "",
     "items": [],
     "sectionLabel": "המלצות לקוחות ושותפים",
     "headline": "מה הלקוחות שלנו אומרים",

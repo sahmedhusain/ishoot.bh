@@ -122,11 +122,6 @@
     "subtitle": "Vše, co zapewniamy, wyjaśnione jasno, abyś mógł podjąć decyzję z pełnym zaufaniem.",
     "sectionIndex": "(02)",
     "requestProposal": "Poproś o wycenę",
-    "soundstage": {
-      "title": "",
-      "desc": "",
-      "specs": []
-    },
     "sectionLabel": "Możliwości",
     "headline": "Co oferujemy"
   },
@@ -399,7 +394,7 @@
     "registrationLabel": "Rejestr handlowy"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "VAT",
     "vatNa": "VAT: Ne dotyczy",
     "subtotal": "Celkem częściowa",
@@ -498,7 +493,6 @@
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "",
     "items": [],
     "sectionLabel": "Reference klientów i partnerów",
     "headline": "Co mówią nasi klienci",

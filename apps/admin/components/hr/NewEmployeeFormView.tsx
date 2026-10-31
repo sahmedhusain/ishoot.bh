@@ -348,7 +348,10 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
                 required
                 value={jobTitleEn}
                 onChange={(e) => setJobTitleEn(e.target.value)}
-                placeholder={t.newEmployeeForm.eGSeniorCinematographer}
+                placeholder={
+                  t.newEmployeeForm.jobTitlePlaceholderEn ||
+                  t.newEmployeeForm.eGSeniorCinematographer
+                }
                 className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
                dir="ltr"/>
             </label>
@@ -361,7 +364,10 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
                 dir="rtl"
                 value={jobTitleAr}
                 onChange={(e) => setJobTitleAr(e.target.value)}
-                placeholder={t.newEmployeeForm.exampleSeniorCinematographer}
+                placeholder={
+                  t.newEmployeeForm.jobTitlePlaceholderAr ||
+                  t.newEmployeeForm.exampleSeniorCinematographer
+                }
                 className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
               />
             </label>

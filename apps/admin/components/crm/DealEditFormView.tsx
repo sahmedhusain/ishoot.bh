@@ -28,7 +28,7 @@ interface DealEditFormViewProps {
 export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFormViewProps) {
   const router = useRouter();
   const { t, locale } = useAdminLocale();
-  const bhd = getCurrencyLabel(useCompanyCurrency(), locale === "ar");
+  const currencyLabel = getCurrencyLabel(useCompanyCurrency(), locale === "ar");
 
   const [title, setTitle] = React.useState(deal.title || "");
   const [contactId, setContactId] = React.useState(deal.contact_id || "");
@@ -76,8 +76,8 @@ export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFor
     {
       field: "value",
       label: t.dealEditForm.dealValue,
-      oldValue: `${Number(deal.value || 0).toFixed(3)} ${bhd}`,
-      newValue: `${Number(dealValue || 0).toFixed(3)} ${bhd}`,
+      oldValue: `${Number(deal.value || 0).toFixed(3)} ${currencyLabel}`,
+      newValue: `${Number(dealValue || 0).toFixed(3)} ${currencyLabel}`,
     },
     {
       field: "probability",
@@ -97,7 +97,7 @@ export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFor
       oldValue: deal.target_close_date ? new Date(deal.target_close_date).toISOString().split("T")[0] : "—",
       newValue: expectedCloseDate || "—",
     },
-  ], [t, bhd, deal, title, dealStage, dealValue, probability, shootDate, expectedCloseDate]);
+  ], [t, currencyLabel, deal, title, dealStage, dealValue, probability, shootDate, expectedCloseDate]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -228,7 +228,7 @@ export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFor
 
             <label>
               <span className="text-xs font-semibold text-ink dark:text-ink mb-1.5 block">
-                {t.dealEdit.valueLabel} ({t.financials.currency})
+                {t.dealEdit.valueLabel} ({currencyLabel})
               </span>
               <Input
                 type="number"

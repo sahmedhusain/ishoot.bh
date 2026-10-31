@@ -122,11 +122,6 @@
     "subtitle": "Lahat ng aming ibinibigay, ipinaliwanag nang malinaw upang makapili ka nang may kumpiyansa.",
     "sectionIndex": "(02)",
     "requestProposal": "Humiling ng quote",
-    "soundstage": {
-      "title": "",
-      "desc": "",
-      "specs": []
-    },
     "sectionLabel": "Mga Kakayahan",
     "headline": "Ano ang aming iniaalok"
   },
@@ -399,7 +394,7 @@
     "registrationLabel": "Rehistrasyon ng Negosyo"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "VAT",
     "vatNa": "VAT: Hindi Naaangkop",
     "subtotal": "Subtotal",
@@ -443,7 +438,7 @@
     "page_10": "Buksan ang WhatsApp Chat →",
     "page_11": "Pangkalahatang-ideya ng Produksyon",
     "contactform_12": "hal. Nobyembre 2026",
-    "contactform_13": "Sabihin sa amin ang tungkol sa iyong mga layunin sa kampanya, mga lokasyon ng shoot, at mga gustong output...",
+    "contactform_13": "Tell us about your goals, locations, and requirements...",
     "languageswitcher_14": "Lumipat sa Arabic",
     "cinemalightbox_16": "Direktor:",
     "cinemalightbox_17": "Sinematograpo:",
@@ -498,7 +493,6 @@
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "",
     "items": [],
     "sectionLabel": "Mga Testimonial ng Kliyente at Partner",
     "headline": "Ano ang sinasabi ng aming mga customer",

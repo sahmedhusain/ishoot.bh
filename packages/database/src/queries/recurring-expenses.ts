@@ -82,8 +82,8 @@ export interface RecurringExpenseRecord {
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 const day = (s: string) => new Date(`${s}T00:00:00Z`);
-const todayBahrain = () =>
-  day(new Date(Date.now() + 3 * 3600000).toISOString().slice(0, 10));
+const todayDate = () =>
+  day(new Date().toISOString().slice(0, 10));
 
 /** The due date after `date`: the same day of the month (the month's last day when shorter), or a week later. */
 export function nextDueAfter(
@@ -184,7 +184,7 @@ function map(r: Row): RecurringExpenseRecord {
     monthly_equivalent:
       Math.round(Number(r.amount) * PER_MONTH[frequency] * 1000) / 1000,
     days_until: Math.round(
-      (r.nextDueDate.getTime() - todayBahrain().getTime()) / 86400000,
+      (r.nextDueDate.getTime() - todayDate().getTime()) / 86400000,
     ),
     recorded_count: r._count.expenses,
     last_recorded_at: r.lastRecordedAt?.toISOString(),
@@ -364,7 +364,7 @@ async function financeUsers() {
  * finance about manual bills due within their reminder window or overdue, once per due date.
  */
 export async function processRecurringExpenses() {
-  const today = todayBahrain();
+  const today = todayDate();
   let recorded = 0;
   let reminded = 0;
   const due = await db.recurringExpense.findMany({

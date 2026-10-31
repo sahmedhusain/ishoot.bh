@@ -43,7 +43,8 @@ export type CountStatus = (typeof COUNT_STATUSES)[number];
 export const BATCH_ACTIVITIES = ["pharmacy", "food", "healthcare"] as const;
 
 /** Quantities are kept to three decimals (kilograms, litres). */
-export const roundQuantity = (value: number) => Math.round(value * 1000) / 1000;
+// Quantity precision follows Decimal(17, 6), independently of currency precision.
+export const roundQuantity = (value: number) => Math.round(value * 1_000_000) / 1_000_000;
 /** Unit costs are kept to four decimals. */
 export const roundCost = (value: number) => Math.round(value * 10000) / 10000;
 

@@ -12,10 +12,11 @@ const mocks = vi.hoisted(() => ({
   status: vi.fn(),
   active: vi.fn(),
   count: vi.fn(),
+  currency: vi.fn(),
 }));
 vi.mock("../../packages/database/src/db", () => ({
   db: {
-    $queryRaw: vi.fn(),
+    $queryRaw: mocks.currency,
     paymentAttempt: {
       findUnique: mocks.attempt,
       update: mocks.update,
@@ -79,6 +80,7 @@ const capture = {
 beforeEach(() => {
   vi.resetAllMocks();
   mocks.count.mockResolvedValue(0);
+  mocks.currency.mockResolvedValue([{ defaultCurrency: "BHD" }]);
   mocks.attempt.mockResolvedValue(attempt);
   mocks.order.mockResolvedValue(order);
   mocks.used.mockResolvedValue(null);
@@ -170,6 +172,7 @@ test.each([
       gateway: {},
     });
     mocks.order.mockResolvedValue({ ...order, currency, total: amount });
+    mocks.currency.mockResolvedValue([{ defaultCurrency: currency }]);
     await expect(
       startOrderPayment(order.id, {
         url: "https://shop.example.test",

@@ -109,12 +109,12 @@
     "resume": "Reprendre l'animation"
   },
   "showreel": {
-    "badge": "Bande démo 2026",
-    "title": "LA VISION SCULPTÉE EN MOUVEMENT",
-    "subtitle": "Une sélection rigoureuse de nos films publicitaires, récits de marque et cinématographie aérienne à Bahreïn et dans le golfe Arabique.",
-    "playShowreel": "Lire la bande démo intégrale",
-    "watchIn4k": "Regarder en 4K",
-    "streamTitle": "Flux cinéma 4K"
+    "badge": "En savoir plus",
+    "title": "Découvrez notre travail",
+    "subtitle": "Un aperçu détaillé de ce que nous réalisons.",
+    "playShowreel": "Lire la vidéo",
+    "watchIn4k": "Regarder la vidéo",
+    "streamTitle": "Vidéo"
   },
   "services": {
     "badge": "Nos prestations",
@@ -122,15 +122,6 @@
     "subtitle": "Tout ce que nous proposons, expliqué clairement pour choisir en toute confiance.",
     "sectionIndex": "(02)",
     "requestProposal": "Demander un devis",
-    "soundstage": {
-      "title": "Plateau insonorisé et cyclo acoustique",
-      "desc": "Installation insonorisée de 250 m² dans le quartier de Seef avec alimentation triphasée 60 kW, grille d'éclairage zénithale de 6 m et cyclorama à courbe infinie.",
-      "specs": [
-        "Plateau de tournage 250 m²",
-        "Grille d'éclairage zénithale",
-        "Cabine de contrôle insonorisée"
-      ]
-    },
     "sectionLabel": "Compétences",
     "headline": "Nos prestations"
   },
@@ -158,7 +149,7 @@
     "sectionIndex": "(03)",
     "sectionLabel": "Archives des projets & réalisations",
     "showcaseTitle": "Projets sélectionnés",
-    "showcaseSubtitle": "Découvrez une sélection de films publicitaires réalisés pour des institutions publiques, des banques et de grandes marques du CCG.",
+    "showcaseSubtitle": "Explore a selection of our work and projects.",
     "viewFullArchive": "Voir nos réalisations",
     "productionOverview": "Vue d'ensemble",
     "categories": {
@@ -198,24 +189,24 @@
     "title": "Qui sommes-nous",
     "subtitle": "Découvrez notre entreprise, notre équipe et le travail qui nous anime.",
     "storyTitle": "NOTRE PHILOSOPHIE",
-    "storyP1": "Nous croyons que le véritable impact visuel naît à la croisée de la rigueur technique et d'une curiosité créative sans limite. Chaque production est façonnée dans le respect absolu du cadre, de la dynamique lumineuse et de l'authenticité de l'émotion.",
-    "storyP2": "Des campagnes télévisées nationales aux manifestes de marques internationales, notre équipe mobilise caméras cinéma, dispositifs d'éclairage de précision et suites de post-production de pointe pour sublimer le prestige de votre marque.",
+    "storyP1": "",
+    "storyP2": "",
     "ceoTitle": "Fondateur & Directeur de création",
-    "ceoName": "Sayed Ahmed Husain",
-    "ceoQuote": "Nous ne faisons pas que capter la lumière ; nous sculptons la façon dont les souvenirs, les émotions et les marques traversent le temps.",
+    "ceoName": "",
+    "ceoQuote": "",
     "gearTitle": "LE PARC TECHNIQUE",
     "gearSubtitle": "Matériel cinéma en propriété exclusive, étalonné pour des performances optiques irréprochables.",
-    "statFilms": "+ de 180 spots publicitaires livrés",
-    "statYears": "+ de 8 ans de savoir-faire",
-    "statAwards": "14 prix régionaux",
-    "statClients": "+ de 65 grands comptes dans le CCG",
+    "statFilms": "",
+    "statYears": "",
+    "statAwards": "",
+    "statClients": "",
     "sectionIndex": "(01)",
     "sectionLabel": "À propos",
     "headline": "Une équipe dédiée aux personnes que nous servons.",
     "behindTheScenes": "Notre équipe à l'œuvre",
     "shootCaption": "Notre équipe à l'œuvre",
     "missionLabel": "Notre mission",
-    "mission": "Donner aux leaders du marché les moyens de raconter l'histoire de leur marque avec une précision visuelle sans compromis et une profonde résonance émotionnelle.",
+    "mission": "",
     "visionLabel": "Notre vision",
     "discoverStudio": "Découvrir notre histoire et notre équipe",
     "gearAll": "Tout le matériel",
@@ -224,49 +215,49 @@
     "gearLighting": "Projecteurs & Éclairages",
     "gearAudioGrading": "Suite d'étalonnage et mastering",
     "gearStages": "Plateau de tournage",
-    "statFilmsValue": "180+",
+    "statFilmsValue": "",
     "statFilmsLabel": "Spots publicitaires livrés",
-    "statYearsValue": "8+",
+    "statYearsValue": "",
     "statYearsLabel": "Années d'expérience",
-    "statAwardsValue": "14",
+    "statAwardsValue": "",
     "statAwardsLabel": "Prix régionaux",
-    "statClientsValue": "65+",
+    "statClientsValue": "",
     "statClientsLabel": "Grands comptes CCG",
-    "recTag": "REC · 8K VV",
-    "gccTag": "100% GCC",
-    "coloristTag": "DaVinci Certified",
+    "recTag": "",
+    "gccTag": "",
+    "coloristTag": "",
     "pillars": {
       "badge": "Nos engagements",
       "title": "Les valeurs qui guident notre travail",
       "p1": {
-        "number": "01",
-        "title": "Optiques & cadrage cinématographiques",
-        "desc": "Prise de vue multi-format en 8K VistaVision avec caméras RED V-Raptor XL associées aux optiques ARRI Master Primes pour un rendu optique d'une pureté absolue.",
-        "tag": "8K VistaVision"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p2": {
-        "number": "02",
-        "title": "Étalonnage HDR sur DaVinci Resolve",
-        "desc": "Suite de post-production dédiée avec monitoring de référence Sony BVM pour concevoir des palettes de couleurs sur mesure inspirées du film argentique.",
-        "tag": "DCI-P3 Colorist"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p3": {
-        "number": "03",
-        "title": "Direction narrative & rythme",
-        "desc": "Conception de traitements visuels, de scénarios et d'un découpage rythmé qui transforment les briefs d'entreprise en véritables œuvres cinématographiques.",
-        "tag": "Narrative Craft"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p4": {
-        "number": "04",
-        "title": "Drones FPV & gros porteurs certifiés",
-        "desc": "Opérations aériennes par drone certifiées par la BCAA (Aviation civile de Bahreïn), capturant panoramas monumentaux et courses-poursuites ultra-rapides.",
-        "tag": "BCAA Licensed"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       }
     },
     "stats": {
       "badge": "En chiffres",
       "verified": "Données de production vérifiées",
-      "tvcs": "Films publicitaires haut de gamme",
+      "tvcs": "Projects",
       "leadership": "Excellence cinématographique",
       "trophies": "Trophées régionaux",
       "enterprises": "Entreprises du CCG"
@@ -345,7 +336,7 @@
     "projectRefLabel": "Référence ou lien du projet (facultatif)",
     "projectRefPlaceholder": "https://example.com/reference",
     "shootLocation": "Lieu / Ville (facultatif)",
-    "shootLocationPlaceholder": "ex. Manama",
+    "shootLocationPlaceholder": "Ville ou lieu",
     "messageDetails": "Détails du message",
     "yourMessage": "Votre message",
     "messagePlaceholder": "Expliquez-nous votre besoin et tout détail utile pour vous répondre…",
@@ -403,7 +394,7 @@
     "registrationLabel": "Registre de commerce"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "TVA",
     "vatNa": "TVA : Non applicable",
     "subtotal": "Sous-total",
@@ -447,7 +438,7 @@
     "page_10": "Ouvrir la discussion WhatsApp →",
     "page_11": "Aperçu de la production",
     "contactform_12": "ex. Novembre 2026",
-    "contactform_13": "Décrivez les objectifs de votre campagne, les lieux de tournage et les livrables souhaités...",
+    "contactform_13": "Tell us about your goals, locations, and requirements...",
     "languageswitcher_14": "Passer à l'arabe",
     "cinemalightbox_16": "Réalisateur :",
     "cinemalightbox_17": "Directeur de la photographie :",
@@ -497,56 +488,12 @@
   },
   "stats": {
     "sectionIndex": "(04)",
-    "items": [
-      {
-        "value": "150+",
-        "label": "Films publicitaires livrés",
-        "sub": "Pour de grandes marques et entreprises du CCG"
-      },
-      {
-        "value": "8K",
-        "label": "Résolution cinéma RAW",
-        "sub": "RED V-Raptor & ARRI ALEXA LF"
-      },
-      {
-        "value": "100%",
-        "label": "Opérations de drones certifiées",
-        "sub": "Aviation civile de Bahreïn"
-      },
-      {
-        "value": "10+",
-        "label": "Années d'excellence dans le secteur",
-        "sub": "Siège social à Manama, Seef"
-      }
-    ],
+    "items": [],
     "sectionLabel": "Métriques et standards du studio"
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "BAHREÏN",
-    "items": [
-      {
-        "id": "rev-1",
-        "client": "National Bank of Bahrain (NBB)",
-        "author": "Directeur marketing & image de marque",
-        "quote": "l'équipe a réalisé une campagne publicitaire télévisée exceptionnelle qui a dépassé nos plus hautes exigences cinématographiques. L'étalonnage des couleurs et les plans au drone étaient remarquables.",
-        "year": "2026"
-      },
-      {
-        "id": "rev-2",
-        "client": "Zain Bahrain",
-        "author": "Responsable de la communication d'entreprise",
-        "quote": "Le professionnalisme de l'équipe de tournage et la précision des images en 8K ont transformé notre film de marque. Véritablement la maison de production de référence à Bahreïn.",
-        "year": "2025"
-      },
-      {
-        "id": "rev-3",
-        "client": "Bahrain Economic Development Board (EDB)",
-        "author": "Responsable du marketing de destination",
-        "quote": "Collaborer avec l'équipe sur notre vitrine vidéo d'investissement national a été d'une grande fluidité. Ils ont su sublimer notre patrimoine architectural avec un éclairage et une profondeur visuelle magnifiques.",
-        "year": "2025"
-      }
-    ],
+    "items": [],
     "sectionLabel": "Témoignages de clients & partenaires",
     "headline": "Ce que disent nos clients",
     "subtitle": "Les retours sincères des personnes et des organisations avec lesquelles nous collaborons.",
@@ -570,30 +517,13 @@
   },
   "faq": {
     "sectionIndex": "(06)",
-    "items": [
-      {
-        "question": "Quels systèmes de caméras et objectifs utilisez-vous pour les tournages publicitaires ?",
-        "answer": "Nous tournons principalement avec les systèmes RED V-Raptor 8K, ARRI ALEXA Mini LF et Sony FX9, équipés d'objectifs ARRI Master Primes, Cooke Anamorphic et Leica Cine."
-      },
-      {
-        "question": "Vos télépilotes de drones sont-ils certifiés pour les tournages commerciaux à Bahreïn ?",
-        "answer": "Oui, tous nos télépilotes de drones RED gros porteurs et FPV sur mesure sont pleinement certifiés par l'Aviation civile de Bahreïn (BCAA) et couverts par une assurance responsabilité civile complète."
-      },
-      {
-        "question": "Combien de temps prennent la post-production et l'étalonnage des couleurs sous DaVinci Resolve ?",
-        "answer": "Les délais standards de post-production varient de 5 à 14 jours ouvrés selon la complexité des effets visuels, du design sonore et des sessions de validation de l'étalonnage."
-      },
-      {
-        "question": "Pouvez-vous gérer la pré-production, le casting et les autorisations pour des projets dans le CCG ?",
-        "answer": "Absolument. Nous prenons en charge la pré-production de bout en bout : repérages, autorisations ministérielles, casting des comédiens, création des storyboards et construction des décors à Bahreïn et en Arabie saoudite."
-      }
-    ],
+    "items": [],
     "sectionLabel": "Foire aux questions",
     "headline": "Questions fréquemment posées",
     "subtitle": "Des réponses transparentes sur notre méthode de travail, nos étapes de production et la façon de démarrer."
   },
   "cta": {
-    "badge": "Prêt à lancer votre prochain film",
+    "badge": "Start a conversation",
     "titleLine1": "LE CINÉMA DANS CHAQUE IMAGE.",
     "titleLine2": "Créons ensemble un chef-d'œuvre.",
     "description": "Contactez directement nos producteurs pour échanger sur vos concepts, plannings de tournage et estimations budgétaires.",
@@ -603,7 +533,7 @@
   },
   "preloader": {
     "load": "CHARGEMENT",
-    "slogan": "LE CINÉMA DANS CHAQUE IMAGE · PRODUCTION 8K",
+    "slogan": "Welcome",
     "skipHint": "Cliquez n'importe où pour entrer"
   },
   "email": {

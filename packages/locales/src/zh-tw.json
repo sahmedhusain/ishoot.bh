@@ -109,12 +109,12 @@
     "resume": "恢復動畫"
   },
   "showreel": {
-    "badge": "2026 作品集",
-    "title": "光影躍動 · 構築視界",
-    "subtitle": "精選我們在巴林及阿拉伯灣地區打造的商業廣告、品牌敘事短片與高空電影級航拍。",
-    "playShowreel": "播放完整作品集",
-    "watchIn4k": "以 4K 畫質觀看",
-    "streamTitle": "4K 電影級播放"
+    "badge": "查看更多",
+    "title": "探索我們的工作",
+    "subtitle": "深入了解我們的工作與服務。",
+    "playShowreel": "播放影片",
+    "watchIn4k": "觀看影片",
+    "streamTitle": "影片"
   },
   "services": {
     "badge": "我們的服務",
@@ -122,11 +122,6 @@
     "subtitle": "清晰呈現各項專業服務，助您篤定抉擇。",
     "sectionIndex": "(02)",
     "requestProposal": "索取報價方案",
-    "soundstage": {
-      "title": "聲學攝影棚與無限背景穹幕",
-      "desc": "位於西夫區（Seef）的250平方米專業隔音攝影棚，配備60kW三相動力電、6米高頂部燈光網架及無縫曲面白幕/綠幕穹棚。",
-      "specs": []
-    },
     "sectionLabel": "專業製作能力",
     "headline": "我們的服務"
   },
@@ -194,24 +189,24 @@
     "title": "我們是誰",
     "subtitle": "走近我們的企業、專業團隊以及我們傾注匠心的創作之路。",
     "storyTitle": "核心理念",
-    "storyP1": "我們深信，震撼人心的視覺力量源自嚴謹的技術規範與自由無拘的創意好奇心的融合。每一次鏡頭構圖、每一檔動態範圍、每一縷真摯情感，皆凝聚著我們對光影藝術的敬畏之意。",
-    "storyP2": "從國家級電視宣傳片到國際品牌宏幅大作，我們的團隊依託頂尖電影機、精密專業燈光陣列和先進的後期製作系統，全方位提升品牌聲譽與格調。",
+    "storyP1": "",
+    "storyP2": "",
     "ceoTitle": "創始人兼創意總監",
-    "ceoName": "Sayed Ahmed Husain",
-    "ceoQuote": "我們不僅記錄光線；我們更在塑造記憶、情感與品牌在時光中迴蕩的共鳴。",
+    "ceoName": "",
+    "ceoQuote": "",
     "gearTitle": "影視器材庫",
     "gearSubtitle": "自持全套專業電影級器材，精準校準，確保卓越光學表現。",
-    "statFilms": "已交付 180+ 部商業影片",
-    "statYears": "8+ 年匠心沉澱",
-    "statAwards": "榮獲 14 項區域大獎",
-    "statClients": "服務 65+ 家海灣大型企業",
+    "statFilms": "",
+    "statYears": "",
+    "statAwards": "",
+    "statClients": "",
     "sectionIndex": "(01)",
     "sectionLabel": "關於我們",
     "headline": "一支全心服務客戶的專業團隊。",
     "behindTheScenes": "我們的團隊在工作",
     "shootCaption": "現場創作實況",
     "missionLabel": "我們的使命",
-    "mission": "賦能行業領軍者，以毫不妥協的精妙視覺與深厚情感底蘊，傳達撼動人心的品牌故事。",
+    "mission": "",
     "visionLabel": "我們的願景",
     "discoverStudio": "探索我們的故事與團隊",
     "gearAll": "全部器材",
@@ -220,43 +215,43 @@
     "gearLighting": "影視燈光陣列",
     "gearAudioGrading": "後期與母帶調色室",
     "gearStages": "專業攝影棚",
-    "statFilmsValue": "180+",
+    "statFilmsValue": "",
     "statFilmsLabel": "已交付商業廣告",
-    "statYearsValue": "8+",
+    "statYearsValue": "",
     "statYearsLabel": "專業深耕年限",
-    "statAwardsValue": "14",
+    "statAwardsValue": "",
     "statAwardsLabel": "區域行業大獎",
-    "statClientsValue": "65+",
+    "statClientsValue": "",
     "statClientsLabel": "海灣地區大客戶",
-    "recTag": "REC · 8K VV",
-    "gccTag": "100% GCC",
-    "coloristTag": "DaVinci Certified",
+    "recTag": "",
+    "gccTag": "",
+    "coloristTag": "",
     "pillars": {
       "badge": "立足之本",
       "title": "深植於作品背後的核心價值",
       "p1": {
-        "number": "01",
-        "title": "電影級光學與藝術構圖",
-        "desc": "採用 RED V-Raptor XL 搭配 ARRI Master Primes 鏡頭系統，支援 8K VistaVision 多格式拍攝，呈現極具質感的光學成像。",
-        "tag": "8K VistaVision"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p2": {
-        "number": "02",
-        "title": "DaVinci Resolve HDR 頂級調色",
-        "desc": "專屬後期製作機房，配備索尼 BVM 系列廣播級監視器，精心調製獨具膠片質感的定製色彩影調。",
-        "tag": "DCI-P3 Colorist"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p3": {
-        "number": "03",
-        "title": "視聽敘事與鏡頭節奏把控",
-        "desc": "深入推敲視覺腳本、劇本文本與剪輯律動，將企業商業訴求升華成令人過目難忘的電影藝術。",
-        "tag": "Narrative Craft"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p4": {
-        "number": "04",
-        "title": "持證重型航拍與高速 FPV 穿越機",
-        "desc": "擁有巴林民航局（BCAA）完全資質認證的商業無人機團隊，輕鬆駕馭壯闊全景與極限競速特技追焦。",
-        "tag": "BCAA Licensed"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       }
     },
     "stats": {
@@ -341,7 +336,7 @@
     "projectRefLabel": "專案參考資料 / 連結（選填）",
     "projectRefPlaceholder": "https://example.com/reference",
     "shootLocation": "拍攝地點 / 城市（選填）",
-    "shootLocationPlaceholder": "例如：麥納麥",
+    "shootLocationPlaceholder": "城市或地點",
     "messageDetails": "留言詳情",
     "yourMessage": "您的留言",
     "messagePlaceholder": "請具體描述您的需求，以便我們更高效地為您提供協助…",
@@ -399,7 +394,7 @@
     "registrationLabel": "商業註冊登記號（CR）"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "增值稅（VAT）",
     "vatNa": "增值稅：不適用",
     "subtotal": "小計",
@@ -498,7 +493,6 @@
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "巴林",
     "items": [],
     "sectionLabel": "客戶與合作夥伴感言",
     "headline": "客戶真實評價",
@@ -539,7 +533,7 @@
   },
   "preloader": {
     "load": "載入",
-    "slogan": "每一幀，皆為光影 · 8K 影視製作",
+    "slogan": "Welcome",
     "skipHint": "點擊任意位置進入"
   },
   "email": {

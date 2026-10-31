@@ -10,6 +10,7 @@ import {
   roundQuantity,
   type MovementType,
 } from "../constants/inventory";
+import { listAccessibleBranches, requireStockCountAccess } from "./branches";
 import { getNextSequenceNumber } from "./sequence";
 import { normalizeProductOptions, variantLabel } from "../constants/products";
 
@@ -19,6 +20,13 @@ const num = (value: { toString(): string } | null | undefined) =>
 const numOrNull = (value: { toString(): string } | null | undefined) =>
   value == null ? null : Number(value.toString());
 
+async function scopedLocations(actorId?:string, warehouseId?:string):Promise<Prisma.StockLocationWhereInput>{
+ if(!actorId)return warehouseId?{warehouseId}:{};
+ const branches=await listAccessibleBranches(actorId);
+ const branchIds=branches.map(b=>b.id);
+ if(warehouseId&&!await db.warehouse.count({where:{id:warehouseId,branchId:{in:branchIds}}}))throw new Error("Branch access denied");
+ return {warehouse:{branchId:{in:branchIds}},...(warehouseId?{warehouseId}:{})};
+}
 // ─── Warehouses and locations ────────────────────────────────────────────────────────────────────────────────────
 
 export interface WarehouseRecord {
@@ -54,6 +62,7 @@ export async function ensureDefaultWarehouse(client: Tx | typeof db = db) {
   return client.warehouse.create({
     data: {
       code: "MAIN",
+      branchId: "legacy-main",
       nameEn: en.defaultWarehouse,
       nameAr: ar.defaultWarehouse,
       isDefault: true,
@@ -63,9 +72,11 @@ export async function ensureDefaultWarehouse(client: Tx | typeof db = db) {
   });
 }
 
-export async function listWarehouses(): Promise<WarehouseRecord[]> {
+export async function listWarehouses(actorId?: string): Promise<WarehouseRecord[]> {
   await ensureDefaultWarehouse();
+  const branchIds = actorId ? (await listAccessibleBranches(actorId)).map(b=>b.id) : null;
   const rows = await db.warehouse.findMany({
+    where: branchIds ? {branchId:{in:branchIds}} : {},
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
     include: { locations: { orderBy: { createdAt: "asc" } } },
   });
@@ -129,6 +140,7 @@ export async function saveWarehouse(input: WarehouseInput) {
       : await tx.warehouse.create({
           data: {
             ...data,
+            branchId: "legacy-main",
             sortOrder: await tx.warehouse.count(),
             locations: { create: { code: "MAIN" } },
           },
@@ -380,6 +392,9 @@ export async function postMovements(
       variantKey,
     });
   }
+  // Surface deferred integrity failures before Prisma commits the interactive transaction.
+  await tx.$executeRaw`SET CONSTRAINTS "stock_serial_conservation", "serial_stock_conservation" IMMEDIATE`;
+  await tx.$executeRaw`SET CONSTRAINTS "stock_serial_conservation", "serial_stock_conservation" DEFERRED`;
   return lowStockAfter(tx, Array.from(touched.values()));
 }
 
@@ -602,7 +617,8 @@ export interface StockQuery {
 }
 
 /** Stock by item (variants listed separately), optionally for one warehouse; newest products first. */
-export async function getStockOverview(query: StockQuery = {}) {
+export async function getStockOverview(query: StockQuery = {}, actorId?: string) {
+  const locationScope = await scopedLocations(actorId, query.warehouseId);
   const pageSize = Math.min(Math.max(query.pageSize ?? 25, 1), 100);
   const page = Math.max(query.page ?? 1, 1);
   const search = query.search?.trim().slice(0, 80);
@@ -652,9 +668,7 @@ export async function getStockOverview(query: StockQuery = {}) {
       by: ["productId", "variantKey"],
       where: {
         productId: { in: ids },
-        ...(query.warehouseId
-          ? { location: { warehouseId: query.warehouseId } }
-          : {}),
+        location: locationScope,
       },
       _sum: { onHand: true, reserved: true },
     }),
@@ -716,16 +730,17 @@ export async function getStockOverview(query: StockQuery = {}) {
 }
 
 /** One product's stock by variant, location and batch, its reorder points and recent movements. */
-export async function getProductStock(productId: string) {
+export async function getProductStock(productId: string, actorId?: string) {
+  const locationScope = await scopedLocations(actorId);
   const [levels, items, movements, batches] = await Promise.all([
     db.stockLevel.findMany({
-      where: { productId },
+      where: { productId, location: locationScope },
       include: { location: { include: { warehouse: true } } },
       orderBy: { updatedAt: "desc" },
     }),
     db.stockItem.findMany({ where: { productId } }),
     db.stockMovement.findMany({
-      where: { productId },
+      where: { productId, location: locationScope },
       include: { location: { include: { warehouse: true } } },
       orderBy: { createdAt: "desc" },
       take: 20,
@@ -761,6 +776,7 @@ export interface MovementRecord {
   type: string;
   product_id: string;
   variant_key: string;
+  location_id: string;
   location: string;
   batch: string | null;
   quantity: number;
@@ -783,6 +799,7 @@ const movementRecord =
     type: m.type,
     product_id: m.productId,
     variant_key: m.variantKey,
+    location_id: m.locationId,
     location: `${m.location.warehouse.code} · ${m.location.code}`,
     batch: batch.get(m.batchKey)?.batchNumber ?? null,
     quantity: num(m.quantity),
@@ -805,7 +822,8 @@ export interface MovementQuery {
 }
 
 /** The ledger, newest first, with the product names for display. */
-export async function listMovements(query: MovementQuery = {}) {
+export async function listMovements(query: MovementQuery = {}, actorId?: string) {
+  const locationScope = await scopedLocations(actorId, query.warehouseId);
   const pageSize = Math.min(Math.max(query.pageSize ?? 50, 1), 200);
   const page = Math.max(query.page ?? 1, 1);
   const date = (value: string | undefined, end = false) => {
@@ -814,9 +832,7 @@ export async function listMovements(query: MovementQuery = {}) {
   };
   const where: Prisma.StockMovementWhereInput = {
     ...(query.productId ? { productId: query.productId } : {}),
-    ...(query.warehouseId
-      ? { location: { warehouseId: query.warehouseId } }
-      : {}),
+    location: locationScope,
     ...(query.type ? { type: query.type } : {}),
     ...(date(query.from) || date(query.to, true)
       ? { createdAt: { gte: date(query.from), lte: date(query.to, true) } }
@@ -889,7 +905,8 @@ export async function listMovements(query: MovementQuery = {}) {
 }
 
 /** Batches that expire within the days given (or have expired) and still have stock. */
-export async function expiringBatches(days = 30) {
+export async function expiringBatches(days = 30, actorId?: string) {
+  const locationScope = await scopedLocations(actorId);
   const limit = new Date(Date.now() + days * 86_400_000);
   const batches = await db.stockBatch.findMany({
     where: { expiryDate: { lte: limit } },
@@ -899,7 +916,7 @@ export async function expiringBatches(days = 30) {
   if (!batches.length) return [];
   const levels = await db.stockLevel.groupBy({
     by: ["batchKey"],
-    where: { batchKey: { in: batches.map((b) => b.id) } },
+    where: { batchKey: { in: batches.map((b) => b.id) }, location: locationScope },
     _sum: { onHand: true },
   });
   const products = await db.product.findMany({
@@ -1040,7 +1057,8 @@ export interface StockCountLineRecord {
   note: string;
 }
 
-export async function getStockCount(id: string) {
+export async function getStockCount(id: string, actorId?: string) {
+  if(actorId)await requireStockCountAccess(actorId,id,"read");
   const count = await db.stockCount.findUnique({
     where: { id },
     include: { warehouse: true, lines: true },
@@ -1127,8 +1145,10 @@ export async function getStockCount(id: string) {
   };
 }
 
-export async function listStockCounts() {
+export async function listStockCounts(actorId?: string) {
+  const branchIds = actorId ? (await listAccessibleBranches(actorId)).map(b=>b.id) : null;
   const counts = await db.stockCount.findMany({
+    where: branchIds ? {warehouse:{branchId:{in:branchIds}}} : {},
     orderBy: { createdAt: "desc" },
     take: 200,
     include: {

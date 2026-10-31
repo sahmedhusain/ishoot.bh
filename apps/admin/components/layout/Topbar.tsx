@@ -21,6 +21,8 @@ interface TopbarProps {
     | "company_name_ar"
     | "logo_url"
     | "dark_logo_url"
+    | "full_logo_url"
+    | "dark_full_logo_url"
     | "icon_url"
     | "dark_icon_url"
   > | null;
@@ -62,38 +64,51 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
         <Link
           href={ROUTES.home}
           className="flex items-center gap-2.5 group focus:outline-none ps-1 sm:ps-2"
-          title={`${companyTitle} Admin Console`}
+          title={companyTitle}
         >
-          <ContentImage
-            src={
-              resolvedTheme === "dark"
-                ? company?.dark_icon_url
-                : company?.icon_url
-            }
-            alt={companyTitle}
-            className="w-7 h-7 object-contain shrink-0"
-            width={40}
-            height={40}
-          />
-          <ContentImage
-            src={
-              resolvedTheme === "dark"
-                ? company?.dark_logo_url
-                : company?.logo_url
-            }
-            alt={companyTitle}
-            className="hidden sm:block h-6 w-auto object-contain"
-            fallbackText={companyTitle}
-            width={240}
-            height={60}
-          />
+          {(resolvedTheme === "dark" ? (company?.dark_full_logo_url || company?.full_logo_url) : (company?.full_logo_url || company?.dark_full_logo_url)) ? (
+            <ContentImage
+              src={resolvedTheme === "dark" ? (company?.dark_full_logo_url || company?.full_logo_url) : (company?.full_logo_url || company?.dark_full_logo_url)}
+              alt={companyTitle}
+              className="h-7 w-auto object-contain"
+              fallbackText={companyTitle}
+              width={200}
+              height={40}
+            />
+          ) : (
+            <>
+              <ContentImage
+                src={
+                  resolvedTheme === "dark"
+                    ? company?.dark_icon_url
+                    : company?.icon_url
+                }
+                alt={companyTitle}
+                className="w-7 h-7 object-contain shrink-0"
+                width={40}
+                height={40}
+              />
+              <ContentImage
+                src={
+                  resolvedTheme === "dark"
+                    ? company?.dark_logo_url
+                    : company?.logo_url
+                }
+                alt={companyTitle}
+                className="hidden sm:block h-6 w-auto object-contain"
+                fallbackText={companyTitle}
+                width={240}
+                height={60}
+              />
+            </>
+          )}
         </Link>
       </div>
 
       {/* Center: M3 Search Bar */}
       {/* Search shrinks on phones so the actions on the other side stay on screen. */}
       <div className="admin-topbar-search">
-        <GlobalQuickJump className="w-full flex items-center gap-2.5 px-4 py-2 rounded-full bg-surface-container-highest hover:bg-surface-container-high dark:bg-surface-container-highest dark:hover:bg-surface-container-high text-on-surface-variant text-xs transition-colors border border-transparent focus-within:border-primary focus-within:bg-surface-container-lowest dark:focus-within:bg-surface-container-lowest focus-within:shadow-m3-1 justify-between cursor-pointer" />
+        <GlobalQuickJump className="w-full flex items-center gap-2.5 px-4 py-2 rounded-full bg-surface-container-highest hover:bg-surface-container-high dark:bg-surface-container-highest dark:hover:bg-surface-container-high text-on-surface-variant text-xs transition-colors border border-transparent focus-within:border-primary focus-within:bg-surface-container-lowest dark:focus-within:bg-surface-container-lowest focus-within:shadow-m3-1 justify-between" />
       </div>
 
       {/* End: Action Cluster */}

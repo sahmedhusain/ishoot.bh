@@ -140,7 +140,7 @@ export async function sendExpiryReminders() {
     });
   }
   const today = Date.parse(
-    new Date(Date.now() + 3 * 3600000).toISOString().slice(0, 10),
+    new Date().toISOString().slice(0, 10),
   );
   const daysTo = (d: Date) => Math.round((d.getTime() - today) / 86400000);
   for (const doc of companyDocs) {

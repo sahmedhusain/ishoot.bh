@@ -172,8 +172,8 @@ describe("activity presets", () => {
       );
   });
 
-  test("the media website keeps the base wording and company overrides win", () => {
-    expect(getWebsiteTranslations("en", "media")).toEqual(
+  test("explicit media wording is separate from neutral defaults and company overrides win", () => {
+    expect(getWebsiteTranslations("en", "media")).not.toEqual(
       getTranslations("en"),
     );
     expect(
@@ -188,12 +188,12 @@ describe("activity presets", () => {
 });
 
 describe("website config", () => {
-  test("old drafts resolve to the media website", () => {
+  test("unspecified drafts resolve to a neutral website", () => {
     const resolved = resolveWebsiteConfig(defaultWebsiteConfig);
-    expect(resolved.purpose).toBe("media");
-    expect(resolved.collection.slug).toBe("works");
-    expect(resolved.inquiry.budget).toBe(true);
-    expect(resolved.showEquipment).toBe(true);
+    expect(resolved.purpose).toBe("other");
+    expect(resolved.collection.slug).toBe(ACTIVITY_PRESETS.other.collection.slug);
+    expect(resolved.inquiry.budget).toBe(ACTIVITY_PRESETS.other.inquiry.budget);
+    expect(resolved.showEquipment).toBe(false);
   });
 
   test("bad catalogue addresses and settings are rejected", () => {

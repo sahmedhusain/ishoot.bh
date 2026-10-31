@@ -37,6 +37,8 @@ export const getPublicCompanySettings = cache(
       youtube_url: company.youtube_url,
       logo_url: company.logo_url,
       dark_logo_url: company.dark_logo_url,
+      full_logo_url: company.full_logo_url,
+      dark_full_logo_url: company.dark_full_logo_url,
       logo_text_dark_url: company.logo_text_dark_url,
       logo_text_light_url: company.logo_text_light_url,
       icon_url: company.icon_url,

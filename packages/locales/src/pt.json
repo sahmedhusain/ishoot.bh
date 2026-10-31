@@ -109,12 +109,12 @@
     "resume": "Retomar movimento"
   },
   "showreel": {
-    "badge": "Showreel 2026",
-    "title": "VISÃO CRIADA EM MOVIMENTO",
-    "subtitle": "Uma coleção selecionada dos nossos filmes comerciais, narrativas de marca e cinema aéreo no Barém e no Golfo Arábico.",
-    "playShowreel": "Reproduzir showreel completo",
-    "watchIn4k": "Ver em 4K",
-    "streamTitle": "Transmissão de cinema 4K"
+    "badge": "Ver mais",
+    "title": "Descubra o nosso trabalho",
+    "subtitle": "Um olhar mais atento sobre o que fazemos.",
+    "playShowreel": "Reproduzir vídeo",
+    "watchIn4k": "Ver vídeo",
+    "streamTitle": "Vídeo"
   },
   "services": {
     "badge": "O que oferecemos",
@@ -122,11 +122,6 @@
     "subtitle": "Tudo o que disponibilizamos, explicado com clareza para que possa escolher com confiança.",
     "sectionIndex": "(02)",
     "requestProposal": "Pedir um orçamento",
-    "soundstage": {
-      "title": "Estúdio Acústico e Ciclorama",
-      "desc": "Instalação insonorizada de 250m² no Distrito de Seef com energia trifásica de 60kW, grelha de iluminação suspensa de 6m e ciclorama de curva infinita.",
-      "specs": []
-    },
     "sectionLabel": "Capacidades",
     "headline": "O que oferecemos"
   },
@@ -154,7 +149,7 @@
     "sectionIndex": "(03)",
     "sectionLabel": "Arquivo de Trabalhos e Projetos",
     "showcaseTitle": "Trabalhos selecionados",
-    "showcaseSubtitle": "Explore filmes comerciais selecionados gravados para entidades governamentais, instituições financeiras e marcas do CCG.",
+    "showcaseSubtitle": "Explore a selection of our work and projects.",
     "viewFullArchive": "Ver os nossos trabalhos",
     "productionOverview": "Visão geral",
     "categories": {
@@ -194,76 +189,76 @@
     "title": "Quem somos",
     "subtitle": "Conheça a nossa empresa, a nossa equipa e o trabalho que realizamos.",
     "storyTitle": "O NOSSO ETHOS",
-    "storyP1": "Acreditamos que o verdadeiro impacto visual surge na confluência da disciplina técnica com a curiosidade criativa sem limites. Cada produção é concebida com total reverência pela composição, alcance dinâmico e emoção autêntica.",
-    "storyP2": "Desde campanhas televisivas nacionais a hinos de marcas internacionais, a nossa equipa emprega câmaras de cinema, estruturas de iluminação de precisão e estúdios de pós-produção topo de gama para elevar o prestígio da marca.",
+    "storyP1": "",
+    "storyP2": "",
     "ceoTitle": "Fundador e Diretor Criativo",
-    "ceoName": "Sayed Ahmed Husain",
-    "ceoQuote": "Não captamos apenas a luz; moldamos a forma como as memórias, as emoções e as marcas ressoam no tempo.",
+    "ceoName": "",
+    "ceoQuote": "",
     "gearTitle": "O NOSSO EQUIPAMENTO",
-    "gearSubtitle": "Equipamento de cinema próprio, calibrado para um desempenho ótico impecável.",
-    "statFilms": "+180 Comerciais Entregues",
-    "statYears": "+8 Anos de Experiência",
-    "statAwards": "14 Prémios Regionais",
-    "statClients": "+65 Clientes Corporativos do CCG",
+    "gearSubtitle": "Explore our resources and capabilities.",
+    "statFilms": "",
+    "statYears": "",
+    "statAwards": "",
+    "statClients": "",
     "sectionIndex": "(01)",
     "sectionLabel": "Sobre Nós",
     "headline": "Uma equipa construída em torno das pessoas a quem servimos.",
     "behindTheScenes": "A nossa equipa em ação",
     "shootCaption": "A nossa equipa em ação",
     "missionLabel": "A Nossa Missão",
-    "mission": "Capacitar os líderes de mercado a contarem as histórias das suas marcas com rigor visual intransigente e profundidade emocional.",
+    "mission": "",
     "visionLabel": "A Nossa Visão",
     "discoverStudio": "Descubra a nossa história e equipa",
     "gearAll": "Todo o equipamento",
-    "gearCameras": "Câmaras de cinema",
-    "gearLenses": "Lentes de cinema",
+    "gearCameras": "Equipment",
+    "gearLenses": "Tools",
     "gearLighting": "Estruturas de iluminação",
     "gearAudioGrading": "Estúdio de masterização",
     "gearStages": "Estúdio de som",
-    "statFilmsValue": "180+",
+    "statFilmsValue": "",
     "statFilmsLabel": "Comerciais Entregues",
-    "statYearsValue": "8+",
+    "statYearsValue": "",
     "statYearsLabel": "Anos de Experiência",
-    "statAwardsValue": "14",
+    "statAwardsValue": "",
     "statAwardsLabel": "Prémios Regionais",
-    "statClientsValue": "65+",
+    "statClientsValue": "",
     "statClientsLabel": "Clientes Corporativos do CCG",
-    "recTag": "GRAVAÇÃO · 8K VV",
-    "gccTag": "100% CCG",
-    "coloristTag": "Certificado DaVinci",
+    "recTag": "",
+    "gccTag": "",
+    "coloristTag": "",
     "pillars": {
       "badge": "O que defendemos",
       "title": "Os valores por detrás do nosso trabalho",
       "p1": {
-        "number": "01",
-        "title": "Ótica Cinematográfica e Enquadramento",
-        "desc": "Captação multiformato em 8K VistaVision através de sistemas RED V-Raptor XL combinados com ARRI Master Primes para uma reprodução ótica imaculada.",
-        "tag": "8K VistaVision"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p2": {
-        "number": "02",
-        "title": "Gradação HDR em DaVinci Resolve",
-        "desc": "Estúdio de pós-produção dedicado com monitores de referência Sony BVM para desenhar paletas de cor exclusivas com emulação de película.",
-        "tag": "Colorista DCI-P3"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p3": {
-        "number": "03",
-        "title": "Direção Narrativa e Movimento",
-        "desc": "Criação de propostas visuais, guiões e ritmo de montagem que transformam briefings corporativos em cinema memorável.",
-        "tag": "Arte Narrativa"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p4": {
-        "number": "04",
-        "title": "Drones Pesados e FPV Licenciados",
-        "desc": "Operações aéreas com drones totalmente licenciadas pela Autoridade de Aviação Civil (BCAA), captando paisagens monumentais e perseguições a alta velocidade.",
-        "tag": "Licenciado BCAA"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       }
     },
     "stats": {
       "badge": "Em números",
       "verified": "Dados de Produção Verificados",
       "tvcs": "Anúncios TV de Alta Produção",
-      "leadership": "Liderança em Cinema",
+      "leadership": "Experience",
       "trophies": "Troféus Regionais",
       "enterprises": "Empresas do CCG"
     },
@@ -341,7 +336,7 @@
     "projectRefLabel": "Referência / link do projeto (opcional)",
     "projectRefPlaceholder": "https://exemplo.com/referencia",
     "shootLocation": "Localização / cidade (opcional)",
-    "shootLocationPlaceholder": "ex.: Manama",
+    "shootLocationPlaceholder": "Cidade ou localização",
     "messageDetails": "Detalhes da mensagem",
     "yourMessage": "A sua mensagem",
     "messagePlaceholder": "Diga-nos o que precisa e forneça quaisquer detalhes que nos ajudem a responder…",
@@ -399,7 +394,7 @@
     "registrationLabel": "Registo Comercial"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "IVA",
     "vatNa": "IVA: Não aplicável",
     "subtotal": "Subtotal",
@@ -443,7 +438,7 @@
     "page_10": "Abrir conversa no WhatsApp →",
     "page_11": "Visão geral da produção",
     "contactform_12": "ex.: novembro de 2026",
-    "contactform_13": "Fale-nos sobre os objetivos da sua campanha, locais de filmagem e entregáveis pretendidos...",
+    "contactform_13": "Tell us about your goals, locations, and requirements...",
     "languageswitcher_14": "Mudar para árabe",
     "cinemalightbox_16": "Realizador:",
     "cinemalightbox_17": "Diretor de fotografia:",
@@ -498,7 +493,6 @@
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "BARÉM",
     "items": [],
     "sectionLabel": "Testemunhos de Clientes e Parceiros",
     "headline": "O que dizem os nossos clientes",
@@ -529,17 +523,17 @@
     "subtitle": "Respostas claras sobre como trabalhamos, o que esperar e como começar."
   },
   "cta": {
-    "badge": "Pronto para lançar o seu próximo filme",
-    "titleLine1": "CINEMA EM CADA FOTOGRAMA.",
+    "badge": "Start a conversation",
+    "titleLine1": "Your next step.",
     "titleLine2": "Vamos criar uma obra-prima juntos.",
-    "description": "Fale diretamente com os nossos produtores para debater conceitos de projetos, calendários de filmagem e estimativas orçamentais.",
+    "description": "Talk with our team about your requirements and next steps.",
     "whatsapp": "Conversa instantânea por WhatsApp",
     "requestTreatment": "Pedir um orçamento",
     "rights": "Todos os direitos reservados."
   },
   "preloader": {
     "load": "CARREGAR",
-    "slogan": "CINEMA EM CADA FOTOGRAMA · PRODUÇÃO 8K",
+    "slogan": "Welcome",
     "skipHint": "Clique em qualquer ponto para entrar"
   },
   "email": {

@@ -31,7 +31,7 @@ export function FinancialAnalyticsView({ finance, insight, categoryTotals, categ
   const copy = t.financialAnalytics;
   const chartData = monthlyCashflow.map((point) => ({
     ...point,
-    name: new Intl.DateTimeFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-BH", { month: "short", year: "2-digit", timeZone: "UTC" }).format(
+    name: new Intl.DateTimeFormat(locale === "ar" ? "ar-u-nu-latn" : "en-GB", { month: "short", year: "2-digit", timeZone: "UTC" }).format(
       new Date(`${point.monthKey}-01T00:00:00Z`),
     ),
   }));

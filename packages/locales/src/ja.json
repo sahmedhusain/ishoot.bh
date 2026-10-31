@@ -109,12 +109,12 @@
     "resume": "アニメーションを再開"
   },
   "showreel": {
-    "badge": "2026 ショールール",
-    "title": "躍動する光と影、研ぎ澄まされた視覚体験",
-    "subtitle": "バーレーンおよびアラビア湾地域で手掛けたCM、ブランドムービー、シネマティック空撮の精選コレクション。",
-    "playShowreel": "ショールール本編を再生",
-    "watchIn4k": "4Kで視聴",
-    "streamTitle": "4K シネマストリーム"
+    "badge": "もっと見る",
+    "title": "私たちの取り組みを見る",
+    "subtitle": "私たちの活動を詳しくご紹介します。",
+    "playShowreel": "動画を再生",
+    "watchIn4k": "動画を見る",
+    "streamTitle": "動画"
   },
   "services": {
     "badge": "サービス一覧",
@@ -122,11 +122,6 @@
     "subtitle": "確信を持ってお選びいただけるよう、提供するすべての価値を明確にお伝えします。",
     "sectionIndex": "(02)",
     "requestProposal": "お見積もり・ご提案依頼",
-    "soundstage": {
-      "title": "防音スタジオ＆サイクロラマ（Rホリゾント）",
-      "desc": "スィーフ地区に位置する250㎡の完全防音スタジオ。60kW三相電源、高さ6mの天吊り照明グリッド、継ぎ目のないRホリゾント（白・グリーンバック）を完備。",
-      "specs": []
-    },
     "sectionLabel": "スタジオのケイパビリティ",
     "headline": "提供サービス"
   },
@@ -194,24 +189,24 @@
     "title": "会社情報",
     "subtitle": "私たちの理念、チーム、そして制作にかける情熱をご紹介します。",
     "storyTitle": "私たちのフィロソフィー",
-    "storyP1": "真の視覚的インパクトは、厳格な技術的規律と枠にとらわれない創造的好奇心の交差点で生まれると私たちは信じています。構図、ダイナミックレンジ、そしてそこに宿る真実の感情に絶対的な敬意を払い、すべての作品を紡ぎ出します。",
-    "storyP2": "全国放送のテレビCMから国際的なブランドアンセムまで。シネマカメラ、高精度ライティングシステム、最先端のポストプロダクション設備を駆使し、ブランドの品格と価値を一段上へと高めます。",
+    "storyP1": "",
+    "storyP2": "",
     "ceoTitle": "代表・クリエイティブディレクター",
-    "ceoName": "Sayed Ahmed Husain",
-    "ceoQuote": "私たちは単に光を記録するのではありません。記憶、感情、そしてブランドが時代を超えて響き合う姿を形創っているのです。",
+    "ceoName": "",
+    "ceoQuote": "",
     "gearTitle": "シネマ機材コレクション",
     "gearSubtitle": "最高峰の光学性能を引き出すために自社保有・厳密校正されたシネマ撮影機材。",
-    "statFilms": "180本以上のCM・映像制作実績",
-    "statYears": "8年以上のプロフェッショナル実績",
-    "statAwards": "地域アワード14件受賞",
-    "statClients": "65社以上のGCC大手クライアント",
+    "statFilms": "",
+    "statYears": "",
+    "statAwards": "",
+    "statClients": "",
     "sectionIndex": "(01)",
     "sectionLabel": "私たちについて",
     "headline": "お客様の想いに寄り添い、共に創り上げるチーム。",
     "behindTheScenes": "制作の舞台裏",
     "shootCaption": "撮影現場の様子",
     "missionLabel": "ミッション",
-    "mission": "一切の妥協を許さない視覚の精度と深い情感をもって、市場を牽引するリーダー企業のブランドストーリーを具現化します。",
+    "mission": "",
     "visionLabel": "ビジョン",
     "discoverStudio": "私たちのストーリーとチーム",
     "gearAll": "全機材",
@@ -220,49 +215,49 @@
     "gearLighting": "ライティングシステム",
     "gearAudioGrading": "ポスプロ＆グレーディングルーム",
     "gearStages": "スタジオ・ホリゾント",
-    "statFilmsValue": "180+",
+    "statFilmsValue": "",
     "statFilmsLabel": "納品済みCM・映像",
-    "statYearsValue": "8+",
+    "statYearsValue": "",
     "statYearsLabel": "制作実績年数",
-    "statAwardsValue": "14",
+    "statAwardsValue": "",
     "statAwardsLabel": "受賞歴",
-    "statClientsValue": "65+",
+    "statClientsValue": "",
     "statClientsLabel": "GCC企業クライアント",
-    "recTag": "REC · 8K VV",
-    "gccTag": "100% GCC",
-    "coloristTag": "DaVinci Certified",
+    "recTag": "",
+    "gccTag": "",
+    "coloristTag": "",
     "pillars": {
       "badge": "私たちの信条",
       "title": "妥協なきクオリティを支える4つの柱",
       "p1": {
-        "number": "01",
-        "title": "シネマ光学と洗練された構図",
-        "desc": "RED V-Raptor XLとARRI Master Primesを組み合わせた8K VistaVisionマルチフォーマット撮影により、極めて純度の高い光学描写を実現。",
-        "tag": "8K VistaVision"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p2": {
-        "number": "02",
-        "title": "DaVinci Resolve HDRカラーグレーディング",
-        "desc": "Sony BVMマスターモニターを備えた専用ポストプロダクションルームで、フィルムエミュレーションを基調とした独自のカラートーンを構築。",
-        "tag": "DCI-P3 Colorist"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p3": {
-        "number": "03",
-        "title": "物語を紡ぐ演出とリズミカルな編集",
-        "desc": "綿密な企画構成、脚本、そして計算された編集リズムによって、ビジネスの課題を心揺さぶるシネマへと昇華。",
-        "tag": "Narrative Craft"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p4": {
-        "number": "04",
-        "title": "認可済み大型シネマドローン＆FPV空撮",
-        "desc": "バーレーン民間航空局（BCAA）の正規認可を取得した専属パイロットが、壮大なパノラマから緊迫感溢れる高速チェイスまで安全に撮影。",
-        "tag": "BCAA Licensed"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       }
     },
     "stats": {
       "badge": "数字で見る実績",
       "verified": "検証済み制作データ",
-      "tvcs": "ハイクオリティTVCM",
+      "tvcs": "Projects",
       "leadership": "シネマ制作のリーダーシップ",
       "trophies": "地域での受賞歴",
       "enterprises": "GCCエンタープライズ企業"
@@ -341,7 +336,7 @@
     "projectRefLabel": "参考資料・URL（任意）",
     "projectRefPlaceholder": "https://example.com/reference",
     "shootLocation": "撮影希望地・都市（任意）",
-    "shootLocationPlaceholder": "例：マナマ",
+    "shootLocationPlaceholder": "都市または場所",
     "messageDetails": "お問い合わせ内容",
     "yourMessage": "メッセージ本文",
     "messagePlaceholder": "ご要望や詳細をできる限り具体的にお知らせください…",
@@ -399,7 +394,7 @@
     "registrationLabel": "商業登記番号（CR）"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "消費税（VAT）",
     "vatNa": "VAT：適用外",
     "subtotal": "小計",
@@ -498,7 +493,6 @@
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "バーレーン",
     "items": [],
     "sectionLabel": "お客様・パートナー企業の声",
     "headline": "お客様の声",
@@ -539,7 +533,7 @@
   },
   "preloader": {
     "load": "LOAD",
-    "slogan": "CINEMA IN EVERY FRAME · 8K PRODUCTION",
+    "slogan": "Welcome",
     "skipHint": "画面をクリックして入場"
   },
   "email": {

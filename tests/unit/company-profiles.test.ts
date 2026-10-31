@@ -14,7 +14,18 @@ const profiles = fs
   .filter((name) =>
     fs.existsSync(path.join(profilesDir, name, "company.json")),
   );
-const SLOTS = ["logo", "darkLogo", "icon", "darkIcon", "stamp", "signature"];
+const SLOTS = [
+  "logo",
+  "darkLogo",
+  "icon",
+  "darkIcon",
+  "fullLogo",
+  "darkFullLogo",
+  "header",
+  "footer",
+  "stamp",
+  "signature",
+];
 const schemaFields = new Set(
   [
     ...fs
@@ -53,6 +64,10 @@ describe.each(profiles)("company profile %s", (name) => {
       "darkLogoUrl",
       "iconUrl",
       "darkIconUrl",
+      "fullLogoUrl",
+      "darkFullLogoUrl",
+      "documentHeaderUrl",
+      "documentFooterUrl",
       "stampUrl",
       "signatureUrl",
     ])

@@ -31,11 +31,18 @@ if (process.env.NODE_ENV === "production") {
   process.exit(1);
 }
 
-const demo = option("demo") || process.env.SEED_PRESET?.trim();
+let demo = option("demo") || process.env.SEED_PRESET?.trim();
 const style = option("style") || process.env.SEED_STYLE?.trim();
+let profile = option("profile") || process.env.COMPANY_PROFILE?.trim();
+
+if (profile === "all") {
+  demo = "all";
+  profile = "demo";
+}
+
 if (flag("demo") && (!option("demo") || option("demo").startsWith("--"))) throw new Error("--demo needs a preset; run pnpm db:demo:list");
 if (flag("style") && (!option("style") || option("style").startsWith("--"))) throw new Error("--style needs a style; run pnpm db:demo:list");
-if (demo && flag("profile")) throw new Error("Choose --demo or --profile; demo presets use the shared demo company.");
+if (demo && flag("profile") && option("profile") !== "all") throw new Error("Choose --demo or --profile; demo presets use the shared demo company.");
 if (flag("empty") && (demo || style)) throw new Error("--empty cannot be combined with a demo preset or style.");
 // Validate before the destructive reset, including values inherited from .env.
 if (demo || style) {
@@ -43,7 +50,7 @@ if (demo || style) {
   const { demoPreset } = require("../company/seed/demo-presets.ts");
   demoPreset(demo || "media", style);
 }
-const profile = demo ? "demo" : option("profile") || process.env.COMPANY_PROFILE || "demo";
+profile = demo ? "demo" : profile || "demo";
 const mode = flag("empty") ? "empty" : flag("light") ? "light" : "full";
 const target = `${url.hostname}:${url.port || 5432}${url.pathname}`;
 

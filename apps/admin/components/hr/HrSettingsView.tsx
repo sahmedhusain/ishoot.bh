@@ -60,8 +60,8 @@ function PolicyForm({ policy, editable }: { policy: HrPolicyRules; editable: boo
   const example = React.useMemo(() => {
     const now = new Date();
     const w = payrollWindow({ ...form, attendanceCutoffDay: form.attendanceCutoffDay }, now.getUTCFullYear(), now.getUTCMonth() + 1);
-    const d = (date: Date) => new Intl.DateTimeFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-BH", { day: "numeric", month: "long", timeZone: "UTC" }).format(date);
-    const month = new Intl.DateTimeFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-BH", { month: "long", timeZone: "UTC" }).format(w.salaryStart);
+    const d = (date: Date) => new Intl.DateTimeFormat(locale === "ar" ? "ar-u-nu-latn" : "en-GB", { day: "numeric", month: "long", timeZone: "UTC" }).format(date);
+    const month = new Intl.DateTimeFormat(locale === "ar" ? "ar-u-nu-latn" : "en-GB", { month: "long", timeZone: "UTC" }).format(w.salaryStart);
     return form.salaryTiming === "arrears"
       ? fill(h.exampleArrears, { payDate: d(w.payDate), month })
       : fill(h.exampleCurrent, { payDate: d(w.payDate), month, start: d(w.attendanceStart), end: d(w.attendanceEnd) });

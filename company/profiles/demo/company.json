@@ -7,6 +7,7 @@
     "companyNameEn": "Northwind Studio W.L.L.",
     "companyNameAr": "استوديو نورثويند ذ.م.م",
     "businessActivity": "media",
+    "country": "BH",
     "contentLanguages": ["ar", "en"],
     "primaryLanguage": "ar",
     "crNumber": "CR-000000-0",
@@ -15,6 +16,7 @@
     "vatPercentage": 10.0,
     "defaultCurrency": "BHD",
     "currencyDecimals": 3,
+    "timeZone": "Asia/Bahrain",
     "addressEn": "Office 100, Example Tower, Manama, Kingdom of Bahrain",
     "addressAr": "مكتب 100، برج المثال، المنامة، مملكة البحرين",
     "phone": "+973 1700 0000",
@@ -39,6 +41,10 @@
     "darkLogo": "brand/logo-dark.png",
     "icon": "brand/icon-light.png",
     "darkIcon": "brand/icon-dark.png",
+    "fullLogo": "brand/full-logo-light.png",
+    "darkFullLogo": "brand/full-logo-dark.png",
+    "header": "brand/letterhead-header.png",
+    "footer": "brand/letterhead-footer.png",
     "stamp": "brand/stamp.png",
     "signature": "brand/signature.png"
   }

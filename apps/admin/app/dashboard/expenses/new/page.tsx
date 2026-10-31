@@ -12,7 +12,7 @@ export default async function NewExpensePage({ searchParams }: { searchParams: P
   return (
     <NewExpenseFormView
       categories={categories}
-      defaultCurrency={company?.default_currency ?? "BHD"}
+      defaultCurrency={company?.default_currency ?? "USD"}
       dealId={params.dealId}
       clientId={params.clientId}
       canManageCategories={grants["expenses:write"] === true}

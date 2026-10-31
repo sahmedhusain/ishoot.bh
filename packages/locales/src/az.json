@@ -109,12 +109,12 @@
     "resume": "Hareketi sürdür"
   },
   "showreel": {
-    "badge": "2026 Tanıtım Filmi",
-    "title": "HAREKETE DÖKÜLEN VİZYON",
-    "subtitle": "Bahreyn ve Axtarp Körfezi genelindeki ticari reklam filmlerimiz, marka hikayelerimiz ve hava sinematografimizden seçkin bir derleme.",
-    "playShowreel": "Tam Tanıtım Filmini İzle",
-    "watchIn4k": "4K Kalitesinde İzle",
-    "streamTitle": "4K Sinema Yayını"
+    "badge": "Daha çox baxın",
+    "title": "İşimizlə tanış olun",
+    "subtitle": "Nələr etdiyimizə daha yaxından bir baxış.",
+    "playShowreel": "Videonu oynat",
+    "watchIn4k": "Videoya bax",
+    "streamTitle": "Video"
   },
   "services": {
     "badge": "Neler sunuyoruz",
@@ -122,15 +122,6 @@
     "subtitle": "Güvenle seçim yapabilmeniz için sunduğumuz her şey açık ve net.",
     "sectionIndex": "(02)",
     "requestProposal": "Teklif isteyin",
-    "soundstage": {
-      "title": "Akustik Ses Yalıtımlı Stüdyo ve Siklorama",
-      "desc": "Seef bölgesinde 250 m² ses yalıtımlı alan, 60 kW 3 fazlı güç, 6 metre tavan aydınlatma ızgarası ve sonsuz eğimli siklorama.",
-      "specs": [
-        "250 m² Çekim Stüdyosu",
-        "Tavan Aydınlatma Izgarası",
-        "Ses Yalıtımlı Kontrol Odası"
-      ]
-    },
     "sectionLabel": "Yeteneklerimiz",
     "headline": "Neler sunuyoruz"
   },
@@ -139,7 +130,7 @@
     "title": "Layihələrımız",
     "subtitle": "Neler yaptığımıza ve kimler için ürettiğimize daha yakından bir bakış.",
     "filterAll": "Tüm çalışmalar",
-    "filterCommercial": "Reklam Filmleri",
+    "filterCommercial": "Projects",
     "filterAerial": "Hava ve FPV Çekimleri",
     "filterPhotography": "Fotoğrafçılık",
     "filterColor": "Renk Derecelendirme",
@@ -158,12 +149,12 @@
     "sectionIndex": "(03)",
     "sectionLabel": "Layihələr ve Projeler Arşivi",
     "showcaseTitle": "Seçkin çalışmalar",
-    "showcaseSubtitle": "Kamu kurumları, finans kuruluşları ve Körfez markaları için çekilen seçkin reklam filmlerini keşfedin.",
+    "showcaseSubtitle": "Explore a selection of our work and projects.",
     "viewFullArchive": "Layihələrımızın tamamını görün",
     "productionOverview": "Genel Bakış",
     "categories": {
       "all": "Tüm Projeler",
-      "commercials": "Reklam Filmleri",
+      "commercials": "Projects",
       "aerial": "Hava ve FPV Çekimleri",
       "documentaries": "Belgeseller"
     },
@@ -198,24 +189,24 @@
     "title": "Biz kimiz",
     "subtitle": "Şirkətimiz, ekibimiz ve yaptığımız işler hakkında bilgi edinin.",
     "storyTitle": "FELSEFEMİZ",
-    "storyP1": "Gerçek görsel etkinin, teknik disiplin ile sınırsız yaratıcı merakın kesişiminde doğduğuna inanıyoruz. Her prodüksiyon; kompozisyona, dinamik aralığa ve samimi duygulara duyulan derin bir saygıyla işlenir.",
-    "storyP2": "Ulusal televizyon kampanyalarından uluslararası marka filmlerine kadar ekibimiz; marka prestijini yükseltmek için sinema kameralarını, hassas ışık sistemlerini ve en son teknoloji post-prodüksiyon stüdyolarını bir araya getirir.",
+    "storyP1": "",
+    "storyP2": "",
     "ceoTitle": "Kurucu ve Kreatif Direktör",
-    "ceoName": "Sayed Ahmed Husain",
-    "ceoQuote": "Biz sadece ışığı yakalamıyoruz; anıların, duyguların ve markaların zaman içinde nasıl yankı uyandıracağını şekillendiriyoruz.",
+    "ceoName": "",
+    "ceoQuote": "",
     "gearTitle": "EKİPMAN DEPOMUZ",
     "gearSubtitle": "Kusursuz optik performans için kalibre edilmiş, stüdyomuza ait sinema ekipmanları.",
-    "statFilms": "180+ Teslim Edilen Reklam Filmi",
-    "statYears": "8+ Yıllık Ustalık",
-    "statAwards": "14 Bölgesel Ödül",
-    "statClients": "65+ Körfez Kurumsal Müşterisi",
+    "statFilms": "",
+    "statYears": "",
+    "statAwards": "",
+    "statClients": "",
     "sectionIndex": "(01)",
     "sectionLabel": "Haqqımızda",
     "headline": "Hizmet verdiğimiz insanların etrafında kenetlenmiş bir ekip.",
     "behindTheScenes": "Ekibimiz iş başında",
     "shootCaption": "Ekibimiz çekimlerde",
     "missionLabel": "Misyonumuz",
-    "mission": "Pazar liderlerinin marka hikayelerini tavizsiz görsel hassasiyet ve duygusal derinlikle anlatmalarını sağlamak.",
+    "mission": "",
     "visionLabel": "Vizyonumuz",
     "discoverStudio": "Hikayemizi ve ekibimizi keşfedin",
     "gearAll": "Tüm Avadanlıqlar",
@@ -224,49 +215,49 @@
     "gearLighting": "Işık Sistemleri",
     "gearAudioGrading": "Mastering Stüdyosu",
     "gearStages": "Çekim Stüdyosu",
-    "statFilmsValue": "180+",
-    "statFilmsLabel": "Teslim Edilen Reklam Filmi",
-    "statYearsValue": "8+",
+    "statFilmsValue": "",
+    "statFilmsLabel": "Projects",
+    "statYearsValue": "",
     "statYearsLabel": "Yıllık Ustalık",
-    "statAwardsValue": "14",
+    "statAwardsValue": "",
     "statAwardsLabel": "Bölgesel Ödül",
-    "statClientsValue": "65+",
+    "statClientsValue": "",
     "statClientsLabel": "Körfez Kurumsal Müşterisi",
-    "recTag": "REC · 8K VV",
-    "gccTag": "%100 Körfez",
-    "coloristTag": "DaVinci Sertifikalı",
+    "recTag": "",
+    "gccTag": "",
+    "coloristTag": "",
     "pillars": {
       "badge": "İlkelerimiz",
       "title": "Layihələrımızın arkasındaki değerler",
       "p1": {
-        "number": "01",
-        "title": "Sinematik Optik ve Çerçeveleme",
-        "desc": "Kusursuz optik aktarım için ARRI Master Prime lenslerle eşleştirilmiş RED V-Raptor XL sistemleriyle 8K VistaVision çok formatlı çekim.",
-        "tag": "8K VistaVision"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p2": {
-        "number": "02",
-        "title": "DaVinci Resolve HDR Renk Derecelendirme",
-        "desc": "Özel film emülasyonu renk paletleri tasarlamak için Sony BVM referans monitörlü özel post-prodüksiyon stüdyosu.",
-        "tag": "DCI-P3 Renk Uzmanı"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p3": {
-        "number": "03",
-        "title": "Anlatı Yönetimi ve Hareket",
-        "desc": "Kurumsal briefleri unutulmaz sinema eserlerine dönüştüren görsel tasarımlar, senaryolar ve ritmik kurgu temposu.",
-        "tag": "Anlatı Ustalığı"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p4": {
-        "number": "04",
-        "title": "Lisanslı Ağır Yük ve FPV Dronelar",
-        "desc": "Anıtsal manzaraları ve yüksek hızlı takip sahnelerini yakalayan, Sivil Havacılık Otoritesi (BCAA) lisanslı hava drone operasyonları.",
-        "tag": "BCAA Lisanslı"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       }
     },
     "stats": {
       "badge": "Rakamlarla",
       "verified": "Doğrulanmış Prodüksiyon Verileri",
-      "tvcs": "Üst Düzey Reklam Filmleri",
+      "tvcs": "Projects",
       "leadership": "Sinemada Liderlik",
       "trophies": "Bölgesel Ödüller",
       "enterprises": "Körfez Şirkətleri"
@@ -345,7 +336,7 @@
     "projectRefLabel": "Proje referansı / bağlantısı (isteğe bağlı)",
     "projectRefPlaceholder": "https://example.com/referans",
     "shootLocation": "Konum / şehir (isteğe bağlı)",
-    "shootLocationPlaceholder": "örneğin Manama",
+    "shootLocationPlaceholder": "Şəhər və ya məkan",
     "messageDetails": "Mesaj detayları",
     "yourMessage": "Mesajınız",
     "messagePlaceholder": "Neye ihtiyacınız olduğunu ve yanıt vermemize yardımcı olacak detayları belirtin…",
@@ -403,7 +394,7 @@
     "registrationLabel": "Ticaret Sicil Numarası"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "KDV",
     "vatNa": "KDV: Tətbiq etnmaz",
     "subtotal": "Axtar toplam",
@@ -497,56 +488,12 @@
   },
   "stats": {
     "sectionIndex": "(04)",
-    "items": [
-      {
-        "value": "150+",
-        "label": "Teslim Edilen Reklam Filmi",
-        "sub": "Körfez Markaları ve Kurumları İçin"
-      },
-      {
-        "value": "8K",
-        "label": "Cinema RAW Çözünürlüğü",
-        "sub": "RED V-Raptor ve ARRI ALEXA LF"
-      },
-      {
-        "value": "100%",
-        "label": "Lisanslı Hava Drone Operasyonları",
-        "sub": "Bahreyn Sivil Havacılık Otoritesi"
-      },
-      {
-        "value": "10+",
-        "label": "Sektörde Yıllık Kusursuzluk",
-        "sub": "Genel Merkez Manama, Seef"
-      }
-    ],
+    "items": [],
     "sectionLabel": "Stüdyo Metrikleri ve Standartları"
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "BAHREYN",
-    "items": [
-      {
-        "id": "rev-1",
-        "client": "Bahreyn Ulusal Bankası (NBB)",
-        "author": "Pazarlama ve Marka Direktörü",
-        "quote": "Ekip, en yüksek sinematik beklentilerimizi aşan olağanüstü bir televizyon reklam kampanyası sundu. Renk derecelendirmeleri ve drone çekimleri dünya standartlarındaydı.",
-        "year": "2026"
-      },
-      {
-        "id": "rev-2",
-        "client": "Zain Bahrain",
-        "author": "Kurumsal Əlaqə Lideri",
-        "quote": "Kamera ekibinin profesyonelliği ve 8K görüntülerin hassasiyeti marka filmimizi bambaşka bir seviyeye taşıdı. Gerçekten Bahreyn'in en iyi sinema prodüksiyon stüdyosu.",
-        "year": "2025"
-      },
-      {
-        "id": "rev-3",
-        "client": "Bahreyn Ekonomik Kalkınma Kurulu (EDB)",
-        "author": "Destinasyon Pazarlama Başkanı",
-        "quote": "Ulusal yatırım tanıtım filmimizde ekiple çalışmak kusursuz bir deneyimdi. Mimari simgelerimizi muhteşem bir ışık ve derinlikle kaydettiler.",
-        "year": "2025"
-      }
-    ],
+    "items": [],
     "sectionLabel": "Müşteri ve Ortak Görüşleri",
     "headline": "Müştərilərimiz ne diyor",
     "subtitle": "Birlikte çalıştığımız kişi ve kuruluşlardan samimi geri bildirimler.",
@@ -570,30 +517,13 @@
   },
   "faq": {
     "sectionIndex": "(06)",
-    "items": [
-      {
-        "question": "Ticari çekimlerde hangi kamera sistemlerini ve lensleri kullanıyorsunuz?",
-        "answer": "Ağırlıklı olarak ARRI Master Primes, Cooke Anamorphic ve Leica Cine lenslerle eşleştirilmiş RED V-Raptor 8K, ARRI ALEXA Mini LF ve Sony FX9 kamera sistemleriyle çekim yapıyoruz."
-      },
-      {
-        "question": "Drone operatörleriniz Bahreyn'de ticari çekim için lisanslı mı?",
-        "answer": "Bəli, tüm ağır yük RED drone ve özel FPV operatörlerimiz, Bahreyn Sivil Havacılık Otoritesi (BCAA) tarafından tam lisanslı ve sertifikalı olup kapsamlı mali mesuliyet sigortasına sahiptir."
-      },
-      {
-        "question": "Post-prodüksiyon ve DaVinci Resolve renk derecelendirme ne kadar sürer?",
-        "answer": "Standart post-prodüksiyon süreleri; görsel efektler, ses tasarımı karmaşıklığı ve renk düzeltme revizyon turlarına bağlı olarak 5 ila 14 iş günü arasında değişir."
-      },
-      {
-        "question": "Körfez projeleri için ön yapım, kast ve izin süreçlerini yönetebiliyor musunuz?",
-        "answer": "Kesinlikle. Bahreyn ve Suudi Axtarbistan genelinde mekan keşfi, bakanlık izinleri, oyuncu seçimi, storyboard hazırlığı ve dekor kurulumu dahil uçtan uca tüm ön yapım sürecini üstleniyoruz."
-      }
-    ],
+    "items": [],
     "sectionLabel": "Sıkça Sorulan Sorular",
     "headline": "Sıkça karşılaştığımız sorular",
     "subtitle": "Nasıl çalıştığımız, neleri beklemeniz gerektiği ve nasıl başlayacağınız hakkında net yanıtlar."
   },
   "cta": {
-    "badge": "Yeni Filminizi Başlatmaya Hazır mısınız",
+    "badge": "Start a conversation",
     "titleLine1": "HER KAREDE SİNEMA.",
     "titleLine2": "Birlikte bir başyapıt yaratalım.",
     "description": "Proje konseptlerini, çekim takvimlerini ve bütçe tahminlerini görüşmek için doğrudan yapımcılarımızla iletişime geçin.",
@@ -603,7 +533,7 @@
   },
   "preloader": {
     "load": "YÜKLE",
-    "slogan": "HER KAREDE SİNEMA · 8K PRODÜKSİYON",
+    "slogan": "Welcome",
     "skipHint": "Giriş için herhangi bir yere tıklayın"
   },
   "email": {

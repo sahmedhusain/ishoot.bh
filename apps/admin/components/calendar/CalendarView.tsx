@@ -144,12 +144,12 @@ export function CalendarView({
   const title = (ev: CalendarEvent) =>
     isAr && ev.title_ar ? ev.title_ar : ev.title;
   const fmtTime = (value: string) =>
-    new Date(value).toLocaleTimeString(isAr ? "ar-BH-u-nu-latn" : "en-GB", {
+    new Date(value).toLocaleTimeString(isAr ? "ar-u-nu-latn" : "en-GB", {
       hour: "2-digit",
       minute: "2-digit",
     });
   const fmtDateTime = (value: string) =>
-    new Date(value).toLocaleString(isAr ? "ar-BH-u-nu-latn" : "en-GB", {
+    new Date(value).toLocaleString(isAr ? "ar-u-nu-latn" : "en-GB", {
       dateStyle: "medium",
       timeStyle: "short",
     });
@@ -332,7 +332,7 @@ export function CalendarView({
                 label={t.calendarView.startTime}
                 value={
                   selected.all_day
-                    ? `${new Date(selected.start_date).toLocaleDateString(isAr ? "ar-BH-u-nu-latn" : "en-GB")} · ${t.calendar.allDay}`
+                    ? `${new Date(selected.start_date).toLocaleDateString(isAr ? "ar-u-nu-latn" : "en-GB")} · ${t.calendar.allDay}`
                     : fmtDateTime(selected.start_date)
                 }
               />

@@ -10,6 +10,30 @@
     "paths": {
       "@platform/config/currency": [
         "../packages/config/src/constants/currency.d.cts"
+      ],
+      "@platform/config/phone": [
+        "../packages/config/src/phone.ts"
+      ],
+      "@platform/config/constants": [
+        "../packages/config/src/constants/index.ts"
+      ],
+      "@platform/config": [
+        "../packages/config/tailwind.config.ts"
+      ],
+      "@platform/config/*": [
+        "../packages/config/src/*"
+      ],
+      "@platform/locales": [
+        "../packages/locales/src/index.ts"
+      ],
+      "@platform/locales/*": [
+        "../packages/locales/src/*"
+      ],
+      "@platform/database": [
+        "../packages/database/src/index.ts"
+      ],
+      "@platform/database/*": [
+        "../packages/database/src/*"
       ]
     }
   },

@@ -88,8 +88,14 @@ async function main() {
     throw new Error(
       "Demo seed is disabled in production; use pnpm db:bootstrap for initial real accounts and configuration.",
     );
-  const explicitPreset = process.env.SEED_PRESET?.trim();
-  const profile = loadCompanyProfile(explicitPreset ? "demo" : undefined);
+  const explicitPreset =
+    process.env.SEED_PRESET?.trim() ||
+    (process.env.COMPANY_PROFILE?.trim() === "all" ? "all" : undefined);
+  const profile = loadCompanyProfile(
+    explicitPreset || process.env.COMPANY_PROFILE?.trim() === "all"
+      ? "demo"
+      : undefined,
+  );
   const preset = demoPreset(
     explicitPreset || String(profile.company.businessActivity || "media"),
     process.env.SEED_STYLE?.trim(),
@@ -5381,8 +5387,15 @@ async function main() {
     ? JSON.parse(JSON.stringify(await collectWebsiteDraft(websiteConfig)))
     : undefined;
   await prisma.$transaction(async (tx) => {
-    await tx.websiteContent.create({
-      data: {
+    await tx.websiteContent.upsert({
+      where: { id: "main" },
+      update: {
+        draft: JSON.parse(JSON.stringify(websiteConfig)),
+        ...(snapshot
+          ? { published: snapshot, publishedAt: new Date(), revision: 2 }
+          : {}),
+      },
+      create: {
         id: "main",
         draft: JSON.parse(JSON.stringify(websiteConfig)),
         ...(snapshot

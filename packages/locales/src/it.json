@@ -109,12 +109,12 @@
     "resume": "Riprendi animazione"
   },
   "showreel": {
-    "badge": "Showreel 2026",
-    "title": "LA VISIONE PRENDE FORMA IN MOVIMENTO",
-    "subtitle": "Una selezione curata dei nostri spot pubblicitari, narrazioni di brand e riprese aeree in Bahrain e nel Golfo Persico.",
-    "playShowreel": "Riproduci showreel completo",
-    "watchIn4k": "Guarda in 4K",
-    "streamTitle": "Stream cinematografico 4K"
+    "badge": "Scopri di più",
+    "title": "Scopri il nostro lavoro",
+    "subtitle": "Uno sguardo più da vicino a ciò che facciamo.",
+    "playShowreel": "Riproduci video",
+    "watchIn4k": "Guarda il video",
+    "streamTitle": "Video"
   },
   "services": {
     "badge": "Cosa offriamo",
@@ -122,11 +122,6 @@
     "subtitle": "Tutto ciò che offriamo, spiegato chiaramente per permetterti di scegliere in totale sicurezza.",
     "sectionIndex": "(02)",
     "requestProposal": "Richiedi un preventivo",
-    "soundstage": {
-      "title": "",
-      "desc": "",
-      "specs": []
-    },
     "sectionLabel": "Competenze",
     "headline": "Cosa offriamo"
   },
@@ -194,69 +189,69 @@
     "title": "Chi siamo",
     "subtitle": "Scopri la nostra azienda, il nostro team e il nostro lavoro.",
     "storyTitle": "LA NOSTRA FILOSOFIA",
-    "storyP1": "Crediamo che il vero impatto visivo nasca dall'incontro tra rigore tecnico e pura curiosità creativa. Ogni produzione è realizzata con profondo rispetto per la composizione, la gamma dinamica e l'autenticità delle emozioni.",
-    "storyP2": "Dalle campagne televisive nazionali ai video manifesto di brand internazionali, il nostro team mette a disposizione cineprese, impianti luce di precisione e suite di post-produzione d'avanguardia per valorizzare il prestigio del tuo marchio.",
+    "storyP1": "",
+    "storyP2": "",
     "ceoTitle": "Fondatore e Direttore Creativo",
-    "ceoName": "Sayed Ahmed Husain",
-    "ceoQuote": "Non ci limitiamo a catturare la luce; diamo forma al modo in cui ricordi, emozioni e marchi risuonano nel tempo.",
+    "ceoName": "",
+    "ceoQuote": "",
     "gearTitle": "LE NOSTRE ATTREZZATURE",
-    "gearSubtitle": "Attrezzatura cinematografica di proprietà, calibrata per garantire prestazioni ottiche impeccabili.",
-    "statFilms": "Oltre 180 spot pubblicitari realizzati",
-    "statYears": "Oltre 8 anni di esperienza",
-    "statAwards": "14 premi regionali",
-    "statClients": "Oltre 65 grandi aziende clienti nel Golfo",
+    "gearSubtitle": "Explore our resources and capabilities.",
+    "statFilms": "",
+    "statYears": "",
+    "statAwards": "",
+    "statClients": "",
     "sectionIndex": "(01)",
     "sectionLabel": "Chi siamo",
     "headline": "Un team creato attorno alle persone che serviamo.",
     "behindTheScenes": "Il nostro team al lavoro",
     "shootCaption": "Il nostro team al lavoro",
     "missionLabel": "La nostra missione",
-    "mission": "Consentire ai leader di settore di raccontare le storie del proprio brand con precisione visiva e profondità emotiva senza compromessi.",
+    "mission": "",
     "visionLabel": "La nostra visione",
     "discoverStudio": "Scopri la nostra storia e il nostro team",
     "gearAll": "Tutte le attrezzature",
     "gearCameras": "Cineprese",
-    "gearLenses": "Obiettivi cinema",
+    "gearLenses": "Tools",
     "gearLighting": "Impianti d'illuminazione",
     "gearAudioGrading": "Suite di mastering",
     "gearStages": "Teatro di posa",
-    "statFilmsValue": "180+",
+    "statFilmsValue": "",
     "statFilmsLabel": "Spot pubblicitari realizzati",
-    "statYearsValue": "8+",
+    "statYearsValue": "",
     "statYearsLabel": "Anni di esperienza",
-    "statAwardsValue": "14",
+    "statAwardsValue": "",
     "statAwardsLabel": "Premi regionali",
-    "statClientsValue": "65+",
+    "statClientsValue": "",
     "statClientsLabel": "Grandi aziende clienti nel Golfo",
-    "recTag": "REC · 8K VV",
-    "gccTag": "100% GCC",
-    "coloristTag": "Certificato DaVinci",
+    "recTag": "",
+    "gccTag": "",
+    "coloristTag": "",
     "pillars": {
       "badge": "I nostri principi",
       "title": "I valori alla base del nostro lavoro",
       "p1": {
-        "number": "01",
-        "title": "Ottiche e inquadrature cinematografiche",
-        "desc": "Riprese multiformato in 8K VistaVision con sistemi RED V-Raptor XL abbinati ad ARRI Master Prime per una resa ottica cristallina.",
-        "tag": "8K VistaVision"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p2": {
-        "number": "02",
-        "title": "Color grading HDR con DaVinci Resolve",
-        "desc": "Suite di post-produzione dedicata con monitor di riferimento Sony BVM per creare palette cromatiche personalizzate con emulazione pellicola.",
-        "tag": "Colorist DCI-P3"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p3": {
-        "number": "03",
-        "title": "Regia narrativa e ritmo visivo",
-        "desc": "Sviluppo di trattamenti visivi, sceneggiature e montaggio ritmato capaci di trasformare un briefing aziendale in grande cinema.",
-        "tag": "Arte narrativa"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       },
       "p4": {
-        "number": "04",
-        "title": "Droni heavy-lift e FPV certificati",
-        "desc": "Operazioni aeree con droni interamente autorizzate dall'Autorità per l'Aviazione Civile del Bahrain (BCAA) per catturare paesaggi monumentali e inseguimenti dinamici.",
-        "tag": "Certificato BCAA"
+        "number": "",
+        "title": "",
+        "desc": "",
+        "tag": ""
       }
     },
     "studioImageAlt": "Il nostro team e il nostro ambiente di lavoro",
@@ -341,7 +336,7 @@
     "projectRefLabel": "Link o riferimento del progetto (facoltativo)",
     "projectRefPlaceholder": "https://example.com/riferimento",
     "shootLocation": "Luogo delle riprese / Città (facoltativo)",
-    "shootLocationPlaceholder": "es. Manama",
+    "shootLocationPlaceholder": "Città o luogo",
     "messageDetails": "Dettagli del messaggio",
     "yourMessage": "Il tuo messaggio",
     "messagePlaceholder": "Descrivi ciò di cui hai bisogno e qualsiasi informazione utile...",
@@ -399,7 +394,7 @@
     "registrationLabel": "Registro delle imprese"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "IVA",
     "vatNa": "IVA: Non applicabile",
     "subtotal": "Subtotale",
@@ -498,7 +493,6 @@
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "BAHRAIN",
     "items": [],
     "sectionLabel": "Testimonianze di clienti e partner",
     "headline": "Cosa dicono i nostri clienti",
@@ -529,8 +523,8 @@
     "subtitle": "Risposte chiare su come lavoriamo, cosa aspettarsi e come iniziare."
   },
   "cta": {
-    "badge": "Pronti a lanciare il tuo prossimo film",
-    "titleLine1": "IL CINEMA IN OGNI FOTOGRAMMA.",
+    "badge": "Start a conversation",
+    "titleLine1": "Your next step.",
     "titleLine2": "Creiamo insieme un capolavoro.",
     "description": "Mettiti in contatto con i nostri produttori per discutere concept di progetto, piani di ripresa e stime economiche.",
     "whatsapp": "Chat istantanea WhatsApp",
@@ -539,7 +533,7 @@
   },
   "preloader": {
     "load": "CARICAMENTO",
-    "slogan": "IL CINEMA IN OGNI FOTOGRAMMA · PRODUZIONE 8K",
+    "slogan": "Welcome",
     "skipHint": "Fai clic ovunque per accedere"
   },
   "email": {

@@ -61,7 +61,7 @@ export function PayrollManagementView({
   const [payMethod, setPayMethod] = React.useState("bank_transfer");
   const [payReference, setPayReference] = React.useState("");
   const [search, setSearch] = React.useState("");
-  const fmt = (value: number) => new Intl.NumberFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-BH", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(value);
+  const fmt = (value: number) => new Intl.NumberFormat(locale === "ar" ? "ar-u-nu-latn" : "en-GB", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(value);
   const fill = (template: string, values: Record<string, string | number>) => Object.entries(values).reduce((text, [key, value]) => text.replaceAll(`{${key}}`, String(value)), template);
   const RowArrow = isRTL ? ChevronLeft : ChevronRight;
   const router = useRouter();
@@ -95,7 +95,7 @@ export function PayrollManagementView({
   );
 
   const months = Array.from({ length: 12 }, (_, month) =>
-    new Intl.DateTimeFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB", { month: "long", timeZone: "UTC" }).format(
+    new Intl.DateTimeFormat(locale === "ar" ? "ar-u-nu-latn" : "en-GB", { month: "long", timeZone: "UTC" }).format(
       new Date(Date.UTC(2026, month, 1)),
     ),
   );

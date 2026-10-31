@@ -46,7 +46,13 @@ export function ClientSigningView({
   const decimals = getCurrencyDecimals(doc?.currency ?? "");
   const amount = (v: number) => v.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
   const money = (v: number) => (isAr ? `${amount(v)} ${getCurrencyLabel(doc?.currency ?? "", true, false)}` : `${doc?.currency} ${amount(v)}`);
-  const date = (v: string) => new Intl.DateTimeFormat(isAr ? "ar-BH-u-nu-latn" : "en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Bahrain" }).format(new Date(v));
+  const date = (v: string) =>
+    new Intl.DateTimeFormat(isAr ? "ar-u-nu-latn" : "en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: (company as any).timeZone || "UTC",
+    }).format(new Date(v));
   const fill = (text: string) => formatMessage(text, { company: company.name, email: company.email, phone: company.phone });
 
   // Signature pad: pointer events cover mouse, pen and touch.

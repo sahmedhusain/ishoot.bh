@@ -91,7 +91,7 @@ export function ApprovalsCenterView({
     a.types[type as keyof typeof a.types] ?? type;
   const formatDate = (value: Date | string) =>
     new Date(value).toLocaleString(
-      locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB",
+      locale === "ar" ? "ar-u-nu-latn" : "en-GB",
       { dateStyle: "medium", timeStyle: "short" },
     );
 

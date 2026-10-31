@@ -766,7 +766,7 @@ export async function cancelAssetHandover(id: string) {
 
 /** The payroll month a charge is recovered in: the first month whose payroll is not yet submitted. */
 async function nextPayrollMonth(): Promise<string> {
-  const now = new Date(Date.now() + 3 * 3600000);
+  const now = new Date();
   let year = now.getUTCFullYear();
   let month = now.getUTCMonth() + 1;
   for (let i = 0; i < 24; i++) {

@@ -57,7 +57,7 @@
     "eyebrow": "مرحباً بكم في {companyName}",
     "ideaAction": "تواصل معنا",
     "explore": "شاهد أعمالنا",
-    "caption": "أفكار. خبرات. إمكانات.",
+    "caption": "أفكار، خبرة، وإمكانات مع {companyName}.",
     "slideLabel": "الشريحة",
     "pause": "إيقاف الحركة",
     "resume": "تشغيل الحركة"
@@ -73,34 +73,29 @@
   "services": {
     "badge": "ما نقدّمه",
     "title": "ما نقدمه",
-    "subtitle": "كل ما نقدّمه بوضوح لتختار بثقة.",
+    "subtitle": "كل ما يقدّمه {companyName} بوضوح لتختار بثقة.",
     "sectionIndex": "(02)",
     "requestProposal": "اطلب عرض سعر",
-    "soundstage": {
-      "title": "",
-      "desc": "",
-      "specs": []
-    },
     "sectionLabel": "القدرات والخدمات الإنتاجية",
     "headline": "ما نقدمه"
   },
   "portfolio": {
     "badge": "مختارات من أعمالنا",
     "title": "أعمالنا",
-    "subtitle": "نظرة أقرب على ما نقوم به ولمن نقوم به.",
+    "subtitle": "نظرة عن قرب على ما نقدّمه في {companyName} وعملائنا.",
     "filterAll": "جميع الأعمال",
     "filterCommercial": "مشاريع",
     "filterAerial": "أعمال أخرى",
     "filterPhotography": "معرض",
     "filterColor": "خدمات",
     "viewProject": "عرض التفاصيل",
-    "watchTrailer": "مشاهدة الإعلان",
+    "watchTrailer": "مشاهدة العرض",
     "credits": "فريق المشروع",
-    "director": "المسؤول",
-    "dop": "مسؤول المشروع",
-    "colorist": "عضو الفريق",
-    "editor": "مساهم",
-    "sound": "فريق المشروع",
+    "director": "مسؤول المشروع",
+    "dop": "المتخصص الرئيسي",
+    "colorist": "متخصص",
+    "editor": "المراجع",
+    "sound": "عضو الفريق",
     "client": "العميل",
     "year": "السنة",
     "category": "التصنيف",
@@ -108,7 +103,7 @@
     "sectionIndex": "(03)",
     "sectionLabel": "أرشيف الأعمال والمشاريع",
     "showcaseTitle": "أعمال مختارة",
-    "showcaseSubtitle": "استكشف مجموعة من أعمالنا ومشاريعنا.",
+    "showcaseSubtitle": "استكشف مجموعة مختارة من أعمالنا ومشاريعنا في {companyName}.",
     "viewFullArchive": "استعرض أعمالنا",
     "productionOverview": "نظرة عامة",
     "categories": {
@@ -135,7 +130,7 @@
   "clients": {
     "badge": "الثقة والريادة",
     "title": "ثقة كبرى العلامات التجارية",
-    "subtitle": "عملاء وشركاء نتشرف بالعمل معهم.",
+    "subtitle": "العملاء والشركاء الذين تتعاون معهم {companyName}.",
     "marqueeBadge": "يثقون بنا",
     "regionTag": "عملاؤنا",
     "label": "عملاؤنا",
@@ -144,9 +139,9 @@
     "region": "شعارات العملاء؛ تتوقف الحركة عند التركيز"
   },
   "about": {
-    "badge": "عن الشركة",
+    "badge": "عن {companyName}",
     "title": "من نحن",
-    "subtitle": "تعرّف على شركتنا وفريقنا والعمل الذي نقدمه.",
+    "subtitle": "تعرّف على {companyName} وفريقنا وأعمالنا.",
     "storyTitle": "فلسفتنا الإنتاجية",
     "storyP1": "",
     "storyP2": "",
@@ -154,16 +149,16 @@
     "ceoName": "",
     "ceoQuote": "",
     "gearTitle": "الموارد",
-    "gearSubtitle": "تعرّف على مواردنا وإمكاناتنا.",
+    "gearSubtitle": "استكشف إمكانيات وموارد {companyName}.",
     "statFilms": "",
     "statYears": "",
     "statAwards": "",
     "statClients": "",
     "sectionIndex": "(01)",
     "sectionLabel": "من نحن",
-    "headline": "فريق يعمل من أجل من نخدمهم.",
-    "behindTheScenes": "فريقنا أثناء العمل",
-    "shootCaption": "فريقنا أثناء العمل",
+    "headline": "فريق يعمل من أجل من نخدمهم في {companyName}.",
+    "behindTheScenes": "فريق {companyName} أثناء العمل",
+    "shootCaption": "فريق {companyName} أثناء العمل",
     "missionLabel": "الرسالة",
     "mission": "",
     "visionLabel": "الرؤية",
@@ -187,7 +182,7 @@
     "coloristTag": "",
     "pillars": {
       "badge": "ما نؤمن به",
-      "title": "القيم التي تقود عملنا",
+      "title": "القيم التي تقود عملنا في {companyName}",
       "p1": {
         "number": "",
         "title": "",
@@ -224,7 +219,7 @@
     "gear": {
       "calibrated": "مورد"
     },
-    "studioImageAlt": "فريقنا ومقر عملنا",
+    "studioImageAlt": "مقر وفريق عمل {companyName}",
     "studioImageCaption": "من داخل مقر عملنا"
   },
   "contact": {
@@ -240,19 +235,19 @@
     "submit": "إرسال الاستفسار",
     "submitting": "جارٍ الإرسال…",
     "successTitle": "تم استلام طلبك بنجاح",
-    "successMessage": "شكراً لرسالتك. سيتواصل فريقنا معك عبر بيانات الاتصال التي قدمتها.",
+    "successMessage": "شكراً لتواصلك مع {companyName}. سيتواصل فريقنا معك عبر بيانات الاتصال التي زودتنا بها.",
     "errorTitle": "ملاحظة",
-    "errorMessage": "تعذّر إرسال طلبك. يرجى التواصل معنا مباشرة باستخدام بيانات اتصال الشركة.",
-    "timelinePlaceholder": "مثال: نوفمبر 2026",
+    "errorMessage": "تعذر إرسال طلبك. يرجى استخدام وسائل الاتصال المباشرة مع {companyName}.",
+    "timelinePlaceholder": "مثال: نوفمبر {year}",
     "projectDetailsPlaceholder": "أخبرنا بمتطلباتك والجدول الزمني المناسب.",
-    "studioInfo": "معلومات المنشأة",
+    "studioInfo": "بيانات {companyName}",
     "workingHours": "",
     "immediateResponse": "الخطوة التالية",
     "whatsappConcierge": "محادثة مباشرة عبر واتساب",
-    "whatsappDesc": "تواصل مع فريقنا لطرح أسئلتك.",
+    "whatsappDesc": "تواصل مع فريق {companyName} لطرح استفساراتك.",
     "openWhatsapp": "فتح محادثة واتساب ←",
     "servicesList": [],
-    "emailSubject": "شكراً لتواصلك معنا",
+    "emailSubject": "شكراً لتواصلك مع {companyName}",
     "budgetRanges": [
       "تُناقش لاحقًا"
     ],
@@ -273,9 +268,9 @@
       "review": "تقييم ومراجعة",
       "reviewDesc": "شارك تجربتك. تخضع المراجعات للموافقة قبل النشر."
     },
-    "directStudioLine": "تواصل مع فريقنا",
-    "directLineToTeam": "مباشرة إلى فريقنا",
-    "makeYourselfHeard": "تحدث مع فريقنا",
+    "directStudioLine": "تواصل مع {companyName}",
+    "directLineToTeam": "خط مباشر إلى فريق {companyName}",
+    "makeYourselfHeard": "تحدّث إلى فريق {companyName}",
     "displayName": "الاسم الظاهر",
     "companyOptional": "الشركة (اختياري)",
     "servicesInterested": "الخدمات المطلوبة (اختر ما يناسبك)",
@@ -298,7 +293,7 @@
     "shootLocationPlaceholder": "المدينة أو الموقع",
     "messageDetails": "تفاصيل الرسالة",
     "yourMessage": "رسالتك",
-    "messagePlaceholder": "أخبرنا بما تحتاجه وأي تفاصيل تساعدنا على الرد…",
+    "messagePlaceholder": "أخبرنا بما تحتاجه من {companyName} وأي تفاصيل تساعدنا على الرد…",
     "reviewQuoteLabel": "تقييمك وانطباعك",
     "starRatingLabel": "التقييم (من 1 إلى 5 نجوم)",
     "validationEmailOrPhone": "أدخل البريد الإلكتروني أو رقم الهاتف لنتمكن من الرد.",
@@ -332,7 +327,9 @@
       "fileInputHelp": "PDF أو صورة، حتى 10 ميغابايت (حتى 3 ملفات)",
       "uploading": "جارٍ الإرفاق…",
       "attachFile": "إرفاق ملف"
-    }
+    },
+    "location": "الموقع / المدينة (اختياري)",
+    "locationPlaceholder": "المدينة أو الموقع"
   },
   "footer": {
     "allRights": "جميع الحقوق محفوظة.",
@@ -353,7 +350,7 @@
     "registrationLabel": "السجل التجاري"
   },
   "financials": {
-    "currency": "د.ب",
+    "currency": "{currency}",
     "vat": "ضريبة القيمة المضافة",
     "vatNa": "ض.ق.م: غير مطبقة",
     "subtotal": "المجموع الفرعي",
@@ -393,16 +390,16 @@
     "page_6": "الأحد – الخميس: 9:00 ص – 6:00 م",
     "page_7": "استجابة فورية",
     "page_8": "محادثة مباشرة عبر واتساب",
-    "page_9": "تواصل مباشرة مع أحد منتجينا عبر تطبيق واتساب للحصول على استجابة سريعة.",
+    "page_9": "تواصل مباشرة مع فريق {companyName} عبر واتساب للاستفسارات السريعة.",
     "page_10": "فتح محادثة واتساب ←",
-    "page_11": "نظرة عامة على الإنتاج",
-    "contactform_12": "مثال: نوفمبر 2026",
-    "contactform_13": "اشرح لنا رؤيتك الإنتاجية، المواقع المحددة، ومخرجات التسليم المطلوبة...",
+    "page_11": "نظرة عامة على الشركة",
+    "contactform_12": "مثال: نوفمبر {year}",
+    "contactform_13": "حدّث {companyName} عن متطلباتك وتفاصيل مشروعك أو أي أسئلة لديك…",
     "languageswitcher_14": "Switch to English",
-    "cinemalightbox_16": "المخرج:",
-    "cinemalightbox_17": "مدير التصوير:",
-    "cinemalightbox_18": "تلوين:",
-    "cinemalightbox_19": "مونتاج:",
+    "cinemalightbox_16": "المسؤول:",
+    "cinemalightbox_17": "المتخصص:",
+    "cinemalightbox_18": "المراجع:",
+    "cinemalightbox_19": "المشارك:",
     "herobanner_20": "تشغيل الصوت",
     "herobanner_21": "كتم الصوت",
     "heroslide_23": "ابدأ مشروعك",
@@ -452,15 +449,14 @@
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "",
     "items": [],
     "sectionLabel": "شهادات العملاء والشركاء",
-    "headline": "ماذا يقول عملاؤنا",
-    "subtitle": "آراء صادقة من الأفراد والجهات التي نعمل معها.",
+    "headline": "ماذا يقول عملاؤنا عن {companyName}",
+    "subtitle": "آراء صادقة من الأفراد والجهات التي تعمل مع {companyName}.",
     "writeReviewBtn": "شاركنا تقييمك وتجربتك",
     "modal": {
       "title": "شاركنا تقييمك ورأيك",
-      "subtitle": "رأيك يساعدنا على التحسّن",
+      "subtitle": "رأيك يساعد {companyName} على التطور المستمر",
       "thankYouTitle": "شكراً جزيلاً لتقييمك!",
       "thankYouDesc": "تم استلام تقييمك بنجاح وسيتم اعتماده ونشره في الموقع بعد مراجعته من فريق الإدارة.",
       "starRating": "التقييم بالنجوم",
@@ -469,27 +465,27 @@
       "company": "الشركة أو الجهة (اختياري)",
       "companyPlaceholder": "مثال: شركة المثال القابضة",
       "quote": "رأيك وتجربتك *",
-      "quotePlaceholder": "أخبرنا عن تجربتك مع فريقنا…",
+      "quotePlaceholder": "أخبرنا عن تجربتك مع {companyName}…",
       "validationError": "يرجى ملء الاسم الكامل وكتابة التقييم",
       "submit": "إرسال التقييم للمراجعة"
     },
-    "empty": "عملت معنا؟ يسعدنا أن نسمع تجربتك وننشر تقييمك."
+    "empty": "تعاملت مع {companyName}؟ يسرنا سماع رأيك وتقييمك."
   },
   "faq": {
     "sectionIndex": "(06)",
     "items": [],
     "sectionLabel": "الأسئلة الشائعة والاستفسارات",
-    "headline": "أسئلة تصلنا كثيراً",
-    "subtitle": "إجابات مباشرة عن طريقة عملنا وما تتوقعه وكيف تبدأ."
+    "headline": "أسئلة متكررة حول {companyName}",
+    "subtitle": "إجابات مباشرة عن طريقة عملنا في {companyName} وما تتوقعه وكيف تبدأ."
   },
   "cta": {
     "badge": "ابدأ الحديث معنا",
     "titleLine1": "خطوتك القادمة.",
     "titleLine2": "نعمل عليها معاً.",
-    "description": "تواصل مع فريقنا لمناقشة متطلباتك والخطوات التالية.",
+    "description": "تواصل مع فريق {companyName} لمناقشة متطلباتك والخطوات التالية.",
     "whatsapp": "محادثة فورية عبر واتساب",
     "requestTreatment": "اطلب عرض سعر",
-    "rights": "جميع الحقوق محفوظة."
+    "rights": "© {year} {companyName}. جميع الحقوق محفوظة."
   },
   "preloader": {
     "load": "التحميل",
@@ -509,7 +505,7 @@
     "notification": {
       "subject": "🔔 طلب جديد: {fullName}",
       "badge": "طلب تواصل جديد",
-      "title": "{fullName} يرغب في التعاون معكم",
+      "title": "{fullName} أرسل استفساراً إلى {companyName}",
       "fullName": "الاسم الكامل:",
       "email": "البريد الإلكتروني:",
       "phone": "رقم الهاتف:",
@@ -525,7 +521,7 @@
     "invoiceDelivery": {
       "subject": "فاتورة رقم {invoiceNumber} من {companyName}",
       "greeting": "عزيزنا {clientName}،",
-      "body": "نرفق لكم طيه الفاتورة الرسمية رقم {invoiceNumber} الخاصة بالمشروع الإنتاجي المعتمد.",
+      "body": "يرجى الاطلاع على الفاتورة الرسمية المرفقة {invoiceNumber} من {companyName}.",
       "invoiceNumber": "رقم الفاتورة:",
       "dueDate": "تاريخ الاستحقاق:",
       "amountDue": "المبلغ المطلوب سداده:",
@@ -540,7 +536,7 @@
       "badgePartial": "استلام دفعة جزئية",
       "title": "تأكيد استلام الدفعة",
       "greeting": "عزيزنا {clientName}،",
-      "body": "نؤكد لكم استلام الدفعة المالية الموضحة أدناه للفاتورة رقم {invoiceNumber}.",
+      "body": "نؤكد استلام دفعتكم للفاتورة رقم {invoiceNumber} من {companyName}.",
       "receiptNumber": "رقم الإيصال:",
       "paymentMethod": "طريقة الدفع:",
       "amountReceived": "المبلغ المستلم:",
@@ -549,7 +545,7 @@
     },
     "layout": {
       "cr": "سجل تجاري: {cr}",
-      "rights": "جميع الحقوق محفوظة."
+      "rights": "© {year} {companyName}. جميع الحقوق محفوظة."
     },
     "inquiryReceived": {
       "subject": "استلمنا رسالتك — {reference}",
@@ -585,14 +581,14 @@
   },
   "seo": {
     "title": "{companyName}",
-    "description": "تعرّف على شركتنا وخدماتنا وأعمالنا.",
+    "description": "تعرّف على {companyName} وخدماتنا وأعمالنا.",
     "imageAlt": "شعار {companyName}"
   },
   "articles": {
     "slug": "news",
     "badge": "المركز الإعلامي",
-    "title": "الأخبار والمستجدات",
-    "subtitle": "آخر أعمالنا وإعلاناتنا وبياناتنا الصحفية.",
+    "title": "أحدث المستجدات من {companyName}",
+    "subtitle": "تحديثات ورؤى وأخبار من {companyName}.",
     "empty": "لم يُنشر شيء بعد.",
     "readMore": "اقرأ المزيد",
     "back": "كل المقالات",
@@ -615,7 +611,8 @@
     "searchPlaceholder": "ابحث بالعنوان أو الموضوع",
     "resultsCount": "{count} نتيجة",
     "clearFilters": "مسح الفلاتر",
-    "articlePages": "صفحات المقالات"
+    "articlePages": "صفحات المقالات",
+    "relatedArticles": "المزيد من {companyName}"
   },
   "account": {
     "title": "حسابي",
@@ -896,12 +893,12 @@
   },
   "press": {
     "title": "الصحافة",
-    "subtitle": "أخبار الشركة، وطريقة التواصل معنا للاستفسارات الإعلامية.",
+    "subtitle": "أخبار {companyName} والاستفسارات الإعلامية.",
     "releases": "البيانات الصحفية",
     "noReleases": "لا توجد بيانات صحفية بعد.",
     "kit": "الملف الصحفي",
     "logo": "حمّل شعارنا",
-    "contact": "الاستفسارات الإعلامية",
+    "contact": "الاستفسارات الإعلامية لـ {companyName}",
     "about": "من نحن"
   }
 }

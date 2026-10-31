@@ -122,11 +122,6 @@
     "subtitle": "Semua yang kami sediakan, dijelaskan dengan jelas agar Anda dapat memilih dengan percaya diri.",
     "sectionIndex": "(02)",
     "requestProposal": "Minta penawaran",
-    "soundstage": {
-      "title": "",
-      "desc": "",
-      "specs": []
-    },
     "sectionLabel": "Kapabilitas",
     "headline": "Apa yang kami tawarkan"
   },
@@ -399,7 +394,7 @@
     "registrationLabel": "Pendaftaran Komersial"
   },
   "financials": {
-    "currency": "BHD",
+    "currency": "{currency}",
     "vat": "PPN",
     "vatNa": "PPN: Tidak Berlaku",
     "subtotal": "Subtotal",
@@ -498,7 +493,6 @@
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "bahrain": "",
     "items": [],
     "sectionLabel": "Testimoni Klien & Mitra",
     "headline": "Apa kata pelanggan kami",

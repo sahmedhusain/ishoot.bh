@@ -97,6 +97,7 @@ export const ROUTES = {
         ? `/dashboard/inventory/movements?productId=${encodeURIComponent(query.productId)}`
         : "/dashboard/inventory/movements",
     warehouses: "/dashboard/inventory/warehouses",
+    transfers: "/dashboard/inventory/transfers",
     counts: "/dashboard/inventory/counts",
     count: (id: string) =>
       `/dashboard/inventory/counts/${encodeURIComponent(id)}`,
