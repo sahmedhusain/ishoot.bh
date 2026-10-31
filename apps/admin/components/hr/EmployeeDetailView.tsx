@@ -290,7 +290,7 @@ export function EmployeeDetailView({
           {canEditPay && (<>
             <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
               <h2 className="text-sm font-semibold uppercase tracking-wider text-ink dark:text-ink font-mono border-b border-outline-variant pb-3">
-                {t.employeeDetail.effectiveCompensationBhd}
+                {t.employeeDetail.effectiveCompensation || t.employeeDetail.effectiveCompensationBhd}
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <label>

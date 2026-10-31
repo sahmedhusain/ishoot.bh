@@ -424,7 +424,7 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
             <div className="flex items-center justify-between border-b border-outline-variant pb-3">
               <h2 className="text-sm font-semibold uppercase tracking-wider text-ink dark:text-ink font-mono flex items-center gap-2">
                 <DollarSign className="w-4 h-4 text-accent" />
-                {t.newEmployeeForm.monthlyCompensationStructureBhd}
+                {t.newEmployeeForm.monthlyCompensationStructure || t.newEmployeeForm.monthlyCompensationStructureBhd}
               </h2>
               <div className="text-xs font-mono font-semibold text-primary dark:text-mint">
                 {t.newEmployeeForm.totalMonthlyGross}
@@ -436,7 +436,7 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <label>
                 <span className="block text-xs font-medium text-ink-muted dark:text-ink-muted mb-1">
-                  {t.newEmployeeForm.basicSalaryBhd}
+                  {t.newEmployeeForm.basicSalary || t.newEmployeeForm.basicSalaryBhd}
                 </span>
                 <input
                   type="number"

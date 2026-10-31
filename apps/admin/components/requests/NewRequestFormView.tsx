@@ -427,7 +427,7 @@ export function NewRequestFormView({
                 type="text"
                 value={budgetRange}
                 onChange={(e) => setBudgetRange(e.target.value)}
-                placeholder={t.newRequestForm.eG5001500Bhd}
+                placeholder={t.newRequestForm.budgetRangePlaceholder || t.newRequestForm.eG5001500Bhd}
                 className="w-full px-3 py-2 text-xs rounded-xl border border-outline-variant dark:border-white/10 bg-surface-raised dark:bg-black/30 text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent"
               />
             </label>

@@ -540,7 +540,7 @@ export function PortfolioManagementView({
             <LanguageFields name="description" label={t.portfolioView.description} languages={languages} multiline maxLength={10000} en={descriptionEn} ar={descriptionAr} onChange={(v) => { setDescriptionEn(v.en); setDescriptionAr(v.ar); }} />
             {uses("video") ? (
               <label className="text-sm">
-                {t.portfolioManagement.fullFilmUrl}
+                {t.portfolioManagement.fullMediaUrl || t.portfolioManagement.fullFilmUrl}
                 <Input
                   value={fullVideo}
                   onChange={(e) => setFullVideo(e.target.value)}

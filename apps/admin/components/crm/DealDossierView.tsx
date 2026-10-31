@@ -299,7 +299,7 @@ export function DealDossierView({
               {deal.shoot_date && (
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-ink-muted dark:text-ink-muted">
-                    {t.dealDossier.shootDate}
+                    {t.dealDossier.scheduledDate || t.dealDossier.shootDate}
                   </span>
                   <span className="text-ink dark:text-ink font-semibold">
                     <DateDisplay date={deal.shoot_date} locale={locale} />
@@ -448,7 +448,7 @@ export function DealDossierView({
                 </div>
                 <div>
                   <div className="text-sm font-semibold text-ink dark:text-ink">
-                    {t.dealDossier.scheduledShootDate}
+                    {t.dealDossier.scheduledDate || t.dealDossier.scheduledShootDate}
                   </div>
                   <div className="text-xs text-ink-muted dark:text-ink-muted mt-0.5">
                     <DateDisplay date={deal.shoot_date} locale={locale} />

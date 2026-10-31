@@ -189,7 +189,8 @@
     "location": "Location",
     "associatedDeal": "Linked Deal or Project",
     "googleSyncStatus": "Connected with Google Calendar",
-    "connectGoogle": "Connect Google Calendar"
+    "connectGoogle": "Connect Google Calendar",
+    "eventWorkSession": "Work Session"
   },
   "cms": {
     "bannersTitle": "Hero Video & Image Banners",
@@ -1230,7 +1231,9 @@
     "pipelineStage": "Pipeline Stage",
     "clientOrContact": "Client / Contact",
     "selectOrBlank": "Select or leave blank",
-    "shootDate": "Scheduled Date"
+    "shootDate": "Scheduled Date",
+    "scheduledDate": "Scheduled Date",
+    "value": "Value *"
   },
   "contactsView": {
     "subtitle": "Clients, partners and key decision-makers.",
@@ -1305,12 +1308,17 @@
     "specsPlaceholder": "Key specifications, sizes and options",
     "availableQty": "Available Quantity",
     "categories": {
-      "cameras": "Cameras",
-      "lenses": "Optics & Lenses",
-      "lighting": "Lighting",
-      "audio": "Sound & Audio",
-      "grip": "Rigging & Support",
-      "drones": "Aerial Drones"
+      "cameras": "Primary Equipment",
+      "lenses": "Precision Tools",
+      "lighting": "Facilities & Systems",
+      "audio": "Communications & Audio",
+      "grip": "Rigging & Hardware",
+      "drones": "Mobile & Aerial Units",
+      "primary": "Primary Equipment",
+      "tools": "Precision Tools",
+      "facilities": "Facilities & Systems",
+      "support": "Support & Hardware",
+      "mobile": "Mobile Units"
     },
     "modelNameEnLabel": "Model Name (English)",
     "itemNameArLabel": "Item Name (Arabic)",
@@ -1373,7 +1381,8 @@
     "paymentAmountBhd": "Payment Amount",
     "notesPlaceholder": "Verified by finance director...",
     "empty": "No payments match these filters.",
-    "receiptsCount": "{n} receipts"
+    "receiptsCount": "{n} receipts",
+    "paymentAmount": "Payment Amount"
   },
   "paymentRecorder": {
     "modalTitle": "Record Payment",
@@ -1402,7 +1411,8 @@
     "fiscalYear": "Financial overview",
     "depositedViaBank": "Deposited via bank & client wire transfers",
     "approvedDiscounts": "Approved client discounts",
-    "productionCostsDesc": "Supplies, rentals and wages"
+    "productionCostsDesc": "Supplies, rentals and wages",
+    "amount": "Amount"
   },
   "expensesView": {
     "subtitle": "Track project spending, rentals, payroll and operating overhead.",
@@ -1441,7 +1451,9 @@
     "viewKanban": "View Kanban",
     "shootDate": "Date:",
     "workspaceTitle": "My workspace",
-    "recentDeals": "Recent deals"
+    "recentDeals": "Recent deals",
+    "zeroUpcomingAppointments": "No upcoming appointments scheduled",
+    "appointmentDate": "Date:"
   },
   "calendarView": {
     "months": [
@@ -1492,7 +1504,8 @@
     "eventTitleEnLabel": "Event Title (English) *",
     "eventTitleArLabel": "Event Title (Arabic)",
     "editEvent": "Edit Event",
-    "saveFailed": "Could not save the event"
+    "saveFailed": "Could not save the event",
+    "workSession": "Work Session"
   },
   "usersView": {
     "subtitle": "Enterprise role-based access control, departmental assignments, and credential management.",
@@ -1858,7 +1871,8 @@
     "scheduledShootDate": "Scheduled Date",
     "dealBriefNotes": "Deal Brief Notes",
     "probabilityValue": "{value}% probability",
-    "expectedMultiplier": "({value}× expected)"
+    "expectedMultiplier": "({value}× expected)",
+    "scheduledDate": "Scheduled Date"
   },
   "customerEdit": {
     "title": "Edit Customer Dossier",
@@ -1895,7 +1909,8 @@
     "saving": "Updating Deal...",
     "save": "Save Deal Changes",
     "titlePlaceholder": "e.g. Annual maintenance contract Q4",
-    "notesPlaceholder": "Deal background, client requirements, special considerations..."
+    "notesPlaceholder": "Deal background, client requirements, special considerations...",
+    "scheduledDateLabel": "Scheduled Date"
   },
   "servicesView": {
     "title": "Service Catalog & Rates",
@@ -2256,7 +2271,7 @@
     "tabSocial": "Contact & Social Links",
     "tabCms": "CMS Content Hub",
     "heroCardTitle": "Hero & Media Presentation",
-    "heroCardDesc": "Configure main headlines, video showreels, and full-screen video background banners.",
+    "heroCardDesc": "Configure main headlines, video showcases, and full-screen video background banners.",
     "manageBanners": "Manage {count} Banners",
     "webNameEn": "Website Name (English)",
     "webNameAr": "Website Name (Arabic)",
@@ -2328,7 +2343,8 @@
     "cmsNewBadge": "{count} new",
     "cmsQuestionsConfigured": "{count} Questions Configured",
     "savedSuccessMsg": "Settings saved & website cache automatically revalidated!",
-    "instantUpdateNotice": "Modifications will instantly update database & website presentation."
+    "instantUpdateNotice": "Modifications will instantly update database & website presentation.",
+    "cmsEquipmentItems": "{count} Equipment Items"
   },
   "companyDocumentsView": {
     "title": "Company Legal Repository & Document Vault",
@@ -3057,7 +3073,8 @@
     "couldNotUpdateProjectPlease": "Could not update project. Please try again.",
     "couldNotDeleteProjectPlease": "Could not delete project. Please try again.",
     "couldNotSaveProject": "Could not save project",
-    "descriptionEnglish": "Description (English)"
+    "descriptionEnglish": "Description (English)",
+    "fullMediaUrl": "Full media URL"
   },
   "websiteEditor": {
     "saved": "Saved.",
@@ -3176,7 +3193,8 @@
     "contractSigned": "Contract Signed",
     "postProduction": "Review & Finishing",
     "closedWon": "Closed Won",
-    "closedLost": "Closed Lost"
+    "closedLost": "Closed Lost",
+    "scheduledDate": "Scheduled Date"
   },
   "leadsManagement": {
     "couldNotSaveTheChange": "Could not save the change. Check your permissions and try again.",
@@ -3307,7 +3325,7 @@
     "eGQ2ProductionAlignment": "e.g. Q2 planning & requirements",
     "titleArPlaceholder": "مثال: اجتماع التنسيق الفني",
     "locationExample": "Meeting room or video call",
-    "agendaPlaceholder": "1. Review of requirements and project scope.\n2. Milestones and design priorities.\n3. Action items and delivery deadline."
+    "agendaPlaceholder": "1. Review of project requirements.\n2. Milestones and deliverable dates.\n3. Action items and owners."
   },
   "newQuotationForm": {
     "pleaseSelectAClientFirst": "Please select a client first",
@@ -3381,7 +3399,10 @@
     "generalQuestionsAndPartnership": "General questions & partnership",
     "createdWithReference": "Request created successfully ({reference})",
     "createFailed": "Failed to create request",
-    "anUnexpectedErrorOccurred": "An unexpected error occurred"
+    "anUnexpectedErrorOccurred": "An unexpected error occurred",
+    "serviceBookingAndVisits": "Bookings, site visits, custom work",
+    "provideCompleteTechnicalSpecifications": "Provide full requirements, technical details or the background of the complaint...",
+    "budgetRangePlaceholder": "e.g. 500 - 1500"
   },
   "requestDetail": {
     "confirmingRequest": "Confirming request...",
@@ -3615,7 +3636,9 @@
     "allScheduledShootsClientMeetings": "All scheduled appointments, client meetings and deadlines sync in real time to Google Calendar and Apple Calendar.",
     "copied": "Copied!",
     "copyFeedUrl": "Copy Feed URL",
-    "addToGoogleCalendar": "Add to Google Calendar"
+    "addToGoogleCalendar": "Add to Google Calendar",
+    "calendarLiveFeed": "Schedule Live Feed URL (.ics)",
+    "allScheduledAppointmentsClientMeetings": "All scheduled appointments, client meetings and deadlines sync in real time to Google Calendar and Apple Calendar."
   },
   "taxVatSettingsTab": {
     "nbrOfficialCertificatePdfImage": "NBR Official Certificate (PDF / Image)",
@@ -3629,7 +3652,9 @@
     "viewChartData": "View chart data",
     "month": "Month",
     "revenueBhd": "Revenue",
-    "expensesBhd": "Expenses"
+    "expensesBhd": "Expenses",
+    "revenue": "Revenue",
+    "expenses": "Expenses"
   },
   "editConfirmModal": {
     "confirmChangesAndUpdate": "Confirm Changes & Update",
@@ -3696,7 +3721,8 @@
     "saveUpdates": "Save Updates",
     "general": "General",
     "notRecorded": "Not recorded",
-    "noEmail": "No email"
+    "noEmail": "No email",
+    "effectiveCompensation": "Effective Compensation"
   },
   "shared": {
     "jobTitleEnglish": "Job Title (English) *",
@@ -3806,7 +3832,7 @@
     "tabCancelled": "Cancelled",
     "hoursCount": "{n} hours",
     "cancelConfirmBody": "Cancel leave from {start} to {end}? This pending application will be withdrawn.",
-    "rejectNotesPlaceholder": "e.g. Critical client commitments scheduled during this week."
+    "rejectNotesPlaceholder": "e.g. Critical client work scheduled during this week."
   },
   "newEmployeeForm": {
     "pleaseFillInAllMandatory": "Please fill in all mandatory English and job title fields",
@@ -3840,7 +3866,9 @@
     "saveEmployeeRecord": "Save Employee Record",
     "employeeEmailExample": "employee@example.com",
     "jobTitlePlaceholderEn": "e.g. Senior Specialist",
-    "jobTitlePlaceholderAr": "Example: Senior specialist"
+    "jobTitlePlaceholderAr": "Example: Senior specialist",
+    "basicSalary": "Basic Salary *",
+    "monthlyCompensationStructure": "Monthly Compensation Structure"
   },
   "payrollManagement": {
     "failedToGeneratePayrollRun": "Failed to generate payroll run",
@@ -4099,7 +4127,9 @@
     "viewClientDossier": "View Client Dossier"
   },
   "executiveDashboard": {
-    "viewCustomerDossier": "View Customer Dossier"
+    "viewCustomerDossier": "View Customer Dossier",
+    "revenue": "Revenue",
+    "expenses": "Expenses"
   },
   "financialReports": {
     "generatingFormulaSafeCsvFinancial": "Generating formula-safe CSV financial report...",
@@ -4218,7 +4248,8 @@
     "invoicesCount": "{count} invoices",
     "topClients": "Top clients by collections — last 12 months",
     "noData": "No data yet.",
-    "spending": "Spending by category"
+    "spending": "Spending by category",
+    "realizedFxImpact": "Realized FX Impact"
   },
   "requestInbox": {
     "title": "Service Requests",
@@ -8319,7 +8350,8 @@
     "meeting": "Meeting: {title}",
     "requestDue": "Request due: {title}",
     "document": "Document",
-    "event": "Event"
+    "event": "Event",
+    "appointment": "Scheduled: {title}"
   },
   "permissionOverrides": {
     "open": "Permissions",

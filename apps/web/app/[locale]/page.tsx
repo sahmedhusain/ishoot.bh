@@ -3,7 +3,7 @@ import { storeEnabled } from "../../lib/customer";
 import { getReviews, catalogueProductPrices } from "@platform/database";
 import { pickText } from "@platform/database/constants/languages";
 import { getSite } from "../../lib/site";
-import { CinemaHero } from "../../components/hero/CinemaHero";
+import { ShowcaseHero } from "../../components/hero/ShowcaseHero";
 import { SplitHero } from "../../components/hero/SplitHero";
 import { CenteredHero } from "../../components/hero/CenteredHero";
 import { AboutSection } from "../../components/about/AboutSection";
@@ -65,7 +65,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   return (
     <div className="home-page flex flex-col w-full">
       {heroStyle === "cinematic" ? (
-        <CinemaHero banners={website.banners} companyName={{ en: company.company_name_en, ar: company.company_name_ar }} />
+        <ShowcaseHero banners={website.banners} companyName={{ en: company.company_name_en, ar: company.company_name_ar }} />
       ) : heroStyle === "split" ? (
         <SplitHero banners={website.banners} title={name} subtitle={tagline} />
       ) : (

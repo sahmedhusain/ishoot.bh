@@ -11,7 +11,7 @@ import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
 import { ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
-import { CinemaLightbox } from "./CinemaLightbox";
+import { ShowcaseLightbox } from "./ShowcaseLightbox";
 import { CollectionCard } from "./CollectionCard";
 import { collectionHref, collectionGridClass } from "../../lib/site-copy";
 
@@ -135,7 +135,7 @@ export function WorksSection({ items, categories: categoryChoices, title, presen
           ))}
         </div>
 
-        <CinemaLightbox item={selected} onClose={() => setSelected(null)} />
+        <ShowcaseLightbox item={selected} onClose={() => setSelected(null)} />
       </div>
     </section>
   );

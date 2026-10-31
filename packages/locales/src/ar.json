@@ -68,7 +68,9 @@
     "subtitle": "نظرة على ما نقدمه.",
     "playShowreel": "شاهد الفيديو",
     "watchIn4k": "شاهد الفيديو",
-    "streamTitle": "فيديو"
+    "streamTitle": "فيديو",
+    "playShowcase": "شاهد الفيديو",
+    "watchVideo": "مشاهدة الفيديو"
   },
   "services": {
     "badge": "ما نقدّمه",
@@ -125,7 +127,17 @@
     "resultsCount": "{count} نتيجة",
     "noResults": "لم نعثر على نتائج. جرّب كلمات أو فئة أخرى.",
     "clearFilters": "مسح الفلاتر",
-    "resultPages": "صفحات النتائج"
+    "resultPages": "صفحات النتائج",
+    "filterPrimary": "المشاريع",
+    "filterSecondary": "أعمال أخرى",
+    "filterGallery": "معرض الصور",
+    "filterServices": "الخدمات",
+    "watchPreview": "مشاهدة العرض",
+    "lead": "مسؤول المشروع",
+    "specialist": "متخصص أول",
+    "reviewer": "مراجع",
+    "contributor": "عضو الفريق",
+    "projectOverview": "نظرة عامة"
   },
   "clients": {
     "badge": "الثقة والريادة",
@@ -220,7 +232,20 @@
       "calibrated": "مورد"
     },
     "studioImageAlt": "مقر وفريق عمل {companyName}",
-    "studioImageCaption": "من داخل مقر عملنا"
+    "studioImageCaption": "من داخل مقر عملنا",
+    "statProjects": "",
+    "statProjectsValue": "",
+    "statProjectsLabel": "المشاريع",
+    "teamCaption": "فريق {companyName} أثناء العمل",
+    "gearPrimary": "المعدات",
+    "gearTools": "الأدوات",
+    "gearFacilities": "المرافق",
+    "gearTechnology": "التكنولوجيا",
+    "gearLocations": "المواقع",
+    "discoverMore": "تعرف على قصتنا وفريقنا",
+    "lead": "مسؤول المشروع",
+    "operationsLead": "مسؤول العمليات",
+    "specialistTag": ""
   },
   "contact": {
     "badge": "ابدأ التعاون",
@@ -440,7 +465,15 @@
     "invoicetemplate_58": "المجموع النهائي:",
     "invoicetemplate_59": "المبلغ المسدد:",
     "invoicetemplate_60": "المتبقي للسداد:",
-    "invoicetemplate_61": "شكراً لتعاملكم مع {companyName}."
+    "invoicetemplate_61": "شكراً لتعاملكم مع {companyName}.",
+    "showcaselightbox_16": "المسؤول:",
+    "showcaselightbox_17": "المتخصص:",
+    "showcaselightbox_18": "المراجع:",
+    "showcaselightbox_19": "المشارك:",
+    "itemlightbox_16": "المسؤول:",
+    "itemlightbox_17": "المتخصص:",
+    "itemlightbox_18": "المراجع:",
+    "itemlightbox_19": "المشارك:"
   },
   "stats": {
     "sectionIndex": "(04)",

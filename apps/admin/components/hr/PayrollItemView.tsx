@@ -7,7 +7,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AlertTriangle, ArrowLeft, ArrowRight, BadgeCheck, CalendarDays, ChevronLeft, ChevronRight, Clock, Receipt, Wallet } from "lucide-react";
-import { Select, Button, Card, DateDisplay } from "@platform/ui";
+import { Select, Button, Card, DateDisplay, useCompanyCurrency } from "@platform/ui";
+import { getCurrencyLabel } from "@platform/config/currency";
 import type { getPayrollItemDetail } from "@platform/database/queries/payroll";
 import { ROUTES } from "@platform/database/constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -40,12 +41,14 @@ const fill = (template: string, values: Record<string, string | number>) =>
   Object.entries(values).reduce((text, [key, value]) => text.replaceAll(`{${key}}`, String(value)), template);
 
 function useMoney() {
-  const { locale, t } = useAdminLocale();
+  const { locale } = useAdminLocale();
+  const companyCurrency = useCompanyCurrency();
+  const currencyLabel = getCurrencyLabel(companyCurrency, locale === "ar");
   const format = React.useMemo(() => new Intl.NumberFormat(locale === "ar" ? "ar-u-nu-latn" : "en-GB", { minimumFractionDigits: 3, maximumFractionDigits: 3 }), [locale]);
   return function money(value: number) {
     return (
       <bdi dir="ltr" className="whitespace-nowrap tabular-nums">
-        {format.format(value)} <span className="text-[0.8em] font-normal opacity-70">{t.shared.bhd}</span>
+        {format.format(value)} <span className="text-[0.8em] font-normal opacity-70">{currencyLabel}</span>
       </bdi>
     );
   };

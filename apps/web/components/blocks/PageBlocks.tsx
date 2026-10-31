@@ -10,7 +10,7 @@ import type { PublicCompanySettings, StudioEquipment } from "@platform/database/
 import type { ComponentProps } from "react";
 import type { WebsiteSnapshot } from "@platform/database";
 import { pickText } from "@platform/database/constants/languages";
-import { CinemaHero } from "../hero/CinemaHero";
+import { ShowcaseHero } from "../hero/ShowcaseHero";
 import { SplitHero } from "../hero/SplitHero";
 import { CenteredHero } from "../hero/CenteredHero";
 import { AboutSection } from "../about/AboutSection";
@@ -109,7 +109,7 @@ export function PageBlocks({ blocks, context }: { blocks: Block[]; context: Bloc
         // Full-screen media needs a banner; without one the centred headline opens the page.
         const requested = data.style === "inherit" ? resolveWebsiteConfig(website.config).heroStyle : data.style;
         const style = requested === "cinematic" && !website.banners.length ? "centered" : requested;
-        const hero = style === "cinematic" ? <CinemaHero banners={banners} companyName={{ en: company.company_name_en, ar: company.company_name_ar }} /> : style === "split" ? <SplitHero banners={banners} title={title} subtitle={subtitle} /> : <CenteredHero banners={banners} title={title} subtitle={subtitle} />;
+        const hero = style === "cinematic" ? <ShowcaseHero banners={banners} companyName={{ en: company.company_name_en, ar: company.company_name_ar }} /> : style === "split" ? <SplitHero banners={banners} title={title} subtitle={subtitle} /> : <CenteredHero banners={banners} title={title} subtitle={subtitle} />;
         return <>{hero}{ctx.home && <Promotions locale={locale} placement="home" />}</>;
       }
       case "about":

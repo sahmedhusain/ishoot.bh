@@ -189,7 +189,8 @@
     "location": "الموقع",
     "associatedDeal": "الصفقة أو المشروع المرتبط",
     "googleSyncStatus": "مربوط مع تقويم جوجل",
-    "connectGoogle": "ربط حساب تقويم جوجل"
+    "connectGoogle": "ربط حساب تقويم جوجل",
+    "eventWorkSession": "جلسة عمل"
   },
   "cms": {
     "bannersTitle": "إدارة بنرات الفيديو والصور الرئيسية",
@@ -1230,7 +1231,9 @@
     "pipelineStage": "مرحلة الصفقة",
     "clientOrContact": "العميل أو الشريك",
     "selectOrBlank": "اختر عميلاً أو اتركه فارغاً",
-    "shootDate": "الموعد المحدد"
+    "shootDate": "الموعد المحدد",
+    "scheduledDate": "الموعد المحدد",
+    "value": "القيمة *"
   },
   "contactsView": {
     "subtitle": "دليل جهات الاتصال من العملاء والشركاء وصناع القرار.",
@@ -1305,12 +1308,17 @@
     "specsPlaceholder": "المواصفات الأساسية والمقاسات والخيارات",
     "availableQty": "الكمية المتوفرة",
     "categories": {
-      "cameras": "كاميرات",
-      "lenses": "عدسات بصرية",
-      "lighting": "إضاءة",
-      "audio": "صوتيات وتسجيل",
-      "grip": "معدات حركة ومساند",
-      "drones": "طائرات درونز جوية"
+      "cameras": "المعدات الأساسية",
+      "lenses": "الأدوات الدقيقة",
+      "lighting": "الأنظمة والمرافق",
+      "audio": "الاتصالات والصوتيات",
+      "grip": "التركيب والدعم الفني",
+      "drones": "الوحدات الميدانية والمتحركة",
+      "primary": "المعدات الأساسية",
+      "tools": "الأدوات الدقيقة",
+      "facilities": "الأنظمة والمرافق",
+      "support": "الدعم والتركيب",
+      "mobile": "الوحدات المتنقلة"
     },
     "modelNameEnLabel": "الموديل بالإنجليزية",
     "itemNameArLabel": "الاسم بالعربية",
@@ -1373,7 +1381,8 @@
     "paymentAmountBhd": "مبلغ السداد",
     "notesPlaceholder": "تم التحقق من الإيداع عبر المدير المالي",
     "empty": "لا توجد دفعات مطابقة لهذه الفلاتر.",
-    "receiptsCount": "{n} إيصال"
+    "receiptsCount": "{n} إيصال",
+    "paymentAmount": "مبلغ السداد"
   },
   "paymentRecorder": {
     "modalTitle": "تسجيل دفعة",
@@ -1399,10 +1408,11 @@
   "financialView": {
     "revenueMinusExpenses": "الإيرادات مخصوماً منها التكاليف",
     "acrossContracts": "محتسبة عبر العقود المنجزة",
-    "fiscalYear": "السنة المالية 2026 •",
+    "fiscalYear": "نظرة مالية عامة",
     "depositedViaBank": "التحصيلات المودعة عبر التحويلات المصرفية",
     "approvedDiscounts": "الخصومات المعتمدة",
-    "productionCostsDesc": "المشتريات والإيجارات والأجور"
+    "productionCostsDesc": "المشتريات والإيجارات والأجور",
+    "amount": "المبلغ"
   },
   "expensesView": {
     "subtitle": "متابعة نفقات المشاريع والإيجارات والأجور والتكاليف التشغيلية.",
@@ -1441,7 +1451,9 @@
     "viewKanban": "عرض لوحة الصفقات",
     "shootDate": "الموعد:",
     "workspaceTitle": "مساحة عملي",
-    "recentDeals": "الصفقات الأخيرة"
+    "recentDeals": "الصفقات الأخيرة",
+    "zeroUpcomingAppointments": "لا توجد مواعيد قادمة",
+    "appointmentDate": "الموعد:"
   },
   "calendarView": {
     "months": [
@@ -1492,7 +1504,8 @@
     "eventTitleEnLabel": "عنوان الفعالية بالإنجليزية *",
     "eventTitleArLabel": "عنوان الفعالية بالعربية",
     "editEvent": "تعديل الحدث",
-    "saveFailed": "تعذر حفظ الحدث"
+    "saveFailed": "تعذر حفظ الحدث",
+    "workSession": "جلسة عمل"
   },
   "usersView": {
     "subtitle": "إدارة صلاحيات الوصول، تعيين الأدوار الوظيفية، ومراقبة حسابات فريق العمل.",
@@ -1858,7 +1871,8 @@
     "scheduledShootDate": "الموعد المجدول",
     "dealBriefNotes": "ملاحظات موجزة عن الصفقة",
     "probabilityValue": "احتمالية {value}%",
-    "expectedMultiplier": "({value}× المتوقع)"
+    "expectedMultiplier": "({value}× المتوقع)",
+    "scheduledDate": "الموعد المحدد"
   },
   "customerEdit": {
     "title": "تعديل ملف العميل",
@@ -1895,7 +1909,8 @@
     "saving": "جاري تحديث الصفقة...",
     "save": "حفظ تعديلات الصفقة",
     "titlePlaceholder": "مثال: عقد الصيانة السنوي - الربع الرابع",
-    "notesPlaceholder": "خلفية الصفقة ومتطلبات العميل والاعتبارات الخاصة..."
+    "notesPlaceholder": "خلفية الصفقة ومتطلبات العميل والاعتبارات الخاصة...",
+    "scheduledDateLabel": "الموعد المحدد"
   },
   "servicesView": {
     "title": "دليل الخدمات والأسعار",
@@ -2256,7 +2271,7 @@
     "tabSocial": "قنوات التواصل والمنصات",
     "tabCms": "مركز إدارة المحتوى",
     "heroCardTitle": "الواجهة الرئيسية وعرض الوسائط",
-    "heroCardDesc": "تكوين العناوين الرئيسية واستعراض الأعمال وفيديوهات الخلفية بملء الشاشة.",
+    "heroCardDesc": "إعداد العناوين الرئيسية، وعروض الفيديو، والبانرات المرئية بملء الشاشة.",
     "manageBanners": "إدارة {count} لافتات",
     "webNameEn": "اسم الموقع (الإنجليزية)",
     "webNameAr": "اسم الموقع (العربية)",
@@ -2328,7 +2343,8 @@
     "cmsNewBadge": "{count} جديد",
     "cmsQuestionsConfigured": "{count} أسئلة مضافة",
     "savedSuccessMsg": "تم حفظ الإعدادات وإعادة التحقق من ذاكرة التخزين المؤقت للموقع تلقائياً!",
-    "instantUpdateNotice": "التعديلات ستُحدّث قاعدة البيانات ومظهر الموقع العام بشكل فوري."
+    "instantUpdateNotice": "التعديلات ستُحدّث قاعدة البيانات ومظهر الموقع العام بشكل فوري.",
+    "cmsEquipmentItems": "{count} من المعدات"
   },
   "companyDocumentsView": {
     "title": "خزينة الوثائق والمستندات القانونية للمنشأة",
@@ -3057,7 +3073,8 @@
     "couldNotUpdateProjectPlease": "تعذر تحديث المشروع. يرجى المحاولة مرة أخرى.",
     "couldNotDeleteProjectPlease": "تعذر حذف المشروع. يرجى المحاولة مرة أخرى.",
     "couldNotSaveProject": "تعذر حفظ المشروع",
-    "descriptionEnglish": "الوصف (بالإنجليزية)"
+    "descriptionEnglish": "الوصف (بالإنجليزية)",
+    "fullMediaUrl": "رابط الوسائط الكامل"
   },
   "websiteEditor": {
     "saved": "تم الحفظ.",
@@ -3176,7 +3193,8 @@
     "contractSigned": "تم توقيع العقد",
     "postProduction": "المراجعة والتجهيز النهائي",
     "closedWon": "مغلقة - ناجحة",
-    "closedLost": "مغلقة - خاسرة"
+    "closedLost": "مغلقة - خاسرة",
+    "scheduledDate": "الموعد المحدد"
   },
   "leadsManagement": {
     "couldNotSaveTheChange": "تعذر حفظ التغيير. تحقق من صلاحياتك وحاول مجدداً.",
@@ -3307,7 +3325,7 @@
     "eGQ2ProductionAlignment": "مثال: تخطيط الربع الثاني والمتطلبات",
     "titleArPlaceholder": "مثال: اجتماع التنسيق الفني",
     "locationExample": "غرفة اجتماعات أو اجتماع مرئي",
-    "agendaPlaceholder": "1. مراجعة المتطلبات ونطاق المشروع.\n2. المراحل الأساسية والأولويات.\n3. خطة التنفيذ وموعد التسليم."
+    "agendaPlaceholder": "1. مراجعة متطلبات المشروع.\n2. المراحل ومواعيد التسليم.\n3. بنود العمل والمسؤولون عنها."
   },
   "newQuotationForm": {
     "pleaseSelectAClientFirst": "يرجى تحديد العميل أولاً",
@@ -3381,7 +3399,10 @@
     "generalQuestionsAndPartnership": "أسئلة عامة، شراكات، تواصل",
     "createdWithReference": "تم إنشاء الطلب بنجاح برقم مرجعي: {reference}",
     "createFailed": "تعذر إنشاء الطلب",
-    "anUnexpectedErrorOccurred": "حدث خطأ غير متوقع"
+    "anUnexpectedErrorOccurred": "حدث خطأ غير متوقع",
+    "serviceBookingAndVisits": "حجوزات، زيارات ميدانية، أعمال خاصة",
+    "provideCompleteTechnicalSpecifications": "اكتب تفاصيل المتطلبات الفنية، أهداف العمل، أو ملخص الشكوى بتوضيح كامل...",
+    "budgetRangePlaceholder": "مثال: 500 - 1500"
   },
   "requestDetail": {
     "confirmingRequest": "جارٍ تأكيد الطلب تنفيذاً...",
@@ -3615,7 +3636,9 @@
     "allScheduledShootsClientMeetings": "يتم تحديث جميع المواعيد والاجتماعات ومواعيد التسليم تلقائياً في تقويم Google وتقويم Apple.",
     "copied": "تم النسخ!",
     "copyFeedUrl": "نسخ الرابط",
-    "addToGoogleCalendar": "إضافة إلى تقويم Google"
+    "addToGoogleCalendar": "إضافة إلى تقويم Google",
+    "calendarLiveFeed": "رابط تقويم المواعيد المباشر",
+    "allScheduledAppointmentsClientMeetings": "يتم تحديث جميع المواعيد والاجتماعات ومواعيد التسليم تلقائياً في تقويم Google وتقويم Apple."
   },
   "taxVatSettingsTab": {
     "nbrOfficialCertificatePdfImage": "شهادة الجهاز الوطني للإيرادات (PDF / صورة)",
@@ -3629,7 +3652,9 @@
     "viewChartData": "عرض بيانات الرسم",
     "month": "الشهر",
     "revenueBhd": "الإيراد",
-    "expensesBhd": "المصروف"
+    "expensesBhd": "المصروف",
+    "revenue": "الإيراد",
+    "expenses": "المصروف"
   },
   "editConfirmModal": {
     "confirmChangesAndUpdate": "تأكيد التعديلات والتغييرات",
@@ -3696,7 +3721,8 @@
     "saveUpdates": "حفظ التعديلات",
     "general": "عام",
     "notRecorded": "غير مسجل",
-    "noEmail": "لا يوجد بريد إلكتروني"
+    "noEmail": "لا يوجد بريد إلكتروني",
+    "effectiveCompensation": "الراتب والبدلات"
   },
   "shared": {
     "jobTitleEnglish": "المسمى الوظيفي (بالإنجليزية) *",
@@ -3806,7 +3832,7 @@
     "tabCancelled": "الملغاة",
     "hoursCount": "{n} ساعات",
     "cancelConfirmBody": "هل تريد إلغاء الإجازة من {start} إلى {end}؟ سيُسحب هذا الطلب المعلّق.",
-    "rejectNotesPlaceholder": "مثال: ارتباطات عمل حرجة مجدولة خلال هذا الأسبوع."
+    "rejectNotesPlaceholder": "مثال: وجود عمل مجدول لعميل خلال هذا الأسبوع."
   },
   "newEmployeeForm": {
     "pleaseFillInAllMandatory": "يرجى تعبئة الاسم والمسمى الوظيفي المطلوبين",
@@ -3839,8 +3865,10 @@
     "errorOnboardingEmployee": "خطأ في إضافة الموظف",
     "saveEmployeeRecord": "حفظ ملف الموظف",
     "employeeEmailExample": "employee@example.com",
-    "jobTitlePlaceholderEn": "e.g. Senior Specialist",
-    "jobTitlePlaceholderAr": "مثال: أخصائي أول"
+    "jobTitlePlaceholderEn": "مثال: Senior Specialist",
+    "jobTitlePlaceholderAr": "مثال: أخصائي أول",
+    "basicSalary": "الراتب الأساسي *",
+    "monthlyCompensationStructure": "هيكل الراتب الشهري"
   },
   "payrollManagement": {
     "failedToGeneratePayrollRun": "تعذّر إنشاء دورة الرواتب",
@@ -4099,7 +4127,9 @@
     "viewClientDossier": "عرض ملف العميل"
   },
   "executiveDashboard": {
-    "viewCustomerDossier": "عرض ملف العميل"
+    "viewCustomerDossier": "عرض ملف العميل",
+    "revenue": "الإيراد",
+    "expenses": "المصروف"
   },
   "financialReports": {
     "generatingFormulaSafeCsvFinancial": "جاري إنشاء تقرير مالي بصيغة CSV آمنة...",
@@ -4218,7 +4248,8 @@
     "invoicesCount": "{count} فاتورة",
     "topClients": "أكبر العملاء تحصيلاً — آخر 12 شهراً",
     "noData": "لا توجد بيانات بعد.",
-    "spending": "الإنفاق حسب الفئة"
+    "spending": "الإنفاق حسب الفئة",
+    "realizedFxImpact": "أثر الصرف المحقق"
   },
   "requestInbox": {
     "title": "طلبات الخدمة",
@@ -8319,7 +8350,8 @@
     "meeting": "اجتماع: {title}",
     "requestDue": "موعد الطلب: {title}",
     "document": "مستند",
-    "event": "حدث"
+    "event": "حدث",
+    "appointment": "موعد: {title}"
   },
   "permissionOverrides": {
     "open": "الصلاحيات",

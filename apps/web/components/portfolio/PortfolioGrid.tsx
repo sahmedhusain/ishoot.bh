@@ -14,7 +14,7 @@ import { CategoryTabs } from "./CategoryTabs";
 import { CollectionCard } from "./CollectionCard";
 import { collectionGridClass } from "../../lib/site-copy";
 import type { CollectionLayout } from "@platform/database/website-presets";
-import { CinemaLightbox } from "./CinemaLightbox";
+import { ShowcaseLightbox } from "./ShowcaseLightbox";
 
 interface PortfolioGridProps {
   items: PortfolioItem[];
@@ -90,7 +90,7 @@ export function PortfolioGrid({ items, categories, layout }: PortfolioGridProps)
       </motion.div>
 
       {result.pages > 1 && <nav aria-label={t("portfolio.resultPages")} className="flex items-center justify-between gap-3"><button type="button" className={secondaryButton} disabled={result.page <= 1} onClick={() => update({ page: String(result.page - 1) })}>{t("portfolio.previous")}</button><span className="text-sm text-ink-muted">{result.page} / {result.pages}</span><button type="button" className={secondaryButton} disabled={result.page >= result.pages} onClick={() => update({ page: String(result.page + 1) })}>{t("portfolio.next")}</button></nav>}
-      <CinemaLightbox
+      <ShowcaseLightbox
         item={selectedItem}
         onClose={() => setSelectedItem(null)}
       />

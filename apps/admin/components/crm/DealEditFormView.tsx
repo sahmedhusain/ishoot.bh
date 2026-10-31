@@ -87,7 +87,7 @@ export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFor
     },
     {
       field: "shoot_date",
-      label: t.dealEditForm.shootDate,
+      label: t.dealEditForm.scheduledDate || t.dealEditForm.shootDate,
       oldValue: deal.shoot_date ? new Date(deal.shoot_date).toISOString().split("T")[0] : "—",
       newValue: shootDate || "—",
     },
@@ -269,7 +269,7 @@ export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFor
 
           <label>
             <span className="text-xs font-semibold text-ink dark:text-ink mb-1.5 block">
-              {t.dealEdit.shootDateLabel}
+              {t.dealEdit.scheduledDateLabel || t.dealEdit.shootDateLabel}
             </span>
             <Input
               type="date"

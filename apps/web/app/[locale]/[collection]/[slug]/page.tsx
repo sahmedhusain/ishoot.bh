@@ -67,7 +67,16 @@ export default async function CollectionItemPage({
   const ArrowBackIcon = isRTL ? ArrowRight : ArrowLeft;
   const meta = [item.client_name, item.year, item.location].filter(Boolean);
   const credits = layout === "media" ? Object.entries(item.credits ?? {}).filter(([, value]) => value) : [];
-  const creditLabels: Record<string, string> = { director: t.portfolio.director, dop: t.portfolio.dop, colorist: t.portfolio.colorist, editor: t.portfolio.editor };
+  const creditLabels: Record<string, string> = {
+    director: t.portfolio.lead ?? t.portfolio.director,
+    dop: t.portfolio.specialist ?? t.portfolio.dop,
+    colorist: t.portfolio.reviewer ?? t.portfolio.colorist,
+    editor: t.portfolio.contributor ?? t.portfolio.editor,
+    lead: t.portfolio.lead ?? t.portfolio.director,
+    specialist: t.portfolio.specialist ?? t.portfolio.dop,
+    reviewer: t.portfolio.reviewer ?? t.portfolio.colorist,
+    contributor: t.portfolio.contributor ?? t.portfolio.editor,
+  };
   const gallery = (item.gallery_urls ?? []).filter((url) => url && url !== item.thumbnail_url);
   const enquire = `/${locale}/contact?intent=quote_request&item=${encodeURIComponent(item.slug)}`;
   const hasDetails = !!price || item.attributes.length > 0 || credits.length > 0 || !!item.external_url;
@@ -127,7 +136,7 @@ export default async function CollectionItemPage({
       <PublicDocuments locale={locale} itemSlug={item.slug} />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-12 pt-8 border-t border-white/10">
         <div className="md:col-span-2 space-y-4">
-          <h2 className="text-xl font-bold text-white font-display">{t.portfolio.productionOverview}</h2>
+          <h2 className="text-xl font-bold text-white font-display">{t.portfolio.projectOverview ?? t.portfolio.productionOverview}</h2>
           {description ? <p className="text-base text-ink-muted leading-relaxed whitespace-pre-line">{description}</p> : null}
         </div>
 

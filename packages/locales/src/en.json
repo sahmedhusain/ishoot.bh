@@ -68,7 +68,9 @@
     "subtitle": "A closer look at what we do.",
     "playShowreel": "Play video",
     "watchIn4k": "Watch video",
-    "streamTitle": "Video"
+    "streamTitle": "Video",
+    "playShowcase": "Play video",
+    "watchVideo": "Watch video"
   },
   "services": {
     "badge": "What we offer",
@@ -125,7 +127,17 @@
     "resultsCount": "{count} results",
     "noResults": "No results. Try another search or category.",
     "clearFilters": "Clear filters",
-    "resultPages": "Result pages"
+    "resultPages": "Result pages",
+    "filterPrimary": "Projects",
+    "filterSecondary": "Other work",
+    "filterGallery": "Gallery",
+    "filterServices": "Services",
+    "watchPreview": "Watch preview",
+    "lead": "Project lead",
+    "specialist": "Lead specialist",
+    "reviewer": "Reviewer",
+    "contributor": "Team member",
+    "projectOverview": "Overview"
   },
   "clients": {
     "badge": "Trust & Pedigree",
@@ -220,7 +232,20 @@
       "calibrated": "Resource"
     },
     "studioImageAlt": "{companyName} workplace and team",
-    "studioImageCaption": "Inside our workplace"
+    "studioImageCaption": "Inside our workplace",
+    "statProjects": "",
+    "statProjectsValue": "",
+    "statProjectsLabel": "Projects",
+    "teamCaption": "{companyName} team at work",
+    "gearPrimary": "Equipment",
+    "gearTools": "Tools",
+    "gearFacilities": "Facilities",
+    "gearTechnology": "Technology",
+    "gearLocations": "Locations",
+    "discoverMore": "Discover our story and team",
+    "lead": "Project Lead",
+    "operationsLead": "Operations Lead",
+    "specialistTag": ""
   },
   "contact": {
     "badge": "Initiate Collaboration",
@@ -440,7 +465,15 @@
     "invoicetemplate_58": "TOTAL AMOUNT:",
     "invoicetemplate_59": "Amount Paid:",
     "invoicetemplate_60": "Balance Due:",
-    "invoicetemplate_61": "Thank you for choosing {companyName}."
+    "invoicetemplate_61": "Thank you for choosing {companyName}.",
+    "showcaselightbox_16": "Lead:",
+    "showcaselightbox_17": "Specialist:",
+    "showcaselightbox_18": "Reviewer:",
+    "showcaselightbox_19": "Contributor:",
+    "itemlightbox_16": "Lead:",
+    "itemlightbox_17": "Specialist:",
+    "itemlightbox_18": "Reviewer:",
+    "itemlightbox_19": "Contributor:"
   },
   "stats": {
     "sectionIndex": "(04)",
