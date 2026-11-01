@@ -38,6 +38,48 @@ x-files: &files
   volumes:
     - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/config/service-keys.json:ro
 
+x-identity: &identity
+  <<: *service
+  profiles: [identity]
+  build:
+    context: backend
+    args: { SERVICE: identity }
+  image: platform/identity:dev
+  environment:
+    <<: *service-env
+    SERVICE_NAME: identity
+    DATABASE_URL: postgres://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    AUTH_SERVICE_KEYS_FILE: /keys/service-keys.json
+    IDENTITY_ISSUER: ${IDENTITY_ISSUER:-http://identity:8080}
+    IDENTITY_SIGNING_JWK: ${IDENTITY_SIGNING_JWK:-}
+    IDENTITY_PREVIOUS_JWKS: ${IDENTITY_PREVIOUS_JWKS:-}
+    IDENTITY_LOGIN_ENABLED: ${IDENTITY_LOGIN_ENABLED:-false}
+    IDENTITY_LOGIN_REDIS_URL: ${IDENTITY_LOGIN_REDIS_URL:-redis://:${VALKEY_PASSWORD}@valkey:6379/0}
+    IDENTITY_LOGIN_RATE_KEY: ${IDENTITY_LOGIN_RATE_KEY:-}
+    IDENTITY_LOGIN_MFA_KEYS: ${IDENTITY_LOGIN_MFA_KEYS:-}
+    IDENTITY_LOGIN_MFA_PRIMARY_ID: ${IDENTITY_LOGIN_MFA_PRIMARY_ID:-primary}
+    IDENTITY_LOGIN_MFA_LEGACY_KEY: ${IDENTITY_LOGIN_MFA_LEGACY_KEY:-}
+    IDENTITY_LOGIN_IT_ALLOWED_CIDRS: ${IDENTITY_LOGIN_IT_ALLOWED_CIDRS:-}
+    IDENTITY_ACCESS_TTL: ${IDENTITY_ACCESS_TTL:-}
+    IDENTITY_SESSION_TTL: ${IDENTITY_SESSION_TTL:-}
+    IDENTITY_JSON_BODY_LIMIT: ${IDENTITY_JSON_BODY_LIMIT:-}
+    IDENTITY_LOGIN_ACCOUNT_ATTEMPTS: ${IDENTITY_LOGIN_ACCOUNT_ATTEMPTS:-}
+    IDENTITY_LOGIN_IP_ATTEMPTS: ${IDENTITY_LOGIN_IP_ATTEMPTS:-}
+    IDENTITY_LOGIN_RATE_WINDOW: ${IDENTITY_LOGIN_RATE_WINDOW:-}
+    IDENTITY_LOGIN_MAX_CONCURRENT_KDF: ${IDENTITY_LOGIN_MAX_CONCURRENT_KDF:-}
+    IDENTITY_LOGIN_PASSWORD_MEMORY_KIB: ${IDENTITY_LOGIN_PASSWORD_MEMORY_KIB:-}
+    IDENTITY_LOGIN_PASSWORD_ITERATIONS: ${IDENTITY_LOGIN_PASSWORD_ITERATIONS:-}
+    IDENTITY_LOGIN_PASSWORD_PARALLELISM: ${IDENTITY_LOGIN_PASSWORD_PARALLELISM:-}
+    IDENTITY_LOGIN_PASSWORD_MAX_MEMORY_KIB: ${IDENTITY_LOGIN_PASSWORD_MAX_MEMORY_KIB:-}
+    IDENTITY_LOGIN_PASSWORD_MAX_ITERATIONS: ${IDENTITY_LOGIN_PASSWORD_MAX_ITERATIONS:-}
+    IDENTITY_LOGIN_PASSWORD_MAX_PARALLELISM: ${IDENTITY_LOGIN_PASSWORD_MAX_PARALLELISM:-}
+    IDENTITY_LOGIN_PASSWORD_MAX_BCRYPT_COST: ${IDENTITY_LOGIN_PASSWORD_MAX_BCRYPT_COST:-}
+    IDENTITY_LOGIN_TOTP_PERIOD: ${IDENTITY_LOGIN_TOTP_PERIOD:-}
+    IDENTITY_LOGIN_TOTP_DIGITS: ${IDENTITY_LOGIN_TOTP_DIGITS:-}
+    IDENTITY_LOGIN_TOTP_WINDOW: ${IDENTITY_LOGIN_TOTP_WINDOW:-}
+  volumes:
+    - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/keys/service-keys.json:ro
+
 services:
   postgres:
     image: postgres:17-alpine
@@ -162,6 +204,39 @@ services:
     depends_on:
       valkey: { condition: service_healthy }
       files: { condition: service_healthy }
+
+  identity-migrate:
+    <<: *identity
+    restart: "no"
+    command: ["migrate"]
+    healthcheck: { disable: true }
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  identity:
+    <<: *identity
+    command: ["serve"]
+    ports:
+      - "127.0.0.1:${IDENTITY_PORT:-8082}:8080"
+      - "127.0.0.1:${IDENTITY_ADMIN_PORT:-9082}:9090"
+    depends_on:
+      identity-migrate: { condition: service_completed_successfully }
+      valkey: { condition: service_healthy }
+
+  identity-worker:
+    <<: *identity
+    command: ["worker"]
+    # The worker only needs the database, never the signing or service authentication keys.
+    environment:
+      <<: *service-env
+      SERVICE_NAME: identity
+      DATABASE_URL: postgres://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
+      IDENTITY_CLEANUP_INTERVAL: ${IDENTITY_CLEANUP_INTERVAL:-}
+      IDENTITY_CLEANUP_BATCH: ${IDENTITY_CLEANUP_BATCH:-}
+      IDENTITY_CLEANUP_WORKERS: ${IDENTITY_CLEANUP_WORKERS:-}
+    volumes: []
+    depends_on:
+      identity-migrate: { condition: service_completed_successfully }
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.120.0

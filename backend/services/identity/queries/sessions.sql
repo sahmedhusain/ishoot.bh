@@ -21,4 +21,9 @@ SELECT * FROM identity.session_family WHERE id=$1 AND realm=$2 AND revoked_at IS
 
 -- name: DeleteExpiredSessionFamilies :execrows
 -- Consumed credentials must remain available for replay detection until the absolute family expiry.
-DELETE FROM identity.session_family WHERE expires_at <= $1;
+DELETE FROM identity.session_family WHERE id IN (
+ SELECT sf.id FROM identity.session_family AS sf WHERE sf.expires_at <= @cutoff
+ ORDER BY sf.expires_at, sf.id LIMIT @batch_size::int FOR UPDATE SKIP LOCKED
+);
+-- name: ReadSessionFamily :one
+SELECT * FROM identity.session_family WHERE id=$1;

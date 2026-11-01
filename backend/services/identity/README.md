@@ -1,33 +1,11 @@
 # Identity service — Phase 3 in progress
 
-The running apps still use TypeScript authentication. This service is not yet deployed and has no API binary.
-The session lifecycle contract is `api/openapi.yaml`; login, JWKS publication, account migration, MFA,
-OAuth, reset flows and frontend integration remain to be implemented before cutover.
+Identity has a preview API and worker. The running Next.js apps still use their existing authentication; do not route their traffic to this service until the remaining flows and revocation checks are complete.
 
-Implemented:
+The API publishes `/.well-known/jwks.json` and accepts service-authenticated login, refresh and logout requests for the staff, customer and IT realms. Password login is disabled by default (`IDENTITY_LOGIN_ENABLED=false`). When enabled, it verifies existing bcrypt hashes, upgrades them to Argon2id after successful authentication, applies Redis-backed account and IP limits, and verifies enrolled TOTP or recovery codes. IT login requires MFA and can enforce a network allowlist. Session creation, MFA consumption and password upgrade are transactional. Refresh rotation detects reuse and revokes the family; expired families are removed by the River worker.
 
-- Ed25519 access-token signing and public-only JWKS serialization, with realm audiences and session expiry caps.
+Access tokens are signed with an Ed25519 key and have realm-specific audiences. Configure previous public keys during signing-key rotation so existing tokens remain verifiable until they expire. Signing keys and refresh credentials must remain secret. The API sets `Cache-Control: no-store` for credential responses. Access-token verification currently checks signatures and claims but does **not** consult session status: logout, account disablement and refresh replay do not immediately invalidate an already issued access token. App servers must serialize refresh requests per session; simultaneous reuse of a credential revokes its family.
 
-- Opaque 256-bit refresh credentials; only SHA-256 hashes are stored.
-- Session families isolated by staff/customer/IT realm and a fixed absolute expiry.
-- Atomic one-time refresh rotation using a row lock on the session family.
-- Replay detection that commits family revocation before returning an authentication failure.
-- Idempotent family logout, including via previously consumed credentials.
-- sqlc queries and goose migrations in the identity schema; no cross-domain foreign keys.
+From the repository root, `docker compose --profile identity up -d --build --wait` starts the preview API, migration and worker alongside its dependencies. The preview profile does not switch either app or enable password login. See [configuration](../../../docs/backend/CONFIG.md) for environment settings and [identity migration](../../../docs/backend/IDENTITY-MIGRATION.md) for account import and cutover limitations.
 
-The caller of `sessions.Start` must first complete authentication and all applicable MFA/IP-policy checks.
-It is an internal use case, not an API allowing callers to create arbitrary user sessions. The future HTTP adapter
-must map invalid/replayed credentials to the same 401 problem, redact tokens from logs, set `Cache-Control: no-store`,
-and enforce rate limits. Access-token revocation checks must consult session-family status where immediate revocation
-is required; short JWT expiry alone does not revoke an already-issued access token.
-
-App servers must serialize refresh attempts per session; concurrent use of the same credential deliberately triggers
-replay revocation rather than creating a second token branch.
-
-Consumed refresh hashes remain until the whole family expires. Do not delete them on rotation: they are the evidence
-needed to detect replay. The repository can remove expired families and their token history; scheduled expiry cleanup is not wired yet. No existing user tables or app sessions
-have been changed by these migrations.
-
-From `backend/`, run `go test -race ./services/identity/...` for real Postgres tests of concurrent refresh, rollback,
-replay, expiry, logout and cross-realm rejection, plus OpenAPI validation. Regenerate queries with
-`go generate ./services/identity`. See `docs/backend/IDENTITY-MIGRATION.md` for the remaining migration work.
+From `backend/`, run `go test -race ./services/identity/...` for real Postgres session, account, worker and OpenAPI contract tests. Run `go generate ./services/identity` after editing SQL queries. Existing Prisma user tables and app sessions remain in place.

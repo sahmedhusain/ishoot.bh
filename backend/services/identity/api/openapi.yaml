@@ -6,12 +6,69 @@ info:
     Phase 3 contract foundation; these endpoints are not deployed yet.
     App servers authenticate with service tokens and pass opaque refresh credentials server-side.
     A refresh credential is usable once, only in its issuing realm. Reuse revokes its session family.
-    Refreshing never extends the absolute session lifetime. Access-token issuance is added with login/JWKS.
+    Refreshing never extends the absolute session lifetime. When login is enabled, refresh also checks account status and issues a new access token.
 servers:
   - url: /
 security:
   - serviceToken: []
 paths:
+  /.well-known/jwks.json:
+    get:
+      operationId: identityJWKS
+      summary: Publish public signing keys
+      security: []
+      responses:
+        '200':
+          description: Public JSON Web Key Set
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [keys]
+                properties:
+                  keys:
+                    type: array
+                    items: {type: object}
+  /v1/identity/{realm}/sessions/login:
+    parameters:
+      - $ref: '#/components/parameters/Realm'
+    post:
+      operationId: loginIdentitySession
+      summary: Authenticate a password and, where required, an MFA or recovery code
+      description: |
+        Opt-in during migration. The calling app supplies clientIp only from a trusted ingress header.
+        IT accounts require enrolled MFA. Errors do not reveal whether the account exists.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [email, password]
+              properties:
+                email: {type: string, minLength: 1, maxLength: 254}
+                password: {type: string, minLength: 1, maxLength: 1024}
+                otp: {type: string, maxLength: 64}
+                clientIp: {type: string, maxLength: 45}
+      responses:
+        '200':
+          description: Authenticated session credentials; never cache or log
+          headers:
+            Cache-Control:
+              schema: {type: string, const: no-store}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginCredential'
+        '401':
+          description: Invalid credentials or MFA required after password verification
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
   /v1/identity/{realm}/sessions/refresh:
     parameters:
       - $ref: '#/components/parameters/Realm'
@@ -29,7 +86,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SessionCredential'
+                oneOf:
+                  - $ref: '#/components/schemas/SessionCredential'
+                  - $ref: '#/components/schemas/LoginCredential'
         '401':
           description: Invalid, expired, revoked or replayed credential; no reason is disclosed
           content:
@@ -92,6 +151,18 @@ components:
         realm: {type: string, enum: [staff, customer, it]}
         expiresAt: {type: string, format: date-time}
         refreshToken: {type: string, pattern: '^[A-Za-z0-9_-]{43}$'}
+    LoginCredential:
+      type: object
+      additionalProperties: false
+      required: [sessionId, subjectId, realm, expiresAt, refreshToken, accessToken, roles]
+      properties:
+        sessionId: {type: string, format: uuid}
+        subjectId: {type: string, minLength: 1}
+        realm: {type: string, enum: [staff, customer, it]}
+        expiresAt: {type: string, format: date-time}
+        refreshToken: {type: string, pattern: '^[A-Za-z0-9_-]{43}$'}
+        accessToken: {type: string}
+        roles: {type: array, items: {type: string}}
     Problem:
       type: object
       required: [type, title, status, code]

@@ -1,62 +1,30 @@
 # Phase 3: identity migration boundary
 
-Status: implementation started; authentication still runs in the Next.js apps. Phase 2 is committed at `47aae131`.
+Status: in progress. The identity API, worker and account import are available as a preview; admin and web continue to use their existing TypeScript authentication.
 
-## Implemented foundation
+## What is implemented
 
-`backend/pkg/password` creates salted Argon2id PHC hashes, verifies existing bcrypt 2a/2b/2y credentials,
-and reports when a successfully verified credential needs upgrading. Incorrect credentials never trigger rehashing.
-Hash parsing rejects unsupported algorithms/versions, malformed encodings and parameters outside configured resource
-limits before invoking the KDF. New-hash defaults use 19 MiB, two iterations and one lane, matching the
-[OWASP minimum](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html).
+The preview service issues realm-specific Ed25519 access tokens and publishes public signing keys. Service-authenticated endpoints support password login, refresh-token rotation and logout. Refresh tokens are stored as hashes; reuse revokes the session family. Login accepts existing bcrypt hashes and upgrades them to Argon2id after successful verification. It supports existing encrypted TOTP secrets and one-use recovery codes, requires MFA for IT accounts, bounds password-hashing concurrency, and uses Redis for account and IP limits. A River worker cleans expired session families. See the [service README](../../backend/services/identity/README.md) and [configuration reference](CONFIG.md).
 
-Configuration has environment tags and validates at construction; it will be embedded in identity settings when
-that service is wired. The future login use case must also bound concurrent KDF operations and apply account/IP
-rate limits. Password-policy validation, dummy verification for nonexistent users and atomic replacement of a
-verified legacy hash belong in that use case. The package alone does not switch authentication or move tables.
+`backend/tools/identity-import` reads legacy staff and customer authentication data into identity-owned account tables without deleting or changing the legacy tables. It preserves subject IDs, password hashes, existing MFA secrets and recovery-code use state. It validates email normalization, credentials and MFA decryption, rejects conflicting or extra target records, and runs the import in one transaction. Repeating an unchanged import is safe. This is a snapshot, not ongoing synchronization.
 
-The identity session foundation now has an OpenAPI contract, schema migrations and sqlc-backed repositories.
-An Ed25519 issuer signs realm-specific access tokens capped by session expiry and serializes a public-only JWKS.
-It is not yet connected to an HTTP endpoint, login flow, key rotation or deployment configuration.
-Real Postgres tests cover one-time rotation, concurrent reuse, durable family revocation, failed-write rollback,
-absolute expiry, idempotent logout and realm isolation. No API is deployed and apps still use existing authentication.
+To rehearse on a disposable database copy, run the identity migration, then the importer from `backend/` with `DATABASE_URL` pointing at the copy. The database role needs temporary read access to the legacy tables and write access to the identity schema. Configure `IDENTITY_LOGIN_MFA_LEGACY_KEY` to the existing `MFA_ENCRYPTION_KEY` and provide the configured identity MFA key ring; the importer verifies enabled secrets against their original user IDs. Run:
 
-## Existing contracts to preserve
+```sh
+go run ./services/identity/cmd/api migrate
+go run ./tools/identity-import          # validate only
+go run ./tools/identity-import -apply   # write the snapshot
+go run ./tools/identity-import -apply   # verify an unchanged rerun
+```
 
-Staff authentication enters through `apps/admin/app/api/auth/{login,mfa,logout,me,forgot-password,reset-password}`.
-`apps/admin/lib/auth.ts` resolves the session to the existing Profile DTO and computes effective permission grants.
-Its exported functions are consumed by pages and server actions, so those signatures must remain stable at cutover.
-`packages/database/src/queries/sessions.ts` stores SHA-256 session-token hashes and selects only public profile fields.
+A successful rehearsal does not authorize a production cutover. Before an eventual cutover, take and test a backup, pause legacy authentication and account writes throughout the final import and switch, and verify the result before resuming writes. Identity and the legacy app otherwise diverge. The importer does not migrate active sessions; existing sessions must end at cutover. It also does not migrate pending invitations, reset challenges or customer email codes.
 
-Identity data currently spans `User`, `Session`, `Role`, `RoleDataScope`, `Permission`, `MfaRecoveryCode`,
-`AuthChallenge`, `Customer`, `CustomerSession` and `CustomerAuthCode`. Complete the dependency inventory before moving
-any table. `CustomerAddress` and commercial customer relationships remain business data and need an explicit boundary.
+## Remaining before cutover
 
-`User` combines credentials/MFA with employee hierarchy, department links, signatures, commission and sales settings.
-`Customer` combines credentials/OAuth subjects with CRM, addresses, wishlist and order relationships. Moving these
-whole tables without porting their readers would break the remaining Prisma domains. Split authentication ownership
-from business projections, retain IDs, remove cross-service foreign keys only when their readers have replacements,
-and document the projection synchronization before writing the handoff migration.
+- Implement and test OAuth, customer email codes and registration, password reset and invitations, MFA enrollment and administration, and IT account bootstrap.
+- Preserve staff profile, role, permission, data-scope and override behavior. Define synchronization between identity and the remaining business-owned user and customer projections.
+- Enforce access-token session revocation at the gateway or service boundary. A valid signed token currently remains usable until expiry after logout, account disablement or refresh replay.
+- Integrate the generated client, gateway, app cookies and existing auth DTOs; preserve existing auth exports and authorization behavior. Wire production deployment and key rotation.
+- Rehearse migration and restore with real customer, MFA and recovery-code data; verify permission parity and run the staff, customer, setup, OAuth, MFA, reset and logout regression and browser suites.
 
-## Required implementation sequence
-
-1. Inventory staff/customer authentication, enrollment, recovery, password reset, OAuth and permission callers and their
-   current regression tests. Account for bootstrap and every demo profile, not only interactive login.
-2. Write OpenAPI contracts for all three isolated realms, JWKS, access tokens, refresh rotation/reuse detection,
-   session revocation, profile/permission reads, password reset and MFA enrollment/recovery.
-3. Implement pure domain rules and use cases with tests, then sqlc repositories and real Postgres contract tests.
-   Accept existing bcrypt hashes and encrypted TOTP formats; rehash to Argon2id after successful login. Never move or
-   print encryption keys. IT authentication requires completed MFA enrollment and its configured network policy.
-4. Prove the account/projection handoff on a disposable seeded database, including UTC timestamps, stable IDs,
-   permission parity and a restore rehearsal. Existing staff sessions end once at cutover, as ADR 0005 specifies.
-5. Generate the TS client and preserve existing app cookies/DTO adapters while changing their data source. Wire the
-   gateway, Compose, worker/migrations, Helm, CI and env tool together before enabling identity in either app.
-6. Run the complete authentication/security regression suite and serial browser tests for staff, customer, setup,
-   MFA, OAuth, reset and logout. Verify cookies and token realm isolation; reject refresh reuse and revoked sessions.
-
-## Constraints carried from the accepted plan
-
-- Continue on `feat/go-backend` in the current checkout; no additional worktree is required.
-- Service-to-service callers retain ADR 0011 app keys during migration. User tokens follow ADR 0005.
-- Do not retire working TS auth or change ownership of its tables until replacement tests and APIs are ready.
-- Identity completion does not complete Phase 4: system/audit/notify and the IT app remain separate milestones.
+`User` and `Customer` also contain business relationships used by Prisma. Do not move or delete those tables until their remaining readers and projections have replacements. No cross-service foreign keys are added by the identity snapshot. See [ADR 0005](../adr/0005-identity-realms.md) and the original architecture plan for the intended boundaries.

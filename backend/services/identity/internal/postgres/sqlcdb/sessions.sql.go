@@ -56,12 +56,20 @@ func (q *Queries) CreateSessionFamily(ctx context.Context, arg CreateSessionFami
 }
 
 const deleteExpiredSessionFamilies = `-- name: DeleteExpiredSessionFamilies :execrows
-DELETE FROM identity.session_family WHERE expires_at <= $1
+DELETE FROM identity.session_family WHERE id IN (
+ SELECT sf.id FROM identity.session_family AS sf WHERE sf.expires_at <= $1
+ ORDER BY sf.expires_at, sf.id LIMIT $2::int FOR UPDATE SKIP LOCKED
+)
 `
 
+type DeleteExpiredSessionFamiliesParams struct {
+	Cutoff    time.Time
+	BatchSize int32
+}
+
 // Consumed credentials must remain available for replay detection until the absolute family expiry.
-func (q *Queries) DeleteExpiredSessionFamilies(ctx context.Context, expiresAt time.Time) (int64, error) {
-	result, err := q.db.Exec(ctx, deleteExpiredSessionFamilies, expiresAt)
+func (q *Queries) DeleteExpiredSessionFamilies(ctx context.Context, arg DeleteExpiredSessionFamiliesParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteExpiredSessionFamilies, arg.Cutoff, arg.BatchSize)
 	if err != nil {
 		return 0, err
 	}
@@ -145,6 +153,24 @@ type MarkRefreshConsumedParams struct {
 func (q *Queries) MarkRefreshConsumed(ctx context.Context, arg MarkRefreshConsumedParams) error {
 	_, err := q.db.Exec(ctx, markRefreshConsumed, arg.TokenHash, arg.ConsumedAt)
 	return err
+}
+
+const readSessionFamily = `-- name: ReadSessionFamily :one
+SELECT id, subject_id, realm, expires_at, revoked_at, created_at FROM identity.session_family WHERE id=$1
+`
+
+func (q *Queries) ReadSessionFamily(ctx context.Context, id string) (IdentitySessionFamily, error) {
+	row := q.db.QueryRow(ctx, readSessionFamily, id)
+	var i IdentitySessionFamily
+	err := row.Scan(
+		&i.ID,
+		&i.SubjectID,
+		&i.Realm,
+		&i.ExpiresAt,
+		&i.RevokedAt,
+		&i.CreatedAt,
+	)
+	return i, err
 }
 
 const refreshConsumedAt = `-- name: RefreshConsumedAt :one

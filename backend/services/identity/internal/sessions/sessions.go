@@ -59,7 +59,8 @@ func userRealm(realm authn.Realm) bool {
 }
 
 // Start is called only after the login use case completes all authentication requirements, including IT MFA.
-func (s *Service) Start(ctx context.Context, realm authn.Realm, subject string, now time.Time) (Credential, error) {
+// Prepare makes a credential without persisting it; login stores it in the account transaction.
+func (s *Service) Prepare(realm authn.Realm, subject string, now time.Time) (Credential, error) {
 	if !userRealm(realm) || subject == "" {
 		return Credential{}, ErrInvalid
 	}
@@ -67,26 +68,46 @@ func (s *Service) Start(ctx context.Context, realm authn.Realm, subject string, 
 	if err != nil {
 		return Credential{}, err
 	}
-	family := Family{ID: uuid.NewString(), SubjectID: subject, Realm: realm, ExpiresAt: now.Add(s.ttl)}
-	if err := s.repo.Create(ctx, family, hash(token)); err != nil {
-		return Credential{}, err
-	}
-	return Credential{Family: family, Token: token}, nil
+	return Credential{Family: Family{ID: uuid.NewString(), SubjectID: subject, Realm: realm, ExpiresAt: now.Add(s.ttl)}, Token: token}, nil
 }
 
-func (s *Service) Refresh(ctx context.Context, realm authn.Realm, token string, now time.Time) (Credential, error) {
+// Digest is the only representation of the credential that may be persisted.
+func (c Credential) Digest() string { return hash(c.Token) }
+
+func (s *Service) Start(ctx context.Context, realm authn.Realm, subject string, now time.Time) (Credential, error) {
+	credential, err := s.Prepare(realm, subject, now)
+	if err != nil {
+		return Credential{}, err
+	}
+	if err := s.repo.Create(ctx, credential.Family, credential.Digest()); err != nil {
+		return Credential{}, err
+	}
+	return credential, nil
+}
+
+// PrepareRotation validates a presented credential and generates its replacement without persisting either.
+func (s *Service) PrepareRotation(realm authn.Realm, token string) (string, Credential, error) {
 	if !userRealm(realm) || !validToken(token) {
-		return Credential{}, ErrInvalid
+		return "", Credential{}, ErrInvalid
 	}
 	next, err := newToken()
 	if err != nil {
-		return Credential{}, err
+		return "", Credential{}, err
 	}
-	family, err := s.repo.Rotate(ctx, realm, hash(token), hash(next), now)
+	return hash(token), Credential{Token: next}, nil
+}
+
+func (s *Service) Refresh(ctx context.Context, realm authn.Realm, token string, now time.Time) (Credential, error) {
+	oldHash, next, err := s.PrepareRotation(realm, token)
 	if err != nil {
 		return Credential{}, err
 	}
-	return Credential{Family: family, Token: next}, nil
+	family, err := s.repo.Rotate(ctx, realm, oldHash, next.Digest(), now)
+	if err != nil {
+		return Credential{}, err
+	}
+	next.Family = family
+	return next, nil
 }
 
 // Logout revokes the family even if the supplied refresh token was consumed before logout.

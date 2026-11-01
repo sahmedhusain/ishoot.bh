@@ -117,9 +117,9 @@ func (k *Keyring) Open(value, context string) ([]byte, error) {
 	case strings.HasPrefix(value, versionPrefix):
 		return k.openV1(strings.TrimPrefix(value, versionPrefix), context)
 	case strings.Count(value, ":") == 2 && k.legacyHex != nil:
-		return openLegacy(k.legacyHex, strings.Split(value, ":"), hex.DecodeString)
+		return openLegacy(k.legacyHex, strings.Split(value, ":"), hex.DecodeString, nil)
 	case strings.Count(value, ".") == 2 && k.legacyDot != nil:
-		return openLegacy(k.legacyDot, strings.Split(value, "."), base64.StdEncoding.DecodeString)
+		return openLegacy(k.legacyDot, strings.Split(value, "."), base64.StdEncoding.DecodeString, []byte(context))
 	}
 	return nil, ErrDecrypt
 }
@@ -146,8 +146,8 @@ func (k *Keyring) openV1(rest, context string) ([]byte, error) {
 	return plain, nil
 }
 
-// openLegacy opens [iv, tag, data] parts as the Node crypto module wrote them (no associated data).
-func openLegacy(aead cipher.AEAD, parts []string, decode func(string) ([]byte, error)) ([]byte, error) {
+// openLegacy opens [iv, tag, data] parts as Node wrote them. Legacy MFA binds the user ID as associated data.
+func openLegacy(aead cipher.AEAD, parts []string, decode func(string) ([]byte, error), aad []byte) ([]byte, error) {
 	var raw [3][]byte
 	for i, part := range parts {
 		b, err := decode(part)
@@ -160,7 +160,7 @@ func openLegacy(aead cipher.AEAD, parts []string, decode func(string) ([]byte, e
 	if len(iv) != nonceSize || len(tag) != aead.Overhead() {
 		return nil, ErrDecrypt
 	}
-	plain, err := aead.Open(nil, iv, append(data, tag...), nil)
+	plain, err := aead.Open(nil, iv, append(data, tag...), aad)
 	if err != nil {
 		return nil, ErrDecrypt
 	}

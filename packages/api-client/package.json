@@ -9,7 +9,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "generate": "openapi-typescript ../../backend/services/files/api/openapi.yaml -o src/generated/files.ts",
+    "generate": "openapi-typescript ../../backend/services/files/api/openapi.yaml -o src/generated/files.ts && openapi-typescript ../../backend/services/identity/api/openapi.yaml -o src/generated/identity.ts",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

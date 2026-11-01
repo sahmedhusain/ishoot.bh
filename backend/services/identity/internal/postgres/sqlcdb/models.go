@@ -8,6 +8,28 @@ import (
 	"time"
 )
 
+type IdentityAccount struct {
+	Realm              string
+	SubjectID          string
+	Email              string
+	PasswordHash       *string
+	Roles              []string
+	Active             bool
+	MfaEnabled         bool
+	MfaSecretEncrypted *string
+	MfaLastStep        *int64
+	LastLoginAt        *time.Time
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+}
+
+type IdentityMfaRecoveryCode struct {
+	Realm     string
+	SubjectID string
+	CodeHash  string
+	UsedAt    *time.Time
+}
+
 type IdentityRefreshToken struct {
 	TokenHash  string
 	FamilyID   string

@@ -23,7 +23,18 @@ type Issuer struct {
 	public []byte
 }
 
+// PublicKey retains a previous verification key while issued tokens are still valid.
+type PublicKey struct {
+	ID  string
+	Key ed25519.PublicKey
+}
+
 func New(issuer, kid string, private ed25519.PrivateKey, ttl time.Duration) (*Issuer, error) {
+	return NewWithPrevious(issuer, kid, private, ttl, nil)
+}
+
+// NewWithPrevious publishes old public keys alongside the active signing key during rotation.
+func NewWithPrevious(issuer, kid string, private ed25519.PrivateKey, ttl time.Duration, previous []PublicKey) (*Issuer, error) {
 	if issuer == "" || kid == "" || len(private) != ed25519.PrivateKeySize || ttl <= 0 {
 		return nil, errors.New("invalid identity signing configuration")
 	}
@@ -48,6 +59,26 @@ func New(issuer, kid string, private ed25519.PrivateKey, ttl time.Duration) (*Is
 	set := jwk.NewSet()
 	if err = set.AddKey(public); err != nil {
 		return nil, err
+	}
+	seen := map[string]bool{kid: true}
+	for _, old := range previous {
+		if old.ID == "" || seen[old.ID] || len(old.Key) != ed25519.PublicKeySize {
+			return nil, errors.New("invalid previous identity signing key")
+		}
+		seen[old.ID] = true
+		oldKey, err := jwk.Import(append(ed25519.PublicKey(nil), old.Key...))
+		if err != nil {
+			return nil, err
+		}
+		if err = oldKey.Set(jwk.KeyIDKey, old.ID); err != nil {
+			return nil, err
+		}
+		if err = oldKey.Set(jwk.AlgorithmKey, jwa.EdDSA()); err != nil {
+			return nil, err
+		}
+		if err = set.AddKey(oldKey); err != nil {
+			return nil, err
+		}
 	}
 	data, err := json.Marshal(set)
 	if err != nil {

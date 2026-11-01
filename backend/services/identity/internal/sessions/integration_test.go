@@ -123,11 +123,11 @@ func TestSessionLifecycle(t *testing.T) {
 		_, err := svc.Refresh(ctx, authn.RealmStaff, first.Token, now)
 		require.NoError(t, err)
 		repo := postgres.New(pool)
-		_, err = repo.DeleteExpired(ctx, now.Add(time.Hour-time.Microsecond))
+		_, err = repo.DeleteExpired(ctx, now.Add(time.Hour-time.Microsecond), 100)
 		require.NoError(t, err)
 		_, err = svc.Refresh(ctx, authn.RealmStaff, first.Token, now.Add(time.Hour-time.Microsecond))
 		require.ErrorIs(t, err, sessions.ErrReuse)
-		_, err = repo.DeleteExpired(ctx, now.Add(time.Hour))
+		_, err = repo.DeleteExpired(ctx, now.Add(time.Hour), 100)
 		require.NoError(t, err)
 		var count int
 		require.NoError(t, pool.QueryRow(ctx, `SELECT count(*) FROM identity.refresh_token WHERE family_id=$1`, first.Family.ID).Scan(&count))

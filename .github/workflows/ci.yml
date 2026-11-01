@@ -52,8 +52,8 @@ jobs:
         run: pnpm lint
       - name: Type-check (apps, packages, company seed)
         run: pnpm type-check && pnpm --filter @platform/company type-check
-      - name: Generated files client is current
-        run: pnpm --filter @platform/api-client generate && git diff --exit-code -- packages/api-client/src/generated/files.ts
+      - name: Generated API clients are current
+        run: pnpm --filter @platform/api-client generate && git diff --exit-code -- packages/api-client/src/generated/
       - name: Unused files, exports and dependencies
         run: pnpm audit:unused
       - name: Server action input schemas are up to date

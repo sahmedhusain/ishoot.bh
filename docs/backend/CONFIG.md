@@ -101,3 +101,74 @@ the environment. A service refuses to start when a value is missing or fails its
 | `AUTH_JWKS_FETCH_TIMEOUT` | `5s` | `gt=0` |
 | `AUTH_CLOCK_SKEW` | `30s` | `gte=0` |
 | `AUTH_SERVICE_KEYS_FILE` |  | `omitempty,file` |
+
+## identity
+
+| Variable | Default | Rules |
+| --- | --- | --- |
+| `APP_ENV` | `development` | `oneof=development test staging production` |
+| `SERVICE_NAME` |  | `required` |
+| `SERVICE_VERSION` | `dev` |  |
+| `LOG_LEVEL` | `info` | `oneof=debug info warn error` |
+| `LOG_FORMAT` | `json` | `oneof=json text` |
+| `HTTP_ADDR` | `:8080` | `required` |
+| `HTTP_READ_HEADER_TIMEOUT` | `5s` | `gt=0` |
+| `HTTP_READ_TIMEOUT` | `30s` | `gt=0` |
+| `HTTP_WRITE_TIMEOUT` | `30s` | `gt=0` |
+| `HTTP_IDLE_TIMEOUT` | `120s` | `gt=0` |
+| `HTTP_SHUTDOWN_TIMEOUT` | `20s` | `gt=0` |
+| `HTTP_REQUEST_TIMEOUT` | `25s` | `gt=0` |
+| `HTTP_BODY_LIMIT` | `1M` | `required` |
+| `HTTP_CORS_ORIGINS` |  |  |
+| `HTTP_TRUSTED_PROXIES` |  | `dive,cidr` |
+| `ADMIN_ADDR` | `:9090` | `required` |
+| `ADMIN_ENABLE_PPROF` | `false` |  |
+| `ADMIN_READINESS_TIMEOUT` | `2s` | `gt=0` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` |  |  |
+| `OTEL_EXPORTER_OTLP_INSECURE` | `false` |  |
+| `OTEL_TRACES_SAMPLER_RATIO` | `1` | `gte=0,lte=1` |
+| `DATABASE_URL` |  | `required` |
+| `DATABASE_MAX_CONNS` | `10` | `gt=0` |
+| `DATABASE_MIN_CONNS` | `0` | `gte=0` |
+| `DATABASE_MAX_CONN_LIFETIME` | `30m` | `gt=0` |
+| `DATABASE_MAX_CONN_IDLE_TIME` | `5m` | `gt=0` |
+| `DATABASE_HEALTH_CHECK_PERIOD` | `30s` | `gt=0` |
+| `DATABASE_STATEMENT_TIMEOUT` | `15s` | `gt=0` |
+| `DATABASE_LOG_QUERIES` | `false` |  |
+| `AUTH_ISSUER` |  |  |
+| `AUTH_JWKS_URL` |  | `omitempty,url` |
+| `AUTH_JWKS_TTL` | `10m` | `gt=0` |
+| `AUTH_JWKS_MIN_REFRESH` | `30s` | `gt=0` |
+| `AUTH_JWKS_FETCH_TIMEOUT` | `5s` | `gt=0` |
+| `AUTH_CLOCK_SKEW` | `30s` | `gte=0` |
+| `AUTH_SERVICE_KEYS_FILE` |  | `omitempty,file` |
+| `IDENTITY_ISSUER` |  |  |
+| `IDENTITY_SIGNING_JWK` |  |  |
+| `IDENTITY_PREVIOUS_JWKS` |  |  |
+| `IDENTITY_ACCESS_TTL` | `10m` | `gt=0` |
+| `IDENTITY_SESSION_TTL` | `168h` | `gt=0` |
+| `IDENTITY_CLEANUP_INTERVAL` | `5m` | `gt=0` |
+| `IDENTITY_CLEANUP_BATCH` | `100` | `gt=0` |
+| `IDENTITY_CLEANUP_WORKERS` | `1` | `gt=0` |
+| `IDENTITY_JSON_BODY_LIMIT` | `65536` | `gt=0` |
+| `IDENTITY_LOGIN_ENABLED` | `false` |  |
+| `IDENTITY_LOGIN_REDIS_URL` |  | `omitempty,url` |
+| `IDENTITY_LOGIN_RATE_KEY` |  |  |
+| `IDENTITY_LOGIN_ACCOUNT_ATTEMPTS` | `10` | `gt=0` |
+| `IDENTITY_LOGIN_IP_ATTEMPTS` | `60` | `gt=0` |
+| `IDENTITY_LOGIN_RATE_WINDOW` | `1m` | `gt=0` |
+| `IDENTITY_LOGIN_MAX_CONCURRENT_KDF` | `2` | `gt=0,lte=64` |
+| `IDENTITY_LOGIN_IT_ALLOWED_CIDRS` |  | `dive,cidr` |
+| `IDENTITY_LOGIN_MFA_KEYS` |  |  |
+| `IDENTITY_LOGIN_MFA_PRIMARY_ID` |  |  |
+| `IDENTITY_LOGIN_MFA_LEGACY_KEY` |  |  |
+| `IDENTITY_LOGIN_PASSWORD_MEMORY_KIB` | `19456` |  |
+| `IDENTITY_LOGIN_PASSWORD_ITERATIONS` | `2` |  |
+| `IDENTITY_LOGIN_PASSWORD_PARALLELISM` | `1` |  |
+| `IDENTITY_LOGIN_PASSWORD_MAX_MEMORY_KIB` | `262144` |  |
+| `IDENTITY_LOGIN_PASSWORD_MAX_ITERATIONS` | `10` |  |
+| `IDENTITY_LOGIN_PASSWORD_MAX_PARALLELISM` | `16` |  |
+| `IDENTITY_LOGIN_PASSWORD_MAX_BCRYPT_COST` | `16` |  |
+| `IDENTITY_LOGIN_TOTP_PERIOD` | `30s` |  |
+| `IDENTITY_LOGIN_TOTP_DIGITS` | `6` |  |
+| `IDENTITY_LOGIN_TOTP_WINDOW` | `1` |  |

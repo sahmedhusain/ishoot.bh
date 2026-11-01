@@ -11,6 +11,7 @@ import (
 
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/db"
+	"platform.local/backend/services/identity/internal/accounts"
 	"platform.local/backend/services/identity/internal/postgres/sqlcdb"
 	"platform.local/backend/services/identity/internal/sessions"
 )
@@ -33,11 +34,21 @@ func (p *Repository) Create(ctx context.Context, f sessions.Family, tokenHash st
 }
 
 func (p *Repository) Rotate(ctx context.Context, realm authn.Realm, oldHash, nextHash string, now time.Time) (sessions.Family, error) {
+	family, _, err := p.rotate(ctx, realm, oldHash, nextHash, now, false)
+	return family, err
+}
+
+// RotateAccount locks the account before its session family, so account changes and refreshes cannot race.
+func (p *Repository) RotateAccount(ctx context.Context, realm authn.Realm, oldHash, nextHash string, now time.Time) (sessions.Family, accounts.Account, error) {
+	return p.rotate(ctx, realm, oldHash, nextHash, now, true)
+}
+
+func (p *Repository) rotate(ctx context.Context, realm authn.Realm, oldHash, nextHash string, now time.Time, checkAccount bool) (sessions.Family, accounts.Account, error) {
 	var family sessions.Family
+	var account accounts.Account
 	var result error
 	err := db.WithTx(ctx, p.pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		q := p.q.WithTx(tx)
-		// Read consumed_at only after locking the family: a concurrent waiter must see the committed consumption.
 		id, err := q.FindRefreshFamily(ctx, sqlcdb.FindRefreshFamilyParams{TokenHash: oldHash, Realm: string(realm)})
 		if errors.Is(err, pgx.ErrNoRows) {
 			result = sessions.ErrInvalid
@@ -46,6 +57,28 @@ func (p *Repository) Rotate(ctx context.Context, realm authn.Realm, oldHash, nex
 		if err != nil {
 			return err
 		}
+		var accountInvalid bool
+		if checkAccount {
+			initial, err := q.ReadSessionFamily(ctx, id)
+			if errors.Is(err, pgx.ErrNoRows) {
+				result = sessions.ErrInvalid
+				return nil
+			}
+			if err != nil {
+				return err
+			}
+			row, err := q.LockAccount(ctx, sqlcdb.LockAccountParams{Realm: string(realm), SubjectID: initial.SubjectID})
+			switch {
+			case errors.Is(err, pgx.ErrNoRows):
+				accountInvalid = true
+			case err != nil:
+				return err
+			default:
+				account = toAccount(row)
+				accountInvalid = !row.Active || (realm == authn.RealmIT && !row.MfaEnabled)
+			}
+		}
+		// Read consumed_at only after locking the family, so concurrent waiters see committed consumption.
 		row, err := q.LockSessionFamily(ctx, id)
 		if errors.Is(err, pgx.ErrNoRows) {
 			result = sessions.ErrInvalid
@@ -58,13 +91,16 @@ func (p *Repository) Rotate(ctx context.Context, realm authn.Realm, oldHash, nex
 			result = sessions.ErrInvalid
 			return nil
 		}
+		if checkAccount && (accountInvalid || row.SubjectID != account.SubjectID || row.Realm != string(realm)) {
+			result = sessions.ErrInvalid
+			return q.RevokeSessionFamily(ctx, sqlcdb.RevokeSessionFamilyParams{ID: id, RevokedAt: &now})
+		}
 		consumed, err := q.RefreshConsumedAt(ctx, oldHash)
 		if err != nil {
 			return err
 		}
 		if consumed != nil {
 			result = sessions.ErrReuse
-			// Returning nil here commits revocation. ErrReuse is returned only after the commit succeeds.
 			return q.RevokeSessionFamily(ctx, sqlcdb.RevokeSessionFamilyParams{ID: id, RevokedAt: &now})
 		}
 		if err := q.MarkRefreshConsumed(ctx, sqlcdb.MarkRefreshConsumedParams{TokenHash: oldHash, ConsumedAt: &now}); err != nil {
@@ -77,12 +113,12 @@ func (p *Repository) Rotate(ctx context.Context, realm authn.Realm, oldHash, nex
 		return nil
 	})
 	if err != nil {
-		return sessions.Family{}, err
+		return sessions.Family{}, accounts.Account{}, err
 	}
 	if result != nil {
-		return sessions.Family{}, result
+		return sessions.Family{}, accounts.Account{}, result
 	}
-	return family, nil
+	return family, account, nil
 }
 
 func (p *Repository) Revoke(ctx context.Context, realm authn.Realm, tokenHash string, now time.Time) error {
@@ -102,6 +138,9 @@ func toFamily(row sqlcdb.IdentitySessionFamily) sessions.Family {
 }
 
 // DeleteExpired removes only families whose absolute expiry has passed. Cascading deletes remove their token history.
-func (p *Repository) DeleteExpired(ctx context.Context, now time.Time) (int64, error) {
-	return p.q.DeleteExpiredSessionFamilies(ctx, now)
+func (p *Repository) DeleteExpired(ctx context.Context, now time.Time, batch int32) (int64, error) {
+	if batch <= 0 {
+		return 0, errors.New("cleanup batch must be positive")
+	}
+	return p.q.DeleteExpiredSessionFamilies(ctx, sqlcdb.DeleteExpiredSessionFamiliesParams{Cutoff: now, BatchSize: batch})
 }

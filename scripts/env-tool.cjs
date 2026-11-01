@@ -32,6 +32,9 @@ const SECRETS = {
   S3_SECRET_ACCESS_KEY: () => crypto.randomBytes(30).toString("base64url"),
   ADMIN_SERVICE_KEY: () => serviceKey("admin"),
   WEB_SERVICE_KEY: () => serviceKey("web"),
+  IDENTITY_SIGNING_JWK: () => serviceKey("identity"),
+  IDENTITY_LOGIN_RATE_KEY: () => crypto.randomBytes(32).toString("base64url"),
+  IDENTITY_LOGIN_MFA_KEYS: () => `primary:${crypto.randomBytes(32).toString("base64")}`,
   PGADMIN_DEFAULT_PASSWORD: () => crypto.randomBytes(18).toString("base64url"),
 };
 // Variables older versions of .env.example listed that no code reads any more.
@@ -122,6 +125,7 @@ const localDatabaseUrl = (env) =>
 const DERIVED = {
   DATABASE_URL: (env) => `${localDatabaseUrl(env)}?connection_limit=10`,
   DIRECT_URL: localDatabaseUrl,
+  IDENTITY_LOGIN_MFA_LEGACY_KEY: (env) => env.MFA_ENCRYPTION_KEY,
 };
 
 function fillSecrets() {

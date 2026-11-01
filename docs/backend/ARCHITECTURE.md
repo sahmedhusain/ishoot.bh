@@ -31,7 +31,7 @@ Browser ─▶ apps/web · apps/admin · apps/it   (Next.js: UI, cookies, server
 | ----- | ------------------------------------------------------------------------------------- | ------------ |
 | 1     | Shared kit, catalogue, gateway, local stack, CI, Helm, docs                           | **Done**     |
 | 2     | `files` on S3-compatible storage; Supabase removed                                    | Verification |
-| 3     | `identity` (staff, customer and IT realms)                                            | Planned      |
+| 3     | `identity` (staff, customer and IT realms)                                            | In progress  |
 | 4     | `system`, `audit`, `notify` and the IT dashboard (`apps/it`)                          | Planned      |
 | 5     | `itsm` and IT support in the admin app                                                | Planned      |
 | 6     | Domain waves: cms → sales → finance → workflow → hr → inventory → commerce → delivery | Planned      |
