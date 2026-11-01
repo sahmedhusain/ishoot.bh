@@ -1,5 +1,8 @@
 import {
+  ARCHIVE_GROUPS,
+  ARCHIVE_KINDS,
   activityFeed,
+  archiveKindsFor,
   availableDashboardWidgets,
   db,
   defaultDashboardLayout,
@@ -9,20 +12,27 @@ import {
   getComplaintWorkload,
   getCRMDealOverview,
   getDashboardLayout,
+  getDocumentArchivePage,
   getFinancialSummary,
   getMonthlyCashflow,
   getRequestWorkload,
   getStockOverview,
   getUpcomingEventsFor,
+  hrPulseSummary,
   isFeatureEnabled,
   listCampaigns,
+  listCustomFoldersForUser,
   listOrders,
   myTaskSummary,
   normalizeDashboardLayout,
   orderSummary,
+  procurementPulseSummary,
   shipmentCounts,
   upcomingLegalDates,
+  type ArchiveGroup,
+  type CustomArchiveFolder,
   type DashboardLayoutItem,
+  type PermissionResource,
 } from "@platform/database";
 import { ROUTES } from "../constants/routes";
 import { readableApprovalTypes } from "./approval-access";
@@ -42,6 +52,7 @@ const MODULES = [
   "marketing",
   "legal",
   "procurement",
+  "hrms",
 ];
 
 /** Who is looking: their grants, the modules that are on, and the widgets they may place. */
@@ -211,11 +222,98 @@ export async function loadDashboardData(
       )
     : null;
   const legal = has("legal_dates") ? upcomingLegalDates(now) : null;
-  const events = has("upcoming_events")
-    ? getUpcomingEventsFor(userId, 4)
+  const events = has("upcoming_events", "calendar_mini")
+    ? getUpcomingEventsFor(userId, 8)
     : null;
   const activity = has("activity")
     ? activityFeed(userId, can("audit_logs:read"))
+    : null;
+  const hrPulse = has("hr_pulse") ? hrPulseSummary(now) : null;
+  const procurementPulse = has("procurement_pulse")
+    ? procurementPulseSummary()
+    : null;
+  const archiveFolders = has("archive_folders")
+    ? (async () => {
+        const permittedKinds = archiveKindsFor(
+          (res: PermissionResource) => can(`${res}:read`),
+        );
+        if (!permittedKinds.length) {
+          return {
+            groups: [] as { group: ArchiveGroup; count: number }[],
+            recent: [] as {
+              id: string;
+              file_name: string;
+              file_url: string;
+              kind: string;
+              created_at: string;
+            }[],
+            expired: 0,
+            expiring: 0,
+          };
+        }
+        const page = await getDocumentArchivePage({}, permittedKinds, 5);
+        const permittedGroups = Array.from(
+          new Set(
+            ARCHIVE_GROUPS.filter((g) =>
+              permittedKinds.some((k) => ARCHIVE_KINDS[k].group === g || page.counts.byGroup[g] >= 0),
+            ),
+          ),
+        );
+        return {
+          groups: permittedGroups.map((g) => ({
+            group: g,
+            count: page.counts.byGroup[g] ?? 0,
+          })),
+          recent: page.items.slice(0, 5).map((item) => ({
+            id: item.id,
+            file_name: item.file_name,
+            file_url: item.file_url,
+            kind: item.kind,
+            created_at: item.created_at,
+          })),
+          expired: page.counts.expired,
+          expiring: page.counts.expiring,
+        };
+      })()
+    : null;
+  const customFolders = has("custom_folders")
+    ? (async () => {
+        const u = await db.user.findUnique({
+          where: { id: userId },
+          select: { departmentId: true },
+        });
+        return listCustomFoldersForUser({
+          userId,
+          role: ctx.user.role,
+          departmentId: u?.departmentId ?? null,
+        });
+      })()
+    : null;
+  const userProfile = has("welcome_profile", "custom_folders")
+    ? (async () => {
+        const u = await db.user.findUnique({
+          where: { id: userId },
+          select: {
+            fullName: true,
+            email: true,
+            role: true,
+            departmentId: true,
+            departmentRecord: { select: { nameEn: true, nameAr: true } },
+            employee: { select: { jobTitleEn: true, jobTitleAr: true } },
+          },
+        });
+        return {
+          id: userId,
+          fullName: u?.fullName ?? ctx.user.full_name,
+          email: u?.email ?? ctx.user.email,
+          role: u?.role ?? ctx.user.role,
+          departmentId: u?.departmentId ?? null,
+          departmentNameEn: u?.departmentRecord?.nameEn ?? "",
+          departmentNameAr: u?.departmentRecord?.nameAr ?? "",
+          jobTitleEn: u?.employee?.jobTitleEn ?? "",
+          jobTitleAr: u?.employee?.jobTitleAr ?? "",
+        };
+      })()
     : null;
   const company = getCachedCompanySettings();
   const workload = has("workload")
@@ -261,6 +359,11 @@ export async function loadDashboardData(
     activityData,
     companyData,
     workloadData,
+    hrPulseData,
+    procurementPulseData,
+    archiveFoldersData,
+    customFoldersData,
+    userProfileData,
   ] = await Promise.all([
     finance,
     cashflow,
@@ -278,6 +381,11 @@ export async function loadDashboardData(
     activity,
     company,
     workload,
+    hrPulse,
+    procurementPulse,
+    archiveFolders,
+    customFolders,
+    userProfile,
   ]);
 
   return {
@@ -297,7 +405,13 @@ export async function loadDashboardData(
     legal: legalData,
     events: eventsData,
     activity: activityData,
+    hrPulse: hrPulseData,
+    procurementPulse: procurementPulseData,
+    archiveFolders: archiveFoldersData,
+    customFolders: (customFoldersData ?? []) as CustomArchiveFolder[],
+    userProfile: userProfileData,
     currency: companyData.default_currency,
+    companyCity: companyData.city || "Manama",
     // Bank and registration details only for people who see finance.
     company: has("company")
       ? canFinance

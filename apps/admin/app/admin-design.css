@@ -13,7 +13,9 @@ body {
     28px
   );
   --admin-field-radius: clamp(4px, var(--admin-card-radius), 12px);
+  --admin-inner-radius: clamp(4px, calc(var(--admin-card-radius) - 4px), 16px);
   --admin-button-radius: var(--company-button-corner);
+  --admin-chip-radius: var(--company-button-corner);
   --brand-button-radius: var(--admin-button-radius);
   --admin-control-height: 44px;
   --admin-field-height: 48px;
@@ -24,6 +26,7 @@ body {
   --admin-page-padding: clamp(20px, 2.5vw, 40px);
   --admin-popup-shadow:
     0 24px 80px -20px rgb(0 0 0 / 0.25), 0 2px 8px rgb(0 0 0 / 0.08);
+  --admin-spring-expressive: cubic-bezier(0.34, 1.56, 0.64, 1);
   /* Damped spatial response; opacity uses the faster, non-spatial easing. */
   --admin-ease-spatial: linear(
     0,
@@ -51,21 +54,34 @@ body {
   background: var(--md-sys-color-surface-container-low);
 }
 html[data-density="compact"] body {
+  --admin-header-height: 60px;
   --admin-control-height: 36px;
-  --admin-field-height: 40px;
-  --admin-cell-padding: 10px 14px;
-  --admin-section-gap: 18px;
-  --admin-page-padding: clamp(16px, 2vw, 28px);
+  --admin-field-height: 38px;
+  --admin-cell-padding: 9px 13px;
+  --admin-section-gap: 16px;
+  --admin-page-padding: clamp(14px, 1.8vw, 24px);
 }
 html[data-corners="rounded"] body {
-  --admin-card-radius: 20px;
-  --admin-field-radius: 12px;
+  --admin-card-radius: 24px;
+  --brand-radius: 24px;
+  --admin-panel-radius: 28px;
+  --admin-dialog-radius: 28px;
+  --admin-field-radius: 16px;
+  --admin-inner-radius: 18px;
   --admin-button-radius: 999px;
+  --admin-chip-radius: 999px;
+  --brand-button-radius: 999px;
 }
 html[data-corners="square"] body {
   --admin-card-radius: 4px;
+  --brand-radius: 4px;
+  --admin-panel-radius: 6px;
+  --admin-dialog-radius: 6px;
   --admin-field-radius: 4px;
+  --admin-inner-radius: 3px;
   --admin-button-radius: 4px;
+  --admin-chip-radius: 4px;
+  --brand-button-radius: 4px;
 }
 html[data-borders="defined"] body {
   --admin-border: var(--md-sys-color-outline);
@@ -128,7 +144,7 @@ html[data-borders="defined"] body {
     height: 40px;
     flex-shrink: 0;
     border: 1px solid transparent;
-    border-radius: 12px;
+    border-radius: var(--admin-button-radius);
     color: var(--md-sys-color-on-surface-variant);
     transition:
       background var(--motion-fast),
@@ -170,7 +186,7 @@ html[data-borders="defined"] body {
     height: auto;
     margin-inline: 4px;
     padding: 10px 14px;
-    border-radius: clamp(8px, var(--admin-card-radius), 16px);
+    border-radius: var(--admin-inner-radius);
     gap: 12px;
     font-size: 0.8125rem;
     line-height: 1.25rem;
@@ -208,6 +224,7 @@ html[data-borders="defined"] body {
     justify-content: center;
   }
   .admin-main {
+    position: relative;
     flex: 1;
     min-width: 0;
     overflow: auto;
@@ -265,17 +282,23 @@ html[data-borders="defined"] body {
     background: rgb(var(--m3-color-primary) / 0.025);
   }
   .admin-page table:not([data-print-target] table) thead th:first-child {
-    border-start-start-radius: 12px;
+    border-start-start-radius: var(--admin-inner-radius);
   }
   .admin-page table:not([data-print-target] table) thead th:last-child {
-    border-start-end-radius: 12px;
+    border-start-end-radius: var(--admin-inner-radius);
   }
   [data-ui="card"],
   .admin-widget {
-    border-radius: var(--admin-card-radius);
+    border-radius: var(--admin-card-radius) !important;
     border-color: var(--admin-border);
     box-shadow: none;
-    background: var(--md-sys-color-surface-container-lowest);
+    background: var(--md-sys-color-surface-container-low);
+    transition:
+      transform 280ms var(--admin-ease-spatial),
+      box-shadow 220ms ease,
+      border-color 180ms ease,
+      border-radius 180ms ease,
+      background-color 180ms ease;
   }
   [data-ui="card"][data-variant="filled"] {
     background: var(--md-sys-color-surface-container);
@@ -287,6 +310,83 @@ html[data-borders="defined"] body {
   }
   .admin-widget {
     border: 1px solid var(--admin-border);
+    position: relative;
+    overflow: hidden;
+  }
+  .admin-widget:hover {
+    box-shadow: 0 6px 22px -6px rgb(var(--m3-color-primary) / 0.1);
+  }
+  .admin-widget[data-widget-surface="tonal"] {
+    background: var(--md-sys-color-surface-container);
+    border-color: var(--admin-border);
+  }
+  .admin-widget[data-widget-surface="elevated"] {
+    background: var(--md-sys-color-surface-container-lowest);
+    border-color: var(--admin-border);
+    box-shadow:
+      0 8px 28px -8px rgb(0 0 0 / 0.1),
+      0 2px 6px rgb(0 0 0 / 0.04);
+  }
+  .admin-widget[data-widget-surface="outlined"] {
+    background: var(--md-sys-color-surface-container-lowest);
+    border-color: var(--md-sys-color-outline);
+    box-shadow: none;
+  }
+  .admin-widget[data-widget-theme="primary"] {
+    background: linear-gradient(
+      145deg,
+      rgb(var(--m3-color-primary-container) / 0.55),
+      var(--md-sys-color-surface-container-low)
+    );
+    border-color: color-mix(in srgb, rgb(var(--m3-color-primary)) 35%, var(--admin-border));
+  }
+  .admin-widget[data-widget-theme="secondary"] {
+    background: linear-gradient(
+      145deg,
+      rgb(var(--m3-color-secondary-container) / 0.65),
+      var(--md-sys-color-surface-container-low)
+    );
+    border-color: color-mix(in srgb, rgb(var(--m3-color-secondary)) 35%, var(--admin-border));
+  }
+  .admin-widget[data-widget-theme="tertiary"] {
+    background: linear-gradient(
+      145deg,
+      rgb(var(--m3-color-tertiary-container) / 0.6),
+      var(--md-sys-color-surface-container-low)
+    );
+    border-color: color-mix(in srgb, rgb(var(--m3-color-tertiary)) 35%, var(--admin-border));
+  }
+  .admin-widget[data-widget-theme="emerald"] {
+    background: linear-gradient(
+      145deg,
+      rgb(16 185 129 / 0.12),
+      var(--md-sys-color-surface-container-low)
+    );
+    border-color: color-mix(in srgb, rgb(16 185 129) 35%, var(--admin-border));
+  }
+  .admin-widget[data-widget-theme="amber"] {
+    background: linear-gradient(
+      145deg,
+      rgb(245 158 11 / 0.13),
+      var(--md-sys-color-surface-container-low)
+    );
+    border-color: color-mix(in srgb, rgb(245 158 11) 35%, var(--admin-border));
+  }
+  .admin-widget[data-widget-theme="sky"] {
+    background: linear-gradient(
+      145deg,
+      rgb(14 165 233 / 0.13),
+      var(--md-sys-color-surface-container-low)
+    );
+    border-color: color-mix(in srgb, rgb(14 165 233) 35%, var(--admin-border));
+  }
+  .admin-widget[data-widget-theme="rose"] {
+    background: linear-gradient(
+      145deg,
+      rgb(244 63 94 / 0.12),
+      var(--md-sys-color-surface-container-low)
+    );
+    border-color: color-mix(in srgb, rgb(244 63 94) 35%, var(--admin-border));
   }
   .admin-widget-header {
     display: flex;
@@ -914,23 +1014,106 @@ html[data-motion="reduced"] [data-ui="button"]:active {
 }
 
 @media screen {
-  :is(.admin-main, [data-dialog-body])
-    :is(div, section, article):is(.rounded-xl, .rounded-2xl, .rounded-3xl):not(
-      [data-print-target] *
-    ):not([data-testid="theme-preview"] *) {
-    border-radius: var(--admin-card-radius);
+  /* Uniform Component Corners across the entire Admin Workspace (Cards, Panels, Widgets, Inner Tiles, Buttons, Fields, Chips, Popovers). */
+  :is(.admin-main, [data-dialog-body], .admin-popover)
+    :is(div, section, article, aside, li, form, header, footer):is(
+      .rounded-xl,
+      .rounded-2xl,
+      .rounded-3xl,
+      .rounded-\[18px\],
+      .rounded-\[20px\],
+      .rounded-\[22px\],
+      .rounded-\[24px\],
+      .rounded-\[28px\],
+      .rounded-\[32px\]
+    ):not([data-keep-round="true"]):not([data-print-target] *):not(
+      [data-testid="theme-preview"] *
+    ):not([data-appearance-preview] *) {
+    border-radius: var(--admin-card-radius) !important;
   }
-  :is(.admin-main, [data-dialog-body])
-    :is(input, select, textarea):not(
+  /* Inner elements inside widgets and cards always follow --admin-inner-radius */
+  .admin-widget
+    :is(div, section, article, aside, li, label):is(
+      .rounded-md,
+      .rounded-lg,
+      .rounded-xl,
+      .rounded-2xl,
+      .rounded-3xl,
+      .rounded-full,
+      .rounded-\[18px\],
+      .rounded-\[20px\],
+      .rounded-\[22px\],
+      .rounded-\[24px\]
+    ):not([data-keep-round="true"]):not(.w-1):not(.w-1\.5):not(.w-2):not(
+      .w-2\.5
+    ) {
+    border-radius: var(--admin-inner-radius) !important;
+  }
+  :is(.admin-main, [data-dialog-body], .admin-popover)
+    :is(div, section, article, aside, li, span, label):is(
+      .rounded-md,
+      .rounded-lg
+    ):not([data-keep-round="true"]):not([data-print-target] *):not(
+      [data-testid="theme-preview"] *
+    ):not([data-appearance-preview] *) {
+    border-radius: var(--admin-inner-radius) !important;
+  }
+  /* Badges, chips, and pills follow --admin-chip-radius */
+  :is(.admin-main, [data-dialog-body], .admin-popover)
+    :is(span, div, label).rounded-full:not([data-keep-round="true"]):not(
+      .w-1
+    ):not(.w-1\.5):not(.w-2):not(.w-2\.5):not(.w-3):not(
+      [data-print-target] *
+    ):not([data-testid="theme-preview"] *):not([data-appearance-preview] *) {
+    border-radius: var(--admin-chip-radius) !important;
+  }
+  :is(.admin-main, [data-dialog-body], .admin-topbar, .admin-sidebar, .admin-popover)
+    :is(button, a, [role="radiogroup"], .m3-segment):not(
+      [data-keep-round="true"]
+    ):not([data-print-target] *):not([data-testid="theme-preview"] *):not(
+      [data-appearance-preview] *
+    ):not(.appearance-preset) {
+    border-radius: var(--admin-button-radius) !important;
+  }
+  :is(.admin-main, [data-dialog-body], .admin-topbar, .admin-popover)
+    :is(input, select, textarea, [data-ui="text-field"]):not(
       [type="checkbox"],
       [type="radio"],
       [type="file"],
       [type="range"],
       [type="color"],
       [type="hidden"]
-    ):not([data-print-target] *) {
+    ):not([data-print-target] *):not([data-appearance-preview] *) {
     min-height: var(--admin-field-height);
-    border-radius: var(--admin-field-radius);
+    border-radius: var(--admin-field-radius) !important;
+  }
+  html[data-borders="defined"]
+    :is(.admin-shell, [data-modal-container], .admin-popover)
+    :is(
+      .border,
+      .border-t,
+      .border-b,
+      .border-s,
+      .border-e,
+      [data-ui="card"],
+      [data-ui="text-field"],
+      .admin-widget
+    ):not([data-appearance-preview] *) {
+    border-color: var(--admin-border) !important;
+  }
+  html[data-borders="defined"] .admin-widget {
+    border-width: 1.5px !important;
+  }
+  html[data-density="compact"] .admin-widget {
+    padding: 16px !important;
+  }
+  html[data-density="compact"] .admin-kpi {
+    min-height: 120px;
+    padding: 16px !important;
+    gap: 10px;
+  }
+  html[data-density="compact"] .admin-sidebar a {
+    padding: 7px 12px;
   }
 }
 
@@ -967,8 +1150,13 @@ html[data-backdrop="dim"] [data-modal-backdrop] {
 }
 
 @media screen {
-  [data-ui="text-field"]:not(textarea) {
-    padding-block: 8px;
+  [data-ui="text-field"]:not(textarea):not(.m3-select-trigger) {
+    padding-block: 6px;
+  }
+  .m3-select-trigger[data-ui="text-field"] {
+    padding-block: 4px;
+    padding-inline-start: var(--select-ps, 14px);
+    padding-inline-end: var(--select-pe, 36px);
   }
   [data-dialog-body] form > label:not(.flex):not(.inline-flex) {
     display: block;

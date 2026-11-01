@@ -3809,6 +3809,24 @@
                 }
               ],
               "optional": false
+            },
+            "settings": {
+              "kind": "record",
+              "element": {
+                "kind": "union",
+                "variants": [
+                  {
+                    "kind": "string"
+                  },
+                  {
+                    "kind": "number"
+                  },
+                  {
+                    "kind": "boolean"
+                  }
+                ]
+              },
+              "optional": true
             }
           }
         },
@@ -3819,6 +3837,122 @@
   "resetDashboardLayoutAction": {
     "kind": "object",
     "fields": {}
+  },
+  "saveCustomFolderAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "nameEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "nameAr": {
+            "kind": "string",
+            "optional": true
+          },
+          "descriptionEn": {
+            "kind": "string",
+            "optional": true
+          },
+          "descriptionAr": {
+            "kind": "string",
+            "optional": true
+          },
+          "color": {
+            "kind": "string",
+            "optional": true
+          },
+          "scope": {
+            "kind": "string",
+            "optional": true
+          },
+          "departmentId": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "roleKey": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "archiveGroup": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "items": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "id": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "title": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "url": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "kind": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "addedAt": {
+                  "kind": "string",
+                  "optional": true
+                }
+              }
+            },
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteCustomFolderAction": {
+    "kind": "object",
+    "fields": {
+      "folderId": {
+        "kind": "string",
+        "optional": false
+      }
+    }
   },
   "moveShipmentAction": {
     "kind": "object",

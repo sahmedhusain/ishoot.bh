@@ -168,7 +168,7 @@ export function RolesManagementView({ initialRoles }: { initialRoles: RoleWithGr
             </div>
           </div>}>
         <form onSubmit={handleSave} className="space-y-6" id={modalFormId}>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <label className="text-xs font-bold block">
               <span className="mb-1 block">{t.rolesView.roleNameEn}</span>
               <Input value={nameEn} onChange={(e) => setNameEn(e.target.value)} required  dir="ltr"/>
@@ -187,7 +187,7 @@ export function RolesManagementView({ initialRoles }: { initialRoles: RoleWithGr
             <fieldset className="rounded-xl border border-outline-variant p-4 space-y-3">
               <legend className="px-1 text-xs font-bold">{t.dataScope.title}</legend>
               <p className="text-xs text-ink-muted">{t.dataScope.hint}</p>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-3">
                 {DATA_SCOPE_AREAS.map((area) => (
                   <label key={area} className="text-xs font-medium space-y-1">
                     <span className="block">{t.dataScope.areas[area]}</span>
@@ -204,9 +204,9 @@ export function RolesManagementView({ initialRoles }: { initialRoles: RoleWithGr
 
           <div className="border rounded-xl overflow-auto max-h-[55vh] dark:border-white/10">
             <table className="w-full text-xs">
-              <thead className="sticky top-0 z-10 bg-surface-raised dark:bg-surface-sunken text-ink-muted">
+              <thead className="sticky top-0 z-20 bg-surface-raised dark:bg-surface-sunken text-ink-muted">
                 <tr>
-                  <th scope="col" className="px-3 py-2 text-start font-bold">{t.rolesView.thModule}</th>
+                  <th scope="col" className="sticky start-0 z-20 bg-surface-raised dark:bg-surface-sunken px-3 py-2 text-start font-bold">{t.rolesView.thModule}</th>
                   {MATRIX_ACTIONS.map((action) => (
                     <th key={action} scope="col" className="px-2 py-2 text-center font-semibold whitespace-nowrap">
                       {labels.actions[action]}
@@ -223,7 +223,7 @@ export function RolesManagementView({ initialRoles }: { initialRoles: RoleWithGr
                   </tr>
                   {group.resources.map((resource) => (
                     <tr key={resource} className="dark:bg-surface-raised">
-                      <th scope="row" className="px-3 py-2 text-start font-medium whitespace-nowrap">
+                      <th scope="row" className="sticky start-0 z-10 bg-surface-raised px-3 py-2 text-start font-medium whitespace-nowrap">
                         {labels.resources[resource]}
                       </th>
                       {MATRIX_ACTIONS.map((action) => {

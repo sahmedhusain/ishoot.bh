@@ -89,7 +89,7 @@ export function DomainSettingsCard({ initialWebsiteDomain, initialAdminDomain, c
     return (
       <div className="rounded-xl border border-outline-variant p-4 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm font-semibold text-ink" dir="ltr">{domain}</p>
+          <p className="text-sm font-semibold text-ink text-start"><bdi dir="ltr">{domain}</bdi></p>
           <Button variant="outline" size="sm" className="gap-1.5 rounded-full" disabled={state === "checking"} onClick={() => check(kind)}>
             {state === "checking" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />}
             {copy.check}

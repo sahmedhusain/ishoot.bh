@@ -135,7 +135,7 @@ function valid(
     if (
       /email$/i.test(key) &&
       value &&
-      (value.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
+      (value.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value))
     )
       return false;
     if (/(?:_url|Url)$/.test(key) || /^(url|website|cta_link)$/.test(key)) {

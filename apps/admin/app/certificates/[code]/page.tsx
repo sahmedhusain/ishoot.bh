@@ -57,7 +57,7 @@ export default async function TaxCertificatePage({ params, searchParams }: { par
             <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-2xl bg-surface-raised p-4">
               <div>
                 <dt className="text-xs text-ink-muted">{c.registrationNumber}</dt>
-                <dd className="mt-0.5 text-base font-bold tabular-nums" dir="ltr">{certificate.registrationNumber || "—"}</dd>
+                <dd className="mt-0.5 text-base font-bold tabular-nums text-start"><bdi dir="ltr">{certificate.registrationNumber || "—"}</bdi></dd>
               </div>
               <div>
                 <dt className="text-xs text-ink-muted">{c.registeredName}</dt>
@@ -66,7 +66,7 @@ export default async function TaxCertificatePage({ params, searchParams }: { par
               {company.cr_number ? (
                 <div>
                   <dt className="text-xs text-ink-muted">{c.crNumber}</dt>
-                  <dd className="mt-0.5 text-sm font-semibold" dir="ltr">{company.cr_number}</dd>
+                  <dd className="mt-0.5 text-sm font-semibold text-start"><bdi dir="ltr">{company.cr_number}</bdi></dd>
                 </div>
               ) : null}
               {certificate.validUntil ? (

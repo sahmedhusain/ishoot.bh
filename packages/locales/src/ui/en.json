@@ -14,5 +14,6 @@
   "optionSeparator": ", ",
   "countryCode": "Country code",
   "phoneNational": "National phone number",
-  "invalidPhone": "Enter a valid phone number and choose its country code."
+  "invalidPhone": "Enter a valid phone number and choose its country code.",
+  "invalidEmail": "Enter a valid email address (e.g. name@domain.com)."
 }

@@ -4,6 +4,7 @@ import * as React from "react";
 import { MotionConfig } from "framer-motion";
 import {
   APPEARANCE_STORAGE_KEY,
+  WEB_APPEARANCE_STORAGE_KEY,
   DEFAULT_APPEARANCE,
   normalizeAdminAppearance,
   type AdminAppearance,
@@ -12,6 +13,7 @@ import {
 export type AdminTheme = "light" | "dark" | "system";
 
 const STORAGE_KEY = "platform_admin_theme";
+const WEB_THEME_STORAGE_KEY = "site-mode";
 
 interface AdminThemeContextType {
   theme: AdminTheme;
@@ -19,6 +21,10 @@ interface AdminThemeContextType {
   setTheme: (theme: AdminTheme) => void;
   appearance: AdminAppearance;
   setAppearance: (appearance: AdminAppearance) => void;
+  webTheme: AdminTheme;
+  setWebTheme: (theme: AdminTheme) => void;
+  webAppearance: AdminAppearance;
+  setWebAppearance: (appearance: AdminAppearance) => void;
 }
 
 const AdminThemeContext = React.createContext<
@@ -34,11 +40,17 @@ export function AdminThemeProvider({
   defaultTheme?: AdminTheme;
 }) {
   const [appearance, setAppearanceState] = React.useState(DEFAULT_APPEARANCE);
+  const [webAppearance, setWebAppearanceState] =
+    React.useState(DEFAULT_APPEARANCE);
+  const [webTheme, setWebThemeState] = React.useState<AdminTheme>(defaultTheme);
+
   const applyAppearance = React.useCallback((value: AdminAppearance) => {
     setAppearanceState(value);
-    for (const [key, entry] of Object.entries(value))
+    for (const [key, entry] of Object.entries(value)) {
       document.documentElement.dataset[key] = entry;
+    }
   }, []);
+
   React.useEffect(() => {
     try {
       applyAppearance(
@@ -49,12 +61,50 @@ export function AdminThemeProvider({
     } catch {
       applyAppearance(DEFAULT_APPEARANCE);
     }
+    try {
+      setWebAppearanceState(
+        normalizeAdminAppearance(
+          JSON.parse(
+            localStorage.getItem(WEB_APPEARANCE_STORAGE_KEY) || "null",
+          ),
+        ),
+      );
+      const savedWebMode = localStorage.getItem(WEB_THEME_STORAGE_KEY);
+      if (
+        savedWebMode === "light" ||
+        savedWebMode === "dark" ||
+        savedWebMode === "system"
+      ) {
+        setWebThemeState(savedWebMode);
+      }
+    } catch {
+      setWebAppearanceState(DEFAULT_APPEARANCE);
+    }
   }, [applyAppearance]);
+
   const setAppearance = (value: AdminAppearance) => {
     const normalized = normalizeAdminAppearance(value);
     applyAppearance(normalized);
     try {
       localStorage.setItem(APPEARANCE_STORAGE_KEY, JSON.stringify(normalized));
+    } catch {}
+  };
+
+  const setWebAppearance = (value: AdminAppearance) => {
+    const normalized = normalizeAdminAppearance(value);
+    setWebAppearanceState(normalized);
+    try {
+      localStorage.setItem(
+        WEB_APPEARANCE_STORAGE_KEY,
+        JSON.stringify(normalized),
+      );
+    } catch {}
+  };
+
+  const setWebTheme = (newTheme: AdminTheme) => {
+    setWebThemeState(newTheme);
+    try {
+      localStorage.setItem(WEB_THEME_STORAGE_KEY, newTheme);
     } catch {}
   };
 
@@ -118,7 +168,17 @@ export function AdminThemeProvider({
 
   return (
     <AdminThemeContext.Provider
-      value={{ theme, resolvedTheme, setTheme, appearance, setAppearance }}
+      value={{
+        theme,
+        resolvedTheme,
+        setTheme,
+        appearance,
+        setAppearance,
+        webTheme,
+        setWebTheme,
+        webAppearance,
+        setWebAppearance,
+      }}
     >
       <MotionConfig
         reducedMotion={appearance.motion === "system" ? "user" : "always"}
@@ -138,6 +198,10 @@ export function useAdminTheme() {
       setTheme: () => {},
       appearance: DEFAULT_APPEARANCE,
       setAppearance: () => {},
+      webTheme: "dark" as AdminTheme,
+      setWebTheme: () => {},
+      webAppearance: DEFAULT_APPEARANCE,
+      setWebAppearance: () => {},
     };
   }
   return context;

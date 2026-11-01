@@ -57,11 +57,10 @@ export function BranchLocations({
             )}
             {branch.phone && (
               <a
-                className="block text-m3-primary min-h-11 py-2"
+                className="block text-start text-m3-primary min-h-11 py-2"
                 href={`tel:${branch.phone.replace(/[^+\d]/g, "")}`}
-                dir="ltr"
               >
-                {branch.phone}
+                <bdi dir="ltr">{branch.phone}</bdi>
               </a>
             )}
             {branchDirections(branch) && (

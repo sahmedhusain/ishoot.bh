@@ -126,7 +126,7 @@ export function FloatingScrollbar() {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       aria-hidden="true"
-      className="fixed top-0 bottom-0 end-1 z-[90] w-4 flex justify-center pointer-events-auto select-none touch-none"
+      className="floating-scrollbar fixed top-0 bottom-0 end-1 z-[90] w-4 flex justify-center pointer-events-auto select-none touch-none"
       style={{
         background: "transparent",
       }}

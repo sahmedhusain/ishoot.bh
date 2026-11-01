@@ -53,27 +53,73 @@ body {
   min-height: 100vh;
 }
 
-/* Keep scroll affordances visible for pointer and keyboard users. */
+/* =========================================================================
+   ZERO-GUTTER OVERLAY SCROLLBARS (Front Layer Overlay, Zero Layout Shift)
+   Exact match to the web app: native window scrollbar hidden, internal
+   scrollable sub-containers use auto-hiding 5px floating pills.
+   ========================================================================= */
+
+/* Eliminate native window scrollbar gutter and prevent any body layout shift */
+html,
+body {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+/* For internal scrollable sub-containers (modals, dropdowns, code blocks) */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--md-sys-color-outline) transparent;
+  scrollbar-color: transparent transparent;
 }
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+
+*:hover {
+  scrollbar-color: color-mix(
+    in srgb,
+    var(--md-sys-color-primary, rgb(var(--brand-accent, 16 185 129))) 50%,
+    transparent
+  ) transparent;
 }
-::-webkit-scrollbar-track,
-::-webkit-scrollbar-corner {
-  background: transparent;
+
+*::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+  background-color: transparent !important;
 }
-::-webkit-scrollbar-thumb {
-  background: var(--md-sys-color-outline-variant);
-  border: 2px solid transparent;
-  border-radius: var(--md-sys-shape-corner-full);
-  background-clip: padding-box;
+
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-corner {
+  background: transparent !important;
+  border: none !important;
 }
-::-webkit-scrollbar-thumb:hover {
-  background-color: var(--md-sys-color-outline);
+
+*::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 9999px;
+  transition: background-color 0.2s ease-in-out;
+}
+
+*:hover::-webkit-scrollbar-thumb {
+  background-color: color-mix(
+    in srgb,
+    var(--md-sys-color-primary, rgb(var(--brand-accent, 16 185 129))) 50%,
+    transparent
+  );
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--md-sys-color-primary, rgb(var(--brand-accent, 16 185 129))) 90%,
+    transparent
+  ) !important;
 }
 
 /* Printed documents keep the company's exact brand colours. */

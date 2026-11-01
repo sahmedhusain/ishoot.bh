@@ -78,7 +78,7 @@ export function RouteSheetView({ sheet }: { sheet: RouteSheetRecord }) {
                 <td className="px-3 py-3 font-bold tabular-nums">{s.stop}</td>
                 <td className="px-3 py-3">
                   <Link href={ROUTES.delivery.shipment(s.id)} className="font-medium hover:text-accent">{s.recipient}</Link>
-                  <div className="text-xs text-ink-muted" dir="ltr">{s.phone}</div>
+                  <div className="text-xs text-ink-muted text-start"><bdi dir="ltr">{s.phone}</bdi></div>
                   <div className="mt-1 print:hidden"><ShipmentStatusPill status={s.status} /></div>
                 </td>
                 <td className="px-3 py-3 text-xs">

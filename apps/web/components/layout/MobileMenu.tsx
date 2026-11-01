@@ -59,7 +59,7 @@ export function MobileMenu({
         e.preventDefault();
         onClose();
       }}
-      className="fixed inset-0 m-0 w-full max-w-none h-[100dvh] max-h-none z-50 flex flex-col overflow-y-auto overscroll-contain justify-between bg-brand-base text-white p-6 sm:p-10 animate-in fade-in duration-base ease-emphasized"
+      className="fixed inset-0 m-0 w-full max-w-none h-[100dvh] max-h-none z-50 flex flex-col overflow-y-auto overscroll-contain justify-between bg-m3-surface text-m3-on-surface p-6 sm:p-10 animate-in fade-in slide-in-from-top-2 duration-200 ease-emphasized"
       data-lenis-prevent
     >
       <div className="flex items-center justify-between">
@@ -75,12 +75,29 @@ export function MobileMenu({
           <button
             aria-label={t("common.closeMenu")}
             onClick={onClose}
-            className="w-11 h-11 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white hover:text-accent transition-colors"
+            className="w-11 h-11 flex items-center justify-center rounded-full bg-m3-surface-container-low border border-m3-outline-variant text-m3-on-surface hover:bg-m3-surface-container-high transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
       </div>
+
+      {site?.commerce?.search !== false && (
+        <form
+          action={site ? collectionHref(site, locale) : `/${locale}/works`}
+          method="get"
+          onSubmit={onClose}
+          className="mt-6"
+        >
+          <input
+            type="search"
+            name="q"
+            aria-label={t("portfolio.searchCatalogue")}
+            placeholder={t("portfolio.searchPlaceholder")}
+            className="w-full rounded-full bg-m3-surface-container-low border border-m3-outline-variant px-4 h-11 text-sm text-m3-on-surface placeholder:text-m3-on-surface-variant focus:outline-none focus:border-m3-primary"
+          />
+        </form>
+      )}
 
       <nav className="flex flex-col gap-6 my-auto py-8 stagger-children">
         {navLinks.map((link) => (
@@ -88,16 +105,16 @@ export function MobileMenu({
             key={link.href}
             href={link.href}
             onClick={onClose}
-            className="group flex items-center justify-between text-3xl sm:text-4xl font-bold text-ink hover:text-accent transition-colors py-2 border-b border-white/5"
+            className="group flex items-center justify-between text-3xl sm:text-4xl font-bold text-m3-on-surface hover:text-m3-primary transition-colors py-2 border-b border-m3-outline-variant"
           >
             <span>{link.label}</span>
-            <ArrowIcon className="w-6 h-6 opacity-60 group-hover:opacity-100 transition-opacity duration-150 text-accent" />
+            <ArrowIcon className="w-6 h-6 opacity-60 group-hover:opacity-100 transition-opacity duration-150 text-m3-primary" />
           </Link>
         ))}
       </nav>
 
-      <div className="space-y-4 pt-4 border-t border-white/10">
-        <div className="flex justify-center">
+      <div className="space-y-4 pt-4 border-t border-m3-outline-variant">
+        <div className="flex flex-wrap items-center justify-center gap-3">
           <SiteModeSwitch locale={locale} /><LanguageSwitcher />
         </div>
         {(locale === "ar" ? company.address_ar : company.address_en) ? (

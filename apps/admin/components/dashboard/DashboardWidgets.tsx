@@ -11,6 +11,7 @@ import {
   Building2,
   CalendarDays,
   CheckSquare,
+  ClipboardList,
   DollarSign,
   Gavel,
   Inbox,
@@ -20,6 +21,7 @@ import {
   TrendingDown,
   TrendingUp,
   Truck,
+  Users,
   Zap,
 } from "lucide-react";
 import { ROUTES } from "../../constants/routes";
@@ -27,6 +29,21 @@ import { dealStageLabel } from "../../lib/deal-stages";
 import type { DashboardData } from "../../lib/dashboard-widgets";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { DeferredCashflowChart } from "../shared/DeferredCharts";
+import { ArchiveFoldersWidget, CustomFoldersWidget } from "./FolderWidgets";
+import {
+  BookmarksLaunchpadWidget,
+  CalendarMiniWidget,
+  ClockWorldWidget,
+  CountdownMilestoneWidget,
+  CurrencyRatesWidget,
+  FocusPomodoroWidget,
+  LocalClockWidget,
+  QuickCalculatorWidget,
+  ScratchpadNotesWidget,
+  StickyQuoteWidget,
+  WeatherLocalWidget,
+  WelcomeProfileWidget,
+} from "./LifestyleWidgets";
 import { WorkloadPanels } from "./WorkloadPanels";
 
 export const widgetCard = "admin-widget h-full";
@@ -44,12 +61,14 @@ const ENTITY_LINKS: Record<string, (id: string) => string> = {
   legal_matter: (id) => ROUTES.legal.matter(id),
 };
 
-function Kpi({ title, icon, tone, value, sub, href }: { title: string; icon: ReactNode; tone: string; value: ReactNode; sub?: ReactNode; href?: string }) {
+function Kpi({ title, icon, tone, value, sub, href, settings }: { title: string; icon: ReactNode; tone: string; value: ReactNode; sub?: ReactNode; href?: string; settings?: Record<string, unknown> }) {
+  const wTheme = typeof settings?.theme === "string" ? settings.theme : "default";
+  const wSurface = typeof settings?.surface === "string" ? settings.surface : "tonal";
   const body = (
-    <div className={`${widgetCard} admin-kpi ${href ? "transition-[border-color,box-shadow] duration-base ease-standard hover:border-accent/50 hover:shadow-sm" : ""}`}>
+    <div data-widget-theme={wTheme} data-widget-surface={wSurface} className={`${widgetCard} admin-kpi ${href ? "transition-[border-color,box-shadow,transform] duration-base ease-standard hover:border-accent/50 hover:shadow-sm hover:-translate-y-0.5" : ""}`}>
       <div className="flex items-center justify-between gap-2">
-        <span className="admin-kpi-label truncate">{title}</span>
-        <span className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 ${tone}`} aria-hidden="true">{icon}</span>
+        <span className="admin-kpi-label truncate font-semibold">{title}</span>
+        <span className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${tone}`} aria-hidden="true">{icon}</span>
       </div>
       <div className="admin-kpi-value text-ink">{value}</div>
       {sub ? <div className="admin-kpi-note">{sub}</div> : null}
@@ -58,17 +77,19 @@ function Kpi({ title, icon, tone, value, sub, href }: { title: string; icon: Rea
   return href ? <Link href={href} className="block h-full rounded-xl press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">{body}</Link> : body;
 }
 
-function Panel({ title, icon, href, children }: { title: string; icon: ReactNode; href?: string; children: ReactNode }) {
+function Panel({ title, icon, href, settings, children }: { title: string; icon: ReactNode; href?: string; settings?: Record<string, unknown>; children: ReactNode }) {
   const { t } = useAdminLocale();
+  const wTheme = typeof settings?.theme === "string" ? settings.theme : "default";
+  const wSurface = typeof settings?.surface === "string" ? settings.surface : "tonal";
   return (
-    <section className={`${widgetCard} p-5 space-y-3 flex flex-col`} data-page-section>
+    <section data-widget-theme={wTheme} data-widget-surface={wSurface} className={`${widgetCard} p-5 space-y-3 flex flex-col`} data-page-section>
       <div className="admin-widget-header">
         <h2 className="text-ink">
-          <span className="text-accent" aria-hidden="true">{icon}</span>
+          <span className="w-7 h-7 rounded-full bg-primary/12 text-primary inline-flex items-center justify-center shrink-0" aria-hidden="true">{icon}</span>
           {title}
         </h2>
         {href ? (
-          <Link href={href} className="text-xs text-primary dark:text-mint hover:underline font-semibold inline-flex items-center gap-1">
+          <Link href={href} className="rounded-full bg-secondary-container/75 text-on-secondary-container px-3 py-1 text-xs font-semibold inline-flex items-center gap-1 hover:opacity-90 transition-opacity">
             {t.dashboardBoard.view}
             <ArrowUpRight className="w-3.5 h-3.5 rtl:-scale-x-100" aria-hidden="true" />
           </Link>
@@ -85,7 +106,17 @@ function Empty({ children }: { children?: ReactNode }) {
 }
 
 /** One widget's content from the loaded data; null when its data was not loaded (added while editing). */
-export function DashboardWidget({ id, data }: { id: string; data: DashboardData }) {
+export function DashboardWidget({
+  id,
+  data,
+  settings,
+  onUpdateSettings,
+}: {
+  id: string;
+  data: DashboardData;
+  settings?: Record<string, unknown>;
+  onUpdateSettings?: (patch: Record<string, string | number | boolean>) => void;
+}) {
   const { t, locale } = useAdminLocale();
   const b = t.dashboardBoard;
   const title = (b.widgets as Record<string, string>)[id] ?? id;
@@ -97,27 +128,27 @@ export function DashboardWidget({ id, data }: { id: string; data: DashboardData 
 
   switch (id) {
     case "kpi_revenue":
-      return data.finance && <Kpi title={title} icon={<DollarSign className="w-3.5 h-3.5" />} tone="bg-emerald-500/10 text-emerald-600" value={countMoney(data.finance.revenue)} sub={b.widgetHints.kpi_revenue} href={ROUTES.finance.overview} />;
+      return data.finance && <Kpi settings={settings} title={title} icon={<DollarSign className="w-3.5 h-3.5" />} tone="bg-emerald-500/15 text-emerald-600" value={countMoney(data.finance.revenue)} sub={b.widgetHints.kpi_revenue} href={ROUTES.finance.overview} />;
     case "kpi_receivables":
-      return data.finance && <Kpi title={title} icon={<TrendingUp className="w-3.5 h-3.5" />} tone="bg-amber-500/10 text-amber-500" value={countMoney(data.finance.outstanding)} sub={data.finance.overdue > 0 ? <>{money(data.finance.overdue)} {t.kpi.overdueAlert}</> : t.kpi.allOnTrack} href={ROUTES.invoices.list} />;
+      return data.finance && <Kpi settings={settings} title={title} icon={<TrendingUp className="w-3.5 h-3.5" />} tone="bg-amber-500/15 text-amber-500" value={countMoney(data.finance.outstanding)} sub={data.finance.overdue > 0 ? <>{money(data.finance.overdue)} {t.kpi.overdueAlert}</> : t.kpi.allOnTrack} href={ROUTES.invoices.list} />;
     case "kpi_expenses":
-      return data.finance && <Kpi title={title} icon={<TrendingDown className="w-3.5 h-3.5" />} tone="bg-rose-500/10 text-rose-500" value={countMoney(data.finance.expenses)} sub={t.kpi.expensesDesc} href={ROUTES.expenses.list()} />;
+      return data.finance && <Kpi settings={settings} title={title} icon={<TrendingDown className="w-3.5 h-3.5" />} tone="bg-rose-500/15 text-rose-500" value={countMoney(data.finance.expenses)} sub={t.kpi.expensesDesc} href={ROUTES.expenses.list()} />;
     case "kpi_profit":
-      return data.finance && <Kpi title={title} icon={<span className="text-[10px] font-bold">%</span>} tone="bg-accent/10 text-accent" value={<span className={data.finance.netProfit >= 0 ? "text-primary dark:text-mint" : "text-rose-500"}><CountUp value={data.finance.profitMargin} decimals={1} render={(v) => `${v.toFixed(1)}%`} /></span>} sub={<>{money(data.finance.netProfit)} {t.kpi.netProfit}</>} />;
+      return data.finance && <Kpi settings={settings} title={title} icon={<span className="text-[10px] font-bold">%</span>} tone="bg-accent/15 text-accent" value={<span className={data.finance.netProfit >= 0 ? "text-primary dark:text-mint" : "text-rose-500"}><CountUp value={data.finance.profitMargin} decimals={1} render={(v) => `${v.toFixed(1)}%`} /></span>} sub={<>{money(data.finance.netProfit)} {t.kpi.netProfit}</>} />;
     case "kpi_pipeline":
-      return data.deals && <Kpi title={title} icon={<Briefcase className="w-3.5 h-3.5" />} tone="bg-accent/10 text-accent" value={data.showMoney ? countMoney(data.deals.activePipelineValue) : count(data.deals.activeCount)} sub={formatMessage(b.dealsCount, { n: String(data.deals.activeCount) })} href={ROUTES.crm.deals} />;
+      return data.deals && <Kpi settings={settings} title={title} icon={<Briefcase className="w-3.5 h-3.5" />} tone="bg-accent/15 text-accent" value={data.showMoney ? countMoney(data.deals.activePipelineValue) : count(data.deals.activeCount)} sub={formatMessage(b.dealsCount, { n: String(data.deals.activeCount) })} href={ROUTES.crm.deals} />;
     case "kpi_leads":
-      return data.leads != null && <Kpi title={title} icon={<Inbox className="w-3.5 h-3.5" />} tone="bg-blue-500/10 text-blue-500" value={count(data.leads)} sub={t.kpi.lastSevenDays} href={ROUTES.requests.list} />;
+      return data.leads != null && <Kpi settings={settings} title={title} icon={<Inbox className="w-3.5 h-3.5" />} tone="bg-blue-500/15 text-blue-500" value={count(data.leads)} sub={t.kpi.lastSevenDays} href={ROUTES.requests.list} />;
     case "kpi_orders":
-      return data.orders && <Kpi title={title} icon={<ShoppingBag className="w-3.5 h-3.5" />} tone="bg-violet-500/10 text-violet-500" value={count(data.orders.open, b.openOrders)} sub={<>{money(data.orders.today_total)} · {formatMessage(b.todaySales, { n: String(data.orders.today_count) })}</>} href={ROUTES.orders.list} />;
+      return data.orders && <Kpi settings={settings} title={title} icon={<ShoppingBag className="w-3.5 h-3.5" />} tone="bg-violet-500/15 text-violet-500" value={count(data.orders.open, b.openOrders)} sub={<>{money(data.orders.today_total)} · {formatMessage(b.todaySales, { n: String(data.orders.today_count) })}</>} href={ROUTES.orders.list} />;
     case "kpi_shipments": {
       if (!data.shipments) return null;
       const { late, ...byStatus } = data.shipments;
       const open = Object.values(byStatus).reduce((sum: number, n) => sum + (n ?? 0), 0);
-      return <Kpi title={title} icon={<Truck className="w-3.5 h-3.5" />} tone="bg-sky-500/10 text-sky-500" value={count(open, b.openShipments)} sub={late ? <span className="text-rose-500">{formatMessage(b.lateShipments, { n: String(late) })}</span> : b.noLate} href={ROUTES.delivery.shipments} />;
+      return <Kpi settings={settings} title={title} icon={<Truck className="w-3.5 h-3.5" />} tone="bg-sky-500/15 text-sky-500" value={count(open, b.openShipments)} sub={late ? <span className="text-rose-500">{formatMessage(b.lateShipments, { n: String(late) })}</span> : b.noLate} href={ROUTES.delivery.shipments} />;
     }
     case "kpi_tasks":
-      return data.tasks && <Kpi title={title} icon={<CheckSquare className="w-3.5 h-3.5" />} tone="bg-teal-500/10 text-teal-600" value={count(data.tasks.open, b.openTasks)} sub={data.tasks.overdue ? <span className="text-rose-500">{formatMessage(b.overdueTasks, { n: String(data.tasks.overdue) })}</span> : b.noOverdue} href={ROUTES.tasks.list} />;
+      return data.tasks && <Kpi settings={settings} title={title} icon={<CheckSquare className="w-3.5 h-3.5" />} tone="bg-teal-500/15 text-teal-600" value={count(data.tasks.open, b.openTasks)} sub={data.tasks.overdue ? <span className="text-rose-500">{formatMessage(b.overdueTasks, { n: String(data.tasks.overdue) })}</span> : b.noOverdue} href={ROUTES.tasks.list} />;
 
     case "cashflow": {
       if (!data.cashflow) return null;
@@ -126,7 +157,7 @@ export function DashboardWidget({ id, data }: { id: string; data: DashboardData 
         return { month: new Intl.DateTimeFormat(locale === "ar" ? "ar-u-nu-latn" : "en-US", { month: "short" }).format(new Date(year, month - 1, 1)), revenue: pt.revenue, expenses: pt.expenses };
       });
       return (
-        <Panel title={title} icon={<TrendingUp className="w-3.5 h-3.5" />} href={ROUTES.finance.overview}>
+        <Panel settings={settings} title={title} icon={<TrendingUp className="w-3.5 h-3.5" />} href={ROUTES.finance.overview}>
           <div className="h-72 w-full pt-2">
             <DeferredCashflowChart kind="dashboard" data={points} />
           </div>
@@ -407,6 +438,174 @@ export function DashboardWidget({ id, data }: { id: string; data: DashboardData 
             <Empty>{b.noActivity}</Empty>
           )}
         </Panel>
+      );
+
+    case "hr_pulse":
+      return (
+        data.hrPulse && (
+          <Panel title={title} icon={<Users className="w-3.5 h-3.5" />} href={ROUTES.hr.employees}>
+            <div className="grid grid-cols-3 gap-2.5 pt-1">
+              <div className="rounded-xl bg-surface-sunken/70 border border-outline-variant/60 p-3 text-center">
+                <div className="text-lg font-bold text-ink tabular-nums">
+                  {count(data.hrPulse.active)}
+                </div>
+                <div className="text-[10px] text-ink-muted mt-0.5">{b.hrActiveStaff}</div>
+              </div>
+              <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-center">
+                <div className="text-lg font-bold text-amber-600 dark:text-amber-400 tabular-nums">
+                  {count(data.hrPulse.pending_leave)}
+                </div>
+                <div className="text-[10px] text-ink-muted mt-0.5">{b.hrPendingLeave}</div>
+              </div>
+              <div className="rounded-xl bg-sky-500/10 border border-sky-500/20 p-3 text-center">
+                <div className="text-lg font-bold text-sky-600 dark:text-sky-400 tabular-nums">
+                  {count(data.hrPulse.on_leave)}
+                </div>
+                <div className="text-[10px] text-ink-muted mt-0.5">{b.department.awayToday}</div>
+              </div>
+            </div>
+          </Panel>
+        )
+      );
+
+    case "procurement_pulse":
+      return (
+        data.procurementPulse && (
+          <Panel
+            title={title}
+            icon={<ClipboardList className="w-3.5 h-3.5" />}
+            href={ROUTES.procurement.orders}
+          >
+            <div className="grid grid-cols-2 gap-2.5 pt-1">
+              <div className="rounded-xl bg-surface-sunken/70 border border-outline-variant/60 p-3 text-center">
+                <div className="text-lg font-bold text-ink tabular-nums">
+                  {count(data.procurementPulse.open_orders)}
+                </div>
+                <div className="text-[10px] text-ink-muted mt-0.5">{b.procurementOpenPos}</div>
+              </div>
+              <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-center">
+                <div className="text-lg font-bold text-amber-600 dark:text-amber-400 tabular-nums">
+                  {count(data.procurementPulse.open_requisitions)}
+                </div>
+                <div className="text-[10px] text-ink-muted mt-0.5">{b.actions.newRequisition}</div>
+              </div>
+            </div>
+          </Panel>
+        )
+      );
+
+    case "archive_folders":
+      return <ArchiveFoldersWidget data={data} settings={settings} />;
+
+    case "custom_folders":
+      return <CustomFoldersWidget data={data} settings={settings} />;
+
+    case "welcome_profile":
+      return (
+        <WelcomeProfileWidget
+          data={data}
+          settings={settings}
+          onUpdateSettings={onUpdateSettings}
+        />
+      );
+
+    case "clock_local":
+      return (
+        <LocalClockWidget
+          data={data}
+          settings={settings}
+          onUpdateSettings={onUpdateSettings}
+        />
+      );
+
+    case "clock_world":
+      return (
+        <ClockWorldWidget
+          data={data}
+          settings={settings}
+          onUpdateSettings={onUpdateSettings}
+        />
+      );
+
+    case "weather_local":
+      return (
+        <WeatherLocalWidget
+          data={data}
+          settings={settings}
+          onUpdateSettings={onUpdateSettings}
+        />
+      );
+
+    case "calendar_mini":
+      return (
+        <CalendarMiniWidget
+          data={data}
+          settings={settings}
+          onUpdateSettings={onUpdateSettings}
+        />
+      );
+
+    case "scratchpad_notes":
+      return (
+        <ScratchpadNotesWidget
+          data={data}
+          settings={settings}
+          onUpdateSettings={onUpdateSettings}
+        />
+      );
+
+    case "focus_pomodoro":
+      return (
+        <FocusPomodoroWidget
+          data={data}
+          settings={settings}
+          onUpdateSettings={onUpdateSettings}
+        />
+      );
+
+    case "quick_calculator":
+      return (
+        <QuickCalculatorWidget
+          data={data}
+          settings={settings}
+          onUpdateSettings={onUpdateSettings}
+        />
+      );
+
+    case "currency_rates":
+      return (
+        <CurrencyRatesWidget
+          data={data}
+          settings={settings}
+          onUpdateSettings={onUpdateSettings}
+        />
+      );
+
+    case "countdown_milestone":
+      return (
+        <CountdownMilestoneWidget
+          data={data}
+          settings={settings}
+          onUpdateSettings={onUpdateSettings}
+        />
+      );
+
+    case "sticky_quote":
+      return (
+        <StickyQuoteWidget
+          data={data}
+          settings={settings}
+          onUpdateSettings={onUpdateSettings}
+        />
+      );
+
+    case "bookmarks_launchpad":
+      return (
+        <BookmarksLaunchpadWidget
+          data={data}
+          settings={settings}
+          onUpdateSettings={onUpdateSettings}
+        />
       );
   }
   return null;

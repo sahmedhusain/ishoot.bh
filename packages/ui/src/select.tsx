@@ -15,10 +15,13 @@ import { cn } from "./utils";
 import { useUiCopy } from "./copy/use-ui-copy";
 import "./select.css";
 
-export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {}
+export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+  popupDir?: "ltr" | "rtl" | "auto";
+}
 type Choice = {
   value: string;
   label: string;
+  triggerLabel?: string;
   disabled: boolean;
   selected: boolean;
   group: string;
@@ -32,6 +35,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
       children,
       id,
       style,
+      popupDir,
       onChange,
       onInvalid,
       onFocus,
@@ -63,11 +67,13 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
       (option) =>
         !option.hidden &&
         (!query ||
-          option.label.toLocaleLowerCase().includes(query.toLocaleLowerCase())),
+          option.label.toLocaleLowerCase().includes(query.toLocaleLowerCase()) ||
+          (option.triggerLabel?.toLocaleLowerCase().includes(query.toLocaleLowerCase()) ?? false) ||
+          option.value.toLocaleLowerCase().includes(query.toLocaleLowerCase())),
     );
     const selected = choices.filter((option) => option.selected);
     const selectedText = selected
-      .map((option) => option.label)
+      .map((option) => option.triggerLabel || option.label)
       .join(copy.optionSeparator);
     const sync = React.useCallback(() => {
       if (!native.current) return;
@@ -76,6 +82,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           hidden: option.hidden,
           value: option.value,
           label: option.label,
+          triggerLabel: option.dataset.triggerLabel || undefined,
           selected: option.selected,
           disabled:
             option.disabled ||
@@ -129,7 +136,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           padding: 12,
           apply({ availableHeight, availableWidth, rects, elements }) {
             Object.assign(elements.floating.style, {
-              width: `${Math.min(Math.max(rects.reference.width, searchable ? 280 : 168), availableWidth)}px`,
+              width: `${Math.min(Math.max(rects.reference.width, searchable ? 280 : 196), availableWidth)}px`,
               maxHeight: `${Math.min(420, availableHeight)}px`,
             });
           },
@@ -157,9 +164,14 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         ),
         colorScheme: computed.colorScheme,
       });
-      setDirection(
-        getComputedStyle(trigger.current!).direction === "rtl" ? "rtl" : "ltr",
-      );
+      const resolvedPopupDir =
+        popupDir && popupDir !== "auto"
+          ? popupDir
+          : getComputedStyle(document.documentElement).direction === "rtl" ||
+              computed.direction === "rtl"
+            ? "rtl"
+            : "ltr";
+      setDirection(resolvedPopupDir);
       owner.current =
         trigger.current
           ?.closest("[data-dialog-scope]")

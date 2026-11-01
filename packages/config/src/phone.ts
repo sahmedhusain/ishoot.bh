@@ -4,13 +4,25 @@ import { getCountries, getCountryCallingCode, parsePhoneNumberFromString, parseD
 const englishNames = new Intl.DisplayNames(["en"], { type: "region" });
 const arabicNames = new Intl.DisplayNames(["ar"], { type: "region" });
 const geographicCountries = getCountries();
-export interface CountryDialCode { iso: string; dialCode: string; nameEn: string; nameAr: string }
+
+export function countryFlag(iso?: string | null): string {
+  if (!iso || iso.startsWith("001")) return "🌐";
+  const clean = iso.trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(clean)) return "🌐";
+  return String.fromCodePoint(
+    clean.charCodeAt(0) - 65 + 0x1f1e6,
+    clean.charCodeAt(1) - 65 + 0x1f1e6,
+  );
+}
+
+export interface CountryDialCode { iso: string; dialCode: string; nameEn: string; nameAr: string; flag: string }
 export const COUNTRY_DIAL_CODES: readonly CountryDialCode[] = [...geographicCountries.map((iso) => ({
   iso,
   dialCode: `+${getCountryCallingCode(iso)}`,
   nameEn: englishNames.of(iso) ?? iso,
   nameAr: arabicNames.of(iso) ?? iso,
-})), ...Object.keys(metadata.nonGeographic).map((code) => ({ iso: `001-${code}`, dialCode: `+${code}`, nameEn: englishNames.of("001") ?? "001", nameAr: arabicNames.of("001") ?? "001" }))];
+  flag: countryFlag(iso),
+})), ...Object.keys(metadata.nonGeographic).map((code) => ({ iso: `001-${code}`, dialCode: `+${code}`, nameEn: englishNames.of("001") ?? "001", nameAr: arabicNames.of("001") ?? "001", flag: "🌐" }))];
 
 const countryLookup = new Map<string, CountryCode>();
 for (const country of COUNTRY_DIAL_CODES) {

@@ -18,7 +18,7 @@ export function FAQSection({ faqs }: { faqs: Faq[] }) {
   return (
     <section
       id="faq"
-      className="katana-top relative z-50 bg-brand-surface text-ink pt-32 sm:pt-40 pb-24 border-t border-white/10 "
+      className="relative z-50 bg-m3-surface text-m3-on-surface py-20 sm:py-28 border-t border-m3-outline-variant"
     >
       <div className="shell grid lg:grid-cols-[1fr_1.6fr] gap-12 lg:gap-16">
         <motion.div
@@ -29,10 +29,10 @@ export function FAQSection({ faqs }: { faqs: Faq[] }) {
           className="space-y-4"
         >
           <SectionBadge>{t("faq.sectionLabel")}</SectionBadge>
-          <h2 className="text-3xl sm:text-5xl font-display font-bold tracking-tight text-white leading-tight">
+          <h2 className="text-3xl sm:text-5xl font-display font-bold tracking-tight text-m3-on-surface leading-tight">
             {t("faq.headline")}
           </h2>
-          <p className="text-sm sm:text-base text-ink-muted font-sans leading-relaxed max-w-md">
+          <p className="text-sm sm:text-base text-m3-on-surface-variant font-sans leading-relaxed max-w-md">
             {t("faq.subtitle")}
           </p>
         </motion.div>
@@ -51,8 +51,8 @@ export function FAQSection({ faqs }: { faqs: Faq[] }) {
                   delay: reduced ? 0 : Math.min(idx * 0.06, 0.18),
                 }}
                 className={`rounded-2xl border transition-colors duration-150 overflow-hidden ${isOpen
-                  ? "bg-brand-surface border-accent/50 shadow-lg shadow-accent/10"
-                  : "bg-white/[0.02] border-white/5 hover:border-white/15"
+                  ? "bg-m3-surface-container-low border-m3-primary/50 shadow-m3-1"
+                  : "bg-m3-surface-container-low/60 border-m3-outline-variant hover:border-m3-outline"
                   }`}
               >
                 <button
@@ -62,13 +62,13 @@ export function FAQSection({ faqs }: { faqs: Faq[] }) {
                   onClick={() => setOpenIndex(isOpen ? null : idx)}
                   className="group w-full p-5 sm:p-6 text-start flex items-center justify-between gap-4 cursor-pointer"
                 >
-                  <span className="font-display font-bold text-base sm:text-lg text-white group-hover:text-mint transition-colors">
+                  <span className="font-display font-bold text-base sm:text-lg text-m3-on-surface group-hover:text-m3-primary transition-colors">
                     {ar ? faq.questionAr : faq.questionEn}
                   </span>
                   <div
                     className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-transform duration-300 ${isOpen
-                      ? "bg-accent/20 text-mint rotate-180"
-                      : "bg-white/5 text-ink-muted"
+                      ? "bg-m3-secondary-container text-m3-on-secondary-container rotate-180"
+                      : "bg-m3-surface-container-high text-m3-on-surface-variant"
                       }`}
                   >
                     <ChevronDown className="w-4 h-4" />
@@ -86,9 +86,9 @@ export function FAQSection({ faqs }: { faqs: Faq[] }) {
                         duration: reduced ? 0 : 0.25,
                         ease: [0.16, 1, 0.3, 1],
                       }}
-                      className="overflow-hidden"
+                      className="max-h-[40rem] overflow-y-auto"
                     >
-                      <div className="px-5 pb-6 sm:px-6 sm:pb-6 pt-1 text-xs sm:text-sm leading-relaxed text-ink-muted font-sans whitespace-pre-wrap">
+                      <div className="px-5 pb-6 sm:px-6 sm:pb-6 pt-1 text-xs sm:text-sm leading-relaxed text-m3-on-surface-variant font-sans whitespace-pre-wrap">
                         {ar ? faq.answerAr : faq.answerEn}
                       </div>
                     </motion.div>

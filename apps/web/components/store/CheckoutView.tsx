@@ -1,5 +1,7 @@
 "use client";
 import { Select, PhoneInput } from "@platform/ui";
+import { isValidPhone } from "@platform/config/phone";
+import { getUiTranslations } from "@platform/locales";
 
 import * as React from "react";
 import Link from "next/link";
@@ -124,10 +126,23 @@ export function CheckoutView({ locale, settings, customer, addresses, country, b
 
   const place = async (event: React.FormEvent) => {
     event.preventDefault();
-    setBusy(true);
     setError("");
+    const uiCopy = getUiTranslations(locale);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(contact.email.trim())) {
+      setError(known("account.errors.customerEmailInvalid", "account.errors.generic"));
+      return;
+    }
+    if (!isValidPhone(contact.phone)) {
+      setError(uiCopy.invalidPhone);
+      return;
+    }
     const saved = addresses.find((a) => a.id === addressId);
     const destination = fulfilment === "pickup" ? null : saved ? { name: saved.name, phone: saved.phone, line1: saved.line1, line2: saved.line2, area: saved.area, city: saved.city, country: saved.country, postalCode: saved.postal_code } : address;
+    if (destination && !isValidPhone(destination.phone)) {
+      setError(uiCopy.invalidPhone);
+      return;
+    }
+    setBusy(true);
     const shipping = destination && collectCoordinates ? { ...destination, latitude: pin.latitude === "" ? null : Number(pin.latitude), longitude: pin.longitude === "" ? null : Number(pin.longitude) } : destination;
     try {
       const response = await fetch("/api/store/order", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ lines, couponCode: coupon, fulfilment, pickupBranchId: fulfilment === "pickup" ? pickupBranchId : null, address: shipping, ...contact, paymentMethod, note, locale, slot: fulfilment === "delivery" && slot ? { date: slot.split("|")[0], slotId: slot.split("|")[1] } : null }) });
@@ -166,7 +181,6 @@ export function CheckoutView({ locale, settings, customer, addresses, country, b
                   autoComplete="tel"
                   value={contact.phone}
                   onChange={(phone) => setContact({ ...contact, phone })}
-                  className="bg-brand-surface border-white/10 text-white rounded-brand min-h-12"
                 />
               </label>
             </div>
@@ -220,7 +234,6 @@ export function CheckoutView({ locale, settings, customer, addresses, country, b
                           required
                           value={address.phone}
                           onChange={(phone) => setAddress({ ...address, phone })}
-                          className="bg-brand-surface border-white/10 text-white rounded-brand min-h-12"
                         />
                       ) : (
                         <input name={`shipping-${key}`} required={["name", "line1", "city", "country"].includes(key)} maxLength={200} dir={key === "postalCode" ? "ltr" : undefined} value={address[key]} onChange={(e) => setAddress({ ...address, [key]: e.target.value })} className={field} />

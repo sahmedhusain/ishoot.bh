@@ -44,7 +44,7 @@ export function ShowcaseLightbox({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="m-auto w-[calc(100%-2rem)] max-w-5xl max-h-[90dvh] overflow-y-auto rounded-lg bg-m3-surface-container-low text-ink border border-m3-outline-variant p-0 backdrop:bg-black/85"
+      className="on-media m-auto w-[calc(100%-2rem)] max-w-5xl max-h-[90dvh] overflow-y-auto rounded-[28px] bg-neutral-950 text-white border border-white/15 shadow-m3-3 p-0 backdrop:bg-black/85"
       data-lenis-prevent
     >
       <div>

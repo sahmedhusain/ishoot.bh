@@ -32,6 +32,7 @@ import {
   type ArchiveGroup,
   type ArchiveKind,
 } from "@platform/database/constants/archive";
+import type { CustomArchiveFolder } from "@platform/database/constants/dashboard";
 import type { ArchiveDocument, ArchiveFilters } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import {
@@ -39,8 +40,10 @@ import {
   deleteAttachmentAction,
 } from "../../app/actions/attachments";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import type { DashboardData } from "../../lib/dashboard-widgets";
 import { errorMessage } from "../../lib/error-text";
 import { uploadForClaim } from "../../lib/upload-client";
+import { CustomFoldersWidget } from "../dashboard/FolderWidgets";
 import { BilingualPdfActions } from "../shared/BilingualPdfActions";
 import { LinkOrUploadField } from "../shared/LinkOrUploadField";
 
@@ -68,6 +71,7 @@ export function CompanyArchiveView({
   kinds,
   canExport,
   canUpload,
+  customFolders,
 }: {
   items: ArchiveDocument[];
   total: number;
@@ -78,6 +82,7 @@ export function CompanyArchiveView({
   kinds: ArchiveKind[];
   canExport: boolean;
   canUpload: boolean;
+  customFolders?: CustomArchiveFolder[];
 }) {
   const { t, locale } = useAdminLocale();
   const v = t.companyArchive;
@@ -415,6 +420,10 @@ export function CompanyArchiveView({
         ))}
       </div>
 
+      {customFolders !== undefined ? (
+        <CustomFoldersWidget data={{ customFolders } as unknown as DashboardData} />
+      ) : null}
+
       <div className="flex flex-wrap items-center gap-2">
         <Link
           href={href({ group: "all", kind: "all" })}
@@ -554,7 +563,7 @@ export function CompanyArchiveView({
                       <span className="min-w-0 break-words">{title(d)}</span>
                     </a>
                     {d.source === "asset_handover" ? (
-                      <div className="ms-6 font-mono text-[11px] text-ink-muted" dir="ltr">{d.file_name}</div>
+                      <div className="ms-6 font-mono text-[11px] text-ink-muted text-start"><bdi dir="ltr">{d.file_name}</bdi></div>
                     ) : null}
                     {d.uploaded_by ? (
                       <div className="ms-6 text-[11px] text-ink-muted">

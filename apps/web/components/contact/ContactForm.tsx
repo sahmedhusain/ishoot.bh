@@ -2,7 +2,8 @@
 import { Select, PhoneInput } from "@platform/ui";
 import { InquiryAttachments } from "./InquiryAttachments";
 import { field as publicField } from "../account/ui";
-import { formatMessage } from "@platform/locales";
+import { formatMessage, getUiTranslations } from "@platform/locales";
+import { isValidPhone } from "@platform/config/phone";
 import * as React from "react";
 import { ArrowUpRight, Check, Star } from "lucide-react";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -80,16 +81,31 @@ export function ContactForm({
     const form = new FormData(event.currentTarget);
     const read = (key: string) => String(form.get(key) || "").trim();
 
+    const emailValue = read("email");
+    const phoneValue = read("phone");
+    const uiCopy = getUiTranslations(locale);
+
     if (
       intent !== "review" &&
       intent !== "suggestion" &&
-      !read("email") &&
-      !read("phone")
+      !emailValue &&
+      !phoneValue
     ) {
       setError(t("contact.validationEmailOrPhone"));
       formRef.current
         ?.querySelector<HTMLInputElement>('[name="email"]')
         ?.focus();
+      return;
+    }
+    if (intent !== "review" && emailValue && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emailValue)) {
+      setError(uiCopy.invalidEmail);
+      formRef.current
+        ?.querySelector<HTMLInputElement>('[name="email"]')
+        ?.focus();
+      return;
+    }
+    if (intent !== "review" && phoneValue && !isValidPhone(phoneValue)) {
+      setError(uiCopy.invalidPhone);
       return;
     }
     if (intent === "review" && !rating) {
@@ -317,7 +333,6 @@ export function ContactForm({
               <PhoneInput
                 name="phone"
                 autoComplete="tel"
-                className="bg-brand-surface border-white/10 text-white rounded-brand min-h-12"
               />
             </label>
           </div>
@@ -335,8 +350,8 @@ export function ContactForm({
                   <label
                     key={service.id}
                     className={`min-h-11 px-3.5 py-2 rounded-xl text-xs font-medium transition-colors duration-150 cursor-pointer flex items-center gap-1.5 ${isChecked
-                      ? "bg-accent/25 text-mint border border-accent"
-                      : "bg-white/5 text-ink-muted hover:text-white border border-white/10"
+                      ? "bg-m3-secondary-container text-m3-on-secondary-container border border-m3-primary"
+                      : "bg-m3-surface-container-lowest text-m3-on-surface border border-m3-outline"
                       }`}
                   >
                     <input
@@ -367,22 +382,22 @@ export function ContactForm({
                   {t("contact.estimatedBudget")}
                 </span>
                 <Select className={field} name="budget" defaultValue="">
-                  <option value="" className="bg-brand-surface text-ink-muted">
+                  <option value="">
                     {t("contact.chooseRangeOptional")}
                   </option>
-                  <option value="not_sure" className="bg-brand-surface text-white">
+                  <option value="not_sure">
                     {t("contact.budgetNotSure")}
                   </option>
-                  <option value="under_500" className="bg-brand-surface text-white">
+                  <option value="under_500">
                     {t("contact.budgetUnder500", { currency })}
                   </option>
-                  <option value="500_1500" className="bg-brand-surface text-white">
+                  <option value="500_1500">
                     {t("contact.budget500_1500", { currency })}
                   </option>
-                  <option value="1500_5000" className="bg-brand-surface text-white">
+                  <option value="1500_5000">
                     {t("contact.budget1500_5000", { currency })}
                   </option>
-                  <option value="5000_plus" className="bg-brand-surface text-white">
+                  <option value="5000_plus">
                     {t("contact.budget5000Plus", { currency })}
                   </option>
                 </Select>
@@ -395,19 +410,19 @@ export function ContactForm({
                   {t("contact.targetTimeline")}
                 </span>
                 <Select className={field} name="timeline" defaultValue="">
-                  <option value="" className="bg-brand-surface text-ink-muted">
+                  <option value="">
                     {t("contact.chooseTimelineOptional")}
                   </option>
-                  <option value="urgent" className="bg-brand-surface text-white">
+                  <option value="urgent">
                     {t("contact.timelineUrgent")}
                   </option>
-                  <option value="month" className="bg-brand-surface text-white">
+                  <option value="month">
                     {t("contact.timelineMonth")}
                   </option>
-                  <option value="quarter" className="bg-brand-surface text-white">
+                  <option value="quarter">
                     {t("contact.timelineQuarter")}
                   </option>
-                  <option value="flexible" className="bg-brand-surface text-white">
+                  <option value="flexible">
                     {t("contact.timelineFlexible")}
                   </option>
                 </Select>
@@ -521,7 +536,7 @@ export function ContactForm({
           <div
             id="contact-error"
             role="alert"
-            className="p-4 rounded-xl bg-rose-500/15 border border-rose-500/30 text-m3-error text-xs font-sans"
+            className="p-4 rounded-xl bg-m3-error-container text-m3-on-error-container border border-m3-error/30 text-xs font-sans"
           >
             {error}
           </div>

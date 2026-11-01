@@ -3,14 +3,30 @@ import { Prisma } from "@prisma/client";
 import { db } from "../db";
 import { ROUTES } from "../constants/routes";
 import { OPEN_TASK_STATUSES } from "../constants/tasks";
-import type { DashboardLayoutItem } from "../constants/dashboard";
+import type {
+  CustomArchiveFolder,
+  DashboardLayoutItem,
+} from "../constants/dashboard";
 
 const num = (value: { toString(): string } | null | undefined) =>
   value == null ? 0 : Number(value.toString());
 const dateOnly = (value: Date | null) =>
   value ? value.toISOString().slice(0, 10) : null;
 
-// ─── Layouts ─────────────────────────────────────────────────────────────────────────────────────────────────────
+// ─── Layouts & Custom Folders ────────────────────────────────────────────────────────────────────────────────────
+
+function extractStoredFolders(raw: unknown): CustomArchiveFolder[] {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return [];
+  const folders = (raw as { customFolders?: unknown }).customFolders;
+  if (!Array.isArray(folders)) return [];
+  return folders.filter(
+    (f): f is CustomArchiveFolder =>
+      !!f &&
+      typeof f === "object" &&
+      typeof (f as CustomArchiveFolder).id === "string" &&
+      typeof (f as CustomArchiveFolder).nameEn === "string",
+  );
+}
 
 /** The person's saved widgets as stored (normalise before use), or null when they never changed the default. */
 export async function getDashboardLayout(
@@ -20,17 +36,35 @@ export async function getDashboardLayout(
     where: { userId },
     select: { widgets: true },
   });
-  return row ? row.widgets : null;
+  if (!row) return null;
+  if (Array.isArray(row.widgets)) return row.widgets;
+  if (
+    row.widgets &&
+    typeof row.widgets === "object" &&
+    Array.isArray((row.widgets as { items?: unknown }).items)
+  ) {
+    return (row.widgets as { items: unknown[] }).items;
+  }
+  return null;
 }
 
 export async function saveDashboardLayout(
   userId: string,
   widgets: DashboardLayoutItem[],
 ) {
-  const value = widgets.map((w) => ({
+  const existing = await db.dashboardLayout.findUnique({
+    where: { userId },
+    select: { widgets: true },
+  });
+  const customFolders = extractStoredFolders(existing?.widgets);
+  const items = widgets.map((w) => ({
     id: w.id,
     size: w.size,
-  })) as Prisma.InputJsonValue;
+    ...(w.settings ? { settings: w.settings } : {}),
+  }));
+  const value = (
+    customFolders.length > 0 ? { items, customFolders } : items
+  ) as Prisma.InputJsonValue;
   await db.dashboardLayout.upsert({
     where: { userId },
     create: { userId, widgets: value },
@@ -38,9 +72,156 @@ export async function saveDashboardLayout(
   });
 }
 
-/** Back to the role's default layout. */
+/** Back to the role's default layout (preserving any custom folders created by the user). */
 export async function resetDashboardLayout(userId: string) {
-  await db.dashboardLayout.deleteMany({ where: { userId } });
+  const existing = await db.dashboardLayout.findUnique({
+    where: { userId },
+    select: { widgets: true },
+  });
+  const customFolders = extractStoredFolders(existing?.widgets);
+  if (customFolders.length > 0) {
+    await db.dashboardLayout.update({
+      where: { userId },
+      data: {
+        widgets: { customFolders } as unknown as Prisma.InputJsonValue,
+      },
+    });
+  } else {
+    await db.dashboardLayout.deleteMany({ where: { userId } });
+  }
+}
+
+/**
+ * Lists all custom folders visible to a user:
+ * - personal folders owned by userId
+ * - department folders matching departmentId
+ * - role folders matching role
+ * - company-wide folders
+ */
+export async function listCustomFoldersForUser(params: {
+  userId: string;
+  role: string;
+  departmentId?: string | null;
+}): Promise<CustomArchiveFolder[]> {
+  const rows = await db.dashboardLayout.findMany({
+    select: { userId: true, widgets: true },
+  });
+  const all: CustomArchiveFolder[] = [];
+  for (const row of rows) {
+    for (const folder of extractStoredFolders(row.widgets)) {
+      const isOwner = folder.ownerId === params.userId || row.userId === params.userId;
+      const isCompany = folder.scope === "company";
+      const isDept =
+        folder.scope === "department" &&
+        !!params.departmentId &&
+        folder.departmentId === params.departmentId;
+      const isRole =
+        folder.scope === "role" &&
+        (folder.roleKey === params.role || params.role === "super_admin" || params.role === "admin");
+      if (isOwner || isCompany || isDept || isRole || params.role === "super_admin") {
+        all.push({ ...folder, ownerId: folder.ownerId || row.userId });
+      }
+    }
+  }
+  return all.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+export async function upsertCustomFolderForUser(
+  userId: string,
+  folder: CustomArchiveFolder,
+): Promise<CustomArchiveFolder[]> {
+  const existing = await db.dashboardLayout.findUnique({
+    where: { userId },
+    select: { widgets: true },
+  });
+  const raw = existing?.widgets;
+  const items = Array.isArray(raw)
+    ? raw
+    : raw && typeof raw === "object" && Array.isArray((raw as { items?: unknown }).items)
+      ? (raw as { items: unknown[] }).items
+      : undefined;
+  const folders = extractStoredFolders(raw);
+  const idx = folders.findIndex((f) => f.id === folder.id);
+  const nextFolders =
+    idx >= 0
+      ? folders.map((f, i) => (i === idx ? folder : f))
+      : [folder, ...folders].slice(0, 30);
+
+  const payload = (
+    items ? { items, customFolders: nextFolders } : { customFolders: nextFolders }
+  ) as unknown as Prisma.InputJsonValue;
+
+  await db.dashboardLayout.upsert({
+    where: { userId },
+    create: { userId, widgets: payload },
+    update: { widgets: payload },
+  });
+  return nextFolders;
+}
+
+export async function deleteCustomFolderForUser(
+  userId: string,
+  folderId: string,
+): Promise<void> {
+  const existing = await db.dashboardLayout.findUnique({
+    where: { userId },
+    select: { widgets: true },
+  });
+  if (!existing) return;
+  const raw = existing.widgets;
+  const items = Array.isArray(raw)
+    ? raw
+    : raw && typeof raw === "object" && Array.isArray((raw as { items?: unknown }).items)
+      ? (raw as { items: unknown[] }).items
+      : undefined;
+  const nextFolders = extractStoredFolders(raw).filter((f) => f.id !== folderId);
+  const payload = (
+    items
+      ? nextFolders.length > 0
+        ? { items, customFolders: nextFolders }
+        : items
+      : { customFolders: nextFolders }
+  ) as unknown as Prisma.InputJsonValue;
+
+  await db.dashboardLayout.update({
+    where: { userId },
+    data: { widgets: payload },
+  });
+}
+
+export async function hrPulseSummary(now = new Date()) {
+  const today = new Date(`${now.toISOString().slice(0, 10)}T00:00:00Z`);
+  const [activeCount, onLeaveCount, pendingLeaveCount] = await Promise.all([
+    db.employee.count({ where: { status: "active" } }),
+    db.leaveRequest.count({
+      where: {
+        status: "approved",
+        startDate: { lte: now },
+        endDate: { gte: today },
+      },
+    }),
+    db.leaveRequest.count({ where: { status: "pending" } }),
+  ]);
+  return {
+    active: activeCount,
+    on_leave: onLeaveCount,
+    pending_leave: pendingLeaveCount,
+  };
+}
+
+export async function procurementPulseSummary() {
+  const [openRequisitions, openOrders] = await Promise.all([
+    db.purchaseRequisition.count({
+      where: { status: { in: ["draft", "submitted", "approved"] } },
+    }),
+    db.purchaseOrder.count({
+      where: { status: { in: ["draft", "sent", "partially_received"] } },
+    }),
+  ]);
+  return {
+    open_requisitions: openRequisitions,
+    open_orders: openOrders,
+  };
 }
 
 // ─── Widget data ─────────────────────────────────────────────────────────────────────────────────────────────────

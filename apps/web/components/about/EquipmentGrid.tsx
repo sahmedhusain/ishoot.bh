@@ -60,9 +60,9 @@ export function EquipmentGrid({ equipment }: EquipmentGridProps) {
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
               aria-pressed={selectedCategory === cat.id}
-              className={`min-h-11 px-4 py-2 rounded-md text-xs font-bold transition-colors duration-150 cursor-pointer ${selectedCategory === cat.id
-                ? "bg-primary text-primary-foreground border border-accent"
-                : "bg-m3-surface-container-low text-ink-muted hover:text-ink border border-m3-outline-variant shadow-2xs"
+              className={`min-h-11 rounded-full px-4 py-2 text-xs font-semibold transition-colors duration-150 cursor-pointer ${selectedCategory === cat.id
+                ? "bg-m3-secondary-container text-m3-on-secondary-container border border-m3-primary"
+                : "bg-m3-surface-container-low text-m3-on-surface-variant hover:text-m3-on-surface border border-m3-outline-variant"
                 }`}
             >
               <span>{cat.label}</span>
@@ -87,23 +87,21 @@ export function EquipmentGrid({ equipment }: EquipmentGridProps) {
                   duration: reduced ? 0 : 0.25,
                   delay: reduced ? 0 : Math.min(idx * 0.04, 0.16),
                 }}
-                className="group relative rounded-lg bg-m3-surface-container-low border border-m3-outline-variant hover:border-accent transition-colors duration-150 p-6 sm:p-8 flex flex-col justify-between space-y-6 overflow-hidden"
+                className="group relative rounded-2xl bg-m3-surface-container-low border border-m3-outline-variant hover:border-m3-primary/50 p-6 transition-all flex flex-col justify-between space-y-6 overflow-hidden"
               >
                 <div className="space-y-3 relative z-10">
                   <div className="flex items-center justify-between font-sans">
-                    <span className="text-[10px] uppercase font-bold tracking-widest text-primary bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200">
-                      &lt;&lt;{" "}
+                    <span className="text-[11px] uppercase font-semibold tracking-wider text-m3-on-secondary-container bg-m3-secondary-container px-3 py-1 rounded-full">
                       {categories.find((c) => c.id === gear.category)?.label ||
-                        gear.category.replace("_", " ")}{" "}
-                      &gt;&gt;
+                        gear.category.replace("_", " ")}
                     </span>
                   </div>
 
                   <div>
-                    <h4 className="text-lg sm:text-2xl font-bold text-ink group-hover:text-primary transition-colors font-display">
+                    <h4 className="text-lg sm:text-2xl font-bold text-m3-on-surface group-hover:text-m3-primary transition-colors font-display">
                       {gear.model_name}
                     </h4>
-                    <p className="mt-1 text-xs sm:text-sm text-ink-muted font-sans leading-relaxed">
+                    <p className="mt-1 text-xs sm:text-sm text-m3-on-surface-variant font-sans leading-relaxed">
                       {gear.specification}
                     </p>
                   </div>

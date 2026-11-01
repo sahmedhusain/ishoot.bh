@@ -97,7 +97,7 @@ export function PagesListView({ pages, canEdit, canCreate, canDelete, canPublish
                 <Icon className="w-4 h-4 text-accent" />
                 <div className="flex-1 min-w-[180px]">
                   <p className="font-semibold text-sm text-ink">{title}</p>
-                  <p className="text-[11px] text-ink-muted" dir="ltr">{address(row)} · {formatMessage(copy.blockCount, { count: row.blocks.length })}</p>
+                  <p className="text-[11px] text-ink-muted text-start"><bdi dir="ltr">{address(row)}</bdi> · {formatMessage(copy.blockCount, { count: row.blocks.length })}</p>
                 </div>
                 {row.page_type !== "home" && (
                   <div className="flex flex-wrap gap-3 text-xs">

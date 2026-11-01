@@ -72,6 +72,8 @@ import {
   Newspaper,
   Menu,
   Code2,
+  SlidersHorizontal,
+  Star,
   X,
 } from "lucide-react";
 import { usePermissions, PermissionResource } from "../../hooks/usePermissions";
@@ -80,8 +82,12 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
   sidebarGroupOrder,
   activeNavigationHref,
+  defaultSidebarCustomization,
+  normalizeSidebarCustomization,
+  type SidebarCustomizationConfig,
 } from "../../lib/sidebar-navigation";
 import { useFeatureToggles } from "../../hooks/useFeatureToggles";
+import { SidebarCustomizerModal } from "./SidebarCustomizerModal";
 
 interface NavItem {
   href: string;
@@ -120,7 +126,12 @@ export function Sidebar() {
   }, [setIsMobileOpen]);
   const { isFeatureEnabled } = useFeatureToggles();
   const [folded, setFolded] = React.useState<Record<string, boolean>>({});
+  const [customizerOpen, setCustomizerOpen] = React.useState(false);
   const storageKey = `platform_navigation_${user?.id ?? "guest"}`;
+  const customStorageKey = `platform_sidebar_custom_${user?.id ?? "guest"}`;
+  const [customConfig, setCustomConfig] = React.useState<SidebarCustomizationConfig>(() =>
+    defaultSidebarCustomization(role),
+  );
   React.useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(storageKey) ?? "{}");
@@ -136,7 +147,25 @@ export function Sidebar() {
     } catch {
       setFolded({});
     }
-  }, [storageKey]);
+    try {
+      const rawCustom = localStorage.getItem(customStorageKey);
+      if (rawCustom) {
+        setCustomConfig(normalizeSidebarCustomization(JSON.parse(rawCustom), role));
+      } else {
+        setCustomConfig(defaultSidebarCustomization(role));
+      }
+    } catch {
+      setCustomConfig(defaultSidebarCustomization(role));
+    }
+  }, [storageKey, customStorageKey, role]);
+
+  const handleSaveCustomConfig = (next: SidebarCustomizationConfig) => {
+    const normalized = normalizeSidebarCustomization(next, role);
+    setCustomConfig(normalized);
+    try {
+      localStorage.setItem(customStorageKey, JSON.stringify(normalized));
+    } catch { }
+  };
 
   const sections = React.useMemo<NavSection[]>(() => {
     const existing: Omit<NavSection, "id">[] = [
@@ -573,7 +602,7 @@ export function Sidebar() {
       },
       {
         id: "store",
-        title: t.orders.navGroup,
+        title: (t.navigationGroups as Record<string, string>).store ?? t.orders.navGroup,
         items: [
           { href: ROUTES.orders.list, label: t.orders.nav.orders, icon: ShoppingBag, resource: "orders", moduleKey: "store" },
           { href: ROUTES.orders.new, label: t.orders.nav.newSale, icon: ScanLine, resource: "orders", action: "create", moduleKey: "store" },
@@ -582,7 +611,7 @@ export function Sidebar() {
       },
       {
         id: "marketing",
-        title: t.permissionLabels.groups.outreach,
+        title: (t.navigationGroups as Record<string, string>).marketing ?? t.permissionLabels.groups.outreach,
         items: [
           { href: ROUTES.marketing.campaigns, label: t.marketing.nav.campaigns, icon: Megaphone, resource: "marketing", moduleKey: "marketing" },
           { href: ROUTES.marketing.audience, label: t.marketing.nav.audience, icon: Users2, resource: "marketing", moduleKey: "marketing" },
@@ -591,12 +620,12 @@ export function Sidebar() {
       },
       {
         id: "legal",
-        title: t.legal.navGroup,
+        title: (t.navigationGroups as Record<string, string>).legal ?? t.legal.navGroup,
         items: [{ href: ROUTES.legal.matters, label: t.legal.nav.matters, icon: Scale, resource: "legal", moduleKey: "legal" }],
       },
       {
         id: "work",
-        title: t.tasks.navGroup,
+        title: (t.navigationGroups as Record<string, string>).work ?? t.tasks.navGroup,
         items: [
           { href: ROUTES.tasks.list, label: t.tasks.nav.tasks, icon: ListTodo, resource: "tasks", moduleKey: "tasks" },
           { href: ROUTES.tasks.projects, label: t.tasks.nav.projects, icon: FolderKanban, resource: "tasks", moduleKey: "tasks" },
@@ -604,7 +633,7 @@ export function Sidebar() {
       },
       {
         id: "delivery",
-        title: t.delivery.navGroup,
+        title: (t.navigationGroups as Record<string, string>).delivery ?? t.delivery.navGroup,
         items: [
           { href: ROUTES.delivery.driver, label: t.delivery.nav.driver, icon: Navigation, resource: "deliveries", action: "edit", moduleKey: "delivery" },
           { href: ROUTES.delivery.shipments, label: t.delivery.nav.shipments, icon: Truck, resource: "deliveries", moduleKey: "delivery" },
@@ -617,7 +646,7 @@ export function Sidebar() {
       },
       {
         id: "procurement",
-        title: t.procurement.navGroup,
+        title: (t.navigationGroups as Record<string, string>).procurement ?? t.procurement.navGroup,
         items: [
           { href: ROUTES.procurement.requisitions, label: t.procurement.nav.requisitions, icon: ClipboardList, resource: "procurement", action: "create", moduleKey: "procurement" },
           { href: ROUTES.procurement.rfqs, label: t.procurement.nav.rfqs, icon: FileQuestion, resource: "procurement", moduleKey: "procurement" },
@@ -638,7 +667,7 @@ export function Sidebar() {
       },
       {
         id: "finance",
-        title: t.nav.finance,
+        title: (t.navigationGroups as Record<string, string>).finance ?? t.nav.finance,
         items: take([
           ROUTES.finance.overview,
           ROUTES.invoices.list,
@@ -760,7 +789,13 @@ export function Sidebar() {
     return groups;
   }, [t]);
 
-  const visibleSections = React.useMemo(() => {
+  const permittedSections = React.useMemo(() => {
+    const order = sidebarGroupOrder(
+      role,
+      customConfig.departmentKey,
+      customConfig.designationTier,
+      customConfig.sectionOrder,
+    );
     return sections
       .map((section) => ({
         ...section,
@@ -773,15 +808,37 @@ export function Sidebar() {
         }),
       }))
       .filter((section) => section.items.length > 0)
-      .sort(
-        (a, b) =>
-          sidebarGroupOrder(role).indexOf(a.id) -
-          sidebarGroupOrder(role).indexOf(b.id),
-      );
-  }, [sections, can, isFeatureEnabled, managesTeam, role]);
+      .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+  }, [sections, can, isFeatureEnabled, managesTeam, role, customConfig]);
+
+  const visibleSections = React.useMemo(() => {
+    const hiddenSet = new Set(customConfig.hiddenSections);
+    const allPermittedItems = permittedSections.flatMap((s) => s.items);
+    const pinnedItems = customConfig.pinnedHrefs
+      .map((href) => allPermittedItems.find((item) => item.href === href))
+      .filter((item): item is NavItem => !!item);
+
+    const filtered = permittedSections.filter(
+      (s) => s.id === "workspace" || !hiddenSet.has(s.id),
+    );
+
+    if (pinnedItems.length > 0) {
+      return [
+        {
+          id: "pinned",
+          title:
+            ((t.navigationGroups as Record<string, string>).pinned ??
+              "Pinned & Favorites"),
+          items: pinnedItems,
+        },
+        ...filtered,
+      ];
+    }
+    return filtered;
+  }, [permittedSections, customConfig.hiddenSections, customConfig.pinnedHrefs, t.navigationGroups]);
 
   const activeHref = activeNavigationHref(
-    visibleSections.flatMap((section) =>
+    permittedSections.flatMap((section) =>
       section.items.map((item) => item.href),
     ),
     pathname,
@@ -794,67 +851,92 @@ export function Sidebar() {
     } catch { }
   };
 
+  const customizerCopy = (t as Record<string, unknown>).sidebarCustomizer as Record<string, string> | undefined;
+  const customizeLabel = customizerCopy?.openButton ?? "Customize sidebar";
+
   const navContent = (
     <nav
       aria-label={t.topbar.toggleNavigationMenu}
-      className="h-full overflow-y-auto overscroll-contain py-3 space-y-2 select-none"
+      className="h-full flex flex-col justify-between overflow-y-auto overscroll-contain py-3 select-none"
     >
-      {visibleSections.map((section, idx) => {
-        const active = section.items.some((item) => item.href === activeHref);
-        const collapsed = folded[section.id] ?? (!active && idx > 3);
-        return (
-          <div
-            key={section.id}
-            className={idx > 0 ? "pt-2 border-t border-outline-variant/20" : ""}
-          >
-            <button
-              type="button"
-              onClick={() => toggleSection(section.id, collapsed)}
-              aria-expanded={!collapsed}
-              aria-label={section.title}
-              data-nav-section
-              className="w-full flex items-center justify-between px-4 py-2 text-xs font-bold uppercase tracking-wider text-on-surface-variant hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary rounded-lg m3-state-layer"
+      <div className="space-y-2">
+        {visibleSections.map((section, idx) => {
+          const active = section.items.some((item) => item.href === activeHref);
+          const collapsed = folded[section.id] ?? (!active && idx > 3);
+          return (
+            <div
+              key={section.id}
+              className={idx > 0 ? "pt-2 border-t border-outline-variant/20" : ""}
             >
-              <span data-nav-label>{section.title}</span>
-              <ChevronDown
-                aria-hidden
-                className={`h-3.5 w-3.5 transition-transform duration-fast ease-standard ${collapsed ? "-rotate-90 rtl:rotate-90" : ""}`}
-              />
-            </button>
-            <div hidden={collapsed} className="space-y-1 mt-1">
-              {section.items.map((item) => {
-                const Icon = item.icon;
-                const isActive = item.href === activeHref;
+              <button
+                type="button"
+                onClick={() => toggleSection(section.id, collapsed)}
+                aria-expanded={!collapsed}
+                aria-label={section.title}
+                data-nav-section
+                className="w-full flex items-center justify-between px-4 py-2 text-xs font-bold uppercase tracking-wider text-on-surface-variant hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary rounded-lg m3-state-layer"
+              >
+                <span data-nav-label className="flex items-center gap-1.5 truncate">
+                  {section.id === "pinned" && <Star className="w-3 h-3 text-amber-500 fill-amber-400 shrink-0" />}
+                  <span className="truncate">{section.title}</span>
+                </span>
+                <ChevronDown
+                  aria-hidden
+                  className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ease-[cubic-bezier(0.2,0,0,1)] ${collapsed ? "-rotate-90 rtl:rotate-90" : ""}`}
+                />
+              </button>
+              <div
+                hidden={collapsed}
+                className="space-y-1 mt-1"
+              >
+                {section.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = item.href === activeHref;
 
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    aria-current={isActive ? "page" : undefined}
-                    title={item.label}
-                    aria-label={item.label}
-                    onClick={() => setIsMobileOpen(false)}
-                    className={`flex items-center gap-3.5 mx-3 px-4 h-10 rounded-full text-[13px] font-medium transition-all duration-base ease-standard focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary m3-state-layer ${
-                      isActive
-                        ? "bg-secondary-container text-on-secondary-container font-semibold shadow-m3-0"
-                        : "text-on-surface-variant hover:text-on-surface hover:bg-on-surface/[0.08] active:bg-on-surface/[0.12]"
-                    }`}
-                  >
-                    <Icon
-                      className={`w-4 h-4 shrink-0 transition-colors ${
+                  return (
+                    <Link
+                      key={`${section.id}-${item.href}`}
+                      href={item.href}
+                      aria-current={isActive ? "page" : undefined}
+                      title={item.label}
+                      aria-label={item.label}
+                      onClick={() => setIsMobileOpen(false)}
+                      className={`flex items-center gap-3.5 mx-3 px-4 h-10 rounded-full text-[13px] font-medium transition-all duration-150 ease-[cubic-bezier(0.2,0,0,1)] motion-safe:active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary m3-state-layer ${
                         isActive
-                          ? "text-on-secondary-container"
-                          : "text-on-surface-variant"
+                          ? "bg-secondary-container text-on-secondary-container font-semibold shadow-m3-0"
+                          : "text-on-surface-variant hover:text-on-surface hover:bg-on-surface/[0.08] active:bg-on-surface/[0.12]"
                       }`}
-                    />
-                    <span data-nav-label className="truncate">{item.label}</span>
-                  </Link>
-                );
-              })}
+                    >
+                      <Icon
+                        className={`w-4 h-4 shrink-0 transition-colors ${
+                          isActive
+                            ? "text-on-secondary-container"
+                            : "text-on-surface-variant"
+                        }`}
+                      />
+                      <span data-nav-label className="truncate">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
+
+      <div className="pt-3 mt-3 px-3 border-t border-outline-variant/20 shrink-0">
+        <button
+          type="button"
+          onClick={() => setCustomizerOpen(true)}
+          title={customizeLabel}
+          aria-label={customizeLabel}
+          data-testid="sidebar-customize-button"
+          className="w-full flex items-center justify-center gap-2 px-3 h-9 rounded-full text-xs font-semibold text-on-surface-variant hover:text-on-surface bg-surface-container-high/50 hover:bg-surface-container-high border border-outline-variant/40 transition-all duration-150 motion-safe:active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+          <SlidersHorizontal className="w-3.5 h-3.5 text-primary shrink-0" />
+          <span data-nav-label className="truncate">{customizeLabel}</span>
+        </button>
+      </div>
     </nav>
   );
 
@@ -873,7 +955,7 @@ export function Sidebar() {
             className="fixed inset-0 modal-scrim animate-in fade-in duration-base"
             onClick={() => setIsMobileOpen(false)}
           />
-          <motion.div {...mobileDialog} initial={reduceMotion ? false : { x: isRTL ? 48 : -48, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 400, damping: 40, mass: 1 }} data-navigation-drawer aria-label={t.sidebar.mobileNavigation} className="relative w-80 max-w-[85vw] h-full bg-surface-container-low rounded-e-3xl shadow-m3-3 flex flex-col z-10">
+          <motion.div {...mobileDialog} initial={reduceMotion ? false : { transform: isRTL ? "translateX(48px)" : "translateX(-48px)", opacity: 0 }} animate={{ transform: "translateX(0px)", opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 400, damping: 40, mass: 1 }} data-navigation-drawer aria-label={t.sidebar.mobileNavigation} className="relative w-80 max-w-[85vw] h-full bg-surface-container-low rounded-e-3xl shadow-m3-3 flex flex-col z-10">
             <div className="flex shrink-0 items-center justify-between border-b border-outline-variant/20 px-4 py-3">
               <span className="text-sm font-bold text-on-surface">{t.sidebar.mobileNavigation}</span>
               <Button type="button" size="icon" variant="ghost" onClick={() => setIsMobileOpen(false)} aria-label={t.actions.close}><X aria-hidden className="h-4 w-4" /></Button>
@@ -883,6 +965,15 @@ export function Sidebar() {
           </motion.div>
         </div>
       )}
+
+      <SidebarCustomizerModal
+        open={customizerOpen}
+        onClose={() => setCustomizerOpen(false)}
+        role={role}
+        sections={permittedSections}
+        config={customConfig}
+        onSave={handleSaveCustomConfig}
+      />
     </>
   );
 }

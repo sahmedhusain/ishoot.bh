@@ -121,6 +121,7 @@ export function WorksSection({ items, categories: categoryChoices, title, presen
           {shown.map((item, index) => (
             <motion.div
               key={item.id}
+              className="work-row"
               initial={reduced ? false : { opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -130,7 +131,7 @@ export function WorksSection({ items, categories: categoryChoices, title, presen
                 delay: reduced ? 0 : Math.min(index * 0.08, 0.2),
               }}
             >
-              <CollectionCard horizontal={list} item={item} layout={layout} tone="light" onOpen={setSelected} />
+              <CollectionCard horizontal={list} item={item} layout={layout} onOpen={setSelected} />
             </motion.div>
           ))}
         </div>

@@ -93,13 +93,13 @@ export function AdminProfileDropdown() {
           className="admin-popover absolute end-0 top-full z-50 mt-3 w-80 max-sm:fixed max-sm:inset-x-3 max-sm:mt-0 max-sm:w-auto"
         >
           <div data-popup-header className="admin-popover-header">
-            <p className="truncate text-sm font-semibold text-ink">
+            <p className="truncate text-sm font-semibold text-ink text-start">
               <bdi dir="auto">{user?.fullName ?? t.profileDropdown.adminUser}</bdi>
             </p>
-            <p className="mt-1 truncate text-xs text-ink-muted" dir="ltr">
+            <p className="mt-1 truncate text-xs text-ink-muted text-start">
               <bdi dir="ltr">{user?.email}</bdi>
             </p>
-            <p className="mt-2 text-xs text-primary dark:text-mint">{role}</p>
+            <p className="mt-2 text-xs text-primary dark:text-mint text-start">{role}</p>
           </div>
           <div className="admin-popover-body">
             {links.map(({ href, label, icon: Icon }) => (

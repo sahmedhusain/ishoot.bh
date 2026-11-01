@@ -58,8 +58,8 @@ export function CartView({ locale, currency, shopHref, fulfilments }: { locale: 
             <div className="space-y-3">
               <ul className="space-y-3" data-testid="cart-lines">
                 {quote?.lines.map((l) => (
-                  <li key={`${l.productId}-${l.variantKey}`} className="flex flex-wrap sm:flex-nowrap gap-4 rounded-brand border border-m3-outline-variant p-4">
-                    <span className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-white/5 grid place-items-center">
+                  <li key={`${l.productId}-${l.variantKey}`} className="flex flex-wrap sm:flex-nowrap gap-4 rounded-brand bg-m3-surface-container-low border border-m3-outline-variant p-4">
+                    <span className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-m3-surface-container grid place-items-center">
                       {l.imageUrl ? <ContentImage src={l.imageUrl} alt="" width={80} height={80} className="h-full w-full object-cover" /> : <ShoppingBag className="w-6 h-6 text-ink-muted" aria-hidden="true" />}
                     </span>
                     <div className="flex-1 min-w-0 space-y-2">

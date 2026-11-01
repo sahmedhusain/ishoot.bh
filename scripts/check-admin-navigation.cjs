@@ -94,6 +94,9 @@ for (const locale of ["en", "ar"]) {
       "./SidebarContext": {
         useSidebar: () => ({ isMobileOpen: false, isCollapsed: false, setIsMobileOpen() { } }),
       },
+      "./SidebarCustomizerModal": {
+        SidebarCustomizerModal: () => null,
+      },
       "../../hooks/useAdminLocale": { useAdminLocale: () => ({ t, locale }) },
       "../../hooks/useAdminTheme": { useAdminTheme: () => ({ appearance: { motion: "system" } }) },
       "../../hooks/useFeatureToggles": {

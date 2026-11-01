@@ -137,16 +137,7 @@ body::-webkit-scrollbar {
   }
 }
 
-/* Diagonal Katana Razor Cut */
-.katana-top {
-  --katana-drop: clamp(2rem, 4vw, 4rem);
-  margin-top: calc(-1 * var(--katana-drop));
-  clip-path: polygon(0 var(--katana-drop), 100% 0, 100% 100%, 0 100%);
-}
-
-[dir="rtl"] .katana-top {
-  clip-path: polygon(0 0, 100% var(--katana-drop), 100% 100%, 0 100%);
-}
+/* Diagonal Katana Razor Cut removed in favor of clean M3 section dividers */
 
 /* Paper Theme Sections */
 .bg-paper {
@@ -537,74 +528,32 @@ body:has(.home-page > [data-slope="right"]:last-child) .site-footer {
   clip-path: var(--slope-shape);
   pointer-events: none;
 }
-/* Horizontal rules slope without rotating text, images, controls or form borders. */
-:is(
-    [class~="border-t"],
-    [class~="border-b"],
-    [class~="border-y"],
-    .sloped-rule-bottom
-  ):not(section):not(.site-footer) {
+/* Angled rules are strictly opt-in via .editorial-slash-rule / .sloped-rule-bottom so standard M3 cards, tabs, tables, and checkout summaries have crisp, straight horizontal dividers. */
+:is(.editorial-slash-rule, .sloped-rule-bottom):not(section):not(.site-footer) {
   position: relative;
   border-top-width: 0;
   border-bottom-width: 0;
 }
-:is([class~="border-t"], [class~="border-y"]):not(section):not(
+:is(.editorial-slash-rule, .sloped-rule-bottom):not(section):not(
     .site-footer
-  )::before,
-:is([class~="border-b"], [class~="border-y"], .sloped-rule-bottom):not(
-    section
-  ):not(.site-footer)::after {
+  )::after {
   content: "";
   position: absolute;
   inset-inline: 0;
+  bottom: 0;
   height: 1px;
   background: var(--rule-color);
   transform: skewY(var(--rule-angle));
   transform-origin: center;
   pointer-events: none;
 }
-:is([class~="border-t"], [class~="border-y"]):not(section):not(
-    .site-footer
-  )::before {
-  top: 0;
-}
-:is([class~="border-b"], [class~="border-y"], .sloped-rule-bottom):not(
-    section
-  ):not(.site-footer)::after {
-  bottom: 0;
-}
 #about,
 #reviews,
 section[class~="bg-[#F8FAFC]"] {
   --rule-color: #cbd5e1;
 }
-[class~="divide-y"] > :not([hidden]) ~ :not([hidden]) {
-  position: relative;
-  border-top-width: 0;
-  border-bottom-width: 0;
-}
-[class~="divide-y"] > :not([hidden]) ~ :not([hidden])::before {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  top: 0;
-  height: 1px;
-  background: var(--rule-color);
-  transform: skewY(var(--rule-angle));
-  pointer-events: none;
-}
-hr {
-  border: 0;
-  height: 1px;
-  background: var(--rule-color);
-  transform: skewY(var(--rule-angle));
-}
 .footer-invitation {
   border-bottom: 0;
-}
-/* Divider decoration preserves fixed header placement and transparent states. */
-body header[class~="fixed"][class~="border-b"] {
-  position: fixed;
 }
 [class~="border-transparent"] {
   --rule-color: transparent;
@@ -886,12 +835,20 @@ html.light .on-media {
 }
 
 /* Scroll reveals: sections below the fold rise into place once (ScrollReveal; tokens from the shared preset). */
-[data-reveal] {
-  transition:
-    opacity var(--motion-slow) var(--ease-emphasized),
-    transform var(--motion-slow) var(--ease-emphasized);
+:root {
+  --md-sys-motion-easing-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
 }
-[data-reveal][data-reveal-pending] {
+.floating-scrollbar {
+  inset-inline-end: 10px;
+}
+[data-reveal],
+.reveal-on-scroll {
+  transition:
+    opacity 450ms var(--md-sys-motion-easing-emphasized-decelerate, cubic-bezier(0.05, 0.7, 0.1, 1)),
+    transform 450ms var(--md-sys-motion-easing-emphasized-decelerate, cubic-bezier(0.05, 0.7, 0.1, 1));
+}
+[data-reveal][data-reveal-pending],
+.reveal-on-scroll:not(.is-visible) {
   opacity: 0;
   transform: translateY(calc(var(--motion-distance) * 2.4));
 }
@@ -945,6 +902,13 @@ html[data-site-footer="compact"] .site-footer-grid { padding-block: 1.5rem; gap:
 [data-hero-height="compact"] .site-hero-content { min-height: min(34rem, 65svh); }
 [data-hero-height="comfortable"] .site-hero-content { min-height: min(46rem, 82svh); }
 [data-hero-height="screen"] .site-hero-content { min-height: calc(100svh - 9rem); }
+@media (max-height: 700px) {
+  .hero-stage,
+  .hero-main,
+  .site-hero-content {
+    padding-block: clamp(4.5rem, 10vh, 7rem);
+  }
+}
 .site-hero-brand-shapes { position: absolute; inset: 0; overflow: hidden; background: rgb(var(--m3-color-primary-container)); }
 .site-hero-brand-shapes span { position: absolute; width: 75%; aspect-ratio: 1; border-radius: var(--ui-radius, 28px); background: rgb(var(--m3-color-primary) / .18); transform: rotate(-24deg); }
 .site-hero-brand-shapes span:nth-child(1) { inset: -22% auto auto -18%; }
@@ -954,4 +918,32 @@ html[data-site-footer="compact"] .site-footer-grid { padding-block: 1.5rem; gap:
   html[data-site-motion="full"] .web-button { transition: transform 220ms cubic-bezier(.2, 0, 0, 1), box-shadow 220ms cubic-bezier(.2, 0, 0, 1), background-color 150ms; }
   html[data-site-motion="full"] .web-button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgb(var(--m3-color-primary) / .18); }
   html[data-site-motion="full"] .web-button:active { transform: translateY(0) scale(.98); }
+}
+
+/* Separate Public Website appearance overrides (corners, density, borders, motion). */
+html[data-corners="rounded"] body {
+  --brand-radius: 24px;
+  --brand-button-radius: 999px;
+}
+html[data-corners="square"] body {
+  --brand-radius: 4px;
+  --brand-button-radius: 4px;
+}
+html[data-corners="rounded"] :is(#main-content, .site-navbar, .site-footer) :is(div, section, article, aside, form, li):is(.rounded-lg, .rounded-xl, .rounded-2xl, .rounded-3xl, .rounded-brand) {
+  border-radius: 24px !important;
+}
+html[data-corners="square"] :is(#main-content, .site-navbar, .site-footer) :is(div, section, article, aside, form, li, button, a, input, select, textarea):is(.rounded-md, .rounded-lg, .rounded-xl, .rounded-2xl, .rounded-3xl, .rounded-full, .rounded-brand, [data-ui="button"], [data-ui="text-field"]) {
+  border-radius: 4px !important;
+}
+html[data-borders="defined"] :is(#main-content, .site-navbar, .site-footer) :is(.border, .border-t, .border-b, [data-ui="text-field"], [data-ui="card"]) {
+  border-color: rgb(var(--m3-color-outline)) !important;
+}
+html[data-density="compact"] #main-content > section {
+  padding-block: clamp(2.5rem, 5vw, 4.5rem);
+}
+html[data-motion="none"] *,
+html[data-motion="none"] *::before,
+html[data-motion="none"] *::after {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
 }

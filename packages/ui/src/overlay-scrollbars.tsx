@@ -11,7 +11,7 @@ import "./overlay-scrollbars.css";
 OverlayScrollbars.plugin(ClickScrollPlugin);
 
 const TARGETS =
-  '.admin-settings-nav, [role=tablist], .m3-floating-surface, .m3-surface-body, .admin-main, [data-dialog-body], .admin-popover-body, [data-overlay-scroll]';
+  'main, .admin-main, .admin-settings-nav, [role=tablist], .m3-floating-surface, .m3-surface-body, .m3-select-options, .admin-sidebar nav, [data-dialog-body], .admin-popover-body, [data-overlay-scroll], [class*="overflow-auto"], [class*="overflow-y-auto"], [class*="overflow-x-auto"], [class*="overflow-scroll"]';
 
 /** Existing elements remain the native viewport, so React children, refs and scroll events stay intact. */
 export function OverlayScrollbarsProvider() {
@@ -28,6 +28,9 @@ export function OverlayScrollbarsProvider() {
         return;
       const style = getComputedStyle(element);
       if (!/(auto|scroll)/.test(style.overflowX + style.overflowY)) return;
+      if (style.position === "static") {
+        element.style.position = "relative";
+      }
       const axis = (value: string) =>
         value === "hidden" || value === "clip"
           ? ("hidden" as const)
@@ -43,8 +46,8 @@ export function OverlayScrollbarsProvider() {
           overflow: { x: axis(style.overflowX), y: axis(style.overflowY) },
           scrollbars: {
             theme: "os-theme-material",
-            autoHide: "leave",
-            autoHideDelay: 650,
+            autoHide: "scroll",
+            autoHideDelay: 1200,
             clickScroll: true,
           },
         },

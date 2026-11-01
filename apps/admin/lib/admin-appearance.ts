@@ -13,6 +13,8 @@ export type AdminAppearance = {
   ]: (typeof APPEARANCE_OPTIONS)[K][number];
 };
 export const APPEARANCE_STORAGE_KEY = "platform_admin_appearance";
+export const WEB_APPEARANCE_STORAGE_KEY = "platform_web_appearance";
+
 export const DEFAULT_APPEARANCE: AdminAppearance = {
   density: "comfortable",
   corners: "brand",

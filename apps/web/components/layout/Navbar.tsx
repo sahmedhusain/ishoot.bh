@@ -30,6 +30,10 @@ export function Navbar({ company, pages, links, accountHref, cartEnabled }: Navb
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   React.useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  React.useEffect(() => {
     const handleScroll = () => {
       const hero =
         document.getElementById("home") ||
@@ -84,7 +88,7 @@ export function Navbar({ company, pages, links, accountHref, cartEnabled }: Navb
 
           <nav
             aria-label={t("common.navigation")}
-            className={`site-navigation hidden min-w-0 items-center gap-1 ${fullNavigation ? "lg:flex" : ""}`}
+            className={`site-navigation hidden min-w-0 items-center gap-1 xl:gap-2 ${fullNavigation ? "lg:flex" : ""}`}
           >
             {navLinks.map((link) => {
               const isActive =
@@ -98,27 +102,32 @@ export function Navbar({ company, pages, links, accountHref, cartEnabled }: Navb
                   href={link.href}
                   aria-current={isActive ? "page" : undefined}
                   title={link.label}
-                  className={`relative max-w-40 truncate px-3 py-3 text-sm font-sans transition-colors duration-150 rounded-md select-none ${isActive
-                    ? "text-mint font-bold"
-                    : "text-white/80 hover:text-white hover:bg-white/10"
+                  className={`relative max-w-40 truncate px-2.5 xl:px-3.5 py-2.5 text-sm font-sans transition-colors duration-150 rounded-full select-none ${isActive
+                    ? "bg-m3-secondary-container text-m3-on-secondary-container font-semibold"
+                    : "text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-container-high/60"
                     }`}
                 >
-                  {isActive && (
-                    <span
-                      aria-hidden="true"
-                      className="absolute bottom-1 inset-x-4 h-0.5 bg-mint"
-                    />
-                  )}
                   <span className="relative z-10">{link.label}</span>
                 </Link>
               );
             })}
           </nav>
 
-          <div className={`site-nav-tools hidden items-center gap-3 ${fullNavigation ? "lg:flex" : ""}`}>
-            {cartEnabled ? <CartLink className="w-10 h-10 grid place-items-center rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors" /> : null}
+          <div className={`site-nav-tools hidden items-center gap-2 xl:gap-3 ${fullNavigation ? "lg:flex" : ""}`}>
+            {site?.commerce?.search !== false && (
+              <form action={site ? collectionHref(site, locale) : `/${locale}/works`} method="get" className="hidden xl:block">
+                <input
+                  type="search"
+                  name="q"
+                  aria-label={t("portfolio.searchCatalogue")}
+                  placeholder={t("common.search")}
+                  className="w-28 xl:w-36 focus:w-44 rounded-full bg-m3-surface-container-low border border-m3-outline-variant px-3.5 h-10 text-sm text-m3-on-surface placeholder:text-m3-on-surface-variant transition-all focus:outline-none focus:border-m3-primary"
+                />
+              </form>
+            )}
+            {cartEnabled ? <CartLink className="w-10 h-10 grid place-items-center rounded-full text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-container-high/60 transition-colors" /> : null}
             {accountHref ? (
-              <Link href={accountHref} aria-label={t("nav.account")} title={t("nav.account")} className="w-10 h-10 grid place-items-center rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors" data-testid="nav-account">
+              <Link href={accountHref} aria-label={t("nav.account")} title={t("nav.account")} className="w-10 h-10 grid place-items-center rounded-full text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-container-high/60 transition-colors" data-testid="nav-account">
                 <UserRound className="w-5 h-5" aria-hidden="true" />
               </Link>
             ) : null}

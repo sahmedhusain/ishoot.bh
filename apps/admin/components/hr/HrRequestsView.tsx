@@ -127,14 +127,14 @@ export function HrRequestsView(props: {
                   <tr key={r.key} className="hover:bg-ink/5">
                     <td className="px-4 py-3">
                       <Link href={r.href} className="font-semibold text-ink hover:text-accent">{isAr ? r.employee.ar || r.employee.en : r.employee.en}</Link>
-                      <div className="text-[11px] font-mono text-ink-muted" dir="ltr"><bdi dir="ltr">{r.reference}</bdi></div>
+                      <div className="text-[11px] font-mono text-ink-muted text-start"><bdi dir="ltr">{r.reference}</bdi></div>
                     </td>
                     <td className="px-4 py-3 text-ink-muted">{c.types[r.type]}</td>
                     <td className="px-4 py-3">
                       <div className="text-ink">
                         {r.type === "leave" ? (isAr ? r.summaryAr : r.summaryEn) : r.type === "salary_document" ? c.documentKinds[r.summaryEn as "payslip" | "salary_certificate"] ?? r.summaryEn : r.summaryEn}
                       </div>
-                      {r.detail && <div className="text-[11px] text-ink-muted" dir="ltr">{r.detail}</div>}
+                      {r.detail && <div className="text-[11px] text-ink-muted text-start"><bdi dir="ltr">{r.detail}</bdi></div>}
                     </td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${CHIP[r.status] ?? CHIP.cancelled}`}>

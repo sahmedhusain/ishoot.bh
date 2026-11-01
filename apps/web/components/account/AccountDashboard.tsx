@@ -9,7 +9,7 @@ import type { CustomerProfile } from "@platform/database";
 import { useTranslation } from "../../hooks/useTranslation";
 import { collectionHref, formatPrice } from "../../lib/site-copy";
 import { ContentImage } from "../shared/ContentImage";
-import { accountPost, field, label, primaryButton, secondaryButton } from "./ui";
+import { accountPost, card, field, label, primaryButton, secondaryButton, statusTone } from "./ui";
 
 interface Address {
   id: string;
@@ -73,33 +73,43 @@ export function AccountDashboard({ locale, customer, addresses, wishlist, orders
     }
   };
   const note = (where: string) => message?.where === where && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm ${message.tone === "error" ? "text-m3-error" : "text-m3-primary"}`}>{message.text}</p>;
-  const section = "scroll-mt-32 rounded-brand bg-m3-surface-container-low p-5 sm:p-6 space-y-5";
-  const heading = "flex items-center gap-2 text-lg font-bold text-white font-display";
+  const section = card;
+  const heading = "flex items-center gap-2 text-lg font-bold text-m3-on-surface font-display";
   const catalogue = site ? collectionHref(site, locale) : `/${locale}`;
 
   return (
     <div className="relative min-h-screen bg-brand-base text-ink">
       <div className="shell page-heading space-y-8 max-w-4xl">
-        <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-sm text-ink-muted">{t("account.title")}</p>
             <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-white font-display">{t("account.hello", { name: customer.name })}</h1>
-            <p className="mt-2 text-sm text-ink-muted" dir="ltr">{customer.email}</p>
+            <p className="mt-2 text-sm text-m3-on-surface-variant text-start"><bdi dir="ltr">{customer.email}</bdi></p>
           </div>
           <button type="button" className={secondaryButton} disabled={!!busy} onClick={() => run("signout", async () => { await accountPost("sign-out", {}); })} data-testid="account-sign-out">{t("account.signOut")}</button>
         </div>
 
         <nav aria-label={t("account.title")} className="flex flex-wrap gap-2 border-b border-m3-outline-variant pb-4">{["profile", "addresses", "orders", ...(site?.commerce?.capabilities.wishlist !== false ? ["wishlist"] : [])].map(key => <a key={key} href={`#account-${key}`} className="inline-flex min-h-11 items-center rounded-brand px-4 py-2 text-sm text-m3-primary hover:bg-m3-secondary-container">{t(`account.sections.${key}`)}</a>)}</nav>
-        <section className={section} aria-labelledby="account-profile">
+        <form
+          className={section}
+          aria-labelledby="account-profile"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void run("profile", async () => {
+              await accountPost("profile", profile);
+              setProfile((p) => ({ ...p, password: "" }));
+            }, t("account.saved"));
+          }}
+        >
           <h2 id="account-profile" className={heading}><User className="w-5 h-5" aria-hidden="true" />{t("account.sections.profile")}</h2>
           <div className="grid sm:grid-cols-2 gap-5">
             <label className="block space-y-2"><span className={label}>{t("account.name")}</span><input name="profileName" maxLength={120} value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} className={field} /></label>
             <label className="block space-y-2">
               <span className={label}>{t("account.phone")}</span>
               <PhoneInput
+                name="profilePhone"
                 value={profile.phone}
                 onChange={(phone) => setProfile({ ...profile, phone })}
-                className="bg-brand-surface border-white/10 text-white rounded-brand min-h-12"
               />
             </label>
             <label className="block space-y-2"><span className={label}>{t("account.language")}</span>
@@ -112,17 +122,17 @@ export function AccountDashboard({ locale, customer, addresses, wishlist, orders
             <label className="flex items-center gap-3 text-sm text-ink-muted sm:col-span-2"><input type="checkbox" checked={profile.marketingOptIn} onChange={(e) => setProfile({ ...profile, marketingOptIn: e.target.checked })} className="h-4 w-4 accent-[var(--web-accent)]" />{t("account.marketing")}</label>
           </div>
           {note("profile")}
-          <button type="button" className={primaryButton} disabled={!!busy} onClick={() => run("profile", async () => { await accountPost("profile", profile); setProfile((p) => ({ ...p, password: "" })); }, t("account.saved"))} data-testid="account-profile-save">{t("account.save")}</button>
-        </section>
+          <button type="submit" className={primaryButton} disabled={!!busy} data-testid="account-profile-save">{t("account.save")}</button>
+        </form>
 
         <section className={section} aria-labelledby="account-addresses">
           <h2 id="account-addresses" className={heading}><MapPin className="w-5 h-5" aria-hidden="true" />{t("account.sections.addresses")}</h2>
           {addresses.length === 0 && !address && <p className="text-sm text-ink-muted">{t("account.noAddresses")}</p>}
           <ul className="grid sm:grid-cols-2 gap-3">
             {addresses.map((a) => (
-              <li key={a.id} className="rounded-xl border border-white/10 p-4 text-sm space-y-1">
-                <p className="font-semibold text-white">{a.label || a.name}{a.is_default && <span className="ms-2 rounded-full bg-white/10 px-2 py-0.5 text-[11px]">{t("account.address.default")}</span>}</p>
-                <p className="text-ink-muted">{[a.name, a.phone].join(" · ")}</p>
+              <li key={a.id} className="rounded-xl border border-m3-outline-variant p-4 text-sm space-y-1">
+                <p className="font-semibold text-white">{a.label || a.name}{a.is_default && <span className="ms-2 rounded-full bg-m3-secondary-container text-m3-on-secondary-container px-2 py-0.5 text-[11px]">{t("account.address.default")}</span>}</p>
+                <p className="text-ink-muted"><span>{a.name}</span>{a.phone ? <> · <bdi dir="ltr">{a.phone}</bdi></> : null}</p>
                 <p className="text-ink-muted">{[a.line1, a.line2, a.area, a.city, a.country, a.postal_code].filter(Boolean).join(", ")}</p>
                 <div className="flex gap-3 pt-1">
                   <button type="button" className="text-xs font-semibold text-[var(--web-accent)] hover:underline" onClick={() => setAddress({ id: a.id, label: a.label, name: a.name, phone: a.phone, line1: a.line1, line2: a.line2, area: a.area, city: a.city, country: a.country, postalCode: a.postal_code, isDefault: a.is_default })}>{t("account.editAddress")}</button>
@@ -132,15 +142,25 @@ export function AccountDashboard({ locale, customer, addresses, wishlist, orders
             ))}
           </ul>
           {address ? (
-            <div className="grid sm:grid-cols-2 gap-4" data-testid="account-address-form">
+            <form
+              className="grid sm:grid-cols-2 gap-4"
+              data-testid="account-address-form"
+              onSubmit={(e) => {
+                e.preventDefault();
+                void run("address", async () => {
+                  await accountPost("address", { ...address, id: address.id || undefined });
+                  setAddress(null);
+                }, t("account.saved"));
+              }}
+            >
               {(["label", "name", "phone", "line1", "line2", "area", "city", "country", "postalCode"] as const).map((key) => (
                 <label key={key} className="block space-y-2">
                   <span className={label}>{t(`account.address.${key}`)}</span>
                   {key === "phone" ? (
                     <PhoneInput
+                      name="address-phone"
                       value={address.phone}
                       onChange={(phone) => setAddress({ ...address, phone })}
-                      className="bg-brand-surface border-white/10 text-white rounded-brand min-h-12"
                     />
                   ) : (
                     <input name={`address-${key}`} maxLength={200} dir={key === "postalCode" ? "ltr" : undefined} value={address[key]} onChange={(e) => setAddress({ ...address, [key]: e.target.value })} className={field} />
@@ -149,10 +169,10 @@ export function AccountDashboard({ locale, customer, addresses, wishlist, orders
               ))}
               <label className="flex items-center gap-3 text-sm text-ink-muted"><input type="checkbox" checked={address.isDefault} onChange={(e) => setAddress({ ...address, isDefault: e.target.checked })} className="h-4 w-4 accent-[var(--web-accent)]" />{t("account.address.isDefault")}</label>
               <div className="sm:col-span-2 flex gap-2">
-                <button type="button" className={primaryButton} disabled={!!busy} onClick={() => run("address", async () => { await accountPost("address", { ...address, id: address.id || undefined }); setAddress(null); }, t("account.saved"))} data-testid="account-address-save">{t("account.save")}</button>
+                <button type="submit" className={primaryButton} disabled={!!busy} data-testid="account-address-save">{t("account.save")}</button>
                 <button type="button" className={secondaryButton} aria-label={t("common.cancel")} onClick={() => setAddress(null)}>×</button>
               </div>
-            </div>
+            </form>
           ) : (
             <button type="button" className={secondaryButton} onClick={() => setAddress({ ...blankAddress, name: customer.name, phone: customer.phone })}>{t("account.addAddress")}</button>
           )}
@@ -164,11 +184,11 @@ export function AccountDashboard({ locale, customer, addresses, wishlist, orders
           {orders.length === 0 ? (
             <p className="text-sm text-ink-muted">{t("account.noOrders")}</p>
           ) : (
-            <ul className="divide-y divide-white/10" data-testid="account-orders">
+            <ul className="divide-y divide-m3-outline-variant" data-testid="account-orders">
               {orders.map((o) => (
                 <li key={o.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3 text-sm" data-testid={`account-order-${o.number}`}>
                   <Link href={`/${locale}/account/orders/${o.id}`} className="font-mono text-xs font-semibold text-m3-primary underline min-h-11 inline-flex items-center" dir="ltr">{o.number}</Link>
-                  <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-xs">{o.fulfilment === "pickup" && ["shipped", "delivered"].includes(o.status) ? t(`store.pickupStatuses.${o.status}`) : t(`store.statuses.${o.status}`)}</span>
+                  <span className={`rounded-full px-2.5 py-0.5 text-xs ${statusTone(o.status)}`}>{o.fulfilment === "pickup" && ["shipped", "delivered"].includes(o.status) ? t(`store.pickupStatuses.${o.status}`) : t(`store.statuses.${o.status}`)}</span>
                   <span className="text-ink-muted">{new Date(o.placed_at).toLocaleDateString(locale === "ar" ? "ar-u-nu-latn" : "en-GB")}</span>
                   <span className="text-ink-muted">{t("store.orderItems", { count: o.lines.reduce((sum, l) => sum + l.quantity, 0) })}</span>
                   {o.tracking_token && <Link href={`/${locale}/track/${o.tracking_token}`} className="text-xs font-semibold text-[var(--web-accent)] hover:underline">{t("store.track")}</Link>}

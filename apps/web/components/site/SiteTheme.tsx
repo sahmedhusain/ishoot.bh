@@ -69,6 +69,24 @@ export function SiteThemeProvider({
       let saved: string | null = null;
       try {
         saved = localStorage.getItem("site-mode");
+        const rawWebAppearance = JSON.parse(
+          localStorage.getItem("platform_web_appearance") || "null",
+        );
+        if (rawWebAppearance && typeof rawWebAppearance === "object") {
+          const root = document.documentElement;
+          for (const key of [
+            "density",
+            "corners",
+            "borders",
+            "motion",
+            "dialogPlacement",
+            "backdrop",
+          ]) {
+            if (typeof rawWebAppearance[key] === "string") {
+              root.dataset[key] = rawWebAppearance[key];
+            }
+          }
+        }
       } catch {}
       const next = resolveSiteMode(design, saved, system.matches);
       apply(next);

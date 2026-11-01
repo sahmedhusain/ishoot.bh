@@ -38,13 +38,13 @@ export function CollectionCard({ item, layout, tone: propTone, onOpen, horizonta
   const { title, subtitle, project, price, priceNote } = useItemFacts(item);
   const isVideo = Boolean(item.full_video_url || item.preview_video_url);
   const light = tone === "light";
-  const heading = light ? "text-ink group-hover:text-accent-pressed" : "text-white group-hover:text-mint";
-  const muted = light ? "text-ink-muted" : "text-ink-muted";
+  const heading = light ? "text-m3-on-surface group-hover:text-m3-primary" : "text-m3-on-surface group-hover:text-m3-primary";
+  const muted = "text-m3-on-surface-variant";
   const facts = item.attributes.slice(0, 3);
 
   const body = (
     <>
-      <div className={`relative overflow-hidden rounded-brand ${ASPECT[layout]} ${light ? "bg-m3-surface-container-high" : "bg-black/40"}`}>
+      <div className={`relative overflow-hidden rounded-brand ${ASPECT[layout]} bg-m3-surface-container-high`}>
         <ContentImage
           src={item.thumbnail_url}
           alt={title}
@@ -54,12 +54,12 @@ export function CollectionCard({ item, layout, tone: propTone, onOpen, horizonta
           className="h-full w-full object-cover transition-transform duration-300 ease-out motion-safe:group-hover:scale-[1.025]"
         />
         {layout === "media" || layout === "case" ? (
-          <span className="absolute bottom-3 end-3 flex h-11 w-11 items-center justify-center rounded-full bg-m3-primary text-m3-on-primary transition-colors duration-150 group-hover:bg-mint group-hover:text-brand-base">
+          <span className="absolute bottom-3 end-3 flex h-11 w-11 items-center justify-center rounded-full bg-m3-primary text-m3-on-primary transition-colors duration-150 group-hover:brightness-95">
             {isVideo ? <Play className="h-4 w-4 fill-current" /> : <ArrowUpRight className="h-4 w-4 rtl:-scale-x-100" />}
           </span>
         ) : null}
         {layout === "listing" && price ? (
-          <span className="absolute bottom-3 start-3 rounded-brand bg-black/75 px-3 py-1.5 text-sm font-semibold text-paper backdrop-blur-sm">
+          <span className="on-media absolute bottom-3 start-3 rounded-brand bg-black/75 px-3 py-1.5 text-sm font-semibold text-paper backdrop-blur-sm">
             {price}
             {priceNote ? <span className="ms-1 text-xs font-normal text-white/75">{priceNote}</span> : null}
           </span>
@@ -67,11 +67,11 @@ export function CollectionCard({ item, layout, tone: propTone, onOpen, horizonta
       </div>
 
       <div className="space-y-1.5 pb-3 pt-4">
-        {layout === "case" && project ? <p className={`text-xs font-semibold uppercase tracking-wider ${light ? "text-accent-pressed" : "text-mint"}`}>{project}</p> : null}
+        {layout === "case" && project ? <p className="text-xs font-semibold uppercase tracking-wider text-m3-primary">{project}</p> : null}
         <div className="flex items-baseline justify-between gap-3">
           <h3 className={`font-display text-lg font-bold transition-colors sm:text-xl ${heading}`}>{title}</h3>
           {layout === "media" && item.year ? <span className={`shrink-0 text-xs font-semibold ${muted}`}>{item.year}</span> : null}
-          {layout === "product" && price ? <span className={`shrink-0 text-sm font-bold ${light ? "text-ink" : "text-white"}`}>{price}</span> : null}
+          {layout === "product" && price ? <span className="shrink-0 text-sm font-bold text-m3-on-surface">{price}</span> : null}
         </div>
         {layout === "media" && item.client_name ? <p className={`text-xs font-medium sm:text-sm ${muted}`}>{item.client_name}</p> : null}
         {layout !== "media" && subtitle ? <p className={`text-sm ${muted}`}>{subtitle}</p> : null}
@@ -85,7 +85,7 @@ export function CollectionCard({ item, layout, tone: propTone, onOpen, horizonta
         {(layout === "listing" || layout === "product") && facts.length ? (
           <ul className="flex flex-wrap gap-1.5 pt-1">
             {facts.map((fact) => (
-              <li key={fact.labelEn + fact.valueEn} className={`rounded-full px-2.5 py-0.5 text-[11px] ${light ? "bg-m3-surface-container-high/70 text-ink-muted" : "bg-white/10 text-ink"}`}>
+              <li key={fact.labelEn + fact.valueEn} className="rounded-full px-2.5 py-0.5 text-[11px] bg-m3-surface-container-high text-m3-on-surface-variant">
                 {pickText(fact.valueEn, fact.valueAr, locale)} {pickText(fact.labelEn, fact.labelAr, locale)}
               </li>
             ))}

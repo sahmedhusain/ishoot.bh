@@ -11,7 +11,7 @@ export function LanguageSwitcher() {
   const router = useRouter();
   const languages = LANGUAGES.filter((language) => (site?.languages ?? ["en", "ar"]).includes(language.code));
   if (languages.length < 2) return null;
-  return <Select value={locale} aria-label={t("common.language")} className="w-36 text-sm" onChange={(event) => {
+  return <Select value={locale} aria-label={t("common.language")} className="w-28 xl:w-32 text-xs sm:text-sm h-10 rounded-full" onChange={(event) => {
     const next = event.target.value;
     if (!isLocale(next)) return;
     const path = pathname.startsWith(`/${locale}`) ? pathname.replace(`/${locale}`, `/${next}`) : `/${next}${pathname}`;

@@ -95,8 +95,8 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
         <Card className="p-5 space-y-1 text-sm" data-page-section>
           <h2 className="font-bold text-ink mb-2">{copy.customer}</h2>
           <p className="font-semibold text-ink"><bdi dir="auto">{order.name}</bdi></p>
-          {order.email && <p className="text-ink-muted" dir="ltr"><bdi dir="ltr">{order.email}</bdi></p>}
-          {order.phone && <p className="text-ink-muted" dir="ltr"><bdi dir="ltr">{formatDocumentPhone(order.phone)}</bdi></p>}
+          {order.email && <p className="text-ink-muted text-start"><bdi dir="ltr">{order.email}</bdi></p>}
+          {order.phone && <p className="text-ink-muted text-start"><bdi dir="ltr">{formatDocumentPhone(order.phone)}</bdi></p>}
           {order.note && <p className="text-ink-muted pt-2 whitespace-pre-line">{order.note}</p>}
         </Card>
         <Card className="p-5 space-y-1 text-sm" data-page-section>

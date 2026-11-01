@@ -102,7 +102,8 @@ export function PlatformPicker({
           aria-label={t.webSettings.platform}
           value={selectedPreset}
           onChange={handleSelectChange}
-          className="w-full appearance-none px-3.5 py-2.5 bg-surface-raised dark:bg-surface border border-outline-variant dark:border-white/10 rounded-xl text-xs font-semibold text-ink dark:text-ink hover:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all cursor-pointer shadow-2xs ps-9 pe-8"
+          style={{ "--select-ps": "2.5rem" } as React.CSSProperties}
+          className="w-full appearance-none bg-surface-raised dark:bg-surface border border-outline-variant dark:border-white/10 rounded-xl text-xs font-semibold text-ink dark:text-ink hover:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all cursor-pointer shadow-2xs ps-10 pe-8"
         >
           {PLATFORM_PRESETS.map((preset) => (
             <option

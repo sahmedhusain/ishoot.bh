@@ -59,7 +59,7 @@ export async function ContactBody({ locale, query }: { locale: string; query: { 
                   <div className="w-9 h-9 rounded-lg bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0 text-mint ">
                     <Mail className="w-4 h-4" />
                   </div>
-                  <span>{company.email}</span>
+                  <bdi dir="ltr">{company.email}</bdi>
                 </a>
               )}
 
@@ -71,7 +71,7 @@ export async function ContactBody({ locale, query }: { locale: string; query: { 
                   <div className="w-9 h-9 rounded-lg bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0 text-mint ">
                     <Phone className="w-4 h-4" />
                   </div>
-                  <span dir="ltr">{company.phone}</span>
+                  <bdi dir="ltr">{company.phone}</bdi>
                 </a>
               )}
 
