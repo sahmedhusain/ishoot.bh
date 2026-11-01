@@ -443,17 +443,12 @@ export async function registerUnregisteredEmployees(
     select: { id: true, nationality: true },
   });
   const rules = await getGosiRules();
-  let registered = 0;
-  const skipped: string[] = [];
-  for (const e of employees) {
+  const records = employees.flatMap((e) => {
     const category = e.nationality ? rules.nationalityCategories?.[e.nationality] ?? rules.nationalityCategories?.["*"] : undefined;
-    if (!category) { skipped.push(e.id); continue; }
-    await db.employeeGosiRecord.create({
-      data: { employeeId: e.id, category, effectiveFrom, createdById: actorId },
-    });
-    registered++;
-  }
-  return { registered, skipped: skipped.length };
+    return category ? [{ employeeId: e.id, category, effectiveFrom, createdById: actorId }] : [];
+  });
+  if (records.length) await db.employeeGosiRecord.createMany({ data: records });
+  return { registered: records.length, skipped: employees.length - records.length };
 }
 
 // ---------- For payroll and settlements ----------

@@ -494,14 +494,14 @@ export async function sendBroadcastBatch(
         })
       ).map((c) => c.id),
     );
+    const unsubscribed = recipients.filter((r) => !optedIn.has(r.customerId)).map((r) => r.id);
+    if (unsubscribed.length)
+      await db.broadcastRecipient.updateMany({
+        where: { id: { in: unsubscribed } },
+        data: { status: "failed", error: "unsubscribed" },
+      });
     for (const r of recipients) {
-      if (!optedIn.has(r.customerId)) {
-        await db.broadcastRecipient.update({
-          where: { id: r.id },
-          data: { status: "failed", error: "unsubscribed" },
-        });
-        continue;
-      }
+      if (!optedIn.has(r.customerId)) continue;
       const ar = r.locale !== "en";
       const copy = getWebsiteTranslations(ar ? "ar" : "en").marketing;
       const link = `${siteUrl.replace(/\/$/, "")}/${ar ? "ar" : "en"}/unsubscribe/${unsubscribeToken(r.customerId)}`;

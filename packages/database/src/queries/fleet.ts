@@ -646,14 +646,19 @@ export async function settleCash(
     return created;
   });
   // The money is the company's now: each order takes what was collected on it (up to what it still owes).
+  const owed = new Map(
+    (
+      await db.salesOrder.findMany({
+        where: { id: { in: Array.from(new Set(shipments.map((s) => s.orderId))) } },
+        select: { id: true, total: true, amountPaid: true },
+      })
+    ).map((order) => [order.id, num(order.total) - num(order.amountPaid)]),
+  );
   for (const s of shipments) {
-    const order = await db.salesOrder.findUniqueOrThrow({
-      where: { id: s.orderId },
-      select: { total: true, amountPaid: true },
-    });
-    const amount = round3(
-      Math.min(num(s.codCollected), num(order.total) - num(order.amountPaid)),
-    );
+    if (!owed.has(s.orderId)) throw new Error(serverMessages.codSettlementInvalid);
+    const amount = round3(Math.min(num(s.codCollected), owed.get(s.orderId)!));
+    // Several shipments of one order share what it still owes.
+    owed.set(s.orderId, owed.get(s.orderId)! - Math.max(amount, 0));
     if (amount > 0)
       await recordOrderPayment(
         s.orderId,

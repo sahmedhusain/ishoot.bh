@@ -992,29 +992,28 @@ async function payItems(
     );
     if (itemIds && targets.length !== itemIds.length)
       throw new Error(serverMessages.thisSalaryIsAlreadyPaid);
-    for (const item of targets) {
-      await db.payrollItem.update({
-        where: { id: item.id },
-        data: {
-          paymentStatus: "paid",
-          paidAt,
-          paidById: actorId,
-          paymentMethod: input.method,
-          paymentReference: input.reference?.trim().slice(0, 120) || null,
-        },
-      });
-      await db.payslip.upsert({
-        where: { payrollItemId: item.id },
-        update: {},
-        create: {
-          payrollItemId: item.id,
-          employeeId: item.employeeId,
-          month: run.month,
-          year: run.year,
-          issuedAt: new Date(),
-        },
-      });
-    }
+    // One statement for every salary paid; payslips that already exist are kept as they are.
+    await db.payrollItem.updateMany({
+      where: { id: { in: targets.map((item) => item.id) } },
+      data: {
+        paymentStatus: "paid",
+        paidAt,
+        paidById: actorId,
+        paymentMethod: input.method,
+        paymentReference: input.reference?.trim().slice(0, 120) || null,
+      },
+    });
+    const issuedAt = new Date();
+    await db.payslip.createMany({
+      data: targets.map((item) => ({
+        payrollItemId: item.id,
+        employeeId: item.employeeId,
+        month: run.month,
+        year: run.year,
+        issuedAt,
+      })),
+      skipDuplicates: true,
+    });
     const remaining = await db.payrollItem.count({
       where: { payrollRunId: runId, paymentStatus: { not: "paid" } },
     });

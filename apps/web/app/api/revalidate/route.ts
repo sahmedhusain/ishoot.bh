@@ -2,14 +2,21 @@ import { LANGUAGES } from "@platform/locales/registry";
 import { serverMessages } from "@platform/locales";
 
 import { measureOperation } from "@platform/database";
+import { createHash, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
+
+// Hashing both sides gives equal lengths, so the comparison takes the same time whatever was sent.
+function secretMatches(sent: string, expected: string) {
+  const digest = (value: string) => createHash("sha256").update(value).digest();
+  return timingSafeEqual(digest(sent), digest(expected));
+}
 
 export async function POST(req: NextRequest) {
   return measureOperation("web:revalidate:POST", async () => {
     const secret = req.headers.get("x-revalidate-secret");
     const expectedSecret = process.env.REVALIDATION_SECRET;
-    if (!expectedSecret || !secret || secret !== expectedSecret) {
+    if (!expectedSecret || !secret || !secretMatches(secret, expectedSecret)) {
       return NextResponse.json(
         { error: serverMessages.unauthorized },
         { status: 401 },

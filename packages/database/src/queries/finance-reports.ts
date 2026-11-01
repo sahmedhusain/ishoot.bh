@@ -63,31 +63,15 @@ export async function getFinancialSummaryReport(filters: {
     invoiceWhere.issueDate = dateFilter;
   }
 
-  const invoices = await db.invoice.findMany({
+  // Summed by the database instead of loading every invoice of the period.
+  const { _sum: invoiced } = await db.invoice.aggregate({
     where: invoiceWhere,
-    select: {
-      totalAmount: true,
-      subtotal: true,
-      discountAmount: true,
-      vatAmount: true,
-      vatEnabled: true,
-      currency: true,
-    },
+    _sum: { totalAmount: true, subtotal: true, discountAmount: true, vatAmount: true },
   });
-
-  let invoicedGross = 0;
-  let invoicedNet = 0;
-  let invoicedOutputVat = 0;
-
-  for (const inv of invoices) {
-    const total = Number(inv.totalAmount);
-    // Net sales are after discount and before VAT.
-    const net = Number(inv.subtotal) - Number(inv.discountAmount);
-    const vat = Number(inv.vatAmount);
-    invoicedGross += total;
-    invoicedNet += net;
-    invoicedOutputVat += vat;
-  }
+  const invoicedGross = Number(invoiced.totalAmount ?? 0);
+  // Net sales are after discount and before VAT.
+  const invoicedNet = Number(invoiced.subtotal ?? 0) - Number(invoiced.discountAmount ?? 0);
+  const invoicedOutputVat = Number(invoiced.vatAmount ?? 0);
 
   // 2. Payments (Cash basis)
   const paymentWhere: any = {
@@ -146,39 +130,37 @@ export async function getFinancialSummaryReport(filters: {
     expenseWhere.expenseDate = dateFilter;
   }
 
-  const expenses = await db.expense.findMany({
+  // Summed by the database, split by VAT recoverability and by whether net was stored:
+  // older rows stored 0 as net, so their net is derived as amount minus input VAT.
+  const expenseGroups = await db.expense.groupBy({
+    by: ["isVatRecoverable"],
     where: expenseWhere,
-    select: {
-      amount: true,
-      netAmount: true,
-      inputVatAmount: true,
-      isVatRecoverable: true,
-    },
+    _sum: { amount: true, inputVatAmount: true },
+  });
+  const unsetNet = await db.expense.aggregate({
+    where: { AND: [expenseWhere, { netAmount: { lte: 0 } }] },
+    _sum: { amount: true, inputVatAmount: true },
+  });
+  const storedNet = await db.expense.aggregate({
+    where: { AND: [expenseWhere, { netAmount: { gt: 0 } }] },
+    _sum: { netAmount: true },
   });
 
   let totalExpensesGross = 0;
-  let expensesNet = 0;
   let inputVatTotal = 0;
   let inputVatRecoverable = 0;
   let inputVatNonRecoverable = 0;
-
-  for (const exp of expenses) {
-    const amt = Number(exp.amount);
-    const inputVat = Number(exp.inputVatAmount);
-    // Prisma Decimals are always truthy, and older rows stored 0 here, so derive net when it was never set.
-    const storedNet = Number(exp.netAmount);
-    const net = storedNet > 0 ? storedNet : amt - inputVat;
-
-    totalExpensesGross += amt;
-    expensesNet += net;
+  for (const group of expenseGroups) {
+    const inputVat = Number(group._sum.inputVatAmount ?? 0);
+    totalExpensesGross += Number(group._sum.amount ?? 0);
     inputVatTotal += inputVat;
-
-    if (exp.isVatRecoverable) {
-      inputVatRecoverable += inputVat;
-    } else {
-      inputVatNonRecoverable += inputVat;
-    }
+    if (group.isVatRecoverable) inputVatRecoverable += inputVat;
+    else inputVatNonRecoverable += inputVat;
   }
+  const expensesNet =
+    Number(storedNet._sum.netAmount ?? 0) +
+    Number(unsetNet._sum.amount ?? 0) -
+    Number(unsetNet._sum.inputVatAmount ?? 0);
 
   // 4. Payroll Costs (Paid runs in period)
   const payrollWhere: any = { status: "paid" };

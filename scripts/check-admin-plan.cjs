@@ -190,13 +190,26 @@ async function runTests() {
     { bankFeeBhd: 5, fxGainLossBhd: 2 },
   ];
 
+  // The report sums in the database; these stand-ins apply the same sums and the stored-net split to the rows above.
+  const sumFields = (rows, fields) =>
+    Object.fromEntries(Object.keys(fields).map((field) => [field, rows.reduce((total, row) => total + Number(row[field] ?? 0), 0)]));
+  const netFilter = (args) => args.where?.AND?.find((part) => part.netAmount)?.netAmount;
+  const matchesNet = (row, filter) =>
+    !filter || (filter.gt !== undefined ? row.netAmount > filter.gt : row.netAmount <= filter.lte);
+  const aggregateOf = (rows) => async (args) => ({ _sum: sumFields(rows.filter((row) => matchesNet(row, netFilter(args))), args._sum) });
+  const groupByOf = (rows) => async (args) =>
+    [...new Set(rows.map((row) => row[args.by[0]]))].map((key) => ({
+      [args.by[0]]: key,
+      _sum: sumFields(rows.filter((row) => row[args.by[0]] === key), args._sum),
+    }));
+
   const reportQueries = loadTs("packages/database/src/queries/finance-reports.ts", {
     "../db": {
       db: {
         companySetting: { findUniqueOrThrow: async () => ({ defaultCurrency: "BHD" }) },
-        invoice: { findMany: async () => mockInvoices, count: async () => 0 },
+        invoice: { findMany: async () => mockInvoices, aggregate: aggregateOf(mockInvoices), count: async () => 0 },
         payment: { findMany: async () => mockPayments },
-        expense: { findMany: async () => mockExpenses, count: async () => 0 },
+        expense: { findMany: async () => mockExpenses, aggregate: aggregateOf(mockExpenses), groupBy: groupByOf(mockExpenses), count: async () => 0 },
         payrollRun: { findMany: async () => [{ totalEmployerCost: 300 }] },
         bankSettlement: { findMany: async () => mockSettlements },
       },

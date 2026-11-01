@@ -47,15 +47,21 @@ interface Reminder {
 
 async function send(reminders: Reminder[]) {
   let sent = 0;
-  for (const r of reminders) {
-    if (!r.recipients.length) continue;
-    const already = await db.notification.findMany({
-      where: { eventKey: r.key, userId: { in: r.recipients } },
-      select: { userId: true },
-    });
-    const done = new Set(already.map((n) => n.userId));
+  // Everyone already told about each reminder, read in one query.
+  const pending = reminders.filter((r) => r.recipients.length);
+  const told = new Set(
+    pending.length
+      ? (
+          await db.notification.findMany({
+            where: { eventKey: { in: pending.map((r) => r.key) } },
+            select: { eventKey: true, userId: true },
+          })
+        ).map((n) => `${n.eventKey}|${n.userId}`)
+      : [],
+  );
+  for (const r of pending) {
     const data = r.recipients
-      .filter((id) => !done.has(id))
+      .filter((id) => !told.has(`${r.key}|${id}`))
       .map((userId) => ({
         userId,
         title: r.title,

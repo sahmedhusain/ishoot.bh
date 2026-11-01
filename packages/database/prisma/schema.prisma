@@ -919,7 +919,6 @@ model Session {
   expiresAt DateTime
   createdAt DateTime @default(now())
 
-  @@index([token])
   @@index([userId])
 }
 
@@ -1973,6 +1972,7 @@ model LeaveRequest {
   @@index([employeeId, status])
   @@index([startDate, endDate])
   @@index([createdAt])
+  @@index([leaveTypeId])
 }
 
 model AttendanceEntry {
@@ -1998,6 +1998,7 @@ model AttendanceEntry {
 
   @@unique([employeeId, date])
   @@index([date])
+  @@index([shiftTypeId])
 }
 
 model BenefitPlan {
@@ -2080,6 +2081,7 @@ model PayrollItem {
   createdAt           DateTime          @default(now())
 
   @@unique([payrollRunId, employeeId])
+  @@index([employeeId])
 }
 
 model Payslip {
@@ -3634,6 +3636,8 @@ model SalesOrder {
   @@index([status])
   @@index([customerId])
   @@index([placedAt])
+  @@index([contactId])
+  @@index([warehouseId])
 }
 
 model SalesOrderLine {
@@ -3797,6 +3801,8 @@ model Shipment {
   @@index([driverId, status])
   @@index([routeSheetId])
   @@index([agencyId, status])
+  @@index([zoneId])
+  @@index([vehicleId])
 }
 
 model ShipmentEvent {
