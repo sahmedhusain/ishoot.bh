@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 
 /** Sidebar group a page belongs to; its label (t.navigationGroups) is the eyebrow above the page title. */
-export type PageGroup =
+type PageGroup =
   | "workspace" | "sales" | "store" | "products" | "procurement" | "delivery" | "work" | "operations"
   | "finance" | "people" | "personal" | "communications" | "marketing" | "legal" | "content" | "administration";
 
@@ -141,7 +141,7 @@ const SECTIONS: Record<string, PageSection> = {
  * Route patterns of every dashboard page, as their folders are named ("invoices/[id]"); each has a title and a
  * description under `pages` in the admin dictionaries. A test keeps this list in step with app/dashboard.
  */
-export const PAGE_KEYS = [
+const PAGE_KEYS = [
   "", "analytics", "announcements", "announcements/[id]", "announcements/new", "approvals", "approvals/[type]/[id]",
   "archive", "assets", "assets/[id]", "assets/categories", "assets/handovers/[id]", "assets/new", "calendar", "claims",
   "claims/new", "cms/articles", "cms/articles/[id]", "cms/banners", "cms/clients", "cms/code", "cms/equipment",

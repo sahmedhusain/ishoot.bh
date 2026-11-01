@@ -1,4 +1,4 @@
-export const ALL_SIDEBAR_GROUPS = [
+const ALL_SIDEBAR_GROUPS = [
   "workspace",
   "sales",
   "store",
@@ -17,7 +17,6 @@ export const ALL_SIDEBAR_GROUPS = [
   "administration",
 ] as const;
 
-export type SidebarGroupId = (typeof ALL_SIDEBAR_GROUPS)[number];
 
 export type DesignationTier =
   | "executive_director"
@@ -283,7 +282,7 @@ export const DEPARTMENT_SIDEBAR_PRIORITIES: Record<string, string[]> = {
   administration: ["workspace", "administration", "people", "operations", "communications", "finance", "work", "personal"],
 };
 
-export const DESIGNATION_SIDEBAR_PRIORITIES: Record<DesignationTier, string[]> = {
+const DESIGNATION_SIDEBAR_PRIORITIES: Record<DesignationTier, string[]> = {
   executive_director: ["workspace", "finance", "sales", "store", "people", "operations", "work", "legal", "communications", "administration"],
   department_head: ["workspace", "work", "people", "operations", "finance", "sales", "communications", "personal"],
   team_lead: ["workspace", "work", "operations", "sales", "store", "products", "people", "communications", "personal"],

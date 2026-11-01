@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Building } from "lucide-react";
 import { DocumentCard } from "./DocumentCard";
 
-export interface DocumentInfoRow {
+interface DocumentInfoRow {
   label: React.ReactNode;
   value: React.ReactNode;
   icon?: React.ComponentType<{ className?: string }>;

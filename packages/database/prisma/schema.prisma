@@ -3064,6 +3064,9 @@ model StockLocation {
   isActive    Boolean         @default(true)
   levels      StockLevel[]
   movements   StockMovement[]
+  allocationsFrom StockAllocation[] @relation("AllocationSource")
+  allocationsInTransit StockAllocation[] @relation("AllocationTransit")
+  allocationsTo StockAllocation[] @relation("AllocationDestination")
   createdAt   DateTime        @default(now())
 
   @@unique([warehouseId, code])
@@ -4214,7 +4217,7 @@ model Branch {
 
 /// Scope is additional to resource permissions, never a replacement for them.
 model BranchGrant {
-  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: NoAction)
   id        String @id @default(uuid())
   branchId  String
   branch    Branch @relation(fields: [branchId], references: [id], onDelete: Restrict)
@@ -4394,8 +4397,11 @@ model StockAllocation {
   number           String @unique
   kind             String
   sourceLocationId String
+  sourceLocation   StockLocation @relation("AllocationSource", fields: [sourceLocationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "StockAllocation_source_fk")
   transitLocationId String
+  transitLocation  StockLocation @relation("AllocationTransit", fields: [transitLocationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "StockAllocation_transit_fk")
   destinationLocationId String
+  destinationLocation StockLocation @relation("AllocationDestination", fields: [destinationLocationId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "StockAllocation_destination_fk")
   status           String @default("requested")
   revision         Int @default(1)
   createdById      String

@@ -5,7 +5,7 @@ import { FileText } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { DocumentCard } from "./DocumentCard";
 
-export interface DocumentLine {
+interface DocumentLine {
   id?: string;
   descriptionEn: string;
   descriptionAr?: string | null;

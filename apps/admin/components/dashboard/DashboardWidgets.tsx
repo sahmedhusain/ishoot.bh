@@ -5,7 +5,6 @@ import { formatMessage } from "@platform/locales";
 import { CountUp, CurrencyDisplay, DateDisplay, StatusBadge } from "@platform/ui";
 import {
   Activity,
-  AlertTriangle,
   ArrowUpRight,
   Briefcase,
   Building2,
@@ -611,16 +610,3 @@ export function DashboardWidget({
   return null;
 }
 
-/** Shown in place of a widget whose data is not loaded yet. */
-export function DashboardWidgetPlaceholder({ id }: { id: string }) {
-  const { t } = useAdminLocale();
-  return (
-    <div className={`${widgetCard} p-4 space-y-2`}>
-      <div className="text-xs font-bold text-ink flex items-center gap-2">
-        <AlertTriangle className="w-3.5 h-3.5 text-ink-muted" aria-hidden="true" />
-        {(t.dashboardBoard.widgets as Record<string, string>)[id] ?? id}
-      </div>
-      <p className="text-[11px] text-ink-muted">{t.dashboardBoard.pendingData}</p>
-    </div>
-  );
-}

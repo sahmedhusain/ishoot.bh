@@ -121,4 +121,3 @@ export function ShowcaseLightbox({
   );
 }
 
-export const CinemaLightbox = ShowcaseLightbox;

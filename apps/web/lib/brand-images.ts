@@ -17,7 +17,3 @@ export const siteLogo = (company: Brand) => {
     : company.dark_logo_url || company.logo_url;
 };
 
-export const siteIcon = (company: Brand) =>
-  company.theme.websiteMode === "light"
-    ? company.icon_url || company.dark_icon_url
-    : company.dark_icon_url || company.icon_url;

@@ -41,7 +41,7 @@ import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import type { DashboardData } from "../../lib/dashboard-widgets";
 
-export type WidgetSettingValue = string | number | boolean;
+type WidgetSettingValue = string | number | boolean;
 export type WidgetSettingsMap = Record<string, unknown>;
 
 export interface LifestyleWidgetProps {

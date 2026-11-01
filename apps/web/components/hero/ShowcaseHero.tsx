@@ -177,4 +177,3 @@ export function ShowcaseHero({ banners, companyName }: { banners: HeroBanner[]; 
   );
 }
 
-export const CinemaHero = ShowcaseHero;
