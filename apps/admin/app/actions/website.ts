@@ -16,11 +16,10 @@ import {
   validateWebsiteConfig,
   safeWebsiteUrl,
   type WebsiteArticles,
-  type WebsiteCode,
   type WebsiteConfig,
   type WebsiteMenus,
 } from "@platform/database/website-config";
-import { hasPermission, requirePermission } from "../../lib/auth";
+import { requirePermission } from "../../lib/auth";
 import { revalidatePath } from "next/cache";
 import { revalidatePublicSite } from "../../lib/revalidate-web";
 import { publicSitePaths } from "../../lib/public-paths";
@@ -36,14 +35,6 @@ export async function saveWebsiteDraftAction(value: unknown, revision: number) {
       const upload = await lookupFile(document.url);
       if (!upload?.isPublic || !upload.claimedAt || upload.mimeType !== "application/pdf") throw new Error(serverMessages.invalidUploadedFile);
     }
-    // Site-wide tracking and code only change with the custom-code permission (it runs on every page).
-    const stored = validateWebsiteConfig((await getWebsiteEditor()).draft);
-    if (
-      JSON.stringify(config.code ?? null) !==
-        JSON.stringify(stored.code ?? null) &&
-      !(await hasPermission("cms_code", "edit"))
-    )
-      throw new Error(serverMessages.cmsCodePermission);
     await db.$transaction(async (tx) => {
       const updated = await tx.websiteContent.updateMany({
         where: { id: "main", revision },
@@ -312,17 +303,6 @@ export async function saveWebsiteMenusAction(
       { menus: menus ?? undefined, articles },
       "menus",
     );
-    return { success: true };
-  });
-}
-
-/** Website → Tracking and code: analytics ids and site-wide code. Owner and administrators by default; audit-logged. */
-export async function saveWebsiteCodeAction(code: WebsiteCode) {
-  return measureOperation("action:saveWebsiteCodeAction", async () => {
-    await requireFeatureEnabled("cms");
-    const user = await requirePermission("cms_code", "edit");
-    validateActionArguments("saveWebsiteCodeAction", { code });
-    await updateWebsiteDraft(user.id, { code }, "code", { code });
     return { success: true };
   });
 }

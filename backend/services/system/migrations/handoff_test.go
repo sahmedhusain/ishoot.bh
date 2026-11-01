@@ -125,3 +125,61 @@ func TestIntegrationsHandoff(t *testing.T) {
 		})
 	}
 }
+
+// The Prisma migration hands the domains and the site code to the system service whether or not the service has run.
+func TestSiteHandoff(t *testing.T) {
+	ctx := context.Background()
+	pool, err := pgxpool.New(ctx, testkit.Postgres(t))
+	require.NoError(t, err)
+	defer pool.Close()
+	sql, err := os.ReadFile("../../../../packages/database/prisma/migrations/20261102150000_move_site_settings_to_system_service/migration.sql")
+	require.NoError(t, err)
+	run := func() error {
+		return migrate.Run(ctx, pool, migrate.Options{Logger: slog.Default(), Schema: "system", Migrations: migrations.FS})
+	}
+	for _, mode := range []string{"move", "copy"} {
+		t.Run(mode, func(t *testing.T) {
+			_, err := pool.Exec(ctx, `DROP SCHEMA IF EXISTS system CASCADE;
+    DROP TABLE IF EXISTS public."CompanySetting", public."WebsiteContent";
+    CREATE TABLE public."CompanySetting" (id text PRIMARY KEY, singleton integer NOT NULL UNIQUE DEFAULT 1,
+     "companyNameEn" text NOT NULL, "websiteDomain" text, "adminDomain" text);
+    INSERT INTO public."CompanySetting" VALUES ('c', 1, 'Co', 'example.com', 'admin.example.com');
+    CREATE TABLE public."WebsiteContent" (id text PRIMARY KEY, draft jsonb NOT NULL, published jsonb, previous jsonb);
+    INSERT INTO public."WebsiteContent" VALUES ('main',
+     '{"sections":[],"code":{"googleAnalyticsId":"G-DRAFT12","headHtml":"draft"}}',
+     '{"sections":[],"code":{"googleAnalyticsId":"G-LIVE123","headHtml":"<meta live>"}}',
+     '{"sections":[],"code":{"headHtml":"old"}}');`)
+			require.NoError(t, err)
+			if mode == "copy" {
+				require.NoError(t, run())
+				_, err = pool.Exec(ctx, `INSERT INTO system.site_setting (id, admin_domain, updated_by) VALUES (true, 'it.example.com', 'it:someone')`)
+				require.NoError(t, err)
+			}
+			_, err = pool.Exec(ctx, string(sql))
+			require.NoError(t, err)
+			require.NoError(t, run())
+			_, err = pool.Exec(ctx, string(sql))
+			require.NoError(t, err, "re-running the completed handoff is safe")
+
+			var columns int
+			require.NoError(t, pool.QueryRow(ctx, `SELECT count(*) FROM information_schema.columns
+    WHERE table_name = 'CompanySetting' AND column_name IN ('websiteDomain', 'adminDomain')`).Scan(&columns))
+			require.Zero(t, columns, "the legacy columns are gone")
+			var website, admin, ga, head string
+			require.NoError(t, pool.QueryRow(ctx, `SELECT website_domain, admin_domain, code->>'googleAnalyticsId', code->>'headHtml'
+    FROM system.site_setting`).Scan(&website, &admin, &ga, &head))
+			require.Equal(t, "example.com", website)
+			if mode == "copy" {
+				require.Equal(t, "it.example.com", admin, "a domain the service already has wins over the legacy one")
+			} else {
+				require.Equal(t, "admin.example.com", admin)
+			}
+			require.Equal(t, "G-LIVE123", ga, "the published code is what the website runs")
+			require.Equal(t, "<meta live>", head)
+			var leftovers int
+			require.NoError(t, pool.QueryRow(ctx, `SELECT count(*) FROM public."WebsiteContent"
+    WHERE draft ? 'code' OR published ? 'code' OR previous ? 'code'`).Scan(&leftovers))
+			require.Zero(t, leftovers, "the website content no longer carries code")
+		})
+	}
+}

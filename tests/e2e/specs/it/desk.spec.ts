@@ -2,13 +2,17 @@ import fs from "node:fs";
 import path from "node:path";
 import { expect, test } from "@playwright/test";
 import { createTicket } from "../../../../packages/api-client/src";
+import { ports } from "../../../../playwright.config";
 import t from "../../../../packages/locales/src/it/ar.json";
 import { watchErrors } from "../../helpers";
 import { totp } from "../../totp";
 
 // An IT engineer signs in with a password and an authenticator code, works an employee's ticket from the queue,
 // changes an SLA target and signs out. The account comes from tests/e2e/it-account.cjs (identity's bootstrap-it).
-const accountFile = path.resolve(__dirname, "../../.results/it-account.json");
+const accountFile = path.resolve(
+  process.env.E2E_IT_ACCOUNT_FILE ||
+    path.join(__dirname, "../../.results/it-account.json"),
+);
 
 test.describe.configure({ mode: "serial" });
 
@@ -119,6 +123,47 @@ test("IT works a ticket from the desk", async ({ page }) => {
   ).toBeVisible();
   await expect(page.getByTestId("integration-resend")).toBeVisible();
   await expect(page.getByTestId("integration-stripe")).toBeVisible();
+
+  // Website: domains and site-wide code are IT's; the public website runs the code at once.
+  await page.getByRole("link", { name: t.nav.site }).click();
+  await expect(page.getByRole("heading", { name: t.site.title })).toBeVisible();
+  const websiteDomain = page.getByLabel(t.site.domains.websiteLabel);
+  const adminDomain = page.getByLabel(t.site.domains.adminLabel);
+  const saveDomains = page.getByRole("button", { name: t.site.domains.save });
+  await websiteDomain.fill("e2e-site.example.com");
+  await adminDomain.fill("e2e-site.example.com");
+  await saveDomains.click();
+  await expect(page.getByText(t.site.domainsMustDiffer)).toBeVisible();
+  await adminDomain.fill("https://E2E-Admin.example.com/login");
+  await saveDomains.click();
+  await expect(page.getByText(t.site.domains.saved)).toBeVisible();
+  await expect(adminDomain).toHaveValue("e2e-admin.example.com");
+  await expect(page.getByText("e2e-site.example.com").first()).toBeVisible();
+
+  const analytics = page.getByLabel(t.site.code.googleAnalyticsId);
+  const head = page.getByLabel(t.site.code.headHtml);
+  const saveCode = page.getByRole("button", { name: t.site.code.save });
+  await analytics.fill("UA-123");
+  await saveCode.click();
+  await expect(page.getByText(t.site.failed)).toBeVisible();
+  await analytics.fill("G-E2E12345");
+  await head.fill('<meta name="e2e-site-code">');
+  await saveCode.click();
+  await expect(page.getByText(t.site.code.saved)).toBeVisible();
+  const site = await page.request.get(`http://localhost:${ports.web}/en`);
+  const html = await site.text();
+  expect(html).toContain("G-E2E12345");
+  expect(html).toContain("e2e-site-code");
+
+  // The stack is shared by every test database: put the website back as it was.
+  await analytics.fill("");
+  await head.fill("");
+  await saveCode.click();
+  await expect(page.getByText(t.site.code.saved).first()).toBeVisible();
+  await websiteDomain.fill("");
+  await adminDomain.fill("");
+  await saveDomains.click();
+  await expect(page.getByText(t.site.domains.saved).first()).toBeVisible();
 
   await page.getByRole("button", { name: t.app.signOut }).click();
   await expect(page).toHaveURL(/\/login$/);

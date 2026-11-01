@@ -45,6 +45,7 @@ const server = (
     CRON_SECRET: cronSecret,
     // Specs switch modules and reload at once (tests/e2e/modules.ts).
     SYSTEM_MODULES_CACHE_MS: "0",
+    SYSTEM_SITE_CACHE_MS: "0",
   },
 });
 

@@ -187,7 +187,6 @@ export const ROUTES = {
     pages: "/dashboard/cms/pages",
     page: (id: string) => `/dashboard/cms/pages/${encodeURIComponent(id)}`,
     menus: "/dashboard/cms/menus",
-    code: "/dashboard/cms/code",
     articles: "/dashboard/cms/articles",
     article: (id: string) =>
       `/dashboard/cms/articles/${encodeURIComponent(id)}`,

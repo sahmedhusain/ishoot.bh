@@ -8,6 +8,9 @@ import {
   isApiError,
   setIntegrationForIT,
   setModuleForIT,
+  setSiteCodeForIT,
+  setSiteDomainsForIT,
+  type SiteCode,
   signIn,
   signOut,
   transitionQueueTicket,
@@ -19,6 +22,11 @@ import {
   syncSocialIntegration,
   sendWhatsAppTestMessage,
 } from "@platform/database";
+import {
+  checkDomain,
+  healthFingerprint,
+  type DomainCheckResult,
+} from "@platform/database/services/domain-check";
 import { TICKET_PRIORITIES, transitionsFrom } from "@platform/contracts";
 import { config } from "../lib/config";
 import {
@@ -27,6 +35,7 @@ import {
   sessionCookies,
   type CookieSpec,
 } from "../lib/credentials";
+import { revalidatePublicSite } from "../lib/revalidate-web";
 import { asUser, requireAllowed } from "../lib/session";
 
 export type SignInState = {
@@ -269,4 +278,75 @@ export async function sendWhatsAppTestAction(to: string, message: string) {
       error: error instanceof Error ? error.message : "WhatsApp send failed",
     };
   }
+}
+
+export type SiteOutcome<T> =
+  | { ok: true; value: T }
+  | { ok: false; reason: "invalid" | "domainsMustDiffer" };
+
+/** Expected refusals come back as a reason; anything else is an error. */
+async function attemptSite<T>(call: () => Promise<T>): Promise<SiteOutcome<T>> {
+  try {
+    return { ok: true, value: await asUser(call) };
+  } catch (error) {
+    if (isApiError(error, "domains_must_differ"))
+      return { ok: false, reason: "domainsMustDiffer" };
+    if (isApiError(error) && error.status === 422)
+      return { ok: false, reason: "invalid" };
+    throw error;
+  }
+}
+
+/** Sets the website's and the admin's domains (domains:edit); an empty one is cleared. */
+export async function saveSiteDomainsAction(
+  websiteDomain: string,
+  adminDomain: string,
+) {
+  const user = await requireAllowed("domains", "edit");
+  const outcome = await attemptSite(() =>
+    setSiteDomainsForIT(user.token, {
+      websiteDomain: String(websiteDomain).slice(0, 300),
+      adminDomain: String(adminDomain).slice(0, 300),
+    }),
+  );
+  if (outcome.ok) {
+    // Links, the sitemap and page metadata on the website use the domain.
+    await revalidatePublicSite(["company"]);
+    revalidatePath("/site");
+  }
+  return outcome;
+}
+
+/**
+ * Checks that a saved domain reaches this installation (domains:execute). The IT dashboard has no database, so the
+ * installation it expects is the one the configured website (WEB_URL) or admin (ADMIN_URL) reports.
+ */
+export async function checkSiteDomainAction(
+  kind: "website" | "admin",
+  domain: string,
+): Promise<DomainCheckResult | null> {
+  await requireAllowed("domains", "execute");
+  if (kind !== "website" && kind !== "admin") return null;
+  const origin = kind === "admin" ? config.adminUrl() : config.webUrl();
+  return checkDomain(kind, String(domain), () =>
+    origin ? healthFingerprint(origin) : Promise.resolve(null),
+  ).catch(() => null);
+}
+
+/** Saves the site-wide analytics ids and custom code (site_code:edit); the website runs it at once. */
+export async function saveSiteCodeAction(code: SiteCode) {
+  const user = await requireAllowed("site_code", "edit");
+  const text = (value: unknown, max: number) =>
+    typeof value === "string" ? value.slice(0, max) : "";
+  const outcome = await attemptSite(() =>
+    setSiteCodeForIT(user.token, {
+      googleAnalyticsId: text(code?.googleAnalyticsId, 40),
+      metaPixelId: text(code?.metaPixelId, 40),
+      tiktokPixelId: text(code?.tiktokPixelId, 40),
+      headHtml: text(code?.headHtml, 50_000),
+      bodyHtml: text(code?.bodyHtml, 50_000),
+    }),
+  );
+  if (outcome.ok) revalidatePath("/site");
+  return outcome;
 }

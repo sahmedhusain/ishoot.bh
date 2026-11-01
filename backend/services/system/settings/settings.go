@@ -32,5 +32,9 @@ type System struct {
 	ModuleWriters []string `env:"MODULE_WRITERS" envDefault:"admin" envSeparator:"," validate:"dive,required"`
 	// IntegrationWriters may modify integration settings.
 	IntegrationWriters []string `env:"INTEGRATION_WRITERS" envDefault:"admin" envSeparator:"," validate:"dive,required"`
-	JSONBodyLimit      int64    `env:"JSON_BODY_LIMIT" envDefault:"16384" validate:"gt=0"`
+	// DomainWriters may set the website and admin domains for a person they name (the admin's setup wizard).
+	DomainWriters []string `env:"DOMAIN_WRITERS" envDefault:"admin" envSeparator:"," validate:"dive,required"`
+	JSONBodyLimit int64    `env:"JSON_BODY_LIMIT" envDefault:"16384" validate:"gt=0"`
+	// SiteCodeBodyLimit caps a site code change: two code documents of up to 50,000 characters each.
+	SiteCodeBodyLimit int64 `env:"SITE_CODE_BODY_LIMIT" envDefault:"524288" validate:"gt=0"`
 }

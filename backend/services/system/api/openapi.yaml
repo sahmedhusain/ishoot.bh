@@ -3,7 +3,8 @@ info:
   title: System settings (system)
   version: 1.0.0
   description: |
-    Installation-wide settings the IT team manages (ADR 0010). Modules and integrations. Module keys,
+    Installation-wide settings the IT team manages (ADR 0010). Modules, integrations, and the website's technical
+    settings: its domains and its site-wide analytics ids and custom code. Module keys,
     names and defaults come from `contracts/catalog/modules.json`; a module nobody switched follows its default.
     Integrations credentials are encrypted at rest with AES-256-GCM.
 servers:
@@ -151,6 +152,83 @@ paths:
       responses:
         "204": { description: Unlinked }
         default: { $ref: "#/components/responses/Problem" }
+  /v1/system/site:
+    get:
+      tags: [services]
+      operationId: getSite
+      description: The website's domains and site-wide code, read by the apps to render and link the website.
+      security: [{ serviceToken: [] }]
+      responses:
+        "200":
+          description: The website's technical settings; empty values when none were saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Site" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/system/site/domains:
+    put:
+      tags: [services]
+      operationId: setSiteDomains
+      description: Sets the domains for the person the calling app acts for (the admin's setup wizard).
+      security: [{ serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - { $ref: "#/components/schemas/SiteDomainsInput" }
+                - type: object
+                  required: [actorId]
+                  properties:
+                    actorId: { type: string, minLength: 1, maxLength: 64 }
+      responses:
+        "200": { $ref: "#/components/responses/SiteDomains" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/system/desk/site/domains:
+    get:
+      tags: [desk]
+      operationId: getSiteDomainsForIT
+      description: Needs `domains:read`.
+      security: [{ userToken: [] }]
+      responses:
+        "200": { $ref: "#/components/responses/SiteDomains" }
+        default: { $ref: "#/components/responses/Problem" }
+    put:
+      tags: [desk]
+      operationId: setSiteDomainsForIT
+      description: Needs `domains:edit`. An empty domain clears it; the two must differ.
+      security: [{ userToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SiteDomainsInput" }
+      responses:
+        "200": { $ref: "#/components/responses/SiteDomains" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/system/desk/site/code:
+    get:
+      tags: [desk]
+      operationId: getSiteCodeForIT
+      description: Needs `site_code:read`.
+      security: [{ userToken: [] }]
+      responses:
+        "200": { $ref: "#/components/responses/SiteCode" }
+        default: { $ref: "#/components/responses/Problem" }
+    put:
+      tags: [desk]
+      operationId: setSiteCodeForIT
+      description: Needs `site_code:edit`. Takes effect on the website at once.
+      security: [{ userToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SiteCode" }
+      responses:
+        "200": { $ref: "#/components/responses/SiteCode" }
+        default: { $ref: "#/components/responses/Problem" }
 components:
   securitySchemes:
     serviceToken: { type: http, scheme: bearer, bearerFormat: JWT }
@@ -202,8 +280,21 @@ components:
       content:
         application/json:
           schema: { $ref: "#/components/schemas/DeskIntegration" }
+    SiteDomains:
+      description: The website's and the admin's domains
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/SiteDomains" }
+    SiteCode:
+      description: The site-wide analytics ids and custom code
+      content:
+        application/json:
+          schema:
+            allOf:
+              - { $ref: "#/components/schemas/SiteCode" }
+              - { $ref: "#/components/schemas/Changed" }
     Problem:
-      description: An error (RFC 9457). Codes include `module_not_found`, `integration_not_found`, `validation_failed`, `unauthenticated`, `forbidden`.
+      description: An error (RFC 9457). Codes include `module_not_found`, `integration_not_found`, `validation_failed`, `domains_must_differ`, `unauthenticated`, `forbidden`.
       content:
         application/problem+json:
           schema: { $ref: "#/components/schemas/Problem" }
@@ -305,6 +396,43 @@ components:
           additionalProperties: { type: string }
         syncLeaseToken: { type: [string, "null"] }
         syncLeaseUntil: { type: [string, "null"], format: date-time }
+    Changed:
+      type: object
+      properties:
+        updatedBy: { type: string, description: "Who changed it last: <caller>:<person> or it:<IT account>" }
+        updatedAt: { type: string, format: date-time }
+    SiteDomainsInput:
+      type: object
+      required: [websiteDomain, adminDomain]
+      properties:
+        websiteDomain: { type: string, maxLength: 300, description: "A public host name, or empty to clear" }
+        adminDomain: { type: string, maxLength: 300, description: "A public host name, or empty to clear" }
+    SiteDomains:
+      allOf:
+        - { $ref: "#/components/schemas/Changed" }
+        - type: object
+          required: [websiteDomain, adminDomain]
+          properties:
+            websiteDomain: { type: string, description: "Normalised host name, or empty" }
+            adminDomain: { type: string, description: "Normalised host name, or empty" }
+    SiteCode:
+      type: object
+      required: [googleAnalyticsId, metaPixelId, tiktokPixelId, headHtml, bodyHtml]
+      properties:
+        googleAnalyticsId: { type: string, description: "G-XXXX, or empty" }
+        metaPixelId: { type: string, description: "Digits, or empty" }
+        tiktokPixelId: { type: string, description: "Upper-case letters and digits, or empty" }
+        headHtml: { type: string, maxLength: 50000 }
+        bodyHtml: { type: string, maxLength: 50000 }
+    Site:
+      allOf:
+        - { $ref: "#/components/schemas/Changed" }
+        - type: object
+          required: [websiteDomain, adminDomain, code]
+          properties:
+            websiteDomain: { type: string }
+            adminDomain: { type: string }
+            code: { $ref: "#/components/schemas/SiteCode" }
     Problem:
       type: object
       required: [type, title, status, code]

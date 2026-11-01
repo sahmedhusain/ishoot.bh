@@ -278,4 +278,6 @@ the environment. A service refuses to start when a value is missing or fails its
 | `SYSTEM_READ_CALLERS` | `admin,web,it` | `min=1,dive,required` |
 | `SYSTEM_MODULE_WRITERS` | `admin` | `dive,required` |
 | `SYSTEM_INTEGRATION_WRITERS` | `admin` | `dive,required` |
+| `SYSTEM_DOMAIN_WRITERS` | `admin` | `dive,required` |
 | `SYSTEM_JSON_BODY_LIMIT` | `16384` | `gt=0` |
+| `SYSTEM_SITE_CODE_BODY_LIMIT` | `524288` | `gt=0` |

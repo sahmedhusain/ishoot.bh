@@ -1,5 +1,5 @@
-// The system service (backend/services/system): installation-wide settings. Modules and integrations are
-// read by every app; IT staff manage them with their own token, and backend services use service tokens.
+// The system service (backend/services/system): installation-wide settings. Modules, integrations and the
+// website's domains and site code are read by every app; IT staff manage them with their own token, and backend services use service tokens.
 import { apiError } from "./errors";
 import type { components, paths } from "./generated/system";
 import { serviceClient, unwrap, unwrapEmpty, userClient } from "./http";
@@ -14,6 +14,10 @@ export type SaveIntegrationITInput =
 export type UpdateIntegrationStatusInput =
   components["schemas"]["UpdateIntegrationStatusInput"];
 export type SecretHint = components["schemas"]["SecretHint"];
+export type Site = components["schemas"]["Site"];
+export type SiteCode = components["schemas"]["SiteCode"];
+export type SiteDomains = components["schemas"]["SiteDomains"];
+export type SiteDomainsInput = components["schemas"]["SiteDomainsInput"];
 
 let client: ReturnType<typeof serviceClient<paths>> | undefined;
 const system = () => (client ??= serviceClient<paths>());
@@ -127,3 +131,35 @@ export const unlinkIntegrationForIT = (token: string, provider: string) =>
     ),
   );
 
+
+/** The website's domains and site-wide code (empty values when none were saved). */
+export const getSite = (): Promise<Site> =>
+  unwrap(system().GET("/v1/system/site"));
+
+/** Sets the domains for the person this app acts for (the admin's setup wizard); empty clears one. */
+export const setSiteDomains = (input: SiteDomainsInput, actorId: string) =>
+  unwrap(
+    system().PUT("/v1/system/site/domains", { body: { ...input, actorId } }),
+  );
+
+/** The domains, read by an IT account (domains:read). */
+export const getSiteDomainsForIT = (token: string) =>
+  unwrap(userClient<paths>(token).GET("/v1/system/desk/site/domains"));
+
+/** Sets the domains as an IT account (domains:edit). */
+export const setSiteDomainsForIT = (token: string, input: SiteDomainsInput) =>
+  unwrap(
+    userClient<paths>(token).PUT("/v1/system/desk/site/domains", {
+      body: input,
+    }),
+  );
+
+/** The site-wide analytics ids and custom code, read by an IT account (site_code:read). */
+export const getSiteCodeForIT = (token: string) =>
+  unwrap(userClient<paths>(token).GET("/v1/system/desk/site/code"));
+
+/** Saves the site-wide analytics ids and custom code as an IT account (site_code:edit); live at once. */
+export const setSiteCodeForIT = (token: string, code: SiteCode) =>
+  unwrap(
+    userClient<paths>(token).PUT("/v1/system/desk/site/code", { body: code }),
+  );

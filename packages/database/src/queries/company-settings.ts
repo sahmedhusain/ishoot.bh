@@ -19,10 +19,18 @@ import {
 } from "../constants/languages";
 import { isBusinessActivity } from "../website-presets";
 import { safeWebsiteUrl } from "../website-config";
-import { normalizeDomain } from "../constants/domains";
 import { CompanySettings, SupportedCurrency } from "../types";
+import { getSiteSettings } from "./site";
 
-function mapSettings(s: any): CompanySettings {
+/**
+ * The domains belong to the system service (IT); they are read with the rest for the pages that link with them. When
+ * the service cannot be reached they are left out, so pages fall back to WEB_URL / ADMIN_URL instead of failing.
+ */
+async function mapSettings(s: any): Promise<CompanySettings> {
+  const site = await getSiteSettings().catch((error) => {
+    console.error("Site domains unavailable:", error);
+    return { websiteDomain: "", adminDomain: "" };
+  });
   return {
     id: s.id,
     company_name_en: s.companyNameEn,
@@ -101,8 +109,8 @@ function mapSettings(s: any): CompanySettings {
     city: s.city || undefined,
     country: s.country || undefined,
     map_url: s.mapUrl || undefined,
-    website_domain: s.websiteDomain || undefined,
-    admin_domain: s.adminDomain || undefined,
+    website_domain: site.websiteDomain || undefined,
+    admin_domain: site.adminDomain || undefined,
     updated_at: s.updatedAt.toISOString(),
   };
 }
@@ -148,9 +156,6 @@ async function updateCompanySettingsInTransaction(
     throw new Error(serverMessages.invalidFoundedYear);
   if (input.map_url && !/^https?:\/\//.test(safeWebsiteUrl(input.map_url)))
     throw new Error(serverMessages.invalidMapLink);
-  for (const value of [input.website_domain, input.admin_domain])
-    if (value && !normalizeDomain(value))
-      throw new Error(serverMessages.invalidDomain);
   // A company writing in one language gets the same text on both sides of every pair it saves.
   const stored = await db.companySetting.findUnique({
     where: { singleton: 1 },
@@ -372,14 +377,6 @@ async function updateCompanySettingsInTransaction(
       city: updates.city,
       country: updates.country,
       mapUrl: updates.map_url,
-      websiteDomain:
-        updates.website_domain === undefined
-          ? undefined
-          : normalizeDomain(updates.website_domain) || null,
-      adminDomain:
-        updates.admin_domain === undefined
-          ? undefined
-          : normalizeDomain(updates.admin_domain) || null,
     },
   });
   return mapSettings(updated);

@@ -6,15 +6,17 @@ import { CheckCircle2, CircleAlert, Globe, Loader2, Save, ShieldCheck } from "lu
 import { Button, Card, Input } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { dnsRecords, normalizeDomain } from "@platform/database/constants/domains";
-import { checkDomainAction, saveDomainsAction, type DomainCheckResult } from "../../app/actions/domains";
+import type { DomainCheckResult } from "@platform/database/services/domain-check";
+import { checkDomainAction, saveDomainsAction } from "../../app/actions/domains";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 
 type Kind = "website" | "admin";
 
 /**
- * The public website's domain and the admin's own domain: saved on the company, used for every public link,
- * with the DNS records to add at the registrar and a check that the domain reaches this installation.
+ * The public website's domain and the admin's own domain, set in the setup wizard (IT manages them afterwards) and
+ * used for every public link, with the DNS records to add at the registrar and a check that the domain reaches this
+ * installation.
  */
 export function DomainSettingsCard({ initialWebsiteDomain, initialAdminDomain, canEdit, compact }: { initialWebsiteDomain?: string; initialAdminDomain?: string; canEdit: boolean; compact?: boolean }) {
   const { t } = useAdminLocale();

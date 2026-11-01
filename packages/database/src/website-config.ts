@@ -80,8 +80,9 @@ export interface WebsiteMenus {
 }
 
 /**
- * Site-wide tracking and code. Analytics are known tags filled from an id (run on the page, built by the website);
- * free-form code runs in a hidden sandboxed frame, like custom-code blocks (docs/SECURITY.md).
+ * Site-wide tracking and code, kept by the system service and managed by IT (queries/site.ts). Analytics are known
+ * tags filled from an id (run on the page, built by the website); free-form code runs in a hidden sandboxed frame,
+ * like custom-code blocks (docs/SECURITY.md).
  */
 export interface WebsiteCode {
   googleAnalyticsId: string;
@@ -123,7 +124,6 @@ export interface WebsiteConfig {
   articles?: WebsiteArticles;
   /** Missing: built from the pages' header and footer flags. */
   menus?: WebsiteMenus;
-  code?: WebsiteCode;
   contactTitleEn: string;
   contactTitleAr: string;
   contactIntroEn: string;
@@ -150,7 +150,6 @@ export type ResolvedWebsiteConfig = WebsiteConfig &
       | "whatsappButton"
       | "pages"
       | "articles"
-      | "code"
     >
   >;
 
@@ -254,7 +253,6 @@ export function resolveWebsiteConfig(
     commerce: config.commerce ?? defaultWebsiteCommerce(),
     pages: config.pages ?? defaultWebsitePages,
     articles: config.articles ?? articlesForActivity(purpose),
-    code: config.code ?? EMPTY_WEBSITE_CODE,
   };
 }
 
@@ -489,24 +487,6 @@ export function validateWebsiteConfig(value: unknown): WebsiteConfig {
       });
     };
     result.menus = { header: menu(raw.header), footer: menu(raw.footer) };
-  }
-  if (data.code !== undefined) {
-    const raw = (data.code ?? {}) as Record<string, unknown>;
-    const id = (key: string, pattern: RegExp) => {
-      const value = text(raw[key] ?? "", `code.${key}`, 40);
-      if (value && !pattern.test(value))
-        throw new Error(formatMessage(serverTemplates.invalid0, { 0: key }));
-      return value;
-    };
-    result.code = {
-      googleAnalyticsId: id("googleAnalyticsId", /^G-[A-Z0-9]{4,20}$/),
-      metaPixelId: id("metaPixelId", /^\d{6,20}$/),
-      tiktokPixelId: id("tiktokPixelId", /^[A-Z0-9]{8,30}$/),
-      headHtml:
-        typeof raw.headHtml === "string" ? raw.headHtml.slice(0, 50_000) : "",
-      bodyHtml:
-        typeof raw.bodyHtml === "string" ? raw.bodyHtml.slice(0, 50_000) : "",
-    };
   }
   if (data.design !== undefined) {
     result.design = validateWebsiteDesign(data.design);

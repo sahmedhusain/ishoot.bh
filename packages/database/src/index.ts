@@ -35,6 +35,8 @@ export * from "./queries/faqs";
 export * from "./queries/stats";
 export * from "./queries/cms-counts";
 export * from "./queries/features";
+export * from "./queries/site";
+export * from "./services/domain-check";
 export * from "./services/lead-resolver";
 
 export * from "./queries/social-links";

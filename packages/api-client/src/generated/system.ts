@@ -163,6 +163,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/system/site": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description The website's domains and site-wide code, read by the apps to render and link the website. */
+        get: operations["getSite"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/system/site/domains": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** @description Sets the domains for the person the calling app acts for (the admin's setup wizard). */
+        put: operations["setSiteDomains"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/system/desk/site/domains": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Needs `domains:read`. */
+        get: operations["getSiteDomainsForIT"];
+        /** @description Needs `domains:edit`. An empty domain clears it; the two must differ. */
+        put: operations["setSiteDomainsForIT"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/system/desk/site/code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Needs `site_code:read`. */
+        get: operations["getSiteCodeForIT"];
+        /** @description Needs `site_code:edit`. Takes effect on the website at once. */
+        put: operations["setSiteCodeForIT"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -262,6 +332,39 @@ export interface components {
             /** Format: date-time */
             syncLeaseUntil?: string | null;
         };
+        Changed: {
+            /** @description Who changed it last: <caller>:<person> or it:<IT account> */
+            updatedBy?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        SiteDomainsInput: {
+            /** @description A public host name, or empty to clear */
+            websiteDomain: string;
+            /** @description A public host name, or empty to clear */
+            adminDomain: string;
+        };
+        SiteDomains: components["schemas"]["Changed"] & {
+            /** @description Normalised host name, or empty */
+            websiteDomain: string;
+            /** @description Normalised host name, or empty */
+            adminDomain: string;
+        };
+        SiteCode: {
+            /** @description G-XXXX, or empty */
+            googleAnalyticsId: string;
+            /** @description Digits, or empty */
+            metaPixelId: string;
+            /** @description Upper-case letters and digits, or empty */
+            tiktokPixelId: string;
+            headHtml: string;
+            bodyHtml: string;
+        };
+        Site: components["schemas"]["Changed"] & {
+            websiteDomain: string;
+            adminDomain: string;
+            code: components["schemas"]["SiteCode"];
+        };
         Problem: {
             type: string;
             title: string;
@@ -328,7 +431,25 @@ export interface components {
                 "application/json": components["schemas"]["DeskIntegration"];
             };
         };
-        /** @description An error (RFC 9457). Codes include `module_not_found`, `integration_not_found`, `validation_failed`, `unauthenticated`, `forbidden`. */
+        /** @description The website's and the admin's domains */
+        SiteDomains: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["SiteDomains"];
+            };
+        };
+        /** @description The site-wide analytics ids and custom code */
+        SiteCode: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["SiteCode"] & components["schemas"]["Changed"];
+            };
+        };
+        /** @description An error (RFC 9457). Codes include `module_not_found`, `integration_not_found`, `validation_failed`, `domains_must_differ`, `unauthenticated`, `forbidden`. */
         Problem: {
             headers: {
                 [name: string]: unknown;
@@ -572,6 +693,106 @@ export interface operations {
                 };
                 content?: never;
             };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getSite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The website's technical settings; empty values when none were saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Site"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    setSiteDomains: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SiteDomainsInput"] & {
+                    actorId: string;
+                };
+            };
+        };
+        responses: {
+            200: components["responses"]["SiteDomains"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    getSiteDomainsForIT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["SiteDomains"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    setSiteDomainsForIT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SiteDomainsInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["SiteDomains"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    getSiteCodeForIT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["SiteCode"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    setSiteCodeForIT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SiteCode"];
+            };
+        };
+        responses: {
+            200: components["responses"]["SiteCode"];
             default: components["responses"]["Problem"];
         };
     };

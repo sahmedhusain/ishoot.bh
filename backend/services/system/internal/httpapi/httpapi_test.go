@@ -67,7 +67,9 @@ func TestModules(t *testing.T) {
 		ReadCallers:        []string{"admin", "web"},
 		ModuleWriters:      []string{"admin"},
 		IntegrationWriters: []string{"admin"},
+		DomainWriters:      []string{"admin"},
 		JSONBodyLimit:      4096,
+		SiteCodeBodyLimit:  256 << 10,
 	})
 	doc, err := openapi3.NewLoader().LoadFromData(api.OpenAPI)
 	require.NoError(t, err)
@@ -189,4 +191,47 @@ func TestModules(t *testing.T) {
 	// Unlink clears credentials
 	unlinkRes := call(it("it_admin"), http.MethodDelete, "/v1/system/desk/integrations/whatsapp", nil)
 	require.Equal(t, http.StatusNoContent, unlinkRes.Code)
+
+	// Site: empty before anything is saved; the apps read it with service tokens.
+	var site app.Site
+	rec := call(webToken, http.MethodGet, "/v1/system/site", nil)
+	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &site))
+	assert.Empty(t, site.WebsiteDomain)
+	assert.Empty(t, site.Code.HeadHTML)
+
+	// Domains: the setup wizard (admin) for a person, or IT with domains:edit. They are normalised and must differ.
+	assert.Equal(t, http.StatusForbidden, call(webToken, http.MethodPut, "/v1/system/site/domains", map[string]any{"websiteDomain": "example.com", "adminDomain": "", "actorId": "u"}).Code)
+	rec = call(adminToken, http.MethodPut, "/v1/system/site/domains", map[string]any{"websiteDomain": "https://Example.com/about", "adminDomain": "", "actorId": "staff-7"})
+	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+	assert.Contains(t, rec.Body.String(), `"websiteDomain":"example.com"`)
+	assert.Equal(t, http.StatusForbidden, call(it("it_support"), http.MethodGet, "/v1/system/desk/site/domains", nil).Code)
+	assert.Equal(t, http.StatusForbidden, call(it("it_auditor"), http.MethodPut, "/v1/system/desk/site/domains", map[string]any{"websiteDomain": "", "adminDomain": ""}).Code)
+	rec = call(it("it_engineer"), http.MethodPut, "/v1/system/desk/site/domains", map[string]any{"websiteDomain": "example.com", "adminDomain": "example.com"})
+	assert.Equal(t, http.StatusUnprocessableEntity, rec.Code)
+	assert.Contains(t, rec.Body.String(), "domains_must_differ")
+	assert.Equal(t, http.StatusUnprocessableEntity, call(it("it_engineer"), http.MethodPut, "/v1/system/desk/site/domains", map[string]any{"websiteDomain": "127.0.0.1", "adminDomain": ""}).Code)
+	rec = call(it("it_engineer"), http.MethodPut, "/v1/system/desk/site/domains", map[string]any{"websiteDomain": "example.com", "adminDomain": "admin.example.com"})
+	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+	rec = call(it("it_admin"), http.MethodGet, "/v1/system/desk/site/domains", nil)
+	require.Equal(t, http.StatusOK, rec.Code)
+	assert.Contains(t, rec.Body.String(), `"adminDomain":"admin.example.com"`)
+	assert.Contains(t, rec.Body.String(), `"updatedBy":"it:it-1"`)
+
+	// Site code: IT with site_code:edit; ids are checked; the website reads it back.
+	code := map[string]any{"googleAnalyticsId": "G-ABC1234", "metaPixelId": "", "tiktokPixelId": "", "headHtml": "<meta name=x>", "bodyHtml": ""}
+	assert.Equal(t, http.StatusForbidden, call(it("it_support"), http.MethodPut, "/v1/system/desk/site/code", code).Code)
+	assert.Equal(t, http.StatusUnprocessableEntity, call(it("it_admin"), http.MethodPut, "/v1/system/desk/site/code",
+		map[string]any{"googleAnalyticsId": "UA-1", "metaPixelId": "", "tiktokPixelId": "", "headHtml": "", "bodyHtml": ""}).Code)
+	rec = call(it("it_admin"), http.MethodPut, "/v1/system/desk/site/code", code)
+	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+	rec = call(webToken, http.MethodGet, "/v1/system/site", nil)
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &site))
+	assert.Equal(t, "G-ABC1234", site.Code.GoogleAnalyticsID)
+	assert.Equal(t, "<meta name=x>", site.Code.HeadHTML)
+	assert.Equal(t, "admin.example.com", site.AdminDomain, "saving code keeps the domains")
+	rec = call(it("it_engineer"), http.MethodGet, "/v1/system/desk/site/code", nil)
+	require.Equal(t, http.StatusOK, rec.Code)
+	assert.Contains(t, rec.Body.String(), `"googleAnalyticsId":"G-ABC1234"`)
 }

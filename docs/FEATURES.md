@@ -18,7 +18,7 @@ What the admin system does, by area, and the rules behind it. The exact routes a
 - **Settings → Company**: general information, tax and VAT, bank details, document numbering, sales discounts, brand files (text logos, icons, stamp, signature, letterhead) and **Colours & fonts**. Changing the theme re-colours both apps, PDFs and emails immediately.
 - **Settings → Modules**: switch optional modules on or off: deals, invoicing, calendar, equipment, website content, reviews, tasks and projects (on by default), and, off until a company needs them, products, purchasing, online store, delivery, marketing, public relations and legal. A module that is off hides its pages, its reports and its permissions.
 - **Settings → Sales pipeline**: the company's deal stages (names per language, order, colour, win %, custom stages). System stages (lead, proposal sent, contract signed, invoiced, won, lost) can be renamed and reordered but not removed.
-- **Domains** (Settings → Website and the wizard): the website and admin domains, the DNS records to add, and **Check domain** (see [OPERATIONS.md](OPERATIONS.md#domains)).
+- **Domains** (the setup wizard, then the IT dashboard → Website): the website and admin domains, the DNS records to add, and **Check domain** (see [OPERATIONS.md](OPERATIONS.md#domains)).
 
 ## Motion
 
@@ -115,7 +115,7 @@ What the admin system does, by area, and the rules behind it. The exact routes a
 - With the website module off, the address shows a holding page with the company's name and contacts.
 - Changes are drafted, previewed and published. Publishing queues revalidation, so the site updates even if delivery is retried.
 - **Pages** (Website → Pages): the homepage, About, Contact and any new page are built from ordered **blocks** (hero, about, text, image and text, gallery, video, catalogue, services, figures, testimonials, FAQ, client logos, call to action, contact form, map, team, latest articles, columns, custom code, embed and more), with SEO fields and a signed draft preview.
-- **Menus** for the header and footer; **articles** (news, updates, posts, press releases) with a rich editor, scheduling, approval, share links and RSS; analytics by id (Google Analytics, Meta Pixel, TikTok Pixel) and sandboxed custom code.
+- **Menus** for the header and footer; **articles** (news, updates, posts, press releases) with a rich editor, scheduling, approval, share links and RSS; sandboxed custom-code blocks. Site-wide analytics by id (Google Analytics, Meta Pixel, TikTok Pixel) and site-wide custom code are managed by IT (IT dashboard → Website).
 - **Sample content** for every activity (banners, catalogue items, services, figures, questions and a welcome article, pictures drawn in the company's colours), removable in one click, and an **example website** per activity.
 - The site uses the company's name, address, logos, theme and fonts. No copy names a specific company.
 

@@ -323,36 +323,6 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page).toHaveURL(/\/settings\/preferences$/);
     expect(hydrationErrors).toEqual([]);
   });
-
-  test(`domain edits are guarded before leaving web settings (${locale})`, async ({
-    page,
-  }) => {
-    const t = locale === "en" ? en : ar;
-    await page.addInitScript(
-      (locale) => localStorage.setItem("platform_admin_locale", locale),
-      locale,
-    );
-    await page.goto("/dashboard/settings/web");
-    const main = page.getByRole("main");
-    const domain = main.getByRole("textbox", {
-      name: t.domains.websiteLabel,
-      exact: true,
-    });
-    const original = await domain.inputValue();
-    await domain.fill("e2e-unsaved.example.test");
-    await main.locator('a[href="/dashboard/settings/company"]').first().click();
-    const dialog = page.getByRole("dialog", {
-      name: t.unsavedChanges.title,
-      exact: true,
-    });
-    await dialog
-      .getByRole("button", { name: t.unsavedChanges.stay, exact: true })
-      .click();
-    await expect(domain).toHaveValue("e2e-unsaved.example.test");
-    await domain.fill(original);
-    await main.locator('a[href="/dashboard/settings/company"]').first().click();
-    await expect(page).toHaveURL(/\/settings\/company$/);
-  });
 }
 
 test("a completed save cannot redirect after the editor has been left", async ({

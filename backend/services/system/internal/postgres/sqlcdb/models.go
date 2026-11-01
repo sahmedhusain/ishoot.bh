@@ -31,3 +31,12 @@ type SystemModuleSetting struct {
 	UpdatedBy *string
 	UpdatedAt time.Time
 }
+
+type SystemSiteSetting struct {
+	ID            bool
+	WebsiteDomain *string
+	AdminDomain   *string
+	Code          json.RawMessage
+	UpdatedAt     time.Time
+	UpdatedBy     *string
+}

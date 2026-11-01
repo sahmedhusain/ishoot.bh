@@ -100,8 +100,9 @@ Payment webhooks arrive at `<WEB_URL>/api/store/payment/webhook/<gateway>` (veri
 
 ## Domains
 
-The setup wizard (Website step) and Settings → Website ask for the public website's domain and, optionally, an
-admin domain. They are stored on the company (`CompanySetting.websiteDomain`, `adminDomain`) and used for the
+The setup wizard (Website step) asks for the public website's domain and, optionally, an admin domain; afterwards IT
+changes them in the IT dashboard (**Website**, `domains:edit`). The system service keeps them (`system.site_setting`)
+and the apps use them for the
 website's canonical address, sitemap and page metadata, password-reset links, signing links, calendar feeds and
 PDF links. `WEB_URL` and `ADMIN_URL` (or `ADMIN_APP_URL`) still win when they are set.
 
@@ -113,9 +114,10 @@ The app never changes DNS. Add one record at the registrar:
 | Vercel          | `www.example.com`, `admin.example.com` | `CNAME www cname.vercel-dns.com`                                                            |
 | Your own server | any                                    | `A <name> <server IP address>`, with the reverse proxy routing the domain to the app's port |
 
-Then add the domain to the hosting project and press **Check domain**: the admin fetches
-`https://<domain>/api/health`, which answers with the app and a fingerprint of this installation, and reports
-whether the domain reaches this installation.
+Then add the domain to the hosting project and press **Check domain** (setup wizard, or the IT dashboard with
+`domains:execute`): the server fetches `https://<domain>/api/health`, which answers with the app and a fingerprint of
+this installation, and reports whether the domain reaches this installation. The IT dashboard has no database, so it
+reads the fingerprint to expect from the configured website (`WEB_URL`) or admin (`ADMIN_URL`).
 
 ## Deploying
 

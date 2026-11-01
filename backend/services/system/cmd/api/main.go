@@ -112,8 +112,8 @@ func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, svc *a
 	e.Use(telemetry.EchoMiddleware())
 	httpapi.Register(e, svc, httpapi.Options{
 		Verifier: verifier, ReadCallers: cfg.System.ReadCallers, ModuleWriters: cfg.System.ModuleWriters,
-		IntegrationWriters: cfg.System.IntegrationWriters,
-		JSONBodyLimit:      cfg.System.JSONBodyLimit,
+		IntegrationWriters: cfg.System.IntegrationWriters, DomainWriters: cfg.System.DomainWriters,
+		JSONBodyLimit: cfg.System.JSONBodyLimit, SiteCodeBodyLimit: cfg.System.SiteCodeBodyLimit,
 	})
 
 	public, adminServer := httpx.Servers(cfg.Common, telemetry.Handler(cfg.ServiceName, e), admin)

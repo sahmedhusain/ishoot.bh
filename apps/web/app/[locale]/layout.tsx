@@ -19,7 +19,7 @@ import { SiteThemeProvider, SiteRegion } from "../../components/site/SiteTheme";
 import { siteBaseTone, siteThemeBootstrap } from "@platform/database/constants/website-design";
 import { WebsiteOffline } from "../../components/layout/WebsiteOffline";
 import { SiteProvider } from "../../components/site/SiteProvider";
-import { getSocialLinks } from "@platform/database";
+import { getSiteCode, getSocialLinks } from "@platform/database";
 import { UtmCapture } from "../../components/store/UtmCapture";
 import { pickText } from "@platform/database/constants/languages";
 import { googleFontsHref, themeStylesheet, websiteThemeStylesheet } from "@platform/database/constants/theme";
@@ -49,12 +49,17 @@ export default async function LocaleLayout({
   }
   await requireSiteLanguage(locale);
 
-  const [{ company, config, info, enabled, website }, socialLinks, preview, example, t] = await Promise.all([
+  const [{ company, config, info, enabled, website }, socialLinks, preview, example, t, code] = await Promise.all([
     getSite(),
     getSocialLinks(),
     isWebsitePreview(),
     websiteExample(),
     siteTranslations(locale),
+    // IT's site-wide code; the website still renders when the system service cannot be reached.
+    getSiteCode().catch((error) => {
+      console.error("Site code unavailable:", error);
+      return null;
+    }),
   ]);
   const isRTL = isRtlLocale(locale);
   const [store, ordering] = await Promise.all([storeEnabled().catch(() => false), orderingEnabled().catch(() => false)]);
@@ -72,7 +77,7 @@ export default async function LocaleLayout({
       ) : null}
       <style id="company-theme" dangerouslySetInnerHTML={{ __html: themeStylesheet(company.theme) + websiteThemeStylesheet(company.theme) }} />
       <script id="site-theme-init" dangerouslySetInnerHTML={{ __html: siteThemeBootstrap(config.design) }} />
-      {enabled && website && !preview ? <SiteAnalytics code={config.code} /> : null}
+      {enabled && website && !preview && code ? <SiteAnalytics code={code} /> : null}
     </head>
   );
 
@@ -122,7 +127,7 @@ export default async function LocaleLayout({
               {children}
             </SiteRegion>
             <Footer company={company} socialLinks={socialLinks} pages={config.pages} links={menus?.footer} />
-            {!preview ? <SiteCustomCode code={config.code} /> : null}
+            {!preview && code ? <SiteCustomCode code={code} /> : null}
           </SmoothScroll>
         </SiteProvider></PhoneCountryProvider></CompanyCurrencyProvider>
         </SiteThemeProvider>

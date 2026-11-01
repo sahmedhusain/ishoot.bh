@@ -70,7 +70,7 @@ import {
   ClipboardList,
   Newspaper,
   Menu,
-  Code2,
+  
   SlidersHorizontal,
   Star,
   X,
@@ -459,13 +459,6 @@ export function Sidebar() {
             moduleKey: "cms",
           },
           {
-            href: ROUTES.cms.code,
-            label: t.nav.siteCode,
-            icon: Code2,
-            resource: "cms_code",
-            moduleKey: "cms",
-          },
-          {
             href: ROUTES.cms.banners,
             label: t.nav.banners,
             icon: Film,
@@ -765,7 +758,6 @@ export function Sidebar() {
             moduleKey: "crm_deals",
           },
           ...take([
-            ROUTES.cms.code,
             ROUTES.settings.web,
             ROUTES.settings.audit,
           ]),

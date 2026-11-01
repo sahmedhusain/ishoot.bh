@@ -16,6 +16,9 @@ type ModuleSetting = sqlcdb.SystemModuleSetting
 // IntegrationSetting is a stored setting for one provider.
 type IntegrationSetting = sqlcdb.SystemIntegrationSetting
 
+// SiteSetting is the website's stored technical settings.
+type SiteSetting = sqlcdb.SystemSiteSetting
+
 // Store reads and writes the system schema.
 type Store struct{ q *sqlcdb.Queries }
 
@@ -70,4 +73,19 @@ func (s *Store) ClaimSyncLease(ctx context.Context, provider, token string, leas
 		Now:            &now,
 	})
 	return rows > 0, err
+}
+
+// Site returns the website's technical settings; pgx.ErrNoRows when none were saved yet.
+func (s *Store) Site(ctx context.Context) (SiteSetting, error) {
+	return s.q.GetSite(ctx)
+}
+
+// SetSiteDomains stores the website and admin domains (nil clears one).
+func (s *Store) SetSiteDomains(ctx context.Context, website, admin *string, by string, now time.Time) error {
+	return s.q.SetSiteDomains(ctx, sqlcdb.SetSiteDomainsParams{WebsiteDomain: website, AdminDomain: admin, UpdatedBy: &by, UpdatedAt: now})
+}
+
+// SetSiteCode stores the site-wide analytics ids and custom code.
+func (s *Store) SetSiteCode(ctx context.Context, code []byte, by string, now time.Time) error {
+	return s.q.SetSiteCode(ctx, sqlcdb.SetSiteCodeParams{Code: code, UpdatedBy: &by, UpdatedAt: now})
 }

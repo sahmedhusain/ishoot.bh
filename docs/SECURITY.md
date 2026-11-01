@@ -20,17 +20,20 @@
 - The last active Super Admin cannot be suspended, archived or deleted.
 - Files are served only to people allowed to see the record they belong to. Public brand files (logos, icons, fonts) are the only public uploads.
 
-- **Check domain** (Settings → Website) is the only place the server fetches an address someone typed. It needs
-  `settings:edit`, accepts only a plain host name (no IP literal, port, credentials or `localhost`), resolves it and
+- **Check domain** (setup wizard; IT dashboard → Website) is the only place the server fetches an address someone
+  typed. It needs `settings:edit` in the admin or `domains:execute` in the IT dashboard, accepts only a plain host name (no IP literal, port, credentials or `localhost`), resolves it and
   refuses private, loopback and link-local addresses, fetches only `https://<host>/api/health` with an 8-second
   timeout and no redirects, and reports a state, never the response body. `/api/health` returns the app name and a
   hash of the company record's id, nothing else.
 
 ## Website custom code and embeds
 
-- Custom-code blocks and site-wide code need `cms_code:edit` (owner and administrators by default). Adding or
-  changing them is refused without it, even through the general website save, and every change is written to the
-  audit log with the code itself.
+- Custom-code blocks need `cms_code:edit` (owner and administrators by default). Adding or changing them is
+  refused without it, even through the general website save, and every change is written to the audit log with the
+  code itself.
+- Site-wide analytics ids and head/body code belong to IT: the system service stores them, and only IT accounts
+  with `site_code:edit` change them (IT dashboard → Website). The service checks the ids and caps each code field at
+  50,000 characters, and records who changed them last.
 - Custom code always runs in a sandboxed iframe (`srcdoc`, `sandbox="allow-scripts allow-popups allow-forms"`, no
   `allow-same-origin`): it cannot read the website's cookies, storage or DOM, or call its APIs as the visitor. The
   frame reports its height with `postMessage`; the page accepts only messages from that frame. There is no

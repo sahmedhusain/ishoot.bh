@@ -12,7 +12,8 @@
     "tickets": "Ticket queue",
     "sla": "SLA targets",
     "modules": "Modules",
-    "integrations": "Integrations"
+    "integrations": "Integrations",
+    "site": "Website"
   },
   "login": {
     "title": "IT dashboard",
@@ -657,5 +658,64 @@
     "save": "Save",
     "saving": "Saving…",
     "unlinked": "Integration disconnected"
+  },
+  "site": {
+    "title": "Website",
+    "description": "The website's domains and the tracking and code that run on every page. Changes apply to the live website at once and are recorded with your account.",
+    "unavailable": "The system service is not reachable right now.",
+    "readOnly": "Your role can see these settings but not change them.",
+    "changed": "Last changed {when} by {who}",
+    "failed": "The change could not be saved. Check the values and try again.",
+    "domainsMustDiffer": "The website and the admin need different domains.",
+    "domains": {
+      "title": "Domains",
+      "subtitle": "The address of the public website and, if there is one, of the admin. Links in emails, invoices, quotations, the sitemap and search results use them. Nothing here changes DNS: add the records below at the domain registrar.",
+      "websiteLabel": "Website domain",
+      "websitePlaceholder": "example.com",
+      "websiteHint": "For example example.com or www.example.com.",
+      "adminLabel": "Admin domain (optional)",
+      "adminPlaceholder": "admin.example.com",
+      "adminHint": "Leave empty to keep using the address staff open the admin on now.",
+      "invalid": "Enter a domain name only, such as example.com.",
+      "save": "Save domains",
+      "saved": "Domains saved.",
+      "check": "Check domain",
+      "dnsIntro": "Add one of these records where you bought the domain. Changes can take up to 48 hours to reach everyone.",
+      "hosting": "Hosting",
+      "type": "Type",
+      "name": "Name",
+      "value": "Value",
+      "hostingVercel": "Vercel",
+      "hostingServer": "Your own server",
+      "serverAddress": "Your server's IP address",
+      "result": {
+        "connected": "Connected: the domain reaches this installation.",
+        "other": "The domain answers, but not as this installation (status {status}). Check the DNS records and the hosting settings.",
+        "unreachable": "The domain cannot be reached yet. If you just added the DNS records, try again later.",
+        "private": "The domain points at a private address, so it cannot be checked from here."
+      },
+      "scheme": "https://",
+      "saving": "Saving…"
+    },
+    "code": {
+      "title": "Tracking and code",
+      "subtitle": "Analytics and advertising pixels for the whole website, and custom code. Changes go live at once.",
+      "saved": "Saved. The website uses it from the next page load.",
+      "analytics": "Analytics and pixels",
+      "googleAnalyticsId": "Google Analytics measurement id",
+      "metaPixelId": "Meta Pixel id",
+      "tiktokPixelId": "TikTok Pixel id",
+      "hints": {
+        "googleAnalyticsId": "Starts with G-",
+        "metaPixelId": "Digits only",
+        "tiktokPixelId": "Capital letters and digits"
+      },
+      "custom": "Code of your own",
+      "sandboxed": "This code runs in a hidden sealed frame on every page: it cannot read the website, its cookies or what visitors type. Use it for widgets and tags that only need to load; analytics need the ids above.",
+      "headHtml": "Code for the head",
+      "bodyHtml": "Code for the end of the page",
+      "save": "Save tracking and code",
+      "saving": "Saving…"
+    }
   }
 }

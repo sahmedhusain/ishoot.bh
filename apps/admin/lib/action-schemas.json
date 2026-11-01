@@ -14942,36 +14942,5 @@
         "optional": false
       }
     }
-  },
-  "saveWebsiteCodeAction": {
-    "kind": "object",
-    "fields": {
-      "code": {
-        "kind": "object",
-        "fields": {
-          "googleAnalyticsId": {
-            "kind": "string",
-            "optional": false
-          },
-          "metaPixelId": {
-            "kind": "string",
-            "optional": false
-          },
-          "tiktokPixelId": {
-            "kind": "string",
-            "optional": false
-          },
-          "headHtml": {
-            "kind": "string",
-            "optional": false
-          },
-          "bodyHtml": {
-            "kind": "string",
-            "optional": false
-          }
-        },
-        "optional": false
-      }
-    }
   }
 }

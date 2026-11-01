@@ -23,14 +23,18 @@ const (
 	CodeUnknownModule      = "module_not_found"
 	CodeUnknownIntegration = "integration_not_found"
 	CodeValidationFailed   = "validation_failed"
+	CodeDomainsMustDiffer  = "domains_must_differ"
 )
 
 // Options configures the handlers.
 type Options struct {
 	Verifier *authn.Verifier
-	// ReadCallers may read settings; ModuleWriters may switch modules; IntegrationWriters may modify integrations.
-	ReadCallers, ModuleWriters, IntegrationWriters []string
-	JSONBodyLimit                                  int64
+	// ReadCallers may read settings; ModuleWriters may switch modules; IntegrationWriters may modify integrations;
+	// DomainWriters may set the domains for a person they name (the admin's setup wizard).
+	ReadCallers, ModuleWriters, IntegrationWriters, DomainWriters []string
+	JSONBodyLimit                                                 int64
+	// SiteCodeBodyLimit caps the site code request, which carries up to two 50,000-character documents.
+	SiteCodeBodyLimit int64
 }
 
 type handler struct {
@@ -53,6 +57,9 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	services.DELETE("/integrations/:provider", h.unlinkIntegrationForService, caller(opts.IntegrationWriters))
 	services.PUT("/integrations/:provider/status", h.updateIntegrationStatus, caller(opts.IntegrationWriters))
 
+	services.GET("/site", h.site, caller(opts.ReadCallers))
+	services.PUT("/site/domains", h.setDomainsForService, caller(opts.DomainWriters))
+
 	desk := e.Group("/v1/system/desk", authn.Require(opts.Verifier, authn.RealmIT))
 	desk.GET("/modules", h.modules, authz.Require(catalog.ITAccess, "modules", "read"))
 	desk.PUT("/modules/:key", h.setModuleForIT, authz.Require(catalog.ITAccess, "modules", "edit"))
@@ -60,6 +67,11 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	desk.GET("/integrations", h.listIntegrationsForIT, authz.Require(catalog.ITAccess, "integrations", "read"))
 	desk.PUT("/integrations/:provider", h.setIntegrationForIT, authz.Require(catalog.ITAccess, "integrations", "edit"))
 	desk.DELETE("/integrations/:provider", h.unlinkIntegrationForIT, authz.Require(catalog.ITAccess, "integrations", "delete"))
+
+	desk.GET("/site/domains", h.siteDomains, authz.Require(catalog.ITAccess, "domains", "read"))
+	desk.PUT("/site/domains", h.setDomainsForIT, authz.Require(catalog.ITAccess, "domains", "edit"))
+	desk.GET("/site/code", h.siteCode, authz.Require(catalog.ITAccess, "site_code", "read"))
+	desk.PUT("/site/code", h.setSiteCodeForIT, authz.Require(catalog.ITAccess, "site_code", "edit"))
 }
 
 // caller lets through only the listed service callers.
@@ -296,4 +308,102 @@ func (h *handler) unlinkIntegrationForIT(c echo.Context) error {
 		return err
 	}
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (h *handler) site(c echo.Context) error {
+	site, err := h.svc.Site(c.Request().Context())
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, site)
+}
+
+type siteDomainsJSON struct {
+	WebsiteDomain string     `json:"websiteDomain"`
+	AdminDomain   string     `json:"adminDomain"`
+	UpdatedBy     *string    `json:"updatedBy,omitempty"`
+	UpdatedAt     *time.Time `json:"updatedAt,omitempty"`
+}
+
+func domainsOf(site app.Site) siteDomainsJSON {
+	return siteDomainsJSON{WebsiteDomain: site.WebsiteDomain, AdminDomain: site.AdminDomain, UpdatedBy: site.UpdatedBy, UpdatedAt: site.UpdatedAt}
+}
+
+type siteCodeJSON struct {
+	app.SiteCode
+	UpdatedBy *string    `json:"updatedBy,omitempty"`
+	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+}
+
+func (h *handler) siteDomains(c echo.Context) error {
+	site, err := h.svc.Site(c.Request().Context())
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, domainsOf(site))
+}
+
+func (h *handler) siteCode(c echo.Context) error {
+	site, err := h.svc.Site(c.Request().Context())
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, siteCodeJSON{SiteCode: site.Code, UpdatedBy: site.UpdatedBy, UpdatedAt: site.UpdatedAt})
+}
+
+type domainsChange struct {
+	WebsiteDomain string `json:"websiteDomain" validate:"max=300"`
+	AdminDomain   string `json:"adminDomain" validate:"max=300"`
+}
+
+type serviceDomainsChange struct {
+	domainsChange
+	ActorID string `json:"actorId" validate:"required,max=64"`
+}
+
+func (h *handler) setDomainsForService(c echo.Context) error {
+	var in serviceDomainsChange
+	if err := httpx.BindJSON(c, &in, h.opts.JSONBodyLimit); err != nil {
+		return err
+	}
+	p, _ := authn.PrincipalFrom(c.Request().Context())
+	return h.setDomains(c, in.domainsChange, p.Subject+":"+in.ActorID)
+}
+
+func (h *handler) setDomainsForIT(c echo.Context) error {
+	var in domainsChange
+	if err := httpx.BindJSON(c, &in, h.opts.JSONBodyLimit); err != nil {
+		return err
+	}
+	p, _ := authn.PrincipalFrom(c.Request().Context())
+	return h.setDomains(c, in, string(authn.RealmIT)+":"+p.Subject)
+}
+
+func (h *handler) setDomains(c echo.Context, in domainsChange, by string) error {
+	site, err := h.svc.SetSiteDomains(c.Request().Context(), in.WebsiteDomain, in.AdminDomain, by)
+	switch {
+	case errors.Is(err, app.ErrDomainsMustDiffer):
+		return problem.New(http.StatusUnprocessableEntity, CodeDomainsMustDiffer, "")
+	case errors.Is(err, app.ErrValidationFailed):
+		return problem.New(http.StatusUnprocessableEntity, CodeValidationFailed, err.Error())
+	case err != nil:
+		return err
+	}
+	return c.JSON(http.StatusOK, domainsOf(site))
+}
+
+func (h *handler) setSiteCodeForIT(c echo.Context) error {
+	var in app.SiteCode
+	if err := httpx.BindJSON(c, &in, h.opts.SiteCodeBodyLimit); err != nil {
+		return err
+	}
+	p, _ := authn.PrincipalFrom(c.Request().Context())
+	site, err := h.svc.SetSiteCode(c.Request().Context(), in, string(authn.RealmIT)+":"+p.Subject)
+	if errors.Is(err, app.ErrValidationFailed) {
+		return problem.New(http.StatusUnprocessableEntity, CodeValidationFailed, err.Error())
+	}
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, siteCodeJSON{SiteCode: site.Code, UpdatedBy: site.UpdatedBy, UpdatedAt: site.UpdatedAt})
 }

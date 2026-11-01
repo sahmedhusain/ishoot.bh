@@ -23,4 +23,9 @@ export const config = {
   /** Renew the access token this many seconds before it expires. */
   refreshLeewaySeconds: () => Number(env("IT_REFRESH_LEEWAY_SECONDS", "30")),
   secureCookies: () => process.env.NODE_ENV === "production",
+  /** The public website and its cache-invalidation secret, to refresh it after a domain change (both optional). */
+  webUrl: () => process.env.WEB_URL || "",
+  /** The admin, whose health route tells the domain check which installation to expect (optional). */
+  adminUrl: () => process.env.ADMIN_URL || "",
+  revalidationSecret: () => process.env.REVALIDATION_SECRET || "",
 };

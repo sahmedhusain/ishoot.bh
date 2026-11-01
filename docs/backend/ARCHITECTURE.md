@@ -32,10 +32,15 @@ Browser ─▶ apps/web · apps/admin · apps/it   (Next.js: UI, cookies, server
 | 1     | Shared kit, catalogue, gateway, local stack, CI, Helm, docs                           | **Done**     |
 | 2     | `files` on S3-compatible storage; Supabase removed                                    | Verification |
 | 3     | `identity` (staff, customer and IT realms)                                            | In progress  |
-| 4     | `system`, `audit`, `notify` and the IT dashboard (`apps/it`)                          | Planned      |
-| 5     | `itsm` and IT support in the admin app                                                | Planned      |
+| 4     | `system`, `audit`, `notify` and the IT dashboard (`apps/it`)                          | In progress  |
+| 5     | `itsm` and IT support in the admin app                                                | In progress  |
 | 6     | Domain waves: cms → sales → finance → workflow → hr → inventory → commerce → delivery | Planned      |
 | 7     | Retire Prisma, the cron route and the Node workers                                    | Planned      |
+
+What exists today (2026-11-02): identity runs the IT realm with mandatory MFA; staff and customer sign-in still run in
+the apps. The system service owns modules, integrations, and the website's domains and site-wide code, all managed
+from the IT dashboard. `itsm` holds IT tickets with SLAs; employees raise them from the admin. Audit, notify, NATS and
+the remaining IT pages are not built yet, and no business domain has moved.
 
 Until a domain moves, the Next.js apps keep using `packages/database` (Prisma) for it, as described in
 [../ARCHITECTURE.md](../ARCHITECTURE.md).

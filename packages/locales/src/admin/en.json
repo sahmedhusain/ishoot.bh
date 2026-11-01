@@ -42,8 +42,7 @@
     "departments": "Departments",
     "pages": "Pages",
     "articles": "Articles",
-    "menus": "Menus",
-    "siteCode": "Tracking & code"
+    "menus": "Menus"
   },
   "actions": {
     "newInvoice": "New Invoice",
@@ -9678,24 +9677,6 @@
     "articlesSlugHint": "For example news, blog or press.",
     "articlesName": "Name in menus"
   },
-  "siteCode": {
-    "title": "Tracking and code",
-    "subtitle": "Analytics and advertising pixels for the whole website, and code of your own. Changes go live when the website is published and are recorded in the audit log.",
-    "saved": "Saved. Publish the website to make it live.",
-    "analytics": "Analytics and pixels",
-    "googleAnalyticsId": "Google Analytics measurement id",
-    "metaPixelId": "Meta Pixel id",
-    "tiktokPixelId": "TikTok Pixel id",
-    "hints": {
-      "googleAnalyticsId": "Starts with G-",
-      "metaPixelId": "Digits only",
-      "tiktokPixelId": "Capital letters and digits"
-    },
-    "custom": "Code of your own",
-    "sandboxed": "This code runs in a hidden sealed frame on every page: it cannot read the website, its cookies or what visitors type. Use it for widgets and tags that only need to load; analytics need the ids above.",
-    "headHtml": "Code for the head",
-    "bodyHtml": "Code for the end of the page"
-  },
   "sampleContent": {
     "title": "Sample content",
     "start": "Start with sample content",
@@ -11951,10 +11932,6 @@
     "cms/clients": {
       "title": "Client logos",
       "description": "Logos of clients and partners shown on your website."
-    },
-    "cms/code": {
-      "title": "Custom code",
-      "description": "Analytics tags and scripts added to every website page."
     },
     "cms/equipment": {
       "title": "Facilities",

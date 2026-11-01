@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowRightLeft, BadgeDollarSign, BarChart, Boxes, Building2, Calendar, CalendarCheck, CarFront,
-  ClipboardCheck, ClipboardList, Code2, Coins, Contact, CreditCard, FileBarChart, FileCheck2, FileQuestion,
+  ClipboardCheck, ClipboardList, Coins, Contact, CreditCard, FileBarChart, FileCheck2, FileQuestion,
   FileSignature, FileText, Film, FolderKanban, FolderOpen, FolderTree, Gauge, Globe, HandCoins, HandHeart,
   Headset, HelpCircle, History, Kanban, Key, Landmark, Laptop, LayoutDashboard, ListTodo, MapPinned, Megaphone, Menu,
   MessageSquareQuote, Navigation, Network, Newspaper, Package, PieChart, Receipt, Route, Scale, ScanLine,
@@ -114,7 +114,6 @@ const SECTIONS: Record<string, PageSection> = {
   "cms/pages": { icon: FileText, group: "content" },
   "cms/articles": { icon: Newspaper, group: "content" },
   "cms/menus": { icon: Menu, group: "content" },
-  "cms/code": { icon: Code2, group: "content" },
   "cms/banners": { icon: Film, group: "content" },
   "cms/portfolio": { icon: FolderOpen, group: "content" },
   "cms/clients": { icon: Users, group: "content" },
@@ -143,7 +142,7 @@ const SECTIONS: Record<string, PageSection> = {
 const PAGE_KEYS = [
   "", "analytics", "announcements", "announcements/[id]", "announcements/new", "approvals", "approvals/[type]/[id]",
   "archive", "assets", "assets/[id]", "assets/categories", "assets/handovers/[id]", "assets/new", "calendar", "claims",
-  "claims/new", "cms/articles", "cms/articles/[id]", "cms/banners", "cms/clients", "cms/code", "cms/equipment",
+  "claims/new", "cms/articles", "cms/articles/[id]", "cms/banners", "cms/clients", "cms/equipment",
   "cms/faqs", "cms/menus", "cms/pages", "cms/pages/[id]", "cms/portfolio", "cms/reviews", "cms/stats", "cms/website",
   "company/documents", "company/documents/new", "crm/contacts", "crm/customers/[id]", "crm/customers/[id]/edit",
   "crm/customers/new", "crm/deals", "crm/deals/[id]", "crm/deals/[id]/edit", "crm/deals/new", "crm/leads", "delivery",
