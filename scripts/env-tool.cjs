@@ -32,6 +32,7 @@ const SECRETS = {
   S3_SECRET_ACCESS_KEY: () => crypto.randomBytes(30).toString("base64url"),
   ADMIN_SERVICE_KEY: () => serviceKey("admin"),
   WEB_SERVICE_KEY: () => serviceKey("web"),
+  IT_SERVICE_KEY: () => serviceKey("it"),
   IDENTITY_SIGNING_JWK: () => serviceKey("identity"),
   IDENTITY_LOGIN_RATE_KEY: () => crypto.randomBytes(32).toString("base64url"),
   IDENTITY_LOGIN_MFA_KEYS: () => `primary:${crypto.randomBytes(32).toString("base64")}`,
@@ -54,7 +55,7 @@ const RETIRED = {
 // Service keys (docs/adr/0011): each app signs its calls to the backend with its own Ed25519 key, stored in .env as
 // a base64url private JWK whose key ID starts with the caller's name. The services trust the public halves, written
 // to SERVICE_KEYS_FILE as a JWKS document. During a rotation, <APP>_SERVICE_KEY_PREVIOUS stays trusted.
-const SERVICE_CALLERS = ["admin", "web"];
+const SERVICE_CALLERS = ["admin", "web", "it"];
 function serviceKey(caller) {
   const { privateKey } = crypto.generateKeyPairSync("ed25519");
   const jwk = privateKey.export({ format: "jwk" });
@@ -194,6 +195,7 @@ function check() {
     need(entry.commented || !/^\s*[A-Z0-9_]+="[^"]*$/.test(entry.line.replace(/\s+#.*$/, "")), `${key} has an unclosed quote: docker compose cannot read this file`);
   need(!!env.API_URL, "API_URL is empty: the apps cannot reach the backend gateway (files, and later every service)");
   for (const caller of ["ADMIN", "WEB"]) need(!!env[`${caller}_SERVICE_KEY`], `${caller}_SERVICE_KEY is empty: run ./run.sh env secrets`);
+  if (env.IDENTITY_LOGIN_ENABLED === "true") need(!!env.IT_SERVICE_KEY, "IT_SERVICE_KEY is empty: run ./run.sh env secrets");
   need(!!env.CRON_SECRET, "CRON_SECRET is empty: /api/cron (reminders, payments, tracking, reports) cannot run", production ? problems : warnings);
   need(!!env.RESEND_API_KEY && !!env.FROM_EMAIL, "No legacy mail credentials: configure the encrypted Resend integration in Settings", warnings);
   need(!!env.RESEND_WEBHOOK_SECRET, "No legacy webhook secret: configure the signing secret in the encrypted Resend integration", warnings);

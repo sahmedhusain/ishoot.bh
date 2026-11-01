@@ -5,6 +5,7 @@ info:
   description: |
     Phase 3 preview contract; existing apps have not switched to this service.
     App servers authenticate with service tokens and pass opaque refresh credentials server-side.
+    Identity allows only configured service callers for each realm.
     A refresh credential is usable once, only in its issuing realm. Reuse revokes its session family.
     Refreshing never extends the absolute session lifetime. When login is enabled, refresh also checks account status and issues a new access token.
 servers:

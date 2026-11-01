@@ -19,6 +19,7 @@ type Config struct {
 	Signing  tokens.Config `envPrefix:"IDENTITY_"`
 	Session  Session       `envPrefix:"IDENTITY_"`
 	Login    Login         `envPrefix:"IDENTITY_LOGIN_"`
+	Callers  Callers       `envPrefix:"IDENTITY_CALLERS_"`
 }
 
 type Session struct {
@@ -44,4 +45,11 @@ type Login struct {
 	MFALegacyKey     string          `env:"MFA_LEGACY_KEY"`
 	Password         password.Config `envPrefix:"PASSWORD_"`
 	TOTP             totp.Config     `envPrefix:"TOTP_"`
+}
+
+// Callers lists the service identities allowed to authenticate each realm.
+type Callers struct {
+	Staff    []string `env:"STAFF" envDefault:"admin" envSeparator:"," validate:"min=1,dive,required"`
+	Customer []string `env:"CUSTOMER" envDefault:"web" envSeparator:"," validate:"min=1,dive,required"`
+	IT       []string `env:"IT" envDefault:"it" envSeparator:"," validate:"min=1,dive,required"`
 }

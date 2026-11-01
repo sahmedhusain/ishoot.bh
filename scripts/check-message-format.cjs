@@ -69,8 +69,9 @@ const detail = {
 };
 // Names from every company profile: a generated file may only carry the company it was generated for.
 const profileNames = require("node:fs")
-  .readdirSync(require("node:path").join(__dirname, "../company/profiles"))
-  .flatMap((p) => {
+  .readdirSync(require("node:path").join(__dirname, "../company/profiles"), { withFileTypes: true })
+  .filter((entry) => entry.isDirectory() || entry.isSymbolicLink())
+  .flatMap(({ name: p }) => {
     const { display = {}, company = {} } = require(`../company/profiles/${p}/company.json`);
     return [display.nameEn, display.nameAr, company.companyNameEn, company.companyNameAr].filter(Boolean);
   });

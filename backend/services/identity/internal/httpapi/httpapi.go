@@ -5,6 +5,7 @@ import (
 	"errors"
 	"math"
 	"net/http"
+	"slices"
 	"strconv"
 	"time"
 
@@ -24,11 +25,12 @@ type Handler struct {
 	issuer   *tokens.Issuer
 	limit    int64
 	login    *accounts.Service
+	callers  map[authn.Realm][]string
 }
 
 // Register exposes public JWKS and service-authenticated session endpoints. Never allow user tokens on service routes.
-func Register(e *echo.Echo, verifier *authn.Verifier, svc *sessions.Service, issuer *tokens.Issuer, login *accounts.Service, limit int64) {
-	h := &Handler{sessions: svc, issuer: issuer, login: login, limit: limit}
+func Register(e *echo.Echo, verifier *authn.Verifier, svc *sessions.Service, issuer *tokens.Issuer, login *accounts.Service, limit int64, callers map[authn.Realm][]string) {
+	h := &Handler{sessions: svc, issuer: issuer, login: login, limit: limit, callers: callers}
 	e.GET("/.well-known/jwks.json", h.jwks)
 	g := e.Group("/v1/identity/:realm/sessions", func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error { c.Response().Header().Set("Cache-Control", "no-store"); return next(c) }
@@ -58,16 +60,20 @@ type refreshResponse struct {
 	RefreshToken string      `json:"refreshToken"`
 }
 
-func realm(c echo.Context) (authn.Realm, error) {
+func (h *Handler) realm(c echo.Context) (authn.Realm, error) {
 	r, err := authn.ParseRealm(c.Param("realm"))
 	if err != nil || r == authn.RealmService {
 		return "", problem.BadRequest("invalid realm")
+	}
+	principal, ok := authn.PrincipalFrom(c.Request().Context())
+	if !ok || principal.Realm != authn.RealmService || !slices.Contains(h.callers[r], principal.Subject) {
+		return "", problem.Unauthenticated("")
 	}
 	return r, nil
 }
 func (h *Handler) read(c echo.Context) (authn.Realm, string, error) {
 	c.Response().Header().Set("Cache-Control", "no-store")
-	r, err := realm(c)
+	r, err := h.realm(c)
 	if err != nil {
 		return "", "", err
 	}
@@ -134,7 +140,7 @@ type loginResponse struct {
 }
 
 func (h *Handler) loginPassword(c echo.Context) error {
-	r, err := realm(c)
+	r, err := h.realm(c)
 	if err != nil {
 		return err
 	}

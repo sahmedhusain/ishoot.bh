@@ -144,6 +144,9 @@ func (v *Verifier) Verify(ctx context.Context, token string, allowed ...Realm) (
 	}
 
 	subject, _ := parsed.Subject()
+	if subject == "" || (realm == RealmService && subject != strings.TrimPrefix(issuer, ServiceIssuerPrefix)) {
+		return Principal{}, fmt.Errorf("%w: invalid subject", ErrInvalidToken)
+	}
 	expires, _ := parsed.Expiration()
 	principal := Principal{Subject: subject, Realm: realm, ExpiresAt: expires}
 	principal.Roles = stringList(parsed, ClaimRoles)

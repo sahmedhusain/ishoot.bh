@@ -133,7 +133,7 @@ func run(command string) error {
 		return err
 	}
 	e.Use(telemetry.EchoMiddleware())
-	httpapi.Register(e, verifier, svc, issuer, login, cfg.Session.JSONBodyLimit)
+	httpapi.Register(e, verifier, svc, issuer, login, cfg.Session.JSONBodyLimit, map[authn.Realm][]string{authn.RealmStaff: cfg.Callers.Staff, authn.RealmCustomer: cfg.Callers.Customer, authn.RealmIT: cfg.Callers.IT})
 	public, admin := httpx.Servers(cfg.Common, telemetry.Handler(cfg.ServiceName, e), httpx.AdminHandler(cfg.Common, logger, checker, metrics))
 	logger.Info("identity session API starting")
 	return httpx.Run(ctx, cfg.Common, logger, public, admin)

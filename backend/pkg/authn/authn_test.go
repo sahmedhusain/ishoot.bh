@@ -143,6 +143,9 @@ func TestServiceTokens(t *testing.T) {
 	assert.Equal(t, authn.RealmService, p.Realm)
 	assert.Equal(t, "admin", p.Subject)
 
+	_, err = v.Verify(context.Background(), admin.Sign(t, authntest.Token{Subject: "it"}), authn.RealmService)
+	require.Error(t, err, "a service cannot impersonate another caller via its subject")
+
 	_, err = v.Verify(context.Background(), admin.Sign(t, authntest.Token{Realm: authn.RealmStaff}), authn.RealmStaff)
 	assert.Error(t, err, "service keys cannot issue user tokens")
 
