@@ -50,6 +50,8 @@ test("IT works a ticket from the desk", async ({ page }) => {
     page.getByRole("heading", { name: t.overview.title }),
   ).toBeVisible();
   await expect(page.getByText(account.email)).toBeVisible();
+  await expect(page.getByText(t.overview.open, { exact: true })).toBeVisible();
+  await expect(page.getByText(t.overview.unavailable)).toHaveCount(0);
 
   await page.getByRole("link", { name: t.nav.tickets }).click();
   await page.getByRole("link", { name: new RegExp(title) }).click();
