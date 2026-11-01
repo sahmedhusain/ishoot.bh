@@ -1,10 +1,12 @@
 # Identity service — Phase 3 in progress
 
 The running apps still use TypeScript authentication. This service is not yet deployed and has no API binary.
-The session lifecycle contract is `api/openapi.yaml`; login, access-token signing/JWKS, account migration, MFA,
+The session lifecycle contract is `api/openapi.yaml`; login, JWKS publication, account migration, MFA,
 OAuth, reset flows and frontend integration remain to be implemented before cutover.
 
 Implemented:
+
+- Ed25519 access-token signing and public-only JWKS serialization, with realm audiences and session expiry caps.
 
 - Opaque 256-bit refresh credentials; only SHA-256 hashes are stored.
 - Session families isolated by staff/customer/IT realm and a fixed absolute expiry.

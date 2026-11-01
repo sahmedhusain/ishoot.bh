@@ -16,6 +16,8 @@ rate limits. Password-policy validation, dummy verification for nonexistent user
 verified legacy hash belong in that use case. The package alone does not switch authentication or move tables.
 
 The identity session foundation now has an OpenAPI contract, schema migrations and sqlc-backed repositories.
+An Ed25519 issuer signs realm-specific access tokens capped by session expiry and serializes a public-only JWKS.
+It is not yet connected to an HTTP endpoint, login flow, key rotation or deployment configuration.
 Real Postgres tests cover one-time rotation, concurrent reuse, durable family revocation, failed-write rollback,
 absolute expiry, idempotent logout and realm isolation. No API is deployed and apps still use existing authentication.
 
