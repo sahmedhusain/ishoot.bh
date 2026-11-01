@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { en } from "../../../../packages/locales/src";
 import { testDatabase, watchErrors } from "../../helpers";
+import { setModule } from "../../modules";
 
 const copy = en.account;
 const db = testDatabase();
@@ -11,16 +12,7 @@ const PASSWORD = "e2e-customer-password";
 test.describe.configure({ mode: "serial" });
 
 test.beforeAll(async () => {
-  await db.featureToggle.upsert({
-    where: { moduleKey: "store" },
-    update: { isEnabled: true },
-    create: {
-      moduleKey: "store",
-      nameEn: "Online store",
-      nameAr: "المتجر الإلكتروني",
-      isEnabled: true,
-    },
-  });
+  await setModule("store", true);
   const old = await db.customer.findMany({
     where: {
       OR: [{ email: EMAIL }, { email: { endsWith: "@deleted.invalid" } }],

@@ -9,7 +9,7 @@ import {
   completeCompanySetup,
   createActivityLog,
   db,
-  ensureDefaultFeatureModules,
+  getFeatureToggles,
   getCompanySettings,
   getWebsiteEditor,
   isFeatureEnabled,
@@ -219,11 +219,11 @@ export async function saveSetupConfigAction(input: SetupConfigInput) {
         payment_terms_days: input.paymentTermsDays,
       });
       const known = new Set(
-        (await ensureDefaultFeatureModules()).map((m) => m.moduleKey),
+        (await getFeatureToggles()).map((m) => m.moduleKey),
       );
       for (const choice of input.modules)
         if (known.has(choice.moduleKey))
-          await updateFeatureToggle(choice.moduleKey, choice.isEnabled);
+          await updateFeatureToggle(choice.moduleKey, choice.isEnabled, user.id);
       await applyActivityDepartments(
         null,
         input.departments.filter(isDepartmentKey),
@@ -263,8 +263,7 @@ export async function saveSetupWebsiteAction(input: SetupWebsiteInput) {
         )
       : null;
     await runAtomicMutation(async () => {
-      await ensureDefaultFeatureModules();
-      await updateFeatureToggle("cms", input.enabled);
+      await updateFeatureToggle("cms", input.enabled, user.id);
       if (config) {
         await getWebsiteEditor();
         await db.websiteContent.update({

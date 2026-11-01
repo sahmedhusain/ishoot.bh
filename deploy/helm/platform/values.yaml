@@ -47,7 +47,7 @@ services:
       limits: { memory: 256Mi }
     env:
       GATEWAY_ROUTES_FILE: /config/routes.yaml
-      GATEWAY_UPSTREAMS: "files=http://files:8080,itsm=http://itsm:8080,identity=http://identity:8080"
+      GATEWAY_UPSTREAMS: "files=http://files:8080,itsm=http://itsm:8080,identity=http://identity:8080,system=http://system:8080"
       GATEWAY_IDENTITY_STATUS_URL: "http://identity:8080/v1/identity/session"
       HTTP_BODY_LIMIT: "11M"
       # Set AUTH_ISSUER to identity's public issuer (IDENTITY_ISSUER); keys are read inside the cluster.
@@ -59,7 +59,7 @@ services:
     configFiles:
       - routes.yaml
     # Services the gateway may call (NetworkPolicy egress); filled in as services are added.
-    talksTo: [files, itsm, identity]
+    talksTo: [files, itsm, identity, system]
 
   files:
     enabled: true
@@ -125,3 +125,23 @@ services:
     # IDENTITY_LOGIN_RATE_KEY, IDENTITY_LOGIN_MFA_KEYS, IDENTITY_LOGIN_MFA_LEGACY_KEY.
     configFiles: []
     talksTo: []
+
+  system:
+    enabled: true
+    public: false
+    replicas: 2
+    autoscaling: { enabled: true, minReplicas: 2, maxReplicas: 6, targetCPU: 70 }
+    # No background jobs yet, so no worker.
+    migrate: true
+    resources:
+      requests: { cpu: 50m, memory: 64Mi }
+      limits: { memory: 192Mi }
+    env:
+      AUTH_SERVICE_KEYS_FILE: /keys/service-keys.json
+      AUTH_ISSUER: ""
+      AUTH_JWKS_URL: "http://identity:8080/.well-known/jwks.json"
+      SYSTEM_READ_CALLERS: admin,web,it
+      SYSTEM_MODULE_WRITERS: admin
+    # Secrets (system-secrets): DATABASE_URL.
+    configFiles: []
+    talksTo: [identity]

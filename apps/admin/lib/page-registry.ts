@@ -6,7 +6,7 @@ import {
   Headset, HelpCircle, History, Kanban, Key, Landmark, Laptop, LayoutDashboard, ListTodo, MapPinned, Megaphone, Menu,
   MessageSquareQuote, Navigation, Network, Newspaper, Package, PieChart, Receipt, Route, Scale, ScanLine,
   Settings, Settings2, ShieldAlert, ShieldCheck, ShoppingBag, ShoppingCart, SlidersHorizontal, Sparkles, Store,
-  Timer, ToggleLeft, TrendingUp, Truck, UserCircle, Users, Users2, Warehouse, Bell, Mail,
+  Timer, TrendingUp, Truck, UserCircle, Users, Users2, Warehouse, Bell, Mail,
 } from "lucide-react";
 
 /** Sidebar group a page belongs to; its label (t.navigationGroups) is the eyebrow above the page title. */
@@ -126,7 +126,6 @@ const SECTIONS: Record<string, PageSection> = {
   settings: { icon: Settings, group: "administration" },
   "settings/web": { icon: Globe, group: "administration" },
   "settings/company": { icon: Building2, group: "administration" },
-  "settings/modules": { icon: ToggleLeft, group: "administration" },
   "settings/roles": { icon: Key, group: "administration" },
   "settings/audit": { icon: FileText, group: "administration" },
   "settings/approvals": { icon: ShieldCheck, group: "administration" },
@@ -166,7 +165,7 @@ const PAGE_KEYS = [
   "procurement/suppliers", "products", "products/[id]", "products/categories", "products/new", "profile",
   "quotations", "quotations/[id]", "quotations/new", "reports", "reports/[key]", "requests", "requests/[id]",
   "requests/new", "requests/settings", "services", "settings", "settings/approvals", "settings/audit",
-  "settings/company", "settings/departments", "settings/integrations", "settings/modules", "settings/pipeline",
+  "settings/company", "settings/departments", "settings/integrations", "settings/pipeline",
   "settings/preferences", "settings/roles", "settings/security", "settings/web", "tasks", "tasks/[id]",
   "tasks/projects", "tasks/projects/[id]", "team", "users", "users/new",
 ] as const;

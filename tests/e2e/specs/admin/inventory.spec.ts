@@ -2,6 +2,7 @@ import { acceptConfirmations } from "../../helpers";
 import { expect, test, type Page } from "@playwright/test";
 import { alertMessage, testDatabase, watchErrors } from "../../helpers";
 import { t } from "../../locale";
+import { setModule } from "../../modules";
 
 const copy = t.inventory;
 const db = testDatabase();
@@ -11,16 +12,7 @@ let productId = "";
 test.describe.configure({ mode: "serial" });
 
 test.beforeAll(async () => {
-  await db.featureToggle.upsert({
-    where: { moduleKey: "products" },
-    update: { isEnabled: true },
-    create: {
-      moduleKey: "products",
-      nameEn: "Products",
-      nameAr: "المنتجات",
-      isEnabled: true,
-    },
-  });
+  await setModule("products", true);
   const old = await db.product.findMany({
     where: { sku: SKU },
     select: { id: true },

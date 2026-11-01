@@ -6,6 +6,7 @@ import {
 } from "../../packages/database/src/samples/activity-samples";
 import { applyActivityDealPipeline } from "../../packages/database/src/queries/deal-pipeline";
 import type { DemoPreset } from "./demo-presets";
+import { setModule } from "../../packages/api-client/src/system";
 
 /** Install preset content before volume generation so its services are used in the sales history. */
 export async function seedPresetWebsite(
@@ -16,10 +17,7 @@ export async function seedPresetWebsite(
   const primary = ACTIVITY_SAMPLES[preset.activity];
   await applyActivityDealPipeline(preset.activity);
   for (const module of preset.modules) {
-    await db.featureToggle.update({
-      where: { moduleKey: module.moduleKey },
-      data: { isEnabled: module.isEnabled },
-    });
+    await setModule(module.moduleKey, module.isEnabled, ownerId);
   }
   if (preset.activity !== "media") {
     await db.portfolioItem.deleteMany();

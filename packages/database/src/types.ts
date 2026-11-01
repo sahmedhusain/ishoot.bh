@@ -1036,9 +1036,9 @@ export type {
   Faq,
   Statistic,
   Review,
-  FeatureToggle,
   Role,
 } from "@prisma/client";
+export type { FeatureToggle } from "./queries/features";
 
 export interface SocialLink {
   id: string;

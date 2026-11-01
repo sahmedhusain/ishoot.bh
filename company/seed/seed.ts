@@ -29,7 +29,8 @@ import demoStaff from "./demo-staff.json";
 import adminEn from "../../packages/locales/src/admin/en.json";
 import adminAr from "../../packages/locales/src/admin/ar.json";
 import demoClients from "./demo-clients.json";
-import { DEFAULT_FEATURE_MODULES } from "../../packages/database/src/constants/features";
+import { DEFAULT_FEATURE_MODULES, moduleOnByDefault } from "../../packages/database/src/constants/features";
+import { setModule } from "../../packages/api-client/src/system";
 import { demoPreset } from "./demo-presets";
 import { seedPresetWebsite } from "./seed-presets";
 import { seedOperations } from "./seed-operations";
@@ -4161,12 +4162,9 @@ async function main() {
     },
   });
 
+  // Modules live in the system service; a fresh demo starts every module at its catalogue default.
   for (const feature of DEFAULT_FEATURE_MODULES) {
-    await prisma.featureToggle.upsert({
-      where: { moduleKey: feature.moduleKey },
-      update: feature,
-      create: feature,
-    });
+    await setModule(feature.moduleKey, moduleOnByDefault(feature.moduleKey), "seed");
   }
 
   const stats = [

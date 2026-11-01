@@ -58,6 +58,25 @@ x-itsm: &itsm
   volumes:
     - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/config/service-keys.json:ro
 
+x-system: &system
+  <<: *service
+  build:
+    context: backend
+    args: { SERVICE: system }
+  image: platform/system:dev
+  environment:
+    <<: *service-env
+    SERVICE_NAME: system
+    DATABASE_URL: postgres://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_LOG_QUERIES: ${DATABASE_LOG_QUERIES:-false}
+    AUTH_SERVICE_KEYS_FILE: /config/service-keys.json
+    AUTH_ISSUER: ${AUTH_ISSUER:-http://identity:8080}
+    AUTH_JWKS_URL: ${AUTH_JWKS_URL:-http://identity:8080/.well-known/jwks.json}
+    SYSTEM_READ_CALLERS: ${SYSTEM_READ_CALLERS:-admin,web,it}
+    SYSTEM_MODULE_WRITERS: ${SYSTEM_MODULE_WRITERS:-admin}
+  volumes:
+    - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/config/service-keys.json:ro
+
 x-identity: &identity
   <<: *service
   build:
@@ -202,6 +221,25 @@ services:
       files-migrate: { condition: service_completed_successfully }
       seaweedfs: { condition: service_healthy }
 
+  system-migrate:
+    <<: *system
+    restart: "no"
+    command: ["migrate"]
+    healthcheck:
+      disable: true
+    ports: []
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  system:
+    <<: *system
+    command: ["serve"]
+    ports:
+      - "127.0.0.1:${SYSTEM_ADMIN_PORT:-9084}:9090"
+    depends_on:
+      system-migrate: { condition: service_completed_successfully }
+      identity: { condition: service_healthy }
+
   itsm-migrate:
     <<: *itsm
     restart: "no"
@@ -239,7 +277,7 @@ services:
       SERVICE_NAME: gateway
       REDIS_URL: redis://:${VALKEY_PASSWORD}@valkey:6379/0
       GATEWAY_ROUTES_FILE: /config/routes.yaml
-      GATEWAY_UPSTREAMS: ${GATEWAY_UPSTREAMS:-files=http://files:8080,itsm=http://itsm:8080,identity=http://identity:8080}
+      GATEWAY_UPSTREAMS: ${GATEWAY_UPSTREAMS:-files=http://files:8080,itsm=http://itsm:8080,identity=http://identity:8080,system=http://system:8080}
       GATEWAY_IDENTITY_STATUS_URL: ${GATEWAY_IDENTITY_STATUS_URL:-http://identity:8080/v1/identity/session}
       GATEWAY_IDENTITY_STATUS_TIMEOUT: ${GATEWAY_IDENTITY_STATUS_TIMEOUT:-3s}
       HTTP_CORS_ORIGINS: ${GATEWAY_CORS_ORIGINS:-}
@@ -259,6 +297,7 @@ services:
       files: { condition: service_healthy }
       itsm: { condition: service_healthy }
       identity: { condition: service_healthy }
+      system: { condition: service_healthy }
 
   identity-migrate:
     <<: *identity

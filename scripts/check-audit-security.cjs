@@ -10,7 +10,8 @@ function load(file, mocks) {
   if (mocks["@platform/database"]) { mocks["@platform/database"].requireFeatureEnabled ??= async () => { }; mocks["@platform/database"].runAtomicMutation ??= async (fn) => fn(); mocks["@platform/database"].measureOperation ??= async (_name, fn) => fn(); if (mocks["@platform/database"].db) mocks["@platform/database"].db.$queryRaw ??= async () => []; }
   mocks["../../lib/action-input"] ??= require("../apps/admin/lib/action-input.ts");
   mocks["../services/uploads"] ??= { claimUpload: async () => ({ fileSize: 1, mimeType: "application/pdf" }) };
-  if (mocks["../db"]?.db) mocks["../db"].db.featureToggle ??= { findUnique: async () => null, findMany: async () => [] };
+  // Modules come from the system service; by default every module follows its catalogue default.
+  if (mocks["../db"]) mocks["./features"] ??= { isFeatureEnabled: async (key) => require("../packages/database/src/constants/features.ts").moduleOnByDefault(key), getFeatureToggles: async () => [] };
 
   const module = { exports: {} };
   vm.runInNewContext(

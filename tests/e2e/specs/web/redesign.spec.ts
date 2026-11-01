@@ -17,6 +17,7 @@ import {
 } from "../../../../packages/database/src/cms/industry-pages";
 import { newBlockData } from "../../../../packages/database/src/cms/blocks";
 import { defaultWebsiteDesign } from "../../../../packages/database/src/constants/website-design";
+import { getModule, setModule } from "../../modules";
 
 const db = testDatabase();
 const branch: PublicBranch = {
@@ -57,19 +58,8 @@ test.beforeAll(async () => {
     where: { singleton: 1 },
     select: { theme: true, logoUrl: true },
   });
-  originalPr =
-    (await db.featureToggle.findUnique({ where: { moduleKey: "pr" } }))
-      ?.isEnabled ?? false;
-  await db.featureToggle.upsert({
-    where: { moduleKey: "pr" },
-    update: { isEnabled: true },
-    create: {
-      moduleKey: "pr",
-      nameEn: "Public relations",
-      nameAr: "العلاقات العامة",
-      isEnabled: true,
-    },
-  });
+  originalPr = (await getModule("pr"))?.isEnabled ?? false;
+  await setModule("pr", true);
   await enableStore(db);
   await db.integrationSetting.upsert({
     where: { provider: "resend" },
@@ -95,10 +85,7 @@ test.afterAll(async ({ request }) => {
         logoUrl: originalBrand.logoUrl,
       },
     });
-  await db.featureToggle.update({
-    where: { moduleKey: "pr" },
-    data: { isEnabled: originalPr },
-  });
+  await setModule("pr", originalPr);
   await invalidate(request);
   await db.$disconnect();
 });
@@ -118,7 +105,9 @@ test("CMS design saves privately, previews, publishes and survives reload", asyn
   await page.locator('button[type="submit"]:visible').click();
   await expect(page).toHaveURL(/dashboard/, { timeout: 60_000 });
   await page.goto("http://localhost:3012/dashboard/cms/website");
-  const design = page.locator("#admin-main").getByTestId("website-design-fields");
+  const design = page
+    .locator("#admin-main")
+    .getByTestId("website-design-fields");
   await expect(design).toBeVisible();
   const select = async (name: string, value: string) => {
     await design.getByRole("combobox", { name, exact: true }).click();
@@ -845,7 +834,10 @@ test("scheduled offers, URL discovery, custom popup palettes and quote retry wor
     allowedModes: ["light", "dark", "mixed"],
     visitorSwitching: true,
     mixedBase: "dark",
-    tones: { ...(publication.config.design?.tones ?? defaultWebsiteDesign().tones), collection: "light" },
+    tones: {
+      ...(publication.config.design?.tones ?? defaultWebsiteDesign().tones),
+      collection: "light",
+    },
   };
   publication.config.commerce = {
     ...defaultWebsiteCommerce(),
@@ -913,8 +905,14 @@ test("scheduled offers, URL discovery, custom popup palettes and quote retry wor
   await page.getByRole("combobox", { name: "Size", exact: true }).click();
   await page.getByRole("option", { name: "Large", exact: true }).click();
   await expect(page).toHaveURL(/filter-Size=Large/);
-  await page.locator("main").getByLabel("Search catalogue").fill("nothing-matches-this-query");
-  await page.locator("main").getByRole("button", { name: "Search", exact: true }).click();
+  await page
+    .locator("main")
+    .getByLabel("Search catalogue")
+    .fill("nothing-matches-this-query");
+  await page
+    .locator("main")
+    .getByRole("button", { name: "Search", exact: true })
+    .click();
   await expect(
     page.getByText("No results. Try another search or category.", {
       exact: true,

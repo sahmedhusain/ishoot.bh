@@ -14,7 +14,8 @@ function load(file, mocks) {
   // The files service is outside these checks; actions that look files up see none.
   mocks["@platform/api-client"] ??= { lookupFile: async () => null, lookupFiles: async () => [] };
   mocks["@platform/contracts"] ??= require("../contracts/src/index.ts");
-  if (mocks["../db"]?.db) mocks["../db"].db.featureToggle ??= { findUnique: async () => null, findMany: async () => [] };
+  // Modules come from the system service; by default every module follows its catalogue default.
+  if (mocks["../db"]) mocks["./features"] ??= { isFeatureEnabled: async (key) => require("../packages/database/src/constants/features.ts").moduleOnByDefault(key), getFeatureToggles: async () => [] };
 
   const module = { exports: {} };
   const code = ts.transpileModule(fs.readFileSync(file, "utf8"), {
@@ -79,9 +80,9 @@ async function main() {
   // Super Admin must survive stale denials, user overrides and disabled module rows.
   let storedGrant;
   const permissionsApi = load("packages/database/src/queries/permissions.ts", {
+    "./features": { isFeatureEnabled: async () => false, getFeatureToggles: async () => [{ moduleKey: "invoicing", isEnabled: false }] },
     "../db": {
       db: {
-        featureToggle: { findUnique: async () => ({ isEnabled: false }), findMany: async () => [{ moduleKey: "invoicing", isEnabled: false }] },
         permission: { findMany: async () => [{ resource: "users", action: "write", allowed: false }], findUnique: async () => ({ allowed: false }), upsert: async (args) => { storedGrant = args; } },
       }
     },
@@ -152,7 +153,6 @@ async function main() {
     },
   });
   await assert.rejects(settings.createSocialLinkAction({ platform: "website", url: "https://example.invalid" }), /denied/);
-  await assert.rejects(settings.toggleFeatureAction("crm", false), /denied/);
   assert.equal(mutation, false);
 
   const types = load("packages/database/src/types.ts", { "@platform/config/currency": require("../packages/config/src/constants/currency.cjs") });

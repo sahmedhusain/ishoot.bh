@@ -9,6 +9,7 @@ import {
   LogOut,
   ShieldCheck,
   Timer,
+  ToggleRight,
 } from "lucide-react";
 import { itAllowed } from "@platform/contracts";
 import { setLocaleAction, signOutAction } from "../app/actions";
@@ -18,6 +19,12 @@ const NAV = [
   { href: "/", icon: Gauge, label: "overview", resource: "tickets" },
   { href: "/tickets", icon: ListChecks, label: "tickets", resource: "tickets" },
   { href: "/sla", icon: Timer, label: "sla", resource: "ticket_settings" },
+  {
+    href: "/modules",
+    icon: ToggleRight,
+    label: "modules",
+    resource: "modules",
+  },
 ] as const;
 
 export function Shell({

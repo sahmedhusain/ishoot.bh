@@ -24,7 +24,6 @@ const {
   installCompanyProfile,
   remapLegacyPublicFiles,
 } = require("../company/tools/company-profile.ts");
-const { DEFAULT_FEATURE_MODULES } = require("../packages/database/src/constants/features.ts");
 const roleNames = { en: require("../packages/locales/src/common.cjs").withCommonCopy(require("../packages/locales/src/admin/en.json"), "admin", require("../packages/locales/src/common.cjs").commonEn).roles, ar: require("../packages/locales/src/common.cjs").withCommonCopy(require("../packages/locales/src/admin/ar.json"), "admin", require("../packages/locales/src/common.cjs").commonAr).roles };
 const { createRequire } = require("node:module");
 const bcrypt = createRequire(
@@ -91,7 +90,6 @@ async function main() {
         throw new Error(
           "Bootstrap email belongs to another role; choose the existing super administrator email",
         );
-      await tx.featureToggle.createMany({ data: DEFAULT_FEATURE_MODULES.map((m) => ({ ...m })), skipDuplicates: true });
       const admin =
         prior ??
         (await tx.user.create({

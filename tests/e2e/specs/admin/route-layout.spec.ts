@@ -3,6 +3,7 @@ import path from "node:path";
 import { expect, test } from "@playwright/test";
 import { testDatabase } from "../../helpers";
 import { prepareLayoutFixtures } from "../../route-layout-fixtures";
+import { modules, setModule } from "../../modules";
 
 const db = testDatabase();
 let disabledModules: string[] = [];
@@ -12,17 +13,16 @@ test.beforeAll(async () => {
     /_test$/,
   );
   disabledModules = (
-    await db.featureToggle.findMany({ where: { isEnabled: false } })
+    await modules().then((all) => all.filter((m) => !m.isEnabled))
   ).map((row) => row.moduleKey);
-  await db.featureToggle.updateMany({ data: { isEnabled: true } });
+  await modules().then((all) =>
+    Promise.all(all.map((m) => setModule(m.moduleKey, true))),
+  );
   fixtures = await prepareLayoutFixtures(db);
 });
 test.afterAll(async () => {
   await fixtures?.cleanup();
-  await db.featureToggle.updateMany({
-    where: { moduleKey: { in: disabledModules } },
-    data: { isEnabled: false },
-  });
+  await Promise.all(disabledModules.map((key) => setModule(key, false)));
   await db.$disconnect();
 });
 

@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
+import { setModule } from "./modules";
 
 /** A fresh tracked product with stock at the default warehouse, and nothing left from earlier runs. */
 export async function freshStockedProduct(
@@ -101,11 +102,7 @@ export async function enableStore(db: PrismaClient) {
     ["products", "Products", "المنتجات"],
     ["store", "Online store", "المتجر الإلكتروني"],
   ]) {
-    await db.featureToggle.upsert({
-      where: { moduleKey },
-      update: { isEnabled: true },
-      create: { moduleKey, nameEn, nameAr, isEnabled: true },
-    });
+    await setModule(moduleKey, true);
   }
   const settings = {
     guestCheckout: true,
@@ -128,16 +125,7 @@ export async function enableStore(db: PrismaClient) {
 
 /** Delivery on, with one zone ("Muharraq", fee 1.5, minimum 5) and two daily windows for every zone. */
 export async function enableDelivery(db: PrismaClient) {
-  await db.featureToggle.upsert({
-    where: { moduleKey: "delivery" },
-    update: { isEnabled: true },
-    create: {
-      moduleKey: "delivery",
-      nameEn: "Delivery",
-      nameAr: "التوصيل",
-      isEnabled: true,
-    },
-  });
+  await setModule("delivery", true);
   const settings = {
     mode: "own",
     slaHours: 48,
@@ -172,8 +160,5 @@ export async function enableDelivery(db: PrismaClient) {
 }
 
 export async function disableDelivery(db: PrismaClient) {
-  await db.featureToggle.update({
-    where: { moduleKey: "delivery" },
-    data: { isEnabled: false },
-  });
+  await setModule("delivery", false);
 }

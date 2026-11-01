@@ -1,0 +1,130 @@
+openapi: 3.1.0
+info:
+  title: System settings (system)
+  version: 1.0.0
+  description: |
+    Installation-wide settings the IT team manages (ADR 0010). Today: which optional modules are on. Module keys,
+    names and defaults come from `contracts/catalog/modules.json`; a module nobody switched follows its default.
+
+    - `/v1/system/modules` — the apps' back ends, with their service tokens (ADR 0011). Reading is open to the
+      callers in `SYSTEM_READ_CALLERS`; switching to `SYSTEM_MODULE_WRITERS` (the admin's setup wizard), which name
+      the person they act for.
+    - `/v1/system/desk/modules` — IT staff with IT-realm tokens: `modules:read` and `modules:edit`
+      (`contracts/catalog/it-access.json`).
+servers:
+  - url: /
+tags:
+  - name: services
+  - name: desk
+paths:
+  /v1/system/modules:
+    get:
+      tags: [services]
+      operationId: listModules
+      security: [{ serviceToken: [] }]
+      responses:
+        "200": { $ref: "#/components/responses/Modules" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/system/modules/{key}:
+    parameters: [{ $ref: "#/components/parameters/ModuleKey" }]
+    put:
+      tags: [services]
+      operationId: setModule
+      security: [{ serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [enabled, actorId]
+              properties:
+                enabled: { type: boolean }
+                actorId: { type: string, minLength: 1, maxLength: 64 }
+      responses:
+        "204": { description: Saved }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/system/desk/modules:
+    get:
+      tags: [desk]
+      operationId: listModulesForIT
+      description: Needs `modules:read`.
+      security: [{ userToken: [] }]
+      responses:
+        "200": { $ref: "#/components/responses/Modules" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/system/desk/modules/{key}:
+    parameters: [{ $ref: "#/components/parameters/ModuleKey" }]
+    put:
+      tags: [desk]
+      operationId: setModuleForIT
+      description: Needs `modules:edit`.
+      security: [{ userToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [enabled]
+              properties:
+                enabled: { type: boolean }
+      responses:
+        "204": { description: Saved }
+        default: { $ref: "#/components/responses/Problem" }
+components:
+  securitySchemes:
+    serviceToken: { type: http, scheme: bearer, bearerFormat: JWT }
+    userToken: { type: http, scheme: bearer, bearerFormat: JWT }
+  parameters:
+    ModuleKey: { name: key, in: path, required: true, schema: { type: string, minLength: 1, maxLength: 64 } }
+  responses:
+    Modules:
+      description: Every module in the catalogue with its current state, in catalogue order
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [items]
+            properties:
+              items:
+                type: array
+                items: { $ref: "#/components/schemas/Module" }
+    Problem:
+      description: An error (RFC 9457). Codes include `module_not_found`, `validation_failed`, `unauthenticated`, `forbidden`.
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+  schemas:
+    Module:
+      type: object
+      required: [key, nameEn, nameAr, enabledByDefault, enabled]
+      properties:
+        key: { type: string }
+        nameEn: { type: string }
+        nameAr: { type: string }
+        enabledByDefault: { type: boolean }
+        enabled: { type: boolean }
+        updatedBy: { type: string, description: "Who switched it last: <caller>:<person> or it:<IT account>" }
+        updatedAt: { type: string, format: date-time }
+    Problem:
+      type: object
+      required: [type, title, status, code]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+        code: { type: string }
+        requestId: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            required: [field, code]
+            properties:
+              field: { type: string }
+              code: { type: string }

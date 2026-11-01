@@ -2,6 +2,7 @@ import { selectOption } from "../../select-option";
 import { expect, test } from "@playwright/test";
 import { testDatabase, watchErrors } from "../../helpers";
 import { t } from "../../locale";
+import { setModule } from "../../modules";
 
 const copy = t.procurement;
 const db = testDatabase();
@@ -10,16 +11,7 @@ test.describe.configure({ mode: "serial" });
 
 test.beforeAll(async () => {
   for (const moduleKey of ["products", "procurement"])
-    await db.featureToggle.upsert({
-      where: { moduleKey },
-      update: { isEnabled: true },
-      create: {
-        moduleKey,
-        nameEn: moduleKey,
-        nameAr: moduleKey,
-        isEnabled: true,
-      },
-    });
+    await setModule(moduleKey, true);
   // Earlier runs' documents and suppliers.
   const suppliers = await db.crmContact.findMany({
     where: { companyName: { startsWith: "E2E Supplier" } },
@@ -165,10 +157,12 @@ test("goods are received into stock, a bill that differs is approved with a reas
     where: { sku: "E2E-PROC" },
   });
   await page.goto("/dashboard/procurement/orders/new");
-  await selectOption(page
-    .getByLabel(copy.orders.supplier), { label: "E2E Supplier Alpha" });
-  await selectOption(page
-    .getByRole("combobox", { name: copy.lines.product }), { value: product.id });
+  await selectOption(page.getByLabel(copy.orders.supplier), {
+    label: "E2E Supplier Alpha",
+  });
+  await selectOption(page.getByRole("combobox", { name: copy.lines.product }), {
+    value: product.id,
+  });
   await page
     .getByRole("spinbutton", { name: `${copy.lines.quantity} 1` })
     .fill("10");

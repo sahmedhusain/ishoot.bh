@@ -101,6 +101,16 @@ test("IT works a ticket from the desk", async ({ page }) => {
   await expect(page.getByText(t.sla.saved)).toBeVisible();
   await expect(response).toHaveValue(String(Number(before) + 1));
 
+  // Modules: switching one off and back on (the system service records who did it).
+  await page.getByRole("link", { name: t.nav.modules }).click();
+  const reviews = page.getByRole("switch", { name: "تقييمات العملاء" });
+  const wasOn = (await reviews.getAttribute("aria-checked")) === "true";
+  await reviews.click();
+  await expect(page.getByText(t.modules.saved).first()).toBeVisible();
+  await expect(reviews).toHaveAttribute("aria-checked", String(!wasOn));
+  await reviews.click();
+  await expect(reviews).toHaveAttribute("aria-checked", String(wasOn));
+
   await page.getByRole("button", { name: t.app.signOut }).click();
   await expect(page).toHaveURL(/\/login$/);
   await page.goto("/tickets");

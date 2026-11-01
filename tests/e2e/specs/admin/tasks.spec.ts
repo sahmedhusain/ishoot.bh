@@ -4,6 +4,7 @@ import users from "../../fixtures/users.json";
 import { ports } from "../../../../playwright.config";
 import { login, testDatabase, watchErrors } from "../../helpers";
 import { t } from "../../locale";
+import { setModule } from "../../modules";
 
 const copy = t.tasks;
 const db = testDatabase();
@@ -14,16 +15,7 @@ let driverUserId = "";
 test.describe.configure({ mode: "serial" });
 
 test.beforeAll(async () => {
-  await db.featureToggle.upsert({
-    where: { moduleKey: "tasks" },
-    update: { isEnabled: true },
-    create: {
-      moduleKey: "tasks",
-      nameEn: "Tasks and projects",
-      nameAr: "المهام والمشاريع",
-      isEnabled: true,
-    },
-  });
+  await setModule("tasks", true);
   driverUserId = (
     await db.user.findUniqueOrThrow({ where: { email: users.driver.email } })
   ).id;
@@ -89,10 +81,10 @@ test("a manager creates a project and gives a task to someone, who is told", asy
     .toBe(1);
 
   // Moving it on the board.
-  await selectOption(page
-    .getByTestId(`task-${task.number}`)
-    .first()
-    .getByRole("combobox"), "in_progress");
+  await selectOption(
+    page.getByTestId(`task-${task.number}`).first().getByRole("combobox"),
+    "in_progress",
+  );
   await expect(page.getByTestId("column-in_progress").first()).toContainText(
     TASK,
   );

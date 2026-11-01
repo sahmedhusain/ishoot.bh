@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import { demoPreset } from "./demo-presets";
 import { loadCompanyProfile } from "../tools/company-profile";
+import { listModules } from "../../packages/api-client/src/system";
 import { ACTIVITY_PRESETS } from "../../packages/database/src/website-presets";
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env"), quiet: true });
@@ -20,7 +21,8 @@ async function main() {
   const content = await db.websiteContent.findUniqueOrThrow({ where: { id: "main" } });
   assert.deepEqual(content.draft, JSON.parse(JSON.stringify(preset.website)));
   assert.ok(content.published && content.publishedAt, "Local demo must have a published website");
-  for (const module of preset.modules) assert.equal((await db.featureToggle.findUniqueOrThrow({ where: { moduleKey: module.moduleKey } })).isEnabled, module.isEnabled, module.moduleKey);
+  const modules = new Map((await listModules()).map((m) => [m.key, m.enabled]));
+  for (const module of preset.modules) assert.equal(modules.get(module.moduleKey), module.isEnabled, module.moduleKey);
   for (const activity of preset.activities) {
     assert.equal(await db.portfolioItem.count({ where: { slug: { startsWith: `demo-${activity}-` } } }), 12, activity);
     assert.equal(await db.cmsArticle.count({ where: { slug: { startsWith: `demo-${activity}-article-` } } }), 4, activity);

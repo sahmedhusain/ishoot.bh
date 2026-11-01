@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { db, ensureDefaultFeatureModules, getWebsiteEditor } from "@platform/database";
+import { db, getFeatureToggles, getWebsiteEditor } from "@platform/database";
 import { activityDepartments, isDepartmentKey } from "@platform/database/constants/departments";
 import { resolveWebsiteConfig, validateWebsiteConfig, websiteConfigForActivity } from "@platform/database/website-config";
 import { companyMetadata } from "../../lib/company-metadata";
@@ -20,7 +20,7 @@ export default async function SetupPage() {
   const permissions = await getCurrentPermissions();
   if (permissions["settings:write"] !== true) return <SetupWaitingView />;
 
-  const [toggles, website, departmentRows] = await Promise.all([ensureDefaultFeatureModules(), getWebsiteEditor(), db.department.findMany({ select: { catalogueKey: true } })]);
+  const [toggles, website, departmentRows] = await Promise.all([getFeatureToggles(), getWebsiteEditor(), db.department.findMany({ select: { catalogueKey: true } })]);
   const existingDepartments = departmentRows.map((row) => row.catalogueKey).filter(isDepartmentKey);
   const draft = validateWebsiteConfig(website.draft);
   const activity = company.business_activity ?? "other";

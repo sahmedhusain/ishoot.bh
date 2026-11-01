@@ -9,7 +9,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "generate": "openapi-typescript ../../backend/services/files/api/openapi.yaml -o src/generated/files.ts && openapi-typescript ../../backend/services/identity/api/openapi.yaml -o src/generated/identity.ts && openapi-typescript ../../backend/services/itsm/api/openapi.yaml -o src/generated/itsm.ts",
+    "generate": "openapi-typescript ../../backend/services/files/api/openapi.yaml -o src/generated/files.ts && openapi-typescript ../../backend/services/identity/api/openapi.yaml -o src/generated/identity.ts && openapi-typescript ../../backend/services/itsm/api/openapi.yaml -o src/generated/itsm.ts && openapi-typescript ../../backend/services/system/api/openapi.yaml -o src/generated/system.ts",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

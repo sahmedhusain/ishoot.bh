@@ -1,68 +1,66 @@
+// Which optional modules are on. The system service owns them (backend/services/system); these helpers keep the
+// names the apps already use. Reads are cached briefly in each server process (SYSTEM_MODULES_CACHE_MS, default 5 s),
+// so a change made elsewhere reaches every server within that time; a change made here is seen at once.
 import { serverMessages } from "@platform/locales";
-import { db } from "../db";
-import {
-  DEFAULT_FEATURE_MODULES,
-  moduleOnByDefault,
-} from "../constants/features";
+import { listModules, setModule, type ModuleState } from "@platform/api-client";
+import { moduleOnByDefault } from "../constants/features";
 
-export async function getFeatureToggles() {
-  return await db.featureToggle.findMany({
-    orderBy: { moduleKey: "asc" },
-  });
-}
+export type FeatureToggle = {
+  moduleKey: string;
+  isEnabled: boolean;
+  nameEn: string;
+  nameAr: string;
+};
 
-export async function getFeatureToggle(moduleKey: string) {
-  return await db.featureToggle.findUnique({
-    where: { moduleKey },
-  });
-}
+const cacheMs = () => {
+  const n = Number(process.env.SYSTEM_MODULES_CACHE_MS);
+  return Number.isFinite(n) && n >= 0 ? n : 5000;
+};
+let cached: { until: number; modules: Promise<ModuleState[]> } | undefined;
 
-/** Switches a module on or off; a known module missing from the database (added in a later version) is created. */
-export async function updateFeatureToggle(
-  moduleKey: string,
-  isEnabled: boolean,
-) {
-  const known = DEFAULT_FEATURE_MODULES.find((m) => m.moduleKey === moduleKey);
-  if (!known)
-    return await db.featureToggle.update({
-      where: { moduleKey },
-      data: { isEnabled },
+function modules(): Promise<ModuleState[]> {
+  const now = Date.now();
+  if (!cached || now >= cached.until) {
+    const pending = listModules();
+    cached = { until: now + cacheMs(), modules: pending };
+    // A failed read is never cached.
+    pending.catch(() => {
+      if (cached?.modules === pending) cached = undefined;
     });
-  return await db.featureToggle.upsert({
-    where: { moduleKey },
-    update: { isEnabled },
-    create: {
-      moduleKey,
-      nameEn: known.nameEn,
-      nameAr: known.nameAr,
-      isEnabled,
-    },
-  });
+  }
+  return cached.modules;
 }
 
-/** Creates any default module that is missing (a fresh install has none); existing choices are kept. */
-export async function ensureDefaultFeatureModules() {
-  await db.featureToggle.createMany({
-    data: DEFAULT_FEATURE_MODULES.map((m) => ({ ...m })),
-    skipDuplicates: true,
-  });
-  return getFeatureToggles();
+const toToggle = (m: ModuleState): FeatureToggle => ({
+  moduleKey: m.key,
+  isEnabled: m.enabled,
+  nameEn: m.nameEn,
+  nameAr: m.nameAr,
+});
+
+/** Every module in the catalogue with its state, by key. */
+export async function getFeatureToggles(): Promise<FeatureToggle[]> {
+  return (await modules()).map(toToggle).sort((a, b) => a.moduleKey.localeCompare(b.moduleKey));
+}
+
+export async function getFeatureToggle(moduleKey: string): Promise<FeatureToggle | null> {
+  const found = (await modules()).find((m) => m.key === moduleKey);
+  return found ? toToggle(found) : null;
+}
+
+/** Switches a module on or off for the person making the change. */
+export async function updateFeatureToggle(moduleKey: string, isEnabled: boolean, actorId: string) {
+  await setModule(moduleKey, isEnabled, actorId);
+  cached = undefined;
+  return { moduleKey, isEnabled };
+}
+
+/** Whether a module is on; a key outside the catalogue follows moduleOnByDefault. */
+export async function isFeatureEnabled(moduleKey: string) {
+  const found = (await modules()).find((m) => m.key === moduleKey);
+  return found ? found.enabled : moduleOnByDefault(moduleKey);
 }
 
 export async function requireFeatureEnabled(moduleKey: string) {
-  const feature = await db.featureToggle.findUnique({
-    where: { moduleKey },
-    select: { isEnabled: true },
-  });
-  if (feature ? !feature.isEnabled : !moduleOnByDefault(moduleKey))
-    throw new Error(serverMessages.featureDisabled);
-}
-
-/** Whether a module is on; one never toggled follows its default (most are on), as in requireFeatureEnabled. */
-export async function isFeatureEnabled(moduleKey: string) {
-  const feature = await db.featureToggle.findUnique({
-    where: { moduleKey },
-    select: { isEnabled: true },
-  });
-  return feature ? feature.isEnabled : moduleOnByDefault(moduleKey);
+  if (!(await isFeatureEnabled(moduleKey))) throw new Error(serverMessages.featureDisabled);
 }

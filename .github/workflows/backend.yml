@@ -69,7 +69,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        service: [gateway, files, identity, itsm]
+        service: [gateway, files, identity, itsm, system]
     env:
       IMAGE: ghcr.io/${{ github.repository_owner }}/platform/${{ matrix.service }}
       PUSH: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
@@ -160,6 +160,7 @@ jobs:
           curl -fsS http://127.0.0.1:9081/readyz
           curl -fsS http://127.0.0.1:9082/readyz
           curl -fsS http://127.0.0.1:9083/readyz
+          curl -fsS http://127.0.0.1:9084/readyz
           docker compose exec -T itsm-worker /app healthcheck
           docker compose exec -T files-worker /app healthcheck
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/unknown)" = 404

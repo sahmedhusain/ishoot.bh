@@ -43,6 +43,8 @@ const server = (
     // Card payments go to a local stand-in for Stripe's API that the payment specs start (tests/e2e/stripe-stand-in.ts).
     PAYMENT_GATEWAY_BASE_URL_STRIPE: `http://localhost:${ports.stripe}`,
     CRON_SECRET: cronSecret,
+    // Specs switch modules and reload at once (tests/e2e/modules.ts).
+    SYSTEM_MODULES_CACHE_MS: "0",
   },
 });
 

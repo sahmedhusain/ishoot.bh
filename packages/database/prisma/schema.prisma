@@ -1095,14 +1095,6 @@ model RoleDataScope {
   @@id([role, area])
 }
 
-model FeatureToggle {
-  id          String  @id @default(cuid())
-  moduleKey   String  @unique // e.g. "crm_deals", "ticketing", "reviews", "expenses"
-  isEnabled   Boolean @default(true)
-  nameEn      String
-  nameAr      String
-  description String? @db.Text
-}
 
 model Review {
   id             String      @id @default(cuid())

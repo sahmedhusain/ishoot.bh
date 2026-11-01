@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import {
   commentOnQueueTicket,
   isApiError,
+  setModuleForIT,
   signIn,
   signOut,
   transitionQueueTicket,
@@ -161,5 +162,18 @@ export async function updateSLAAction(
     updateSLA(user.token, priority, { responseMinutes, resolveMinutes }),
   );
   revalidatePath("/sla");
+  return outcome;
+}
+
+/** Switches a platform module for everyone (modules:edit). */
+export async function setModuleAction(
+  key: string,
+  enabled: boolean,
+): Promise<Outcome> {
+  const user = await requireAllowed("modules", "edit");
+  const outcome = await attempt(() =>
+    setModuleForIT(user.token, key, enabled === true),
+  );
+  revalidatePath("/modules");
   return outcome;
 }

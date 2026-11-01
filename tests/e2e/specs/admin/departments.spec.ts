@@ -9,6 +9,7 @@ import { cronSecret, ports } from "../../../../playwright.config";
 import { testDatabase, watchErrors } from "../../helpers";
 import { t } from "../../locale";
 import { enableStore, freshStockedProduct } from "../../store-fixtures";
+import { setModule } from "../../modules";
 
 const db = testDatabase();
 const web = `http://localhost:${ports.web}`;
@@ -30,11 +31,7 @@ test.beforeAll(async () => {
     ["pr", "Public relations", "العلاقات العامة"],
     ["legal", "Legal", "الشؤون القانونية"],
   ]) {
-    await db.featureToggle.upsert({
-      where: { moduleKey },
-      update: { isEnabled: true },
-      create: { moduleKey, nameEn, nameAr, isEnabled: true },
-    });
+    await setModule(moduleKey, true);
   }
   await db.abuseWindow.deleteMany({
     where: { key: { startsWith: "customer-" } },
@@ -158,8 +155,9 @@ test("a segment of buyers gets a broadcast; only those who agreed, and each can 
   await page.getByTestId("broadcast-new").click();
   const form = page.getByTestId("broadcast-form");
   await form.locator('input[name="broadcastName"]').fill("E2E news");
-  await selectOption(form
-    .locator('select[name="broadcastSegment"]'), { label: "E2E buyers" });
+  await selectOption(form.locator('select[name="broadcastSegment"]'), {
+    label: "E2E buyers",
+  });
   for (const input of await form.locator("input:not([name])").all())
     await input.fill("Our Eid offers");
   for (const area of await form.locator("textarea").all())
@@ -247,8 +245,10 @@ test("press releases, coverage and the website's press page", async ({
     .fill("New branch opens downtown");
   await page.locator('input[name="coverageOutlet"]').fill("E2E Daily");
   await page.locator('input[name="coverageReach"]').fill("12000");
-  await selectOption(page
-    .locator('select[name="coverageSentiment"]'), "positive");
+  await selectOption(
+    page.locator('select[name="coverageSentiment"]'),
+    "positive",
+  );
   await page.getByTestId("coverage-save").click();
   await expect(page.getByTestId("coverage-list")).toContainText("E2E Daily");
   await expect(page.getByTestId("press-summary")).toContainText("12,000");

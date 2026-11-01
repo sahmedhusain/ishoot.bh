@@ -10,7 +10,6 @@ import { validateActionArguments } from "../../lib/action-input";
 import {
   updateCompanySettings,
   createActivityLog,
-  updateFeatureToggle,
   upsertCompanyAsset,
   deleteCompanyAsset,
   db,
@@ -166,36 +165,6 @@ export async function deleteCompanyAssetAction(assetKey: string) {
     revalidatePath(ROUTES.settings.company);
     revalidatePath(ROUTES.home);
     return { success: deleted };
-  });
-}
-
-export async function toggleFeatureAction(
-  moduleKey: string,
-  isEnabled: boolean,
-) {
-  return measureOperation("action:toggleFeatureAction", async () => {
-    const user = await requirePermission("settings", "write");
-    validateActionArguments("toggleFeatureAction", { moduleKey, isEnabled });
-    const feature = await runAtomicMutation(async () => {
-      const feature = await updateFeatureToggle(moduleKey, isEnabled);
-      await createActivityLog({
-        user_id: user.id,
-        action: "update",
-        entity_type: "feature",
-        entity_id: feature.id,
-      });
-      return feature;
-    });
-    revalidatePath(ROUTES.home, "layout");
-    // The website module decides whether the public site is shown at all.
-    if (moduleKey === "cms") {
-      const { revalidatePublicSite } = await import("../../lib/revalidate-web");
-      await revalidatePublicSite(
-        ["website", "company"],
-        ["/en", "/ar", ...(await publicSitePaths())],
-      );
-    }
-    return { success: true, feature };
   });
 }
 

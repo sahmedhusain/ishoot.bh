@@ -4,20 +4,17 @@ import { randomUUID } from "node:crypto";
 import en from "../../../../packages/locales/src/admin/en";
 import ar from "../../../../packages/locales/src/admin/ar";
 import { testDatabase } from "../../helpers";
+import { getModule, resetModule, setModule } from "../../modules";
 
 const db = testDatabase();
 let agencyId: string;
 let orderId: string;
 let shipmentId: string;
 let number: string;
-let originalFeature: Awaited<ReturnType<typeof db.featureToggle.findUnique>>;
+let originalFeature: Awaited<ReturnType<typeof getModule>>;
 test.beforeAll(async () => {
-  originalFeature = await db.featureToggle.findUnique({ where: { moduleKey: "delivery" } });
-  await db.featureToggle.upsert({
-    where: { moduleKey: "delivery" },
-    update: { isEnabled: true },
-    create: { moduleKey: "delivery", nameEn: "Delivery", nameAr: "التوصيل", isEnabled: true },
-  });
+  originalFeature = await getModule("delivery");
+  await setModule("delivery", true);
 });
 test.beforeEach(async () => {
   const agency = await db.courierAgency.create({
@@ -65,9 +62,9 @@ test.afterEach(async () => {
 test.afterAll(async () => {
   try {
     if (originalFeature) {
-      await db.featureToggle.update({ where: { moduleKey: "delivery" }, data: { isEnabled: originalFeature.isEnabled } });
+      await setModule("delivery", originalFeature.isEnabled);
     } else {
-      await db.featureToggle.deleteMany({ where: { moduleKey: "delivery" } });
+      await resetModule("delivery");
     }
   } finally {
     await db.$disconnect();

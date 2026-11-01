@@ -12596,19 +12596,6 @@
       }
     }
   },
-  "toggleFeatureAction": {
-    "kind": "object",
-    "fields": {
-      "moduleKey": {
-        "kind": "string",
-        "optional": false
-      },
-      "isEnabled": {
-        "kind": "boolean",
-        "optional": false
-      }
-    }
-  },
   "updateWebSettingsAction": {
     "kind": "object",
     "fields": {

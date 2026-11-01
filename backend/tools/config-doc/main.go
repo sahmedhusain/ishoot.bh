@@ -16,6 +16,7 @@ import (
 	gateway "platform.local/backend/services/gateway/settings"
 	identity "platform.local/backend/services/identity/settings"
 	itsm "platform.local/backend/services/itsm/settings"
+	system "platform.local/backend/services/system/settings"
 )
 
 // services lists each service's Config type. Add a line when a service is added.
@@ -24,6 +25,7 @@ var services = map[string]any{
 	"gateway":  gateway.Config{},
 	"identity": identity.Config{},
 	"itsm":     itsm.Config{},
+	"system":   system.Config{},
 }
 
 type variable struct{ name, def, rules string }

@@ -5,6 +5,8 @@ const url = new URL(process.env.DATABASE_URL || 'file:///missing');
 if (!['localhost', '127.0.0.1'].includes(url.hostname) || !url.pathname.endsWith('_test')) throw Error('Use a disposable local *_test database');
 require('ts-node').register({ transpileOnly: true, skipProject: true, compilerOptions: { module: 'CommonJS', target: 'ES2022', moduleResolution: 'Node', esModuleInterop: true, resolveJsonModule: true } });
 const { db, runAtomicMutation } = require('../packages/database/src/db.ts');
+// Modules live in the system service (backend/services/system); this check needs the backend stack.
+const modules = require('../packages/database/src/queries/features.ts');
 const mfa = require('../packages/database/src/services/mfa.ts');
 const { claimUpload } = require('../packages/database/src/services/uploads.ts');
 const { consumeAbuseLimit } = require('../packages/database/src/services/abuse-limits.ts');
@@ -73,7 +75,7 @@ async function main() {
   await processEmailJobs(async () => ({ success: false }), now); assert.equal((await db.emailJob.findUniqueOrThrow({ where: { id: job.id } })).status, 'pending');
   let calls = 0; const later = new Date(now.getTime() + 60000); await Promise.all([processEmailJobs(async input => { calls++; assert.equal(input.idempotencyKey, prefix); return { success: true, id: 'fake-provider-evidence' }; }, later), processEmailJobs(async () => { calls++; return { success: true, id: 'fake-provider-evidence' }; }, later)]); assert.equal(calls, 1); const accepted = await db.emailJob.findUniqueOrThrow({ where: { id: job.id } }); assert.equal(accepted.status, 'accepted'); assert.equal(accepted.providerId, 'fake-provider-evidence');
   console.log('PASS: email retry, concurrent claim and provider-acceptance evidence; no real email sent');
-  toggle = await db.featureToggle.findUnique({ where: { moduleKey: 'crm_deals' } }); await db.featureToggle.upsert({ where: { moduleKey: 'crm_deals' }, create: { moduleKey: 'crm_deals', nameEn: 'CRM', nameAr: 'CRM', isEnabled: false }, update: { isEnabled: false } }); toggleChanged = true; assert.equal(await hasPermission('sales', 'contacts', 'read'), false);
+  toggle = await modules.getFeatureToggle('crm_deals'); await modules.updateFeatureToggle('crm_deals', false, 'check-open-items'); toggleChanged = true; assert.equal(await hasPermission('sales', 'contacts', 'read'), false);
   // Super Admin keeps access to switched-off modules (see check-platform: stale denials, overrides and disabled modules never restrict Super Admin).
   assert.equal(await hasPermission('super_admin', 'contacts', 'read'), true);
   console.log('PASS: disabled feature denies direct server grants to every role except Super Admin');
@@ -83,6 +85,6 @@ main().catch(e => { console.error(e); process.exitCode = 1; }).finally(async () 
   await db.attachment.deleteMany({ where: { fileName: { startsWith: prefix } } }); await db.payment.deleteMany({ where: { receiptNumber: { startsWith: prefix } } }); await db.invoice.deleteMany({ where: { invoiceNumber: { startsWith: prefix } } }); await db.crmDeal.deleteMany({ where: { title: { startsWith: prefix } } }); await db.expense.deleteMany({ where: { descriptionEn: { startsWith: prefix } } }); await db.inquiry.deleteMany({ where: { message: prefix } }); if (companyCreated) await db.companySetting.deleteMany({ where: { companyNameEn: prefix } });
   await db.crmContact.deleteMany({ where: { firstName: { startsWith: prefix } } }); await db.abuseWindow.deleteMany({ where: { key: { startsWith: prefix } } });
   if (actor) { await db.activityLog.deleteMany({ where: { userId: actor.id } }); await db.user.delete({ where: { id: actor.id } }); }
-  if (toggleChanged && toggle) await db.featureToggle.update({ where: { moduleKey: 'crm_deals' }, data: { isEnabled: toggle.isEnabled } }); else if (toggleChanged) await db.featureToggle.deleteMany({ where: { moduleKey: 'crm_deals', nameEn: 'CRM' } });
+  if (toggleChanged && toggle) await modules.updateFeatureToggle('crm_deals', toggle.isEnabled, 'check-open-items');
   await db.$disconnect();
 });

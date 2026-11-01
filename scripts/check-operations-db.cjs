@@ -323,16 +323,8 @@ async function main() {
       timeZone: "UTC",
     },
   });
-  await db.featureToggle.upsert({
-    where: { moduleKey: "products" },
-    update: { isEnabled: true },
-    create: {
-      moduleKey: "products",
-      isEnabled: true,
-      nameEn: "Products",
-      nameAr: "المنتجات",
-    },
-  });
+  // Modules live in the system service (backend/services/system); this check needs the backend stack.
+  await require("../packages/database/src/queries/features.ts").updateFeatureToggle("products", true, "check-operations");
   const receiver = await db.user.create({
     data: {
       email: `receiver-${tag}@example.test`,

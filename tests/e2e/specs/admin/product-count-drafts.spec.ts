@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import en from "../../../../packages/locales/src/admin/en";
 import ar from "../../../../packages/locales/src/admin/ar";
 import { testDatabase } from "../../helpers";
+import { getModule, resetModule, setModule } from "../../modules";
 const db =
   testDatabase() as typeof import("../../../../packages/database/src/db").db;
 let marker = "",
@@ -10,21 +11,10 @@ let marker = "",
   warehouseId = "",
   countId = "",
   lineIds: string[] = [];
-let originalFeature: Awaited<ReturnType<typeof db.featureToggle.findUnique>>;
+let originalFeature: Awaited<ReturnType<typeof getModule>>;
 test.beforeAll(async () => {
-  originalFeature = await db.featureToggle.findUnique({
-    where: { moduleKey: "products" },
-  });
-  await db.featureToggle.upsert({
-    where: { moduleKey: "products" },
-    update: { isEnabled: true },
-    create: {
-      moduleKey: "products",
-      nameEn: "Products",
-      nameAr: "المنتجات",
-      isEnabled: true,
-    },
-  });
+  originalFeature = await getModule("products");
+  await setModule("products", true);
 });
 test.beforeEach(async () => {
   marker = `E2E-DRAFT-${randomUUID()}`;
@@ -77,12 +67,8 @@ test.afterEach(async () => {
   await db.product.deleteMany({ where: { id: { in: productIds } } });
 });
 test.afterAll(async () => {
-  if (originalFeature)
-    await db.featureToggle.update({
-      where: { moduleKey: "products" },
-      data: { isEnabled: originalFeature.isEnabled },
-    });
-  else await db.featureToggle.deleteMany({ where: { moduleKey: "products" } });
+  if (originalFeature) await setModule("products", originalFeature.isEnabled);
+  else await resetModule("products");
   await db.$disconnect();
 });
 

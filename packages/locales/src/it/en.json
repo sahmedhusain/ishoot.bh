@@ -10,7 +10,8 @@
   "nav": {
     "overview": "Overview",
     "tickets": "Ticket queue",
-    "sla": "SLA targets"
+    "sla": "SLA targets",
+    "modules": "Modules"
   },
   "login": {
     "title": "IT dashboard",
@@ -91,6 +92,19 @@
     "saved": "SLA saved",
     "failed": "The SLA could not be saved. Resolution must not be faster than the response.",
     "readOnly": "Your role can read the SLA targets but not change them."
+  },
+  "modules": {
+    "title": "Modules",
+    "description": "Switch optional areas of the platform on or off for everyone. Menus, pages and permissions follow at once; the public website within a minute.",
+    "warning": "Switching a module off hides its pages and denies its permissions to every role except Super Admin. Its data is kept.",
+    "on": "On",
+    "off": "Off",
+    "byDefault": "Default: {state}",
+    "changed": "Changed {when}",
+    "saved": "Module updated",
+    "failed": "The module could not be changed.",
+    "readOnly": "Your role can see the modules but not switch them.",
+    "unavailable": "The system service is not reachable right now."
   },
   "errors": {
     "forbidden": "Your IT role does not allow this page.",

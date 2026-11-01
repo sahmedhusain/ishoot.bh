@@ -34,3 +34,9 @@ routes:
     upstream: identity
     realms: [service, it]
     rateLimit: services
+  # System settings: the apps' back ends read them; IT staff manage them with their own tokens.
+  - name: system
+    prefix: /v1/system/
+    upstream: system
+    realms: [service, it]
+    rateLimit: services

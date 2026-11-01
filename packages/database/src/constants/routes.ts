@@ -298,7 +298,6 @@ export const ROUTES = {
     audit: "/dashboard/settings/audit",
     company: "/dashboard/settings/company",
     integrations: "/dashboard/settings/integrations",
-    modules: "/dashboard/settings/modules",
     pipeline: "/dashboard/settings/pipeline",
     departments: "/dashboard/settings/departments",
     preferences: "/dashboard/settings/preferences",

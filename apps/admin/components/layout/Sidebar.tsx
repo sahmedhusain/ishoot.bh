@@ -53,7 +53,6 @@ import {
   MessageSquareQuote,
   HelpCircle,
   BarChart,
-  ToggleLeft,
   Key,
   Globe,
   FileSignature,
@@ -540,12 +539,6 @@ export function Sidebar() {
             resource: "settings",
           },
           {
-            href: ROUTES.settings.modules,
-            label: t.nav.modules,
-            icon: ToggleLeft,
-            resource: "settings",
-          },
-          {
             href: ROUTES.settings.roles,
             label: t.nav.roles,
             icon: Key,
@@ -782,7 +775,6 @@ export function Sidebar() {
           ...take([
             ROUTES.cms.code,
             ROUTES.settings.web,
-            ROUTES.settings.modules,
             ROUTES.settings.audit,
           ]),
         ],
