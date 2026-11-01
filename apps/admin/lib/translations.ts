@@ -1,11 +1,9 @@
-import { withCommonCopy } from "@platform/locales/common";
 import ar from "@platform/locales/admin/ar";
 import type { AdminTranslationKeys } from "@platform/locales";
 import { withAdminActivity } from "@platform/locales/admin-activity";
 
 export type { Locale as AdminLocale } from "@platform/locales/registry";
 import type { Locale as AdminLocale } from "@platform/locales/registry";
-import { deepMerge } from "@platform/locales/merge";
 export type AdminTranslations = AdminTranslationKeys;
 export type Translations = AdminTranslations;
 
@@ -27,8 +25,5 @@ export async function loadAdminTranslations(
   activity?: string | null,
 ): Promise<AdminTranslations> {
   const dictionary = locale === "ar" ? ar : (await import("@platform/locales/admin/en")).default;
-  if (locale === "ar" || locale === "en") return withAdminActivity(dictionary, locale, activity);
-  const { additionalTranslations, getCommonTranslations } = await import("@platform/locales/additional");
-  const base = withCommonCopy(deepMerge(dictionary, additionalTranslations[locale]?.admin as never), "admin", getCommonTranslations(locale));
-  return withAdminActivity(base, "en", activity);
+  return withAdminActivity(dictionary, locale === "ar" ? "ar" : "en", activity);
 }

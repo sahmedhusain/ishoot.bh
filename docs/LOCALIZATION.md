@@ -1,12 +1,12 @@
 # Localization and copy
 
-Both apps retain complete Arabic and English interface dictionaries and support the additional interface languages in the locale registry with English fallback. Business content keeps its English/Arabic storage.
+Both apps retain complete Arabic and English interface dictionaries. Business content keeps its English/Arabic storage.
 
 ## Where text lives
 
 | Text                                                  | Location                                                                                                                                                                                 |
 | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Common labels shared by both apps | `packages/locales/src/common/en.json`, `common/ar.json`; additional languages use their single JSON file’s `common` section |
+| Common labels shared by both apps | `packages/locales/src/common/en.json`, `common/ar.json` |
 | Website copy                                          | `packages/locales/src/en.json`, `ar.json` for website-specific wording, composed with common copy                                                                                                                                |
 | Website wording per activity                          | `packages/locales/src/website-activities.json`: an optional shared layer, then the explicitly selected activity's own; the company's catalogue names from the website settings go on top |
 | Admin interface, including the setup wizard           | `packages/locales/src/admin/en.json`, `ar.json` for module wording; use the composed `@platform/locales/admin/en` and `/ar` exports                                                                                                                                          |
@@ -39,11 +39,11 @@ A company writes its content in Arabic, English or both (`contentLanguages`, cho
 It runs as part of `pnpm test` and in CI.
 
 
-## Additional interface languages
+## Interface languages
 
-The locale registry is `packages/locales/src/registry.ts`. Arabic and English keep their existing base/admin/UI dictionary files. Each additional language has exactly one `packages/locales/src/<locale>.json`, containing its public, admin and shared UI overrides. Missing translations inherit English; this is intentionally partial translation coverage, not a claim that every screen has been translated.
+The locale registry is `packages/locales/src/registry.ts`, supporting English and Arabic (`"en"` and `"ar"`). Arabic and English keep their existing base/admin/UI dictionary files.
 
-The admin preference selector uses the registry and persists a validated locale preference. The website editor chooses its published interface languages, primary language and per-language navigation/banner/contact wording. Website interface languages are separate from bilingual business content: existing English/Arabic content fields retain their data and fallback behavior. RTL direction is independent of whether a business-content field is Arabic, so Urdu and Persian interfaces do not accidentally select Arabic data.
+The admin preference selector uses the registry and persists a validated locale preference. The website editor chooses its published interface languages, primary language and per-language navigation/banner/contact wording. Website interface languages are separate from bilingual business content: existing English/Arabic content fields retain their data and fallback behavior.
 
 Country names in phone selectors use `Intl.DisplayNames`; calling codes and validation use the shared international phone metadata. Stored phone values and document output use compact E.164 (`+97333115351`); search accepts `97333115351`. The example is a format illustration, not a default country. National inputs never include the calling code.
 
@@ -54,12 +54,8 @@ Country names in phone selectors use `Intl.DisplayNames`; calling codes and vali
 
 The common binding map (`packages/locales/src/common-bindings.json`) supplies 443 existing web/admin/UI lookup paths. Those public paths remain compatible while their duplicated literals have been removed from the scoped JSON files. The raw JSON files are partial dictionaries; application code and fixtures must use the composed exports rather than importing raw JSON. `common.cjs` is also usable by the existing Node maintenance scripts without loading React or TypeScript.
 
-Arabic and English retain separate JSON dictionaries for common, UI and module copy. Each other registered language still has one `<locale>.json`: its `common` section overrides shared labels, its `ui` section contains control-specific text, and the remaining sections contain website/admin copy. Missing or blank shared overrides inherit English. The shared UI loader resolves regional tags such as `fr-FR` and `ar-BH`, caches each resolved dictionary, and covers every language in the registry.
+Arabic and English retain separate JSON dictionaries for common, UI and module copy. The shared UI loader resolves regional tags such as `ar-BH` and `en-US`, caches each resolved dictionary, and covers the languages in the registry.
 
-Shared selects, dialogs, confirmations, phone controls, file uploads and chart legends use `useUiCopy`. Upload prompts and remove-file labels now follow the selected interface language in both applications. The existing admin and website language providers supply that language; no new locale provider was introduced.
+Shared selects, dialogs, confirmations, phone controls, file uploads and chart legends use `useUiCopy`. Upload prompts and remove-file labels follow the selected interface language in both applications. The existing admin and website language providers supply that language; no new locale provider was introduced.
 
-For a new generic label, add matching keys to the common English/Arabic JSON files and translate the same key under each additional language’s `common` section. New shared controls can use `useUiCopy`; callers can use `getCommonTranslations(locale)`. Add a binding only to preserve an existing scoped lookup. Keep complete sentences and workflow-specific actions in their own module when their meaning differs.
-
-The shared-copy contract tests cover compatible lookup paths, locale coverage, fallback, regional tags and immutable source data. They were authored but have not run; runtime, browser and E2E checks remain deferred until user approval. Additional app-specific dictionaries remain partial, and new translations require native-speaker review.
-
-Static validation for this consolidation completed without diagnostics: admin, web, shared UI, locales, database and email TypeScript projects, plus the authored unit sources. ESLint completed with zero errors and warnings across both apps and packages. No test suite was executed.
+For a new generic label, add matching keys to the common English/Arabic JSON files. New shared controls can use `useUiCopy`; callers can use `getCommonTranslations(locale)`. Add a binding only to preserve an existing scoped lookup. Keep complete sentences and workflow-specific actions in their own module when their meaning differs.

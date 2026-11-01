@@ -46,15 +46,14 @@ describe("Shared interface wording", () => {
       expect(copy.invalidPhone).toBeTruthy();
       expect(getUiTranslations(code)).toBe(copy);
     }
-    expect(getUiTranslations("fr").cancel).toBe("Annuler");
-    expect(getUiTranslations("kk").countryCode).toBe("Ел коды");
-    expect(getUiTranslations("ta").selectOption).toBe("ஒரு விருப்பத்தைத் தேர்ந்தெடுக்கவும்");
+    expect(getUiTranslations("en").cancel).toBe("Cancel");
+    expect(getUiTranslations("ar").cancel).toBe("إلغاء");
   });
 
   it("accepts regional language tags and falls back safely for unknown languages", () => {
-    expect(getUiTranslations("FR_fr")).toBe(getUiTranslations("fr"));
+    expect(getUiTranslations("en-US")).toBe(getUiTranslations("en"));
     expect(getUiTranslations("ar-BH")).toBe(getUiTranslations("ar"));
-    expect(getUiTranslations("zh-TW")).toBe(getUiTranslations("zh-tw"));
+    expect(getUiTranslations("FR_fr")).toBe(getUiTranslations("en"));
     expect(getUiTranslations("unknown")).toBe(getUiTranslations("en"));
   });
 });

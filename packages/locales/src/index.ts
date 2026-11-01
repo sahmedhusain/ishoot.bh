@@ -1,6 +1,6 @@
 import { commonEn, commonAr, withCommonCopy } from "./common.cjs";
 export { getCommonTranslations, getUiTranslations } from "./additional";
-import { additionalTranslations, getCommonTranslations } from "./additional";
+import { getCommonTranslations } from "./additional";
 import { type Locale } from "./registry";
 export { LANGUAGES, isLocale, isRtlLocale, type Locale } from "./registry";
 import enBase from "./en.json";
@@ -28,14 +28,10 @@ const ar: typeof en = { ...withCommonCopy(arBase, "web", commonAr), admin: admin
 export type TranslationKeys = typeof en;
 export type AdminTranslationKeys = typeof adminEn;
 
-const translations: Partial<Record<Locale, TranslationKeys>> = { en, ar };
+const translations: Record<Locale, TranslationKeys> = { en, ar };
 
 export function getTranslations(locale: Locale): TranslationKeys {
-  if (translations[locale]) return translations[locale]!;
-  const common = getCommonTranslations(locale);
-  const dictionary = withCommonCopy(deepMerge(en, additionalTranslations[locale] as never), "web", common);
-  dictionary.admin = withCommonCopy(dictionary.admin, "admin", common);
-  return translations[locale] = dictionary;
+  return (translations as Record<string, TranslationKeys>)[locale] ?? en;
 }
 
 export function getNestedTranslation(obj: any, path: string): string {
@@ -94,6 +90,6 @@ export function getAdminTranslations(
   activity?: string | null,
 ): AdminTranslationKeys {
   const common = getCommonTranslations(locale);
-  const base = deepMerge(withAdminActivity(getTranslations(locale).admin, locale === "ar" ? "ar" : "en", activity), additionalTranslations[locale]?.admin as never);
+  const base = withAdminActivity(getTranslations(locale).admin, locale === "ar" ? "ar" : "en", activity);
   return withCommonCopy(base, "admin", common);
 }
