@@ -70,7 +70,8 @@
     "test:brand": "node scripts/check-brand-neutral.cjs",
     "docs:api": "node scripts/generate-api-reference.cjs",
     "env:check": "node scripts/env-tool.cjs check",
-    "env:sync": "node scripts/env-tool.cjs sync"
+    "env:sync": "node scripts/env-tool.cjs sync",
+    "catalog:sync": "CATALOG_WRITE=1 vitest run tests/unit/catalog-sync.test.ts"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",

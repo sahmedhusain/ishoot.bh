@@ -1,0 +1,11 @@
+# Staging overrides. Secrets come from the platform-shared Secret (External Secrets), never from this file.
+global:
+  appEnv: staging
+  logLevel: debug
+  tracesSampleRatio: "1"
+ingress:
+  host: api.staging.example.com
+services:
+  gateway:
+    autoscaling:
+      { enabled: true, minReplicas: 1, maxReplicas: 3, targetCPU: 70 }

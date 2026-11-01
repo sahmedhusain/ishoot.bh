@@ -1,0 +1,6 @@
+apiVersion: v2
+name: platform
+description: Backend services of the business platform (one release, one Deployment per service).
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

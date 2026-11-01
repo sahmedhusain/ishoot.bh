@@ -1,0 +1,60 @@
+# Defaults for every environment. Override per environment with values-<env>.yaml; never put secrets here.
+global:
+  image:
+    registry: ghcr.io
+    repository: example/platform # images are <registry>/<repository>/<service>:<tag>
+    tag: "" # defaults to the chart appVersion
+    pullPolicy: IfNotPresent
+  imagePullSecrets: []
+  appEnv: production
+  logLevel: info
+  logFormat: json
+  otelEndpoint: "" # e.g. http://otel-collector.observability:4318
+  tracesSampleRatio: "0.1"
+  # Name of a Secret (created by External Secrets or sealed-secrets) holding shared values such as REDIS_URL.
+  sharedSecret: platform-shared
+  networkPolicy:
+    enabled: true
+    # Namespaces allowed to scrape the admin port (Prometheus) and reach the gateway (ingress controller).
+    monitoringNamespace: observability
+    ingressNamespace: ingress-nginx
+
+ingress:
+  enabled: true
+  className: nginx
+  host: api.example.com
+  tlsSecret: api-tls
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/proxy-body-size: 25m
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+
+# One entry per service. `public: true` puts the service behind the ingress (only the gateway).
+services:
+  gateway:
+    enabled: true
+    public: true
+    replicas: 2
+    autoscaling:
+      { enabled: true, minReplicas: 2, maxReplicas: 10, targetCPU: 70 }
+    resources:
+      requests: { cpu: 100m, memory: 64Mi }
+      limits: { memory: 256Mi }
+    env:
+      GATEWAY_ROUTES_FILE: /config/routes.yaml
+      GATEWAY_UPSTREAMS: ""
+      AUTH_ISSUER: ""
+      AUTH_JWKS_URL: ""
+      HTTP_TRUSTED_PROXIES: "10.0.0.0/8"
+    # Mounted at /config/routes.yaml; kept in step with backend/services/gateway/config/routes.yaml.
+    configFiles:
+      routes.yaml: |
+        rateLimits:
+          default: { requests: 300, window: 1m }
+          sensitive: { requests: 10, window: 1m }
+        routes: []
+    # Services the gateway may call (NetworkPolicy egress); filled in as services are added.
+    talksTo: []

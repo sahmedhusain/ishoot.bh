@@ -1,24 +1,170 @@
+# Local stack for the backend (docs/backend/OPERATIONS.md). Everything binds to 127.0.0.1.
+#   docker compose up -d                          Postgres, Valkey and the gateway
+#   docker compose --profile observability up -d  + OpenTelemetry Collector, Prometheus, Loki, Tempo, Grafana
+#   docker compose --profile tools up -d          + pgAdmin
+# Values come from .env (see .env.example, "Backend" section).
+name: platform
+
+x-service: &service
+  restart: unless-stopped
+  read_only: true
+  security_opt: ["no-new-privileges:true"]
+  cap_drop: [ALL]
+  environment: &service-env
+    APP_ENV: ${APP_ENV:-development}
+    LOG_LEVEL: ${LOG_LEVEL:-debug}
+    LOG_FORMAT: ${LOG_FORMAT:-json}
+    OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+    OTEL_EXPORTER_OTLP_INSECURE: "true"
+    ADMIN_ENABLE_PPROF: ${ADMIN_ENABLE_PPROF:-false}
+
 services:
-  db:
-    image: postgres:15-alpine
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-platform}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: ${POSTGRES_DB:-platform_db}
+    command:
+      [
+        "postgres",
+        "-c",
+        "shared_preload_libraries=pg_stat_statements",
+        "-c",
+        "pg_stat_statements.track=all",
+      ]
     ports:
       - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata17:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  valkey:
+    image: valkey/valkey:8.1-alpine
+    restart: unless-stopped
+    command:
+      [
+        "valkey-server",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--requirepass",
+        "${VALKEY_PASSWORD:?Set VALKEY_PASSWORD in .env}",
+      ]
+    ports:
+      - "127.0.0.1:${VALKEY_PORT:-6379}:6379"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'valkey-cli -a "$${VALKEY_PASSWORD}" --no-auth-warning ping | grep PONG',
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    environment:
+      VALKEY_PASSWORD: ${VALKEY_PASSWORD}
+
+  gateway:
+    <<: *service
+    build:
+      context: backend
+      args: { SERVICE: gateway }
+    image: platform/gateway:dev
+    environment:
+      <<: *service-env
+      SERVICE_NAME: gateway
+      REDIS_URL: redis://:${VALKEY_PASSWORD}@valkey:6379/0
+      GATEWAY_ROUTES_FILE: /config/routes.yaml
+      GATEWAY_UPSTREAMS: ${GATEWAY_UPSTREAMS:-}
+      HTTP_CORS_ORIGINS: ${GATEWAY_CORS_ORIGINS:-}
+      HTTP_TRUSTED_PROXIES: ${GATEWAY_TRUSTED_PROXIES:-}
+      AUTH_ISSUER: ${AUTH_ISSUER:-}
+      AUTH_JWKS_URL: ${AUTH_JWKS_URL:-}
+    volumes:
+      - ./backend/services/gateway/config:/config:ro
+    ports:
+      - "127.0.0.1:${GATEWAY_PORT:-8080}:8080"
+      - "127.0.0.1:${GATEWAY_ADMIN_PORT:-9080}:9090"
+    depends_on:
+      valkey: { condition: service_healthy }
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.120.0
+    profiles: [observability]
+    restart: unless-stopped
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./deploy/observability/otel-collector.yaml:/etc/otelcol/config.yaml:ro
+    ports:
+      - "127.0.0.1:4318:4318"
+
+  tempo:
+    image: grafana/tempo:2.7.1
+    profiles: [observability]
+    restart: unless-stopped
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./deploy/observability/tempo.yaml:/etc/tempo.yaml:ro
+
+  loki:
+    image: grafana/loki:3.4.2
+    profiles: [observability]
+    restart: unless-stopped
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+
+  alloy:
+    image: grafana/alloy:v1.7.1
+    profiles: [observability]
+    restart: unless-stopped
+    command: ["run", "/etc/alloy/config.alloy"]
+    volumes:
+      - ./deploy/observability/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    profiles: [observability]
+    restart: unless-stopped
+    command:
+      [
+        "--config.file=/etc/prometheus/prometheus.yml",
+        "--web.enable-remote-write-receiver",
+      ]
+    volumes:
+      - ./deploy/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "127.0.0.1:${PROMETHEUS_PORT:-9091}:9090"
+
+  grafana:
+    image: grafana/grafana:11.5.2
+    profiles: [observability]
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in .env}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./deploy/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "127.0.0.1:${GRAFANA_PORT:-3300}:3000"
 
   pgadmin:
-    image: dpage/pgadmin4
+    image: dpage/pgadmin4:9.1
+    profiles: [tools]
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:?Set PGADMIN_DEFAULT_EMAIL in .env}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:?Set PGADMIN_DEFAULT_PASSWORD in .env}
     ports:
       - "127.0.0.1:${PGADMIN_PORT:-5050}:80"
     depends_on:
-      - db
+      - postgres
 
 volumes:
-  pgdata:
+  pgdata17:

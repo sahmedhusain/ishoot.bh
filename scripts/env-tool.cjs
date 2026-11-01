@@ -25,6 +25,8 @@ const SECRETS = {
   CUSTOMER_AUTH_SECRET: () => crypto.randomBytes(32).toString("base64url"),
   CRON_SECRET: () => crypto.randomBytes(32).toString("base64url"),
   POSTGRES_PASSWORD: () => crypto.randomBytes(18).toString("base64url"),
+  VALKEY_PASSWORD: () => crypto.randomBytes(24).toString("base64url"),
+  GRAFANA_ADMIN_PASSWORD: () => crypto.randomBytes(18).toString("base64url"),
   PGADMIN_DEFAULT_PASSWORD: () => crypto.randomBytes(18).toString("base64url"),
 };
 // Variables older versions of .env.example listed that no code reads any more.

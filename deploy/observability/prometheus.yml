@@ -1,0 +1,7 @@
+# Scrapes each service's admin listener (/metrics). Add a job per service as it joins the stack.
+global:
+  scrape_interval: 15s
+scrape_configs:
+  - job_name: gateway
+    static_configs:
+      - targets: ["gateway:9090"]

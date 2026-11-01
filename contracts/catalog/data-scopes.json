@@ -1,0 +1,37 @@
+{
+  "areas": [
+    "deals",
+    "requests",
+    "expenses",
+    "claims",
+    "leave"
+  ],
+  "scopes": [
+    "own",
+    "department",
+    "all"
+  ],
+  "defaults": {
+    "department_manager": {
+      "deals": "department",
+      "requests": "department",
+      "expenses": "department",
+      "claims": "department",
+      "leave": "department"
+    },
+    "delivery_coordinator": {
+      "requests": "department"
+    },
+    "procurement_officer": {
+      "expenses": "department"
+    },
+    "employee": {
+      "claims": "own",
+      "leave": "own"
+    },
+    "driver": {
+      "claims": "own",
+      "leave": "own"
+    }
+  }
+}

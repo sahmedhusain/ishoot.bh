@@ -1,0 +1,6 @@
+# Production overrides. Secrets come from the platform-shared Secret (External Secrets), never from this file.
+global:
+  appEnv: production
+  logLevel: info
+ingress:
+  host: api.example.com

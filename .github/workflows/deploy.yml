@@ -1,0 +1,61 @@
+name: Deploy
+
+# Deploys the backend chart with images already built and signed by the Backend workflow. Staging can be deployed
+# from main at any time; production requires the "production" environment's approval in GitHub.
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        type: choice
+        options: [staging, production]
+        required: true
+      image_tag:
+        description: Image tag (a commit SHA built on main)
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ${{ inputs.environment }}
+    concurrency:
+      group: deploy-${{ inputs.environment }}
+      cancel-in-progress: false
+    env:
+      TARGET_ENV: ${{ inputs.environment }}
+      IMAGE_TAG: ${{ inputs.image_tag }}
+      OWNER: ${{ github.repository_owner }}
+      REPOSITORY: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.17.1
+      - uses: sigstore/cosign-installer@v3
+      - name: Check inputs
+        run: '[[ "$IMAGE_TAG" =~ ^[0-9a-f]{40}$ ]] || { echo "image_tag must be a full commit SHA"; exit 1; }'
+      - name: Verify image signatures
+        run: |
+          for svc in $(yq '.services | keys | .[]' deploy/helm/platform/values.yaml); do
+            cosign verify "ghcr.io/${OWNER}/platform/${svc}:${IMAGE_TAG}" \
+              --certificate-identity-regexp "^https://github.com/${REPOSITORY}/" \
+              --certificate-oidc-issuer https://token.actions.githubusercontent.com > /dev/null
+          done
+      - name: Cluster credentials
+        env:
+          KUBECONFIG_CONTENT: ${{ secrets.KUBECONFIG }}
+        run: |
+          mkdir -p ~/.kube
+          printf '%s' "$KUBECONFIG_CONTENT" > ~/.kube/config
+          chmod 600 ~/.kube/config
+      - name: Upgrade
+        run: >
+          helm upgrade --install platform deploy/helm/platform
+          --namespace platform --create-namespace --atomic --wait --timeout 10m
+          -f "deploy/helm/platform/values-${TARGET_ENV}.yaml"
+          --set "global.image.tag=${IMAGE_TAG}"
+          --set "global.image.repository=${OWNER}/platform"

@@ -1,0 +1,194 @@
+{{- range $name, $svc := .Values.services }}
+{{- if $svc.enabled }}
+{{- $ctx := dict "root" $ "name" $name }}
+{{- if $svc.configFiles }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $name }}-config
+  labels: {{- include "platform.labels" $ | nindent 4 }}
+data:
+  {{- toYaml $svc.configFiles | nindent 2 }}
+{{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "platform.labels" $ | nindent 4 }}
+    {{- include "platform.selector" $ctx | nindent 4 }}
+spec:
+  {{- if not $svc.autoscaling.enabled }}
+  replicas: {{ $svc.replicas }}
+  {{- end }}
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: { maxUnavailable: 0, maxSurge: 1 }
+  selector:
+    matchLabels: {{- include "platform.selector" $ctx | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "platform.labels" $ | nindent 8 }}
+        {{- include "platform.selector" $ctx | nindent 8 }}
+      annotations:
+        checksum/config: {{ toYaml $svc.configFiles | sha256sum }}
+    spec:
+      {{- with $.Values.global.imagePullSecrets }}
+      imagePullSecrets: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        seccompProfile: { type: RuntimeDefault }
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels: {{- include "platform.selector" $ctx | nindent 14 }}
+      containers:
+        - name: {{ $name }}
+          image: {{ include "platform.image" $ctx }}
+          imagePullPolicy: {{ $.Values.global.image.pullPolicy }}
+          ports:
+            - { name: http, containerPort: 8080 }
+            - { name: admin, containerPort: 9090 }
+          env:
+            - { name: SERVICE_NAME, value: {{ $name | quote }} }
+            - { name: SERVICE_VERSION, value: {{ default $.Chart.AppVersion $.Values.global.image.tag | quote }} }
+            - { name: APP_ENV, value: {{ $.Values.global.appEnv | quote }} }
+            - { name: LOG_LEVEL, value: {{ $.Values.global.logLevel | quote }} }
+            - { name: LOG_FORMAT, value: {{ $.Values.global.logFormat | quote }} }
+            - { name: OTEL_EXPORTER_OTLP_ENDPOINT, value: {{ $.Values.global.otelEndpoint | quote }} }
+            - { name: OTEL_EXPORTER_OTLP_INSECURE, value: "true" }
+            - { name: OTEL_TRACES_SAMPLER_RATIO, value: {{ $.Values.global.tracesSampleRatio | quote }} }
+            {{- range $key, $value := $svc.env }}
+            - { name: {{ $key }}, value: {{ $value | quote }} }
+            {{- end }}
+          envFrom:
+            - secretRef: { name: {{ $.Values.global.sharedSecret }} }
+            - secretRef: { name: {{ $name }}-secrets, optional: true }
+          readinessProbe:
+            httpGet: { path: /readyz, port: admin }
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet: { path: /livez, port: admin }
+            periodSeconds: 15
+            failureThreshold: 3
+          startupProbe:
+            httpGet: { path: /livez, port: admin }
+            periodSeconds: 2
+            failureThreshold: 30
+          resources: {{- toYaml $svc.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+          {{- if $svc.configFiles }}
+          volumeMounts:
+            - { name: config, mountPath: /config, readOnly: true }
+          {{- end }}
+      {{- if $svc.configFiles }}
+      volumes:
+        - name: config
+          configMap: { name: {{ $name }}-config }
+      {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "platform.labels" $ | nindent 4 }}
+    {{- include "platform.selector" $ctx | nindent 4 }}
+spec:
+  selector: {{- include "platform.selector" $ctx | nindent 4 }}
+  ports:
+    - { name: http, port: 8080, targetPort: http }
+    - { name: admin, port: 9090, targetPort: admin }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ $name }}
+  labels: {{- include "platform.labels" $ | nindent 4 }}
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: {{- include "platform.selector" $ctx | nindent 6 }}
+{{- if $svc.autoscaling.enabled }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ $name }}
+  labels: {{- include "platform.labels" $ | nindent 4 }}
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: {{ $name }} }
+  minReplicas: {{ $svc.autoscaling.minReplicas }}
+  maxReplicas: {{ $svc.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: { type: Utilization, averageUtilization: {{ $svc.autoscaling.targetCPU }} }
+{{- end }}
+{{- if $.Values.serviceMonitor.enabled }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ $name }}
+  labels: {{- include "platform.labels" $ | nindent 4 }}
+spec:
+  selector:
+    matchLabels: {{- include "platform.selector" $ctx | nindent 6 }}
+  endpoints:
+    - { port: admin, path: /metrics, interval: {{ $.Values.serviceMonitor.interval }} }
+{{- end }}
+{{- if $.Values.global.networkPolicy.enabled }}
+---
+# Deny by default: only the gateway (or the ingress controller, for public services) reaches the HTTP port, only
+# Prometheus reaches the admin port, and egress is limited to DNS, the listed services and data stores.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ $name }}
+  labels: {{- include "platform.labels" $ | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels: {{- include "platform.selector" $ctx | nindent 6 }}
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - ports: [{ port: http }]
+      from:
+        {{- if $svc.public }}
+        - namespaceSelector:
+            matchLabels: { kubernetes.io/metadata.name: {{ $.Values.global.networkPolicy.ingressNamespace }} }
+        {{- else }}
+        - podSelector:
+            matchLabels: { app.kubernetes.io/part-of: platform }
+        {{- end }}
+    - ports: [{ port: admin }]
+      from:
+        - namespaceSelector:
+            matchLabels: { kubernetes.io/metadata.name: {{ $.Values.global.networkPolicy.monitoringNamespace }} }
+  egress:
+    - ports: [{ port: 53, protocol: UDP }, { port: 53, protocol: TCP }]
+    - to:
+        - podSelector:
+            matchLabels: { app.kubernetes.io/part-of: platform }
+      ports: [{ port: http }]
+    - ports: [{ port: 5432 }, { port: 6379 }, { port: 4222 }, { port: 4318 }, { port: 443 }]
+{{- end }}
+{{- end }}
+{{- end }}

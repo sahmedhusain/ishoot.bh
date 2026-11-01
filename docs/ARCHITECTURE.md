@@ -1,5 +1,8 @@
 # Architecture
 
+> The backend is moving, one domain at a time, to Go services described in [backend/](backend/README.md)
+> ([migration status](backend/ARCHITECTURE.md#migration-status)). This page describes the current TypeScript backend.
+
 ## Topology
 
 A pnpm and Turborepo monorepo with two Next.js App Router applications sharing one Prisma data layer:

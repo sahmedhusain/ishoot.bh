@@ -1,0 +1,9 @@
+# Generated files: their generators own the formatting.
+docs/backend/CONFIG.md
+docs/API_REFERENCE.md
+contracts/catalog/staff-access.json
+contracts/catalog/modules.json
+contracts/catalog/data-scopes.json
+backend/pkg/catalog/data/
+# Go templates are not YAML until rendered.
+deploy/helm/platform/templates/
