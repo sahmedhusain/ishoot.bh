@@ -3,7 +3,7 @@ info:
   title: Identity session lifecycle
   version: 0.1.0
   description: |
-    Phase 3 contract foundation; these endpoints are not deployed yet.
+    Phase 3 preview contract; existing apps have not switched to this service.
     App servers authenticate with service tokens and pass opaque refresh credentials server-side.
     A refresh credential is usable once, only in its issuing realm. Reuse revokes its session family.
     Refreshing never extends the absolute session lifetime. When login is enabled, refresh also checks account status and issues a new access token.
@@ -29,6 +29,23 @@ paths:
                   keys:
                     type: array
                     items: {type: object}
+  /v1/identity/session:
+    get:
+      operationId: validateIdentitySession
+      summary: Check the current user token against live session, account and role state
+      security:
+        - userToken: []
+      responses:
+        '204':
+          description: The token and its session are currently valid
+        '401':
+          description: Invalid token, expired or revoked session, disabled account or changed roles
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
   /v1/identity/{realm}/sessions/login:
     parameters:
       - $ref: '#/components/parameters/Realm'
@@ -113,6 +130,7 @@ paths:
 components:
   securitySchemes:
     serviceToken: {type: http, scheme: bearer, bearerFormat: JWT}
+    userToken: {type: http, scheme: bearer, bearerFormat: JWT}
   parameters:
     Realm:
       name: realm

@@ -35,6 +35,22 @@ func NewHandler(cfg settings.Config, table routes.Table, deps Dependencies) (htt
 	if table.NeedsAuth() && (deps.Verifier == nil || !cfg.Auth.Configured()) {
 		return nil, fmt.Errorf("gateway: a route needs a token: set AUTH_ISSUER and AUTH_JWKS_URL, or AUTH_SERVICE_KEYS_FILE")
 	}
+	var statusClient *http.Client
+	for _, route := range table.Routes {
+		if route.IsPublic() {
+			continue
+		}
+		for _, realm := range route.AuthRealms() {
+			if realm == authn.RealmService {
+				continue
+			}
+			u, err := url.Parse(cfg.Gateway.IdentityStatusURL)
+			if err != nil || u == nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" || cfg.Gateway.IdentityStatusTimeout <= 0 {
+				return nil, fmt.Errorf("gateway: user routes require a valid GATEWAY_IDENTITY_STATUS_URL and timeout")
+			}
+			statusClient = &http.Client{Transport: deps.Transport, Timeout: cfg.Gateway.IdentityStatusTimeout, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+		}
+	}
 	e, err := httpx.New(cfg.Common, deps.Logger, deps.Metrics)
 	if err != nil {
 		return nil, err
@@ -60,6 +76,9 @@ func NewHandler(cfg settings.Config, table routes.Table, deps Dependencies) (htt
 		chain = append(chain, ratelimit.Middleware(deps.Limiter, ratelimit.Options{
 			Rule: table.Rule(route), FailOpen: cfg.Gateway.RateLimitFailOpen, Logger: deps.Logger,
 		}))
+		if !route.IsPublic() && statusClient != nil {
+			chain = append(chain, requireActiveSession(statusClient, cfg.Gateway.IdentityStatusURL))
+		}
 		e.Any(route.Prefix+"*", handler, chain...)
 		e.Any(strings.TrimSuffix(route.Prefix, "/"), handler, chain...)
 	}

@@ -17,6 +17,10 @@ import (
 
 type missingRepo struct{}
 
+func (missingRepo) ActiveSession(context.Context, authn.Realm, string, time.Time) (string, []string, error) {
+	return "", nil, accounts.ErrInvalid
+}
+
 func (missingRepo) FindByEmail(context.Context, authn.Realm, string) (accounts.Account, error) {
 	return accounts.Account{}, accounts.ErrInvalid
 }

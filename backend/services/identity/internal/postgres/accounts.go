@@ -80,3 +80,11 @@ func (p *Repository) CompleteLogin(ctx context.Context, snapshot accounts.Accoun
 	}
 	return result, nil
 }
+
+func (p *Repository) ActiveSession(ctx context.Context, realm authn.Realm, id string, now time.Time) (string, []string, error) {
+	row, err := p.q.ActiveAccountSession(ctx, sqlcdb.ActiveAccountSessionParams{ID: id, Realm: string(realm), ExpiresAt: now})
+	if errors.Is(err, pgx.ErrNoRows) {
+		return "", nil, accounts.ErrInvalid
+	}
+	return row.SubjectID, row.Roles, err
+}

@@ -8,12 +8,13 @@ The single public entry point of the backend. It does not own any data. Every re
    The upstream service verifies the token again.
 3. **Rate limiting.** One limit per route, shared by every gateway replica through Valkey. Signed-in callers are
    counted per account, everyone else per client IP.
-4. **Proxying.** The request goes to the upstream service with `X-Request-ID`, the trace context and the
+4. **Session status.** For user tokens, identity checks that the session and account are active and the token's roles still match. Configure `GATEWAY_IDENTITY_STATUS_URL` to the identity service's `/v1/identity/session` endpoint; the gateway refuses to start user-authenticated routes without it. A rejected session returns 401 and an unavailable identity service returns 503. Service tokens do not require a user session.
+5. **Proxying.** The request goes to the upstream service with `X-Request-ID`, the trace context and the
    `X-Forwarded-*` headers. Paths with dot segments are refused. Upstream server banners are removed.
 
 ## Route table
 
-Mounted from [`config/routes.yaml`](config/routes.yaml) locally, and from the Helm values (`services.gateway.configFiles`)
+Mounted from [`deploy/helm/platform/files/gateway/routes.yaml`](../../../deploy/helm/platform/files/gateway/routes.yaml) locally, and from the Helm values (`services.gateway.configFiles`)
 in Kubernetes. Upstream names are mapped to URLs by `GATEWAY_UPSTREAMS` (`identity=http://identity:8080,…`).
 
 ```yaml

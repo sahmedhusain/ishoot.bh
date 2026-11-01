@@ -17,10 +17,11 @@ import (
 
 // Issuer holds one active private key and publishes only its public key.
 type Issuer struct {
-	issuer string
-	ttl    time.Duration
-	key    jwk.Key
-	public []byte
+	verifier *authn.Verifier
+	issuer   string
+	ttl      time.Duration
+	key      jwk.Key
+	public   []byte
 }
 
 // PublicKey retains a previous verification key while issued tokens are still valid.
@@ -84,7 +85,7 @@ func NewWithPrevious(issuer, kid string, private ed25519.PrivateKey, ttl time.Du
 	if err != nil {
 		return nil, err
 	}
-	return &Issuer{issuer: issuer, ttl: ttl, key: key, public: data}, nil
+	return &Issuer{issuer: issuer, ttl: ttl, key: key, public: data, verifier: authn.NewVerifier(0, authn.Trust{Issuer: issuer, Keys: authn.StaticKeys{Set: set}, Realms: authn.UserRealms})}, nil
 }
 
 // JWKS returns a copy so callers cannot modify the published keys.
@@ -109,3 +110,6 @@ func (i *Issuer) Sign(subject, session string, realm authn.Realm, roles []string
 	}
 	return string(signed), nil
 }
+
+// Verifier accepts only user tokens signed by the active or configured previous keys.
+func (i *Issuer) Verifier() *authn.Verifier { return i.verifier }

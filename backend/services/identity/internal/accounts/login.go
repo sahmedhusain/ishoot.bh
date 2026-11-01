@@ -4,9 +4,12 @@ package accounts
 import (
 	"context"
 	"errors"
+	"slices"
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	"github.com/google/uuid"
 
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/password"
@@ -36,6 +39,7 @@ type MFAResult struct {
 
 // Repository completes credential rechecks, MFA updates and session creation in one transaction.
 type Repository interface {
+	ActiveSession(context.Context, authn.Realm, string, time.Time) (string, []string, error)
 	FindByEmail(context.Context, authn.Realm, string) (Account, error)
 	CompleteLogin(context.Context, Account, *string, sessions.Credential, time.Time, func(Account) (MFAResult, error)) (Account, error)
 	RotateAccount(context.Context, authn.Realm, string, string, time.Time) (sessions.Family, Account, error)
@@ -180,4 +184,22 @@ func (s *Service) Refresh(ctx context.Context, realm authn.Realm, token string, 
 	}
 	next.Family = family
 	return Result{Account: account, Credential: next}, nil
+}
+
+// ValidateSession checks current account and session state after verifying the access-token signature.
+func (s *Service) ValidateSession(ctx context.Context, principal authn.Principal, now time.Time) error {
+	if principal.Realm != authn.RealmStaff && principal.Realm != authn.RealmCustomer && principal.Realm != authn.RealmIT {
+		return ErrInvalid
+	}
+	if _, err := uuid.Parse(principal.SessionID); err != nil {
+		return ErrInvalid
+	}
+	subject, roles, err := s.repo.ActiveSession(ctx, principal.Realm, principal.SessionID, now)
+	if err != nil {
+		return err
+	}
+	if subject != principal.Subject || !slices.Equal(roles, principal.Roles) {
+		return ErrInvalid
+	}
+	return nil
 }

@@ -35,6 +35,9 @@ func Register(e *echo.Echo, verifier *authn.Verifier, svc *sessions.Service, iss
 	}, authn.Require(verifier, authn.RealmService))
 	if login != nil {
 		g.POST("/login", h.loginPassword)
+		e.GET("/v1/identity/session", h.validateSession, func(next echo.HandlerFunc) echo.HandlerFunc {
+			return func(c echo.Context) error { c.Response().Header().Set("Cache-Control", "no-store"); return next(c) }
+		}, authn.Require(issuer.Verifier(), authn.UserRealms...))
 	}
 	g.POST("/refresh", h.refresh)
 	g.POST("/logout", h.logout)
@@ -167,4 +170,18 @@ func (h *Handler) loginPassword(c echo.Context) error {
 		roles = []string{}
 	}
 	return c.JSON(http.StatusOK, loginResponse{refreshResponse: refreshResponse{SessionID: result.Credential.Family.ID, SubjectID: result.Account.SubjectID, Realm: r, ExpiresAt: result.Credential.Family.ExpiresAt, RefreshToken: result.Credential.Token}, AccessToken: access, Roles: roles})
+}
+
+func (h *Handler) validateSession(c echo.Context) error {
+	principal, ok := authn.PrincipalFrom(c.Request().Context())
+	if !ok {
+		return problem.Unauthenticated("")
+	}
+	if err := h.login.ValidateSession(c.Request().Context(), principal, time.Now()); err != nil {
+		if errors.Is(err, accounts.ErrInvalid) {
+			return problem.Unauthenticated("")
+		}
+		return err
+	}
+	return c.NoContent(http.StatusNoContent)
 }

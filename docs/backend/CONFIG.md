@@ -92,6 +92,8 @@ the environment. A service refuses to start when a value is missing or fails its
 | `GATEWAY_UPSTREAM_RESPONSE_TIMEOUT` | `20s` | `gt=0` |
 | `GATEWAY_UPSTREAM_IDLE_TIMEOUT` | `90s` | `gt=0` |
 | `GATEWAY_UPSTREAM_MAX_IDLE_CONNS_PER_HOST` | `64` | `gt=0` |
+| `GATEWAY_IDENTITY_STATUS_URL` |  | `omitempty,url` |
+| `GATEWAY_IDENTITY_STATUS_TIMEOUT` | `3s` | `gt=0` |
 | `GATEWAY_RATE_LIMIT_PREFIX` | `gateway:rl:` | `required` |
 | `GATEWAY_RATE_LIMIT_FAIL_OPEN` | `false` |  |
 | `AUTH_ISSUER` |  |  |

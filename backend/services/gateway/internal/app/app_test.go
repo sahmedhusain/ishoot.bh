@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -52,6 +53,7 @@ type fixture struct {
 	handler http.Handler
 	signer  *authntest.Signer
 	service *authntest.Signer
+	status  *atomic.Int32
 }
 
 func setup(t *testing.T) fixture {
@@ -64,6 +66,16 @@ func setup(t *testing.T) fixture {
 		})
 	}))
 	t.Cleanup(upstream.Close)
+	status := &atomic.Int32{}
+	status.Store(http.StatusNoContent)
+	identity := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet || !strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ") {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		w.WriteHeader(int(status.Load()))
+	}))
+	t.Cleanup(identity.Close)
 	dead := httptest.NewServer(http.NotFoundHandler())
 	dead.Close()
 
@@ -78,14 +90,15 @@ func setup(t *testing.T) fixture {
 
 	var cfg settings.Config
 	require.NoError(t, config.LoadFrom(&cfg, map[string]string{
-		"SERVICE_NAME":           "gateway",
-		"APP_ENV":                "test",
-		"REDIS_URL":              "redis://unused:6379",
-		"GATEWAY_ROUTES_FILE":    path,
-		"GATEWAY_UPSTREAMS":      "identity=" + upstream.URL + ",itsm=" + upstream.URL + "/api,down=" + dead.URL,
-		"AUTH_ISSUER":            authntest.Issuer,
-		"AUTH_JWKS_URL":          "http://identity/.well-known/jwks.json",
-		"AUTH_SERVICE_KEYS_FILE": keysFile,
+		"SERVICE_NAME":                "gateway",
+		"APP_ENV":                     "test",
+		"REDIS_URL":                   "redis://unused:6379",
+		"GATEWAY_ROUTES_FILE":         path,
+		"GATEWAY_IDENTITY_STATUS_URL": identity.URL + "/v1/identity/session",
+		"GATEWAY_UPSTREAMS":           "identity=" + upstream.URL + ",itsm=" + upstream.URL + "/api,down=" + dead.URL,
+		"AUTH_ISSUER":                 authntest.Issuer,
+		"AUTH_JWKS_URL":               "http://identity/.well-known/jwks.json",
+		"AUTH_SERVICE_KEYS_FILE":      keysFile,
 	}))
 	table, err := routes.Load(cfg.Gateway.RoutesFile, cfg.Gateway.Upstreams)
 	require.NoError(t, err)
@@ -103,7 +116,7 @@ func setup(t *testing.T) fixture {
 		Transport: proxy.NewTransport(proxy.TransportConfig{DialTimeout: time.Second, ResponseHeaderTimeout: time.Second, IdleConnTimeout: time.Second, MaxIdleConnsPerHost: 4}),
 	})
 	require.NoError(t, err)
-	return fixture{handler: handler, signer: signer, service: service}
+	return fixture{handler: handler, signer: signer, service: service, status: status}
 }
 
 func (f fixture) do(t *testing.T, method, path, token string) (*httptest.ResponseRecorder, seen) {
@@ -215,4 +228,27 @@ func TestBodyLimitPerRoute(t *testing.T) {
 	assert.Equal(t, http.StatusOK, send("/v1/files/content", service, 3000), "the files route allows larger bodies")
 	assert.Equal(t, http.StatusRequestEntityTooLarge, send("/v1/files/content", service, 5000))
 	assert.Equal(t, http.StatusRequestEntityTooLarge, send("/v1/auth/login", "", 2000), "other routes keep the default")
+}
+
+func TestSessionValidationFailsClosed(t *testing.T) {
+	f := setup(t)
+	token := f.signer.Sign(t, authntest.Token{Subject: "u1", Realm: authn.RealmStaff, SessionID: "session"})
+	rec, _ := f.do(t, http.MethodGet, "/v1/tickets/list", token)
+	require.Equal(t, http.StatusOK, rec.Code)
+	f.status.Store(http.StatusUnauthorized)
+	rec, _ = f.do(t, http.MethodGet, "/v1/tickets/list", token)
+	require.Equal(t, http.StatusUnauthorized, rec.Code)
+	f.status.Store(http.StatusInternalServerError)
+	rec, _ = f.do(t, http.MethodGet, "/v1/tickets/list", token)
+	require.Equal(t, http.StatusServiceUnavailable, rec.Code)
+	service := f.service.Sign(t, authntest.Token{Subject: "admin"})
+	rec, _ = f.do(t, http.MethodGet, "/v1/files/content", service)
+	require.Equal(t, http.StatusOK, rec.Code)
+}
+
+func TestUserRoutesRequireStatusEndpoint(t *testing.T) {
+	table := routes.Table{Routes: []routes.Route{{Realms: []string{"staff"}}}}
+	cfg := settings.Config{Auth: authn.Config{Issuer: "https://identity.example", JWKSURL: "https://identity.example/jwks"}}
+	_, err := NewHandler(cfg, table, Dependencies{Verifier: authn.NewVerifier(0)})
+	require.ErrorContains(t, err, "GATEWAY_IDENTITY_STATUS_URL")
 }
