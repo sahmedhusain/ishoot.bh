@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
@@ -528,7 +529,7 @@ export function CompanyArchiveView({
 
       {items.length ? (
         <div className="overflow-x-auto rounded-3xl border border-outline-variant bg-surface-raised">
-          <table className="w-full text-sm">
+          <DataTable className="w-full text-sm">
             <thead className="text-[11px] uppercase tracking-wide text-ink-muted">
               <tr className="border-b border-outline-variant">
                 <th className="px-4 py-3 text-start">{v.columns.document}</th>
@@ -622,7 +623,7 @@ export function CompanyArchiveView({
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
         </div>
       ) : (
         <div className="rounded-3xl border border-dashed border-outline-variant p-10 text-center text-sm text-ink-muted">

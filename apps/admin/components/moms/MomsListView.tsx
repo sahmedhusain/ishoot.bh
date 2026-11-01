@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
@@ -132,7 +133,7 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
       {/* MOM Table */}
       <Card className="bg-surface border border-outline-variant rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-start text-xs">
+          <DataTable className="w-full text-start text-xs">
             <thead className="bg-surface-sunken text-ink-muted uppercase text-[11px] border-b border-outline-variant">
               <tr>
                 <th className="p-4 text-start">{t.momsList.mom}</th>
@@ -226,7 +227,7 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
                 ))
               )}
             </tbody>
-          </table>
+          </DataTable>
         </div>
       </Card>
 

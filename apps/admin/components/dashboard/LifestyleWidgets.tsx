@@ -633,6 +633,7 @@ export function WelcomeProfileWidget({
   return (
     <section
       {...widgetContainerProps(settings)}
+      suppressHydrationWarning
       className="admin-widget h-full p-5 flex flex-col justify-between gap-4 relative overflow-hidden bg-gradient-to-br from-primary/12 via-surface-container to-accent/10"
     >
       <div className="flex items-start justify-between gap-3 relative z-10">
@@ -800,15 +801,18 @@ export function LocalClockWidget({ settings }: LifestyleWidgetProps) {
   return (
     <section
       {...widgetContainerProps(settings)}
+      suppressHydrationWarning
       className="admin-widget h-full p-5 flex flex-col items-center justify-center gap-3 relative overflow-hidden"
     >
       {isAnalog ? (
         <div
           data-keep-round="true"
+          suppressHydrationWarning
           className="relative w-40 h-40 sm:w-44 sm:h-44 flex items-center justify-center select-none"
         >
           <svg
             viewBox="0 0 200 200"
+            suppressHydrationWarning
             className="w-full h-full drop-shadow-xs"
             aria-hidden="true"
           >
@@ -833,10 +837,10 @@ export function LocalClockWidget({ settings }: LifestyleWidgetProps) {
               const isQuarter = i % 3 === 0;
               const r1 = isQuarter ? 66 : 70;
               const r2 = 75;
-              const x1 = 100 + r1 * Math.sin(angle);
-              const y1 = 100 - r1 * Math.cos(angle);
-              const x2 = 100 + r2 * Math.sin(angle);
-              const y2 = 100 - r2 * Math.cos(angle);
+              const x1 = Math.round((100 + r1 * Math.sin(angle)) * 100) / 100;
+              const y1 = Math.round((100 - r1 * Math.cos(angle)) * 100) / 100;
+              const x2 = Math.round((100 + r2 * Math.sin(angle)) * 100) / 100;
+              const y2 = Math.round((100 - r2 * Math.cos(angle)) * 100) / 100;
               return (
                 <line
                   key={i}
@@ -891,6 +895,7 @@ export function LocalClockWidget({ settings }: LifestyleWidgetProps) {
 
             {/* Hour hand */}
             <line
+              suppressHydrationWarning
               x1="100"
               y1="100"
               x2={100 + 42 * Math.sin((hourDeg * Math.PI) / 180)}
@@ -902,6 +907,7 @@ export function LocalClockWidget({ settings }: LifestyleWidgetProps) {
             />
             {/* Minute hand */}
             <line
+              suppressHydrationWarning
               x1="100"
               y1="100"
               x2={100 + 60 * Math.sin((minDeg * Math.PI) / 180)}
@@ -915,6 +921,7 @@ export function LocalClockWidget({ settings }: LifestyleWidgetProps) {
             {showSeconds ? (
               <>
                 <line
+                  suppressHydrationWarning
                   x1={100 - 12 * Math.sin((secDeg * Math.PI) / 180)}
                   y1={100 + 12 * Math.cos((secDeg * Math.PI) / 180)}
                   x2={100 + 66 * Math.sin((secDeg * Math.PI) / 180)}
@@ -925,6 +932,7 @@ export function LocalClockWidget({ settings }: LifestyleWidgetProps) {
                   className="text-accent"
                 />
                 <circle
+                  suppressHydrationWarning
                   cx={100 + 54 * Math.sin((secDeg * Math.PI) / 180)}
                   cy={100 - 54 * Math.cos((secDeg * Math.PI) / 180)}
                   r="4"
@@ -942,34 +950,36 @@ export function LocalClockWidget({ settings }: LifestyleWidgetProps) {
           </svg>
         </div>
       ) : clockStyle === "digital_stacked" ? (
-        <div className="flex items-center justify-center gap-4 py-1">
+        <div suppressHydrationWarning className="flex items-center justify-center gap-4 py-1">
           <div
             dir="ltr"
+            suppressHydrationWarning
             className="flex flex-col items-center justify-center rounded-[24px] bg-secondary-container/75 px-6 py-3 border border-primary/20 shadow-xs"
           >
-            <span className="text-4xl sm:text-5xl font-black tracking-tighter text-primary tabular-nums leading-[0.9]">
+            <span suppressHydrationWarning className="text-4xl sm:text-5xl font-black tracking-tighter text-primary tabular-nums leading-[0.9]">
               {pad(displayH)}
             </span>
-            <span className="text-4xl sm:text-5xl font-black tracking-tighter text-ink tabular-nums leading-[0.9] mt-1">
+            <span suppressHydrationWarning className="text-4xl sm:text-5xl font-black tracking-tighter text-ink tabular-nums leading-[0.9] mt-1">
               {pad(parts.m)}
             </span>
           </div>
-          <div className="space-y-1.5 text-start">
+          <div suppressHydrationWarning className="space-y-1.5 text-start">
             {!use24h ? (
-              <span className="inline-flex rounded-full bg-primary text-on-primary px-2.5 py-0.5 text-[11px] font-bold">
+              <span suppressHydrationWarning className="inline-flex rounded-full bg-primary text-on-primary px-2.5 py-0.5 text-[11px] font-bold">
                 {period}
               </span>
             ) : null}
             {showSeconds ? (
               <div
                 dir="ltr"
+                suppressHydrationWarning
                 className="text-sm font-bold text-ink-muted tabular-nums"
               >
                 :{pad(seconds)}
               </div>
             ) : null}
             {showDate ? (
-              <div className="text-xs font-semibold text-ink">
+              <div suppressHydrationWarning className="text-xs font-semibold text-ink">
                 {formatGregorianDate(now, locale, {
                   weekday: "short",
                   day: "numeric",
@@ -980,21 +990,22 @@ export function LocalClockWidget({ settings }: LifestyleWidgetProps) {
           </div>
         </div>
       ) : (
-        <div className="text-center space-y-2 py-2 w-full">
+        <div suppressHydrationWarning className="text-center space-y-2 py-2 w-full">
           <div
             dir="ltr"
+            suppressHydrationWarning
             className="inline-flex items-baseline justify-center gap-1.5 rounded-full bg-secondary-container/70 px-6 py-3 font-extrabold tracking-tight text-ink tabular-nums border border-primary/15"
           >
-            <span className="text-3xl sm:text-4xl">
+            <span suppressHydrationWarning className="text-3xl sm:text-4xl">
               {pad(displayH)}:{pad(parts.m)}
             </span>
             {showSeconds ? (
-              <span className="text-base text-primary font-bold">
+              <span suppressHydrationWarning className="text-base text-primary font-bold">
                 :{pad(seconds)}
               </span>
             ) : null}
             {!use24h ? (
-              <span className="text-xs font-bold text-primary uppercase ms-1">
+              <span suppressHydrationWarning className="text-xs font-bold text-primary uppercase ms-1">
                 {period}
               </span>
             ) : null}
@@ -1003,7 +1014,7 @@ export function LocalClockWidget({ settings }: LifestyleWidgetProps) {
       )}
 
       {showDate && clockStyle !== "digital_stacked" ? (
-        <div className="flex items-center justify-center gap-2 text-[11px] font-semibold text-ink-muted">
+        <div suppressHydrationWarning className="flex items-center justify-center gap-2 text-[11px] font-semibold text-ink-muted">
           <span>{cityLabel}</span>
           <span>·</span>
           <span>
@@ -1102,6 +1113,7 @@ export function ClockWorldWidget({ settings }: LifestyleWidgetProps) {
   return (
     <section
       {...widgetContainerProps(settings)}
+      suppressHydrationWarning
       className="admin-widget h-full p-5 flex flex-col justify-between gap-3 relative overflow-hidden"
     >
       <div className="flex items-center justify-between gap-2">
@@ -1192,6 +1204,7 @@ export function ClockWorldWidget({ settings }: LifestyleWidgetProps) {
 
               <div
                 dir="ltr"
+                suppressHydrationWarning
                 className="text-sm sm:text-base font-black text-ink tabular-nums shrink-0"
               >
                 {formatZoneTime(z.tz)}
@@ -1252,6 +1265,7 @@ export function WeatherLocalWidget({ settings }: LifestyleWidgetProps) {
   return (
     <section
       {...widgetContainerProps(settings)}
+      suppressHydrationWarning
       className="admin-widget h-full p-5 flex flex-col justify-between gap-3 relative overflow-hidden bg-gradient-to-br from-sky-500/12 via-surface-container to-amber-500/10"
     >
       <div className="flex items-center justify-between gap-2 relative z-10">
@@ -1432,6 +1446,7 @@ export function CalendarMiniWidget({ data, settings }: LifestyleWidgetProps) {
   return (
     <section
       {...widgetContainerProps(settings)}
+      suppressHydrationWarning
       className="admin-widget h-full p-5 flex flex-col justify-between gap-3"
     >
       <div className="flex items-center justify-between gap-2">
@@ -1850,6 +1865,7 @@ export function FocusPomodoroWidget({ settings }: LifestyleWidgetProps) {
   return (
     <section
       {...widgetContainerProps(settings)}
+      suppressHydrationWarning
       className="admin-widget h-full p-5 flex flex-col justify-between gap-3"
     >
       <div className="flex items-center justify-between gap-2">
@@ -2187,6 +2203,7 @@ export function CurrencyRatesWidget({ settings }: LifestyleWidgetProps) {
   return (
     <section
       {...widgetContainerProps(settings)}
+      suppressHydrationWarning
       className="admin-widget h-full p-5 flex flex-col justify-between gap-3"
     >
       <div className="flex items-center justify-between gap-2">
@@ -2282,6 +2299,7 @@ export function CountdownMilestoneWidget({ settings }: LifestyleWidgetProps) {
   return (
     <section
       {...widgetContainerProps(settings)}
+      suppressHydrationWarning
       className="admin-widget h-full p-5 flex flex-col justify-between gap-3"
     >
       <div className="flex items-center justify-between gap-2">
@@ -2458,6 +2476,7 @@ export function BookmarksLaunchpadWidget({ settings }: LifestyleWidgetProps) {
   return (
     <section
       {...widgetContainerProps(settings)}
+      suppressHydrationWarning
       className="admin-widget h-full p-5 flex flex-col justify-between gap-3"
     >
       <div className="flex items-center justify-between gap-2">

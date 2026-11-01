@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 import { useCompanyCurrency } from "@platform/ui";
 import { errorMessage } from "../../lib/error-text";
 import { useConfirmation } from "@platform/ui";
@@ -307,7 +308,7 @@ export function ServicesManagementView({
       {/* Services Table */}
       <div className="bg-surface-raised rounded-2xl border border-outline-variant/80 dark:border-outline-variant shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-start border-collapse">
+          <DataTable className="w-full text-start border-collapse">
             <thead>
               <tr className="border-b border-outline-variant bg-surface-raised/70 dark:bg-surface-raised/40 text-[11px] font-semibold text-ink-muted uppercase tracking-wider">
                 <th className="py-3 px-4">{t.servicesView.thCodeItem}</th>
@@ -408,7 +409,7 @@ export function ServicesManagementView({
                 })
               )}
             </tbody>
-          </table>
+          </DataTable>
         </div>
       </div>
 

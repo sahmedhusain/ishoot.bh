@@ -192,7 +192,7 @@ export function Modal({
   };
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => setMounted(true), []);
-  const dialog = useDialog(isOpen && mounted, close);
+  const dialog = useDialog(isOpen && mounted && !closing, close);
 
   if (!isOpen || !mounted) return null;
 

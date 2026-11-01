@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 import { useCompanyCurrency } from "@platform/ui";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -202,7 +203,7 @@ export function EmployeesListView({
       {/* Employees Table */}
       <Card className="bg-surface-raised border border-outline-variant rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-start text-sm">
+          <DataTable className="w-full text-start text-sm">
             <thead>
               <tr className="border-b border-outline-variant text-xs font-mono uppercase text-ink-muted bg-surface-raised/50 dark:bg-surface-raised/30">
                 <th className="py-3 px-4">{t.shared.employee}</th>
@@ -318,7 +319,7 @@ export function EmployeesListView({
                 })
               )}
             </tbody>
-          </table>
+          </DataTable>
         </div>
       </Card>
     </div>

@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 
 import * as React from "react";
 import Link from "next/link";
@@ -112,7 +113,7 @@ export function HrRequestsView(props: {
           <p className="p-10 text-center text-sm text-ink-muted">{c.empty}</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <DataTable className="w-full text-sm">
               <thead className="bg-surface-sunken text-xs text-ink-muted">
                 <tr>
                   {[c.columns.employee, c.columns.type, c.columns.request, c.columns.status, c.columns.date].map((h) => (
@@ -143,7 +144,7 @@ export function HrRequestsView(props: {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
           </div>
         )}
       </Card>

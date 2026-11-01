@@ -10,6 +10,15 @@ let agencyId: string;
 let orderId: string;
 let shipmentId: string;
 let number: string;
+let originalFeature: Awaited<ReturnType<typeof db.featureToggle.findUnique>>;
+test.beforeAll(async () => {
+  originalFeature = await db.featureToggle.findUnique({ where: { moduleKey: "delivery" } });
+  await db.featureToggle.upsert({
+    where: { moduleKey: "delivery" },
+    update: { isEnabled: true },
+    create: { moduleKey: "delivery", nameEn: "Delivery", nameAr: "التوصيل", isEnabled: true },
+  });
+});
 test.beforeEach(async () => {
   const agency = await db.courierAgency.create({
     data: {
@@ -53,7 +62,17 @@ test.afterEach(async () => {
   await db.salesOrder.deleteMany({ where: { id: orderId } });
   await db.courierAgency.deleteMany({ where: { id: agencyId } });
 });
-test.afterAll(() => db.$disconnect());
+test.afterAll(async () => {
+  try {
+    if (originalFeature) {
+      await db.featureToggle.update({ where: { moduleKey: "delivery" }, data: { isEnabled: originalFeature.isEnabled } });
+    } else {
+      await db.featureToggle.deleteMany({ where: { moduleKey: "delivery" } });
+    }
+  } finally {
+    await db.$disconnect();
+  }
+});
 
 for (const locale of ["en", "ar"] as const) {
   test(`uncertain carrier booking requires measured input and reconciliation (${locale})`, async ({

@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
@@ -126,7 +127,7 @@ export function HandoversListView({ items, status, kind, startFor, employees, ca
 
       {items.length ? (
         <div className="overflow-x-auto rounded-3xl border border-outline-variant bg-surface-raised">
-          <table className="w-full text-sm">
+          <DataTable className="w-full text-sm">
             <thead className="text-[11px] uppercase tracking-wide text-ink-muted">
               <tr className="border-b border-outline-variant">
                 <th className="px-4 py-3 text-start"><bdi dir="ltr">{e.reference}</bdi></th>
@@ -155,7 +156,7 @@ export function HandoversListView({ items, status, kind, startFor, employees, ca
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
         </div>
       ) : (
         <div className="rounded-3xl border border-dashed border-outline-variant p-10 text-center text-sm text-ink-muted">{e.empty}</div>

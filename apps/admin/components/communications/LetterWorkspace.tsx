@@ -1,4 +1,5 @@
 "use client";
+import { DocumentCard } from "../documents/DocumentCard";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -284,17 +285,14 @@ export function LetterWorkspace({
           </Button>
         </form>
       ) : (
-        <article className="rounded-3xl border p-6" data-page-section>
+        <DocumentCard title={locale === "ar" ? letter?.subjectAr : letter?.subjectEn}>
           <p>
             {letter?.recipientOrganization} · {letter?.recipientName}
           </p>
-          <h2 className="text-xl font-bold my-4">
-            {locale === "ar" ? letter?.subjectAr : letter?.subjectEn}
-          </h2>
           <p className="whitespace-pre-wrap leading-8">
             {locale === "ar" ? letter?.bodyAr : letter?.bodyEn}
           </p>
-        </article>
+        </DocumentCard>
       )}
       {letter && (
         <div className="flex flex-wrap gap-3">

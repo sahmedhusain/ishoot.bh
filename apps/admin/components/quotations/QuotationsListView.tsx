@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
@@ -151,7 +152,7 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
       {/* Quotations Table */}
       <div className="bg-surface-raised border border-outline-variant rounded-xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left rtl:text-right text-sm">
+          <DataTable className="w-full text-left rtl:text-right text-sm">
             <thead className="bg-surface-raised/70 dark:bg-white/5 border-b border-outline-variant text-xs font-mono uppercase text-ink-muted">
               <tr>
                 <th className="py-3 px-4">{qListT.quoteNumber}</th>
@@ -253,7 +254,7 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
                 })
               )}
             </tbody>
-          </table>
+          </DataTable>
         </div>
       </div>
     </div>

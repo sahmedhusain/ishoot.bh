@@ -44,7 +44,15 @@ export const otherCompanyNames: string[] = fs
       company.companyNameEn,
       company.companyNameAr,
     ].filter(Boolean);
-  });
+  })
+  // Profiles may intentionally share a trading name with the demo (e.g. the
+  // all-modules profile). Only names foreign to the active company are leaks.
+  .filter((name) => ![
+    demo.display?.nameEn,
+    demo.display?.nameAr,
+    demo.company?.companyNameEn,
+    demo.company?.companyNameAr,
+  ].includes(name));
 
 export const channels = (hex: string) => {
   const n = parseInt(hex.slice(1), 16);

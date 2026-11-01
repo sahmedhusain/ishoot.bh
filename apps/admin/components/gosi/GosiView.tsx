@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 import { NationalitySchemeFields } from "./NationalitySchemeFields";
 import { useCompanyCurrency } from "@platform/ui";
 import { useConfirmation } from "@platform/ui";
@@ -286,7 +287,7 @@ export function GosiView({
           )}
         </div>
         <div className="overflow-x-auto rounded-2xl border border-outline-variant">
-          <table className="w-full text-xs">
+          <DataTable className="w-full text-xs">
             <thead className="bg-ink/[0.03] text-[11px] text-ink-muted">
               <tr>
                 <th className="px-3 py-2 text-start"><bdi dir="auto">{g.fields.name}</bdi></th>
@@ -444,7 +445,7 @@ export function GosiView({
                 );
               })}
             </tbody>
-          </table>
+          </DataTable>
         </div>
 
         {form && (
@@ -779,7 +780,7 @@ export function GosiView({
           ) : null}
         </div>
         <div className="overflow-x-auto rounded-2xl border border-outline-variant">
-          <table className="w-full text-xs">
+          <DataTable className="w-full text-xs">
             <thead className="bg-ink/[0.03] text-[11px] text-ink-muted">
               <tr>
                 <th className="px-3 py-2 text-start">
@@ -866,7 +867,7 @@ export function GosiView({
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
         </div>
       </section>
 
@@ -1023,7 +1024,7 @@ function RegistrationForm({
             <legend className={label}>{g.exceptions}</legend>
             <p className="text-[11px] text-ink-muted">{g.exceptionsHint}</p>
             <div className="overflow-x-auto rounded-2xl border border-outline-variant">
-              <table className="w-full text-xs">
+              <DataTable className="w-full text-xs">
                 <thead className="bg-ink/[0.03] text-[11px] text-ink-muted">
                   <tr>
                     <th className="px-3 py-2 text-start"><bdi dir="auto">{g.fields.name}</bdi></th>
@@ -1105,7 +1106,7 @@ function RegistrationForm({
                     );
                   })}
                 </tbody>
-              </table>
+              </DataTable>
             </div>
           </fieldset>
           <label className="block">

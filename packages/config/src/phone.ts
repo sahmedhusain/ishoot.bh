@@ -6,9 +6,37 @@ import {
   type CountryCode,
 } from "libphonenumber-js/max";
 
+const REGION_CANONICAL_OVERRIDES: Record<string, Record<string, string>> = {
+  ar: {
+    PS: "فلسطين",
+    HK: "هونغ كونغ",
+    MO: "مكاو",
+    FK: "جزر فوكلاند - جزر مالفيناس",
+  },
+  en: {
+    PS: "Palestine",
+    HK: "Hong Kong",
+    MO: "Macao",
+    FK: "Falkland Islands (Islas Malvinas)",
+  },
+};
+
 const englishNames = new Intl.DisplayNames(["en"], { type: "region" });
 const arabicNames = new Intl.DisplayNames(["ar"], { type: "region" });
 const geographicCountries = getCountries();
+
+export function getCanonicalRegionName(iso: string, locale: string = "en"): string {
+  const lang = locale.startsWith("ar") ? "ar" : "en";
+  if (REGION_CANONICAL_OVERRIDES[lang]?.[iso]) {
+    return REGION_CANONICAL_OVERRIDES[lang][iso];
+  }
+  const displayNames = lang === "ar" ? arabicNames : englishNames;
+  try {
+    return displayNames.of(iso) ?? iso;
+  } catch {
+    return iso;
+  }
+}
 
 export function countryFlag(iso?: string | null): string {
   if (!iso) return "🌐";
@@ -31,8 +59,8 @@ export const COUNTRY_DIAL_CODES: readonly CountryDialCode[] =
   geographicCountries.map((iso) => ({
     iso,
     dialCode: `+${getCountryCallingCode(iso)}`,
-    nameEn: englishNames.of(iso) ?? iso,
-    nameAr: arabicNames.of(iso) ?? iso,
+    nameEn: getCanonicalRegionName(iso, "en"),
+    nameAr: getCanonicalRegionName(iso, "ar"),
     flag: countryFlag(iso),
   }));
 

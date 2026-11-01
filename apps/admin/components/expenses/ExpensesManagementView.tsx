@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 
 import * as React from "react";
 import Link from "next/link";
@@ -133,7 +134,7 @@ export function ExpensesManagementView({ initialExpenses, categories, totals, co
       </div>
 
       <div className="bg-surface border border-outline-variant rounded-3xl overflow-x-auto">
-        <table className="w-full text-start text-xs min-w-[860px]">
+        <DataTable className="w-full text-start text-xs min-w-[860px]">
           <thead className="bg-surface-sunken border-b border-outline-variant text-ink-muted uppercase tracking-wider">
             <tr>
               <th className="p-4 text-start">{t.expensesView.desc}</th>
@@ -196,7 +197,7 @@ export function ExpensesManagementView({ initialExpenses, categories, totals, co
               </tr>
             ))}
           </tbody>
-        </table>
+        </DataTable>
       </div>
 
       <ConfirmDialog

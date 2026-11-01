@@ -23,3 +23,4 @@ export * from "./overlay-scrollbars";
 export * from "./floating-surface";
 export * from "./phone-input";
 
+export * from "./data-table";

@@ -11,6 +11,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/_next") ||
     pathname.startsWith("/fonts") ||
     pathname.startsWith("/images") ||
+    pathname === "/opengraph-image" ||
     pathname.includes(".")
   ) {
     return NextResponse.next();

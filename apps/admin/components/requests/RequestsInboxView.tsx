@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 
 import * as React from "react";
 import Link from "next/link";
@@ -193,7 +194,7 @@ export function RequestsInboxView({
 
       <Card className="p-0 overflow-hidden rounded-2xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-start">
+          <DataTable className="w-full text-sm text-start">
             <thead className="bg-ink/5 text-[11px] uppercase text-ink-muted">
               <tr>
                 <th className="px-4 py-3 text-start">{copy.columns.reference}</th>
@@ -246,7 +247,7 @@ export function RequestsInboxView({
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
         </div>
         {pages > 1 && (
           <div className="flex items-center justify-between border-t border-outline-variant px-4 py-3 text-xs text-ink-muted">

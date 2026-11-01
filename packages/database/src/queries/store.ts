@@ -1088,6 +1088,21 @@ export async function issueOrderInvoice(orderId: string, byId: string | null) {
       : []),
   ];
   return db.$transaction(async (tx) => {
+    const signerUser = byId
+      ? await tx.user.findUnique({
+          where: { id: byId },
+          select: { id: true, signatureUrl: true },
+        })
+      : (await tx.user.findFirst({
+          where: { role: { in: ["super_admin", "admin"] }, isActive: true, signatureUrl: { not: null } },
+          select: { id: true, signatureUrl: true },
+        })) || (await tx.user.findFirst({
+          where: { role: { in: ["super_admin", "admin"] }, isActive: true },
+          select: { id: true, signatureUrl: true },
+        }));
+    const signerId = signerUser?.id ?? byId ?? null;
+    const signerSignature = signerUser?.signatureUrl ?? null;
+
     const invoiceNumber = await allocateDocumentNumber(
       "invoice",
       issueDate,
@@ -1115,6 +1130,10 @@ export async function issueOrderInvoice(orderId: string, byId: string | null) {
         approvalStatus: "approved",
         notesEn: `Order ${order.number}`,
         createdById: byId,
+        salesOwnerId: signerId,
+        signedById: signerId,
+        signedAt: issueDate,
+        signerSignatureUrl: signerSignature,
         lineItems: {
           create: lines.map((l, index) => ({ ...l, displayOrder: index + 1 })),
         },

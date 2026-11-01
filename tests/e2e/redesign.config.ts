@@ -22,13 +22,13 @@ export default defineConfig({
       testDir: "./specs/web",
       testMatch:
         /(?:redesign|site|links|store|account|payments|delivery)\.spec\.ts/,
-      use: { baseURL: "http://localhost:3102" },
+      use: { baseURL: "http://localhost:3013" },
     },
     {
       name: "admin-login",
       testDir: "./auth",
       testMatch: /admin\.setup\.ts/,
-      use: { baseURL: "http://localhost:3101" },
+      use: { baseURL: "http://localhost:3012" },
     },
     {
       name: "admin",
@@ -36,7 +36,7 @@ export default defineConfig({
       testMatch: /(?:redesign|controls-layout)\.spec\.ts/,
       dependencies: ["admin-login"],
       use: {
-        baseURL: "http://localhost:3101",
+        baseURL: "http://localhost:3012",
         storageState: "tests/.results/admin-session.json",
       },
     },

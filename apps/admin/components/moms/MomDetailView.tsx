@@ -41,6 +41,7 @@ import {
 } from "../../app/actions/mom";
 import { getSignatureModeAction } from "../../app/actions/signatures";
 import { SignatureCanvas } from "../shared/SignatureCanvas";
+import { MomContent } from "./MomContent";
 import { PageHeader } from "../layout/PageHeader";
 
 interface MomDetailViewProps {
@@ -331,8 +332,10 @@ export function MomDetailView({
         </div>
       )}
 
-      {/* Printable Master Document Sheet (Unified Concept with Invoices & Receipts) */}
-      <div className="p-2 sm:p-6 bg-surface-container rounded-3xl border border-outline-variant flex justify-center">
+      <MomContent mom={mom} />
+
+      {/* Original browser-print document. */}
+      <div className="hidden print:block">
         <div
           dir={isAr ? "rtl" : "ltr"}
           data-print-target

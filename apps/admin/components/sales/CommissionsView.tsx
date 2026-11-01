@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 import { useCompanyCurrency } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { getCurrencyLabel } from "@platform/config/currency";
@@ -83,7 +84,7 @@ export function CommissionsView({ month, rows, canRecord, canSetRates }: { month
         {rows.length === 0 ? (
           <p className="p-10 text-center text-sm text-ink-muted">{c.empty}</p>
         ) : (
-          <table className="w-full text-xs min-w-[720px]">
+          <DataTable className="w-full text-xs min-w-[720px]">
             <thead className="bg-surface-sunken text-ink-muted">
               <tr>
                 <th className="p-3 ps-5 text-start">{c.person}</th>
@@ -124,7 +125,7 @@ export function CommissionsView({ month, rows, canRecord, canSetRates }: { month
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
         )}
       </Card>
     </div>

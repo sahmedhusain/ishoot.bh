@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
@@ -114,7 +115,7 @@ export function ProductsListView({ rows, total, page, pageSize, filters, categor
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <DataTable className="w-full text-sm">
               <thead className="bg-ink/[0.03] text-xs text-ink-muted">
                 <tr>
                   {canEdit && (
@@ -163,7 +164,7 @@ export function ProductsListView({ rows, total, page, pageSize, filters, categor
                   );
                 })}
               </tbody>
-            </table>
+            </DataTable>
           </div>
         )}
         <div className="flex items-center justify-between gap-3 border-t border-outline-variant px-4 py-3 text-xs">

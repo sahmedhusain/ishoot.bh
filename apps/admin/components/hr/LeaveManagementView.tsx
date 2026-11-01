@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
@@ -309,7 +310,7 @@ export function LeaveManagementView({
       {/* Leave Requests Table */}
       <Card className="bg-surface-raised border border-outline-variant rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-start text-sm">
+          <DataTable className="w-full text-start text-sm">
             <thead>
               <tr className="border-b border-outline-variant text-xs font-mono uppercase text-ink-muted bg-surface-raised/50 dark:bg-surface-raised/30">
                 <th className="py-3 px-4">{t.shared.employee}</th>
@@ -442,7 +443,7 @@ export function LeaveManagementView({
                 })
               )}
             </tbody>
-          </table>
+          </DataTable>
         </div>
       </Card>
 

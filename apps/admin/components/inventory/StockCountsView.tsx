@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 
 import * as React from "react";
 import Link from "next/link";
@@ -115,7 +116,7 @@ export function StockCountsView({ counts, warehouses, categories, canCreate }: {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <DataTable className="w-full text-sm">
               <thead className="bg-ink/[0.03] text-xs text-ink-muted">
                 <tr>
                   <th scope="col" className="px-4 py-3 text-start font-semibold">{copy.columns.number}</th>
@@ -138,7 +139,7 @@ export function StockCountsView({ counts, warehouses, categories, canCreate }: {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
           </div>
         )}
       </Card>

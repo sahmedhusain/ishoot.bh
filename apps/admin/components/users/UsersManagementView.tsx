@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 import { PhoneInput } from "@platform/ui";
 import { ModalFooter, useConfirmation } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
@@ -297,7 +298,7 @@ export function UsersManagementView({
           )}
 
           <div className="overflow-x-auto">
-            <table className="w-full text-start text-xs">
+            <DataTable className="w-full text-start text-xs">
               <thead className="bg-surface-sunken text-ink-muted uppercase text-[11px] border-b border-outline-variant">
                 <tr>
                   {canWrite && (
@@ -457,7 +458,7 @@ export function UsersManagementView({
                   );
                 })}
               </tbody>
-            </table>
+            </DataTable>
           </div>
           {pages > 1 && (
             <nav aria-label={t.usersBulk.pages} className="p-4 border-t border-outline-variant flex items-center justify-between text-xs">

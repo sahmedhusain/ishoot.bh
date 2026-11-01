@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 
 import * as React from "react";
 import Link from "next/link";
@@ -22,11 +23,11 @@ import { PageHeader } from "../layout/PageHeader";
 
 type Row = Awaited<ReturnType<typeof listFinalSettlements>>[number];
 export const SETTLEMENT_STATUS_STYLE: Record<string, string> = {
-  draft: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
-  submitted: "bg-sky-500/10 text-sky-700 dark:text-sky-300",
-  approved: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-  paid: "bg-emerald-600 text-white",
-  rejected: "bg-rose-500/10 text-rose-700 dark:text-rose-300",
+  draft: "bg-m3-tertiary-container text-m3-on-tertiary-container",
+  submitted: "bg-m3-secondary-container text-m3-on-secondary-container",
+  approved: "bg-m3-primary-container text-m3-on-primary-container",
+  paid: "bg-m3-primary text-m3-on-primary",
+  rejected: "bg-m3-error-container text-m3-on-error-container",
   cancelled: "bg-ink/10 text-ink-muted",
 };
 const STATUSES = [
@@ -322,7 +323,7 @@ export function SettlementsListView({
         </p>
       ) : (
         <div className="overflow-x-auto rounded-3xl border border-outline-variant bg-surface-raised">
-          <table className="w-full text-sm">
+          <DataTable className="w-full text-sm">
             <thead className="bg-ink/[0.03] text-xs text-ink-muted">
               <tr>
                 <th className="px-4 py-3 text-start"><bdi dir="ltr">{f.fields.reference}</bdi></th>
@@ -376,7 +377,7 @@ export function SettlementsListView({
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
         </div>
       )}
     </div>

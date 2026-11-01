@@ -22,7 +22,7 @@ env:
   JWT_SECRET: ci-only-test-secret-with-at-least-thirty-two-characters
   REVALIDATION_SECRET: ci-only-revalidation-secret
   MFA_ENCRYPTION_KEY: ci-only-mfa-key-with-at-least-thirty-two-chars
-  ENCRYPTION_KEY: ci-only-encryption-key-with-32-characters
+  ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef"
   RESEND_API_KEY: ""
   SUPABASE_URL: ""
   SUPABASE_SERVICE_ROLE_KEY: ""
@@ -178,8 +178,8 @@ jobs:
           DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_e2e_test?schema=public
           DIRECT_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_e2e_test?schema=public
           NEXT_DIST_DIR: .next-e2e
-          NEXT_PUBLIC_WEB_URL: http://localhost:3102
-          NEXT_PUBLIC_ADMIN_URL: http://localhost:3101
+          NEXT_PUBLIC_WEB_URL: http://localhost:3013
+          NEXT_PUBLIC_ADMIN_URL: http://localhost:3012
         run: pnpm --filter @platform/admin build && pnpm --filter @platform/web build
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium

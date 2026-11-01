@@ -34,6 +34,12 @@ interface PageHeaderProps {
  * with the page's actions at the end. Copy comes from `pages.<route>` in the admin dictionaries.
  */
 export function PageHeader({ page, title, description, icon, eyebrow, meta, actions, back, leading, className }: PageHeaderProps) {
+  const headerRef = React.useRef<HTMLElement>(null);
+  React.useEffect(() => {
+    // The page's client tree has committed. DOM enhancers must not alter its
+    // streamed server markup before this point.
+    headerRef.current?.setAttribute("data-overlay-scroll-ready", "");
+  }, []);
   const pathname = usePathname();
   const { t, isRTL } = useAdminLocale();
   const key = page ?? pageKeyForPath(pathname ?? "");
@@ -45,7 +51,7 @@ export function PageHeader({ page, title, description, icon, eyebrow, meta, acti
   const BackIcon = isRTL ? ArrowRight : ArrowLeft;
 
   return (
-    <header data-page-header className={className}>
+    <header ref={headerRef} data-page-header className={className}>
       <div className="flex min-w-0 items-start gap-4">
         {back ? (
           <Link

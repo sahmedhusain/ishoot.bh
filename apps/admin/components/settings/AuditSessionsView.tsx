@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 
 import * as React from "react";
 import type { ActivityLog } from "@platform/database/types";
@@ -249,7 +250,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
 
       <Card className="bg-surface border border-outline-variant rounded-3xl overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-xs text-start">
+          <DataTable className="w-full text-xs text-start">
             <thead className="bg-surface-sunken border-b border-outline-variant text-ink-muted uppercase  tracking-wider text-[11px]">
               <tr>
                 <th className="p-4 text-start">{t.audit.userCol}</th>
@@ -314,7 +315,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
                             log.details.after &&
                             typeof log.details.before === "object" &&
                             typeof log.details.after === "object" ? (
-                            <table className="mt-3 text-xs w-full table-fixed">
+                            <DataTable className="mt-3 text-xs w-full table-fixed">
                               <thead>
                                 <tr>
                                   <th className="text-start">
@@ -388,7 +389,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
                                     </tr>
                                   ))}
                               </tbody>
-                            </table>
+                            </DataTable>
                           ) : (
                             <dl className="space-y-2 mt-2">
                               {Object.entries(log.details).map(
@@ -424,7 +425,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
                 ))
               )}
             </tbody>
-          </table>
+          </DataTable>
         </div>
       </Card>
     </div>

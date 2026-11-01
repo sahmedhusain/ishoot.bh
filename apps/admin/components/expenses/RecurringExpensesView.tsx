@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 import { useCompanyCurrency } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
@@ -178,7 +179,7 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
       {items.length ? (
         <div className="rounded-3xl border border-outline-variant bg-surface-raised overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <DataTable className="w-full text-sm">
               <thead className="bg-ink/[0.03] text-[11px] text-ink-muted">
                 <tr>
                   <th className="px-4 py-3 text-start font-semibold">{c.columns.bill}</th>
@@ -247,7 +248,7 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
           </div>
           <p className="border-t border-outline-variant px-4 py-3 text-[11px] text-ink-muted">{c.footnote}</p>
         </div>

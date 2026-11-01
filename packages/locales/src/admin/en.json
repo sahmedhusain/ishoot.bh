@@ -4059,6 +4059,8 @@
     }
   },
   "momDetail": {
+    "attended": "Attended",
+    "absent": "Absent",
     "emailAccepted": "Email provider accepted the message to {email}",
     "emailQueued": "Email queued for {email}",
     "generalInternalMeeting": "General Internal Meeting",

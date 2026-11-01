@@ -99,7 +99,7 @@ test("a phone order's shipment goes out, fails once with a reason, goes out agai
   await selectOption(page.getByLabel(t.orders.pos.fulfilment), "delivery");
   await page.getByLabel(t.orders.pos.address.line1).fill("House 1, Road 2");
   await page.getByLabel(t.orders.pos.address.city).fill("Muharraq");
-  await page.getByLabel(t.orders.pos.address.country).fill("Bahrain");
+  await page.getByLabel(t.orders.pos.address.country, { exact: true }).fill("Bahrain");
   await selectOption(page.getByTestId("sale-paid-with"), "cod");
   await page.getByTestId("sale-create").click();
   await expect(page).toHaveURL(/\/dashboard\/orders\/[0-9a-f-]{36}$/, {

@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
@@ -239,7 +240,7 @@ export function ClientsListView({
 
       <div className="rounded-3xl border border-outline-variant bg-surface-raised overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <DataTable className="w-full text-sm">
             <thead className="bg-ink/[0.03] text-[11px] text-ink-muted">
               <tr>
                 <th scope="col" className="px-4 py-3 text-start font-semibold w-20">{c.columns.rank}</th>
@@ -342,7 +343,7 @@ export function ClientsListView({
                 );
               })}
             </tbody>
-          </table>
+          </DataTable>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-outline-variant px-4 py-3 text-xs text-ink-muted">
           <span>{formatMessage(c.rankingNote, { currency: currency })}</span>

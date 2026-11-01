@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 import { useCompanyCurrency } from "@platform/ui";
 
 import { ROUTES } from "../../constants/routes";
@@ -152,7 +153,7 @@ export function InvoicesListView({
       {/* Search & Filter Toolbar + Table */}
       <div className="bg-surface-raised border border-outline-variant rounded-xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-start text-xs">
+          <DataTable className="w-full text-start text-xs">
             <thead className="bg-surface dark:bg-surface-container-low border-b border-outline-variant text-ink-muted uppercase tracking-wider text-[11px]">
               <tr>
                 <th className="p-3.5 text-start font-semibold">{t.finance.invoiceNumber}</th>
@@ -248,7 +249,7 @@ export function InvoicesListView({
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
         </div>
       </div>
     </div>

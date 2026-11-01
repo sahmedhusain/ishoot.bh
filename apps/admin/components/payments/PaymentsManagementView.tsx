@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 import { useCompanyCurrency } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
@@ -59,7 +60,7 @@ export function PaymentsManagementView({ initialPayments, totals, receiptCount, 
 
       <div className="rounded-3xl border border-outline-variant bg-surface-raised shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <DataTable className="w-full text-sm">
             <thead className="bg-surface-sunken/70 text-ink-muted">
               <tr>
                 {columns.map((label, i) => (
@@ -93,7 +94,7 @@ export function PaymentsManagementView({ initialPayments, totals, receiptCount, 
                 );
               })}
             </tbody>
-          </table>
+          </DataTable>
         </div>
         {!initialPayments.length && (
           <div className="flex flex-col items-center gap-2 px-6 py-14 text-center">

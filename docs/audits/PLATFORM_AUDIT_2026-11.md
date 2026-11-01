@@ -34,7 +34,7 @@ A review of the admin and web apps, the database and the modules. It covers perf
 | No cross-request caching in the admin: 158 pages are `force-dynamic`, and company settings, toggles and permissions are read on every request | `apps/admin/lib/cached-queries.ts` | **B1.** It waits for per-company settings, so cache keys and invalidation are designed once, keyed by company. |
 | Payroll calculation writes each employee's item and lines separately | `queries/payroll.ts` ~728 | Open. It runs once a month inside a transaction; batch it when payroll volume grows. |
 | Report exports load whole result sets into memory | `queries/reports.ts` | Open. Move them to streamed or paginated exports as data grows. |
-| Migration history does not match the schema for the `BranchGrant.userId` and `StockAllocation` foreign keys | `prisma migrate diff` | Open. This drift predates this audit. Add a migration that matches the constraints to the schema before B1. |
+| Migration history does not match the schema for the `BranchGrant.userId` and `StockAllocation` foreign keys | `prisma migrate diff` | Fixed in `de8112ed`: schema models the existing foreign keys and update rules. The continuation verified an empty database-to-schema diff on a freshly migrated test database. |
 
 ## 3. Architecture and logic gaps
 
@@ -107,7 +107,7 @@ A review of the admin and web apps, the database and the modules. It covers perf
 
 ## Roadmap
 
-The approved plan is kept outside the repo. Its order is:
+The supplied plan is preserved in `PLATFORM_ROADMAP_2026-11.md`; continuation status and review requirements are in `TRACK_A_CONTINUATION_2026-11.md`. Its order is:
 1. **A1** fixes → **A2** document pages → **A3** headers and Material 3.
 2. **B1** multi-entity foundation → **B2** access engine → **B3** grades, designations and templates → **B4** org tree.
 3. **C1–C4** projects and contracting suite.

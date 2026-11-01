@@ -933,6 +933,7 @@ export function DashboardBoard({
               variant="secondary"
               size="sm"
               onClick={() => setCustomizing(true)}
+              data-testid="dashboard-customize"
             >
               <SlidersHorizontal className="w-3.5 h-3.5" aria-hidden="true" />
               {b.customize}

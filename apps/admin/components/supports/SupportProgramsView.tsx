@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 import { useCompanyCurrency } from "@platform/ui";
 import { useConfirmation } from "@platform/ui";
 
@@ -821,7 +822,7 @@ export function SupportProgramsView({
           </p>
         ) : (
           <div className="overflow-x-auto rounded-2xl border border-outline-variant">
-            <table className="w-full text-xs">
+            <DataTable className="w-full text-xs">
               <thead className="bg-ink/[0.03] text-[11px] text-ink-muted">
                 <tr>
                   <th className="px-3 py-2 text-start">{s.fields.employee}</th>
@@ -977,7 +978,7 @@ export function SupportProgramsView({
                   </React.Fragment>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
           </div>
         )}
       </section>

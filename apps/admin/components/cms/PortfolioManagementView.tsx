@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import { ContentImage } from "../shared/ContentImage";
@@ -256,7 +257,7 @@ export function PortfolioManagementView({
       </div>
 
       <div className="bg-surface border border-outline-variant rounded-3xl overflow-x-auto shadow-sm">
-        <table className="w-full text-start text-xs">
+        <DataTable className="w-full text-start text-xs">
           <thead className="bg-surface-sunken border-b border-outline-variant text-ink-muted uppercase  tracking-wider">
             <tr>
               <th className="p-4 text-start">
@@ -335,7 +336,7 @@ export function PortfolioManagementView({
               </tr>
             ))}
           </tbody>
-        </table>
+        </DataTable>
       </div>
 
       <Modal closeLabel={t.actions.close}

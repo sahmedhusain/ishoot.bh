@@ -298,6 +298,7 @@ for (const locale of ["en", "ar"] as const) {
       .click();
 
     await page.goto("/dashboard/hr/gosi");
+    await expect(page.locator("[data-overlay-scroll-ready]")).toBeAttached();
     await page
       .getByRole("main")
       .getByRole("button", { name: t.gosi.register, exact: true })
@@ -306,7 +307,7 @@ for (const locale of ["en", "ar"] as const) {
     await dialog
       .getByLabel(t.gosi.fields.registrationNumber, { exact: true })
       .fill("E2E-REG");
-    await page.route("**/dashboard/hr/gosi", (route) =>
+    await page.route(/\/dashboard\/hr\/(?:gosi|pensions)(?:\?.*)?$/, (route) =>
       route.request().method() === "POST"
         ? route.fulfill({
             status: 500,

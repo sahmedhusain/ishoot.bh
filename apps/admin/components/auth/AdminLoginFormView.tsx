@@ -121,14 +121,14 @@ export function AdminLoginFormView(brand: AuthBrandingProps) {
               {t.loginView.emailLabel}
             </label>
             <div className="relative" dir="ltr">
-              <Mail className="pointer-events-none w-4 h-4 absolute start-3.5 top-1/2 -translate-y-1/2 text-ink-muted" />
+              <Mail className="pointer-events-none w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted" />
               <Input
                 id="login-email"
                 type="email"
                 required
                 autoComplete="email"
                 placeholder={t.loginView.emailPlaceholder}
-                className="ps-10"
+                className="pl-10 pr-3.5"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />

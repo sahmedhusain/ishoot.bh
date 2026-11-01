@@ -331,6 +331,7 @@ export function ContactForm({
                 {t("contact.phone")}
               </span>
               <PhoneInput
+                id="contact-phone"
                 name="phone"
                 autoComplete="tel"
               />

@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 import { useCompanyCurrency } from "@platform/ui";
 
 import Link from "next/link";
@@ -131,7 +132,7 @@ export function AssetsListView({ items, counts, totalValue, filters, categories,
 
       <div className="rounded-3xl border border-outline-variant bg-surface-raised overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <DataTable className="w-full text-sm">
             <thead className="bg-ink/[0.03] text-[11px] text-ink-muted">
               <tr>
                 <th className="px-4 py-3 text-start font-semibold">{a.columns.asset}</th>
@@ -164,7 +165,7 @@ export function AssetsListView({ items, counts, totalValue, filters, categories,
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
         </div>
       </div>
     </div>

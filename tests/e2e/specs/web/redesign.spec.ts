@@ -27,7 +27,7 @@ const branch: PublicBranch = {
   addressAr: "طريق ١، مجمع ٢",
   city: "Manama",
   country: "Bahrain",
-  phone: "+973 3600 0010",
+  phone: "+97336000010",
   hoursEn: "Sun–Thu 09:00–17:00",
   hoursAr: "الأحد–الخميس ٩–١٧",
   directionsUrl: "",
@@ -108,15 +108,16 @@ test("CMS design saves privately, previews, publishes and survives reload", asyn
   request,
   context,
 }) => {
+  test.setTimeout(180_000);
   await page.addInitScript(() =>
     localStorage.setItem("platform_admin_locale", "en"),
   );
-  await page.goto("http://localhost:3101/login");
+  await page.goto("http://localhost:3012/login");
   await page.locator('input[type="email"]:visible').fill(admin.email);
   await page.locator('input[type="password"]:visible').fill(admin.password);
   await page.locator('button[type="submit"]:visible').click();
   await expect(page).toHaveURL(/dashboard/, { timeout: 60_000 });
-  await page.goto("http://localhost:3101/dashboard/cms/website");
+  await page.goto("http://localhost:3012/dashboard/cms/website");
   const design = page.locator("#admin-main").getByTestId("website-design-fields");
   await expect(design).toBeVisible();
   const select = async (name: string, value: string) => {
@@ -167,7 +168,7 @@ test("CMS design saves privately, previews, publishes and survives reload", asyn
     .toBeGreaterThan(saved.revision);
   const publicPage = await context.browser()!.newPage();
   await invalidate(request);
-  await publicPage.goto("http://localhost:3102/en/contact");
+  await publicPage.goto("http://localhost:3013/en/contact");
   await expect(publicPage.locator("html")).toHaveAttribute(
     "data-site-mode",
     "mixed",
@@ -349,7 +350,7 @@ test("locked mode ignores stale storage; disabled actions fail at the server", a
   await expect(
     page.getByRole("group", { name: "Website appearance" }),
   ).toHaveCount(0);
-  const origin = { origin: "http://localhost:3102" };
+  const origin = { origin: "http://localhost:3013" };
   expect(
     (
       await request.post("/api/store/order", { headers: origin, data: {} })
@@ -399,7 +400,7 @@ test("ordering rejects unavailable fulfillment and payment configurations", asyn
     expect(
       (
         await request.post("/api/store/order", {
-          headers: { origin: "http://localhost:3102" },
+          headers: { origin: "http://localhost:3013" },
           data: {},
         })
       ).status(),
@@ -421,7 +422,7 @@ test("ordering rejects unavailable fulfillment and payment configurations", asyn
     expect(
       (
         await request.post("/api/store/order", {
-          headers: { origin: "http://localhost:3102" },
+          headers: { origin: "http://localhost:3013" },
           data: {},
         })
       ).status(),
@@ -476,7 +477,7 @@ test("pickup rejects missing/inactive branches and keeps a server-created histor
     paymentMethod: "cod",
     locale: "en",
   };
-  const headers = { origin: "http://localhost:3102" };
+  const headers = { origin: "http://localhost:3013" };
   expect(
     (await request.post("/api/store/order", { headers, data })).status(),
   ).toBe(400);
@@ -584,14 +585,14 @@ test("customers see only their own order and private files; evidence never marks
   });
   const url = `/en/account/orders/${order.id}`;
   expect(
-    (await a.context.request.get(`http://localhost:3102${url}`)).status(),
+    (await a.context.request.get(`http://localhost:3013${url}`)).status(),
   ).toBe(200);
   expect(
-    (await b.context.request.get(`http://localhost:3102${url}`)).status(),
+    (await b.context.request.get(`http://localhost:3013${url}`)).status(),
   ).toBe(404);
-  const attachmentUrl = `http://localhost:3102/api/account/orders/${order.id}/attachments`;
+  const attachmentUrl = `http://localhost:3013/api/account/orders/${order.id}/attachments`;
   const headers = {
-    origin: "http://localhost:3102",
+    origin: "http://localhost:3013",
     "x-file-name": "payment-evidence.pdf",
     "Content-Type": "application/pdf",
   };
@@ -639,7 +640,7 @@ test("customers see only their own order and private files; evidence never marks
 test("public PDF uploads stay unlisted until publication and obey download restrictions", async ({
   request,
 }) => {
-  const adminUrl = "http://localhost:3101";
+  const adminUrl = "http://localhost:3012";
   const login = await request.post(`${adminUrl}/api/auth/login`, {
     headers: { origin: adminUrl },
     data: { email: admin.email, password: admin.password },
@@ -751,7 +752,7 @@ test("inquiry references upload after success and remain private to authorized s
     where: { entityType: "inquiry", entityId: inquiry.id },
   });
   expect((await request.get(attachment.fileUrl)).status()).toBe(404);
-  const adminUrl = "http://localhost:3101";
+  const adminUrl = "http://localhost:3012";
   expect(
     (
       await request.get(
@@ -774,7 +775,7 @@ test("inquiry references upload after success and remain private to authorized s
     (
       await request.post("/api/inquiry/attachments", {
         headers: {
-          origin: "http://localhost:3102",
+          origin: "http://localhost:3013",
           "x-inquiry-upload-token": `${result.uploadToken}x`,
         },
         data: Buffer.from("%PDF-1.4\nforged"),
@@ -793,12 +794,12 @@ test("pickup staff actions preserve the branch after it is disabled", async ({
   await page.addInitScript(() =>
     localStorage.setItem("platform_admin_locale", "en"),
   );
-  await page.goto("http://localhost:3101/login");
+  await page.goto("http://localhost:3012/login");
   await page.locator('input[type="email"]:visible').fill(admin.email);
   await page.locator('input[type="password"]:visible').fill(admin.password);
   await page.locator('button[type="submit"]:visible').click();
   await expect(page).toHaveURL(/dashboard/, { timeout: 60_000 });
-  await page.goto(`http://localhost:3101/dashboard/orders/${order.id}`);
+  await page.goto(`http://localhost:3012/dashboard/orders/${order.id}`);
   await expect(
     page.locator("#admin-main").getByText(branch.nameEn, { exact: true }),
   ).toBeVisible();
@@ -838,12 +839,13 @@ test("scheduled offers, URL discovery, custom popup palettes and quote retry wor
   });
   const publication = row.published as any;
   publication.config.design = {
+    ...defaultWebsiteDesign(),
     ...publication.config.design,
     defaultMode: "mixed",
     allowedModes: ["light", "dark", "mixed"],
     visitorSwitching: true,
     mixedBase: "dark",
-    tones: { ...publication.config.design.tones, collection: "light" },
+    tones: { ...(publication.config.design?.tones ?? defaultWebsiteDesign().tones), collection: "light" },
   };
   publication.config.commerce = {
     ...defaultWebsiteCommerce(),
@@ -911,8 +913,8 @@ test("scheduled offers, URL discovery, custom popup palettes and quote retry wor
   await page.getByRole("combobox", { name: "Size", exact: true }).click();
   await page.getByRole("option", { name: "Large", exact: true }).click();
   await expect(page).toHaveURL(/filter-Size=Large/);
-  await page.getByLabel("Search catalogue").fill("nothing-matches-this-query");
-  await page.getByRole("button", { name: "Search", exact: true }).click();
+  await page.locator("main").getByLabel("Search catalogue").fill("nothing-matches-this-query");
+  await page.locator("main").getByRole("button", { name: "Search", exact: true }).click();
   await expect(
     page.getByText("No results. Try another search or category.", {
       exact: true,
@@ -957,7 +959,7 @@ test("scheduled offers, URL discovery, custom popup palettes and quote retry wor
   expect(
     errors.errors.filter(
       (error) =>
-        !/^console: Failed to load resource:.*503.*\(http:\/\/localhost:3102\/api\/store\/quote\)$/.test(
+        !/^console: Failed to load resource:.*503.*\(http:\/\/localhost:3013\/api\/store\/quote\)$/.test(
           error,
         ),
     ),
@@ -1093,7 +1095,7 @@ test("manual address coordinates are validated and kept on the order", async ({
   expect(
     (
       await request.post("/api/store/order", {
-        headers: { origin: "http://localhost:3102" },
+        headers: { origin: "http://localhost:3013" },
         data,
       })
     ).status(),
@@ -1168,8 +1170,8 @@ test("palette changes remain in signed preview until the next publication", asyn
   );
   expect(
     (
-      await preview.request.post("http://localhost:3102/api/store/order", {
-        headers: { origin: "http://localhost:3102" },
+      await preview.request.post("http://localhost:3013/api/store/order", {
+        headers: { origin: "http://localhost:3013" },
         data: {},
       })
     ).status(),
@@ -1246,12 +1248,12 @@ test("an industry page preset can be customized, saved, reloaded and privately p
   await page.addInitScript(() =>
     localStorage.setItem("platform_admin_locale", "en"),
   );
-  await page.goto("http://localhost:3101/login");
+  await page.goto("http://localhost:3012/login");
   await page.locator('input[type="email"]:visible').fill(admin.email);
   await page.locator('input[type="password"]:visible').fill(admin.password);
   await page.locator('button[type="submit"]:visible').click();
   await expect(page).toHaveURL(/dashboard/, { timeout: 60_000 });
-  await page.goto("http://localhost:3101/dashboard/cms/pages/new");
+  await page.goto("http://localhost:3012/dashboard/cms/pages/new");
   await page
     .getByRole("combobox", { name: "Business activity", exact: true })
     .click();

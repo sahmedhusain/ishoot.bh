@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 
 import * as React from "react";
 import Link from "next/link";
@@ -97,7 +98,7 @@ export function InventoryStockView({ rows, total, page, pageSize, totalValue, fi
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm" data-testid="stock-table">
+            <DataTable className="w-full text-sm" data-testid="stock-table">
               <thead className="bg-ink/[0.03] text-xs text-ink-muted">
                 <tr>
                   <th scope="col" className="px-4 py-3 text-start font-semibold">{copy.columns.item}</th>
@@ -145,7 +146,7 @@ export function InventoryStockView({ rows, total, page, pageSize, totalValue, fi
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
           </div>
         )}
         <div className="flex items-center justify-between gap-3 border-t border-outline-variant px-4 py-3 text-xs">

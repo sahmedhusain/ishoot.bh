@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { COUNTRY_DIAL_CODES, countryFlag, countryIso, formatPhoneE164, isValidPhone, splitPhoneNumber } from "@platform/config/phone";
+import { COUNTRY_DIAL_CODES, countryFlag, countryIso, formatPhoneE164, getCanonicalRegionName, isValidPhone, splitPhoneNumber } from "@platform/config/phone";
 import { cn } from "./utils";
 import { Select } from "./select";
 import { useCurrencyLocale } from "./currency-display";
@@ -31,11 +31,10 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(fu
   const copy = useUiCopy();
   const locale = useCurrencyLocale();
   const countries = React.useMemo(() => {
-    const names = new Intl.DisplayNames([locale], { type: "region" });
     return COUNTRY_DIAL_CODES.map((country) => ({
       ...country,
       flag: country.flag || countryFlag(country.iso),
-      label: names.of(country.iso) ?? country.iso,
+      label: getCanonicalRegionName(country.iso, locale),
     })).sort((a, b) => a.label.localeCompare(b.label, locale));
   }, [locale]);
   const options = React.useMemo(
@@ -91,6 +90,7 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(fu
       data-testid={testId}
     >
       <Select
+        id={id ? `${id}-country` : (name ? `${name}-country` : undefined)}
         aria-label={copy.countryCode}
         value={entry.iso}
         required={required || !!entry.national}
@@ -106,6 +106,7 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(fu
       </Select>
       <input
         {...props}
+        name={name}
         ref={input}
         id={id}
         data-ui="text-field"
@@ -126,7 +127,7 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(fu
           else update({ ...entry, national: raw.replace(/[\u0660-\u0669]/g, (digit) => String(digit.charCodeAt(0) - 1632)).replace(/[\u06F0-\u06F9]/g, (digit) => String(digit.charCodeAt(0) - 1776)).replace(/\D/g, "") });
         }}
       />
-      {name && <input type="hidden" name={name} value={combined} disabled={disabled} />}
+      {name && <input type="hidden" data-phone-combined name={`${name}_full`} value={combined} disabled={disabled} />}
     </div>
   );
 });

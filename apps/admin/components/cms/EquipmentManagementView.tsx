@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 
 import * as React from "react";
 import type { StudioEquipment } from "@platform/database/types";
@@ -136,7 +137,7 @@ export function EquipmentManagementView({
       </div>
 
       <div className="bg-surface border border-outline-variant rounded-3xl overflow-x-auto shadow-sm">
-        <table className="w-full text-start text-xs">
+        <DataTable className="w-full text-start text-xs">
           <thead className="bg-surface-sunken border-b border-outline-variant text-ink-muted uppercase  tracking-wider">
             <tr>
               <th className="p-4 text-start">{t.equipmentView.category}</th>
@@ -193,7 +194,7 @@ export function EquipmentManagementView({
               </tr>
             ))}
           </tbody>
-        </table>
+        </DataTable>
       </div>
 
       <Modal closeLabel={t.actions.close}

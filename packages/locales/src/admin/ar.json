@@ -4059,6 +4059,8 @@
     }
   },
   "momDetail": {
+    "attended": "حاضر",
+    "absent": "غائب",
     "emailAccepted": "قبل مزود البريد الرسالة إلى {email}",
     "emailQueued": "تمت إضافة البريد إلى قائمة الإرسال إلى {email}",
     "generalInternalMeeting": "غير محدد",
