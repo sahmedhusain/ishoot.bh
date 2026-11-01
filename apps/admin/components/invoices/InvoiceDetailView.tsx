@@ -6,21 +6,44 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Invoice, CompanySettings, Payment } from "@platform/database/types";
+import { formatMessage } from "@platform/locales";
 import { InvoiceTemplate } from "./InvoiceTemplate";
-import { DeliveryToolbar } from "../shared/DeliveryToolbar";
 import { PaymentRecorder } from "../payments/PaymentRecorder";
-import { Button, Card, StatusBadge, CurrencyDisplay } from "@platform/ui";
-import { ArrowLeft, ArrowRight, CreditCard, Pencil, Receipt, Send } from "lucide-react";
+import { Button, formatDate } from "@platform/ui";
+import {
+  AlertCircle,
+  Briefcase,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  Coins,
+  CreditCard,
+  FileText,
+  Pencil,
+  Receipt,
+  Send,
+  XCircle,
+} from "lucide-react";
 import { toast } from "sonner";
 import { usePermissions } from "../../hooks/usePermissions";
 import { markInvoiceSentAction } from "../../app/actions/finance";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { DocumentDetailHeader, DocumentHeaderChip } from "../documents/DocumentDetailHeader";
+import { DocumentStatusBanner, type DocumentStatusMeta } from "../documents/DocumentStatusBanner";
+import { DocumentLinesCard } from "../documents/DocumentLinesCard";
+import { DocumentTotals } from "../documents/DocumentTotals";
+import { DocumentCard, DocumentBilingualText } from "../documents/DocumentCard";
+import { DocumentInfoCard, DocumentPartyDetails } from "../documents/DocumentInfoCard";
+import { DocumentShareMenu } from "../documents/DocumentShareMenu";
+import { paymentMethodLabel } from "../documents/payment-method";
 
 interface InvoiceDetailViewProps {
   invoice: Invoice;
   company: CompanySettings;
   payments: Payment[];
   signing?: { signatureUrl: string | null; signerName: string } | null;
+  quotation?: { id: string; quotationNumber: string } | null;
+  deal?: { id: string; title: string } | null;
 }
 
 export function InvoiceDetailView({
@@ -28,13 +51,19 @@ export function InvoiceDetailView({
   company,
   payments,
   signing = null,
+  quotation = null,
+  deal = null,
 }: InvoiceDetailViewProps) {
   const router = useRouter();
-  const { t, isRTL } = useAdminLocale();
+  const { t, locale } = useAdminLocale();
   const { can } = usePermissions();
   const canWrite = can("invoices", "write");
+  const canExport = can("invoices", "export");
   const canRecordPayment = can("payments", "create");
+  const canReadPayments = can("payments", "read");
   const [busy, setBusy] = React.useState(false);
+  const [recordModalOpen, setRecordModalOpen] = React.useState(false);
+  const dT = t.documentDetail;
 
   const handleMarkSent = async () => {
     setBusy(true);
@@ -48,146 +77,229 @@ export function InvoiceDetailView({
       setBusy(false);
     }
   };
-  const [recordModalOpen, setRecordModalOpen] = React.useState(false);
 
   const clientName =
     invoice.contact?.company ||
     invoice.contact?.full_name ||
     t.invoice.clientFallback;
-  const BackIcon = isRTL ? ArrowRight : ArrowLeft;
+  const money = (value: number) => `${value.toFixed(3)} ${invoice.currency}`;
+  const isOpen = invoice.status !== "draft" && invoice.status !== "void";
+  // Payments arrive newest first; the latest one is what settled a paid invoice.
+  const paidOn = invoice.status === "paid" ? payments[0]?.payment_date : undefined;
 
-  const handlePaymentSuccess = () => {
-    router.refresh();
+  const statusMeta: Record<string, DocumentStatusMeta> = {
+    draft: { label: t.statusLabels.draft, color: "bg-m3-surface-container-highest text-m3-on-surface-variant", icon: Clock },
+    sent: { label: t.statusLabels.sent, color: "bg-m3-secondary-container text-m3-on-secondary-container", icon: Send },
+    partially_paid: { label: t.statusLabels.partially_paid, color: "bg-m3-tertiary-container text-m3-on-tertiary-container", icon: Coins },
+    paid: { label: t.statusLabels.paid, color: "bg-m3-primary-container text-m3-on-primary-container", icon: CheckCircle2 },
+    overdue: { label: t.statusLabels.overdue, color: "bg-m3-error-container text-m3-on-error-container", icon: AlertCircle },
+    void: { label: t.statusLabels.void, color: "bg-m3-surface-container-highest text-m3-on-surface-variant", icon: XCircle },
   };
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-20">
-      <div
-        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print"
-        data-topbar="true"
-      >
-        <div data-page-header>
-          <Link
-            href={ROUTES.invoices.list}
-            className="inline-flex items-center gap-2 text-xs text-ink-muted hover:text-accent transition-colors mb-2 font-medium"
-          >
-            <BackIcon className="w-4 h-4" />
-            <span>{t.actions.backToInvoices}</span>
-          </Link>
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink dark:text-ink font-display">
-              {invoice.invoice_number}
-            </h1>
-            <StatusBadge status={invoice.status} />
-            {invoice.contact_id && (
-              <Link
-                href={ROUTES.crm.customer(invoice.contact_id)}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-tone-95 text-primary dark:bg-tone-15 dark:text-mint border border-accent/30 hover:underline transition-colors"
-                title={t.invoiceDetail.viewClient360Dossier}
-              >
-                <span>{t.copy.clientLabel}{clientName}</span>
-                <span className="text-[10px] opacity-70">↗</span>
-              </Link>
+    <>
+      <div className="max-w-6xl mx-auto space-y-8 pb-16 print:hidden">
+        <DocumentDetailHeader
+          backHref={ROUTES.invoices.list}
+          backLabel={t.actions.backToInvoices}
+          eyebrow={dT.invoiceEyebrow}
+          chips={signing && <DocumentHeaderChip>{t.signing.signedStamped}</DocumentHeaderChip>}
+          number={invoice.invoice_number}
+          pdf={{ type: "invoice", id: invoice.id, number: invoice.invoice_number, canDownload: canExport }}
+          actions={
+            <>
+              {invoice.status === "draft" && canWrite && (
+                <Button variant="primary" size="sm" onClick={handleMarkSent} disabled={busy} title={t.invoiceLifecycle.markSentHint} className="gap-2">
+                  <Send className="w-4 h-4" />
+                  <span>{t.invoiceLifecycle.markSent}</span>
+                </Button>
+              )}
+              {/* Invoices with payments are locked; corrections go through a credit adjustment. */}
+              {invoice.status !== "void" && invoice.amount_paid === 0 && canWrite && (
+                <Link href={ROUTES.invoices.edit(invoice.id)}>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Pencil className="w-4 h-4" />
+                    <span>{t.actions.edit}</span>
+                  </Button>
+                </Link>
+              )}
+              <DocumentShareMenu
+                documentType="invoice"
+                documentNumber={invoice.invoice_number}
+                companyName={company?.company_name_en || ""}
+                clientName={clientName}
+                clientEmail={invoice.contact?.email}
+                clientPhone={invoice.contact?.phone}
+                amountFormatted={money(invoice.total_amount)}
+                signed={!!signing}
+              />
+              {invoice.amount_due > 0 && isOpen && canRecordPayment && (
+                <Button variant="primary" size="sm" onClick={() => setRecordModalOpen(true)} className="gap-2">
+                  <CreditCard className="w-4 h-4" />
+                  <span>{t.finance.recordPayment}</span>
+                </Button>
+              )}
+            </>
+          }
+        />
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            <DocumentStatusBanner status={invoice.status} statusMeta={statusMeta} fallback="draft" caption={t.finance.status}>
+              {invoice.status === "draft" ? (
+                <span className="text-xs text-ink-muted max-w-xs">{t.invoiceLifecycle.draftNoPayments}</span>
+              ) : (
+                isOpen && invoice.amount_due > 0 && (
+                  <span
+                    className={`text-xs font-mono px-2.5 py-1 rounded-md ${invoice.status === "overdue" ? "bg-m3-error-container text-m3-on-error-container" : "bg-surface-sunken text-ink"}`}
+                  >
+                    {formatMessage(dT.balanceDueChip, { amount: money(invoice.amount_due) })}
+                  </span>
+                )
+              )}
+            </DocumentStatusBanner>
+
+            <DocumentLinesCard
+              title={dT.invoiceLines}
+              currency={invoice.currency}
+              lines={(invoice.line_items ?? []).map((item) => ({
+                id: item.id,
+                descriptionEn: item.description_en,
+                descriptionAr: item.description_ar,
+                quantity: item.quantity,
+                unitPrice: item.unit_price,
+                lineTotal: item.line_total,
+              }))}
+            >
+              <DocumentTotals
+                currency={invoice.currency}
+                subtotal={invoice.subtotal}
+                discount={{
+                  amount: invoice.discount_amount,
+                  label: invoice.discount_type === "percentage" ? `${t.finance.discount} (${invoice.discount_value}%)` : t.finance.discount,
+                }}
+                vat={invoice.vat_enabled ? { percentage: invoice.vat_percentage, amount: invoice.vat_amount } : null}
+                taxes={invoice.other_taxes ?? []}
+                total={invoice.total_amount}
+                paid={invoice.amount_paid}
+                balance={invoice.amount_due}
+              />
+            </DocumentLinesCard>
+
+            <DocumentCard title={dT.notesTitle}>
+              <DocumentBilingualText
+                en={{ label: dT.englishNotes, text: invoice.notes_en, empty: dT.noEnglishNotes }}
+                ar={{ label: dT.arabicNotes, text: invoice.notes_ar, empty: dT.noArabicNotes }}
+              />
+            </DocumentCard>
+
+            {canReadPayments && (
+              <DocumentCard title={dT.paymentsReceived} icon={Receipt}>
+                {payments.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-start text-sm">
+                      <thead>
+                        <tr className="border-b border-outline-variant text-xs font-mono uppercase text-ink-muted">
+                          <th className="py-2.5 px-3 text-start">{t.finance.receiptNumber}</th>
+                          <th className="py-2.5 px-3 text-start">{t.finance.paymentDate}</th>
+                          <th className="py-2.5 px-3 text-start">{t.finance.paymentMethod}</th>
+                          <th className="py-2.5 px-3 text-end">{dT.amount} ({invoice.currency})</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-outline-variant">
+                        {payments.map((payment) => (
+                          <tr key={payment.id} className="hover:bg-surface-raised/50">
+                            <td className="py-3 px-3">
+                              <Link
+                                href={ROUTES.payments.detail(payment.id)}
+                                className="font-mono font-semibold text-accent hover:underline"
+                                title={t.invoiceDetail.viewOfficialReceipt}
+                              >
+                                <bdi dir="ltr">{payment.receipt_number}</bdi>
+                              </Link>
+                            </td>
+                            <td className="py-3 px-3 font-mono text-xs text-ink-muted">{formatDate(payment.payment_date, locale, "long")}</td>
+                            <td className="py-3 px-3 text-xs text-ink">{paymentMethodLabel(payment.payment_method, t)}</td>
+                            <td className="py-3 px-3 text-end font-mono font-semibold text-ink">{payment.amount.toFixed(3)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-xs text-ink-muted">{dT.noPayments}</p>
+                )}
+              </DocumentCard>
             )}
           </div>
-        </div>
 
-        <div className="flex items-center gap-3">
-          {invoice.status === "draft" && canWrite && (
-            <Button variant="primary" size="sm" onClick={handleMarkSent} disabled={busy} title={t.invoiceLifecycle.markSentHint} className="gap-1.5">
-              <Send className="w-3.5 h-3.5" />
-              <span>{t.invoiceLifecycle.markSent}</span>
-            </Button>
-          )}
-          {/* Invoices with payments are locked; corrections go through a credit adjustment. */}
-          {invoice.status !== "void" && invoice.amount_paid === 0 && canWrite && (
-            <Link href={ROUTES.invoices.edit(invoice.id)}>
-              <Button variant="outline" size="sm" className="gap-1.5">
-                <Pencil className="w-3.5 h-3.5" />
-                <span>{t.actions.edit}</span>
-              </Button>
-            </Link>
-          )}
-          {invoice.amount_due > 0 && invoice.status !== "draft" && invoice.status !== "void" && canRecordPayment && (
-            <Button
-              variant="primary"
-              size="md"
-              onClick={() => setRecordModalOpen(true)}
-              className="gap-2 shadow-lg shadow-accent/20"
+          <div className="space-y-6">
+            <DocumentInfoCard title={t.finance.client}>
+              <DocumentPartyDetails
+                name={clientName}
+                href={invoice.contact_id ? ROUTES.crm.customer(invoice.contact_id) : undefined}
+                lines={[
+                  invoice.contact?.email && <><bdi dir="ltr">{t.quotationDetail.email}</bdi>: <bdi dir="ltr">{invoice.contact.email}</bdi></>,
+                  invoice.contact?.phone && <><bdi dir="ltr">{t.quotationDetail.phone}</bdi>: <bdi dir="ltr">{invoice.contact.phone}</bdi></>,
+                ].filter(Boolean)}
+              />
+            </DocumentInfoCard>
+
+            <DocumentInfoCard
+              title={t.quotationDetail.documentLifecycle}
+              rows={[
+                { label: t.finance.issueDate, icon: Calendar, value: formatDate(invoice.issue_date, locale, "long") },
+                { label: t.finance.dueDate, icon: Calendar, value: formatDate(invoice.due_date, locale, "long") },
+                { label: dT.sentOn, icon: Send, value: invoice.delivered_at ? formatDate(invoice.delivered_at, locale, "long") : dT.notYet },
+                { label: dT.paidOn, icon: CheckCircle2, value: paidOn ? formatDate(paidOn, locale, "long") : dT.notYet },
+              ]}
+            />
+
+            <DocumentInfoCard
+              title={dT.linksTitle}
+              rows={[
+                ...(quotation
+                  ? [{
+                      label: t.invoiceLifecycle.fromQuotation,
+                      icon: FileText,
+                      value: (
+                        <Link href={ROUTES.quotations.detail(quotation.id)} className="text-accent hover:underline">
+                          <bdi dir="ltr">{quotation.quotationNumber}</bdi>
+                        </Link>
+                      ),
+                    }]
+                  : []),
+                ...(deal
+                  ? [{
+                      label: t.invoiceLifecycle.forDeal,
+                      icon: Briefcase,
+                      mono: false,
+                      value: (
+                        <Link href={ROUTES.crm.deal(deal.id)} className="text-accent hover:underline">
+                          <bdi dir="auto">{deal.title}</bdi>
+                        </Link>
+                      ),
+                    }]
+                  : []),
+              ]}
             >
-              <CreditCard className="w-4 h-4" />
-              <span>{t.finance.recordPayment}</span>
-            </Button>
-          )}
+              {!quotation && !deal && <p className="text-xs text-ink-muted">{dT.noLinks}</p>}
+            </DocumentInfoCard>
+          </div>
         </div>
       </div>
 
-      <div className="no-print" data-delivery-toolbar="true">
-        <DeliveryToolbar
-          signed={!!signing}
-          companyName={company?.company_name_en || ""}
-          documentType="invoice"
-          documentNumber={invoice.invoice_number}
-          clientName={clientName}
-          clientEmail={invoice.contact?.email}
-          clientPhone={invoice.contact?.phone}
-          amountFormatted={`${invoice.total_amount.toFixed(3)} ${invoice.currency}`}
-        />
-      </div>
-
-      <div className="p-2 sm:p-6 bg-surface-sunken/70 dark:bg-surface-sunken rounded-3xl border border-outline-variant/80 dark:border-white/10 shadow-sm flex justify-center">
+      {/* The paper invoice only appears when the browser prints this page. */}
+      <div className="hidden print:block">
         <InvoiceTemplate invoice={invoice} company={company} signing={signing} />
       </div>
-
-      {payments.length > 0 && (
-        <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant/80 dark:border-white/10 rounded-2xl space-y-4 no-print shadow-sm">
-          <div className="flex items-center gap-2 text-sm font-bold text-ink dark:text-ink uppercase tracking-wider">
-            <Receipt className="w-4 h-4 text-accent" />
-            <span>{t.actions.associatedReceipts}</span>
-          </div>
-
-          <div className="divide-y divide-outline-variant dark:divide-white/5">
-            {payments.map((p) => (
-              <div
-                key={p.id}
-                className="py-3 flex items-center justify-between text-xs"
-              >
-                <div>
-                  <Link
-                    href={ROUTES.payments.detail(p.id)}
-                    className=" font-bold text-accent hover:underline inline-flex items-center gap-1 group"
-                    title={t.invoiceDetail.viewOfficialReceipt}
-                  >
-                    <span>{p.receipt_number}</span>
-                    <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">
-                      ↗
-                    </span>
-                  </Link>
-                  <div className="text-ink-muted dark:text-ink-muted text-[11px] mt-0.5">
-                    {p.payment_date} • {p.payment_method.replace("_", " ")}
-                  </div>
-                </div>
-
-                <div className="text-end">
-                  <div className=" font-bold text-ink dark:text-ink">
-                    <CurrencyDisplay amount={p.amount} currency={p.currency} />
-                  </div>
-                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 ">
-                    {t.finance.reconciled}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
 
       <PaymentRecorder
         isOpen={recordModalOpen}
         onClose={() => setRecordModalOpen(false)}
         invoice={invoice}
-        onSuccess={handlePaymentSuccess}
+        onSuccess={() => router.refresh()}
       />
-    </div>
+    </>
   );
 }

@@ -8,15 +8,14 @@ import { createAttachmentAction } from "../../app/actions/attachments";
 import * as React from "react";
 import Link from "next/link";
 import type { Payment, CompanySettings } from "@platform/database/types";
+import { formatMessage } from "@platform/locales";
+import { formatDate } from "@platform/ui";
 import { ReceiptTemplate } from "./ReceiptTemplate";
-import { DeliveryToolbar } from "../shared/DeliveryToolbar";
-import { Button } from "@platform/ui";
 import {
-  ArrowLeft,
-  ArrowRight,
-  Receipt,
+  Calendar,
+  CheckCircle2,
+  Coins,
   FileText,
-  User,
   ExternalLink,
   ShieldCheck,
   FileCheck,
@@ -24,10 +23,17 @@ import {
   UploadCloud,
   Loader2,
   Landmark,
+  PenLine,
+  XCircle,
 } from "lucide-react";
-import { printDocumentPdf } from "../../lib/pdf-print";
-import { toast } from "sonner";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { usePermissions } from "../../hooks/usePermissions";
+import { DocumentDetailHeader, DocumentHeaderChip } from "../documents/DocumentDetailHeader";
+import { DocumentStatusBanner, type DocumentStatusMeta } from "../documents/DocumentStatusBanner";
+import { DocumentCard } from "../documents/DocumentCard";
+import { DocumentInfoCard, DocumentPartyDetails } from "../documents/DocumentInfoCard";
+import { DocumentShareMenu } from "../documents/DocumentShareMenu";
+import { paymentMethodLabel } from "../documents/payment-method";
 
 interface PaymentDetailViewProps {
   payment: Payment;
@@ -40,12 +46,14 @@ export function PaymentDetailView({
   company,
   signing = null,
 }: PaymentDetailViewProps) {
-  const { t, isRTL, locale } = useAdminLocale();
-  const BackIcon = isRTL ? ArrowRight : ArrowLeft;
+  const { t, locale } = useAdminLocale();
+  const { can } = usePermissions();
+  const canExport = can("payments", "export");
   const [payment, setPayment] = React.useState<Payment>(initialPayment);
   const [uploadError, setUploadError] = React.useState("");
   const [uploading, setUploading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const dT = t.documentDetail;
 
   const attachments = payment.proof_attachments || [];
 
@@ -94,243 +102,290 @@ export function PaymentDetailView({
     invoice?.contact?.full_name ||
     invoice?.contact_name ||
     t.paymentDetail.clientUnavailable;
+  const money = (value: number) => `${value.toFixed(3)} ${payment.currency}`;
+  const methodLabel = paymentMethodLabel(payment.payment_method, t);
+
+  const status = invoice?.status === "void" ? "void" : invoice && invoice.amount_due > 0 ? "partial" : "settled";
+  const statusMeta: Record<string, DocumentStatusMeta> = {
+    settled: { label: dT.settled, color: "bg-m3-primary-container text-m3-on-primary-container", icon: CheckCircle2 },
+    partial: { label: dT.partial, color: "bg-m3-tertiary-container text-m3-on-tertiary-container", icon: Coins },
+    void: { label: t.invoiceLifecycle.voided, color: "bg-m3-surface-container-highest text-m3-on-surface-variant", icon: XCircle },
+  };
+
+  const detailRows = [
+    { label: t.finance.paymentMethod, value: methodLabel },
+    { label: t.finance.referenceNumber, value: payment.reference_number ? <bdi dir="ltr">{payment.reference_number}</bdi> : dT.noReference, mono: true },
+    { label: t.finance.paymentDate, value: formatDate(payment.payment_date, locale, "long"), mono: true },
+    { label: dT.amount, value: money(payment.amount), mono: true },
+  ];
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-20">
-      <div
-        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print"
-        data-topbar="true"
-      >
-        <div>
-          <Link
-            href={ROUTES.payments.list}
-            className="inline-flex items-center gap-2 text-xs text-ink-muted hover:text-accent dark:text-ink-muted dark:hover:text-accent transition-colors mb-2 font-medium"
-          >
-            <BackIcon className="w-4 h-4" />
-            <span>{t.paymentDetailView.back}</span>
-          </Link>
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink dark:text-ink font-display flex items-center gap-2">
-              <Receipt className="w-6 h-6 text-accent" />
-              <span>{payment.receipt_number}</span>
-            </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-              {t.paymentDetailView.verifiedPayment}
-            </span>
-
-            {invoice && (
-              <Link
-                href={ROUTES.invoices.detail(invoice.id)}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-surface-sunken dark:bg-surface-raised text-ink dark:text-ink hover:text-accent border border-outline-variant dark:border-outline-variant transition-colors"
-                title={t.paymentDetail.viewLinkedInvoice}
-              >
-                <FileText className="w-3.5 h-3.5" />
-                <span>
-                  {t.paymentDetailView.invoice}: {invoice.invoice_number}
-                </span>
-                <span className="text-[10px] opacity-70">↗</span>
-              </Link>
-            )}
-
-            {invoice?.contact_id && (
-              <Link
-                href={ROUTES.crm.customer(invoice.contact_id)}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-tone-95 text-primary dark:bg-tone-15 dark:text-mint border border-accent/30 hover:underline transition-colors"
-                title={t.paymentDetail.viewClientDossierInCrm}
-              >
-                <User className="w-3.5 h-3.5" />
-                <span>
-                  {t.paymentDetailView.client}: {clientName}
-                </span>
-                <span className="text-[10px] opacity-70">↗</span>
-              </Link>
-            )}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              printDocumentPdf("receipt", payment.receipt_number, locale).catch(
-                () => toast.error(t.pdfActions.failed),
-              )
-            }
-            className="gap-2 text-xs font-semibold"
-          >
-            <span>{t.paymentDetailView.printReceipt}</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* Delivery & Share Toolbar */}
-      <div className="no-print" data-delivery-toolbar="true">
-        <DeliveryToolbar
-          signed={!!signing}
-          companyName={company?.company_name_en || ""}
-          documentType="receipt"
-          documentNumber={payment.receipt_number}
-          clientName={clientName}
-          clientEmail={invoice?.contact?.email}
-          clientPhone={invoice?.contact?.phone}
-          amountFormatted={`${payment.amount.toFixed(3)} ${payment.currency}`}
+    <>
+      <div className="max-w-6xl mx-auto space-y-8 pb-16 print:hidden">
+        <DocumentDetailHeader
+          backHref={ROUTES.payments.list}
+          backLabel={t.paymentDetailView.back}
+          eyebrow={dT.receiptEyebrow}
+          chips={
+            <>
+              <DocumentHeaderChip>{methodLabel}</DocumentHeaderChip>
+              {signing && <DocumentHeaderChip>{t.signing.signedStamped}</DocumentHeaderChip>}
+            </>
+          }
+          number={payment.receipt_number}
+          pdf={{ type: "receipt", id: payment.id, number: payment.receipt_number, canDownload: canExport }}
+          actions={
+            <DocumentShareMenu
+              documentType="receipt"
+              documentNumber={payment.receipt_number}
+              companyName={company?.company_name_en || ""}
+              clientName={clientName}
+              clientEmail={invoice?.contact?.email}
+              clientPhone={invoice?.contact?.phone}
+              amountFormatted={money(payment.amount)}
+              signed={!!signing}
+            />
+          }
         />
-      </div>
 
-      {/* Attached Documents & Archive Integration (Screen Only) */}
-      <div className="no-print bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-outline-variant rounded-2xl p-5 shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-primary/10 text-primary dark:text-mint">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-xs font-bold text-ink dark:text-ink uppercase tracking-wider">
-                {t.paymentDetailView.settlementVaultTitle}
-              </h2>
-              <p className="text-[11px] text-ink-muted dark:text-ink-muted">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            <DocumentStatusBanner status={status} statusMeta={statusMeta} fallback="settled" caption={dT.receiptStatus}>
+              <span className="text-xs font-mono px-2.5 py-1 rounded-md bg-surface-sunken text-ink">
+                {money(payment.amount)}
+              </span>
+            </DocumentStatusBanner>
+
+            <DocumentCard title={dT.allocationTitle} icon={FileText}>
+              <div className="overflow-x-auto">
+                <table className="w-full text-start text-sm">
+                  <thead>
+                    <tr className="border-b border-outline-variant text-xs font-mono uppercase text-ink-muted">
+                      <th className="py-2.5 px-3 text-start">{t.paymentDetailView.invoice}</th>
+                      <th className="py-2.5 px-3 text-end">{dT.applied} ({payment.currency})</th>
+                      <th className="py-2.5 px-3 text-end">{dT.remaining} ({payment.currency})</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-outline-variant">
+                    <tr className="hover:bg-surface-raised/50">
+                      <td className="py-3 px-3">
+                        {invoice ? (
+                          <Link
+                            href={ROUTES.invoices.detail(invoice.id)}
+                            className="font-mono font-semibold text-accent hover:underline"
+                            title={t.paymentDetail.viewLinkedInvoice}
+                          >
+                            <bdi dir="ltr">{invoice.invoice_number}</bdi>
+                          </Link>
+                        ) : (
+                          <span className="text-ink-muted">{dT.notYet}</span>
+                        )}
+                        {invoice && (
+                          <div className="text-xs text-ink-muted font-mono mt-0.5">
+                            {t.finance.totalAmount}: {money(invoice.total_amount)}
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-3 px-3 text-end font-mono font-semibold text-ink">{payment.amount.toFixed(3)}</td>
+                      <td className={`py-3 px-3 text-end font-mono font-semibold ${invoice && invoice.amount_due > 0 ? "text-m3-error" : "text-primary"}`}>
+                        {invoice ? invoice.amount_due.toFixed(3) : "—"}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </DocumentCard>
+
+            <DocumentCard title={dT.methodTitle} icon={Landmark}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                {detailRows.map((row) => (
+                  <div key={String(row.label)}>
+                    <span className="text-ink-muted block mb-0.5">{row.label}</span>
+                    <div className={`${row.mono ? "font-mono" : "font-medium"} text-ink`}>{row.value}</div>
+                  </div>
+                ))}
+              </div>
+              {payment.notes && (
+                <div>
+                  <div className="text-xs font-mono uppercase text-ink-muted mb-1">{dT.notes}</div>
+                  <div className="p-3 bg-surface-sunken rounded-md text-xs text-ink whitespace-pre-line">
+                    <bdi dir="auto">{payment.notes}</bdi>
+                  </div>
+                </div>
+              )}
+            </DocumentCard>
+
+            <DocumentCard
+              title={t.paymentDetailView.settlementVaultTitle}
+              icon={ShieldCheck}
+              action={
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link
+                    href={`${ROUTES.archive}?search=${encodeURIComponent(payment.receipt_number)}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-primary bg-m3-primary-container/40 border border-primary/30 hover:underline transition-colors"
+                  >
+                    <FolderArchive className="w-3.5 h-3.5" />
+                    <span>{t.paymentDetailView.viewArchive}</span>
+                  </Link>
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="application/pdf,image/*"
+                    className="hidden"
+                    onChange={handleInstantUpload}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-primary hover:bg-primary/90 text-primary-foreground transition-colors shadow-xs"
+                  >
+                    {uploading ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>{t.paymentDetailView.uploading}</span>
+                      </>
+                    ) : (
+                      <>
+                        <UploadCloud className="w-3.5 h-3.5" />
+                        <span>{t.paymentDetailView.uploadProof}</span>
+                      </>
+                    )}
+                  </button>
+                  <AddLinkInline
+                    disabled={uploading}
+                    onLink={async (url) => {
+                      const fileName = new URL(url).hostname;
+                      const result = await createAttachmentAction({
+                        fileName,
+                        fileUrl: url,
+                        entityType: "payment",
+                        entityId: payment.id,
+                      });
+                      if (!result.success || !result.attachment) throw new Error(errorMessage(result.error, t, t.paymentDetail.failedToUploadDocument));
+                      setPayment((prev) => ({
+                        ...prev,
+                        proof_attachments: [
+                          {
+                            id: result.attachment.id,
+                            file_name: fileName,
+                            file_url: url,
+                            entity_type: "payment",
+                            entity_id: payment.id,
+                            created_at: new Date().toISOString(),
+                          },
+                          ...(prev.proof_attachments || []),
+                        ],
+                      }));
+                    }}
+                  />
+                </div>
+              }
+            >
+              <p className="text-xs text-ink-muted">
                 {payment.payment_method === "cheque"
                   ? t.paymentDetailView.settlementVaultDescCheque
                   : t.paymentDetailView.settlementVaultDescGeneral}
               </p>
-            </div>
+
+              {uploadError && <p role="alert" className="text-sm text-m3-error">{uploadError}</p>}
+              {attachments.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {attachments.map((att) => {
+                    const isCheque =
+                      att.file_name.toLowerCase().includes("cheque") ||
+                      payment.payment_method === "cheque";
+                    const isBankStatement =
+                      att.file_name.toLowerCase().includes("bank") ||
+                      att.file_name.toLowerCase().includes("slip") ||
+                      att.file_name.toLowerCase().includes("statement");
+
+                    return (
+                      <div
+                        key={att.id}
+                        className="p-3.5 rounded-xl border border-outline-variant bg-surface flex items-center justify-between gap-2.5"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 rounded-lg bg-m3-primary-container text-m3-on-primary-container flex items-center justify-center shrink-0">
+                            {isCheque ? (
+                              <FileCheck className="w-4 h-4" />
+                            ) : isBankStatement ? (
+                              <Landmark className="w-4 h-4" />
+                            ) : (
+                              <FileText className="w-4 h-4" />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p
+                              className="text-xs font-bold text-ink truncate"
+                              title={att.file_name}
+                            >
+                              {att.file_name}
+                            </p>
+                            <p className="text-[10px] text-ink-muted">
+                              {att.file_size
+                                ? `${(att.file_size / 1024).toFixed(0)} KB`
+                                : t.paymentDetailView.document}{" "}
+                              • {att.created_at?.split("T")[0]}
+                            </p>
+                          </div>
+                        </div>
+
+                        <a
+                          href={att.file_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-surface-sunken transition-colors shrink-0"
+                          title={t.paymentDetail.viewDownload}
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="p-4 rounded-xl border border-dashed border-outline-variant text-center">
+                  <p className="text-xs text-ink-muted">{t.paymentDetailView.noAttachmentsYet}</p>
+                </div>
+              )}
+            </DocumentCard>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Link
-              href={`${ROUTES.archive}?search=${encodeURIComponent(payment.receipt_number)}`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-primary dark:text-mint bg-tone-95 dark:bg-tone-15/40 border border-primary/30 dark:border-tone-15 hover:underline transition-colors"
-            >
-              <FolderArchive className="w-3.5 h-3.5" />
-              <span>{t.paymentDetailView.viewArchive}</span>
-            </Link>
+          <div className="space-y-6">
+            <DocumentInfoCard title={dT.payerTitle}>
+              <DocumentPartyDetails
+                name={clientName}
+                href={invoice?.contact_id ? ROUTES.crm.customer(invoice.contact_id) : undefined}
+                lines={[
+                  invoice?.contact?.email && <><bdi dir="ltr">{t.quotationDetail.email}</bdi>: <bdi dir="ltr">{invoice.contact.email}</bdi></>,
+                  invoice?.contact?.phone && <><bdi dir="ltr">{t.quotationDetail.phone}</bdi>: <bdi dir="ltr">{invoice.contact.phone}</bdi></>,
+                ].filter(Boolean)}
+              />
+            </DocumentInfoCard>
 
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="application/pdf,image/*"
-              className="hidden"
-              onChange={handleInstantUpload}
-            />
-
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-primary hover:bg-primary/90 text-primary-foreground transition-colors shadow-xs"
-            >
-              {uploading ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>{t.paymentDetailView.uploading}</span>
-                </>
-              ) : (
-                <>
-                  <UploadCloud className="w-3.5 h-3.5" />
-                  <span>{t.paymentDetailView.uploadProof}</span>
-                </>
-              )}
-            </button>
-            <AddLinkInline
-              disabled={uploading}
-              onLink={async (url) => {
-                const fileName = new URL(url).hostname;
-                const result = await createAttachmentAction({
-                  fileName,
-                  fileUrl: url,
-                  entityType: "payment",
-                  entityId: payment.id,
-                });
-                if (!result.success || !result.attachment) throw new Error(errorMessage(result.error, t, t.paymentDetail.failedToUploadDocument));
-                setPayment((prev) => ({
-                  ...prev,
-                  proof_attachments: [
-                    {
-                      id: result.attachment.id,
-                      file_name: fileName,
-                      file_url: url,
-                      entity_type: "payment",
-                      entity_id: payment.id,
-                      created_at: new Date().toISOString(),
-                    },
-                    ...(prev.proof_attachments || []),
-                  ],
-                }));
-              }}
+            <DocumentInfoCard
+              title={t.quotationDetail.documentLifecycle}
+              rows={[
+                { label: t.finance.paymentDate, icon: Calendar, value: formatDate(payment.payment_date, locale, "long") },
+                { label: dT.recordedOn, icon: Calendar, value: formatDate(payment.created_at, locale, "long") },
+                ...(invoice ? [{ label: t.finance.dueDate, icon: Calendar, value: formatDate(invoice.due_date, locale, "long") }] : []),
+                {
+                  label: t.signing.signedStamped,
+                  icon: PenLine,
+                  mono: false,
+                  value: signing ? formatMessage(t.signing.signedBy, { name: signing.signerName }) : dT.notYet,
+                },
+              ]}
             />
           </div>
         </div>
-
-        {uploadError && <p role="alert" className="text-sm text-rose-700 dark:text-rose-300">{uploadError}</p>}
-        {attachments.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2">
-            {attachments.map((att) => {
-              const isCheque =
-                att.file_name.toLowerCase().includes("cheque") ||
-                payment.payment_method === "cheque";
-              const isBankStatement =
-                att.file_name.toLowerCase().includes("bank") ||
-                att.file_name.toLowerCase().includes("slip") ||
-                att.file_name.toLowerCase().includes("statement");
-
-              return (
-                <div
-                  key={att.id}
-                  className="p-3.5 rounded-xl border border-outline-variant dark:border-outline-variant bg-surface-raised/70 dark:bg-surface-raised/40 flex items-center justify-between gap-2.5"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 text-primary dark:text-mint flex items-center justify-center shrink-0">
-                      {isCheque ? (
-                        <FileCheck className="w-4 h-4" />
-                      ) : isBankStatement ? (
-                        <Landmark className="w-4 h-4" />
-                      ) : (
-                        <FileText className="w-4 h-4" />
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <p
-                        className="text-xs font-bold text-ink dark:text-ink truncate"
-                        title={att.file_name}
-                      >
-                        {att.file_name}
-                      </p>
-                      <p className="text-[10px] text-ink-muted dark:text-ink-muted ">
-                        {att.file_size
-                          ? `${(att.file_size / 1024).toFixed(0)} KB`
-                          : t.paymentDetailView.document}{" "}
-                        • {att.created_at?.split("T")[0]}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-1 shrink-0">
-                    <a
-                      href={att.file_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-surface-sunken/60 dark:text-ink-muted dark:hover:text-white dark:hover:bg-surface-sunken transition-colors"
-                      title={t.paymentDetail.viewDownload}
-                    >
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="p-4 rounded-xl border border-dashed border-outline-variant dark:border-outline-variant bg-surface-raised/50 dark:bg-surface-raised/20 text-center">
-            <p className="text-xs text-ink-muted dark:text-ink-muted">
-              {t.paymentDetailView.noAttachmentsYet}
-            </p>
-          </div>
-        )}
       </div>
 
-      {/* Official Receipt Template with Multi-Page Engine */}
-      <div className="p-2 sm:p-6 bg-surface-sunken/70 dark:bg-surface-sunken rounded-3xl border border-outline-variant/80 dark:border-white/10 shadow-sm flex justify-center">
+      {/* The paper receipt only appears when the browser prints this page. */}
+      <div className="hidden print:block">
         <ReceiptTemplate
           payment={payment}
           company={company}
@@ -338,6 +393,6 @@ export function PaymentDetailView({
           signing={signing}
         />
       </div>
-    </div>
+    </>
   );
 }
