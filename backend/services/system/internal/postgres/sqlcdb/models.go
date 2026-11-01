@@ -5,8 +5,25 @@
 package sqlcdb
 
 import (
+	"encoding/json"
 	"time"
 )
+
+type SystemIntegrationSetting struct {
+	Provider       string
+	IsActive       bool
+	Credentials    *string
+	Config         json.RawMessage
+	SyncLeaseToken *string
+	SyncLeaseUntil *time.Time
+	HealthStatus   string
+	LastCheckedAt  *time.Time
+	LastError      *string
+	AccountName    *string
+	LastSyncedAt   *time.Time
+	UpdatedAt      time.Time
+	UpdatedBy      *string
+}
 
 type SystemModuleSetting struct {
 	ModuleKey string

@@ -491,7 +491,7 @@ export function SocialAnalyticsView({
             <Card data-testid="social-empty" className="flex flex-col items-center gap-3 p-8 text-center dark:bg-surface-raised">
               <p className="max-w-md text-sm text-ink-muted dark:text-ink">{connected.length ? s.noData : s.empty}</p>
               {can("settings", "write") && (
-                <Link href={ROUTES.settings.integrations} className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary-light">
+                <Link href={ROUTES.itSupport.list()} className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary-light">
                   {s.connect}
                 </Link>
               )}
@@ -539,7 +539,7 @@ export function SocialAnalyticsView({
                     <p className="truncate text-[11px] text-amber-700 dark:text-amber-400" title={account.lastError ?? undefined}>{account.needsReconnect ? s.reconnect : s.stale}</p>
                   )}
                   {(!account.connected || account.needsReconnect) && can("settings", "write") && (
-                    <Link href={ROUTES.settings.integrations} className="mt-1 inline-block text-xs font-semibold text-primary dark:text-accent underline">{account.needsReconnect ? s.reconnect : s.connect}</Link>
+                    <Link href={ROUTES.itSupport.list()} className="mt-1 inline-block text-xs font-semibold text-primary dark:text-accent underline">{account.needsReconnect ? s.reconnect : s.connect}</Link>
                   )}
                 </div>
               </Card>
@@ -571,7 +571,7 @@ export function SocialAnalyticsView({
                 {owner.error && <p className="text-xs text-rose-700 dark:text-rose-300">{s.owner.providerResponse} <bdi dir="ltr">{owner.error}</bdi></p>}
                 {owner.retryAfterAt && <p className="text-xs text-ink-muted">{s.owner.retryAfter} <DateDisplay date={owner.retryAfterAt} locale={locale} format="time" /></p>}
                 {owner.checkedAt && <p className="text-xs text-ink-muted">{s.owner.checked} <DateDisplay date={owner.checkedAt} locale={locale} format="time" /></p>}
-                {can("settings", "write") && <Link href={ROUTES.settings.integrations} className="inline-block text-xs font-semibold text-primary underline dark:text-accent">{s.owner.configure}</Link>}
+                {can("settings", "write") && <Link href={ROUTES.itSupport.list()} className="inline-block text-xs font-semibold text-primary underline dark:text-accent">{s.owner.configure}</Link>}
               </>}
             </Card>
           ))}

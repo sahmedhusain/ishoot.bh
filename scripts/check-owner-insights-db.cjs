@@ -6,7 +6,6 @@ const { db } = require("../packages/database/src/db.ts");
 const { transactionContext } = require("../packages/database/src/transaction-context.ts");
 const integrations = require("../packages/database/src/queries/integrations.ts");
 const { getSocialAnalytics } = require("../packages/database/src/queries/social-analytics.ts");
-const { decryptIntegrationCredentials } = require("../packages/database/src/services/integration-credentials.ts");
 const url = new URL(process.env.DATABASE_URL);
 assert(["localhost", "127.0.0.1", "[::1]"].includes(url.hostname) && url.pathname.endsWith("_test"), "Use a disposable local *_test database");
 const rollback = new Error("ROLLBACK_OWNER_INSIGHTS_TEST");
@@ -40,8 +39,7 @@ async function main() {
   try {
     await db.$transaction(tx => transactionContext.run(tx, async () => {
       const actor = await db.user.findFirstOrThrow({ where: { role: "super_admin" } });
-      await db.integrationSetting.updateMany({ data: { isActive: false } });
-      await db.integrationSetting.deleteMany({ where: { provider: "youtube" } });
+      await integrations.unlinkIntegrationSettings("youtube");
       const save = (values = credentials) => integrations.saveIntegrationSettings("youtube", { isActive: true, values }, actor.id);
       await save();
       const result = await integrations.syncSocialIntegration("youtube", now);
@@ -54,8 +52,8 @@ async function main() {
       assert.equal(analytics.ownerInsights[0].snapshot.metrics.views, 0);
       assert.equal(analytics.ownerInsights[0].snapshot.metrics.reach, undefined);
       assert.equal(analytics.ownerInsights[0].snapshot.periodEnd, "2199-03-27");
-      let record = await db.integrationSetting.findUniqueOrThrow({ where: { provider: "youtube" } });
-      assert.equal(decryptIntegrationCredentials(record.credentials).ownerAccessToken, "E2E-refreshed-owner-token");
+      let record = await integrations.getIntegrationRecord("youtube");
+      assert.equal(record.credentials.ownerAccessToken, "E2E-refreshed-owner-token");
       assert.equal(record.syncLeaseToken, null);
       assert.equal(record.syncLeaseUntil, null);
       assert(!JSON.stringify(record.config).includes("E2E-refreshed-owner-token"));
@@ -80,7 +78,7 @@ async function main() {
       await assert.rejects(integrations.syncSocialIntegration("youtube", new Date(now.getTime() + 3000)), /wait|waiting/i);
       ownerQuota = false;
       await save();
-      record = await db.integrationSetting.findUniqueOrThrow({ where: { provider: "youtube" } });
+      record = await integrations.getIntegrationRecord("youtube");
       assert.equal(record.config.retryAfterAt, null);
 
       let entered;
@@ -94,18 +92,18 @@ async function main() {
         await assert.rejects(integrations.syncSocialIntegration("youtube", new Date(now.getTime() + 4000)), error => error.status === 409);
       } finally { holdChannel = null; release(); }
       await pending;
-      record = await db.integrationSetting.findUniqueOrThrow({ where: { provider: "youtube" } });
-      const unchanged = decryptIntegrationCredentials(record.credentials);
+      record = await integrations.getIntegrationRecord("youtube");
+      const unchanged = record.credentials;
       onChannel = async () => { onChannel = null; await save(unchanged); };
       await assert.rejects(integrations.syncSocialIntegration("youtube", new Date(now.getTime() + 4500)), error => error.status === 409);
-      record = await db.integrationSetting.findUniqueOrThrow({ where: { provider: "youtube" } });
+      record = await integrations.getIntegrationRecord("youtube");
       assert.equal(record.syncLeaseToken, null);
       assert.equal(record.syncLeaseUntil, null);
       await integrations.syncSocialIntegration("youtube", new Date(now.getTime() + 4600));
 
       onChannel = () => integrations.unlinkIntegrationSettings("youtube", actor.id);
       await assert.rejects(integrations.syncSocialIntegration("youtube", new Date(now.getTime() + 5000)), error => error.status === 409);
-      record = await db.integrationSetting.findUniqueOrThrow({ where: { provider: "youtube" } });
+      record = await integrations.getIntegrationRecord("youtube");
       assert.equal(record.isActive, false);
       assert.equal(record.healthStatus, "unknown");
       assert.equal(record.credentials, null);
@@ -118,18 +116,21 @@ async function main() {
       const replacement = { ...credentials, channelId: "UC1111111111111111111111", ownerAccessToken: "E2E-replacement-token" };
       onChannel = () => save(replacement);
       await assert.rejects(integrations.syncSocialIntegration("youtube", new Date(now.getTime() + 6000)), error => error.status === 409);
-      record = await db.integrationSetting.findUniqueOrThrow({ where: { provider: "youtube" } });
+      record = await integrations.getIntegrationRecord("youtube");
       assert.equal(record.healthStatus, "unknown");
       assert.deepEqual(record.config.socialAccounts, {});
       assert.equal(await db.socialInsightSnapshot.count({ where: { sourceAccountId: replacement.channelId } }), 0);
       onChannel = () => save(credentials);
       await assert.rejects(integrations.testIntegration("youtube"), /integration settings changed/i);
-      record = await db.integrationSetting.findUniqueOrThrow({ where: { provider: "youtube" } });
+      record = await integrations.getIntegrationRecord("youtube");
       assert.equal(record.healthStatus, "unknown");
       assert.equal(record.accountName, null);
       throw rollback;
     }), { timeout: 60000 });
   } catch (error) { if (error !== rollback) throw error; }
+  finally {
+    await integrations.unlinkIntegrationSettings("youtube").catch(() => {});
+  }
   console.log("Owner insights DB checks passed: real zero/null, native periods/history/upsert, encrypted refresh, no secret DTO, rate backoff, one sync lease, disconnect/reconfiguration/check races; fixtures rolled back.");
 }
 main().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => db.$disconnect());

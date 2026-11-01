@@ -3,6 +3,11 @@ import { expect, test } from "@playwright/test";
 import en from "../../../../packages/locales/src/admin/en";
 import ar from "../../../../packages/locales/src/admin/ar";
 import { testDatabase } from "../../helpers";
+import {
+  setIntegration,
+  unlinkIntegration,
+  updateIntegrationStatus,
+} from "../../integrations";
 
 const db = testDatabase();
 const accountId = "e2e-owner-youtube";
@@ -13,29 +18,23 @@ const periods = [7, 30, 90, 365];
 test.use({ timezoneId: "America/Los_Angeles" });
 
 test.beforeEach(async () => {
-  await db.integrationSetting.updateMany({
-    where: { provider: { in: ["meta", "youtube", "tiktok", "x", "linkedin"] } },
-    data: { isActive: false },
-  });
-  const data = {
-    isActive: true,
-    lastSyncedAt: recordedAt,
-    config: {
-      socialAccounts: { youtube: accountId },
-      availableMetrics: { youtube: ["followers"] },
-      ownerInsights: {
-        youtube: {
-          status: "ready",
-          timeZone: "America/Los_Angeles",
-          availablePeriods: periods,
-        },
+  for (const p of ["meta", "youtube", "tiktok", "x", "linkedin"]) {
+    await setIntegration(p, false).catch(() => {});
+  }
+  const config = {
+    socialAccounts: { youtube: accountId },
+    availableMetrics: { youtube: ["followers"] },
+    ownerInsights: {
+      youtube: {
+        status: "ready",
+        timeZone: "America/Los_Angeles",
+        availablePeriods: periods,
       },
     },
   };
-  await db.integrationSetting.upsert({
-    where: { provider: "youtube" },
-    create: { provider: "youtube", ...data },
-    update: data,
+  await setIntegration("youtube", true, { channelId: accountId, apiKey: "e2e-owner-key" }, config);
+  await updateIntegrationStatus("youtube", {
+    lastSyncedAt: recordedAt.toISOString(),
   });
   await db.socialMetric.upsert({
     where: { id: metricId },
@@ -80,7 +79,7 @@ test.afterEach(async () => {
     where: { sourceAccountId: accountId },
   });
   await db.socialMetric.deleteMany({ where: { id: metricId } });
-  await db.integrationSetting.deleteMany({ where: { provider: "youtube" } });
+  await unlinkIntegration("youtube").catch(() => {});
 });
 test.afterAll(() => db.$disconnect());
 
@@ -161,20 +160,17 @@ for (const locale of ["en", "ar"] as const) {
       "rate_limited",
       "error",
     ] as const) {
-      await db.integrationSetting.update({
-        where: { provider: "youtube" },
-        data: {
-          config: {
-            socialAccounts: { youtube: accountId },
-            ownerInsights: {
-              youtube: {
-                status,
-                error: status === "rate_limited" ? "quotaExceeded" : null,
-                retryAfterAt:
-                  status === "rate_limited"
-                    ? new Date(Date.now() + 60_000).toISOString()
-                    : null,
-              },
+      await updateIntegrationStatus("youtube", {
+        config: {
+          socialAccounts: { youtube: accountId },
+          ownerInsights: {
+            youtube: {
+              status,
+              error: status === "rate_limited" ? "quotaExceeded" : null,
+              retryAfterAt:
+                status === "rate_limited"
+                  ? new Date(Date.now() + 60_000).toISOString()
+                  : null,
             },
           },
         },
@@ -187,14 +183,11 @@ for (const locale of ["en", "ar"] as const) {
       await expect(panel.locator("dd")).toHaveCount(0);
       await expect(
         panel.getByRole("link", { name: copy.owner.configure }),
-      ).toHaveAttribute("href", "/dashboard/settings/integrations");
+      ).toHaveAttribute("href", "/dashboard/it-support");
       if (status === "rate_limited")
         await expect(panel).toContainText("quotaExceeded");
     }
-    await db.integrationSetting.update({
-      where: { provider: "youtube" },
-      data: { isActive: false },
-    });
+    await setIntegration("youtube", false);
     await page.reload();
     await expect(page.getByTestId("social-owner-youtube")).toHaveCount(0);
   });

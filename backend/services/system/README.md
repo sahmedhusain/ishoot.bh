@@ -1,9 +1,10 @@
 # system service
 
 Installation-wide settings the IT team manages from the IT dashboard ([ADR 0010](../../../docs/adr/0010-it-dashboard.md)).
-Today it owns **modules**: which optional areas of the platform are switched on. Integrations, domains and runtime
-configuration move here next (Phase 4). The HTTP contract is [api/openapi.yaml](api/openapi.yaml); regenerate the
-TypeScript client with `pnpm --filter @platform/api-client generate` from the repository root.
+Today it owns **modules** and **integrations**: which optional areas of the platform are switched on, and external
+service credentials (encrypted at rest). Domains and runtime configuration move here next (Phase 4). The HTTP contract
+is [api/openapi.yaml](api/openapi.yaml); regenerate the TypeScript client with `pnpm --filter @platform/api-client generate`
+from the repository root.
 
 ## Modules
 
@@ -23,11 +24,30 @@ staff. The apps read modules through `packages/database/src/queries/features.ts`
 (`SYSTEM_MODULES_CACHE_MS`, default 5 s). The public website's own page cache refreshes within its 60-second lifetime
 after the website (`cms`) module changes.
 
+## Integrations
+
+Provider keys, required fields, secret masks and URLs come from [`contracts/catalog/integrations.json`](../../../contracts/catalog/integrations.json)
+(generated from `packages/database/src/constants/integrations.ts`). The service stores active status, non-secret config,
+health status, account names, and credentials encrypted with AES-256-GCM (`pkg/secrets`) in `system.integration_setting`.
+During migration, `SECRETS_LEGACY_INTEGRATION_KEY` allows opening existing credentials stored under Prisma's `ENCRYPTION_KEY`.
+
+| Path                                         | Caller                           | Allowed                                         |
+| -------------------------------------------- | -------------------------------- | ----------------------------------------------- |
+| `GET /v1/system/integrations`                | Apps' back ends (service tokens) | `SYSTEM_READ_CALLERS`                           |
+| `GET /v1/system/integrations/{provider}`     | Apps' back ends (service tokens) | `SYSTEM_READ_CALLERS`                           |
+| `PUT /v1/system/integrations/{provider}`     | Apps' back ends (service tokens) | `SYSTEM_INTEGRATION_WRITERS`                    |
+| `DELETE /v1/system/integrations/{provider}`  | Apps' back ends (service tokens) | `SYSTEM_INTEGRATION_WRITERS`                    |
+| `POST /v1/system/integrations/{p}/status`    | Apps' back ends (service tokens) | `SYSTEM_READ_CALLERS`                           |
+| `/v1/system/desk/integrations`               | IT staff (IT-realm tokens)       | `integrations:read`, `integrations:edit` (IT roles) |
+
 ## Data handoff
 
-The Prisma migration `20261102090000_move_modules_to_system_service` moves `"FeatureToggle"` into the system schema
-with its data. If the system service created its table first, legacy choices are copied for modules it has no choice
-for yet, and the legacy table is dropped. `migrations/handoff_test.go` checks both orders.
+The Prisma migrations move `"FeatureToggle"` and `"IntegrationSetting"` into the system schema with their data:
+- `20261102090000_move_modules_to_system_service`
+- `20261102120000_move_integrations_to_system_service`
+
+If the system service created its tables first, legacy choices and credentials are copied, and the legacy tables
+are dropped. `migrations/handoff_test.go` checks both orders for both tables.
 
 The handoff keeps choices only when Prisma and the services share one database, as in production. In local
 development the apps' database (local Supabase) and the stack's Postgres are separate, so the old choices move into

@@ -26,7 +26,19 @@ async function main() {
       const actor = await tx.user.findFirstOrThrow({ where: { role: "super_admin", isActive: true }, select: { id: true } });
       const company = await tx.companySetting.findFirstOrThrow();
       await tx.companySetting.update({ where: { id: company.id }, data: { companyNameEn: "Carrier test sender", phone: "+97317000000", addressEn: "Road 1", city: "Manama", country: "Bahrain" } });
-      await tx.integrationSetting.upsert({ where: { provider: "dhl_express" }, create: { provider: "dhl_express", isActive: true, credentials: encryptIntegrationCredentials({ environment: "test", apiKey: "test-api-key", apiSecret: secret, accountNumber: "test-account" }) }, update: { isActive: true, credentials: encryptIntegrationCredentials({ environment: "test", apiKey: "test-api-key", apiSecret: secret, accountNumber: "test-account" }) } });
+      await require("../packages/database/src/queries/integrations.ts").saveIntegrationSettings(
+        "dhl_express",
+        {
+          isActive: true,
+          values: {
+            environment: "test",
+            apiKey: "test-api-key",
+            apiSecret: secret,
+            accountNumber: "test-account",
+          },
+        },
+        actor.id,
+      );
       const agency = await tx.courierAgency.create({ data: { name: `Audit courier ${crypto.randomUUID()}`, kind: "dhl_express", isActive: true } });
       const order = await tx.salesOrder.create({ data: { number: `AUDIT-${crypto.randomUUID()}`, name: "Carrier test buyer", paymentMethod: "cod", subtotal: 12.5, total: 12.5, currency: "BHD" } });
       const create = (country = "Bahrain") => tx.shipment.create({ data: { number: `AUDIT-${crypto.randomUUID()}`, orderId: order.id, recipientName: "Carrier test buyer", recipientPhone: "+97336000000", promisedBy: new Date(), trackingToken: crypto.randomUUID(), address: { line1: "Road 2", city: "Muharraq", country }, codAmount: 12.5 } });

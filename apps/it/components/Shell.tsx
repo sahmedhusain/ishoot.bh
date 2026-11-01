@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Blocks,
   Gauge,
   Languages,
   ListChecks,
@@ -24,6 +25,12 @@ const NAV = [
     icon: ToggleRight,
     label: "modules",
     resource: "modules",
+  },
+  {
+    href: "/integrations",
+    icon: Blocks,
+    label: "integrations",
+    resource: "integrations",
   },
 ] as const;
 

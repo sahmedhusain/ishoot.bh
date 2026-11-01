@@ -12,7 +12,6 @@ import {
   Bell,
   Megaphone,
   ChevronDown,
-  Settings,
   ArrowRightLeft,
   LayoutDashboard,
   Package,
@@ -764,13 +763,6 @@ export function Sidebar() {
             resource: "settings",
             action: "edit",
             moduleKey: "crm_deals",
-          },
-          {
-            href: ROUTES.settings.integrations,
-            label: t.navigationGroups.integrations,
-            icon: Settings,
-            resource: "settings",
-            action: "edit",
           },
           ...take([
             ROUTES.cms.code,

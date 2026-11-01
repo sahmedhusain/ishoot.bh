@@ -3,14 +3,9 @@ info:
   title: System settings (system)
   version: 1.0.0
   description: |
-    Installation-wide settings the IT team manages (ADR 0010). Today: which optional modules are on. Module keys,
+    Installation-wide settings the IT team manages (ADR 0010). Modules and integrations. Module keys,
     names and defaults come from `contracts/catalog/modules.json`; a module nobody switched follows its default.
-
-    - `/v1/system/modules` — the apps' back ends, with their service tokens (ADR 0011). Reading is open to the
-      callers in `SYSTEM_READ_CALLERS`; switching to `SYSTEM_MODULE_WRITERS` (the admin's setup wizard), which name
-      the person they act for.
-    - `/v1/system/desk/modules` — IT staff with IT-realm tokens: `modules:read` and `modules:edit`
-      (`contracts/catalog/it-access.json`).
+    Integrations credentials are encrypted at rest with AES-256-GCM.
 servers:
   - url: /
 tags:
@@ -45,6 +40,56 @@ paths:
       responses:
         "204": { description: Saved }
         default: { $ref: "#/components/responses/Problem" }
+  /v1/system/integrations:
+    get:
+      tags: [services]
+      operationId: listIntegrations
+      security: [{ serviceToken: [] }]
+      responses:
+        "200": { $ref: "#/components/responses/Integrations" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/system/integrations/{provider}:
+    parameters: [{ $ref: "#/components/parameters/ProviderId" }]
+    get:
+      tags: [services]
+      operationId: getIntegration
+      security: [{ serviceToken: [] }]
+      responses:
+        "200": { $ref: "#/components/responses/Integration" }
+        default: { $ref: "#/components/responses/Problem" }
+    put:
+      tags: [services]
+      operationId: setIntegration
+      security: [{ serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SaveIntegrationServiceInput" }
+      responses:
+        "200": { $ref: "#/components/responses/Integration" }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [services]
+      operationId: unlinkIntegration
+      security: [{ serviceToken: [] }]
+      responses:
+        "204": { description: Unlinked }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/system/integrations/{provider}/status:
+    parameters: [{ $ref: "#/components/parameters/ProviderId" }]
+    put:
+      tags: [services]
+      operationId: updateIntegrationStatus
+      security: [{ serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateIntegrationStatusInput" }
+      responses:
+        "204": { description: Updated }
+        default: { $ref: "#/components/responses/Problem" }
   /v1/system/desk/modules:
     get:
       tags: [desk]
@@ -74,12 +119,45 @@ paths:
       responses:
         "204": { description: Saved }
         default: { $ref: "#/components/responses/Problem" }
+  /v1/system/desk/integrations:
+    get:
+      tags: [desk]
+      operationId: listIntegrationsForIT
+      description: Needs `integrations:read`.
+      security: [{ userToken: [] }]
+      responses:
+        "200": { $ref: "#/components/responses/DeskIntegrations" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/system/desk/integrations/{provider}:
+    parameters: [{ $ref: "#/components/parameters/ProviderId" }]
+    put:
+      tags: [desk]
+      operationId: setIntegrationForIT
+      description: Needs `integrations:edit`.
+      security: [{ userToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SaveIntegrationITInput" }
+      responses:
+        "200": { $ref: "#/components/responses/DeskIntegration" }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [desk]
+      operationId: unlinkIntegrationForIT
+      description: Needs `integrations:delete`.
+      security: [{ userToken: [] }]
+      responses:
+        "204": { description: Unlinked }
+        default: { $ref: "#/components/responses/Problem" }
 components:
   securitySchemes:
     serviceToken: { type: http, scheme: bearer, bearerFormat: JWT }
     userToken: { type: http, scheme: bearer, bearerFormat: JWT }
   parameters:
     ModuleKey: { name: key, in: path, required: true, schema: { type: string, minLength: 1, maxLength: 64 } }
+    ProviderId: { name: provider, in: path, required: true, schema: { type: string, minLength: 1, maxLength: 64 } }
   responses:
     Modules:
       description: Every module in the catalogue with its current state, in catalogue order
@@ -92,8 +170,40 @@ components:
               items:
                 type: array
                 items: { $ref: "#/components/schemas/Module" }
+    Integrations:
+      description: Every stored integration with decrypted credentials
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [items]
+            properties:
+              items:
+                type: array
+                items: { $ref: "#/components/schemas/ServiceIntegration" }
+    Integration:
+      description: One stored integration with decrypted credentials
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ServiceIntegration" }
+    DeskIntegrations:
+      description: Every catalogue integration with masked secrets
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [items]
+            properties:
+              items:
+                type: array
+                items: { $ref: "#/components/schemas/DeskIntegration" }
+    DeskIntegration:
+      description: One catalogue integration with masked secrets
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/DeskIntegration" }
     Problem:
-      description: An error (RFC 9457). Codes include `module_not_found`, `validation_failed`, `unauthenticated`, `forbidden`.
+      description: An error (RFC 9457). Codes include `module_not_found`, `integration_not_found`, `validation_failed`, `unauthenticated`, `forbidden`.
       content:
         application/problem+json:
           schema: { $ref: "#/components/schemas/Problem" }
@@ -109,6 +219,92 @@ components:
         enabled: { type: boolean }
         updatedBy: { type: string, description: "Who switched it last: <caller>:<person> or it:<IT account>" }
         updatedAt: { type: string, format: date-time }
+    SecretHint:
+      type: object
+      required: [set, hint]
+      properties:
+        set: { type: boolean }
+        hint: { type: string }
+    DeskIntegration:
+      type: object
+      required: [provider, isActive, healthStatus, values, secrets, config]
+      properties:
+        provider: { type: string }
+        isActive: { type: boolean }
+        healthStatus: { type: string }
+        accountName: { type: [string, "null"] }
+        lastError: { type: [string, "null"] }
+        lastCheckedAt: { type: [string, "null"], format: date-time }
+        lastSyncedAt: { type: [string, "null"], format: date-time }
+        values:
+          type: object
+          additionalProperties: { type: string }
+        secrets:
+          type: object
+          additionalProperties: { $ref: "#/components/schemas/SecretHint" }
+        config:
+          type: object
+          additionalProperties: true
+        updatedBy: { type: [string, "null"] }
+        updatedAt: { type: [string, "null"], format: date-time }
+    ServiceIntegration:
+      type: object
+      required: [provider, isActive, healthStatus, credentials, config]
+      properties:
+        provider: { type: string }
+        isActive: { type: boolean }
+        healthStatus: { type: string }
+        accountName: { type: [string, "null"] }
+        lastError: { type: [string, "null"] }
+        lastCheckedAt: { type: [string, "null"], format: date-time }
+        lastSyncedAt: { type: [string, "null"], format: date-time }
+        credentials:
+          type: object
+          additionalProperties: { type: string }
+        config:
+          type: object
+          additionalProperties: true
+        updatedBy: { type: [string, "null"] }
+        updatedAt: { type: [string, "null"], format: date-time }
+    SaveIntegrationServiceInput:
+      type: object
+      required: [isActive, actorId]
+      properties:
+        isActive: { type: boolean }
+        values:
+          type: object
+          additionalProperties: { type: string }
+        config:
+          type: object
+          additionalProperties: true
+        actorId: { type: string, minLength: 1, maxLength: 64 }
+    SaveIntegrationITInput:
+      type: object
+      required: [isActive]
+      properties:
+        isActive: { type: boolean }
+        values:
+          type: object
+          additionalProperties: { type: string }
+        config:
+          type: object
+          additionalProperties: true
+    UpdateIntegrationStatusInput:
+      type: object
+      properties:
+        healthStatus: { type: string }
+        lastError: { type: [string, "null"] }
+        accountName: { type: [string, "null"] }
+        lastCheckedAt: { type: [string, "null"], format: date-time }
+        lastSyncedAt: { type: [string, "null"], format: date-time }
+        config:
+          type: object
+          additionalProperties: true
+        refreshedCredentials:
+          type: object
+          additionalProperties: { type: string }
+        syncLeaseToken: { type: [string, "null"] }
+        syncLeaseUntil: { type: [string, "null"], format: date-time }
     Problem:
       type: object
       required: [type, title, status, code]

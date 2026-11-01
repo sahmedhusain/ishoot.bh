@@ -1,6 +1,5 @@
 import { serverMessages } from "@platform/locales";
-import { db } from "@platform/database/db";
-import { decryptIntegrationCredentials } from "@platform/database/services/integration-credentials";
+import { getIntegrationRecord } from "@platform/database";
 import { Resend } from "resend";
 
 class BoundedResend extends Resend {
@@ -14,14 +13,14 @@ class BoundedResend extends Resend {
 
 /** Server-only credentials. A stored disabled connection takes precedence over legacy environment keys. */
 export async function getResendCredentials() {
-  const setting = await db.integrationSetting.findUnique({
-    where: { provider: "resend" },
-    select: { isActive: true, credentials: true },
-  });
-  if (setting)
-    return setting.isActive && setting.credentials
-      ? decryptIntegrationCredentials(setting.credentials)
+  const record = await getIntegrationRecord("resend");
+  if (record) {
+    return record.isActive &&
+      record.credentials &&
+      Object.keys(record.credentials).length
+      ? record.credentials
       : null;
+  }
   return process.env.RESEND_API_KEY ||
     process.env.FROM_EMAIL ||
     process.env.RESEND_WEBHOOK_SECRET

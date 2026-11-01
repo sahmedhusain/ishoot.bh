@@ -1,11 +1,17 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ setting: vi.fn(), fetch: vi.fn() }));
-vi.mock("../../packages/database/src/db", () => ({
-  db: { integrationSetting: { findUnique: mocks.setting } },
+vi.mock("../../packages/database/src/queries/integrations", () => ({
+  getIntegrationRecord: mocks.setting,
 }));
+vi.mock("@platform/database", async () => {
+  const actual = await vi.importActual<Record<string, unknown>>("@platform/database");
+  return {
+    ...actual,
+    getIntegrationRecord: mocks.setting,
+  };
+});
 import { getResendCredentials, sendEmail } from "../../packages/email/src";
-import { encryptIntegrationCredentials } from "../../packages/database/src/services/integration-credentials";
 
 const secret = "re_settings_only_test_key";
 const mail = {
@@ -38,11 +44,11 @@ describe("encrypted email integration", () => {
   test("settings credentials drive actual delivery and preserve idempotency", async () => {
     mocks.setting.mockResolvedValue({
       isActive: true,
-      credentials: encryptIntegrationCredentials({
+      credentials: {
         apiKey: secret,
         fromEmail: "settings@example.test",
         webhookSecret: "stored-signing-secret",
-      }),
+      },
     });
     expect(await sendEmail(mail)).toEqual({
       success: true,
@@ -72,7 +78,7 @@ describe("encrypted email integration", () => {
   test("unreadable encrypted credentials do not fall back to environment keys", async () => {
     mocks.setting.mockResolvedValue({
       isActive: true,
-      credentials: "unreadable",
+      credentials: null,
     });
     expect((await sendEmail(mail)).success).toBe(false);
     expect(mocks.fetch).not.toHaveBeenCalled();
@@ -87,10 +93,10 @@ describe("encrypted email integration", () => {
   test("provider errors are returned without exposing the API key or claiming delivery", async () => {
     mocks.setting.mockResolvedValue({
       isActive: true,
-      credentials: encryptIntegrationCredentials({
+      credentials: {
         apiKey: secret,
         fromEmail: "settings@example.test",
-      }),
+      },
     });
     mocks.fetch.mockImplementation(
       async () =>

@@ -1209,24 +1209,6 @@ model EmailJob {
   @@index([momId, createdAt])
 }
 
-model IntegrationSetting {
-  provider      String    @id // e.g. "whatsapp", "meta"
-  isActive      Boolean   @default(false)
-  credentials   String? // Encrypted payload (e.g. aes-256-gcm)
-  config        Json? // Cleartext config (e.g. autoSendInvoices)
-  syncLeaseToken String?
-  syncLeaseUntil DateTime?
-  healthStatus  String    @default("unknown") // "healthy", "error", "unknown"
-  lastCheckedAt DateTime?
-  /// Provider message from the last failed check or sync (never contains credentials).
-  lastError     String?
-  /// Name of the connected account/page/channel as reported by the provider.
-  accountName   String?
-  lastSyncedAt  DateTime?
-  updatedAt     DateTime  @updatedAt
-  updatedById   String?
-}
-
 model SocialInsightSnapshot {
   id              String   @id @default(uuid())
   platform        String

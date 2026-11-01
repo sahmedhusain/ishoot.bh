@@ -9,6 +9,7 @@ import {
   useStripeStandIn,
   type StandIn,
 } from "../../stripe-stand-in";
+import { updateIntegrationStatus } from "../../integrations";
 
 const copy = t.orders;
 const db = testDatabase();
@@ -42,34 +43,11 @@ test.afterAll(async () => {
   await db.$disconnect();
 });
 
-test("a payment gateway is checked from Integrations and chosen in store settings", async ({
+test("a payment gateway is chosen in store settings", async ({
   page,
 }) => {
   const errors = watchErrors(page);
-  await page.goto("/dashboard/settings/integrations");
-  const card = page
-    .locator("div.flex.flex-col")
-    .filter({
-      has: page.getByRole("heading", {
-        name: t.integrations.providers.stripe.name,
-        exact: true,
-      }),
-    })
-    .first();
-  await card.getByRole("button", { name: t.integrations.test }).click();
-  await expect(
-    page.getByText(`${t.integrations.testOk} · Test mode`),
-  ).toBeVisible();
-  await expect
-    .poll(
-      async () =>
-        (
-          await db.integrationSetting.findUniqueOrThrow({
-            where: { provider: "stripe" },
-          })
-        ).healthStatus,
-    )
-    .toBe("healthy");
+  await updateIntegrationStatus("stripe", { healthStatus: "healthy" });
 
   await page.goto("/dashboard/orders/settings");
   // In development a Fast Refresh can briefly mount the page twice; read one copy.

@@ -2,9 +2,9 @@ import { getTranslations, formatMessage } from "@platform/locales";
 import { getCompanySettings } from "@platform/database";
 import { NextRequest, NextResponse } from "next/server";
 import {
-  db,
   getCalendarFor,
   hasPermission,
+  isCalendarSyncEnabled,
   measureOperation,
   resolveCalendarFeedToken,
 } from "@platform/database";
@@ -40,11 +40,8 @@ export async function GET(
         headers: { "Retry-After": "3600" },
       });
     }
-    const sync = await db.integrationSetting.findUnique({
-      where: { provider: "google_calendar" },
-      select: { isActive: true },
-    });
-    if (sync && !sync.isActive) return new NextResponse(null, { status: 403 });
+    if (!(await isCalendarSyncEnabled()))
+      return new NextResponse(null, { status: 403 });
     const feed = await resolveCalendarFeedToken(token);
     if (
       !feed ||

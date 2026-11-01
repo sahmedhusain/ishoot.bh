@@ -18,6 +18,7 @@ import {
 import { newBlockData } from "../../../../packages/database/src/cms/blocks";
 import { defaultWebsiteDesign } from "../../../../packages/database/src/constants/website-design";
 import { getModule, setModule } from "../../modules";
+import { setIntegration } from "../../integrations";
 
 const db = testDatabase();
 const branch: PublicBranch = {
@@ -61,11 +62,7 @@ test.beforeAll(async () => {
   originalPr = (await getModule("pr"))?.isEnabled ?? false;
   await setModule("pr", true);
   await enableStore(db);
-  await db.integrationSetting.upsert({
-    where: { provider: "resend" },
-    update: { isActive: false },
-    create: { provider: "resend", isActive: false },
-  });
+  await setIntegration("resend", false);
 });
 test.afterAll(async ({ request }) => {
   if (original)

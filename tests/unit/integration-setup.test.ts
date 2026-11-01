@@ -7,15 +7,27 @@ import {
   integrationSetupLinks,
 } from "../../packages/database/src/constants/integrations";
 
-const storage = vi.hoisted(() => ({ findUnique: vi.fn(), upsert: vi.fn() }));
-vi.mock("../../packages/database/src/db", () => ({
-  db: { integrationSetting: storage },
-  runAtomicMutation: vi.fn(),
+const apiClient = vi.hoisted(() => ({
+  getIntegration: vi.fn(),
+  setIntegration: vi.fn(),
+}));
+vi.mock("@platform/api-client", () => ({
+  getIntegration: apiClient.getIntegration,
+  setIntegration: apiClient.setIntegration,
+}));
+vi.mock("../../packages/api-client", () => ({
+  getIntegration: apiClient.getIntegration,
+  setIntegration: apiClient.setIntegration,
+}));
+vi.mock("../../packages/api-client/src", () => ({
+  getIntegration: apiClient.getIntegration,
+  setIntegration: apiClient.setIntegration,
 }));
 import { saveIntegrationSettings } from "../../packages/database/src/queries/integrations";
 beforeEach(() => {
   vi.resetAllMocks();
-  storage.findUnique.mockResolvedValue(null);
+  apiClient.getIntegration.mockResolvedValue(null);
+  apiClient.setIntegration.mockResolvedValue(undefined);
 });
 
 test("every kept provider has both setup guides and useful field formats", () => {
@@ -89,12 +101,11 @@ test.each([
         "actor",
       ),
     ).rejects.toThrow();
-    expect(storage.upsert).not.toHaveBeenCalled();
+    expect(apiClient.setIntegration).not.toHaveBeenCalled();
   },
 );
 
 test("YouTube owner refresh bundles are complete when active and tokens stay bounded", async () => {
-  vi.stubEnv("ENCRYPTION_KEY", "01234567890123456789012345678901");
   try {
     const base = { channelId: "UC1234567890123456789012", apiKey: "test-key" };
     await expect(
@@ -104,7 +115,7 @@ test("YouTube owner refresh bundles are complete when active and tokens stay bou
         "actor",
       ),
     ).rejects.toThrow(/client ID, client secret and refresh token/);
-    expect(storage.upsert).not.toHaveBeenCalled();
+    expect(apiClient.setIntegration).not.toHaveBeenCalled();
     await saveIntegrationSettings(
       "youtube",
       { isActive: false, values: { clientId: "client" } },
@@ -118,8 +129,8 @@ test("YouTube owner refresh bundles are complete when active and tokens stay bou
       },
       "actor",
     );
-    expect(storage.upsert).toHaveBeenCalledTimes(2);
-    expect(storage.upsert.mock.calls[1][0].create.credentials).not.toContain(
+    expect(apiClient.setIntegration).toHaveBeenCalledTimes(2);
+    expect(apiClient.setIntegration.mock.calls[1][1].values.ownerAccessToken).toBe(
       "a".repeat(4096),
     );
     await expect(
@@ -132,8 +143,7 @@ test("YouTube owner refresh bundles are complete when active and tokens stay bou
         "actor",
       ),
     ).rejects.toThrow();
-    expect(storage.upsert).toHaveBeenCalledTimes(2);
+    expect(apiClient.setIntegration).toHaveBeenCalledTimes(2);
   } finally {
-    vi.unstubAllEnvs();
   }
 });

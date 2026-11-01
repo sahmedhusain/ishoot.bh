@@ -1,4 +1,9 @@
-import { db, getCalendarFeedInfo, getCalendarFor } from "@platform/database";
+import {
+  db,
+  getCalendarFeedInfo,
+  getCalendarFor,
+  isCalendarSyncEnabled,
+} from "@platform/database";
 import { requirePagePermission } from "../../../lib/auth";
 import { CalendarView } from "../../../components/calendar/CalendarView";
 import { pageMetadata } from "../../../lib/company-metadata";
@@ -17,23 +22,25 @@ export default async function CalendarPage() {
   const end = new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0) + 8 * 86_400_000,
   );
-  const [events, people, departments, roles, feed] = await Promise.all([
-    getCalendarFor(user.id, start, end),
-    db.user.findMany({
-      where: { isActive: true, id: { not: user.id } },
-      select: { id: true, fullName: true },
-      orderBy: { fullName: "asc" },
-    }),
-    db.department.findMany({
-      select: { id: true, nameEn: true, nameAr: true },
-      orderBy: { nameEn: "asc" },
-    }),
-    db.role.findMany({
-      select: { id: true, nameEn: true, nameAr: true },
-      orderBy: { nameEn: "asc" },
-    }),
-    getCalendarFeedInfo(user.id),
-  ]);
+  const [events, people, departments, roles, feed, syncEnabled] =
+    await Promise.all([
+      getCalendarFor(user.id, start, end),
+      db.user.findMany({
+        where: { isActive: true, id: { not: user.id } },
+        select: { id: true, fullName: true },
+        orderBy: { fullName: "asc" },
+      }),
+      db.department.findMany({
+        select: { id: true, nameEn: true, nameAr: true },
+        orderBy: { nameEn: "asc" },
+      }),
+      db.role.findMany({
+        select: { id: true, nameEn: true, nameAr: true },
+        orderBy: { nameEn: "asc" },
+      }),
+      getCalendarFeedInfo(user.id),
+      isCalendarSyncEnabled(),
+    ]);
   return (
     <CalendarView
       initialEvents={events}
@@ -42,6 +49,8 @@ export default async function CalendarPage() {
       departments={departments}
       roles={roles}
       feedConnected={!!feed}
+      feed={feed}
+      syncEnabled={syncEnabled}
     />
   );
 }

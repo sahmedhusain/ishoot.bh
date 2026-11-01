@@ -7,12 +7,11 @@ import { serverMessages } from "@platform/locales";
 import {
   CUSTOMER_SESSION_DAYS,
   customerFromSession,
-  db,
   isFeatureEnabled,
   getStoreSettings,
   onlinePaymentAvailable,
+  getActiveIntegrationCredentials,
 } from "@platform/database";
-import { decryptIntegrationCredentials } from "@platform/database/services/integration-credentials";
 
 export const CUSTOMER_COOKIE = "platform_customer";
 export const SIGNIN_STATE_COOKIE = "platform_signin";
@@ -56,27 +55,21 @@ export const orderingEnabled = cache(async () => {
 });
 
 /** Google or Apple sign-in credentials when that integration is on, else null. */
-export async function signInCredentials(provider: "google" | "apple") {
-  const row = await db.integrationSetting.findUnique({
-    where: { provider: `${provider}_signin` },
-  });
-  if (!row?.isActive || !row.credentials) return null;
-  return decryptIntegrationCredentials(row.credentials);
+export async function signInCredentials(
+  provider: "google" | "apple",
+): Promise<Record<string, string> | null> {
+  return await getActiveIntegrationCredentials(`${provider}_signin` as any);
 }
 
 /** Which sign-in providers the account page offers. */
 export async function signInProviders() {
-  const rows = await db.integrationSetting.findMany({
-    where: {
-      provider: { in: ["google_signin", "apple_signin"] },
-      isActive: true,
-      credentials: { not: null },
-    },
-    select: { provider: true },
-  });
+  const [google, apple] = await Promise.all([
+    getActiveIntegrationCredentials("google_signin"),
+    getActiveIntegrationCredentials("apple_signin"),
+  ]);
   return {
-    google: rows.some((r) => r.provider === "google_signin"),
-    apple: rows.some((r) => r.provider === "apple_signin"),
+    google: !!google,
+    apple: !!apple,
   };
 }
 

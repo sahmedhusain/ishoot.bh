@@ -16,6 +16,8 @@ import {
   db,
   revokeCalendarFeedToken,
   type CalendarVisibility,
+  isCalendarSyncEnabled,
+  setCalendarSyncEnabled,
 } from "@platform/database";
 import { publicOrigin } from "../../lib/public-origin";
 import { revalidatePath } from "next/cache";
@@ -184,11 +186,7 @@ export async function createCalendarFeedAction(layers: string[]) {
   return measureOperation("action:createCalendarFeedAction", async () => {
     const user = await requirePermission("calendar", "read");
     validateActionArguments("createCalendarFeedAction", { layers });
-    const sync = await db.integrationSetting.findUnique({
-      where: { provider: "google_calendar" },
-      select: { isActive: true },
-    });
-    if (sync && !sync.isActive)
+    if (!(await isCalendarSyncEnabled()))
       throw new Error(serverMessages.calendarSyncIsTurnedOff);
     const token = await createCalendarFeedToken(user.id, layers);
     await createActivityLog({
@@ -198,7 +196,7 @@ export async function createCalendarFeedAction(layers: string[]) {
       entity_id: user.id,
       details: { layers },
     });
-    revalidatePath(ROUTES.settings.integrations);
+    revalidatePath(ROUTES.calendar);
     const https = `${await publicOrigin()}/api/calendar/ics/${token}`;
     return { https, webcal: https.replace(/^https?:/, "webcal:") };
   });
@@ -209,7 +207,7 @@ export async function updateCalendarFeedLayersAction(layers: string[]) {
     const user = await requirePermission("calendar", "read");
     validateActionArguments("updateCalendarFeedLayersAction", { layers });
     await updateCalendarFeedLayers(user.id, layers);
-    revalidatePath(ROUTES.settings.integrations);
+    revalidatePath(ROUTES.calendar);
     return { success: true };
   });
 }
@@ -225,7 +223,7 @@ export async function revokeCalendarFeedAction() {
       entity_type: "calendar_feed",
       entity_id: user.id,
     });
-    revalidatePath(ROUTES.settings.integrations);
+    revalidatePath(ROUTES.calendar);
     return { success: true };
   });
 }
@@ -235,20 +233,7 @@ export async function setCalendarSyncEnabledAction(enabled: boolean) {
   return measureOperation("action:setCalendarSyncEnabledAction", async () => {
     const user = await requirePermission("settings", "write");
     validateActionArguments("setCalendarSyncEnabledAction", { enabled });
-    await db.integrationSetting.upsert({
-      where: { provider: "google_calendar" },
-      update: {
-        isActive: enabled,
-        updatedById: user.id,
-        healthStatus: enabled ? "healthy" : "unknown",
-      },
-      create: {
-        provider: "google_calendar",
-        isActive: enabled,
-        updatedById: user.id,
-        healthStatus: enabled ? "healthy" : "unknown",
-      },
-    });
+    await setCalendarSyncEnabled(enabled, user.id);
     await createActivityLog({
       user_id: user.id,
       action: "update",
@@ -256,7 +241,7 @@ export async function setCalendarSyncEnabledAction(enabled: boolean) {
       entity_id: "google_calendar",
       details: { enabled },
     });
-    revalidatePath(ROUTES.settings.integrations);
+    revalidatePath(ROUTES.calendar);
     return { success: true };
   });
 }

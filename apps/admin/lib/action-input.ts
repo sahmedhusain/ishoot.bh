@@ -45,14 +45,7 @@ function valid(
       entries.every(([field, entry]) => {
         if (["__proto__", "constructor", "prototype"].includes(field))
           return false;
-        // External credential IDs use provider validation; other field semantics still apply.
-        const fieldKey =
-          action === "saveIntegration" &&
-          key === "values" &&
-          IDENTIFIER_KEY.test(field)
-            ? "credential"
-            : field;
-        return valid(entry, schema.element!, fieldKey, depth + 1, action);
+        return valid(entry, schema.element!, field, depth + 1, action);
       })
     );
   }

@@ -1,3 +1,5 @@
+import { Prisma } from "@prisma/client";
+import { listIntegrations } from "@platform/api-client";
 import { db } from "../db";
 
 export interface LatestSocialMetric {
@@ -12,15 +14,34 @@ export interface LatestSocialMetric {
 
 /** The most recent reading of every platform/metric pair, in one query. */
 export async function getLatestSocialMetrics(): Promise<LatestSocialMetric[]> {
+  const integrations = await listIntegrations();
+  const activeConditions: Prisma.Sql[] = [];
+
+  for (const item of integrations) {
+    if (!item.isActive) continue;
+    const cfg = (item.config ?? {}) as Record<string, unknown>;
+    const socialAccounts = (cfg.socialAccounts ?? {}) as Record<string, string>;
+    const availableMetrics = (cfg.availableMetrics ?? {}) as Record<
+      string,
+      string[]
+    >;
+    for (const [platform, accountId] of Object.entries(socialAccounts)) {
+      const metrics = availableMetrics[platform];
+      if (accountId && Array.isArray(metrics) && metrics.length > 0) {
+        activeConditions.push(
+          Prisma.sql`(m."sourceProvider" = ${item.provider} AND m."platform" = ${platform} AND m."sourceAccountId" = ${accountId} AND m."metricType" IN (${Prisma.join(metrics)}))`,
+        );
+      }
+    }
+  }
+
+  if (activeConditions.length === 0) return [];
+
   return db.$queryRaw<LatestSocialMetric[]>`
     SELECT DISTINCT ON ("platform", "metricType")
       "id", "platform", "metricType", "value", "recordedAt", "isStale", "errorStatus"
     FROM "SocialMetric" m
-    WHERE m."sourceProvider" IS NOT NULL AND EXISTS (
-      SELECT 1 FROM "IntegrationSetting" i WHERE i."provider" = m."sourceProvider" AND i."isActive"
-        AND i."config"->'socialAccounts'->>m."platform" = m."sourceAccountId"
-        AND (i."config"->'availableMetrics'->m."platform") ? m."metricType"
-    )
+    WHERE ${Prisma.join(activeConditions, " OR ")}
     ORDER BY "platform", "metricType", "recordedAt" DESC
   `;
 }

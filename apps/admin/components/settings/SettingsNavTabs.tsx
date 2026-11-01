@@ -7,7 +7,6 @@ import {
   Sliders,
   Building2,
   History,
-  Share2,
   Globe,
   ShieldCheck,
 } from "lucide-react";
@@ -40,11 +39,6 @@ export function SettingsNavTabs() {
       label: t.settingsTabs.audit,
       icon: History,
     },
-    {
-      href: ROUTES.settings.integrations,
-      label: t.settingsTabs.integrations,
-      icon: Share2,
-    },
     ...(role === "super_admin" && can("settings", "read")
       ? [
           {
@@ -61,9 +55,7 @@ export function SettingsNavTabs() {
       tab.href === ROUTES.settings.preferences ||
       (tab.href === ROUTES.settings.audit
         ? can("audit_logs", "read")
-        : tab.href === ROUTES.settings.integrations
-          ? can("settings", "edit") || can("calendar", "read")
-          : can("settings", "read")),
+        : can("settings", "read")),
   );
 
   return (

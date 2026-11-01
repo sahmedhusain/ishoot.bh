@@ -65,6 +65,18 @@ func TestTicketWorkflow(t *testing.T) {
 	assert.Len(t, Tickets.Categories, 4)
 }
 
+func TestIntegrations(t *testing.T) {
+	assert.Len(t, Integrations.Providers, 19)
+	meta, ok := Integrations.Provider("meta")
+	require.True(t, ok)
+	assert.Equal(t, "social", meta.Kind)
+	assert.Contains(t, meta.Platforms, "instagram")
+	_, ok = Integrations.Provider("unknown")
+	assert.False(t, ok)
+	assert.Contains(t, Integrations.Environments, "live")
+	assert.NotEmpty(t, Integrations.PaytabsRegions["SAU"])
+}
+
 func TestValidationCatchesBrokenData(t *testing.T) {
 	broken := Access{Resources: []string{"a"}, Actions: []string{"read"}, Roles: []string{"r"},
 		DefaultRoleRules: map[string]map[string][]string{"r": {"b": {"read"}}}}

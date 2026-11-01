@@ -1,0 +1,474 @@
+{
+  "providers": [
+    {
+      "id": "meta",
+      "kind": "social",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "fields": [
+        {
+          "key": "pageId",
+          "required": true
+        },
+        {
+          "key": "instagramAccountId"
+        },
+        {
+          "key": "accessToken",
+          "secret": true,
+          "required": true
+        }
+      ],
+      "docsUrl": "https://developers.facebook.com/docs/pages-api/getting-started"
+    },
+    {
+      "id": "whatsapp",
+      "kind": "messaging",
+      "platforms": [],
+      "fields": [
+        {
+          "key": "phoneId",
+          "required": true
+        },
+        {
+          "key": "businessId"
+        },
+        {
+          "key": "token",
+          "secret": true,
+          "required": true
+        }
+      ],
+      "docsUrl": "https://developers.facebook.com/docs/whatsapp/cloud-api/get-started"
+    },
+    {
+      "id": "youtube",
+      "kind": "social",
+      "platforms": [
+        "youtube"
+      ],
+      "fields": [
+        {
+          "key": "channelId",
+          "required": true
+        },
+        {
+          "key": "apiKey",
+          "secret": true,
+          "required": true
+        },
+        {
+          "key": "ownerAccessToken",
+          "secret": true,
+          "maxLength": 4096
+        },
+        {
+          "key": "clientId"
+        },
+        {
+          "key": "clientSecret",
+          "secret": true
+        },
+        {
+          "key": "refreshToken",
+          "secret": true,
+          "maxLength": 4096
+        }
+      ],
+      "docsUrl": "https://developers.google.com/youtube/v3/getting-started"
+    },
+    {
+      "id": "tiktok",
+      "kind": "social",
+      "platforms": [
+        "tiktok"
+      ],
+      "fields": [
+        {
+          "key": "accessToken",
+          "secret": true,
+          "required": true
+        }
+      ],
+      "docsUrl": "https://developers.tiktok.com/doc/display-api-overview"
+    },
+    {
+      "id": "x",
+      "kind": "social",
+      "platforms": [
+        "x"
+      ],
+      "fields": [
+        {
+          "key": "username",
+          "required": true
+        },
+        {
+          "key": "bearerToken",
+          "secret": true,
+          "required": true
+        }
+      ],
+      "docsUrl": "https://developer.x.com/en/docs/x-api/getting-started/about-x-api"
+    },
+    {
+      "id": "linkedin",
+      "kind": "social",
+      "platforms": [
+        "linkedin"
+      ],
+      "fields": [
+        {
+          "key": "organizationId",
+          "required": true
+        },
+        {
+          "key": "accessToken",
+          "secret": true,
+          "required": true
+        }
+      ],
+      "docsUrl": "https://learn.microsoft.com/en-us/linkedin/marketing/community-management/organizations"
+    },
+    {
+      "id": "resend",
+      "kind": "email",
+      "platforms": [],
+      "fields": [
+        {
+          "key": "apiKey",
+          "secret": true,
+          "required": true
+        },
+        {
+          "key": "fromEmail",
+          "required": true
+        },
+        {
+          "key": "webhookSecret",
+          "secret": true
+        }
+      ],
+      "docsUrl": "https://resend.com/docs/dashboard/domains/introduction"
+    },
+    {
+      "id": "google_signin",
+      "kind": "sign_in",
+      "platforms": [],
+      "fields": [
+        {
+          "key": "clientId",
+          "required": true
+        },
+        {
+          "key": "clientSecret",
+          "secret": true,
+          "required": true
+        }
+      ],
+      "docsUrl": "https://developers.google.com/identity/protocols/oauth2/web-server"
+    },
+    {
+      "id": "apple_signin",
+      "kind": "sign_in",
+      "platforms": [],
+      "fields": [
+        {
+          "key": "serviceId",
+          "required": true
+        },
+        {
+          "key": "teamId",
+          "required": true
+        },
+        {
+          "key": "keyId",
+          "required": true
+        },
+        {
+          "key": "privateKey",
+          "secret": true,
+          "required": true
+        }
+      ],
+      "docsUrl": "https://developer.apple.com/documentation/sign_in_with_apple/configuring_your_environment_for_sign_in_with_apple"
+    },
+    {
+      "id": "stripe",
+      "kind": "payments",
+      "platforms": [],
+      "fields": [
+        {
+          "key": "secretKey",
+          "secret": true,
+          "required": true
+        },
+        {
+          "key": "webhookSecret",
+          "secret": true,
+          "required": true
+        }
+      ],
+      "docsUrl": "https://docs.stripe.com/checkout/quickstart"
+    },
+    {
+      "id": "tap",
+      "kind": "payments",
+      "platforms": [],
+      "fields": [
+        {
+          "key": "secretKey",
+          "secret": true,
+          "required": true
+        }
+      ],
+      "docsUrl": "https://developers.tap.company/docs/charges"
+    },
+    {
+      "id": "paypal",
+      "kind": "payments",
+      "platforms": [],
+      "fields": [
+        {
+          "key": "environment",
+          "required": true
+        },
+        {
+          "key": "clientId",
+          "required": true
+        },
+        {
+          "key": "clientSecret",
+          "secret": true,
+          "required": true
+        },
+        {
+          "key": "webhookId",
+          "required": true
+        }
+      ],
+      "docsUrl": "https://developer.paypal.com/docs/checkout/standard/integrate/"
+    },
+    {
+      "id": "checkout_com",
+      "kind": "payments",
+      "platforms": [],
+      "fields": [
+        {
+          "key": "environment",
+          "required": true
+        },
+        {
+          "key": "apiPrefix"
+        },
+        {
+          "key": "secretKey",
+          "secret": true,
+          "required": true
+        },
+        {
+          "key": "processingChannelId",
+          "required": true
+        },
+        {
+          "key": "billingCountry",
+          "required": true
+        },
+        {
+          "key": "webhookSecret",
+          "secret": true,
+          "required": true
+        }
+      ],
+      "docsUrl": "https://www.checkout.com/docs/payments/accept-payments/accept-a-payment-on-a-hosted-page"
+    },
+    {
+      "id": "paytabs",
+      "kind": "payments",
+      "platforms": [],
+      "fields": [
+        {
+          "key": "region",
+          "required": true
+        },
+        {
+          "key": "profileId",
+          "required": true
+        },
+        {
+          "key": "serverKey",
+          "secret": true,
+          "required": true
+        }
+      ],
+      "docsUrl": "https://support.paytabs.com/en/support/solutions/articles/60000711358-what-is-paytabs-hosted-payment-page-"
+    },
+    {
+      "id": "moyasar",
+      "kind": "payments",
+      "platforms": [],
+      "fields": [
+        {
+          "key": "secretKey",
+          "secret": true,
+          "required": true
+        },
+        {
+          "key": "webhookSecret",
+          "secret": true,
+          "required": true
+        }
+      ],
+      "docsUrl": "https://docs.moyasar.com/api/invoices/01-create-invoice"
+    },
+    {
+      "id": "hyperpay",
+      "kind": "payments",
+      "platforms": [],
+      "fields": [
+        {
+          "key": "environment",
+          "required": true
+        },
+        {
+          "key": "entityId",
+          "required": true
+        },
+        {
+          "key": "accessToken",
+          "secret": true,
+          "required": true
+        },
+        {
+          "key": "brands",
+          "required": true
+        },
+        {
+          "key": "webhookKey",
+          "secret": true,
+          "required": true
+        }
+      ],
+      "docsUrl": "https://hyperpay.docs.oppwa.com/integrations/widget"
+    },
+    {
+      "id": "aramex",
+      "kind": "couriers",
+      "platforms": [],
+      "fields": [
+        {
+          "key": "environment",
+          "required": true
+        },
+        {
+          "key": "username",
+          "required": true
+        },
+        {
+          "key": "password",
+          "secret": true,
+          "required": true
+        },
+        {
+          "key": "accountNumber",
+          "required": true
+        },
+        {
+          "key": "accountPin",
+          "secret": true,
+          "required": true
+        },
+        {
+          "key": "accountEntity",
+          "required": true
+        },
+        {
+          "key": "accountCountryCode",
+          "required": true
+        }
+      ],
+      "docsUrl": "https://www.aramex.com/us/en/developers-solution-center/aramex-apis"
+    },
+    {
+      "id": "dhl_express",
+      "kind": "couriers",
+      "platforms": [],
+      "fields": [
+        {
+          "key": "environment",
+          "required": true
+        },
+        {
+          "key": "apiKey",
+          "secret": true,
+          "required": true
+        },
+        {
+          "key": "apiSecret",
+          "secret": true,
+          "required": true
+        },
+        {
+          "key": "accountNumber",
+          "required": true
+        }
+      ],
+      "docsUrl": "https://developer.dhl.com/api-reference/dhl-express-mydhl-api"
+    },
+    {
+      "id": "smsa",
+      "kind": "couriers",
+      "platforms": [],
+      "fields": [
+        {
+          "key": "environment",
+          "required": true
+        },
+        {
+          "key": "apiKey",
+          "secret": true,
+          "required": true
+        }
+      ],
+      "docsUrl": "https://www.smsaexpress.com/"
+    }
+  ],
+  "environments": [
+    "test",
+    "sandbox",
+    "live"
+  ],
+  "paytabsRegions": {
+    "ARE": "https://secure.paytabs.com",
+    "SAU": "https://secure.paytabs.sa",
+    "OMN": "https://secure-oman.paytabs.com",
+    "JOR": "https://secure-jordan.paytabs.com",
+    "EGY": "https://secure-egypt.paytabs.com",
+    "IRQ": "https://secure-iraq.paytabs.com",
+    "KWT": "https://secure-kuwait.paytabs.com",
+    "MAR": "https://secure-morocco.paytabs.com",
+    "QAT": "https://secure-doha.paytabs.com",
+    "GLOBAL": "https://secure-global.paytabs.com"
+  },
+  "socialPlatforms": [
+    "facebook",
+    "instagram",
+    "youtube",
+    "tiktok",
+    "x",
+    "linkedin"
+  ],
+  "socialOwnerMetrics": [
+    "views",
+    "reach",
+    "impressions",
+    "profile_views",
+    "likes",
+    "comments",
+    "shares",
+    "followers_gained",
+    "followers_lost"
+  ]
+}

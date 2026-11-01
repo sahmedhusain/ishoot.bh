@@ -64,3 +64,64 @@ func TestPrismaHandoff(t *testing.T) {
 		})
 	}
 }
+
+// The Prisma migration hands "IntegrationSetting" to the system service whether or not the service has run yet.
+func TestIntegrationsHandoff(t *testing.T) {
+	ctx := context.Background()
+	pool, err := pgxpool.New(ctx, testkit.Postgres(t))
+	require.NoError(t, err)
+	defer pool.Close()
+	sql, err := os.ReadFile("../../../../packages/database/prisma/migrations/20261102120000_move_integrations_to_system_service/migration.sql")
+	require.NoError(t, err)
+	run := func() error {
+		return migrate.Run(ctx, pool, migrate.Options{Logger: slog.Default(), Schema: "system", Migrations: migrations.FS})
+	}
+	for _, mode := range []string{"move", "copy"} {
+		t.Run(mode, func(t *testing.T) {
+			_, err := pool.Exec(ctx, `DROP SCHEMA IF EXISTS system CASCADE;
+    DROP TABLE IF EXISTS public."IntegrationSetting";
+    CREATE TABLE public."IntegrationSetting" (
+     provider text NOT NULL, "isActive" boolean NOT NULL DEFAULT false,
+     credentials text, config jsonb, "syncLeaseToken" text, "syncLeaseUntil" timestamp(3),
+     "healthStatus" text NOT NULL DEFAULT 'unknown', "lastCheckedAt" timestamp(3),
+     "lastError" text, "accountName" text, "lastSyncedAt" timestamp(3),
+     "updatedAt" timestamp(3) NOT NULL DEFAULT now(), "updatedById" text,
+     CONSTRAINT "IntegrationSetting_pkey" PRIMARY KEY (provider));
+    INSERT INTO public."IntegrationSetting" (provider, "isActive", credentials, config)
+    VALUES ('stripe', true, 'encrypted-stripe', '{"test":true}'::jsonb),
+           ('meta', false, 'encrypted-meta', NULL);`)
+			require.NoError(t, err)
+			if mode == "copy" {
+				require.NoError(t, run())
+				_, err = pool.Exec(ctx, `INSERT INTO system.integration_setting (provider, is_active, credentials, updated_by) VALUES ('meta', true, 'new-meta', 'it:admin')`)
+				require.NoError(t, err)
+			}
+			_, err = pool.Exec(ctx, string(sql))
+			require.NoError(t, err)
+			require.NoError(t, run())
+			_, err = pool.Exec(ctx, string(sql))
+			require.NoError(t, err, "re-running the completed handoff is safe")
+
+			var legacy *string
+			require.NoError(t, pool.QueryRow(ctx, `SELECT to_regclass('public."IntegrationSetting"')::text`).Scan(&legacy))
+			require.Nil(t, legacy, "the legacy table is gone")
+
+			var stripeActive bool
+			var stripeCreds string
+			require.NoError(t, pool.QueryRow(ctx, `SELECT is_active, credentials FROM system.integration_setting WHERE provider = 'stripe'`).Scan(&stripeActive, &stripeCreds))
+			require.True(t, stripeActive)
+			require.Equal(t, "encrypted-stripe", stripeCreds)
+
+			var metaActive bool
+			var metaCreds string
+			require.NoError(t, pool.QueryRow(ctx, `SELECT is_active, credentials FROM system.integration_setting WHERE provider = 'meta'`).Scan(&metaActive, &metaCreds))
+			if mode == "copy" {
+				require.True(t, metaActive)
+				require.Equal(t, "new-meta", metaCreds)
+			} else {
+				require.False(t, metaActive)
+				require.Equal(t, "encrypted-meta", metaCreds)
+			}
+		})
+	}
+}

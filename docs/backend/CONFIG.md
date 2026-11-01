@@ -272,6 +272,10 @@ the environment. A service refuses to start when a value is missing or fails its
 | `AUTH_JWKS_FETCH_TIMEOUT` | `5s` | `gt=0` |
 | `AUTH_CLOCK_SKEW` | `30s` | `gte=0` |
 | `AUTH_SERVICE_KEYS_FILE` |  | `omitempty,file` |
+| `SECRETS_KEYS` | `primary:MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=` | `min=1,dive,required` |
+| `SECRETS_PRIMARY_KEY_ID` | `primary` | `required` |
+| `SECRETS_LEGACY_INTEGRATION_KEY` |  |  |
 | `SYSTEM_READ_CALLERS` | `admin,web,it` | `min=1,dive,required` |
 | `SYSTEM_MODULE_WRITERS` | `admin` | `dive,required` |
+| `SYSTEM_INTEGRATION_WRITERS` | `admin` | `dive,required` |
 | `SYSTEM_JSON_BODY_LIMIT` | `16384` | `gt=0` |

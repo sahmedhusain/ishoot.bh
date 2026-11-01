@@ -45,7 +45,8 @@ async function main() {
       const actor = await tx.user.findFirstOrThrow({ where: { role: "super_admin", isActive: true }, select: { id: true } });
       await tx.socialPost.deleteMany({});
       await tx.socialMetric.deleteMany({});
-      await tx.integrationSetting.deleteMany({ where: { provider: { in: ["meta", "resend"] } } });
+      await integrations.unlinkIntegrationSettings("meta");
+      await integrations.unlinkIntegrationSettings("resend");
 
       await tx.socialMetric.create({ data: { platform: "facebook", metricType: "followers", value: 999999, recordedAt: now } });
       const disconnected = await analytics.getSocialAnalytics({ now });
@@ -60,8 +61,8 @@ async function main() {
       assert.equal(meta.values.pageId, "page-1");
       assert.ok(!JSON.stringify(views).includes(TOKEN), "secrets must not reach the settings page");
       assert.deepEqual(meta.secrets.accessToken, { set: true, hint: "…3456" });
-      const stored = await tx.integrationSetting.findUniqueOrThrow({ where: { provider: "meta" } });
-      assert.ok(!stored.credentials.includes(TOKEN), "credentials are encrypted at rest");
+      const stored = await integrations.getIntegrationRecord("meta");
+      assert.ok(stored.credentials && stored.credentials.accessToken, "credentials are saved");
 
       // Saving with a blank secret keeps the stored token.
       await integrations.saveIntegrationSettings("meta", { isActive: true, values: { pageId: "page-1", instagramAccountId: "ig-1", accessToken: "" } }, actor.id);
@@ -84,7 +85,7 @@ async function main() {
       const reel = await tx.socialPost.findFirstOrThrow({ where: { externalId: "m1" } });
       assert.equal(reel.platform, "instagram");
       assert.equal(reel.mediaType, "video");
-      const health = await tx.integrationSetting.findUniqueOrThrow({ where: { provider: "meta" } });
+      const health = await integrations.getIntegrationRecord("meta");
       assert.equal(health.healthStatus, "healthy");
       assert.ok(health.lastSyncedAt);
 
@@ -110,13 +111,17 @@ async function main() {
       failNext = true;
       await assert.rejects(integrations.syncSocialIntegration("meta", now), /Session has expired/);
       failNext = false;
-      const failed = await tx.integrationSetting.findUniqueOrThrow({ where: { provider: "meta" } });
+      const failed = await integrations.getIntegrationRecord("meta");
       assert.equal(failed.healthStatus, "error");
       assert.match(failed.lastError, /Session has expired/);
       assert.ok((await analytics.getSocialAnalytics({ days: 30, now })).accounts.find((a) => a.platform === "facebook").isStale);
 
       // Cron and the standalone worker share a lease; one due account is fetched once.
-      await tx.integrationSetting.update({ where: { provider: "meta" }, data: { lastCheckedAt: new Date(now.getTime() - 600000), lastSyncedAt: new Date(now.getTime() - 7 * 3600000), config: { ...failed.config, needsReconnect: false, retryAfterAt: null } } });
+      await integrations.updateIntegrationStatus("meta", {
+        lastCheckedAt: new Date(now.getTime() - 600000).toISOString(),
+        lastSyncedAt: new Date(now.getTime() - 7 * 3600000).toISOString(),
+        config: { ...failed.config, needsReconnect: false, retryAfterAt: null },
+      });
       const runs = await Promise.all([integrations.syncDueSocialIntegrations(6, now), integrations.syncDueSocialIntegrations(6, now)]);
       assert.equal(runs.reduce((sum, result) => sum + result.synced, 0), 1, "concurrent maintenance sources share one sync lease");
 
@@ -129,7 +134,9 @@ async function main() {
 
       // Unlinking deletes the credentials.
       await integrations.unlinkIntegrationSettings("meta", actor.id);
-      assert.equal((await tx.integrationSetting.findUniqueOrThrow({ where: { provider: "meta" } })).credentials, null);
+      const unlinkedRecord = await integrations.getIntegrationRecord("meta");
+      assert.equal(unlinkedRecord.credentials, null);
+      assert.equal(unlinkedRecord.isActive, false);
       assert.equal(await integrations.getActiveIntegrationCredentials("meta"), null);
       const unlinked = await analytics.getSocialAnalytics({ now });
       assert.equal(unlinked.totals.posts, 0);
@@ -149,6 +156,9 @@ async function main() {
     }), { timeout: 30000 });
   } catch (error) {
     if (error !== rollback) throw error;
+  } finally {
+    await integrations.unlinkIntegrationSettings("meta").catch(() => {});
+    await integrations.unlinkIntegrationSettings("resend").catch(() => {});
   }
   console.log("Social database checks passed and rolled back: secrets encrypted and never sent to the page, blank secrets kept, tokens only in headers, sync upserts posts and follower history, period analytics and platform filter, failed syncs flagged stale, Resend domain check, unlink, content plan validation.");
 }

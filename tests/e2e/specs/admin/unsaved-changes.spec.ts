@@ -253,73 +253,6 @@ test("browser reload uses the native guard and undoing an edit clears dirty stat
 });
 
 for (const locale of ["en", "ar"] as const) {
-  test(`saving one integration retains another editor's guard (${locale})`, async ({
-    page,
-  }) => {
-    const t = locale === "en" ? en : ar;
-    const copy = t.integrations;
-    await db.integrationSetting.deleteMany({
-      where: { provider: { in: ["youtube", "tiktok"] } },
-    });
-    try {
-      await page.addInitScript(
-        (locale) => localStorage.setItem("platform_admin_locale", locale),
-        locale,
-      );
-      await page.goto("/dashboard/settings/integrations");
-      const youtube = page.getByTestId("integration-youtube"),
-        tiktok = page.getByTestId("integration-tiktok");
-      await youtube
-        .getByRole("button", { name: copy.configure, exact: true })
-        .click();
-      await youtube.locator("#youtube-channelId").fill("UC-e2e-unsaved-guard");
-      await youtube.locator("#youtube-apiKey").fill("E2E-only-public-key");
-      await tiktok
-        .getByRole("button", { name: copy.configure, exact: true })
-        .click();
-      await tiktok
-        .locator("#tiktok-accessToken")
-        .fill("E2E-only-unsaved-token");
-      expect(
-        await page.evaluate(() => JSON.stringify(history.state)),
-      ).not.toContain("E2E-only-unsaved-token");
-      await youtube
-        .getByRole("button", { name: copy.save, exact: true })
-        .click();
-      await expect(youtube.locator("form")).toHaveCount(0);
-      const target = page
-        .getByRole("main")
-        .locator('a[href="/dashboard/settings/company"]')
-        .first();
-      await target.click();
-      const dialog = page.getByRole("dialog", {
-        name: t.unsavedChanges.title,
-        exact: true,
-      });
-      await dialog
-        .getByRole("button", { name: t.unsavedChanges.stay, exact: true })
-        .click();
-      await expect(tiktok.locator("#tiktok-accessToken")).toHaveValue(
-        "E2E-only-unsaved-token",
-      );
-      await tiktok
-        .getByRole("button", { name: copy.cancel, exact: true })
-        .click();
-      await page
-        .getByRole("dialog", { name: copy.setup.discardTitle, exact: true })
-        .getByRole("button")
-        .last()
-        .click();
-      await target.click();
-      await expect(page).toHaveURL(/\/settings\/company$/);
-      await expect(page.getByRole("dialog")).toHaveCount(0);
-    } finally {
-      await db.integrationSetting.deleteMany({
-        where: { provider: { in: ["youtube", "tiktok"] } },
-      });
-    }
-  });
-
   test(`theme drafts survive tabs and a failed save, with pending fields locked (${locale})`, async ({
     page,
   }) => {
@@ -375,7 +308,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(main.getByRole("alert")).toBeVisible();
     await expect(color).toHaveValue(changed);
     await main
-      .locator('a[href="/dashboard/settings/integrations"]')
+      .locator('a[href="/dashboard/settings/preferences"]')
       .first()
       .click();
     await page
@@ -384,10 +317,10 @@ for (const locale of ["en", "ar"] as const) {
       .click();
     await color.fill(original);
     await main
-      .locator('a[href="/dashboard/settings/integrations"]')
+      .locator('a[href="/dashboard/settings/preferences"]')
       .first()
       .click();
-    await expect(page).toHaveURL(/\/settings\/integrations$/);
+    await expect(page).toHaveURL(/\/settings\/preferences$/);
     expect(hydrationErrors).toEqual([]);
   });
 

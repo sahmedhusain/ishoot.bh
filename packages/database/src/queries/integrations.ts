@@ -3,10 +3,15 @@ import {
   formatMessage,
   serverMessages,
 } from "@platform/locales";
-import { randomUUID } from "node:crypto";
-
+import {
+  getIntegration,
+  listIntegrations,
+  setIntegration,
+  unlinkIntegration,
+  updateIntegrationStatus,
+  type ServiceIntegration,
+} from "@platform/api-client";
 import { db, runAtomicMutation } from "../db";
-import type { Prisma } from "@prisma/client";
 import {
   INTEGRATION_PROVIDERS,
   INTEGRATION_ENVIRONMENTS,
@@ -15,10 +20,6 @@ import {
   type IntegrationProviderId,
 } from "../constants/integrations";
 import { checkSignInCredentials } from "../services/oauth-signin";
-import {
-  decryptIntegrationCredentials,
-  encryptIntegrationCredentials,
-} from "../services/integration-credentials";
 import {
   checkConnection,
   fetchSocialSnapshot,
@@ -41,37 +42,16 @@ export interface IntegrationAdminView {
   config: Record<string, unknown>;
 }
 
-// Older Meta records stored the Instagram account as accountId and the token under token.
-const LEGACY_KEYS: Partial<
-  Record<IntegrationProviderId, Record<string, string>>
-> = {
-  meta: { accountId: "instagramAccountId", token: "accessToken" },
-};
-
-function readCredentials(
-  provider: IntegrationProviderId,
-  encrypted: string | null,
-): Credentials {
-  const stored = (encrypted && decryptIntegrationCredentials(encrypted)) || {};
-  const renames = LEGACY_KEYS[provider] ?? {};
-  return Object.fromEntries(
-    Object.entries(stored).map(([key, value]) => [renames[key] ?? key, value]),
-  );
-}
-
 const secretHint = (value: string) =>
   value.length > 8 ? `…${value.slice(-4)}` : "";
 
 export async function listIntegrationsForAdmin(): Promise<
   IntegrationAdminView[]
 > {
-  const records = await db.integrationSetting.findMany();
+  const records = await listIntegrations();
   return INTEGRATION_PROVIDERS.map((provider) => {
     const record = records.find((r) => r.provider === provider.id);
-    const credentials = readCredentials(
-      provider.id,
-      record?.credentials ?? null,
-    );
+    const credentials = record?.credentials ?? {};
     const values: Record<string, string> = {};
     const secrets: Record<string, { set: boolean; hint: string }> = {};
     for (const field of provider.fields) {
@@ -99,8 +79,8 @@ export async function listIntegrationsForAdmin(): Promise<
               record.lastError,
             )
         : null,
-      lastCheckedAt: record?.lastCheckedAt?.toISOString() ?? null,
-      lastSyncedAt: record?.lastSyncedAt?.toISOString() ?? null,
+      lastCheckedAt: record?.lastCheckedAt ?? null,
+      lastSyncedAt: record?.lastSyncedAt ?? null,
       values,
       secrets,
       config: (record?.config as Record<string, unknown> | null) ?? {},
@@ -112,11 +92,20 @@ export async function listIntegrationsForAdmin(): Promise<
 export async function getActiveIntegrationCredentials(
   provider: IntegrationProviderId,
 ): Promise<Credentials | null> {
-  const record = await db.integrationSetting.findUnique({
-    where: { provider },
-  });
-  if (!record?.isActive || !record.credentials) return null;
-  return readCredentials(provider, record.credentials);
+  const record = await getIntegration(provider);
+  if (
+    !record?.isActive ||
+    !record.credentials ||
+    !Object.keys(record.credentials).length
+  )
+    return null;
+  return record.credentials;
+}
+
+export async function getIntegrationRecord(
+  provider: string,
+): Promise<ServiceIntegration | null> {
+  return await getIntegration(provider);
 }
 
 export interface SaveIntegrationInput {
@@ -133,10 +122,8 @@ export async function saveIntegrationSettings(
 ) {
   const provider = integrationProvider(providerId);
   if (!provider) throw new Error(serverMessages.unknownIntegration);
-  const existing = await db.integrationSetting.findUnique({
-    where: { provider: provider.id },
-  });
-  const current = readCredentials(provider.id, existing?.credentials ?? null);
+  const existing = await getIntegration(provider.id);
+  const current = existing?.credentials ?? {};
   const next: Credentials = {};
   for (const field of provider.fields) {
     const incoming = (input.values[field.key] ?? "").trim();
@@ -202,115 +189,72 @@ export async function saveIntegrationSettings(
       throw new Error(check.error ?? serverMessages.providerConnectionFailed);
   }
   const changed = JSON.stringify(next) !== JSON.stringify(current);
-  const data = {
-    isActive: input.isActive,
-    credentials: Object.keys(next).length
-      ? encryptIntegrationCredentials(next)
-      : null,
-    config: JSON.parse(
-      JSON.stringify({
-        ...((existing?.config as Record<string, unknown>) ?? {}),
-        ...input.config,
-        availableMetrics: changed
-          ? {}
-          : ((existing?.config as Record<string, unknown> | null)
-              ?.availableMetrics ?? {}),
-        socialAccounts: changed
-          ? {}
-          : ((existing?.config as Record<string, unknown> | null)
-              ?.socialAccounts ?? {}),
-        ownerInsights: changed
-          ? {}
-          : ((existing?.config as Record<string, unknown> | null)
-              ?.ownerInsights ?? {}),
-        configuredPlatforms: provider.platforms.filter(
-          (platform) => platform !== "instagram" || !!next.instagramAccountId,
-        ),
-        needsReconnect: changed
-          ? false
-          : ((existing?.config as Record<string, unknown> | null)
-              ?.needsReconnect ?? false),
-        retryAfterAt: changed
-          ? null
-          : ((existing?.config as Record<string, unknown> | null)
-              ?.retryAfterAt ?? null),
-        lastSyncPartial: changed
-          ? false
-          : ((existing?.config as Record<string, unknown> | null)
-              ?.lastSyncPartial ?? false),
-      }),
-    ) as Prisma.InputJsonObject,
-    updatedById: actorId,
-    syncLeaseToken: null,
-    syncLeaseUntil: null,
-    // New credentials have not been proven yet.
-    ...(changed
-      ? { healthStatus: "unknown", lastError: null, accountName: null }
-      : {}),
+  const config = {
+    ...((existing?.config as Record<string, unknown>) ?? {}),
+    ...input.config,
+    availableMetrics: changed
+      ? {}
+      : ((existing?.config as Record<string, unknown> | null)
+          ?.availableMetrics ?? {}),
+    socialAccounts: changed
+      ? {}
+      : ((existing?.config as Record<string, unknown> | null)
+          ?.socialAccounts ?? {}),
+    ownerInsights: changed
+      ? {}
+      : ((existing?.config as Record<string, unknown> | null)
+          ?.ownerInsights ?? {}),
+    configuredPlatforms: provider.platforms.filter(
+      (platform) => platform !== "instagram" || !!next.instagramAccountId,
+    ),
+    needsReconnect: changed
+      ? false
+      : ((existing?.config as Record<string, unknown> | null)
+          ?.needsReconnect ?? false),
+    retryAfterAt: changed
+      ? null
+      : ((existing?.config as Record<string, unknown> | null)
+          ?.retryAfterAt ?? null),
+    lastSyncPartial: changed
+      ? false
+      : ((existing?.config as Record<string, unknown> | null)
+          ?.lastSyncPartial ?? false),
   };
-  await db.integrationSetting.upsert({
-    where: { provider: provider.id },
-    update: data,
-    create: { provider: provider.id, ...data },
+  await setIntegration(provider.id, {
+    isActive: input.isActive,
+    values: next,
+    config,
+    actorId,
   });
 }
 
 export async function unlinkIntegrationSettings(
   providerId: string,
-  actorId: string,
+  _actorId?: string,
 ) {
   const provider = integrationProvider(providerId);
   if (!provider) throw new Error(serverMessages.unknownIntegration);
-  await db.integrationSetting.upsert({
-    where: { provider: provider.id },
-    update: {
-      isActive: false,
-      credentials: null,
-      lastSyncedAt: null,
-      config: {},
-      healthStatus: "unknown",
-      lastError: null,
-      accountName: null,
-      updatedById: actorId,
-      syncLeaseToken: null,
-      syncLeaseUntil: null,
-    },
-    create: { provider: provider.id, isActive: false, updatedById: actorId },
-  });
+  await unlinkIntegration(provider.id);
 }
 
 /** Checks the stored credentials against the provider and records the result. */
 export async function testIntegration(providerId: string) {
   const provider = integrationProvider(providerId);
   if (!provider) throw new Error(serverMessages.unknownIntegration);
-  const record = await db.integrationSetting.findUnique({
-    where: { provider: provider.id },
-  });
-  if (!record?.credentials)
+  const record = await getIntegration(provider.id);
+  if (!record?.credentials || !Object.keys(record.credentials).length)
     throw new Error(serverMessages.saveTheCredentialsFirst);
-  const result = await checkConnection(
-    provider.id,
-    readCredentials(provider.id, record.credentials),
-  );
-  const stored = await db.integrationSetting.updateMany({
-    where: {
-      provider: provider.id,
-      credentials: record.credentials,
-      isActive: record.isActive,
-    },
-    data: {
-      healthStatus: result.ok
-        ? result.validation === "format"
-          ? "configured"
-          : "healthy"
-        : "error",
-      lastError: result.ok ? null : (result.error ?? "Connection check failed"),
-      accountName: result.accountName ?? record.accountName,
-      lastCheckedAt: new Date(),
-    },
+  const result = await checkConnection(provider.id, record.credentials);
+  await updateIntegrationStatus(provider.id, {
+    healthStatus: result.ok
+      ? result.validation === "format"
+        ? "configured"
+        : "healthy"
+      : "error",
+    lastError: result.ok ? null : (result.error ?? "Connection check failed"),
+    accountName: result.accountName ?? record.accountName,
+    lastCheckedAt: new Date().toISOString(),
   });
-  if (!stored.count)
-    throw new Error(serverMessages.socialSyncConfigurationChanged);
   return result;
 }
 
@@ -322,10 +266,12 @@ export async function syncSocialIntegration(
   const provider = integrationProvider(providerId);
   if (!provider || provider.kind !== "social")
     throw new Error(serverMessages.thisIntegrationHasNoSocialDataTo);
-  const record = await db.integrationSetting.findUnique({
-    where: { provider: provider.id },
-  });
-  if (!record?.isActive || !record.credentials)
+  const record = await getIntegration(provider.id);
+  if (
+    !record?.isActive ||
+    !record.credentials ||
+    !Object.keys(record.credentials).length
+  )
     throw new Error(serverMessages.turnThisIntegrationOnFirst);
   const retryAfterAt = (record.config as Record<string, unknown> | null)
     ?.retryAfterAt;
@@ -335,82 +281,14 @@ export async function syncSocialIntegration(
         time: retryAfterAt,
       }),
     );
-  const leaseToken = randomUUID();
-  const claimed = await db.integrationSetting.updateMany({
-    where: {
-      provider: provider.id,
-      isActive: true,
-      credentials: record.credentials,
-      OR: [{ syncLeaseUntil: null }, { syncLeaseUntil: { lte: now } }],
-    },
-    data: {
-      syncLeaseToken: leaseToken,
-      syncLeaseUntil: new Date(now.getTime() + 600_000),
-    },
-  });
-  if (!claimed.count)
-    throw new ProviderError(serverMessages.socialSyncInProgress, 409);
   try {
-    const credentials = readCredentials(provider.id, record.credentials);
-    const snapshot = await fetchSocialSnapshot(provider.id, credentials, now);
+    const snapshot = await fetchSocialSnapshot(
+      provider.id,
+      record.credentials,
+      now,
+    );
     const config = (record.config as Record<string, unknown> | null) ?? {};
     await runAtomicMutation(async () => {
-      const stored = await db.integrationSetting.updateMany({
-        where: {
-          provider: provider.id,
-          isActive: true,
-          credentials: record.credentials,
-          syncLeaseToken: leaseToken,
-        },
-        data: {
-          healthStatus: "healthy",
-          lastError: null,
-          accountName: snapshot.accountName ?? record.accountName,
-          lastSyncedAt: now,
-          lastCheckedAt: now,
-          syncLeaseToken: null,
-          syncLeaseUntil: null,
-          ...(snapshot.refreshedCredentials
-            ? {
-                credentials: encryptIntegrationCredentials({
-                  ...credentials,
-                  ...snapshot.refreshedCredentials,
-                }),
-              }
-            : {}),
-          config: JSON.parse(
-            JSON.stringify({
-              ...config,
-              socialAccounts: snapshot.accounts,
-              availableMetrics: Object.fromEntries(
-                Object.keys(snapshot.accounts).map((platform) => [
-                  platform,
-                  snapshot.metrics
-                    .filter(
-                      (metric) =>
-                        metric.platform === platform && metric.value != null,
-                    )
-                    .map((metric) => metric.metricType),
-                ]),
-              ),
-              ownerInsights: snapshot.ownerInsights ?? {},
-              needsReconnect: false,
-              retryAfterAt:
-                Object.values(snapshot.ownerInsights ?? {})
-                  .map((owner) => owner?.retryAfterAt)
-                  .filter((time): time is string => !!time)
-                  .sort()
-                  .at(-1) ?? null,
-              lastSyncPartial: snapshot.partial ?? false,
-            }),
-          ) as Prisma.InputJsonObject,
-        },
-      });
-      if (!stored.count)
-        throw new ProviderError(
-          serverMessages.socialSyncConfigurationChanged,
-          409,
-        );
       for (const post of snapshot.posts) {
         const sourceAccountId = snapshot.accounts[post.platform];
         if (!sourceAccountId || !Number.isFinite(post.publishedAt.getTime()))
@@ -486,7 +364,6 @@ export async function syncSocialIntegration(
             ]
           : [],
       );
-      // One bounded write keeps a year of daily observations inside the transaction timeout.
       if (insights.length)
         await db.$executeRaw`
         INSERT INTO "SocialInsightSnapshot" ("id", "platform", "sourceProvider", "sourceAccountId", "periodDays", "periodStart", "periodEnd", "timeZone", "metrics", "nativeMetrics", "recordedAt")
@@ -496,47 +373,69 @@ export async function syncSocialIntegration(
         SET "metrics" = EXCLUDED."metrics", "nativeMetrics" = EXCLUDED."nativeMetrics", "timeZone" = EXCLUDED."timeZone", "recordedAt" = EXCLUDED."recordedAt"
       `;
     });
+    await updateIntegrationStatus(provider.id, {
+      healthStatus: "healthy",
+      lastError: null,
+      accountName: snapshot.accountName ?? record.accountName,
+      lastSyncedAt: now.toISOString(),
+      lastCheckedAt: now.toISOString(),
+      ...(snapshot.refreshedCredentials
+        ? { refreshedCredentials: snapshot.refreshedCredentials }
+        : {}),
+      config: {
+        ...config,
+        socialAccounts: snapshot.accounts,
+        availableMetrics: Object.fromEntries(
+          Object.keys(snapshot.accounts).map((platform) => [
+            platform,
+            snapshot.metrics
+              .filter(
+                (metric) =>
+                  metric.platform === platform && metric.value != null,
+              )
+              .map((metric) => metric.metricType),
+          ]),
+        ),
+        ownerInsights: snapshot.ownerInsights ?? {},
+        needsReconnect: false,
+        retryAfterAt:
+          Object.values(snapshot.ownerInsights ?? {})
+            .map((owner) => (owner as any)?.retryAfterAt)
+            .filter((time): time is string => !!time)
+            .sort()
+            .at(-1) ?? null,
+        lastSyncPartial: snapshot.partial ?? false,
+      },
+    });
     return { posts: snapshot.posts.length, metrics: snapshot.metrics.length };
   } catch (error) {
     const message =
       error instanceof ProviderError
         ? error.message
         : serverMessages.socialSyncFailed;
-    await runAtomicMutation(async () => {
-      const failed = await db.integrationSetting.updateMany({
-        where: {
-          provider: provider.id,
-          credentials: record.credentials,
-          syncLeaseToken: leaseToken,
-        },
-        data: {
-          healthStatus: "error",
-          lastError: message,
-          lastCheckedAt: now,
-          config: {
-            ...((record.config as Record<string, unknown> | null) ?? {}),
-            needsReconnect:
-              error instanceof ProviderError && error.status === 401,
-            retryAfterAt:
-              error instanceof ProviderError && error.status === 429
-                ? new Date(
-                    now.getTime() + Math.max(60, error.retryAfter ?? 60) * 1000,
-                  ).toISOString()
-                : null,
-          } as Prisma.InputJsonObject,
-          syncLeaseToken: null,
-          syncLeaseUntil: null,
-        },
-      });
-      // Mark the latest numbers as stale so dashboards do not present them as current.
-      if (failed.count)
-        await db.socialMetric.updateMany({
-          where: {
-            sourceProvider: provider.id,
-            platform: { in: provider.platforms },
-          },
-          data: { isStale: true },
-        });
+    await updateIntegrationStatus(provider.id, {
+      healthStatus: "error",
+      lastError: message,
+      lastCheckedAt: now.toISOString(),
+      config: {
+        ...((record.config as Record<string, unknown> | null) ?? {}),
+        needsReconnect:
+          error instanceof ProviderError && error.status === 401,
+        retryAfterAt:
+          error instanceof ProviderError && error.status === 429
+            ? new Date(
+                now.getTime() + Math.max(60, error.retryAfter ?? 60) * 1000,
+              ).toISOString()
+            : null,
+      },
+    });
+    // Mark the latest numbers as stale so dashboards do not present them as current.
+    await db.socialMetric.updateMany({
+      where: {
+        sourceProvider: provider.id,
+        platform: { in: provider.platforms },
+      },
+      data: { isStale: true },
     });
     throw error instanceof ProviderError ? error : new Error(message);
   }
@@ -547,32 +446,21 @@ export async function syncDueSocialIntegrations(
   maxAgeHours = 6,
   now = new Date(),
 ) {
-  const due = await db.integrationSetting.findMany({
-    where: {
-      isActive: true,
-      provider: {
-        in: INTEGRATION_PROVIDERS.filter((p) => p.kind === "social").map(
-          (p) => p.id,
-        ),
-      },
-      OR: [
-        { lastSyncedAt: null },
-        {
-          lastSyncedAt: {
-            lt: new Date(now.getTime() - maxAgeHours * 3_600_000),
-          },
-        },
-      ],
-      AND: [
-        {
-          OR: [
-            { lastCheckedAt: null },
-            { lastCheckedAt: { lt: new Date(now.getTime() - 300_000) } },
-          ],
-        },
-      ],
-    },
-    select: { provider: true, config: true },
+  const all = await listIntegrations();
+  const maxAgeMs = maxAgeHours * 3_600_000;
+  const recentCheckMs = 300_000;
+  const due = all.filter((r) => {
+    if (!r.isActive) return false;
+    const provider = integrationProvider(r.provider);
+    if (!provider || provider.kind !== "social") return false;
+    const lastSynced = r.lastSyncedAt ? new Date(r.lastSyncedAt).getTime() : 0;
+    if (r.lastSyncedAt && now.getTime() - lastSynced < maxAgeMs) return false;
+    const lastChecked = r.lastCheckedAt
+      ? new Date(r.lastCheckedAt).getTime()
+      : 0;
+    if (r.lastCheckedAt && now.getTime() - lastChecked < recentCheckMs)
+      return false;
+    return true;
   });
   let synced = 0;
   let failed = 0;
@@ -603,4 +491,20 @@ export async function sendWhatsAppTestMessage(to: string, body: string) {
       error instanceof ProviderError ? error.message : "WhatsApp send failed",
     );
   }
+}
+
+/** Google calendar sync feature toggle */
+export async function isCalendarSyncEnabled(): Promise<boolean> {
+  const record = await getIntegration("google_calendar");
+  return record ? record.isActive : true;
+}
+
+export async function setCalendarSyncEnabled(
+  enabled: boolean,
+  actorId: string,
+): Promise<void> {
+  await setIntegration("google_calendar", {
+    isActive: enabled,
+    actorId,
+  });
 }

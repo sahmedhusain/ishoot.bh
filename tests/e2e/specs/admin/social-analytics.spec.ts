@@ -2,6 +2,11 @@ import { expect, test } from "@playwright/test";
 import en from "../../../../packages/locales/src/admin/en";
 import ar from "../../../../packages/locales/src/admin/ar";
 import { testDatabase } from "../../helpers";
+import {
+  setIntegration,
+  unlinkIntegration,
+  updateIntegrationStatus,
+} from "../../integrations";
 
 const db = testDatabase();
 const externalId = "e2e-unattributed-social-post";
@@ -10,10 +15,9 @@ const zeroMetricId = "e2e-verified-zero-social-metric";
 const accountId = "e2e-provider-page";
 
 test.beforeEach(async () => {
-  await db.integrationSetting.updateMany({
-    where: { provider: { in: ["meta", "youtube", "tiktok", "x", "linkedin"] } },
-    data: { isActive: false },
-  });
+  for (const p of ["meta", "youtube", "tiktok", "x", "linkedin"]) {
+    await setIntegration(p, false).catch(() => {});
+  }
   await db.socialMetric.upsert({
     where: { id: legacyMetricId },
     create: {
@@ -42,7 +46,7 @@ test.afterEach(async () => {
   await db.socialMetric.deleteMany({
     where: { id: { in: [legacyMetricId, zeroMetricId] } },
   });
-  await db.integrationSetting.deleteMany({ where: { provider: "meta" } });
+  await unlinkIntegration("meta").catch(() => {});
 });
 test.afterAll(() => db.$disconnect());
 
@@ -70,7 +74,7 @@ for (const locale of ["en", "ar"] as const)
         page
           .getByTestId("social-empty")
           .getByRole("link", { name: copy.connect }),
-      ).toHaveAttribute("href", "/dashboard/settings/integrations");
+      ).toHaveAttribute("href", "/dashboard/it-support");
       await expect(page.getByTestId("social-account-facebook")).toContainText(
         copy.notConnected,
       );
@@ -87,25 +91,23 @@ for (const locale of ["en", "ar"] as const)
 test("connected account without readings stays empty; verified zero is real data", async ({
   page,
 }) => {
-  await db.integrationSetting.upsert({
-    where: { provider: "meta" },
-    create: { provider: "meta", isActive: true },
-    update: { isActive: true, config: {} },
-  });
+  await setIntegration(
+    "meta",
+    true,
+    { pageId: "page-1", accessToken: "e2e-token" },
+    {},
+  );
   await page.goto("/dashboard/analytics?platform=facebook");
   await expect(page.getByTestId("social-empty")).toContainText(
     ar.socialAnalytics.noData,
   );
   await expect(page.getByTestId("social-kpis")).toHaveCount(0);
-  await db.integrationSetting.update({
-    where: { provider: "meta" },
-    data: {
-      config: {
-        socialAccounts: { facebook: accountId },
-        availableMetrics: { facebook: ["followers"] },
-      },
-      lastSyncedAt: new Date(),
+  await updateIntegrationStatus("meta", {
+    config: {
+      socialAccounts: { facebook: accountId },
+      availableMetrics: { facebook: ["followers"] },
     },
+    lastSyncedAt: new Date().toISOString(),
   });
   await db.socialMetric.create({
     data: {

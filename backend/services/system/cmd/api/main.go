@@ -21,6 +21,7 @@ import (
 	"platform.local/backend/pkg/httpx"
 	"platform.local/backend/pkg/logx"
 	"platform.local/backend/pkg/migrate"
+	"platform.local/backend/pkg/secrets"
 	"platform.local/backend/pkg/telemetry"
 	"platform.local/backend/services/system/internal/app"
 	"platform.local/backend/services/system/internal/httpapi"
@@ -73,7 +74,16 @@ func run(command string) error {
 		return migrate.Run(ctx, pool, migrate.Options{Schema: Schema, Migrations: migrations.FS, Logger: logger.Logger})
 	}
 
-	svc := app.New(postgres.New(pool))
+	ring, err := secrets.NewKeyring(secrets.Config{
+		Keys:                 cfg.Secrets.Keys,
+		PrimaryKeyID:         cfg.Secrets.PrimaryKeyID,
+		LegacyIntegrationKey: cfg.Secrets.LegacyIntegrationKey,
+	})
+	if err != nil {
+		return fmt.Errorf("secrets keyring: %w", err)
+	}
+
+	svc := app.New(postgres.New(pool), ring)
 
 	checker := health.NewChecker(cfg.ServiceName, cfg.Version, cfg.Admin.ReadinessTimeout)
 	checker.Register("postgres", db.Check(pool))
@@ -102,7 +112,8 @@ func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, svc *a
 	e.Use(telemetry.EchoMiddleware())
 	httpapi.Register(e, svc, httpapi.Options{
 		Verifier: verifier, ReadCallers: cfg.System.ReadCallers, ModuleWriters: cfg.System.ModuleWriters,
-		JSONBodyLimit: cfg.System.JSONBodyLimit,
+		IntegrationWriters: cfg.System.IntegrationWriters,
+		JSONBodyLimit:      cfg.System.JSONBodyLimit,
 	})
 
 	public, adminServer := httpx.Servers(cfg.Common, telemetry.Handler(cfg.ServiceName, e), admin)

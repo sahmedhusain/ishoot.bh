@@ -27,7 +27,14 @@ async function main() {
   assert.ok(["localhost", "127.0.0.1", "::1"].includes(url.hostname) && /_test$/.test(url.pathname), "Use a local disposable *_test database");
   try {
     await db.$transaction(tx => transactionContext.run(tx, async () => {
-      await tx.integrationSetting.upsert({ where: { provider: "stripe" }, create: { provider: "stripe", isActive: true, credentials: encryptIntegrationCredentials({ secretKey: "sk_test_audit_only", webhookSecret }) }, update: { isActive: true, credentials: encryptIntegrationCredentials({ secretKey: "sk_test_audit_only", webhookSecret }) } });
+      await require("../packages/database/src/queries/integrations.ts").saveIntegrationSettings(
+        "stripe",
+        {
+          isActive: true,
+          values: { secretKey: "sk_test_audit_only", webhookSecret },
+        },
+        "check-settlement",
+      );
       await tx.storeSettings.upsert({ where: { id: "default" }, create: { id: "default", paymentGateway: "stripe" }, update: { paymentGateway: "stripe" } });
       const create = async () => {
         const order = await tx.salesOrder.create({ data: { number: `AUDIT-${crypto.randomUUID()}`, name: "Settlement test buyer", paymentMethod: "online", subtotal: 12.5, total: 12.5, currency: "BHD" } });

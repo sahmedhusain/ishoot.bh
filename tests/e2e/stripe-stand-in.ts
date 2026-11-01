@@ -153,27 +153,13 @@ export async function startStripeStandIn(webUrl: string): Promise<StandIn> {
   return state;
 }
 
+import { setIntegration } from "./integrations";
+
 /** Turns Stripe on in Integrations with the stand-in's keys and makes it the store's "Pay online" gateway. */
 export async function useStripeStandIn(db: PrismaClient) {
-  require("dotenv").config({
-    path: path.resolve(__dirname, "../../.env"),
-    quiet: true,
-  });
-  const key = Buffer.from(process.env.ENCRYPTION_KEY ?? "", "utf8");
-  // Same format as the platform's integration credentials: iv:tag:ciphertext, AES-256-GCM.
-  const iv = crypto.randomBytes(12);
-  const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
-  const encrypted =
-    cipher.update(
-      JSON.stringify({ secretKey: SECRET_KEY, webhookSecret: WEBHOOK_SECRET }),
-      "utf8",
-      "hex",
-    ) + cipher.final("hex");
-  const credentials = `${iv.toString("hex")}:${cipher.getAuthTag().toString("hex")}:${encrypted}`;
-  await db.integrationSetting.upsert({
-    where: { provider: "stripe" },
-    update: { isActive: true, credentials, healthStatus: "unknown" },
-    create: { provider: "stripe", isActive: true, credentials },
+  await setIntegration("stripe", true, {
+    secretKey: SECRET_KEY,
+    webhookSecret: WEBHOOK_SECRET,
   });
   await db.storeSettings.update({
     where: { id: "default" },

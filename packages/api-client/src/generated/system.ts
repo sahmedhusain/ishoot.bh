@@ -38,6 +38,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/system/integrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listIntegrations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/system/integrations/{provider}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: components["parameters"]["ProviderId"];
+            };
+            cookie?: never;
+        };
+        get: operations["getIntegration"];
+        put: operations["setIntegration"];
+        post?: never;
+        delete: operations["unlinkIntegration"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/system/integrations/{provider}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: components["parameters"]["ProviderId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["updateIntegrationStatus"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/system/desk/modules": {
         parameters: {
             query?: never;
@@ -74,6 +126,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/system/desk/integrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Needs `integrations:read`. */
+        get: operations["listIntegrationsForIT"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/system/desk/integrations/{provider}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: components["parameters"]["ProviderId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** @description Needs `integrations:edit`. */
+        put: operations["setIntegrationForIT"];
+        post?: never;
+        /** @description Needs `integrations:delete`. */
+        delete: operations["unlinkIntegrationForIT"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -88,6 +177,90 @@ export interface components {
             updatedBy?: string;
             /** Format: date-time */
             updatedAt?: string;
+        };
+        SecretHint: {
+            set: boolean;
+            hint: string;
+        };
+        DeskIntegration: {
+            provider: string;
+            isActive: boolean;
+            healthStatus: string;
+            accountName?: string | null;
+            lastError?: string | null;
+            /** Format: date-time */
+            lastCheckedAt?: string | null;
+            /** Format: date-time */
+            lastSyncedAt?: string | null;
+            values: {
+                [key: string]: string;
+            };
+            secrets: {
+                [key: string]: components["schemas"]["SecretHint"];
+            };
+            config: {
+                [key: string]: unknown;
+            };
+            updatedBy?: string | null;
+            /** Format: date-time */
+            updatedAt?: string | null;
+        };
+        ServiceIntegration: {
+            provider: string;
+            isActive: boolean;
+            healthStatus: string;
+            accountName?: string | null;
+            lastError?: string | null;
+            /** Format: date-time */
+            lastCheckedAt?: string | null;
+            /** Format: date-time */
+            lastSyncedAt?: string | null;
+            credentials: {
+                [key: string]: string;
+            };
+            config: {
+                [key: string]: unknown;
+            };
+            updatedBy?: string | null;
+            /** Format: date-time */
+            updatedAt?: string | null;
+        };
+        SaveIntegrationServiceInput: {
+            isActive: boolean;
+            values?: {
+                [key: string]: string;
+            };
+            config?: {
+                [key: string]: unknown;
+            };
+            actorId: string;
+        };
+        SaveIntegrationITInput: {
+            isActive: boolean;
+            values?: {
+                [key: string]: string;
+            };
+            config?: {
+                [key: string]: unknown;
+            };
+        };
+        UpdateIntegrationStatusInput: {
+            healthStatus?: string;
+            lastError?: string | null;
+            accountName?: string | null;
+            /** Format: date-time */
+            lastCheckedAt?: string | null;
+            /** Format: date-time */
+            lastSyncedAt?: string | null;
+            config?: {
+                [key: string]: unknown;
+            };
+            refreshedCredentials?: {
+                [key: string]: string;
+            };
+            syncLeaseToken?: string | null;
+            /** Format: date-time */
+            syncLeaseUntil?: string | null;
         };
         Problem: {
             type: string;
@@ -115,7 +288,47 @@ export interface components {
                 };
             };
         };
-        /** @description An error (RFC 9457). Codes include `module_not_found`, `validation_failed`, `unauthenticated`, `forbidden`. */
+        /** @description Every stored integration with decrypted credentials */
+        Integrations: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": {
+                    items: components["schemas"]["ServiceIntegration"][];
+                };
+            };
+        };
+        /** @description One stored integration with decrypted credentials */
+        Integration: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ServiceIntegration"];
+            };
+        };
+        /** @description Every catalogue integration with masked secrets */
+        DeskIntegrations: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": {
+                    items: components["schemas"]["DeskIntegration"][];
+                };
+            };
+        };
+        /** @description One catalogue integration with masked secrets */
+        DeskIntegration: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["DeskIntegration"];
+            };
+        };
+        /** @description An error (RFC 9457). Codes include `module_not_found`, `integration_not_found`, `validation_failed`, `unauthenticated`, `forbidden`. */
         Problem: {
             headers: {
                 [name: string]: unknown;
@@ -127,6 +340,7 @@ export interface components {
     };
     parameters: {
         ModuleKey: string;
+        ProviderId: string;
     };
     requestBodies: never;
     headers: never;
@@ -175,6 +389,99 @@ export interface operations {
             default: components["responses"]["Problem"];
         };
     };
+    listIntegrations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["Integrations"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    getIntegration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: components["parameters"]["ProviderId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["Integration"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    setIntegration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: components["parameters"]["ProviderId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveIntegrationServiceInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["Integration"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    unlinkIntegration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: components["parameters"]["ProviderId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Unlinked */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    updateIntegrationStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: components["parameters"]["ProviderId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateIntegrationStatusInput"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
     listModulesForIT: {
         parameters: {
             query?: never;
@@ -206,6 +513,59 @@ export interface operations {
         };
         responses: {
             /** @description Saved */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listIntegrationsForIT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["DeskIntegrations"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    setIntegrationForIT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: components["parameters"]["ProviderId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveIntegrationITInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["DeskIntegration"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    unlinkIntegrationForIT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: components["parameters"]["ProviderId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Unlinked */
             204: {
                 headers: {
                     [name: string]: unknown;

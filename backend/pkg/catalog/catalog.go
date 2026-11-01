@@ -111,14 +111,41 @@ type FileFolder struct {
 	Types  []string `json:"types"`
 }
 
+// IntegrationField is one configuration value an integration takes.
+type IntegrationField struct {
+	Key       string `json:"key"`
+	Secret    bool   `json:"secret,omitempty"`
+	Required  bool   `json:"required,omitempty"`
+	MaxLength int    `json:"maxLength,omitempty"`
+}
+
+// IntegrationProvider defines an external service connection.
+type IntegrationProvider struct {
+	ID        string             `json:"id"`
+	Kind      string             `json:"kind"`
+	Platforms []string           `json:"platforms"`
+	Fields    []IntegrationField `json:"fields"`
+	DocsURL   string             `json:"docsUrl"`
+}
+
+// IntegrationCatalog lists external services and their constraints.
+type IntegrationCatalog struct {
+	Providers          []IntegrationProvider `json:"providers"`
+	Environments       []string              `json:"environments"`
+	PaytabsRegions     map[string]string     `json:"paytabsRegions"`
+	SocialPlatforms    []string              `json:"socialPlatforms"`
+	SocialOwnerMetrics []string              `json:"socialOwnerMetrics"`
+}
+
 // The loaded catalogue.
 var (
-	StaffAccess Access
-	ITAccess    Access
-	Modules     []Module
-	Scopes      DataScopes
-	Tickets     ITSM
-	Files       FileRules
+	StaffAccess  Access
+	ITAccess     Access
+	Modules      []Module
+	Scopes       DataScopes
+	Tickets      ITSM
+	Files        FileRules
+	Integrations IntegrationCatalog
 )
 
 // SuperAdminRole holds every staff permission regardless of stored grants.
@@ -134,12 +161,14 @@ func init() {
 	must(decode("data-scopes.json", &Scopes))
 	must(decode("itsm.json", &Tickets))
 	must(decode("files.json", &Files))
+	must(decode("integrations.json", &Integrations))
 	Modules = modules.Modules
 	must(StaffAccess.validate("staff"))
 	must(ITAccess.validate("it"))
 	must(Scopes.validate(StaffAccess))
 	must(Tickets.validate())
 	must(Files.validate())
+	must(Integrations.validate())
 }
 
 func must(err error) {
@@ -386,6 +415,43 @@ func (f FileRules) validate() error {
 			if _, ok := f.Type(mime); !ok {
 				return fmt.Errorf("catalog: files: folder %q allows unknown type %q", folder.Key, mime)
 			}
+		}
+	}
+	return nil
+}
+
+// Provider returns a provider by ID.
+func (c IntegrationCatalog) Provider(id string) (IntegrationProvider, bool) {
+	for _, p := range c.Providers {
+		if p.ID == id {
+			return p, true
+		}
+	}
+	return IntegrationProvider{}, false
+}
+
+func (c IntegrationCatalog) validate() error {
+	seen := make(map[string]struct{}, len(c.Providers))
+	for _, p := range c.Providers {
+		if p.ID == "" {
+			return fmt.Errorf("catalog: integrations: provider ID cannot be empty")
+		}
+		if _, exists := seen[p.ID]; exists {
+			return fmt.Errorf("catalog: integrations: duplicate provider %q", p.ID)
+		}
+		seen[p.ID] = struct{}{}
+		if p.Kind == "" {
+			return fmt.Errorf("catalog: integrations: provider %q has no kind", p.ID)
+		}
+		fieldSeen := make(map[string]struct{}, len(p.Fields))
+		for _, f := range p.Fields {
+			if f.Key == "" {
+				return fmt.Errorf("catalog: integrations: provider %q has field with empty key", p.ID)
+			}
+			if _, exists := fieldSeen[f.Key]; exists {
+				return fmt.Errorf("catalog: integrations: provider %q duplicate field %q", p.ID, f.Key)
+			}
+			fieldSeen[f.Key] = struct{}{}
 		}
 	}
 	return nil

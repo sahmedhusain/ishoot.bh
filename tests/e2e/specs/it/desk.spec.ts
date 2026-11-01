@@ -111,6 +111,15 @@ test("IT works a ticket from the desk", async ({ page }) => {
   await reviews.click();
   await expect(reviews).toHaveAttribute("aria-checked", String(wasOn));
 
+  // Integrations: verifying integration cards load on the IT desk.
+  await page.getByRole("link", { name: t.nav.integrations }).click();
+  await expect(page).toHaveURL(/\/integrations$/);
+  await expect(
+    page.getByRole("heading", { name: t.integrations.title }),
+  ).toBeVisible();
+  await expect(page.getByTestId("integration-resend")).toBeVisible();
+  await expect(page.getByTestId("integration-stripe")).toBeVisible();
+
   await page.getByRole("button", { name: t.app.signOut }).click();
   await expect(page).toHaveURL(/\/login$/);
   await page.goto("/tickets");

@@ -1,5 +1,6 @@
 "use server";
 import { serverMessages } from "@platform/locales";
+import { listIntegrations } from "@platform/api-client";
 import { ROUTES } from "../../constants/routes";
 import { validateActionArguments } from "../../lib/action-input";
 import {
@@ -30,16 +31,13 @@ export async function refreshSocialAnalyticsAction() {
   validateActionArguments("refreshSocialAnalyticsAction", {});
   return measureOperation("admin:refreshSocialAnalytics", async () => {
     await requirePermission("social", "write");
-    const active = await db.integrationSetting.findMany({
-      where: {
-        isActive: true,
-        provider: {
-          in: INTEGRATION_PROVIDERS.filter((p) => p.kind === "social").map(
-            (p) => p.id,
-          ),
-        },
-      },
-      select: { provider: true },
+    const all = await listIntegrations();
+    const active = all.filter((item) => {
+      if (!item.isActive) return false;
+      const provider = INTEGRATION_PROVIDERS.find(
+        (p) => p.id === item.provider,
+      );
+      return provider && provider.kind === "social";
     });
     const results: Array<{
       provider: string;

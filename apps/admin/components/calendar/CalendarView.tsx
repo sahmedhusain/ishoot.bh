@@ -30,7 +30,9 @@ import {
   Users,
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { usePermissions } from "../../hooks/usePermissions";
 import { errorMessage } from "../../lib/error-text";
+import { CalendarSyncCard } from "../settings/CalendarSyncCard";
 
 const EVENT_TYPE_COLORS: Record<CalendarEvent["event_type"], string> = {
   shoot: "rgb(var(--brand-accent))",
@@ -91,6 +93,12 @@ interface Props {
   departments: Array<{ id: string; nameEn: string; nameAr: string }>;
   roles: Array<{ id: string; nameEn: string; nameAr: string }>;
   feedConnected: boolean;
+  feed?: {
+    layers: CalendarLayer[];
+    createdAt: string;
+    lastUsedAt: string | null;
+  } | null;
+  syncEnabled?: boolean;
 }
 
 /** Month, week and day views of everything on the person's calendar, filtered by layer. */
@@ -100,9 +108,12 @@ export function CalendarView({
   departments,
   roles,
   feedConnected,
+  feed,
+  syncEnabled,
 }: Props) {
   const modalFormId = React.useId();
 
+  const { can } = usePermissions();
   const { t, locale } = useAdminLocale();
   const c = t.calendarSharing;
   const isAr = locale === "ar";
@@ -662,6 +673,16 @@ export function CalendarView({
         confirmLabel={t.actions.delete}
         cancelLabel={t.actions.cancel}
       />
+
+      {feed !== undefined && syncEnabled !== undefined && (
+        <div id="calendar-sync" className="mt-8">
+          <CalendarSyncCard
+            feed={feed}
+            syncEnabled={syncEnabled}
+            canManage={can("settings", "write")}
+          />
+        </div>
+      )}
     </div>
   );
 }

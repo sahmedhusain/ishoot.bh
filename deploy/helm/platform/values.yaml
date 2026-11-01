@@ -142,6 +142,7 @@ services:
       AUTH_JWKS_URL: "http://identity:8080/.well-known/jwks.json"
       SYSTEM_READ_CALLERS: admin,web,it
       SYSTEM_MODULE_WRITERS: admin
-    # Secrets (system-secrets): DATABASE_URL.
+      SYSTEM_INTEGRATION_WRITERS: admin
+    # Secrets (system-secrets): DATABASE_URL, SECRETS_KEYS, SECRETS_PRIMARY_KEY_ID, SECRETS_LEGACY_INTEGRATION_KEY.
     configFiles: []
     talksTo: [identity]

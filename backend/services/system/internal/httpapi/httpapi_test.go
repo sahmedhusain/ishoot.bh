@@ -24,6 +24,7 @@ import (
 	"platform.local/backend/pkg/httpx"
 	"platform.local/backend/pkg/logx"
 	"platform.local/backend/pkg/migrate"
+	"platform.local/backend/pkg/secrets"
 	"platform.local/backend/pkg/testkit"
 	"platform.local/backend/services/system/api"
 	"platform.local/backend/services/system/internal/app"
@@ -56,9 +57,17 @@ func TestModules(t *testing.T) {
 	webKey, ok := web.Public.Key(0)
 	require.True(t, ok)
 	require.NoError(t, admin.Public.AddKey(webKey))
-	httpapi.Register(e, app.New(postgres.New(pool)), httpapi.Options{
-		Verifier:    authn.NewVerifier(time.Second, services, identity.Trust()),
-		ReadCallers: []string{"admin", "web"}, ModuleWriters: []string{"admin"}, JSONBodyLimit: 4096,
+	ring, err := secrets.NewKeyring(secrets.Config{
+		Keys:         []string{"primary:MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE="},
+		PrimaryKeyID: "primary",
+	})
+	require.NoError(t, err)
+	httpapi.Register(e, app.New(postgres.New(pool), ring), httpapi.Options{
+		Verifier:           authn.NewVerifier(time.Second, services, identity.Trust()),
+		ReadCallers:        []string{"admin", "web"},
+		ModuleWriters:      []string{"admin"},
+		IntegrationWriters: []string{"admin"},
+		JSONBodyLimit:      4096,
 	})
 	doc, err := openapi3.NewLoader().LoadFromData(api.OpenAPI)
 	require.NoError(t, err)
@@ -130,4 +139,54 @@ func TestModules(t *testing.T) {
 	assert.Equal(t, !want, desk[key].Enabled)
 	assert.Equal(t, "it:it-1", desk[key].UpdatedBy)
 	assert.Equal(t, http.StatusUnauthorized, call(adminToken, http.MethodGet, "/v1/system/desk/modules", nil).Code)
+
+	// Integrations: desk reads catalogue with masked secrets; service reads decrypted credentials.
+	deskIntegrations := call(it("it_engineer"), http.MethodGet, "/v1/system/desk/integrations", nil)
+	require.Equal(t, http.StatusOK, deskIntegrations.Code)
+	var deskList struct{ Items []app.DeskIntegration }
+	require.NoError(t, json.Unmarshal(deskIntegrations.Body.Bytes(), &deskList))
+	assert.Len(t, deskList.Items, len(catalog.Integrations.Providers))
+
+	// Save WhatsApp integration from IT desk
+	saveRes := call(it("it_admin"), http.MethodPut, "/v1/system/desk/integrations/whatsapp", map[string]any{
+		"isActive": true,
+		"values": map[string]string{
+			"phoneId": "123456",
+			"token":   "secret-token-long-value",
+		},
+	})
+	require.Equal(t, http.StatusOK, saveRes.Code)
+	var savedDesk app.DeskIntegration
+	require.NoError(t, json.Unmarshal(saveRes.Body.Bytes(), &savedDesk))
+	assert.True(t, savedDesk.IsActive)
+	assert.Equal(t, "123456", savedDesk.Values["phoneId"])
+	assert.True(t, savedDesk.Secrets["token"].Set)
+	assert.Equal(t, "…alue", savedDesk.Secrets["token"].Hint)
+	assert.Empty(t, savedDesk.Values["token"], "secrets are never in values")
+
+	// Service callers can read the decrypted credentials
+	svcRes := call(adminToken, http.MethodGet, "/v1/system/integrations/whatsapp", nil)
+	require.Equal(t, http.StatusOK, svcRes.Code)
+	var svcItem app.ServiceIntegration
+	require.NoError(t, json.Unmarshal(svcRes.Body.Bytes(), &svcItem))
+	assert.True(t, svcItem.IsActive)
+	assert.Equal(t, "secret-token-long-value", svcItem.Credentials["token"])
+
+	// Service callers can update status
+	statusRes := call(adminToken, http.MethodPut, "/v1/system/integrations/whatsapp/status", map[string]any{
+		"healthStatus": "healthy",
+		"accountName":  "My WhatsApp Business",
+	})
+	require.Equal(t, http.StatusNoContent, statusRes.Code)
+
+	// List service integrations returns stored items
+	listSvc := call(webToken, http.MethodGet, "/v1/system/integrations", nil)
+	require.Equal(t, http.StatusOK, listSvc.Code)
+	var svcs struct{ Items []app.ServiceIntegration }
+	require.NoError(t, json.Unmarshal(listSvc.Body.Bytes(), &svcs))
+	assert.NotEmpty(t, svcs.Items)
+
+	// Unlink clears credentials
+	unlinkRes := call(it("it_admin"), http.MethodDelete, "/v1/system/desk/integrations/whatsapp", nil)
+	require.Equal(t, http.StatusNoContent, unlinkRes.Code)
 }

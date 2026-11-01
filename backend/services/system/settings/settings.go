@@ -13,7 +13,15 @@ type Config struct {
 	config.Common
 	Database db.Config    `envPrefix:"DATABASE_"`
 	Auth     authn.Config `envPrefix:"AUTH_"`
+	Secrets  Secrets      `envPrefix:"SECRETS_"`
 	System   System       `envPrefix:"SYSTEM_"`
+}
+
+// Secrets configures encryption for stored credentials.
+type Secrets struct {
+	Keys                 []string `env:"KEYS" envDefault:"primary:MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=" envSeparator:"," validate:"min=1,dive,required"`
+	PrimaryKeyID         string   `env:"PRIMARY_KEY_ID" envDefault:"primary" validate:"required"`
+	LegacyIntegrationKey string   `env:"LEGACY_INTEGRATION_KEY"`
 }
 
 // System holds the service's own settings.
@@ -22,5 +30,7 @@ type System struct {
 	ReadCallers []string `env:"READ_CALLERS" envDefault:"admin,web,it" envSeparator:"," validate:"min=1,dive,required"`
 	// ModuleWriters may switch modules for a person they name (the admin's setup wizard).
 	ModuleWriters []string `env:"MODULE_WRITERS" envDefault:"admin" envSeparator:"," validate:"dive,required"`
-	JSONBodyLimit int64    `env:"JSON_BODY_LIMIT" envDefault:"16384" validate:"gt=0"`
+	// IntegrationWriters may modify integration settings.
+	IntegrationWriters []string `env:"INTEGRATION_WRITERS" envDefault:"admin" envSeparator:"," validate:"dive,required"`
+	JSONBodyLimit      int64    `env:"JSON_BODY_LIMIT" envDefault:"16384" validate:"gt=0"`
 }

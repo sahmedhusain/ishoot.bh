@@ -294,7 +294,7 @@ export function CalendarCanvas({
           {layerControls}
           <Link
             className="calendar-sync-link"
-            href={`${ROUTES.settings.integrations}#calendar-sync`}
+            href={`${ROUTES.calendar}#calendar-sync`}
           >
             <ExternalLink aria-hidden />
             {feedConnected ? c.syncConnected : c.syncConnect}

@@ -1,4 +1,5 @@
 import { serverMessages } from "@platform/locales";
+import { listIntegrations } from "@platform/api-client";
 import { db } from "../db";
 import {
   INTEGRATION_PROVIDERS,
@@ -149,15 +150,7 @@ export async function getSocialAnalytics(
   )
     ? (options.platform as SocialPlatformId)
     : null;
-  const integrations = await db.integrationSetting.findMany({
-    select: {
-      provider: true,
-      isActive: true,
-      lastSyncedAt: true,
-      lastError: true,
-      config: true,
-    },
-  });
+  const integrations = await listIntegrations();
   const sources = SOCIAL_PLATFORM_IDS.filter(
     (id) => !platform || platform === id,
   ).map((id) => {
@@ -326,7 +319,7 @@ export async function getSocialAnalytics(
             checkedAt:
               status === "auth_required"
                 ? null
-                : (source.integration?.lastSyncedAt?.toISOString() ?? null),
+                : (source.integration?.lastSyncedAt ?? null),
             retryAfterAt:
               typeof owner.retryAfterAt === "string" &&
               Number.isFinite(Date.parse(owner.retryAfterAt))
@@ -350,7 +343,7 @@ export async function getSocialAnalytics(
         (latest.isStale ||
           now.getTime() - latest.recordedAt.getTime() > 6 * 3_600_000),
       lastSyncedAt: source.connected
-        ? (source.integration?.lastSyncedAt?.toISOString() ?? null)
+        ? (source.integration?.lastSyncedAt ?? null)
         : null,
       lastError: source.connected
         ? (source.integration?.lastError ?? null)

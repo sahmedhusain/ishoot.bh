@@ -17,6 +17,8 @@ import {
   findPendingApproval,
   decideApprovalRequest,
   measureOperation,
+  getActiveIntegrationCredentials,
+  getIntegrationRecord,
 } from "@platform/database";
 import { requireAuth, requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
@@ -213,15 +215,10 @@ export async function whatsappSalaryDocumentAction(
     throw new Error(serverMessages.onlyIssuedDocumentsCanBeSent);
   if (!document.languages.includes(locale))
     throw new Error(serverMessages.thisDocumentWasNotRequestedIn);
-  const integration = await db.integrationSetting.findUnique({
-    where: { provider: "whatsapp" },
-  });
-  if (!integration?.isActive || !integration.credentials)
-    return { fallback: true };
-  const { decryptIntegrationCredentials } =
-    await import("../../lib/integration-credentials");
-  const credentials = decryptIntegrationCredentials(integration.credentials);
-  if (!credentials?.phoneId || !credentials.token)
+  const integration = await getIntegrationRecord("whatsapp");
+  const credentials = await getActiveIntegrationCredentials("whatsapp");
+  if (!credentials) return { fallback: true };
+  if (!credentials.phoneId || !credentials.token)
     throw new Error(h.configureWhatsApp);
   const recipient = document.employee.phone?.replace(/[\s()-]/g, "");
   if (!recipient || !/^\+[1-9]\d{6,14}$/.test(recipient))
@@ -232,7 +229,7 @@ export async function whatsappSalaryDocumentAction(
     locale,
   );
   const { sendWhatsAppDocument } = await import("../../lib/whatsapp-document");
-  const config = integration.config as { apiVersion?: string } | null;
+  const config = integration?.config as { apiVersion?: string } | null;
   let result;
   try {
     result = await sendWhatsAppDocument({
