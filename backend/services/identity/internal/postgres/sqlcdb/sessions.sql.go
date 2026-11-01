@@ -55,6 +55,19 @@ func (q *Queries) CreateSessionFamily(ctx context.Context, arg CreateSessionFami
 	return err
 }
 
+const deleteExpiredSessionFamilies = `-- name: DeleteExpiredSessionFamilies :execrows
+DELETE FROM identity.session_family WHERE expires_at <= $1
+`
+
+// Consumed credentials must remain available for replay detection until the absolute family expiry.
+func (q *Queries) DeleteExpiredSessionFamilies(ctx context.Context, expiresAt time.Time) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteExpiredSessionFamilies, expiresAt)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const findRefreshFamily = `-- name: FindRefreshFamily :one
 SELECT f.id FROM identity.refresh_token t JOIN identity.session_family f ON f.id=t.family_id
 WHERE t.token_hash=$1 AND f.realm=$2

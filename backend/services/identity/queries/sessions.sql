@@ -18,3 +18,7 @@ UPDATE identity.session_family SET revoked_at=COALESCE(revoked_at,$3)
 WHERE realm=$1 AND id=(SELECT family_id FROM identity.refresh_token WHERE token_hash=$2);
 -- name: ActiveSessionFamily :one
 SELECT * FROM identity.session_family WHERE id=$1 AND realm=$2 AND revoked_at IS NULL AND expires_at>$3;
+
+-- name: DeleteExpiredSessionFamilies :execrows
+-- Consumed credentials must remain available for replay detection until the absolute family expiry.
+DELETE FROM identity.session_family WHERE expires_at <= $1;

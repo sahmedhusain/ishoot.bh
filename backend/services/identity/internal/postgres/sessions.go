@@ -100,3 +100,8 @@ func (p *Repository) Active(ctx context.Context, realm authn.Realm, id string, n
 func toFamily(row sqlcdb.IdentitySessionFamily) sessions.Family {
 	return sessions.Family{ID: row.ID, SubjectID: row.SubjectID, Realm: authn.Realm(row.Realm), ExpiresAt: row.ExpiresAt.UTC()}
 }
+
+// DeleteExpired removes only families whose absolute expiry has passed. Cascading deletes remove their token history.
+func (p *Repository) DeleteExpired(ctx context.Context, now time.Time) (int64, error) {
+	return p.q.DeleteExpiredSessionFamilies(ctx, now)
+}

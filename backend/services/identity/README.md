@@ -23,7 +23,7 @@ App servers must serialize refresh attempts per session; concurrent use of the s
 replay revocation rather than creating a second token branch.
 
 Consumed refresh hashes remain until the whole family expires. Do not delete them on rotation: they are the evidence
-needed to detect replay. Scheduled expiry cleanup is not implemented yet. No existing user tables or app sessions
+needed to detect replay. The repository can remove expired families and their token history; scheduled expiry cleanup is not wired yet. No existing user tables or app sessions
 have been changed by these migrations.
 
 From `backend/`, run `go test -race ./services/identity/...` for real Postgres tests of concurrent refresh, rollback,
