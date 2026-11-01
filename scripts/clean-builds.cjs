@@ -10,7 +10,7 @@ function size(file) {
 }
 for (const base of [root, path.join(root, 'apps/admin'), path.join(root, 'apps/web')]) {
   for (const name of fs.readdirSync(base)) {
-    if (name !== '.turbo' && name !== 'tsconfig.tsbuildinfo' && !/^\.next(?:-(?:audit|verify|website-test))?$/.test(name)) continue;
+    if (name !== '.turbo' && !name.endsWith('.tsbuildinfo') && !/^\.next(?:-[a-zA-Z0-9_-]+)?$/.test(name)) continue;
     const target = path.join(base, name);
     bytes += size(target);
     fs.rmSync(target, { recursive: true, force: true });
