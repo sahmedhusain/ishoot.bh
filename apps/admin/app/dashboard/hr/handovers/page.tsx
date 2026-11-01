@@ -1,6 +1,9 @@
 import { db, listEmployeeHandovers } from "@platform/database";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { HandoversListView } from "../../../../components/handovers/HandoversListView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("hr/handovers");
 
 export const dynamic = "force-dynamic";
 

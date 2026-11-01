@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import type { Employee, Department } from "@platform/database/types";
 import { Select, Card } from "@platform/ui";
 import { UserPlus, FileUp, Search, Clock, ArrowRight, AlertCircle } from "lucide-react";
+import { PageHeader } from "../layout/PageHeader";
 
 interface EmployeesListViewProps {
   employees: Employee[];
@@ -78,22 +79,9 @@ export function EmployeesListView({
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-16">
       {/* Editorial Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-outline-variant pb-6" data-page-header>
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono uppercase tracking-widest text-accent bg-secondary-container dark:bg-tone-15/40 dark:text-mint px-2.5 py-0.5 rounded-full font-medium">
-              {t.employeesList.humanCapitalAndOrganization}
-            </span>
-          </div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-ink dark:text-ink mt-1">
-            {t.employeesList.employeesAndTalentDirectory}
-          </h1>
-          <p className="text-sm text-ink-muted dark:text-ink-muted mt-1">
-            {t.employeesList.manageOrganizationalRosterCompensationProfiles}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
+      <PageHeader
+        eyebrow={t.employeesList.humanCapitalAndOrganization}
+        actions={<div className="flex items-center gap-3">
           {canCreate && <Link
             href={ROUTES.hr.importEmployees}
             className="inline-flex items-center gap-2 border border-outline-variant hover:bg-ink/5 text-ink px-4 py-2 rounded-md text-sm font-medium active:scale-[0.98] transition-all"
@@ -108,25 +96,25 @@ export function EmployeesListView({
             <UserPlus className="w-4 h-4" />
             <span>{t.employeesList.onboardEmployee}</span>
           </Link>}
-        </div>
-      </div>
+        </div>}
+      />
 
       {notice}
 
       {/* Metrics Bento Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
-          <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
+        <div className="bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
+          <div className="text-xs text-ink-muted uppercase tracking-wider font-mono">
             {t.employeesList.totalStaffCount}
           </div>
-          <div className="text-2xl font-bold font-mono text-ink dark:text-ink">
+          <div className="text-2xl font-bold font-mono text-ink">
             {total}
           </div>
           <div className="text-xs text-ink-muted">{t.employeesList.totalRegisteredProfiles}</div>
         </div>
 
-        <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
-          <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
+        <div className="bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
+          <div className="text-xs text-ink-muted uppercase tracking-wider font-mono">
             {t.shared.activeDuty}
           </div>
           <div className="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
@@ -135,8 +123,8 @@ export function EmployeesListView({
           <div className="text-xs text-ink-muted">{t.employeesList.availableForAssignment}</div>
         </div>
 
-        <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
-          <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
+        <div className="bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
+          <div className="text-xs text-ink-muted uppercase tracking-wider font-mono">
             {t.employeesList.onApprovedLeave}
           </div>
           <div className="text-2xl font-bold font-mono text-amber-600 dark:text-amber-400 flex items-center gap-2">
@@ -146,11 +134,11 @@ export function EmployeesListView({
           <div className="text-xs text-ink-muted">{t.employeesList.strictlyBlockedFromAllocation}</div>
         </div>
 
-        <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
-          <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
+        <div className="bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
+          <div className="text-xs text-ink-muted uppercase tracking-wider font-mono">
             {t.employeesList.departments}
           </div>
-          <div className="text-2xl font-bold font-mono text-ink dark:text-ink">
+          <div className="text-2xl font-bold font-mono text-ink">
             {departments.length}
           </div>
           <div className="text-xs text-ink-muted">{t.employeesList.functionalUnits}</div>
@@ -158,7 +146,7 @@ export function EmployeesListView({
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-surface-raised dark:bg-surface-raised border border-outline-variant">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-surface-raised border border-outline-variant">
         <form
           onSubmit={handleSearch}
           className="flex items-center gap-2 w-full sm:w-80"
@@ -170,12 +158,12 @@ export function EmployeesListView({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={t.employeesList.searchByNameEmployeeTitle}
-              className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised ps-9 pe-3 py-2 text-ink dark:text-ink focus:outline-none focus:ring-1 focus:ring-accent"
+              className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised ps-9 pe-3 py-2 text-ink focus:outline-none focus:ring-1 focus:ring-accent"
             />
           </div>
           <button
             type="submit"
-            className="px-3 py-2 bg-surface-sunken hover:bg-surface-sunken dark:bg-surface-raised dark:hover:bg-surface-sunken text-xs rounded-md font-medium text-ink dark:text-ink"
+            className="px-3 py-2 bg-surface-sunken hover:bg-surface-sunken dark:bg-surface-raised dark:hover:bg-surface-sunken text-xs rounded-md font-medium text-ink"
           >
             {t.employeesList.search}
           </button>
@@ -186,7 +174,7 @@ export function EmployeesListView({
           <Select
             value={currentDepartment}
             onChange={(e) => updateFilter(e.target.value, currentStatus)}
-            className="text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised px-3 py-2 text-ink dark:text-ink"
+            className="text-xs rounded-md border border-outline-variant bg-surface-raised px-3 py-2 text-ink"
           >
             <option value="all">{t.employeesList.allDepartments}</option>
             {departments.map((d) => (
@@ -200,7 +188,7 @@ export function EmployeesListView({
           <Select
             value={currentStatus}
             onChange={(e) => updateFilter(currentDepartment, e.target.value)}
-            className="text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised px-3 py-2 text-ink dark:text-ink"
+            className="text-xs rounded-md border border-outline-variant bg-surface-raised px-3 py-2 text-ink"
           >
             <option value="all">{t.employeesList.allStatuses}</option>
             <option value="active">{t.shared.activeDuty}</option>
@@ -212,7 +200,7 @@ export function EmployeesListView({
       </div>
 
       {/* Employees Table */}
-      <Card className="bg-surface-raised dark:bg-surface-raised border border-outline-variant rounded-lg overflow-hidden">
+      <Card className="bg-surface-raised border border-outline-variant rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-start text-sm">
             <thead>
@@ -253,7 +241,7 @@ export function EmployeesListView({
                       className="hover:bg-surface-raised/50 dark:hover:bg-white/[0.02] transition-colors"
                     >
                       <td className="py-3.5 px-4">
-                        <div className="font-semibold text-ink dark:text-ink">
+                        <div className="font-semibold text-ink">
                           {isArabic ? emp.firstNameAr : emp.firstNameEn}{" "}
                           {isArabic ? emp.lastNameAr : emp.lastNameEn}
                         </div>
@@ -269,7 +257,7 @@ export function EmployeesListView({
                       </td>
 
                       <td className="py-3.5 px-4">
-                        <div className="text-ink dark:text-ink font-medium">
+                        <div className="text-ink font-medium">
                           {emp.jobTitleEn}
                         </div>
                         <div className="text-xs text-ink-muted">
@@ -298,14 +286,14 @@ export function EmployeesListView({
                         )}
                       </td>
 
-                      <td className="py-3.5 px-4 text-end font-mono text-xs text-ink dark:text-ink">
+                      <td className="py-3.5 px-4 text-end font-mono text-xs text-ink">
                         {Number(emp.leaveBalanceDays).toFixed(1)}
                         {t.shared.days}
                       </td>
 
                       {canViewPay && <td className="py-3.5 px-4 text-end font-mono text-xs">
                         {totalSalary > 0 ? (
-                          <span className="font-semibold text-ink dark:text-ink">
+                          <span className="font-semibold text-ink">
                             {totalSalary.toFixed(3)}
                             {companyCurrency}
                           </span>

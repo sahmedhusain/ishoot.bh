@@ -141,11 +141,11 @@ export function ClientSignaturePanel({
     <Card className="space-y-4 p-5 dark:bg-surface-raised">
       <div className="flex flex-wrap items-start gap-3">
         <div className="min-w-0 flex-1">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-ink dark:text-ink">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-ink">
             <FileSignature className="w-4 h-4" aria-hidden />
             {s.panelTitle}
           </h2>
-          <p className="mt-0.5 text-xs text-ink-muted dark:text-ink-muted">
+          <p className="mt-0.5 text-xs text-ink-muted">
             {signable || signed ? s.panelHint : s.notSignable}
           </p>
         </div>
@@ -262,7 +262,7 @@ export function ClientSignaturePanel({
             {records.map((r) => (
               <li
                 key={r.id}
-                className="flex flex-wrap items-center gap-x-2 gap-y-1 text-ink-muted dark:text-ink-muted"
+                className="flex flex-wrap items-center gap-x-2 gap-y-1 text-ink-muted"
               >
                 <DateDisplay date={r.createdAt} locale={locale} />
                 <span

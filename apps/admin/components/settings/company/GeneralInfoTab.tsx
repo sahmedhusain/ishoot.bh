@@ -30,16 +30,16 @@ export function GeneralInfoTab({
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Legal & Corporate Registration Card */}
-      <Card className="p-6 bg-surface-raised dark:bg-surface-container-low border border-outline-variant dark:border-outline-variant shadow-xs rounded-2xl space-y-5">
-        <div className="flex items-center gap-3 pb-3 border-b border-outline-variant dark:border-outline-variant">
+      <Card className="p-6 bg-surface-raised dark:bg-surface-container-low border border-outline-variant shadow-xs rounded-2xl space-y-5">
+        <div className="flex items-center gap-3 pb-3 border-b border-outline-variant">
           <div className="p-2 rounded-xl bg-accent/10 text-accent">
             <Building2 className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-ink dark:text-ink">
+            <h2 className="text-sm font-bold text-ink">
               {t.settings.companyTitle}
             </h2>
-            <p className="text-xs text-ink-muted dark:text-ink-muted">
+            <p className="text-xs text-ink-muted">
               {t.companySettingsView.crSubtitle}
             </p>
           </div>
@@ -47,7 +47,7 @@ export function GeneralInfoTab({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <label className="block space-y-1.5">
-            <span className="text-xs font-medium text-ink dark:text-ink">
+            <span className="text-xs font-medium text-ink">
               {t.companySettingsView.nameEnLabel}
             </span>
             <Input
@@ -60,7 +60,7 @@ export function GeneralInfoTab({
           </label>
 
           <label className="block space-y-1.5">
-            <span className="text-xs font-medium text-ink dark:text-ink">
+            <span className="text-xs font-medium text-ink">
               {t.companySettingsView.nameArLabel}
             </span>
             <Input
@@ -73,7 +73,7 @@ export function GeneralInfoTab({
           </label>
 
           <label className="block space-y-1.5">
-            <span className="text-xs font-medium text-ink dark:text-ink">
+            <span className="text-xs font-medium text-ink">
               {t.companySettingsView.crNumber}
             </span>
             <Input
@@ -86,7 +86,7 @@ export function GeneralInfoTab({
           </label>
 
           <label className="block space-y-1.5">
-            <span className="text-xs font-medium text-ink dark:text-ink">
+            <span className="text-xs font-medium text-ink">
               {t.companySettingsView.defaultCurrency}
             </span>
             <Select value={settings.default_currency} onChange={(event) => setSettings({ ...settings, default_currency: event.target.value, currency_decimals: getCurrencyDecimals(event.target.value) })}>{CURRENCY_CODES.map((code) => <option key={code} value={code}>{code} · {getCurrencyLabel(code)}</option>)}</Select>
@@ -96,7 +96,7 @@ export function GeneralInfoTab({
           <label className="block space-y-1.5"><span className="text-xs font-medium">{t.companySettingsTabs.country}</span><Select value={countryIso(settings.country) ?? settings.country ?? ""} onChange={(event) => setSettings({ ...settings, country: event.target.value })}><option value="">{t.companySettingsTabs.country}</option>{countryOptions(t.countries).map((country) => <option key={country.code} value={country.code}>{country.name}</option>)}</Select></label>
 
           <label className="block space-y-1.5">
-            <span className="text-xs font-medium text-ink dark:text-ink">
+            <span className="text-xs font-medium text-ink">
               {t.companySettingsTabs.addressEn}
             </span>
             <Input
@@ -109,7 +109,7 @@ export function GeneralInfoTab({
           </label>
 
           <label className="block space-y-1.5">
-            <span className="text-xs font-medium text-ink dark:text-ink">
+            <span className="text-xs font-medium text-ink">
               {t.companySettingsTabs.addressAr}
             </span>
             <Input
@@ -124,16 +124,16 @@ export function GeneralInfoTab({
       </Card>
 
       {/* Communications & Platforms Card */}
-      <Card className="p-6 bg-surface-raised dark:bg-surface-container-low border border-outline-variant dark:border-outline-variant shadow-xs rounded-2xl space-y-5">
-        <div className="flex items-center gap-3 pb-3 border-b border-outline-variant dark:border-outline-variant">
+      <Card className="p-6 bg-surface-raised dark:bg-surface-container-low border border-outline-variant shadow-xs rounded-2xl space-y-5">
+        <div className="flex items-center gap-3 pb-3 border-b border-outline-variant">
           <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
             <Phone className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-ink dark:text-ink">
+            <h2 className="text-sm font-bold text-ink">
               {t.companySettingsTabs.contactInfo}
             </h2>
-            <p className="text-xs text-ink-muted dark:text-ink-muted">
+            <p className="text-xs text-ink-muted">
               {t.companySettingsTabs.socialSubtitle}
             </p>
           </div>
@@ -141,7 +141,7 @@ export function GeneralInfoTab({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <label className="block space-y-1.5">
-            <span className="text-xs font-medium text-ink dark:text-ink">
+            <span className="text-xs font-medium text-ink">
               <bdi dir="ltr">{t.companySettingsTabs.phone}</bdi>
             </span>
             <PhoneInput
@@ -152,7 +152,7 @@ export function GeneralInfoTab({
           </label>
 
           <label className="block space-y-1.5">
-            <span className="text-xs font-medium text-ink dark:text-ink">
+            <span className="text-xs font-medium text-ink">
               {t.companySettingsTabs.whatsapp}
             </span>
             <PhoneInput
@@ -163,7 +163,7 @@ export function GeneralInfoTab({
           </label>
 
           <label className="block space-y-1.5">
-            <span className="text-xs font-medium text-ink dark:text-ink">
+            <span className="text-xs font-medium text-ink">
               <bdi dir="ltr">{t.companySettingsTabs.email}</bdi>
             </span>
             <Input
@@ -177,7 +177,7 @@ export function GeneralInfoTab({
           </label>
 
           <label className="block space-y-1.5">
-            <span className="text-xs font-medium text-ink dark:text-ink">
+            <span className="text-xs font-medium text-ink">
               {t.companySettingsTabs.website}
             </span>
             <Input

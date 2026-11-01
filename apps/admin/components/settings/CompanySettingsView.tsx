@@ -29,6 +29,7 @@ import { InvoiceReceiptSequencesTab } from "./company/InvoiceReceiptSequencesTab
 import { BrandAssetsTab } from "./company/BrandAssetsTab";
 import { ThemeSettingsTab } from "./company/ThemeSettingsTab";
 import { SalesDiscountsTab } from "./company/SalesDiscountsTab";
+import { PageHeader } from "../layout/PageHeader";
 
 interface CompanySettingsViewProps {
   initialSettings: CompanySettings;
@@ -272,17 +273,8 @@ export function CompanySettingsView({
   return (
     <div inert={saving} aria-busy={saving} className="space-y-6 max-w-6xl mx-auto pb-16">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-xl font-bold text-ink dark:text-ink">
-            {t.settings.companyTitle}
-          </h1>
-          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1">
-            {t.companySettingsView.subtitle}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
+      <PageHeader
+        actions={<div className="flex items-center gap-3">
           {saved && (
             <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 px-3.5 py-1.5 rounded-full animate-fade-in shadow-2xs">
               <CheckCircle2 className="w-3.5 h-3.5" />
@@ -306,14 +298,14 @@ export function CompanySettingsView({
           >
             {saving ? t.companySettingsView.saving : t.actions.save}
           </Button>
-        </div>
-      </div>
+        </div>}
+      />
 
       {/* Top Navigation Tabs */}
       <SettingsNavTabs />
 
       {/* Sub-Tabs for Company Settings */}
-      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-surface-container dark:bg-surface-raised border border-outline-variant dark:border-outline-variant overflow-x-auto" role="tablist">
+      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-surface-container dark:bg-surface-raised border border-outline-variant overflow-x-auto" role="tablist">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.key;
@@ -434,7 +426,7 @@ export function CompanySettingsView({
                   : "bg-surface-raised dark:bg-surface-raised/40 border-outline-variant dark:border-outline-variant"
                   }`}
               >
-                <div className="flex items-center justify-between font-bold text-[11px] text-ink dark:text-ink">
+                <div className="flex items-center justify-between font-bold text-[11px] text-ink">
                   <span>{label}</span>
                   {diff.isVat ? (
                     <span className="px-1.5 py-0.5 rounded text-[9px] bg-amber-200 text-amber-900 ">
@@ -444,7 +436,7 @@ export function CompanySettingsView({
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-[11px] items-center">
-                  <div className="p-2 rounded-lg bg-white/70 dark:bg-surface-raised/60 border border-outline-variant/80 dark:border-outline-variant/60 text-ink-muted dark:text-ink-muted">
+                  <div className="p-2 rounded-lg bg-white/70 dark:bg-surface-raised/60 border border-outline-variant/80 dark:border-outline-variant/60 text-ink-muted">
                     <span className="block text-[9px] uppercase  tracking-wider text-ink-muted">
                       {t.companySettingsView.currentVal}
                     </span>

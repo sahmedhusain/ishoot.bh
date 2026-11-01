@@ -20,6 +20,7 @@ import { createStaffOrderAction } from "../../app/actions/orders";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { Field } from "../setup/LanguageFields";
+import { PageHeader } from "../layout/PageHeader";
 
 interface Line {
   productId: string;
@@ -174,14 +175,7 @@ export function NewSaleView({
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div data-page-header>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">
-          {copy.title}
-        </h1>
-        <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">
-          {copy.subtitle}
-        </p>
-      </div>
+      <PageHeader />
       <div className="grid lg:grid-cols-[1fr_320px] gap-4 items-start">
         <Card className="p-5 space-y-4">
           <div className="relative">

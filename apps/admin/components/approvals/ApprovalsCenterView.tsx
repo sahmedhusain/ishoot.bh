@@ -15,6 +15,7 @@ import { Select, Button, Card } from "@platform/ui";
 import { APPROVAL_TARGET_TYPES } from "@platform/database/constants/approvals";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import type { ApprovalListItem, ApprovalScope } from "../../types/approvals";
+import { PageHeader } from "../layout/PageHeader";
 
 interface ApprovalsCenterViewProps {
   requests: ApprovalListItem[];
@@ -103,14 +104,7 @@ export function ApprovalsCenterView({
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-16">
-      <header className="border-b border-outline-variant dark:border-white/10 pb-5" data-page-header>
-        <h1 className="text-2xl font-bold tracking-tight text-ink dark:text-ink">
-          <bdi dir="auto">{a.title}</bdi>
-        </h1>
-        <p className="text-sm text-ink-muted dark:text-ink-muted mt-1">
-          {a.subtitle}
-        </p>
-      </header>
+      <PageHeader />
 
       <nav aria-label={a.title} className="flex flex-wrap gap-2">
         {tabs.map((tab) => (
@@ -186,7 +180,7 @@ export function ApprovalsCenterView({
                 <Card className="p-5 dark:bg-surface-raised flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="space-y-2 min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm font-semibold text-ink dark:text-ink">
+                      <span className="text-sm font-semibold text-ink">
                         {typeLabel(item.targetType)}
                       </span>
                       <span

@@ -14,6 +14,9 @@ import { hasPermission } from "../../../lib/auth";
 import { EmployeeAssetsCard } from "../../../components/assets/EmployeeAssetsCard";
 import { SignaturePad } from "../../../components/profile/SignaturePad";
 import { UserProfileView } from "../../../components/profile/UserProfileView";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("profile");
 
 export const dynamic = "force-dynamic";
 

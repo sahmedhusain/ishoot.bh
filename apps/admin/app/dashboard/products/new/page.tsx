@@ -3,6 +3,9 @@ import { listProductCategories, requireFeatureEnabled } from "@platform/database
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { ProductEditorView } from "../../../../components/products/ProductEditorView";
 import { BATCH_ACTIVITIES } from "@platform/database/constants/inventory";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("products/new");
 
 export const dynamic = "force-dynamic";
 

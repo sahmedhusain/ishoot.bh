@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { AlertTriangle, CheckCircle2, Download, FileUp, Loader2, Upload } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Download, Loader2, Upload } from "lucide-react";
 import { Button, Card } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import type { PeopleImportCheck, PeopleImportRow } from "@platform/database";
@@ -12,6 +12,7 @@ import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { csvLine, parseCsv } from "../../lib/csv";
 import { errorMessage } from "../../lib/error-text";
+import { PageHeader } from "../layout/PageHeader";
 
 // Same order as PEOPLE_IMPORT_COLUMNS in @platform/database (kept here so the client bundle stays database-free).
 const COLUMNS = ["first_name_en", "last_name_en", "first_name_ar", "last_name_ar", "job_title_en", "job_title_ar", "department_code", "hire_date", "basic_salary", "email", "phone", "account_role", "manager_email"] as const;
@@ -96,19 +97,12 @@ export function ImportPeopleView({
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink flex items-center gap-2">
-            <FileUp className="w-6 h-6 text-accent" />
-            {copy.title}
-          </h1>
-          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
-        </div>
-        <Button type="button" variant="outline" size="sm" className="gap-1.5 rounded-full" onClick={downloadTemplate}>
+      <PageHeader
+        actions={<Button type="button" variant="outline" size="sm" className="gap-1.5 rounded-full" onClick={downloadTemplate}>
           <Download className="w-3.5 h-3.5" />
           {copy.template}
-        </Button>
-      </div>
+        </Button>}
+      />
 
       <Card className="p-5 space-y-4">
         <label className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-outline-variant p-8 text-center cursor-pointer transition-colors hover:border-accent/50 hover:bg-accent/[0.03]">

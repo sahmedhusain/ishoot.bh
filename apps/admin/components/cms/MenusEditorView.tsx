@@ -10,6 +10,7 @@ import { saveWebsiteMenusAction } from "../../app/actions/website";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { Field, LanguageFields } from "../setup/LanguageFields";
+import { PageHeader } from "../layout/PageHeader";
 
 type PageOption = { id: string; title_en: string; title_ar: string; in_header: boolean; in_footer: boolean; is_visible: boolean; page_type: string };
 
@@ -119,12 +120,9 @@ export function MenusEditorView({ initialMenus, articles: initialArticles, pages
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
-          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{custom ? copy.subtitleCustom : copy.subtitleAuto}</p>
-        </div>
-        <div className="flex gap-2">
+      <PageHeader
+        description={custom ? copy.subtitleCustom : copy.subtitleAuto}
+        actions={<div className="flex gap-2">
           {custom && (
             <Button type="button" variant="outline" size="sm" className="rounded-full gap-1.5" onClick={() => { setCustom(false); setMenus(menusFromPages(pages)); }}>
               <RotateCcw className="w-3.5 h-3.5" />
@@ -135,8 +133,8 @@ export function MenusEditorView({ initialMenus, articles: initialArticles, pages
             {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
             {copy.save}
           </Button>
-        </div>
-      </div>
+        </div>}
+      />
       {message && <p role="status" className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
       <div className="grid lg:grid-cols-2 gap-4">
         {list("header")}

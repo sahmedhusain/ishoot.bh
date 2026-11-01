@@ -1,6 +1,9 @@
 import { db, getCalendarFeedInfo, getCalendarFor } from "@platform/database";
 import { requirePagePermission } from "../../../lib/auth";
 import { CalendarView } from "../../../components/calendar/CalendarView";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("calendar");
 
 export const dynamic = "force-dynamic";
 

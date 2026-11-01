@@ -17,6 +17,7 @@ import {
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { SettingsNavTabs } from "./SettingsNavTabs";
 import { Select, formatDate } from "@platform/ui";
+import { PageHeader } from "../layout/PageHeader";
 
 interface AuditSessionsViewProps {
   initialLogs: ActivityLog[];
@@ -150,23 +151,16 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
     <div className="space-y-8 max-w-6xl mx-auto pb-16">
       <SettingsNavTabs />
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div data-page-header>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">
-            {t.audit.title}
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">{t.audit.subtitle}</p>
-        </div>
-
-        <div className="flex items-center gap-2">
+      <PageHeader
+        actions={<div className="flex items-center gap-2">
           <Badge
             variant="outline"
             className=" text-xs px-3 py-1 bg-ink/5 border-outline-variant"
           >
             {filteredLogs.length} {t.audit.eventsLogged}
           </Badge>
-        </div>
-      </div>
+        </div>}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="p-5 bg-surface border border-outline-variant rounded-2xl flex items-center gap-4">

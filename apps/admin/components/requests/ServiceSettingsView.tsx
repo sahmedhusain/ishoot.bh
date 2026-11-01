@@ -10,6 +10,7 @@ import { saveCannedReplyAction, saveServiceSettingsAction } from "../../app/acti
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { Field, LanguageFields } from "../setup/LanguageFields";
+import { PageHeader } from "../layout/PageHeader";
 
 /** Requests → service settings: resolution times by priority, and the saved replies. */
 export function ServiceSettingsView({ settings, replies, languages, canEditTimes }: { settings: ServiceSettingsRecord; replies: CannedReplyRecord[]; languages: readonly ContentLanguage[]; canEditTimes: boolean }) {
@@ -37,10 +38,7 @@ export function ServiceSettingsView({ settings, replies, languages, canEditTimes
   };
   return (
     <div className="space-y-6 max-w-3xl mx-auto pb-16">
-      <div data-page-header>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
-        <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
-      </div>
+      <PageHeader />
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
       <Card className="p-5 space-y-4" data-page-section>
         <h2 className="font-bold text-ink flex items-center gap-2"><Timer className="w-4 h-4 text-accent" aria-hidden="true" />{copy.sla}</h2>

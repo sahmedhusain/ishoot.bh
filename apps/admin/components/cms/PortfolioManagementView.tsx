@@ -30,6 +30,7 @@ import {
   createPortfolioItemAction,
   updatePortfolioContentAction,
 } from "../../app/actions/cms";
+import { PageHeader } from "../layout/PageHeader";
 
 interface PortfolioManagementViewProps {
   initialItems: PortfolioItem[];
@@ -215,17 +216,10 @@ export function PortfolioManagementView({
       >
         {t.portfolioManagement.reviewAndPublishChangesIn}
       </Link>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">
-            {(locale === "ar" ? catalogue.nameAr : catalogue.nameEn) || t.cms.portfolioTitle}
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">
-            {media ? t.portfolioView.subtitle : t.portfolioView.catalogueSubtitle}
-          </p>
-        </div>
-
-        <Button
+      <PageHeader
+        title={(locale === "ar" ? catalogue.nameAr : catalogue.nameEn) || t.cms.portfolioTitle}
+        description={media ? t.portfolioView.subtitle : t.portfolioView.catalogueSubtitle}
+        actions={<Button
           variant="primary"
           size="sm"
           className="gap-1.5 self-start sm:self-auto"
@@ -233,8 +227,8 @@ export function PortfolioManagementView({
         >
           <Plus className="w-3.5 h-3.5" />
           <span>{media ? t.actions.newProject : t.portfolioView.newItem}</span>
-        </Button>
-      </div>
+        </Button>}
+      />
 
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
         <Filter className="w-4 h-4 text-ink-muted shrink-0" />

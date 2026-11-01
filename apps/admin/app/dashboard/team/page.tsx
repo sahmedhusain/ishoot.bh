@@ -3,6 +3,9 @@ import { requireAuth } from "../../../lib/auth";
 import { db, getMemberHistory, getTeamMembers, getTeamPerformance } from "@platform/database";
 import { ROUTES } from "../../../constants/routes";
 import { TeamPerformanceView } from "../../../components/team/TeamPerformanceView";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("team");
 
 export const dynamic = "force-dynamic";
 

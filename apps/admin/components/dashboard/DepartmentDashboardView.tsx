@@ -7,6 +7,7 @@ import type { DepartmentDashboard } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { widgetCard } from "./DashboardWidgets";
+import { PageHeader } from "../layout/PageHeader";
 
 interface DepartmentDashboardViewProps {
   departments: { id: string; name_en: string; name_ar: string }[];
@@ -31,13 +32,9 @@ export function DepartmentDashboardView({ departments, chosenId, summary, canSee
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <Link href={ROUTES.home} className="text-xs text-ink-muted hover:text-accent">{c.back}</Link>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{c.title}</h1>
-          <p className="text-sm text-ink-muted mt-1">{c.subtitle}</p>
-        </div>
-        {departments.length > 1 ? (
+      <PageHeader
+        back={{ href: ROUTES.home, label: c.back }}
+        actions={departments.length > 1 ? (
           <label className="flex flex-col gap-1 text-xs font-semibold text-ink">
             {c.choose}
             <Select value={chosenId} onChange={(e) => router.push(ROUTES.departmentDashboard(e.target.value))} className="rounded-lg h-9 min-w-56" data-testid="department-choose">
@@ -50,7 +47,7 @@ export function DepartmentDashboardView({ departments, chosenId, summary, canSee
         ) : (
           <p className="text-sm font-semibold text-ink">{name(departments[0].name_en, departments[0].name_ar)}</p>
         )}
-      </div>
+      />
 
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 stagger-children">
         {tiles.map((tile) => {

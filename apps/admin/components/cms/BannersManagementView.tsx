@@ -35,6 +35,7 @@ import {
   createBannerAction,
   updateBannerContentAction,
 } from "../../app/actions/cms";
+import { PageHeader } from "../layout/PageHeader";
 
 interface BannersManagementViewProps {
   initialBanners: HeroBanner[];
@@ -164,17 +165,8 @@ export function BannersManagementView({
       >
         {t.bannersManagement.reviewAndPublishChangesIn}
       </Link>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">
-            {t.cms.bannersTitle}
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">
-            {t.bannersView.subtitle}
-          </p>
-        </div>
-
-        <Button
+      <PageHeader
+        actions={<Button
           variant="primary"
           size="sm"
           className="gap-1.5 self-start sm:self-auto"
@@ -182,8 +174,8 @@ export function BannersManagementView({
         >
           <Plus className="w-3.5 h-3.5" />
           <span>{t.actions.addBanner}</span>
-        </Button>
-      </div>
+        </Button>}
+      />
 
       <div className="grid grid-cols-1 gap-4">
         {banners.length === 0 ? (

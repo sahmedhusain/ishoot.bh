@@ -1,6 +1,9 @@
 import { getCurrentPermissions, requirePagePermission } from "../../../../lib/auth";
 import { getExpenseCategories, listRecurringExpenses } from "@platform/database";
 import { RecurringExpensesView } from "../../../../components/expenses/RecurringExpensesView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("expenses/recurring");
 
 export const dynamic = "force-dynamic";
 

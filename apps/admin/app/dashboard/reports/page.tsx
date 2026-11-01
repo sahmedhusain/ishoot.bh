@@ -1,6 +1,9 @@
 import { requireAuth } from "../../../lib/auth";
 import { reportsForUser } from "../../../lib/reports";
 import { ReportsCatalogView } from "../../../components/reports/ReportsCatalogView";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("reports");
 
 export const dynamic = "force-dynamic";
 

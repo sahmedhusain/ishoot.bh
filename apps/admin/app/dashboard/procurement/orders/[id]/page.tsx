@@ -5,6 +5,9 @@ import { RECEIVABLE_ORDER_STATUSES } from "@platform/database/constants/procurem
 import { ReceiveGoodsPanel } from "../../../../../components/procurement/ReceiveGoodsPanel";
 import { getCachedCompanySettings } from "../../../../../lib/cached-queries";
 import { PurchaseOrderView } from "../../../../../components/procurement/PurchaseOrderView";
+import { pageMetadata } from "../../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("procurement/orders/[id]");
 
 export const dynamic = "force-dynamic";
 

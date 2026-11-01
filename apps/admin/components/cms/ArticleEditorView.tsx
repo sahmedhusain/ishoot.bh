@@ -3,9 +3,8 @@ import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Eye, Loader2, Save, Send, Trash2 } from "lucide-react";
+import { Eye, Loader2, Save, Send, Trash2 } from "lucide-react";
 import { Select, Button, Card, Input } from "@platform/ui";
 import type { CmsArticleRecord } from "@platform/database/queries/cms-articles";
 import type { ContentLanguage } from "@platform/database/constants/languages";
@@ -17,6 +16,7 @@ import { errorMessage } from "../../lib/error-text";
 import { AssetUrlInput } from "../shared/AssetUrlInput";
 import { Field, LanguageFields } from "../setup/LanguageFields";
 import { RichTextEditor } from "./RichTextEditor";
+import { PageHeader } from "../layout/PageHeader";
 
 /** Local date-time for <input type="datetime-local"> from an ISO time, and back. */
 const toLocal = (iso: string | null) => (iso ? new Date(new Date(iso).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : "");
@@ -93,14 +93,12 @@ export function ArticleEditorView({ article, languages, canPublish, canDelete, a
 
   return (
     <div inert={!!busy} aria-busy={!!busy} className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link href={ROUTES.cms.articles} className="inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink">
-          <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
-          {copy.title}
-        </Link>
-        <div className="flex flex-wrap gap-2">
+      <PageHeader
+        back={{ href: ROUTES.cms.articles, label: copy.title }}
+        actions={
+          <>
           {draft.id && canDelete && (
-            <Button type="button" variant="ghost" size="sm" className="rounded-full gap-1.5 text-rose-600" onClick={remove}>
+            <Button type="button" variant="ghost" size="sm" className="rounded-full gap-1.5 text-m3-error" onClick={remove}>
               <Trash2 className="w-3.5 h-3.5" />
               {copy.delete}
             </Button>
@@ -121,11 +119,12 @@ export function ArticleEditorView({ article, languages, canPublish, canDelete, a
               {copy.publish}
             </Button>
           )}
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {message && (
-        <p role="status" className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>
+        <p role="status" className={`text-sm rounded-2xl px-4 py-3 ${message.tone === "ok" ? "bg-primary-container text-on-primary-container" : "bg-m3-error-container text-m3-on-error-container"}`}>{message.text}</p>
       )}
 
       <Card className="p-5 grid sm:grid-cols-2 gap-4">

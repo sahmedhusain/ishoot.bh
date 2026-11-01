@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 import { getMinuteOfMeetingById } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { MomDetailView } from "../../../../components/moms/MomDetailView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("moms/[id]");
 
 export const dynamic = "force-dynamic";
 

@@ -4,7 +4,7 @@ import { useConfirmation } from "@platform/ui";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, ArrowLeft, CheckCircle2, Loader2, Paperclip, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Loader2, Paperclip, Plus, Trash2 } from "lucide-react";
 import { Button, Card, CurrencyDisplay, Input, Select, formatDate } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import type { SupplierBillRecord } from "@platform/database";
@@ -16,6 +16,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { Field } from "../setup/LanguageFields";
 import { StatusPill } from "./StatusPill";
+import { PageHeader } from "../layout/PageHeader";
 
 interface LineDraft {
   orderLineId?: string;
@@ -84,32 +85,22 @@ export function SupplierBillView({ bill, fromOrder, suppliers, currency, rights 
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <Link href={ROUTES.procurement.bills} className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent">
-            <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" />
-            {copy.title}
-          </Link>
-          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink flex flex-wrap items-center gap-3">
-            {bill ? <span dir="ltr">{bill.number}</span> : copy.new}
-            {bill && <StatusPill status={bill.status} />}
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">
-            {[
+      <PageHeader
+        title={<>{bill ? <span dir="ltr">{bill.number}</span> : copy.new}{bill && <StatusPill status={bill.status} />}</>}
+        description={[
               bill?.order && <Link key="o" href={ROUTES.procurement.order(bill.order.id)} className="hover:text-accent" dir="ltr">{bill.order.number}</Link>,
               fromOrder && <span key="f" dir="ltr">{fromOrder.number}</span>,
               bill?.created_by && <span key="c">{formatMessage(common.createdBy, { name: bill.created_by })}</span>,
               bill?.approved_by && <span key="a">{formatMessage(common.approvedBy, { name: bill.approved_by })}</span>,
             ].filter(Boolean).reduce<React.ReactNode[]>((all, item, i) => (i ? [...all, " · ", item] : [item]), [])}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
+        back={{ href: ROUTES.procurement.bills, label: copy.title }}
+        actions={<div className="flex flex-wrap gap-2">
           {editable && <Button type="button" variant="primary" size="sm" className="rounded-full" disabled={busy} onClick={save} data-testid="bill-save">{common.save}</Button>}
           {bill?.expense_id && <Link href={ROUTES.expenses.list({ highlight: bill.expense_id })} className="inline-flex items-center rounded-full border border-outline-variant px-3 h-9 text-sm hover:border-accent">{copy.expense}</Link>}
           {bill?.status === "draft" && rights.edit && <Button type="button" variant="ghost" size="sm" className="rounded-full text-rose-600" disabled={busy} onClick={() => confirmAction({ description: common.cancelConfirm, onConfirm: () => run(() => cancelSupplierBillAction(bill.id)) })}>{common.cancel}</Button>}
           {busy && <Loader2 className="w-4 h-4 animate-spin self-center" aria-hidden="true" />}
-        </div>
-      </div>
+        </div>}
+      />
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
 
       <Card className="p-5 space-y-4" data-page-section>

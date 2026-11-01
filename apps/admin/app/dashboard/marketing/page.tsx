@@ -2,6 +2,9 @@ import { listCampaigns, requireFeatureEnabled } from "@platform/database";
 import { hasPermission, requirePagePermission } from "../../../lib/auth";
 import { getCachedCompanySettings } from "../../../lib/cached-queries";
 import { CampaignsView } from "../../../components/outreach/CampaignsView";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("marketing");
 
 export const dynamic = "force-dynamic";
 

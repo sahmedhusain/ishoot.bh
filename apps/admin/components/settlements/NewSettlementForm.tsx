@@ -4,13 +4,14 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
+
 import { Button, Input, Select } from "@platform/ui";
 import { SETTLEMENT_REASONS } from "@platform/database/constants/settlements";
 import { ROUTES } from "../../constants/routes";
 import { createFinalSettlementAction } from "../../app/actions/final-settlements";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
+import { PageHeader } from "../layout/PageHeader";
 
 /** Who is leaving, why and their last working day; every line is then worked out on the settlement page. */
 export function NewSettlementForm({
@@ -62,22 +63,12 @@ export function NewSettlementForm({
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 pb-16">
-      <div className="flex items-center gap-3" data-page-header>
-        <Link
-          href={ROUTES.hr.settlements()}
-          aria-label={t.actions.back}
-          className="rounded-full border border-outline-variant p-2 text-ink-muted hover:text-ink"
-        >
-          <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
-        </Link>
-        <div>
-          <h1 className="text-xl font-bold text-ink sm:text-2xl">{f.new}</h1>
-          <p className="mt-1 text-xs text-ink-muted">{f.newHint}</p>
-        </div>
-      </div>
+      <PageHeader
+        back={{ href: ROUTES.hr.settlements() }}
+      />
       <form
         onSubmit={submit}
-        className="space-y-4 rounded-3xl border border-outline-variant bg-surface-raised p-6 dark:bg-surface-raised"
+        className="space-y-4 rounded-3xl border border-outline-variant bg-surface-raised p-6"
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className="sm:col-span-2">

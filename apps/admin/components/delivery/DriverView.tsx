@@ -13,6 +13,7 @@ import { errorMessage } from "../../lib/error-text";
 import { uploadForClaim } from "../../lib/upload-client";
 import { SignatureCanvas } from "../shared/SignatureCanvas";
 import { ShipmentStatusPill } from "./ShipmentPills";
+import { PageHeader } from "../layout/PageHeader";
 
 /** A driver's stops: call, navigate, set off, and record each delivery with proof (or why it failed). */
 export function DriverView({ stops, linked }: { stops: DriverStop[]; linked: boolean }) {
@@ -20,10 +21,7 @@ export function DriverView({ stops, linked }: { stops: DriverStop[]; linked: boo
   const copy = t.delivery.driverView;
   return (
     <div className="space-y-4 max-w-xl mx-auto pb-16">
-      <div data-page-header>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
-        <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 leading-relaxed">{copy.subtitle}</p>
-      </div>
+      <PageHeader />
       {!linked ? (
         <Card className="p-6 text-sm text-ink-muted">{copy.notDriver}</Card>
       ) : stops.length === 0 ? (

@@ -25,7 +25,6 @@ import {
 } from "@platform/ui";
 import {
   UserPlus,
-  Shield,
   Trash2,
   Search,
   Building,
@@ -35,6 +34,7 @@ import {
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { usePermissions } from "../../hooks/usePermissions";
+import { PageHeader } from "../layout/PageHeader";
 
 interface UsersManagementViewProps {
   canWrite: boolean;
@@ -205,16 +205,8 @@ export function UsersManagementView({
           {error}
         </p>
       )}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-ink font-display flex items-center gap-2">
-            <Shield className="w-6 h-6 text-accent" />
-            <span>{t.roles.privilegesMatrix}</span>
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">{t.usersView.subtitle}</p>
-        </div>
-
-        <div className="flex items-center gap-3">
+      <PageHeader
+        actions={<div className="flex items-center gap-3">
           <div className="flex items-center bg-surface p-1 rounded-xl border border-outline-variant text-xs font-semibold" role="tablist">
             <button
               onClick={() => setActiveTab("users")}
@@ -246,8 +238,8 @@ export function UsersManagementView({
             <UserPlus className="w-4 h-4" />
             <span>{t.actions.addUser}</span>
           </Button>
-        </div>
-      </div>
+        </div>}
+      />
 
       {successMsg && (
         <div className="p-4 rounded-2xl bg-accent/15 border border-accent/40 text-accent flex items-center gap-3 text-xs font-medium">

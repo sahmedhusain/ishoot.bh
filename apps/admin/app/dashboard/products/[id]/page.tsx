@@ -5,6 +5,9 @@ import { PurchasePricesCard } from "../../../../components/procurement/PurchaseP
 import { ProductStockPanel } from "../../../../components/inventory/ProductStockPanel";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { ProductEditorView } from "../../../../components/products/ProductEditorView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("products/[id]");
 
 export const dynamic = "force-dynamic";
 

@@ -183,10 +183,10 @@ export function DashboardWidget({
                 return (
                   <li key={key} className="space-y-1 text-xs">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-ink-muted dark:text-ink-muted font-medium truncate">
+                      <span className="text-ink-muted font-medium truncate">
                         {stage ? dealStageLabel(stage, t, locale) : ((t.stages as Record<string, string>)[key] ?? key)} ({stat.count})
                       </span>
-                      {data.showMoney ? <span className="font-bold text-ink dark:text-ink">{money(stat.value)}</span> : null}
+                      {data.showMoney ? <span className="font-bold text-ink">{money(stat.value)}</span> : null}
                     </div>
                     <div className="w-full h-1.5 bg-surface-sunken dark:bg-white/5 rounded-full overflow-hidden">
                       <div className="h-full bg-accent rounded-full motion-safe:transition-[width] motion-safe:duration-700" style={{ width: `${Math.min(100, Math.max(0, share))}%` }} />

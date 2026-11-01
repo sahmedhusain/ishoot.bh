@@ -2,6 +2,9 @@ import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { listSupplierBills, requireFeatureEnabled } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { SupplierBillsListView } from "../../../../components/procurement/SupplierBillsListView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("procurement/bills");
 
 export const dynamic = "force-dynamic";
 

@@ -25,14 +25,14 @@ export function SalesDiscountsTab({ settings, setSettings, t }: SalesDiscountsTa
             <BadgePercent className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-ink dark:text-ink">{s.title}</h2>
-            <p className="text-xs text-ink-muted dark:text-ink-muted">{s.subtitle}</p>
+            <h2 className="text-sm font-bold text-ink">{s.title}</h2>
+            <p className="text-xs text-ink-muted">{s.subtitle}</p>
           </div>
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2">
           <label className="block space-y-1.5 block">
-            <span className="text-xs font-medium text-ink dark:text-ink">{s.defaultLimit}</span>
+            <span className="text-xs font-medium text-ink">{s.defaultLimit}</span>
             <div className="flex items-center gap-2">
               <Input
                 type="number"
@@ -56,7 +56,7 @@ export function SalesDiscountsTab({ settings, setSettings, t }: SalesDiscountsTa
               onChange={(e) => setSettings({ ...settings, quotations_always_need_approval: e.target.checked })}
             />
             <span>
-              <span className="block text-xs font-semibold text-ink dark:text-ink">{s.alwaysApprove}</span>
+              <span className="block text-xs font-semibold text-ink">{s.alwaysApprove}</span>
               <span className="block text-[11px] text-ink-muted mt-0.5">{s.alwaysApproveHint}</span>
             </span>
           </label>

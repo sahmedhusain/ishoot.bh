@@ -207,7 +207,7 @@ export function ClientAutocomplete({
   return (
     <div className={`space-y-2 ${className || ""}`} ref={containerRef}>
       {/* Header with Mode Toggle */}
-      <div className="flex items-center justify-between text-xs font-semibold text-ink dark:text-ink">
+      <div className="flex items-center justify-between text-xs font-semibold text-ink">
         <label className="flex items-center gap-1.5">
           <span>{effectiveLabel}</span>
           {required && <span className="text-rose-500">*</span>}
@@ -271,17 +271,17 @@ export function ClientAutocomplete({
                 : selectedContact.full_name?.charAt(0).toUpperCase() || "C"}
             </div>
             <div className="min-w-0 space-y-0.5">
-              <div className="text-sm font-bold text-ink dark:text-ink truncate flex items-center gap-2">
+              <div className="text-sm font-bold text-ink truncate flex items-center gap-2">
                 <span>
                   {selectedContact.company || selectedContact.full_name}
                 </span>
                 {selectedContact.company && selectedContact.full_name && (
-                  <span className="text-xs font-normal text-ink-muted dark:text-ink-muted">
+                  <span className="text-xs font-normal text-ink-muted">
                     (<bdi dir="auto">{selectedContact.full_name}</bdi>)
                   </span>
                 )}
               </div>
-              <div className="text-xs text-ink-muted dark:text-ink-muted truncate flex items-center gap-3">
+              <div className="text-xs text-ink-muted truncate flex items-center gap-3">
                 {selectedContact.email && (
                   <span className="inline-flex items-center gap-1">
                     <Mail className="w-3 h-3 text-ink-muted" />
@@ -325,7 +325,7 @@ export function ClientAutocomplete({
                 setMode("search");
                 setCreateError(null);
               }}
-              className="text-xs text-ink-muted hover:text-ink dark:text-ink-muted dark:hover:text-white"
+              className="text-xs text-ink-muted hover:text-ink dark:hover:text-white"
             >
               {t.clientAutocomplete.cancelAndSearch}
             </button>
@@ -340,7 +340,7 @@ export function ClientAutocomplete({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <label>
-              <span className="block text-[11px] font-semibold text-ink dark:text-ink mb-1">
+              <span className="block text-[11px] font-semibold text-ink mb-1">
                 {t.clientAutocomplete.fullNameContactPerson}
               </span>
               <Input
@@ -352,7 +352,7 @@ export function ClientAutocomplete({
             </label>
 
             <div>
-              <label className="block text-[11px] font-semibold text-ink dark:text-ink mb-1">
+              <label className="block text-[11px] font-semibold text-ink mb-1">
                 {t.clientAutocomplete.companyOrganization}
               </label>
               <div className="relative">
@@ -367,7 +367,7 @@ export function ClientAutocomplete({
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-ink dark:text-ink mb-1">
+              <label className="block text-[11px] font-semibold text-ink mb-1">
                 {t.clientAutocomplete.emailAddress}
               </label>
               <div className="relative" dir="ltr">
@@ -383,7 +383,7 @@ export function ClientAutocomplete({
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-ink dark:text-ink mb-1">
+              <label className="block text-[11px] font-semibold text-ink mb-1">
                 {t.clientAutocomplete.phoneWhatsapp}
               </label>
               <PhoneInput
@@ -393,7 +393,7 @@ export function ClientAutocomplete({
             </div>
 
             <label className="sm:col-span-2">
-              <span className="block text-[11px] font-semibold text-ink dark:text-ink mb-1">
+              <span className="block text-[11px] font-semibold text-ink mb-1">
                 {t.clientAutocomplete.jobTitleNotes}
               </span>
               <Input
@@ -527,11 +527,11 @@ export function ClientAutocomplete({
                       className="w-full text-start p-3 hover:bg-surface-raised dark:hover:bg-white/5 transition-colors flex items-center justify-between gap-3 text-xs"
                     >
                       <div className="min-w-0">
-                        <div className="font-bold text-ink dark:text-ink truncate">
+                        <div className="font-bold text-ink truncate">
                           {contact.company ? `${contact.company} - ` : ""}
                           <bdi dir="auto">{contact.full_name}</bdi>
                         </div>
-                        <div className="text-[11px] text-ink-muted dark:text-ink-muted truncate mt-0.5 flex items-center gap-2">
+                        <div className="text-[11px] text-ink-muted truncate mt-0.5 flex items-center gap-2">
                           {contact.email && (
                             <span>
                               <bdi dir="ltr">{contact.email}</bdi>

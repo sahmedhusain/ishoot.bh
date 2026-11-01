@@ -12,7 +12,6 @@ import {
   History,
   Pencil,
   Plus,
-  ShieldCheck,
   Trash2,
   Users,
   X,
@@ -45,6 +44,7 @@ import {
 } from "../../app/actions/social-insurance";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
+import { PageHeader } from "../layout/PageHeader";
 
 type Component = Awaited<ReturnType<typeof listGosiComponents>>[number];
 type Registration = Awaited<ReturnType<typeof listGosiRegistrations>>[number];
@@ -214,13 +214,7 @@ export function GosiView({
           {actionError && <p id={`${endFormId}-error`} role="alert" className="text-sm text-rose-700 dark:text-rose-300">{actionError}</p>}
         </form>
       </Modal>
-      <header data-page-header>
-        <h1 className="flex items-center gap-2 text-xl font-bold text-ink sm:text-2xl">
-          <ShieldCheck className="h-5 w-5 text-accent" aria-hidden />
-          <bdi dir="auto">{g.title}</bdi>
-        </h1>
-        <p className="mt-1 text-xs text-ink-muted">{g.subtitle}</p>
-      </header>
+      <PageHeader />
 
       <section className={card} data-page-section>
         <h2 className="mb-3 text-sm font-bold text-ink">{g.rulesTitle}</h2>

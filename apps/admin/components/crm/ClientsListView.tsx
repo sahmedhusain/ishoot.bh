@@ -40,6 +40,7 @@ import { deleteContactAction } from "../../app/actions/crm";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { usePermissions } from "../../hooks/usePermissions";
 import { errorMessage } from "../../lib/error-text";
+import { PageHeader } from "../layout/PageHeader";
 
 type Summary = Record<"total" | "companies" | "government" | "individuals" | "tier_a" | "with_balance" | "outstanding" | "billed", number>;
 const KIND_ICONS = { individual: User, company: Building2, government: Landmark } as const;
@@ -133,12 +134,8 @@ export function ClientsListView({
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink">{c.title}</h1>
-          <p className="text-xs text-ink-muted mt-1">{c.subtitle}</p>
-        </div>
-        <div className="flex items-center gap-2">
+      <PageHeader
+        actions={<div className="flex items-center gap-2">
           {can("contacts", "export") ? (
             <a href={exportHref} className="inline-flex items-center gap-1.5 h-9 rounded-full border border-outline-variant px-4 text-xs font-semibold text-ink hover:bg-ink/5 transition-colors">
               <Download className="w-3.5 h-3.5" />
@@ -153,19 +150,19 @@ export function ClientsListView({
               </Button>
             </Link>
           ) : null}
-        </div>
-      </div>
+        </div>}
+      />
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {tiles.map((tile) => (
-          <Link key={tile.key} href={tile.link ?? "#"} className="rounded-2xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-4 hover:border-accent/50 transition-colors">
+          <Link key={tile.key} href={tile.link ?? "#"} className="rounded-2xl border border-outline-variant bg-surface-raised p-4 hover:border-accent/50 transition-colors">
             <div className="text-[11px] text-ink-muted">{tile.label}</div>
             <div className={`mt-1 text-lg font-bold tabular-nums ${tile.tone ?? "text-ink"}`}>{tile.value}</div>
           </Link>
         ))}
       </div>
 
-      <form onSubmit={submit} role="search" className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-3 space-y-3 shadow-xs">
+      <form onSubmit={submit} role="search" className="rounded-3xl border border-outline-variant bg-surface-raised p-3 space-y-3 shadow-xs">
         <div className="flex flex-wrap items-center gap-2" data-page-toolbar>
           <div className="relative flex-1 basis-60 min-w-0">
             <Search className="pointer-events-none absolute top-1/2 -translate-y-1/2 start-3.5 w-4 h-4 text-ink-muted" aria-hidden />
@@ -240,7 +237,7 @@ export function ClientsListView({
         ) : null}
       </form>
 
-      <div className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised overflow-hidden shadow-xs">
+      <div className="rounded-3xl border border-outline-variant bg-surface-raised overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-ink/[0.03] text-[11px] text-ink-muted">

@@ -10,6 +10,7 @@ import { createStatisticAction, updateStatisticAction, deleteStatisticAction } f
 import { IconPicker } from "../shared/LazyIconPicker";
 import type { ContentLanguage } from "@platform/database/constants/languages";
 import { LanguageFields } from "../setup/LanguageFields";
+import { PageHeader } from "../layout/PageHeader";
 
 export function StatsManagementView({ initialStats, languages }: { initialStats: StatisticItem[]; languages: readonly ContentLanguage[] }) {
   const modalFormId = React.useId();
@@ -93,17 +94,11 @@ export function StatsManagementView({ initialStats, languages }: { initialStats:
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex items-center justify-between" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">
-            {t.statsView.title}
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">{t.statsView.subtitle}</p>
-        </div>
-        <Button onClick={handleOpenNew} className="bg-accent text-accent-foreground">
+      <PageHeader
+        actions={<Button onClick={handleOpenNew} className="bg-accent text-accent-foreground">
           <Plus className="w-4 h-4 me-2" /> {t.statsView.newStat}
-        </Button>
-      </div>
+        </Button>}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat) => (

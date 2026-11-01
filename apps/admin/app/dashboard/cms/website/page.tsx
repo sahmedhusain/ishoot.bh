@@ -2,6 +2,10 @@ import { requirePagePermission } from "../../../../lib/auth";
 import { requireFeatureEnabled, db, getWebsiteEditor, getWebsitePublicationStatus, getCompanySettings, sampleContentCount, getPortfolioCategories } from "@platform/database";
 import { resolveWebsiteConfig, validateWebsiteConfig } from "@platform/database/website-config";
 import { WebsiteEditor } from "../../../../components/cms/WebsiteEditor";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("cms/website");
+
 export const dynamic = "force-dynamic";
 export default async function WebsitePage() {
   await requirePagePermission("settings", "read");

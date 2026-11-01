@@ -2,6 +2,9 @@ import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { listEmployees, listDepartments, listExpiringEmployeeDocuments } from "@platform/database";
 import { ExpiringDocumentsCard } from "../../../../components/hr/ExpiringDocumentsCard";
 import { EmployeesListView } from "../../../../components/hr/EmployeesListView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("hr/employees");
 
 export const dynamic = "force-dynamic";
 

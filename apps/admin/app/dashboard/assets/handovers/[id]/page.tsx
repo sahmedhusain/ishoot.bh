@@ -9,6 +9,9 @@ import {
 import { hasPermission, requireAuth } from "../../../../../lib/auth";
 import { ForbiddenView } from "../../../../../components/shared/ForbiddenView";
 import { HandoverDetailView } from "../../../../../components/assets/HandoverDetailView";
+import { pageMetadata } from "../../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("assets/handovers/[id]");
 
 export const dynamic = "force-dynamic";
 

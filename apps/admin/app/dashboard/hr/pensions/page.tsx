@@ -5,6 +5,9 @@ import {
 } from "@platform/database";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { GosiView } from "../../../../components/gosi/GosiView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("hr/pensions");
 
 export const dynamic = "force-dynamic";
 

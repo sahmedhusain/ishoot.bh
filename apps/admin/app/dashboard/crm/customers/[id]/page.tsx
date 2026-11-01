@@ -4,6 +4,9 @@ import { RelatedExpensesPanel } from "../../../../../components/expenses/Related
 import { notFound } from "next/navigation";
 import type { DossierActions } from "../../../../../types/crm";
 import { Customer360DossierView } from "../../../../../components/crm/Customer360DossierView";
+import { pageMetadata } from "../../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("crm/customers/[id]");
 
 interface CustomerDossierPageProps {
   params: Promise<{ id: string }>;

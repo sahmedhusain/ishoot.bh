@@ -2,6 +2,9 @@ import { requirePagePermission } from "../../../../../../lib/auth";
 import { getActiveDealStages, getCRMDealById, getCRMContactById, db } from "@platform/database";
 import { notFound } from "next/navigation";
 import { DealEditFormView } from "../../../../../../components/crm/DealEditFormView";
+import { pageMetadata } from "../../../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("crm/deals/[id]/edit");
 
 export const dynamic = "force-dynamic";
 

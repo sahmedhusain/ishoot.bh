@@ -2,6 +2,9 @@ import { listAgencyInvoices, listCourierAgencies, requireFeatureEnabled, unbille
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { AgenciesView } from "../../../../components/delivery/AgenciesView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("delivery/agencies");
 
 export const dynamic = "force-dynamic";
 

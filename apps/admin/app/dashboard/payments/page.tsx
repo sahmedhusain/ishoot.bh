@@ -3,6 +3,10 @@ import { requirePagePermission } from "../../../lib/auth";
 import { getPaymentsPage, type ListParameters } from "@platform/database";
 import { PaymentsManagementView } from "../../../components/payments/PaymentsManagementView";
 import { ListControls } from "../../../components/shared/ListControls";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("payments");
+
 export const dynamic = "force-dynamic";
 export default async function PaymentsPage({ searchParams }: { searchParams: Promise<ListParameters> }) {
   await requirePagePermission("payments", "read");

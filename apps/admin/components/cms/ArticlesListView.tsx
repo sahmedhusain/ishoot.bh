@@ -9,6 +9,7 @@ import type { WebsiteSnapshotSection } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { UnpublishedChangesNotice } from "./UnpublishedChangesNotice";
+import { PageHeader } from "../layout/PageHeader";
 
 /** Website → Articles: news, updates, posts and press releases with their status and date. */
 export function ArticlesListView({
@@ -39,18 +40,14 @@ export function ArticlesListView({
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
       <UnpublishedChangesNotice section="articles" status={publication} canPublish={canPublish} />
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
-          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
-        </div>
-        {canCreate && (
+      <PageHeader
+        actions={canCreate && (
           <Link href={ROUTES.cms.newArticle} className="inline-flex items-center gap-1.5 h-8 px-4 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90">
             <Plus className="w-3.5 h-3.5" />
             {copy.newArticle}
           </Link>
         )}
-      </div>
+      />
       <form method="get" action={ROUTES.cms.articles} role="search" className="flex flex-wrap gap-2">
         <label className="relative flex-1 min-w-[200px]">
           <Search className="w-4 h-4 text-ink-muted absolute start-3 top-1/2 -translate-y-1/2" />

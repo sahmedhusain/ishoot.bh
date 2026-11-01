@@ -1,6 +1,9 @@
 import { listDrivers, listVehicles, requireFeatureEnabled } from "@platform/database";
 import { requirePagePermission } from "../../../../lib/auth";
 import { FleetView } from "../../../../components/delivery/FleetView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("delivery/fleet");
 
 export const dynamic = "force-dynamic";
 

@@ -1,6 +1,9 @@
 import { requirePagePermission } from "../../../../lib/auth";
 import { getActivityLogs } from "@platform/database";
 import { AuditSessionsView } from "../../../../components/settings/AuditSessionsView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("settings/audit");
 
 export const dynamic = "force-dynamic";
 

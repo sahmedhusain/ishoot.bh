@@ -2,6 +2,9 @@ import { requirePagePermission } from "../../../../lib/auth";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 
 import { NewMomFormView } from "../../../../components/moms/NewMomFormView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("moms/new");
 
 export const dynamic = "force-dynamic";
 

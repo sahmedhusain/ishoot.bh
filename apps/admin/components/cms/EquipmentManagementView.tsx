@@ -15,6 +15,7 @@ import {
   createEquipmentAction,
   updateEquipmentAction,
 } from "../../app/actions/cms";
+import { PageHeader } from "../layout/PageHeader";
 
 interface EquipmentManagementViewProps {
   initialEquipment: StudioEquipment[];
@@ -106,17 +107,8 @@ export function EquipmentManagementView({
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">
-            {t.cms.equipmentTitle}
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">
-            {t.equipmentView.subtitle}
-          </p>
-        </div>
-
-        <Button
+      <PageHeader
+        actions={<Button
           variant="primary"
           size="sm"
           className="gap-1.5 self-start sm:self-auto"
@@ -124,8 +116,8 @@ export function EquipmentManagementView({
         >
           <Plus className="w-3.5 h-3.5" />
           <span>{t.actions.addEquipment}</span>
-        </Button>
-      </div>
+        </Button>}
+      />
 
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
         <Filter className="w-4 h-4 text-ink-muted shrink-0" />

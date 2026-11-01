@@ -1,6 +1,9 @@
 import { driverShipments, employeeIdForUser, requireFeatureEnabled } from "@platform/database";
 import { requirePagePermission } from "../../../lib/auth";
 import { DriverView } from "../../../components/delivery/DriverView";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("driver");
 
 export const dynamic = "force-dynamic";
 

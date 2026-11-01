@@ -9,6 +9,7 @@ import { saveWebsiteCodeAction } from "../../app/actions/website";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { Field } from "../setup/LanguageFields";
+import { PageHeader } from "../layout/PageHeader";
 
 /** Website → Tracking and code: analytics ids (run on the page) and the company's own code (sealed frame). */
 export function SiteCodeView({ initialCode, canEdit }: { initialCode: WebsiteCode; canEdit: boolean }) {
@@ -38,18 +39,14 @@ export function SiteCodeView({ initialCode, canEdit }: { initialCode: WebsiteCod
   );
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
-          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
-        </div>
-        {canEdit && (
+      <PageHeader
+        actions={canEdit && (
           <Button type="button" variant="primary" size="sm" className="rounded-full gap-1.5" disabled={busy} onClick={save}>
             {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
             {copy.save}
           </Button>
         )}
-      </div>
+      />
       {message && <p role="status" className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
       <Card className="p-5 grid sm:grid-cols-3 gap-4" data-page-section>
         <h2 className="sm:col-span-3 font-bold text-ink">{copy.analytics}</h2>

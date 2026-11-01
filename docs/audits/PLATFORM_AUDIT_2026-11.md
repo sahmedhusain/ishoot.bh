@@ -92,12 +92,11 @@ A review of the admin and web apps, the database and the modules. It covers perf
 - Covered by **A2**. Printing keeps the PDF documents.
 
 **Page headers**
-- There is no shared page header component.
-- 14 pages have no standard header, about 20 headers have no description, and only 4 pages set a browser title.
-- Covered by **A3**.
+- There was no shared page header component: 14 pages had no standard header, about 20 headers had no description, and only 4 pages set a browser title.
+- **Fixed in A3.** Every dashboard page uses `PageHeader` with a section icon, the sidebar group, and a title and description in English and Arabic. Every page sets its browser title in the admin's language. A unit test guards all of this.
 
 **Legacy styling**
-- Heavy `dark:` overrides and raw slate/gray/hex colours.
+- Heavy `dark:` overrides and raw slate/gray/hex colours. **Partly fixed in A3:** 1,092 `dark:` classes that repeated their light class were removed. The notifications inbox and letters list were redesigned, and the minutes, payroll item, route sheet, analytics and website editor headers moved to theme roles.
 - 58 hand-written tables, with no shared DataTable.
 - About 141 strings still use film/production wording.
 - Covered by **A3**.

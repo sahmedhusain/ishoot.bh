@@ -19,8 +19,6 @@ import {
 } from "../shared/DocumentLetterhead";
 import { Button, Input, Modal, StatusBadge } from "@platform/ui";
 import {
-  ArrowLeft,
-  ArrowRight,
   Share2,
   Mail,
   CheckCircle2,
@@ -43,6 +41,7 @@ import {
 } from "../../app/actions/mom";
 import { getSignatureModeAction } from "../../app/actions/signatures";
 import { SignatureCanvas } from "../shared/SignatureCanvas";
+import { PageHeader } from "../layout/PageHeader";
 
 interface MomDetailViewProps {
   mom: MinuteOfMeetingItem;
@@ -75,7 +74,6 @@ export function MomDetailView({
     text: string;
   } | null>(null);
 
-  const BackIcon = isRTL ? ArrowRight : ArrowLeft;
   const isAr = Boolean(mom.title_ar && (!mom.title || isRTL));
 
   const clientName = mom.client_name || t.momDetail.generalInternalMeeting;
@@ -215,41 +213,33 @@ export function MomDetailView({
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-24">
-      {/* Top Action Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print">
-        <div>
-          <Link
-            href={ROUTES.moms.list}
-            className="inline-flex items-center gap-2 text-xs text-ink-muted hover:text-accent transition-colors mb-2 font-medium"
-          >
-            <BackIcon className="w-4 h-4" />
-            <span>{t.momDetail.backToMinutesOfMeetings}</span>
-          </Link>
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white font-display">
-              {mom.mom_number}
-            </h1>
+      <PageHeader
+        className="no-print"
+        back={{ href: ROUTES.moms.list, label: t.momDetail.backToMinutesOfMeetings }}
+        title={<bdi dir="ltr">{mom.mom_number}</bdi>}
+        description={<bdi dir="auto">{mom.title}</bdi>}
+        meta={
+          <>
             <StatusBadge status={mom.status} />
             {mom.client_id && (
               <Link
                 href={ROUTES.crm.customer(mom.client_id)}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-tone-95 text-primary dark:bg-tone-15 dark:text-mint border border-accent/30 hover:underline transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant px-3 py-1 text-xs font-medium text-primary hover:bg-surface-container-high transition-colors"
                 title={t.momDetail.viewClient360}
               >
                 <span>{clientName}</span>
-                <span className="text-[10px] opacity-70">↗</span>
+                <span className="text-[10px] opacity-70" aria-hidden>↗</span>
               </Link>
             )}
             {mom.deal_title && (
-              <span className="text-xs px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300 font-mono">
+              <span className="rounded-full bg-surface-container-high px-2.5 py-0.5 text-xs text-on-surface-variant">
                 {t.copy.dealLabel}{mom.deal_title}
               </span>
             )}
-          </div>
-        </div>
-
-        {/* Toolbar Controls */}
-        <div className="flex flex-wrap items-center gap-2.5">
+          </>
+        }
+        actions={
+          <>
           <BilingualPdfActions
             pdfUrl={(language, download) =>
               momPdfUrl(mom.id, language, download)
@@ -261,7 +251,7 @@ export function MomDetailView({
             variant="outline"
             size="sm"
             onClick={handleShareWhatsApp}
-            className="gap-1.5 border-emerald-500/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+            className="gap-1.5"
           >
             <Share2 className="w-4 h-4" />
             <span>{t.copy.whatsapp}</span>
@@ -271,7 +261,7 @@ export function MomDetailView({
             variant="outline"
             size="sm"
             onClick={() => { setFeedbackMessage(null); setIsEmailModalOpen(true); }}
-            className="gap-1.5 border-blue-500/30 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+            className="gap-1.5"
           >
             <Mail className="w-4 h-4" />
             <span>{t.momDetail.shareEmail}</span>
@@ -283,7 +273,7 @@ export function MomDetailView({
               size="sm"
               onClick={handleApproveAndSign}
               disabled={isApproving}
-              className="gap-1.5 bg-accent hover:bg-accent-pressed text-white shadow-lg shadow-accent/20"
+              className="gap-1.5"
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>
@@ -291,8 +281,9 @@ export function MomDetailView({
               </span>
             </Button>
           )}
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {signPadOpen && signLive ? (
         <section className="rounded-2xl border border-accent/30 bg-accent/5 p-4 space-y-2 no-print">
@@ -325,22 +316,23 @@ export function MomDetailView({
       {/* Feedback Banner */}
       {feedbackMessage && (
         <div
-          className={`p-4 rounded-xl flex items-center gap-3 no-print ${feedbackMessage.type === "success"
-            ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800"
-            : "bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-200 border border-rose-200 dark:border-rose-800"
+          role="status"
+          className={`p-4 rounded-2xl flex items-center gap-3 no-print ${feedbackMessage.type === "success"
+            ? "bg-primary-container text-on-primary-container"
+            : "bg-m3-error-container text-m3-on-error-container"
             }`}
         >
           {feedbackMessage.type === "success" ? (
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+            <CheckCircle2 className="w-5 h-5 shrink-0" />
           ) : (
-            <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+            <AlertCircle className="w-5 h-5 shrink-0" />
           )}
           <span className="text-sm font-medium">{feedbackMessage.text}</span>
         </div>
       )}
 
       {/* Printable Master Document Sheet (Unified Concept with Invoices & Receipts) */}
-      <div className="p-2 sm:p-6 bg-slate-100/70 dark:bg-surface-sunken rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm flex justify-center">
+      <div className="p-2 sm:p-6 bg-surface-container rounded-3xl border border-outline-variant flex justify-center">
         <div
           dir={isAr ? "rtl" : "ltr"}
           data-print-target

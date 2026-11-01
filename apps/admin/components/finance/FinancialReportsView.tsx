@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { exportFinancialReportCsvAction } from "../../app/actions/finance";
 import { toast } from "sonner";
+import { PageHeader } from "../layout/PageHeader";
 
 interface FinancialReportsViewProps {
   report: FinancialSummaryReport;
@@ -95,22 +96,9 @@ export function FinancialReportsView({
   return (
     <div className="space-y-8">
       {/* Editorial Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-outline-variant pb-6" data-page-header>
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono uppercase tracking-widest text-accent bg-secondary-container dark:bg-tone-15/40 dark:text-mint px-2.5 py-0.5 rounded-full font-medium">
-              {t.financialReports.accountingAndPurityStandards}
-            </span>
-          </div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-ink dark:text-ink mt-1">
-            {t.financialReports.financialAndTaxSummary}
-          </h1>
-          <p className="text-sm text-ink-muted dark:text-ink-muted mt-1">
-            {t.financialReports.compliantFinancialReportingSeparatingGross}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
+      <PageHeader
+        eyebrow={t.financialReports.accountingAndPurityStandards}
+        actions={<div className="flex items-center gap-3">
           <Button
             onClick={handleExportCsv}
             disabled={exporting}
@@ -119,11 +107,11 @@ export function FinancialReportsView({
             <Download className="w-3.5 h-3.5" />
             <span>{exporting ? t.financialDetail.exporting : t.financialReports.exportFormulaSafeCsv}</span>
           </Button>
-        </div>
-      </div>
+        </div>}
+      />
 
       {/* Basis & Filter Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-surface-raised dark:bg-surface-raised border border-outline-variant">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-surface-raised border border-outline-variant">
         {/* Cash vs Accrual Toggle */}
         <div className="flex items-center gap-2">
           <span className="text-xs font-mono text-ink-muted uppercase">{t.financialReports.accountingBasis}</span>
@@ -155,18 +143,18 @@ export function FinancialReportsView({
             type="date"
             value={filterDateFrom}
             onChange={(e) => setFilterDateFrom(e.target.value)}
-            className="text-xs font-mono rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised px-2.5 py-1 text-ink dark:text-ink"
+            className="text-xs font-mono rounded-md border border-outline-variant bg-surface-raised px-2.5 py-1 text-ink"
           />
           <span className="text-xs text-ink-muted">{t.copy.to}</span>
           <input
             type="date"
             value={filterDateTo}
             onChange={(e) => setFilterDateTo(e.target.value)}
-            className="text-xs font-mono rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised px-2.5 py-1 text-ink dark:text-ink"
+            className="text-xs font-mono rounded-md border border-outline-variant bg-surface-raised px-2.5 py-1 text-ink"
           />
           <button
             type="submit"
-            className="px-3 py-1 bg-surface-sunken hover:bg-surface-sunken dark:bg-surface-raised dark:hover:bg-surface-sunken text-ink dark:text-ink rounded-md text-xs font-medium transition-colors"
+            className="px-3 py-1 bg-surface-sunken hover:bg-surface-sunken dark:bg-surface-raised dark:hover:bg-surface-sunken text-ink rounded-md text-xs font-medium transition-colors"
           >
             {t.financialReports.applyDates}
           </button>
@@ -188,7 +176,7 @@ export function FinancialReportsView({
 
       {/* Accounting Method Notice */}
       <div className="p-4 rounded-lg bg-surface-raised dark:bg-surface-raised/40 border border-outline-variant dark:border-white/5 text-xs space-y-1">
-        <div className="font-semibold text-ink dark:text-ink flex items-center gap-2">
+        <div className="font-semibold text-ink flex items-center gap-2">
           <HelpCircle className="w-4 h-4 text-accent" />
           <span>
             {currentBasis === "cash"
@@ -196,7 +184,7 @@ export function FinancialReportsView({
               : t.financialReports.accrualBasisActiveReflectsInvoiced}
           </span>
         </div>
-        <p className="text-ink-muted dark:text-ink-muted leading-relaxed text-[11px]">
+        <p className="text-ink-muted leading-relaxed text-[11px]">
           {t.financialReports.noticeInComplianceWithFinancial}
         </p>
       </div>
@@ -219,11 +207,11 @@ export function FinancialReportsView({
         </div>
 
         {/* Net Revenue */}
-        <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
-          <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
+        <div className="bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
+          <div className="text-xs text-ink-muted uppercase tracking-wider font-mono">
             {showVat ? t.financialReports.netRevenueExclVat : t.financialDetail.revenueNet}
           </div>
-          <div className="text-2xl font-bold font-mono text-ink dark:text-ink">
+          <div className="text-2xl font-bold font-mono text-ink">
             {currentBasis === "cash" ? report.cashNetReceipts.toFixed(3) : report.invoicedNet.toFixed(3)}{" "}
             <span className="text-xs font-normal text-ink-muted">{currLabel}</span>
           </div>
@@ -236,11 +224,11 @@ export function FinancialReportsView({
 
         {/* Output VAT Collected */}
         {showVat && (
-          <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
-            <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
+          <div className="bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
+            <div className="text-xs text-ink-muted uppercase tracking-wider font-mono">
               {t.financialReports.outputVatNbrTax}
             </div>
-            <div className="text-2xl font-bold font-mono text-ink dark:text-ink">
+            <div className="text-2xl font-bold font-mono text-ink">
               {currentBasis === "cash" ? report.cashOutputVat.toFixed(3) : report.invoicedOutputVat.toFixed(3)}{" "}
               <span className="text-xs font-normal text-ink-muted">{currLabel}</span>
             </div>
@@ -251,11 +239,11 @@ export function FinancialReportsView({
         )}
 
         {/* Operating Costs */}
-        <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
-          <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
+        <div className="bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
+          <div className="text-xs text-ink-muted uppercase tracking-wider font-mono">
             {t.financialReports.operatingExpensesAndCosts}
           </div>
-          <div className="text-2xl font-bold font-mono text-ink dark:text-ink">
+          <div className="text-2xl font-bold font-mono text-ink">
             {(report.expensesNet + report.inputVatNonRecoverable + report.payrollCostsTotal).toFixed(3)}{" "}
             <span className="text-xs font-normal text-ink-muted">{currLabel}</span>
           </div>
@@ -268,8 +256,8 @@ export function FinancialReportsView({
       {/* Comprehensive Breakdown Tables */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Revenue Breakdown */}
-        <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-ink dark:text-ink font-mono border-b border-outline-variant pb-3 flex items-center gap-2">
+        <Card className="p-6 bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-ink font-mono border-b border-outline-variant pb-3 flex items-center gap-2">
             <DollarSign className="w-4 h-4 text-accent" />
             {t.financialReports.n1RevenueAndSalesRealization}
           </h2>
@@ -285,7 +273,7 @@ export function FinancialReportsView({
                 <span className="font-mono font-medium text-amber-600">-{report.invoicedOutputVat.toFixed(3)} {currLabel}</span>
               </div>
             )}
-            <div className="flex justify-between py-1.5 border-b border-outline-variant dark:border-white/5 font-semibold text-ink dark:text-ink">
+            <div className="flex justify-between py-1.5 border-b border-outline-variant dark:border-white/5 font-semibold text-ink">
               <span>{t.financialReports.invoicedNetRevenueAccrual}</span>
               <span className="font-mono">{report.invoicedNet.toFixed(3)} {currLabel}</span>
             </div>
@@ -300,7 +288,7 @@ export function FinancialReportsView({
                 <span className="font-mono font-medium text-amber-600">-{report.cashOutputVat.toFixed(3)} {currLabel}</span>
               </div>
             )}
-            <div className="flex justify-between py-1.5 font-semibold text-ink dark:text-ink">
+            <div className="flex justify-between py-1.5 font-semibold text-ink">
               <span>{t.financialReports.cashNetReceiptsCashBasis}</span>
               <span className="font-mono text-primary dark:text-mint">
                 {report.cashNetReceipts.toFixed(3)} {currLabel}
@@ -310,8 +298,8 @@ export function FinancialReportsView({
         </Card>
 
         {/* Expenses & VAT Recoverability Breakdown */}
-        <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-ink dark:text-ink font-mono border-b border-outline-variant pb-3 flex items-center gap-2">
+        <Card className="p-6 bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-ink font-mono border-b border-outline-variant pb-3 flex items-center gap-2">
             <Receipt className="w-4 h-4 text-accent" />
             {t.financialReports.n2OperatingExpensesAndInput}
           </h2>
@@ -337,7 +325,7 @@ export function FinancialReportsView({
                 </div>
               </>
             )}
-            <div className="flex justify-between py-1.5 border-b border-outline-variant dark:border-white/5 font-semibold text-ink dark:text-ink">
+            <div className="flex justify-between py-1.5 border-b border-outline-variant dark:border-white/5 font-semibold text-ink">
               <span>{t.financialReports.payrollAndEmployeeCostsTotal}</span>
               <span className="font-mono">{report.payrollCostsTotal.toFixed(3)} {currLabel}</span>
             </div>

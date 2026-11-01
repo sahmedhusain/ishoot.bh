@@ -6,6 +6,9 @@ import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { reportLabels, reportsForUser } from "../../../../lib/reports";
 import { reportPeriod } from "../../../../lib/report-params";
 import { ReportView } from "../../../../components/reports/ReportView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("reports/[key]");
 
 export const dynamic = "force-dynamic";
 

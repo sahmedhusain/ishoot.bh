@@ -2,6 +2,9 @@ import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { availablePaymentGateways, getStoreSettings, listCoupons, requireFeatureEnabled } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { StoreSettingsView } from "../../../../components/orders/StoreSettingsView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("orders/settings");
 
 export const dynamic = "force-dynamic";
 

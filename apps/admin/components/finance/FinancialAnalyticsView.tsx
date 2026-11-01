@@ -10,6 +10,7 @@ import type { ReceivablesInsight } from "@platform/database";
 import { DeferredCashflowChart } from "../shared/DeferredCharts";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { PageHeader } from "../layout/PageHeader";
 
 interface FinancialAnalyticsViewProps {
   finance: FinancialSummary;
@@ -47,10 +48,7 @@ export function FinancialAnalyticsView({ finance, insight, categoryTotals, categ
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
-      <div data-page-header>
-        <h1 className="text-2xl sm:text-3xl font-bold text-ink font-display">{copy.title}</h1>
-        <p className="text-sm text-ink-muted mt-1">{copy.subtitle}</p>
-      </div>
+      <PageHeader />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpis.map(({ icon: Icon, label, value, hint }) => (

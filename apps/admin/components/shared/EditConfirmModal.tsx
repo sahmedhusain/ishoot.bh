@@ -60,7 +60,7 @@ export function EditConfirmModal({
       errorLabel={errorLabel}
       description={
         <div className="space-y-5">
-          <p className="text-xs text-ink-muted dark:text-ink-muted">
+          <p className="text-xs text-ink-muted">
             {description ||
               (t.editConfirmModal.pleaseReviewTheModifiedFields)}
           </p>

@@ -3,6 +3,9 @@ import { hasPermission, requireAuth } from "../../../lib/auth";
 import { archiveKindsForCurrentUser } from "../../../lib/archive-access";
 import { CompanyArchiveView } from "../../../components/archive/CompanyArchiveView";
 import { ForbiddenView } from "../../../components/shared/ForbiddenView";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("archive");
 
 export const dynamic = "force-dynamic";
 

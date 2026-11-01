@@ -20,6 +20,7 @@ import {
   createClientLogoAction,
   updateClientLogoAction,
 } from "../../app/actions/cms";
+import { PageHeader } from "../layout/PageHeader";
 
 interface ClientsManagementViewProps {
   initialLogos: ClientLogo[];
@@ -95,17 +96,8 @@ export function ClientsManagementView({
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">
-            {t.cms.clientsTitle}
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">
-            {t.clientsView.subtitle}
-          </p>
-        </div>
-
-        <Button
+      <PageHeader
+        actions={<Button
           variant="primary"
           size="sm"
           className="gap-1.5 self-start sm:self-auto"
@@ -113,8 +105,8 @@ export function ClientsManagementView({
         >
           <Plus className="w-3.5 h-3.5" />
           <span>{t.actions.addClient}</span>
-        </Button>
-      </div>
+        </Button>}
+      />
 
       {logos.length === 0 ? (
         <div className="p-12 text-center rounded-3xl bg-surface border border-outline-variant text-ink-muted">

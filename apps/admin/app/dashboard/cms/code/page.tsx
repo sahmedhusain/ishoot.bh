@@ -2,6 +2,9 @@ import { getWebsiteEditor, requireFeatureEnabled } from "@platform/database";
 import { resolveWebsiteConfig, validateWebsiteConfig } from "@platform/database/website-config";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { SiteCodeView } from "../../../../components/cms/SiteCodeView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("cms/code");
 
 export const dynamic = "force-dynamic";
 

@@ -6,6 +6,9 @@ import { SigningPanel } from "../../../../components/sales/SigningPanel";
 import { AttributionPanel } from "../../../../components/sales/AttributionPanel";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { InvoiceDetailView } from "../../../../components/invoices/InvoiceDetailView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("invoices/[id]");
 
 export const dynamic = "force-dynamic";
 

@@ -12,6 +12,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { createLeaveRequestAction } from "../../app/actions/leave";
 import { payslipMonthsForEmployeeAction } from "../../app/actions/salary-documents";
 import { SalaryDocumentsView } from "./SalaryDocumentsView";
+import { PageHeader } from "../layout/PageHeader";
 
 export interface HrRequestRow {
   key: string;
@@ -75,10 +76,7 @@ export function HrRequestsView(props: {
           <span className="w-12 h-12 shrink-0 rounded-2xl bg-accent/10 text-accent flex items-center justify-center" aria-hidden>
             <ClipboardList className="w-6 h-6" />
           </span>
-          <div className="space-y-1" data-page-header>
-            <h1 className="text-2xl font-bold tracking-tight text-ink">{c.title}</h1>
-            <p className="text-sm text-ink-muted">{c.subtitle}</p>
-          </div>
+          <PageHeader />
         </div>
         {canFile && (
           <Button type="button" onClick={() => setFiling(true)} className="gap-1.5">

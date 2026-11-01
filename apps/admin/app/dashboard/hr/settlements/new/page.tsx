@@ -1,6 +1,9 @@
 import { db } from "@platform/database";
 import { requirePagePermission } from "../../../../../lib/auth";
 import { NewSettlementForm } from "../../../../../components/settlements/NewSettlementForm";
+import { pageMetadata } from "../../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("hr/settlements/new");
 
 export const dynamic = "force-dynamic";
 

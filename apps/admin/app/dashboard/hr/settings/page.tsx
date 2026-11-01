@@ -3,6 +3,9 @@ import { getHrPolicy, listLeaveTypeRules, listPublicHolidays, listShiftTypes } f
 import { ROUTES } from "../../../../constants/routes";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { HrSettingsView } from "../../../../components/hr/HrSettingsView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("hr/settings");
 
 export const dynamic = "force-dynamic";
 

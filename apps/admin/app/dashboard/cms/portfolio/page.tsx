@@ -4,6 +4,9 @@ import { resolveWebsiteConfig, validateWebsiteConfig } from "@platform/database/
 import { activityPreset } from "@platform/database/website-presets";
 import { PortfolioManagementView } from "../../../../components/cms/PortfolioManagementView";
 import { WebsitePublicationNotice } from "../../../../components/cms/WebsitePublicationNotice";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("cms/portfolio");
 
 export const dynamic = "force-dynamic";
 

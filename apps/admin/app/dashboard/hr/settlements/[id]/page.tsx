@@ -8,6 +8,9 @@ import {
 import { hasPermission, requireAuth } from "../../../../../lib/auth";
 import { ForbiddenView } from "../../../../../components/shared/ForbiddenView";
 import { SettlementDetailView } from "../../../../../components/settlements/SettlementDetailView";
+import { pageMetadata } from "../../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("hr/settlements/[id]");
 
 export const dynamic = "force-dynamic";
 

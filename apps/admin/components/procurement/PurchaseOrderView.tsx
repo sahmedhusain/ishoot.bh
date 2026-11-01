@@ -4,7 +4,7 @@ import { useConfirmation } from "@platform/ui";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Download, FileText, Loader2, Mail, MessageCircle, Printer } from "lucide-react";
+import { Download, FileText, Loader2, Mail, MessageCircle, Printer } from "lucide-react";
 import { Button, Card, CurrencyDisplay, Input, Select, formatCurrencyValue, formatDate } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import type { ProcurementLineRecord, ProcurementProductOption, PurchaseOrderRecord, SupplierRecord, WarehouseRecord } from "@platform/database";
@@ -16,6 +16,7 @@ import { errorMessage } from "../../lib/error-text";
 import { Field } from "../setup/LanguageFields";
 import { LinesEditor, emptyLine, linesInput, type LineDraft } from "./LinesEditor";
 import { StatusPill } from "./StatusPill";
+import { PageHeader } from "../layout/PageHeader";
 
 interface PurchaseOrderViewProps {
   order: PurchaseOrderRecord | null;
@@ -85,18 +86,9 @@ export function PurchaseOrderView({ order, fromRequisition, suppliers, warehouse
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <Link href={ROUTES.procurement.orders} className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent">
-            <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" />
-            {copy.title}
-          </Link>
-          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink flex flex-wrap items-center gap-3">
-            {order ? <span dir="ltr">{order.number}</span> : copy.new}
-            {order && <StatusPill status={order.status} />}
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">
-            {[
+      <PageHeader
+        title={<>{order ? <span dir="ltr">{order.number}</span> : copy.new}{order && <StatusPill status={order.status} />}</>}
+        description={[
               order?.requisition && formatMessage(copy.fromRequisition, { number: order.requisition.number }),
               fromRequisition && formatMessage(copy.fromRequisition, { number: fromRequisition.number }),
               order?.rfq && formatMessage(copy.fromRfq, { number: order.rfq.number }),
@@ -104,9 +96,8 @@ export function PurchaseOrderView({ order, fromRequisition, suppliers, warehouse
               order?.approved_by && formatMessage(common.approvedBy, { name: order.approved_by }),
               order?.sent_at && formatMessage(copy.sentOn, { date: formatDate(order.sent_at, locale), via: (copy.via as Record<string, string>)[order.sent_via ?? ""] ?? "" }),
             ].filter(Boolean).join(" · ")}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
+        back={{ href: ROUTES.procurement.orders, label: copy.title }}
+        actions={<div className="flex flex-wrap gap-2">
           {editable && (
             <>
               <Button type="button" variant="outline" size="sm" className="rounded-full" disabled={busy} onClick={() => run(save, common.save)} data-testid="order-save">{common.save}</Button>
@@ -152,8 +143,8 @@ export function PurchaseOrderView({ order, fromRequisition, suppliers, warehouse
             <Button type="button" variant="ghost" size="sm" className="rounded-full text-rose-600" disabled={busy} onClick={() => confirmAction({ description: common.cancelConfirm, onConfirm: () => run(() => cancelPurchaseOrderAction(order.id)) })}>{copy.cancelOrder}</Button>
           )}
           {busy && <Loader2 className="w-4 h-4 animate-spin self-center" aria-hidden="true" />}
-        </div>
-      </div>
+        </div>}
+      />
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
 
       <Card className="p-5 space-y-4" data-page-section>

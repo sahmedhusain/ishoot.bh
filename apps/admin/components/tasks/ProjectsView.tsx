@@ -14,6 +14,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { Field } from "../setup/LanguageFields";
 import { TasksView, type TaskFiltersState } from "./TasksView";
+import { PageHeader } from "../layout/PageHeader";
 
 const toInput = (p: ProjectRow): ProjectInput => ({ id: p.id, name: p.name, description: p.description, status: p.status, departmentId: p.department_id, ownerId: p.owner_id, color: p.color, startDate: p.start_date ?? "", dueDate: p.due_date ?? "" });
 
@@ -89,18 +90,14 @@ export function ProjectsView({ projects, choices, canManage }: { projects: Proje
   const [adding, setAdding] = React.useState(false);
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
-          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
-        </div>
-        {canManage && !adding && (
+      <PageHeader
+        actions={canManage && !adding && (
           <Button type="button" size="sm" variant="primary" className="rounded-full gap-1.5" onClick={() => setAdding(true)} data-testid="project-new">
             <Plus className="w-4 h-4" />
             {copy.new}
           </Button>
         )}
-      </div>
+      />
       {adding && (
         <Card className="p-5">
           <ProjectForm initial={{ name: "", description: "", status: "active", departmentId: "", ownerId: "", color: "#4F46E5", startDate: "", dueDate: "" }} choices={choices} onCancel={() => setAdding(false)} onDone={(id) => router.push(ROUTES.tasks.project(id))} />
@@ -152,7 +149,7 @@ export function ProjectView({ project, rows, choices, filters, canAssign, selfId
         </Link>
         <div className="flex flex-wrap items-center gap-3">
           <span className="h-4 w-4 rounded-full" style={{ backgroundColor: project.color }} aria-hidden="true" />
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink"><bdi dir="auto">{project.name}</bdi></h1>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink"><bdi dir="auto">{project.name}</bdi></h1>
           <span className="font-mono text-xs text-ink-muted" dir="ltr"><bdi dir="ltr">{project.code}</bdi></span>
           <span className="text-xs text-ink-muted">{(copy.statuses as Record<string, string>)[project.status]}</span>
           {canAssign && !editing && <Button type="button" size="sm" variant="outline" className="rounded-full ms-auto" onClick={() => setEditing(true)}>{copy.edit}</Button>}

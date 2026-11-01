@@ -3,9 +3,8 @@ import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Globe, Loader2, Plus, Save, Trash2, Wand2, X } from "lucide-react";
+import { Globe, Loader2, Plus, Save, Trash2, Wand2, X } from "lucide-react";
 import { Button, Card, Input, Select } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import type { ContentLanguage } from "@platform/database/constants/languages";
@@ -18,6 +17,7 @@ import { errorMessage } from "../../lib/error-text";
 import { AssetUrlInput } from "../shared/AssetUrlInput";
 import { ContentImage } from "../shared/ContentImage";
 import { Field, LanguageFields } from "../setup/LanguageFields";
+import { PageHeader } from "../layout/PageHeader";
 
 /** An option as typed: values as comma-separated text in each language. */
 interface OptionDraft {
@@ -152,15 +152,10 @@ export function ProductEditorView({ product, categories, currency, languages, ca
   const readOnly = !canEdit;
   return (
     <div inert={busy} aria-busy={busy} className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <Link href={ROUTES.products.list} className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent">
-            <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" />
-            {copy.back}
-          </Link>
-          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{product ? name(product.name_en, product.name_ar) : copy.titleNew}</h1>
-        </div>
-        <div className="flex gap-2">
+      <PageHeader
+        title={product ? name(product.name_en, product.name_ar) : copy.titleNew}
+        back={{ href: ROUTES.products.list, label: copy.back }}
+        actions={<div className="flex gap-2">
           {product && canDelete && (
             <Button type="button" variant="outline" size="sm" className="rounded-full gap-1.5 text-rose-600" disabled={busy} onClick={() => confirmAction({ description: copy.deleteConfirm, onConfirm: () => run(async () => { await deleteProductAction(product.id); if (!markSaved()) return; router.replace(ROUTES.products.list); }, undefined, true) })}>
               <Trash2 className="w-3.5 h-3.5" />
@@ -173,8 +168,8 @@ export function ProductEditorView({ product, categories, currency, languages, ca
               {busy ? copy.saving : copy.save}
             </Button>
           )}
-        </div>
-      </div>
+        </div>}
+      />
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
 
       <fieldset disabled={readOnly} className="space-y-6">

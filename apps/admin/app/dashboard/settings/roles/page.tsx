@@ -3,6 +3,9 @@ import { requirePagePermission } from "../../../../lib/auth";
 import { db, ALL_RESOURCES, ALL_ACTIONS, ensureRoleTemplates, getRoleDataScopes, resolveGrant } from "@platform/database";
 import { RolesManagementView } from "../../../../components/settings/RolesManagementView";
 import type { RoleWithGrants } from "../../../../types/roles";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("settings/roles");
 
 export default async function RolesSettingsPage() {
   const actor = await requirePagePermission("users", "read");

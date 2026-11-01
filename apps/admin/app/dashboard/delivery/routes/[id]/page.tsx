@@ -2,6 +2,9 @@ import { notFound } from "next/navigation";
 import { getRouteSheet, requireFeatureEnabled } from "@platform/database";
 import { requirePagePermission } from "../../../../../lib/auth";
 import { RouteSheetView } from "../../../../../components/delivery/RouteSheetView";
+import { pageMetadata } from "../../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("delivery/routes/[id]");
 
 export const dynamic = "force-dynamic";
 

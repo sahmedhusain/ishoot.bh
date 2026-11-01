@@ -6,6 +6,7 @@ import { Card } from "@platform/ui";
 import { REPORT_AREAS } from "@platform/database/constants/reports";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { PageHeader } from "../layout/PageHeader";
 
 /** Reports: every report the person may run, by area. */
 export function ReportsCatalogView({ reports }: { reports: { key: string; area: string }[] }) {
@@ -14,10 +15,7 @@ export function ReportsCatalogView({ reports }: { reports: { key: string; area: 
   const catalog = copy.catalog as Record<string, { title: string; description: string }>;
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16" >
-      <div data-page-header>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
-        <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
-      </div>
+      <PageHeader />
       {reports.length === 0 ? (
         <Card className="p-8 text-center text-sm text-ink-muted">{copy.none}</Card>
       ) : (

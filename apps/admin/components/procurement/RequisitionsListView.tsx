@@ -7,6 +7,7 @@ import { formatMessage } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { StatusPill } from "./StatusPill";
+import { PageHeader } from "../layout/PageHeader";
 
 interface Row {
   id: string;
@@ -25,16 +26,12 @@ export function RequisitionsListView({ rows, currency }: { rows: Row[]; currency
   const copy = t.procurement.requisitions;
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
-          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
-        </div>
-        <Link href={ROUTES.procurement.newRequisition} className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 h-9 text-sm font-semibold text-primary-foreground hover:opacity-90">
+      <PageHeader
+        actions={<Link href={ROUTES.procurement.newRequisition} className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 h-9 text-sm font-semibold text-primary-foreground hover:opacity-90">
           <Plus className="w-4 h-4" />
           {copy.new}
-        </Link>
-      </div>
+        </Link>}
+      />
       <Card className="overflow-hidden">
         {rows.length === 0 ? (
           <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">

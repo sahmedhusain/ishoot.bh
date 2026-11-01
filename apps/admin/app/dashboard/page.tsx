@@ -1,6 +1,9 @@
 import { dashboardDepartments } from "@platform/database";
 import { DashboardBoard } from "../../components/dashboard/DashboardBoard";
 import { dashboardContext, dashboardLayoutFor, loadDashboardData } from "../../lib/dashboard-widgets";
+import { pageMetadata } from "../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("");
 
 export const dynamic = "force-dynamic";
 

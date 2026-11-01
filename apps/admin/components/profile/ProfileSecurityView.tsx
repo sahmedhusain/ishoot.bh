@@ -96,7 +96,7 @@ export function ProfileSecurityView({
       <div className="grid gap-6 lg:grid-cols-2">
         <section
           id="password"
-          className="scroll-mt-20 rounded-2xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised sm:p-6"
+          className="scroll-mt-20 rounded-2xl border border-outline-variant bg-surface-raised p-5 sm:p-6"
         >
           <h3 className="flex items-center gap-2 font-semibold text-ink">
             <KeyRound aria-hidden className="h-4 w-4 text-accent" />
@@ -180,7 +180,7 @@ export function ProfileSecurityView({
       </div>
       <section
         id="sessions"
-        className="scroll-mt-20 rounded-2xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised sm:p-6"
+        className="scroll-mt-20 rounded-2xl border border-outline-variant bg-surface-raised p-5 sm:p-6"
       >
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>

@@ -19,6 +19,7 @@ import {
   cancelLeaveRequestAction,
 } from "../../app/actions/leave";
 import { toast } from "sonner";
+import { PageHeader } from "../layout/PageHeader";
 
 interface LeaveManagementViewProps {
   requests: LeaveRequest[];
@@ -225,22 +226,9 @@ export function LeaveManagementView({
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-16">
       {/* Editorial Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-outline-variant pb-6" data-page-header>
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono uppercase tracking-widest text-accent bg-secondary-container dark:bg-tone-15/40 dark:text-mint px-2.5 py-0.5 rounded-full font-medium">
-              {t.leaveManagement.operationalAvailabilityAndHrms}
-            </span>
-          </div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-ink dark:text-ink mt-1">
-            {t.leaveManagement.leaveAndAvailabilityManagement}
-          </h1>
-          <p className="text-sm text-ink-muted dark:text-ink-muted mt-1">
-            {t.leaveManagement.approvedLeavesStrictlyBlockOperational}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
+      <PageHeader
+        eyebrow={t.leaveManagement.operationalAvailabilityAndHrms}
+        actions={<div className="flex items-center gap-3">
           {(myEmployee || canFileForOthers) && (
             <Button
               onClick={() => { setApplyError(""); setShowApplyModal(true); }}
@@ -250,16 +238,16 @@ export function LeaveManagementView({
               <span>{t.leaveManagement.applyForLeave}</span>
             </Button>
           )}
-        </div>
-      </div>
+        </div>}
+      />
 
       {!myEmployee && <NoEmployeeProfile />}
 
       {/* Metrics Bento Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {myEmployee && (
-          <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
-            <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
+          <div className="bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
+            <div className="text-xs text-ink-muted uppercase tracking-wider font-mono">
               {t.leaveManagement.myAnnualLeaveBalance}
             </div>
             <div className="text-2xl font-bold font-mono text-primary dark:text-mint">
@@ -272,8 +260,8 @@ export function LeaveManagementView({
           </div>
         )}
 
-        <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
-          <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
+        <div className="bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
+          <div className="text-xs text-ink-muted uppercase tracking-wider font-mono">
             {t.leaveManagement.pendingLeaveRequests}
           </div>
           <div className="text-2xl font-bold font-mono text-amber-600 dark:text-amber-400 flex items-center gap-2">
@@ -283,8 +271,8 @@ export function LeaveManagementView({
           <div className="text-xs text-ink-muted">{t.leaveManagement.awaitingManagerReview}</div>
         </div>
 
-        <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
-          <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
+        <div className="bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
+          <div className="text-xs text-ink-muted uppercase tracking-wider font-mono">
             {t.leaveManagement.approvedLeaves}
           </div>
           <div className="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
@@ -319,7 +307,7 @@ export function LeaveManagementView({
       </div>
 
       {/* Leave Requests Table */}
-      <Card className="bg-surface-raised dark:bg-surface-raised border border-outline-variant rounded-lg overflow-hidden">
+      <Card className="bg-surface-raised border border-outline-variant rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-start text-sm">
             <thead>
@@ -356,7 +344,7 @@ export function LeaveManagementView({
                       className="hover:bg-surface-raised/50 dark:hover:bg-white/[0.02] transition-colors"
                     >
                       <td className="py-3.5 px-4">
-                        <div className="font-semibold text-ink dark:text-ink">
+                        <div className="font-semibold text-ink">
                           {locale === "ar" ? req.employee?.firstNameAr : req.employee?.firstNameEn} {locale === "ar" ? req.employee?.lastNameAr : req.employee?.lastNameEn}
                         </div>
                         <div className="text-xs font-mono text-ink-muted">
@@ -365,16 +353,16 @@ export function LeaveManagementView({
                       </td>
 
                       <td className="py-3.5 px-4">
-                        <span className="text-xs font-medium px-2 py-0.5 rounded bg-surface-sunken dark:bg-surface-raised text-ink dark:text-ink">
+                        <span className="text-xs font-medium px-2 py-0.5 rounded bg-surface-sunken dark:bg-surface-raised text-ink">
                           {(locale === "ar" ? req.leaveType?.nameAr : req.leaveType?.nameEn) || t.leaveManagement.generalLeave}
                         </span>
                       </td>
 
                       <td className="py-3.5 px-4 font-mono text-xs">
-                        <div className="text-ink dark:text-ink">
+                        <div className="text-ink">
                           <bdi dir="ltr">{start} → {end}</bdi>
                         </div>
-                        <div className="text-ink-muted dark:text-ink-muted text-[11px]">
+                        <div className="text-ink-muted text-[11px]">
                           {req.dayPortion === "half_am"
                             ? t.leaveForm.halfAm
                             : req.dayPortion === "half_pm"
@@ -387,7 +375,7 @@ export function LeaveManagementView({
                       </td>
 
                       <td className="py-3.5 px-4 text-xs max-w-xs">
-                        <p dir="auto" className="text-ink dark:text-ink truncate text-[11px]">
+                        <p dir="auto" className="text-ink truncate text-[11px]">
                           {req.reason}
                         </p>
                         {req.reviewNotes && (
@@ -470,13 +458,13 @@ export function LeaveManagementView({
             <div className="space-y-3">
               {canFileForOthers && (
                 <div>
-                  <label htmlFor={`${applyFormId}-employee`} className="block text-xs font-medium text-ink dark:text-ink mb-1">
+                  <label htmlFor={`${applyFormId}-employee`} className="block text-xs font-medium text-ink mb-1">
                     {t.shared.employee}
                   </label>
                   <Select id={`${applyFormId}-employee`}
                     value={targetEmployeeId}
                     onChange={(e) => setTargetEmployeeId(e.target.value)}
-                    className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
+                    className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised p-2 text-ink"
                   >
                     {!targetEmployeeId && <option value="" disabled>—</option>}
                     {allEmployees.map((e) => (
@@ -489,13 +477,13 @@ export function LeaveManagementView({
               )}
 
               <div>
-                <label htmlFor={`${applyFormId}-type`} className="block text-xs font-medium text-ink dark:text-ink mb-1">
+                <label htmlFor={`${applyFormId}-type`} className="block text-xs font-medium text-ink mb-1">
                   {t.leaveManagement.leaveType2}
                 </label>
                 <Select id={`${applyFormId}-type`}
                   value={leaveTypeId}
                   onChange={(e) => setLeaveTypeId(e.target.value)}
-                  className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
+                  className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised p-2 text-ink"
                 >
                   {leaveTypes.map((lt) => (
                     <option key={lt.id} value={lt.id}>
@@ -507,7 +495,7 @@ export function LeaveManagementView({
               </div>
 
               <fieldset>
-                <legend className="mb-1 text-xs font-medium text-ink dark:text-ink">{t.leaveForm.portion}</legend>
+                <legend className="mb-1 text-xs font-medium text-ink">{t.leaveForm.portion}</legend>
                 <div className="flex flex-wrap gap-1.5">
                   {([
                     ["full", t.leaveForm.full, true],
@@ -522,7 +510,7 @@ export function LeaveManagementView({
                   ))}
                 </div>
                 {portion === "hours" && (
-                  <label className="mt-2 flex items-center gap-2 text-xs text-ink dark:text-ink">
+                  <label className="mt-2 flex items-center gap-2 text-xs text-ink">
                     {t.leaveForm.hoursCount}
                     <Input type="number" min={0.5} max={7.5} step={0.5} dir="ltr" value={hours} onChange={(e) => setHours(Number(e.target.value))} className="w-20 rounded-md border border-outline-variant bg-surface-raised dark:bg-surface p-1.5 text-xs font-mono" />
                   </label>
@@ -531,7 +519,7 @@ export function LeaveManagementView({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label htmlFor={`${applyFormId}-start`} className="block text-xs font-medium text-ink dark:text-ink mb-1">
+                  <label htmlFor={`${applyFormId}-start`} className="block text-xs font-medium text-ink mb-1">
                     {t.leaveManagement.startDate}
                   </label>
                   <Input id={`${applyFormId}-start`}
@@ -539,12 +527,12 @@ export function LeaveManagementView({
                     required
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
+                    className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised p-2 text-ink"
                   />
                 </div>
                 {portion === "full" && (
                   <div>
-                    <label htmlFor={`${applyFormId}-end`} className="block text-xs font-medium text-ink dark:text-ink mb-1">
+                    <label htmlFor={`${applyFormId}-end`} className="block text-xs font-medium text-ink mb-1">
                       {t.leaveManagement.endDate}
                     </label>
                     <Input id={`${applyFormId}-end`}
@@ -553,22 +541,22 @@ export function LeaveManagementView({
                       min={startDate}
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
-                      className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
+                      className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised p-2 text-ink"
                     />
                   </div>
                 )}
               </div>
 
               {selectedType?.requiresAttachment && (
-                <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
+                <label className="block space-y-1 text-xs font-medium text-ink">
                   {t.leaveForm.attachment}
-                  <Input type="url" required dir="ltr" placeholder={t.copy.urlExample} value={attachmentUrl} onChange={(e) => setAttachmentUrl(e.target.value)} className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink" />
+                  <Input type="url" required dir="ltr" placeholder={t.copy.urlExample} value={attachmentUrl} onChange={(e) => setAttachmentUrl(e.target.value)} className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised p-2 text-ink" />
                 </label>
               )}
               {(() => {
                 const balance = myBalances.find((b) => b.leaveTypeId === leaveTypeId);
                 return balance && targetEmployeeId === myEmployee?.id ? (
-                  <p className="rounded-lg bg-surface-sunken px-3 py-2 text-[11px] text-ink dark:text-ink">
+                  <p className="rounded-lg bg-surface-sunken px-3 py-2 text-[11px] text-ink">
                     {t.leaveForm.available}: <bdi dir="ltr" className="font-semibold">{balance.available == null ? t.leaveForm.unlimited : balance.available}</bdi>
                     {balance.pending ? <> · {t.leaveForm.pending}: <bdi dir="ltr">{balance.pending}</bdi></> : null}
                     {!balance.eligible && balance.eligibleFrom ? <> · {formatMessage(t.leaveForm.eligibleFrom, { date: balance.eligibleFrom })}</> : null}
@@ -577,7 +565,7 @@ export function LeaveManagementView({
               })()}
 
               <div>
-                <label htmlFor={`${applyFormId}-reason`} className="block text-xs font-medium text-ink dark:text-ink mb-1">
+                <label htmlFor={`${applyFormId}-reason`} className="block text-xs font-medium text-ink mb-1">
                   {t.leaveManagement.reasonForAbsence}
                 </label>
                 <Textarea id={`${applyFormId}-reason`}
@@ -586,7 +574,7 @@ export function LeaveManagementView({
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder={t.leaveManagement.eGAnnualSummerFamily}
-                  className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
+                  className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised p-2 text-ink"
                 />
               </div>
             </div>

@@ -108,7 +108,7 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
       {/* Center: M3 Search Bar */}
       {/* Search shrinks on phones so the actions on the other side stay on screen. */}
       <div className="admin-topbar-search">
-        <GlobalQuickJump className="w-full flex items-center gap-2.5 px-4 py-2 rounded-full bg-surface-container-highest hover:bg-surface-container-high dark:bg-surface-container-highest dark:hover:bg-surface-container-high text-on-surface-variant text-xs transition-colors border border-transparent focus-within:border-primary focus-within:bg-surface-container-lowest dark:focus-within:bg-surface-container-lowest focus-within:shadow-m3-1 justify-between" />
+        <GlobalQuickJump className="w-full flex items-center gap-2.5 px-4 py-2 rounded-full bg-surface-container-highest hover:bg-surface-container-high dark:hover:bg-surface-container-high text-on-surface-variant text-xs transition-colors border border-transparent focus-within:border-primary focus-within:bg-surface-container-lowest dark:focus-within:bg-surface-container-lowest focus-within:shadow-m3-1 justify-between" />
       </div>
 
       {/* End: Action Cluster */}

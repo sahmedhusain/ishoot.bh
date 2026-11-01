@@ -2,6 +2,9 @@ import { requirePagePermission } from "../../../../lib/auth";
 import { getAllBanners, getCompanySettings } from "@platform/database";
 import { BannersManagementView } from "../../../../components/cms/BannersManagementView";
 import { WebsitePublicationNotice } from "../../../../components/cms/WebsitePublicationNotice";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("cms/banners");
 
 export const dynamic = "force-dynamic";
 

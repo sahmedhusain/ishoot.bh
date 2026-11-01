@@ -1,9 +1,9 @@
 import { requirePagePermission } from "../../../../lib/auth";
 import { db } from "@platform/database";
-import { getTranslations } from "@platform/locales";
 import { NewUserFormView } from "@/components/users/NewUserFormView";
+import { pageMetadata } from "../../../../lib/company-metadata";
 
-export const metadata = { title: getTranslations("ar").admin.copy.newUser };
+export const generateMetadata = () => pageMetadata("users/new");
 
 export default async function NewUserPage() {
   await requirePagePermission("users", "write");

@@ -10,6 +10,7 @@ import type { MovementRecord, WarehouseRecord } from "@platform/database";
 import { MOVEMENT_TYPES, isAdjustmentReason } from "@platform/database/constants/inventory";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { PageHeader } from "../layout/PageHeader";
 
 type Row = MovementRecord & { sku: string; name_en: string; name_ar: string; by: string | null };
 
@@ -38,10 +39,7 @@ export function StockMovementsView({ rows, total, page, pageSize, filters, wareh
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
-      <div data-page-header>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
-        <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
-      </div>
+      <PageHeader />
       <div className="flex flex-col sm:flex-row flex-wrap gap-2" data-page-toolbar>
         <Select aria-label={copy.columns.type} value={filters.type} onChange={(e) => router.push(href({ type: e.target.value }))} className="rounded-xl sm:w-48">
           <option value="">{copy.allTypes}</option>

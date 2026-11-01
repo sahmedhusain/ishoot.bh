@@ -10,6 +10,7 @@ import { saveVehicleAction } from "../../app/actions/delivery";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { Field } from "../setup/LanguageFields";
+import { PageHeader } from "../layout/PageHeader";
 
 /** Delivery → vehicles: the fleet, and who can drive it. */
 export function FleetView({ vehicles, drivers }: { vehicles: VehicleRecord[]; drivers: DriverOption[] }) {
@@ -38,18 +39,14 @@ export function FleetView({ vehicles, drivers }: { vehicles: VehicleRecord[]; dr
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
-          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
-        </div>
-        {!draft && (
+      <PageHeader
+        actions={!draft && (
           <Button type="button" size="sm" variant="primary" className="rounded-full gap-1.5" onClick={() => setDraft({ plate: "", name: "", kind: "van", notes: "", isActive: true })}>
             <Plus className="w-4 h-4" />
             {copy.add}
           </Button>
         )}
-      </div>
+      />
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
       {draft && (
         <Card className="p-5 grid sm:grid-cols-2 gap-4" data-testid="vehicle-editor">

@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, FileBadge, FileSignature, Plus, Scale, Search } from "lucide-react";
+import { FileBadge, FileSignature, Plus, Scale, Search } from "lucide-react";
 import { Button, Card, Input, Select, Textarea, formatCurrencyValue, formatDate } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { LEGAL_KINDS, LEGAL_STATUSES } from "@platform/database/constants/outreach";
@@ -13,6 +13,7 @@ import { addLegalNoteAction, saveLegalMatterAction } from "../../app/actions/out
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { Field } from "../setup/LanguageFields";
+import { PageHeader } from "../layout/PageHeader";
 
 type Licence = Awaited<ReturnType<typeof licenceRegister>>[number];
 type ContractRow = Awaited<ReturnType<typeof contractRegister>>[number];
@@ -95,13 +96,9 @@ export function LegalView({ matters, licences, contracts, filters, currency, can
   const documentStatus = (status: string) => (t.documents.contractStatuses as Record<string, string>)[status] ?? status;
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
-          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
-        </div>
-        {canEdit && !adding && <Button type="button" size="sm" variant="primary" className="rounded-full gap-1.5" onClick={() => setAdding(true)} data-testid="legal-new"><Plus className="w-4 h-4" />{copy.new}</Button>}
-      </div>
+      <PageHeader
+        actions={canEdit && !adding && <Button type="button" size="sm" variant="primary" className="rounded-full gap-1.5" onClick={() => setAdding(true)} data-testid="legal-new"><Plus className="w-4 h-4" />{copy.new}</Button>}
+      />
       {adding && (
         <Card className="p-5">
           <MatterForm initial={blank} currency={currency} people={people} onCancel={() => setAdding(false)} onDone={(id) => router.push(ROUTES.legal.matter(id))} />
@@ -190,20 +187,18 @@ export function LegalMatterView({ matter, currency, canEdit, people }: { matter:
     e.kind === "status" ? formatMessage(copy.events.status, { value: (copy.statuses as Record<string, string>)[e.body] ?? e.body }) : e.kind === "date" ? formatMessage(copy.events.date, { value: formatDate(e.body, locale) }) : e.body;
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-16" >
-      <div className="space-y-2" data-page-header>
-        <Link href={ROUTES.legal.matters} className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent"><ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" />{copy.back}</Link>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink"><bdi dir="auto">{matter.title}</bdi></h1>
-        <p className="text-xs text-ink-muted flex flex-wrap gap-x-3">
-          <span className="font-mono" dir="ltr">{matter.number}</span>
+      <PageHeader
+        title={matter.title}
+        description={<><span className="font-mono" dir="ltr">{matter.number}</span>
           <span>{(copy.kinds as Record<string, string>)[matter.kind]}</span>
           <span data-testid="legal-status">{(copy.statuses as Record<string, string>)[matter.status]}</span>
           {matter.counterparty && <span>{matter.counterparty}</span>}
           {matter.reference && <span dir="auto"><bdi dir="ltr">{matter.reference}</bdi></span>}
           {matter.next_date && <span className="font-semibold text-ink">{formatMessage(copy.next, { date: formatDate(matter.next_date, locale) })}</span>}
           {matter.assignee && <span>{matter.assignee}</span>}
-          {matter.amount_at_stake != null && <span>{formatCurrencyValue(matter.amount_at_stake, currency, locale === "ar")}</span>}
-        </p>
-      </div>
+          {matter.amount_at_stake != null && <span>{formatCurrencyValue(matter.amount_at_stake, currency, locale === "ar")}</span>}</>}
+        back={{ href: ROUTES.legal.matters, label: copy.back }}
+      />
       <Card className="p-5 space-y-3">
         {editing ? (
           <MatterForm

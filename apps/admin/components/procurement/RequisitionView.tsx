@@ -4,7 +4,7 @@ import { useConfirmation } from "@platform/ui";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Button, Card, CurrencyDisplay, Input, formatDate } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import type { ProcurementLineRecord, ProcurementProductOption } from "@platform/database";
@@ -15,6 +15,7 @@ import { errorMessage } from "../../lib/error-text";
 import { Field } from "../setup/LanguageFields";
 import { LinesEditor, emptyLine, linesInput, linesSubtotal, type LineDraft } from "./LinesEditor";
 import { StatusPill } from "./StatusPill";
+import { PageHeader } from "../layout/PageHeader";
 
 interface Requisition {
   id: string;
@@ -67,19 +68,11 @@ export function RequisitionView({ requisition, products, currency, canEdit, canP
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <Link href={ROUTES.procurement.requisitions} className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent">
-            <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" />
-            {copy.title}
-          </Link>
-          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink flex flex-wrap items-center gap-3">
-            {requisition ? <span dir="ltr">{requisition.number}</span> : copy.editorTitle}
-            {requisition && <StatusPill status={requisition.status} />}
-          </h1>
-          {requisition && <p className="text-xs text-ink-muted mt-1">{`${copy.requestedBy}: ${requisition.requested_by}`}</p>}
-        </div>
-        <div className="flex flex-wrap gap-2">
+      <PageHeader
+        title={<>{requisition ? <span dir="ltr">{requisition.number}</span> : copy.editorTitle}{requisition && <StatusPill status={requisition.status} />}</>}
+        back={{ href: ROUTES.procurement.requisitions, label: copy.title }}
+        meta={requisition && <p className="text-xs text-ink-muted mt-1">{`${copy.requestedBy}: ${requisition.requested_by}`}</p>}
+        actions={<div className="flex flex-wrap gap-2">
           {editable && (
             <>
               <Button type="button" variant="outline" size="sm" className="rounded-full" disabled={busy} onClick={() => run(save, common.save)} data-testid="requisition-save">{common.save}</Button>
@@ -96,8 +89,8 @@ export function RequisitionView({ requisition, products, currency, canEdit, canP
             <Button type="button" variant="ghost" size="sm" className="rounded-full text-rose-600" disabled={busy} onClick={() => confirmAction({ description: common.cancelConfirm, onConfirm: () => run(() => cancelRequisitionAction(requisition.id)) })}>{common.cancel}</Button>
           )}
           {busy && <Loader2 className="w-4 h-4 animate-spin self-center" aria-hidden="true" />}
-        </div>
-      </div>
+        </div>}
+      />
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
       {requisition?.status === "rejected" && requisition.decision_note && <p className="text-sm rounded-xl px-4 py-3 bg-rose-500/10 text-rose-700 dark:text-rose-300">{formatMessage(copy.rejectedBecause, { reason: requisition.decision_note })}</p>}
 

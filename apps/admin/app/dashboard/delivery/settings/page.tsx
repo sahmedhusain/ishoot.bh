@@ -2,6 +2,9 @@ import { getDeliverySettings, listDeliveryZones, listSharedSlots, requireFeature
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { DeliverySettingsView } from "../../../../components/delivery/DeliverySettingsView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("delivery/settings");
 
 export const dynamic = "force-dynamic";
 

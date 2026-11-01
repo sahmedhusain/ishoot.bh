@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, CalendarClock } from "lucide-react";
+import { CalendarClock } from "lucide-react";
 import { Button, Card, Select, Textarea, formatDate } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { TASK_STATUSES } from "@platform/database/constants/tasks";
@@ -14,6 +14,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { PriorityPill, TaskLink, TaskStatusPill } from "./TaskBits";
 import { TaskForm } from "./TaskForm";
+import { PageHeader } from "../layout/PageHeader";
 
 /** One task: what and for whom, its status, editing, and the conversation about it. */
 export function TaskView({ task, choices, canAssign, selfId }: { task: TaskRecord; choices: TaskChoices; canAssign: boolean; selfId: string }) {
@@ -42,13 +43,10 @@ export function TaskView({ task, choices, canAssign, selfId }: { task: TaskRecor
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto pb-16">
-      <div className="space-y-2" data-page-header>
-        <Link href={ROUTES.tasks.list} className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent">
-          <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" />
-          {copy.detail.back}
-        </Link>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink"><bdi dir="auto">{task.title}</bdi></h1>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
+      <PageHeader
+        title={task.title}
+        back={{ href: ROUTES.tasks.list, label: copy.detail.back }}
+        actions={<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
           <span className="font-mono" dir="ltr">{task.number}</span>
           <TaskStatusPill status={task.status} />
           <PriorityPill priority={task.priority} />
@@ -59,8 +57,8 @@ export function TaskView({ task, choices, canAssign, selfId }: { task: TaskRecor
           {task.created_by && <span>{formatMessage(copy.detail.createdBy, { name: task.created_by })}</span>}
           {task.completed_at && <span>{formatMessage(copy.detail.completed, { time: formatDate(task.completed_at, locale, "time") })}</span>}
           {task.link_type && <TaskLink type={task.link_type} id={task.link_id} />}
-        </div>
-      </div>
+        </div>}
+      />
       {error && <p role="alert" className="text-sm rounded-xl px-4 py-3 bg-rose-500/10 text-rose-700 dark:text-rose-300">{error}</p>}
 
       <Card className="p-5 space-y-4">

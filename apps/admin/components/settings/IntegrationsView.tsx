@@ -47,6 +47,7 @@ import { SocialBrandIcon } from "../shared/PlatformPicker";
 import { SettingsNavTabs } from "./SettingsNavTabs";
 import { CalendarSyncCard } from "./CalendarSyncCard";
 import type { CalendarLayer } from "@platform/database/types";
+import { PageHeader } from "../layout/PageHeader";
 
 const KINDS: IntegrationKind[] = [
   "social",
@@ -277,7 +278,7 @@ function IntegrationCard({
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-sm font-semibold text-ink dark:text-ink">
+            <h3 className="text-sm font-semibold text-ink">
               {copy.name}
             </h3>
             <span
@@ -294,7 +295,7 @@ function IntegrationCard({
               {view.accountName && (
                 <div className="flex gap-1 min-w-0">
                   <dt>{c.account}:</dt>
-                  <dd className="truncate font-medium text-ink dark:text-ink">
+                  <dd className="truncate font-medium text-ink">
                     <bdi>{view.accountName}</bdi>
                   </dd>
                 </div>
@@ -351,7 +352,7 @@ function IntegrationCard({
           {(["prerequisites", "permissions", "environment"] as const).map(
             (key) => (
               <div key={key}>
-                <h4 className="font-semibold text-ink dark:text-ink">
+                <h4 className="font-semibold text-ink">
                   {c.setup[key]}
                 </h4>
                 <p>{copy.guide[key]}</p>
@@ -359,7 +360,7 @@ function IntegrationCard({
             ),
           )}
           <div>
-            <h4 className="font-semibold text-ink dark:text-ink">
+            <h4 className="font-semibold text-ink">
               {c.setup.steps}
             </h4>
             <ol className="list-decimal space-y-1 ps-5">
@@ -369,7 +370,7 @@ function IntegrationCard({
             </ol>
           </div>
           <div className="space-y-2">
-            <h4 className="font-semibold text-ink dark:text-ink">
+            <h4 className="font-semibold text-ink">
               {c.setup.addresses}
             </h4>
             {links.map((link) => (
@@ -410,7 +411,7 @@ function IntegrationCard({
           </div>
           {(["verify", "errors", "limits"] as const).map((key) => (
             <div key={key}>
-              <h4 className="font-semibold text-ink dark:text-ink">
+              <h4 className="font-semibold text-ink">
                 {c.setup[key]}
               </h4>
               <p>{copy.guide[key]}</p>
@@ -452,7 +453,7 @@ function IntegrationCard({
               <div key={field.key} className="space-y-1">
                 <label
                   htmlFor={id}
-                  className="text-xs font-medium text-ink dark:text-ink"
+                  className="text-xs font-medium text-ink"
                 >
                   {c.fields[field.key as keyof typeof c.fields] ?? field.key}
                   {field.required && <span className="text-rose-500"> *</span>}
@@ -575,7 +576,7 @@ function IntegrationCard({
                 )}
                 <p
                   id={`${id}-help`}
-                  className="text-[11px] text-ink-muted dark:text-ink-muted"
+                  className="text-[11px] text-ink-muted"
                 >
                   {field.secret && secret?.set
                     ? c.secretKeep
@@ -593,7 +594,7 @@ function IntegrationCard({
               </div>
             );
           })}
-          <label className="flex items-center gap-2 text-xs font-medium text-ink dark:text-ink">
+          <label className="flex items-center gap-2 text-xs font-medium text-ink">
             <input
               type="checkbox"
               role="switch"
@@ -641,7 +642,7 @@ function IntegrationCard({
           <div className="flex flex-wrap items-center gap-2 border-t border-outline-variant px-4 py-3 sm:px-5">
             <label
               htmlFor="wa-test-to"
-              className="text-xs font-medium text-ink dark:text-ink"
+              className="text-xs font-medium text-ink"
             >
               {c.whatsappTest}
             </label>
@@ -766,14 +767,9 @@ export function IntegrationsView({
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-16">
       {canManage && <SettingsNavTabs />}
-      <header data-page-header>
-        <h1 className="text-2xl font-bold tracking-tight text-ink dark:text-ink">
-          {c.title}
-        </h1>
-        <p className="mt-1 max-w-3xl text-sm text-ink-muted dark:text-ink">
-          {canManage ? c.subtitle : t.calendarSync.personalSubtitle}
-        </p>
-      </header>
+      <PageHeader
+        description={canManage ? c.subtitle : t.calendarSync.personalSubtitle}
+      />
       {calendar && (
         <section className="space-y-3" data-page-section>
           <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">

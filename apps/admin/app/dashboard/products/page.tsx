@@ -2,6 +2,9 @@ import { hasPermission, requirePagePermission } from "../../../lib/auth";
 import { listProductCategories, listProducts, requireFeatureEnabled } from "@platform/database";
 import { getCachedCompanySettings } from "../../../lib/cached-queries";
 import { ProductsListView } from "../../../components/products/ProductsListView";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("products");
 
 export const dynamic = "force-dynamic";
 

@@ -4,6 +4,9 @@ import { notFound, redirect } from "next/navigation";
 import { getInvoiceById, getCRMContactById, getAllServices } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../../lib/cached-queries";
 import { InvoiceEditFormView } from "../../../../../components/invoices/InvoiceEditFormView";
+import { pageMetadata } from "../../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("invoices/[id]/edit");
 
 export const dynamic = "force-dynamic";
 

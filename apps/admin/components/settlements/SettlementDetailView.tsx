@@ -3,12 +3,10 @@ import { useConfirmation } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   AlertTriangle,
-  ArrowLeft,
   Check,
   CircleX,
   PenLine,
@@ -48,6 +46,7 @@ import { BilingualPdfActions } from "../shared/BilingualPdfActions";
 import { ContentImage } from "../shared/ContentImage";
 import { SignatureCanvas } from "../shared/SignatureCanvas";
 import { SETTLEMENT_STATUS_STYLE } from "./SettlementsListView";
+import { PageHeader } from "../layout/PageHeader";
 
 type ManualLine = {
   kind: "addition" | "deduction";
@@ -192,41 +191,27 @@ export function SettlementDetailView({
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-16">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div className="flex items-center gap-3" data-page-header>
-          <Link
-            href={ROUTES.hr.settlements()}
-            aria-label={t.actions.back}
-            className="rounded-full border border-outline-variant p-2 text-ink-muted hover:text-ink"
-          >
-            <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold text-ink sm:text-2xl">
-              {formatMessage(f.titleFor, { name: isAr ? s.employee.nameAr : s.employee.nameEn })}
-            </h1>
-            <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-ink-muted">
-              <bdi dir="ltr" className="font-mono">
-                {s.reference}
-              </bdi>
-              <span
-                className={`rounded-full px-2 py-0.5 font-semibold ${SETTLEMENT_STATUS_STYLE[s.status]}`}
-              >
-                {f.statuses[s.status as keyof typeof f.statuses]}
-              </span>
-              <span>
-                {f.reasons[s.reason as keyof typeof f.reasons]} ·{" "}
-                {formatMessage(f.lastDay, { date: formatDate(s.lastWorkingDay, locale) })}
-              </span>
-            </p>
-          </div>
-        </div>
-        <BilingualPdfActions
+      <PageHeader
+        title={formatMessage(f.titleFor, { name: isAr ? s.employee.nameAr : s.employee.nameEn })}
+        description={<><bdi dir="ltr" className="font-mono">
+              {s.reference}
+            </bdi>
+            <span
+              className={`rounded-full px-2 py-0.5 font-semibold ${SETTLEMENT_STATUS_STYLE[s.status]}`}
+            >
+              {f.statuses[s.status as keyof typeof f.statuses]}
+            </span>
+            <span>
+              {f.reasons[s.reason as keyof typeof f.reasons]} ·{" "}
+              {formatMessage(f.lastDay, { date: formatDate(s.lastWorkingDay, locale) })}
+            </span></>}
+        back={{ href: ROUTES.hr.settlements() }}
+        actions={<BilingualPdfActions
           pdfUrl={(language, download) =>
             `/api/hr/settlements/${s.id}/pdf?locale=${language}${download ? "&download=true" : ""}`
           }
-        />
-      </div>
+        />}
+      />
 
       {warnings.length ? (
         <section className="space-y-1 rounded-3xl border border-amber-400/40 bg-amber-500/5 p-4" data-page-section>
@@ -264,7 +249,7 @@ export function SettlementDetailView({
         </div>
 
         <aside className="space-y-4">
-          <section className="space-y-2 rounded-3xl border border-outline-variant bg-surface-raised p-5 text-xs dark:bg-surface-raised" data-page-section>
+          <section className="space-y-2 rounded-3xl border border-outline-variant bg-surface-raised p-5 text-xs" data-page-section>
             <h2 className="text-sm font-bold text-ink">{f.basedOn}</h2>
             <dl className="space-y-1.5">
               {[
@@ -313,7 +298,7 @@ export function SettlementDetailView({
           </section>
 
           {s.approval?.decisions.length ? (
-            <section className="space-y-2 rounded-3xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised" data-page-section>
+            <section className="space-y-2 rounded-3xl border border-outline-variant bg-surface-raised p-5" data-page-section>
               <h2 className="text-sm font-bold text-ink">
                 {t.approvals.item.progress}
               </h2>
@@ -358,7 +343,7 @@ export function SettlementDetailView({
       </div>
 
       {editable && (
-        <section className="space-y-4 rounded-3xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised" data-page-section>
+        <section className="space-y-4 rounded-3xl border border-outline-variant bg-surface-raised p-5" data-page-section>
           <h2 className="text-sm font-bold text-ink">{f.adjust}</h2>
           <div className="flex flex-wrap items-end gap-3">
             <label className="text-xs">
@@ -604,7 +589,7 @@ export function SettlementDetailView({
       ) : null}
 
       {["approved", "paid"].includes(s.status) && (
-        <section className="space-y-3 rounded-3xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised" data-page-section>
+        <section className="space-y-3 rounded-3xl border border-outline-variant bg-surface-raised p-5" data-page-section>
           <h2 className="flex items-center gap-2 text-sm font-bold text-ink">
             <PenLine className="h-4 w-4 text-accent" aria-hidden />
             {f.acknowledgement}

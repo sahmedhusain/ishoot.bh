@@ -94,8 +94,8 @@ export function EmployeeAccountCard({
     <Card className="space-y-4 p-5 dark:bg-surface-raised">
       <div className="flex flex-wrap items-start gap-3">
         <div className="min-w-0 flex-1">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-ink dark:text-ink"><KeyRound className="w-4 h-4" /><bdi dir="auto">{a.title}</bdi></h2>
-          <p className="mt-0.5 text-xs text-ink-muted dark:text-ink-muted">{a.subtitle}</p>
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-ink"><KeyRound className="w-4 h-4" /><bdi dir="auto">{a.title}</bdi></h2>
+          <p className="mt-0.5 text-xs text-ink-muted">{a.subtitle}</p>
         </div>
         {isSuperAdmin ? (
           <span className="inline-flex items-center gap-1 rounded-full bg-ink/5 px-2.5 py-1 text-[11px] font-medium text-ink-muted dark:text-ink" title={a.protectedHint}>
@@ -112,8 +112,8 @@ export function EmployeeAccountCard({
         <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
           {rows.map(([label, value]) => (
             <div key={label} className="min-w-0">
-              <dt className="text-[11px] text-ink-muted dark:text-ink-muted">{label}</dt>
-              <dd className="truncate text-sm font-medium text-ink dark:text-ink">{value}</dd>
+              <dt className="text-[11px] text-ink-muted">{label}</dt>
+              <dd className="truncate text-sm font-medium text-ink">{value}</dd>
             </div>
           ))}
         </dl>
@@ -126,7 +126,7 @@ export function EmployeeAccountCard({
             <span className="font-normal">· {formatMessage(a.pendingBy, { name: pending.requestedBy })} · <DateDisplay date={pending.createdAt} locale={locale} /></span>
             <Button type="button" size="sm" variant="ghost" className="ms-auto" onClick={() => withdraw(pending.id)}>{a.withdraw}</Button>
           </div>
-          <ul className="space-y-1 text-xs text-ink dark:text-ink">
+          <ul className="space-y-1 text-xs text-ink">
             {Object.entries(pending.changes).filter(([k]) => k in fieldLabel).map(([field, value]) => (
               <li key={field}>{fieldLabel[field]}: <span className="line-through opacity-60">{show(field, pending.before[field])}</span> → <strong>{show(field, value)}</strong></li>
             ))}
@@ -140,7 +140,7 @@ export function EmployeeAccountCard({
           <summary className="cursor-pointer font-medium text-ink-muted dark:text-ink">{a.history}</summary>
           <ul className="mt-2 space-y-1.5">
             {requests.filter((r) => r.status !== "pending").map((r) => (
-              <li key={r.id} className="flex flex-wrap gap-x-2 text-ink-muted dark:text-ink-muted">
+              <li key={r.id} className="flex flex-wrap gap-x-2 text-ink-muted">
                 <DateDisplay date={r.createdAt} locale={locale} />
                 <span className="font-medium">{a.requestStatuses[r.status as keyof typeof a.requestStatuses] ?? r.status}</span>
                 <span>{Object.keys(r.changes).filter((k) => k in fieldLabel).map((k) => fieldLabel[k]).join(", ")}</span>

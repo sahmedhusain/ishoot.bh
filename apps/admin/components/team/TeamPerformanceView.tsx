@@ -7,10 +7,11 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Select, Card } from "@platform/ui";
-import { Gauge, FileText, Receipt, LifeBuoy, ChevronDown, ChevronUp } from "lucide-react";
+import { FileText, Receipt, LifeBuoy, ChevronDown, ChevronUp } from "lucide-react";
 import type { TeamHistoryItem, TeamMemberKpis } from "@platform/database/queries/team-performance";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { PageHeader } from "../layout/PageHeader";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 const PERIODS = ["month", "quarter", "year"] as const;
@@ -49,15 +50,9 @@ export function TeamPerformanceView({ period, from, to, members, history, manage
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display flex items-center gap-2">
-            <Gauge className="w-7 h-7 text-accent" />
-            <bdi dir="auto">{k.title}</bdi>
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">{formatMessage(k.subtitle, { from: from, to: to })}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
+      <PageHeader
+        description={formatMessage(k.subtitle, { from: from, to: to })}
+        actions={<div className="flex flex-wrap items-center gap-2">
           {managers && managers.length > 0 && (
             <Select aria-label={k.manager} value={managerId ?? ""} onChange={(e) => go({ manager: e.target.value })} className="px-3 py-2 rounded-full border border-outline-variant bg-surface text-sm text-ink">
               <option value="">{k.everyone}</option>
@@ -71,8 +66,8 @@ export function TeamPerformanceView({ period, from, to, members, history, manage
               </button>
             ))}
           </div>
-        </div>
-      </div>
+        </div>}
+      />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[

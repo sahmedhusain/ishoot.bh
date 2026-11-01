@@ -11791,5 +11791,634 @@
       "quarantined": "Quarantined",
       "void": "Voided"
     }
+  },
+  "pages": {
+    "home": {
+      "title": "Dashboard",
+      "description": "Your day at a glance: what needs attention, how the business is doing and where to go next."
+    },
+    "analytics": {
+      "title": "Social analytics",
+      "description": "Reach, engagement and follower growth across your connected social accounts."
+    },
+    "announcements": {
+      "title": "Announcements",
+      "description": "Company news and notices, with read receipts."
+    },
+    "announcements/[id]": {
+      "title": "Announcement",
+      "description": "The announcement and who has read it."
+    },
+    "announcements/new": {
+      "title": "New announcement",
+      "description": "Share news with everyone or with selected departments."
+    },
+    "approvals": {
+      "title": "Approvals",
+      "description": "Requests waiting for your decision, with the history behind every one."
+    },
+    "approvals/[type]/[id]": {
+      "title": "Approval",
+      "description": "Review the request, its amounts and earlier decisions, then approve or return it."
+    },
+    "archive": {
+      "title": "Document archive",
+      "description": "Every signed and issued document, searchable in one place."
+    },
+    "assets": {
+      "title": "Assets",
+      "description": "Company equipment and devices: who holds them, their condition and their value."
+    },
+    "assets/[id]": {
+      "title": "Asset",
+      "description": "History, holder, maintenance and documents for this asset."
+    },
+    "assets/categories": {
+      "title": "Asset categories",
+      "description": "Types of assets with their depreciation and tracking rules."
+    },
+    "assets/handovers/[id]": {
+      "title": "Asset handover",
+      "description": "The handover record, condition and signatures."
+    },
+    "assets/new": {
+      "title": "New asset",
+      "description": "Register equipment with its serial number, value and holder."
+    },
+    "calendar": {
+      "title": "Calendar",
+      "description": "Meetings, deadlines, leave and bookings on one shared calendar."
+    },
+    "claims": {
+      "title": "My claims",
+      "description": "Expenses you paid for the company, submitted for reimbursement."
+    },
+    "claims/new": {
+      "title": "New claim",
+      "description": "Submit a reimbursement with its receipt."
+    },
+    "cms/articles": {
+      "title": "Articles",
+      "description": "News and blog posts, scheduled and published to your website."
+    },
+    "cms/articles/[id]": {
+      "title": "Article editor",
+      "description": "Write, illustrate and schedule this article."
+    },
+    "cms/banners": {
+      "title": "Banners",
+      "description": "Hero banners on your home page."
+    },
+    "cms/clients": {
+      "title": "Client logos",
+      "description": "Logos of clients and partners shown on your website."
+    },
+    "cms/code": {
+      "title": "Custom code",
+      "description": "Analytics tags and scripts added to every website page."
+    },
+    "cms/equipment": {
+      "title": "Facilities",
+      "description": "Equipment and facilities presented on your website."
+    },
+    "cms/faqs": {
+      "title": "FAQs",
+      "description": "Answers to common questions, shown on your website."
+    },
+    "cms/menus": {
+      "title": "Menus",
+      "description": "The navigation links in your website's header and footer."
+    },
+    "cms/pages": {
+      "title": "Pages",
+      "description": "Custom website pages built from content blocks."
+    },
+    "cms/pages/[id]": {
+      "title": "Page editor",
+      "description": "Arrange blocks, write content and publish this page."
+    },
+    "cms/portfolio": {
+      "title": "Catalogue",
+      "description": "The items your website showcases, with photos and details."
+    },
+    "cms/reviews": {
+      "title": "Reviews",
+      "description": "Customer reviews, moderated before they appear."
+    },
+    "cms/stats": {
+      "title": "Statistics",
+      "description": "Headline numbers that build trust on your website."
+    },
+    "cms/website": {
+      "title": "Website",
+      "description": "Design your website and choose which pages it shows."
+    },
+    "company/documents": {
+      "title": "Company documents",
+      "description": "Licences, registrations and certificates with expiry reminders."
+    },
+    "company/documents/new": {
+      "title": "New company document",
+      "description": "Upload a licence or certificate and set its expiry."
+    },
+    "crm/contacts": {
+      "title": "Clients & contacts",
+      "description": "Every client, vendor and partner, with their contacts, documents and history."
+    },
+    "crm/customers/[id]": {
+      "title": "Client profile",
+      "description": "A full view of this client: deals, documents, payments and conversations."
+    },
+    "crm/customers/[id]/edit": {
+      "title": "Edit client",
+      "description": "Update the client's company details, contacts and billing information."
+    },
+    "crm/customers/new": {
+      "title": "New client",
+      "description": "Add a client or partner with their company, contact and billing details."
+    },
+    "crm/deals": {
+      "title": "Deals pipeline",
+      "description": "Track every opportunity from first contact to signed contract."
+    },
+    "crm/deals/[id]": {
+      "title": "Deal",
+      "description": "Everything about this opportunity: stage, value, documents, costs and next steps."
+    },
+    "crm/deals/[id]/edit": {
+      "title": "Edit deal",
+      "description": "Update the deal's value, stage, dates and team."
+    },
+    "crm/deals/new": {
+      "title": "New deal",
+      "description": "Open an opportunity for a client and start tracking it through the pipeline."
+    },
+    "crm/leads": {
+      "title": "Leads",
+      "description": "New enquiries waiting to be qualified."
+    },
+    "delivery": {
+      "title": "Shipments",
+      "description": "Deliveries to customers, from packing to proof of delivery."
+    },
+    "delivery/[id]": {
+      "title": "Shipment",
+      "description": "Status, route and delivery events for this shipment."
+    },
+    "delivery/agencies": {
+      "title": "Courier agencies",
+      "description": "Third-party couriers, their rates and their invoices."
+    },
+    "delivery/cash": {
+      "title": "Cash on delivery",
+      "description": "Cash collected by drivers and couriers, settled against orders."
+    },
+    "delivery/fleet": {
+      "title": "Fleet",
+      "description": "Your vehicles and who is driving them."
+    },
+    "delivery/routes": {
+      "title": "Route sheets",
+      "description": "Plan each driver's day and the order of their stops."
+    },
+    "delivery/routes/[id]": {
+      "title": "Route sheet",
+      "description": "Stops, progress and collections for this run."
+    },
+    "delivery/settings": {
+      "title": "Delivery settings",
+      "description": "Zones, time slots and fees for delivery."
+    },
+    "department": {
+      "title": "My department",
+      "description": "Headcount, requests, spending and open work across the departments you lead."
+    },
+    "directory": {
+      "title": "Directory",
+      "description": "Find colleagues by name, department or role and reach them in one tap."
+    },
+    "directory/org": {
+      "title": "Organisation chart",
+      "description": "How the organisation is structured: departments, their heads and the people in them."
+    },
+    "driver": {
+      "title": "My deliveries",
+      "description": "Today's stops, with directions, contacts and proof of delivery."
+    },
+    "expenses": {
+      "title": "Expenses",
+      "description": "Company spending by category, project and VAT, ready for approval and reporting."
+    },
+    "expenses/categories": {
+      "title": "Expense categories",
+      "description": "Organise spending into categories that match your chart of accounts."
+    },
+    "expenses/new": {
+      "title": "New expense",
+      "description": "Record a purchase with its receipt, VAT and category."
+    },
+    "expenses/recurring": {
+      "title": "Recurring bills",
+      "description": "Rent, subscriptions and other regular bills, recorded or reminded on time."
+    },
+    "finance": {
+      "title": "Finance overview",
+      "description": "Revenue, cash, receivables and spending at a glance."
+    },
+    "finance/commissions": {
+      "title": "Commissions",
+      "description": "Sales commissions earned, approved and paid out."
+    },
+    "finance/reports": {
+      "title": "Financial reports",
+      "description": "Profit and loss, VAT and cash reports on an accrual or cash basis."
+    },
+    "hr": {
+      "title": "Human resources",
+      "description": "People, attendance, leave and payroll."
+    },
+    "hr/attendance": {
+      "title": "Attendance",
+      "description": "Daily check-ins, lateness and overtime for every employee."
+    },
+    "hr/documents": {
+      "title": "Salary documents",
+      "description": "Payslips and salary certificates, issued and shared securely."
+    },
+    "hr/employees": {
+      "title": "Employees",
+      "description": "Everyone on the team with their role, department, contract and documents."
+    },
+    "hr/employees/[id]": {
+      "title": "Employee",
+      "description": "Profile, contract, pay, documents and history for this employee."
+    },
+    "hr/employees/import": {
+      "title": "Import employees",
+      "description": "Bring in your team from a spreadsheet in one step."
+    },
+    "hr/employees/new": {
+      "title": "New employee",
+      "description": "Onboard a new hire with their contract, pay and documents."
+    },
+    "hr/gosi": {
+      "title": "Social insurance",
+      "description": "Registrations and contributions for social insurance."
+    },
+    "hr/handovers": {
+      "title": "Employee handovers",
+      "description": "Exit and role-change handovers with their checklists."
+    },
+    "hr/handovers/[id]": {
+      "title": "Handover",
+      "description": "Checklist, assets and sign-off for this handover."
+    },
+    "hr/leave": {
+      "title": "Leave",
+      "description": "Requests, balances and the team leave calendar."
+    },
+    "hr/payroll": {
+      "title": "Payroll",
+      "description": "Monthly payroll from calculation to approval and payment."
+    },
+    "hr/payroll/items/[id]": {
+      "title": "Salary",
+      "description": "How this salary was calculated, line by line."
+    },
+    "hr/pensions": {
+      "title": "Social insurance",
+      "description": "Registrations, wages and contributions for social insurance."
+    },
+    "hr/requests": {
+      "title": "HR requests",
+      "description": "Letters, document and profile requests from employees."
+    },
+    "hr/settings": {
+      "title": "HR settings",
+      "description": "Leave types, shifts, holidays and HR policies."
+    },
+    "hr/settlements": {
+      "title": "Final settlements",
+      "description": "End-of-service settlements with indemnity and dues."
+    },
+    "hr/settlements/[id]": {
+      "title": "Final settlement",
+      "description": "Calculation, approval and payment of this settlement."
+    },
+    "hr/settlements/new": {
+      "title": "New final settlement",
+      "description": "Work out what a leaving employee is owed."
+    },
+    "hr/supports": {
+      "title": "Wage support",
+      "description": "Government wage-support programmes and the claims made under them."
+    },
+    "inventory": {
+      "title": "Stock",
+      "description": "What you hold in every warehouse, what is reserved and what is running low."
+    },
+    "inventory/counts": {
+      "title": "Stock counts",
+      "description": "Plan and reconcile physical counts against the system."
+    },
+    "inventory/counts/[id]": {
+      "title": "Stock count",
+      "description": "Enter counted quantities and post the differences."
+    },
+    "inventory/movements": {
+      "title": "Stock movements",
+      "description": "Every receipt, issue, transfer and adjustment, traceable to its source."
+    },
+    "inventory/transfers": {
+      "title": "Stock transfers",
+      "description": "Move stock between warehouses with handover and acknowledgement."
+    },
+    "inventory/warehouses": {
+      "title": "Warehouses",
+      "description": "Your storage locations and the bins inside them."
+    },
+    "invoices": {
+      "title": "Invoices",
+      "description": "Issue invoices, track what is due and follow up on what is overdue."
+    },
+    "invoices/[id]": {
+      "title": "Invoice",
+      "description": "Lines, totals, payments received and the invoice's full history."
+    },
+    "invoices/[id]/edit": {
+      "title": "Edit invoice",
+      "description": "Change lines, terms or dates while the invoice is still a draft."
+    },
+    "invoices/new": {
+      "title": "New invoice",
+      "description": "Bill a client from your services, products or an accepted quotation."
+    },
+    "legal": {
+      "title": "Legal matters",
+      "description": "Cases, contracts and deadlines with their hearings and documents."
+    },
+    "legal/[id]": {
+      "title": "Legal matter",
+      "description": "Timeline, parties and documents for this matter."
+    },
+    "letters": {
+      "title": "Official letters",
+      "description": "Letters on company letterhead, verified and tracked."
+    },
+    "letters/[id]": {
+      "title": "Letter",
+      "description": "Draft, approve and issue this letter."
+    },
+    "letters/new": {
+      "title": "New letter",
+      "description": "Write a letter from a template or from scratch."
+    },
+    "letters/templates": {
+      "title": "Letter templates",
+      "description": "Reusable letters with fields filled in automatically."
+    },
+    "marketing": {
+      "title": "Campaigns",
+      "description": "Email campaigns to your customers, with delivery and opt-out tracking."
+    },
+    "marketing/audience": {
+      "title": "Audience",
+      "description": "Customer segments you can target with campaigns."
+    },
+    "moms": {
+      "title": "Minutes of meeting",
+      "description": "Meeting minutes with attendees, decisions and action items."
+    },
+    "moms/[id]": {
+      "title": "Minutes of meeting",
+      "description": "Decisions, action items and sign-off for this meeting."
+    },
+    "moms/new": {
+      "title": "New minutes",
+      "description": "Record who attended, what was decided and who does what next."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Everything that needs your attention, from approvals to reminders, in one inbox."
+    },
+    "orders": {
+      "title": "Sales orders",
+      "description": "Online and in-store orders from placement to delivery."
+    },
+    "orders/[id]": {
+      "title": "Order",
+      "description": "Items, payment, packing and delivery for this order."
+    },
+    "orders/new": {
+      "title": "Point of sale",
+      "description": "Ring up a sale, take payment and print the receipt."
+    },
+    "orders/settings": {
+      "title": "Store settings",
+      "description": "Checkout, payment methods, coupons and store rules."
+    },
+    "payments": {
+      "title": "Payments & receipts",
+      "description": "Money received, matched to invoices, with a receipt for every payment."
+    },
+    "payments/[id]": {
+      "title": "Receipt",
+      "description": "How this payment was received and which invoices it settled."
+    },
+    "payments/new": {
+      "title": "Record payment",
+      "description": "Record money received and apply it to one or more invoices."
+    },
+    "press": {
+      "title": "Press & media",
+      "description": "Media contacts and the coverage you have earned."
+    },
+    "procurement/bills": {
+      "title": "Supplier bills",
+      "description": "Bills matched against orders and deliveries before they are paid."
+    },
+    "procurement/bills/[id]": {
+      "title": "Supplier bill",
+      "description": "Matching, approval and payment for this bill."
+    },
+    "procurement/bills/new": {
+      "title": "New supplier bill",
+      "description": "Enter a supplier's bill and match it to what was ordered and received."
+    },
+    "procurement/orders": {
+      "title": "Purchase orders",
+      "description": "Orders placed with suppliers, what has arrived and what is billed."
+    },
+    "procurement/orders/[id]": {
+      "title": "Purchase order",
+      "description": "Lines, deliveries received and bills for this order."
+    },
+    "procurement/orders/new": {
+      "title": "New purchase order",
+      "description": "Order goods or services from a supplier."
+    },
+    "procurement/requisitions": {
+      "title": "Purchase requests",
+      "description": "Internal requests for goods and services, ready for approval and sourcing."
+    },
+    "procurement/requisitions/[id]": {
+      "title": "Purchase request",
+      "description": "Lines, approvals and sourcing for this request."
+    },
+    "procurement/requisitions/new": {
+      "title": "New purchase request",
+      "description": "Ask for what your team needs and route it for approval."
+    },
+    "procurement/rfqs": {
+      "title": "Requests for quotation",
+      "description": "Invite suppliers to quote and compare their offers side by side."
+    },
+    "procurement/rfqs/[id]": {
+      "title": "Request for quotation",
+      "description": "Supplier quotes for this request and the award decision."
+    },
+    "procurement/suppliers": {
+      "title": "Suppliers",
+      "description": "The vendors you buy from, with terms, lead times and history."
+    },
+    "products": {
+      "title": "Products",
+      "description": "Your catalogue with prices, variants, stock and suppliers."
+    },
+    "products/[id]": {
+      "title": "Product",
+      "description": "Details, pricing, variants and stock for this product."
+    },
+    "products/categories": {
+      "title": "Product categories",
+      "description": "Group products so they are easy to find and report on."
+    },
+    "products/new": {
+      "title": "New product",
+      "description": "Add a product with its prices, variants and packaging."
+    },
+    "profile": {
+      "title": "My profile",
+      "description": "Your details, signature, security and the company assets you hold."
+    },
+    "quotations": {
+      "title": "Quotations",
+      "description": "Prepare, approve and send priced offers, then turn accepted ones into invoices."
+    },
+    "quotations/[id]": {
+      "title": "Quotation",
+      "description": "Review the offer, move it through approval and record the client's answer."
+    },
+    "quotations/new": {
+      "title": "New quotation",
+      "description": "Build a priced offer from your services and products."
+    },
+    "reports": {
+      "title": "Reports",
+      "description": "Ready-made reports across sales, finance, people and operations, with export and scheduling."
+    },
+    "reports/[key]": {
+      "title": "Report",
+      "description": "Filter, review and export this report, or schedule it to arrive by email."
+    },
+    "requests": {
+      "title": "Requests",
+      "description": "Client and website enquiries with owners, priorities and response times."
+    },
+    "requests/[id]": {
+      "title": "Request",
+      "description": "The full conversation, files and assignment for this request."
+    },
+    "requests/new": {
+      "title": "New request",
+      "description": "Log a request received by phone, email or in person."
+    },
+    "requests/settings": {
+      "title": "Service levels",
+      "description": "Response targets, canned replies and routing rules for requests."
+    },
+    "services": {
+      "title": "Services & rates",
+      "description": "Your standard services and rate cards, ready to add to quotations and invoices."
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Company, users, modules and integrations."
+    },
+    "settings/approvals": {
+      "title": "Approval policies",
+      "description": "Who approves what, in which order and above which amounts."
+    },
+    "settings/audit": {
+      "title": "Audit & sessions",
+      "description": "Who did what and when, and who is signed in now."
+    },
+    "settings/company": {
+      "title": "Company profile",
+      "description": "Legal details, branding, numbering and documents."
+    },
+    "settings/departments": {
+      "title": "Departments",
+      "description": "Your departments, their heads and how they nest."
+    },
+    "settings/integrations": {
+      "title": "Integrations",
+      "description": "Email, payments, messaging and other connected services."
+    },
+    "settings/modules": {
+      "title": "Modules",
+      "description": "Turn features on or off to fit how your company works."
+    },
+    "settings/pipeline": {
+      "title": "Sales pipeline",
+      "description": "The stages a deal moves through."
+    },
+    "settings/preferences": {
+      "title": "Preferences",
+      "description": "Language, theme and how the workspace looks for you."
+    },
+    "settings/roles": {
+      "title": "Roles & permissions",
+      "description": "What each role can see and do, module by module."
+    },
+    "settings/security": {
+      "title": "Security",
+      "description": "Sign-in, sessions and account protection."
+    },
+    "settings/web": {
+      "title": "Website settings",
+      "description": "Domain, languages, SEO and how the website behaves."
+    },
+    "tasks": {
+      "title": "Tasks",
+      "description": "Work assigned to you and your team, by status, priority and due date."
+    },
+    "tasks/[id]": {
+      "title": "Task",
+      "description": "Details, discussion and progress for this task."
+    },
+    "tasks/projects": {
+      "title": "Projects",
+      "description": "Group work into projects and see how each one is progressing."
+    },
+    "tasks/projects/[id]": {
+      "title": "Project",
+      "description": "The project's board, team and progress."
+    },
+    "team": {
+      "title": "My team",
+      "description": "Workload, attendance and results for the people who report to you."
+    },
+    "users": {
+      "title": "Users",
+      "description": "Accounts that can sign in, with their roles and access."
+    },
+    "users/new": {
+      "title": "New user",
+      "description": "Invite someone to the workspace and choose their role."
+    }
+  },
+  "pageHeader": {
+    "back": "Back"
   }
 }

@@ -2,6 +2,9 @@ import { notFound } from "next/navigation";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { getOrder, onlinePaymentAvailable, orderPaymentAttempts, paymentLinkToken, requestsForOrder, requireFeatureEnabled } from "@platform/database";
 import { OrderView } from "../../../../components/orders/OrderView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("orders/[id]");
 
 export const dynamic = "force-dynamic";
 

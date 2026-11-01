@@ -8,6 +8,9 @@ import {
 } from "@platform/database";
 import { InvoicesListView } from "../../../components/invoices/InvoicesListView";
 import { ListControls } from "../../../components/shared/ListControls";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("invoices");
 
 export const dynamic = "force-dynamic";
 
@@ -24,19 +27,19 @@ export default async function InvoicesPage({
   ]);
 
   return (
-    <>
-      <ListControls
-        path={ROUTES.invoices.list}
-        {...result}
-        statuses={["draft", "sent", "partially_paid", "paid", "overdue", "void"]}
-        exportDomain="invoices"
-      />
-      <InvoicesListView
-        key={JSON.stringify(result.filters) + result.page}
-        initialInvoices={result.items}
-        finance={finance}
-        acceptedQuotations={acceptedQuotations}
-      />
-    </>
+    <InvoicesListView
+      key={JSON.stringify(result.filters) + result.page}
+      initialInvoices={result.items}
+      finance={finance}
+      acceptedQuotations={acceptedQuotations}
+      controls={
+        <ListControls
+          path={ROUTES.invoices.list}
+          {...result}
+          statuses={["draft", "sent", "partially_paid", "paid", "overdue", "void"]}
+          exportDomain="invoices"
+        />
+      }
+    />
   );
 }

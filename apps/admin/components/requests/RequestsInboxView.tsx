@@ -10,6 +10,7 @@ import { REQUEST_DUE_FILTERS, REQUEST_KINDS, REQUEST_PRIORITIES, REQUEST_SORTS, 
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { RequestPriorityBadge, RequestTypeBadge, RequestWorkflowBadge } from "./RequestBadges";
+import { PageHeader } from "../layout/PageHeader";
 
 const KIND_TO_TYPE = { service: "SR", quote: "quote_request", inquiry: "inquiry", feedback: "complaint" } as const;
 const WORKFLOW = ["received", "assigned", "pending_approval", "approved", "confirmed", "returned", "resolved"] as const;
@@ -85,12 +86,8 @@ export function RequestsInboxView({
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-wrap items-center justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-ink font-display">{copy.title}</h1>
-          <p className="text-sm text-ink-muted mt-1">{copy.subtitle}</p>
-        </div>
-        <div className="flex items-center gap-2">
+      <PageHeader
+        actions={<div className="flex items-center gap-2">
           {canExport && (
             <a href={`/api/exports/requests?${params({}).toString()}`} className="inline-flex items-center gap-1.5 h-9 rounded-full border border-outline-variant px-4 text-xs font-semibold text-ink hover:bg-ink/5">
               <Download className="w-3.5 h-3.5" />
@@ -102,8 +99,8 @@ export function RequestsInboxView({
               <Button size="sm" className="gap-2"><Plus className="w-4 h-4" />{copy.newRequest}</Button>
             </Link>
           )}
-        </div>
-      </div>
+        </div>}
+      />
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {tiles.map(([key, patch]) => (

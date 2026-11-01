@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { FileSignature, Plus, Search, Settings2 } from "lucide-react";
+import { Plus, Search, Settings2 } from "lucide-react";
 import {
   Button,
   Input,
@@ -18,6 +18,7 @@ import { ROUTES } from "../../constants/routes";
 import { updateSettlementRulesAction } from "../../app/actions/final-settlements";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
+import { PageHeader } from "../layout/PageHeader";
 
 type Row = Awaited<ReturnType<typeof listFinalSettlements>>[number];
 export const SETTLEMENT_STATUS_STYLE: Record<string, string> = {
@@ -98,15 +99,8 @@ export function SettlementsListView({
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 pb-16">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center" data-page-header>
-        <div>
-          <h1 className="flex items-center gap-2 text-xl font-bold text-ink sm:text-2xl">
-            <FileSignature className="h-5 w-5 text-accent" aria-hidden />
-            <bdi dir="auto">{f.title}</bdi>
-          </h1>
-          <p className="mt-1 text-xs text-ink-muted">{f.subtitle}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
+      <PageHeader
+        actions={<div className="flex flex-wrap gap-2">
           {canEdit && (
             <Button
               size="sm"
@@ -127,8 +121,8 @@ export function SettlementsListView({
               {f.new}
             </Link>
           )}
-        </div>
-      </div>
+        </div>}
+      />
 
       {editingRules && (
         <form
@@ -327,7 +321,7 @@ export function SettlementsListView({
           {f.empty}
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised">
+        <div className="overflow-x-auto rounded-3xl border border-outline-variant bg-surface-raised">
           <table className="w-full text-sm">
             <thead className="bg-ink/[0.03] text-xs text-ink-muted">
               <tr>

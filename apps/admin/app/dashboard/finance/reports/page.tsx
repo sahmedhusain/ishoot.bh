@@ -3,6 +3,9 @@ import { getFinancialSummaryReport, getFinancialReportDetail } from "@platform/d
 import { companyVat } from "@platform/database/finance/vat";
 import { FinancialReportDetailView } from "../../../../components/finance/FinancialReportDetailView";
 import { FinancialReportsView } from "../../../../components/finance/FinancialReportsView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("finance/reports");
 
 export const dynamic = "force-dynamic";
 

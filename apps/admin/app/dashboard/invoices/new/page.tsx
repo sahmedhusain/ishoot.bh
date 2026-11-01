@@ -4,6 +4,9 @@ import { requirePagePermission } from "../../../../lib/auth";
 import { getCRMContactById, getAllServices, getAcceptedQuotationsUninvoiced, getQuotationById, listSalesPeople } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { NewInvoiceFormView } from "../../../../components/invoices/NewInvoiceFormView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("invoices/new");
 
 export const dynamic = "force-dynamic";
 

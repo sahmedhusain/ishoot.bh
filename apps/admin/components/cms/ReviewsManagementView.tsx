@@ -17,6 +17,7 @@ import {
   toggleReviewApprovalAction,
   deleteReviewAction,
 } from "../../app/actions/cms";
+import { PageHeader } from "../layout/PageHeader";
 
 export function ReviewsManagementView({
   initialReviews,
@@ -79,24 +80,18 @@ export function ReviewsManagementView({
     <div className="space-y-6 max-w-6xl mx-auto pb-16 animate-fade-in">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div data-page-header>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink flex items-center gap-2.5">
-            <span>{t.reviewsView.title}</span>
-            <span className="text-xs font-bold text-accent font-sans">
+        <PageHeader
+          title={<><span>{t.reviewsView.title}</span><span className="text-xs font-bold text-accent font-sans">
               &lt;&lt; {t.reviewsView.badge} &gt;&gt;
-            </span>
-          </h1>
-          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl">
-            {t.reviewsView.subtitle}
-          </p>
-        </div>
+            </span></>}
+        />
       </div>
 
       {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="p-4 bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-white/10 flex items-center justify-between">
+        <Card className="p-4 bg-surface-raised border border-outline-variant dark:border-white/10 flex items-center justify-between">
           <div>
-            <div className="text-[11px]  text-ink-muted dark:text-ink-muted uppercase tracking-wider">
+            <div className="text-[11px] text-ink-muted uppercase tracking-wider">
               {t.reviewsView.pendingApproval}
             </div>
             <div className="text-2xl font-black text-amber-500 mt-0.5">
@@ -108,9 +103,9 @@ export function ReviewsManagementView({
           </div>
         </Card>
 
-        <Card className="p-4 bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-white/10 flex items-center justify-between">
+        <Card className="p-4 bg-surface-raised border border-outline-variant dark:border-white/10 flex items-center justify-between">
           <div>
-            <div className="text-[11px]  text-ink-muted dark:text-ink-muted uppercase tracking-wider">
+            <div className="text-[11px] text-ink-muted uppercase tracking-wider">
               {t.reviewsView.liveOnWebsite}
             </div>
             <div className="text-2xl font-black text-emerald-500 mt-0.5">
@@ -122,12 +117,12 @@ export function ReviewsManagementView({
           </div>
         </Card>
 
-        <Card className="p-4 bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-white/10 flex items-center justify-between">
+        <Card className="p-4 bg-surface-raised border border-outline-variant dark:border-white/10 flex items-center justify-between">
           <div>
-            <div className="text-[11px]  text-ink-muted dark:text-ink-muted uppercase tracking-wider">
+            <div className="text-[11px] text-ink-muted uppercase tracking-wider">
               {t.reviewsView.avgRating}
             </div>
-            <div className="text-2xl font-black text-ink dark:text-ink mt-0.5 flex items-center gap-1.5">
+            <div className="text-2xl font-black text-ink mt-0.5 flex items-center gap-1.5">
               <span>{averageRating}</span>
               <span className="text-xs font-normal text-amber-400">
                 ★ ★ ★ ★ ★
@@ -181,12 +176,12 @@ export function ReviewsManagementView({
 
       {/* Review List */}
       {filteredReviews.length === 0 ? (
-        <Card className="p-12 text-center bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl">
+        <Card className="p-12 text-center bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl">
           <MessageSquare className="w-10 h-10 text-ink dark:text-ink-muted mx-auto mb-3" />
-          <p className="text-sm font-semibold text-ink dark:text-ink">
+          <p className="text-sm font-semibold text-ink">
             {t.reviewsManagement.noReviewsInThisView}
           </p>
-          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1">
+          <p className="text-xs text-ink-muted mt-1">
             {t.reviewsManagement.clientReviewsSubmittedThroughThe}
           </p>
         </Card>
@@ -222,14 +217,14 @@ export function ReviewsManagementView({
                 </div>
 
                 <div className="pt-3 space-y-2">
-                  <p className="text-xs sm:text-sm text-ink dark:text-ink leading-relaxed italic">
+                  <p className="text-xs sm:text-sm text-ink leading-relaxed italic">
                     &quot;{rev.quoteEn || rev.quoteAr}&quot;
                   </p>
 
                   {rev.quoteAr &&
                     rev.quoteEn &&
                     rev.quoteAr !== rev.quoteEn && (
-                      <p className="text-xs text-ink-muted dark:text-ink-muted leading-relaxed font-arabic text-end">
+                      <p className="text-xs text-ink-muted leading-relaxed font-arabic text-end">
                         &quot;{rev.quoteAr}&quot;
                       </p>
                     )}
@@ -239,19 +234,19 @@ export function ReviewsManagementView({
               <div className="space-y-3 pt-3 border-t border-outline-variant dark:border-white/10">
                 <div className="flex items-center justify-between text-xs">
                   <div className="space-y-0.5">
-                    <div className="font-bold text-ink dark:text-ink flex items-center gap-1.5">
+                    <div className="font-bold text-ink flex items-center gap-1.5">
                       <User className="w-3.5 h-3.5 text-accent" />
                       <span>{rev.authorEn || rev.authorAr}</span>
                     </div>
                     {(rev.companyEn || rev.companyAr) && (
-                      <div className="text-[11px] text-ink-muted dark:text-ink-muted flex items-center gap-1.5">
+                      <div className="text-[11px] text-ink-muted flex items-center gap-1.5">
                         <Building2 className="w-3 h-3 text-ink-muted" />
                         <span>{rev.companyEn || rev.companyAr}</span>
                       </div>
                     )}
                   </div>
 
-                  <div className="text-[10px]  text-ink-muted dark:text-ink-muted text-end">
+                  <div className="text-[10px] text-ink-muted text-end">
                     {rev.year || "2026"}
                   </div>
                 </div>

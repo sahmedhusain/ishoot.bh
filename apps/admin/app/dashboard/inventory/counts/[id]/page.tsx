@@ -2,6 +2,9 @@ import { notFound } from "next/navigation";
 import { hasPermission, requirePagePermission } from "../../../../../lib/auth";
 import { getStockCount, listWarehouses, requireFeatureEnabled } from "@platform/database";
 import { StockCountView } from "../../../../../components/inventory/StockCountView";
+import { pageMetadata } from "../../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("inventory/counts/[id]");
 
 export const dynamic = "force-dynamic";
 

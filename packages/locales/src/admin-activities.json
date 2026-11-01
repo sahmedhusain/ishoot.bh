@@ -192,6 +192,20 @@
       },
       "calendarMessages": {
         "shoot": "Event: {title}"
+      },
+      "pages": {
+        "calendar": {
+          "title": "Schedule & calendar"
+        },
+        "crm/leads": {
+          "title": "Incoming inquiries"
+        },
+        "cms/equipment": {
+          "title": "Equipment & inventory"
+        },
+        "cms/stats": {
+          "title": "Business statistics"
+        }
       }
     },
     "ar": {
@@ -386,6 +400,20 @@
       },
       "calendarMessages": {
         "shoot": "موعد: {title}"
+      },
+      "pages": {
+        "calendar": {
+          "title": "التقويم والجدول الزمني"
+        },
+        "crm/leads": {
+          "title": "الطلبات الواردة"
+        },
+        "cms/equipment": {
+          "title": "المعدات والمخزون"
+        },
+        "cms/stats": {
+          "title": "إحصائيات الأعمال"
+        }
       }
     }
   }

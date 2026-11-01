@@ -4,7 +4,7 @@ import { useConfirmation } from "@platform/ui";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, Plus } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { Button, Card, Input, Select, formatCurrencyValue } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
@@ -13,6 +13,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { Field } from "../setup/LanguageFields";
 import { StatusPill } from "./StatusPill";
+import { PageHeader } from "../layout/PageHeader";
 
 interface Rfq {
   id: string;
@@ -68,19 +69,11 @@ export function RfqView({ rfq, suppliers, currency, canEdit, canOrder }: { rfq: 
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <Link href={ROUTES.procurement.rfqs} className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent">
-            <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" />
-            {copy.title}
-          </Link>
-          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink flex flex-wrap items-center gap-3">
-            <span dir="ltr">{rfq.number}</span>
-            <StatusPill status={rfq.status} />
-          </h1>
-          <p className="text-xs text-ink-muted mt-1"><bdi dir="auto">{rfq.title}</bdi>{rfq.requisition && <> · <Link href={ROUTES.procurement.requisition(rfq.requisition.id)} className="hover:text-accent" dir="ltr">{rfq.requisition.number}</Link></>}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
+      <PageHeader
+        title={<><span dir="ltr">{rfq.number}</span><StatusPill status={rfq.status} /></>}
+        description={<><bdi dir="auto">{rfq.title}</bdi>{rfq.requisition && <> · <Link href={ROUTES.procurement.requisition(rfq.requisition.id)} className="hover:text-accent" dir="ltr">{rfq.requisition.number}</Link></>}</>}
+        back={{ href: ROUTES.procurement.rfqs, label: copy.title }}
+        actions={<div className="flex flex-wrap gap-2">
           {open && canEdit && !entry && (
             <Button type="button" variant="outline" size="sm" className="rounded-full gap-1.5" onClick={() => suppliers[0] && startEntry(suppliers[0].id)} disabled={!suppliers.length} data-testid="rfq-add-quote">
               <Plus className="w-3.5 h-3.5" />
@@ -90,8 +83,8 @@ export function RfqView({ rfq, suppliers, currency, canEdit, canOrder }: { rfq: 
           {open && canEdit && (
             <Button type="button" variant="ghost" size="sm" className="rounded-full text-rose-600" disabled={busy} onClick={() => confirmAction({ description: t.procurement.common.cancelConfirm, onConfirm: () => run(() => cancelRfqAction(rfq.id)) })}>{t.procurement.common.cancel}</Button>
           )}
-        </div>
-      </div>
+        </div>}
+      />
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
 
       {entry && (

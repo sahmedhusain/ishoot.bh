@@ -5,6 +5,9 @@ import { ClientSignaturePanel } from "../../../../components/shared/ClientSignat
 import { SigningPanel } from "../../../../components/sales/SigningPanel";
 import { AttributionPanel } from "../../../../components/sales/AttributionPanel";
 import { QuotationDetailView } from "../../../../components/quotations/QuotationDetailView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("quotations/[id]");
 
 export const dynamic = "force-dynamic";
 

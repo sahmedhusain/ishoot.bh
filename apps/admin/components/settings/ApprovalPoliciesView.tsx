@@ -16,6 +16,7 @@ import type { ApprovalPolicyView } from "@platform/database/queries/approval-pol
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { updateApprovalPolicyAction } from "../../app/actions/approval-policies";
 import { SettingsNavTabs } from "./SettingsNavTabs";
+import { PageHeader } from "../layout/PageHeader";
 
 type Step = ApprovalPolicyView["steps"][number];
 type User = { id: string; fullName: string; role: string };
@@ -238,11 +239,11 @@ function PolicyCard({ policy, users }: { policy: ApprovalPolicyView; users: User
         >
           <ChevronDown className={`w-4 h-4 shrink-0 text-ink-muted transition-transform ${open ? "rotate-180" : ""}`} />
           <span className="min-w-0">
-            <span className="block text-sm font-semibold text-ink dark:text-ink">{t.approvals.types[draft.targetType]}</span>
+            <span className="block text-sm font-semibold text-ink">{t.approvals.types[draft.targetType]}</span>
             <span className="block truncate text-xs text-ink-muted">{summary}</span>
           </span>
         </button>
-        <label className="inline-flex items-center gap-2 text-xs font-medium text-ink dark:text-ink">
+        <label className="inline-flex items-center gap-2 text-xs font-medium text-ink">
           <input
             type="checkbox"
             role="switch"
@@ -293,7 +294,7 @@ function PolicyCard({ policy, users }: { policy: ApprovalPolicyView; users: User
 
               <div className="grid gap-4 sm:grid-cols-2 text-xs">
                 <div className="space-y-3">
-                  <label className="flex items-center gap-2 text-ink dark:text-ink">
+                  <label className="flex items-center gap-2 text-ink">
                     <input
                       type="checkbox"
                       className="accent-accent"
@@ -303,7 +304,7 @@ function PolicyCard({ policy, users }: { policy: ApprovalPolicyView; users: User
                     {p.allowSelf}
                   </label>
                   <label className="block space-y-1">
-                    <span className="inline-flex items-center gap-1.5 text-ink dark:text-ink">
+                    <span className="inline-flex items-center gap-1.5 text-ink">
                       <BellRing className="w-3.5 h-3.5" />
                       {p.reminder}
                     </span>
@@ -320,7 +321,7 @@ function PolicyCard({ policy, users }: { policy: ApprovalPolicyView; users: User
                   </label>
                 </div>
                 <fieldset>
-                  <legend className="mb-1.5 text-ink dark:text-ink">{p.autoApproveRoles}</legend>
+                  <legend className="mb-1.5 text-ink">{p.autoApproveRoles}</legend>
                   <div className="flex flex-wrap gap-1.5">
                     {ALL_ROLES.map((role) => {
                       const on = draft.autoApproveRoles.includes(role);
@@ -372,11 +373,9 @@ export function ApprovalPoliciesView({ policies, users }: { policies: ApprovalPo
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-16">
       <SettingsNavTabs />
-      <header data-page-header>
-        <h1 className="text-2xl font-bold tracking-tight text-ink dark:text-ink">{p.title}</h1>
-        <p className="text-sm text-ink-muted mt-1">{p.subtitle}</p>
-        <p className="text-xs text-ink-muted mt-2">{p.fallbackNote}</p>
-      </header>
+      <PageHeader
+        actions={<p className="text-xs text-ink-muted mt-2">{p.fallbackNote}</p>}
+      />
       <div className="space-y-3">
         {policies.map((policy) => (
           <PolicyCard key={policy.targetType} policy={policy} users={users} />

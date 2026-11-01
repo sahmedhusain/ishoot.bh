@@ -2,6 +2,9 @@ import { getServiceSettings, listCannedReplies } from "@platform/database";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { ServiceSettingsView } from "../../../../components/requests/ServiceSettingsView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("requests/settings");
 
 export const dynamic = "force-dynamic";
 

@@ -1,9 +1,8 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Download, Mail, TrendingDown, TrendingUp } from "lucide-react";
+import { Download, Mail, TrendingDown, TrendingUp } from "lucide-react";
 import { Button, Card, Input, Select, formatCurrencyValue, formatDate } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { REPORT_FORMATS, REPORT_FREQUENCIES, changePercent, type ReportColumnKind } from "@platform/database/constants/reports";
@@ -13,6 +12,7 @@ import { saveReportScheduleAction, stopReportScheduleAction } from "../../app/ac
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { Field } from "../setup/LanguageFields";
+import { PageHeader } from "../layout/PageHeader";
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 
@@ -73,11 +73,11 @@ export function ReportView({ result, locale: dataLocale, compare, schedules, cur
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
-      <div className="space-y-2" data-page-header>
-        <Link href={ROUTES.reports.list} className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent"><ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" />{copy.view.back}</Link>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink"><bdi dir="auto">{title?.title}</bdi></h1>
-        <p className="text-xs text-ink-muted max-w-2xl">{title?.description}</p>
-      </div>
+      <PageHeader
+        title={title?.title}
+        description={title?.description}
+        back={{ href: ROUTES.reports.list, label: copy.view.back }}
+      />
 
       <Card className="p-4 flex flex-wrap items-end gap-3" data-testid="report-controls">
         {definition.ranged ? (

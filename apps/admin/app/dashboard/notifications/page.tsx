@@ -1,6 +1,10 @@
 import { notificationInbox } from "@platform/database";
 import { requireAuth } from "../../../lib/auth";
 import { NotificationInboxView } from "../../../components/communications/NotificationInboxView";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("notifications");
+
 export const dynamic = "force-dynamic";
 export default async function Page({
   searchParams,

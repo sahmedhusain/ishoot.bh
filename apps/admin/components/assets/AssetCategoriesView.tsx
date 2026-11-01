@@ -2,16 +2,16 @@
 
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, ListChecks, Pencil, Plus, SlidersHorizontal, Trash2, X } from "lucide-react";
+import { ListChecks, Pencil, Plus, SlidersHorizontal, Trash2, X } from "lucide-react";
 import { Select, Button, Input } from "@platform/ui";
 import type { AssetCategoryInput, AssetCategoryRecord } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { saveAssetCategoryAction } from "../../app/actions/assets";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
+import { PageHeader } from "../layout/PageHeader";
 
 const TYPES = ["text", "number", "date", "boolean"] as const;
 const toInput = (c: AssetCategoryRecord): AssetCategoryInput => ({
@@ -52,16 +52,11 @@ export function AssetCategoriesView({ categories }: { categories: AssetCategoryR
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3" data-page-header>
-          <Link href={ROUTES.assets.list()} aria-label={t.actions.back} className="rounded-full border border-outline-variant p-2 text-ink-muted hover:text-ink"><ArrowLeft className="h-4 w-4 rtl:-scale-x-100" /></Link>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-ink">{a.categories}</h1>
-            <p className="text-xs text-ink-muted mt-1">{c.subtitle}</p>
-          </div>
-        </div>
-        {!editing ? <Button size="sm" className="gap-1.5 self-start" onClick={() => setEditing({ value: empty() })}><Plus className="h-4 w-4" />{c.add}</Button> : null}
-      </div>
+      <PageHeader
+        description={c.subtitle}
+        back={{ href: ROUTES.assets.list() }}
+        actions={!editing ? <Button size="sm" className="gap-1.5 self-start" onClick={() => setEditing({ value: empty() })}><Plus className="h-4 w-4" />{c.add}</Button> : null}
+      />
 
       {editing ? (
         <section className="rounded-3xl border border-accent/30 bg-accent/5 p-5 space-y-5" data-page-section>

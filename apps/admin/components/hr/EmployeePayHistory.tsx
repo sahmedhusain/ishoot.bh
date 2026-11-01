@@ -26,13 +26,13 @@ export function EmployeePayHistory({ rows }: { rows: PayHistoryRow[] }) {
   if (!rows.length) return null;
   return (
     <Card className="p-5 dark:bg-surface-raised" data-page-section>
-      <h2 className="mb-2 text-sm font-semibold text-ink dark:text-ink">{t.payrollManagement.payrollAndCompensationRuns}</h2>
+      <h2 className="mb-2 text-sm font-semibold text-ink">{t.payrollManagement.payrollAndCompensationRuns}</h2>
       <ul className="divide-y divide-outline-variant">
         {rows.map((row) => (
           <li key={row.id}>
             <Link href={ROUTES.hr.payrollItem(row.id)} className="flex items-center gap-3 py-2.5 text-sm hover:bg-ink/[0.03]">
-              <span className="flex-1 text-ink dark:text-ink">{month.format(new Date(Date.UTC(row.year, row.month - 1, 1)))}</span>
-              <bdi dir="ltr" className="font-mono text-ink dark:text-ink">{money.format(row.netSalary)} {companyCurrency}</bdi>
+              <span className="flex-1 text-ink">{month.format(new Date(Date.UTC(row.year, row.month - 1, 1)))}</span>
+              <bdi dir="ltr" className="font-mono text-ink">{money.format(row.netSalary)} {companyCurrency}</bdi>
               <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${row.paymentStatus === "paid" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-surface-sunken/10 text-ink-muted dark:text-ink"}`}>
                 {row.paymentStatus === "paid" ? t.payroll.statusPaid : (t.hrExtensions as Record<string, string>)[row.runStatus] ?? row.runStatus}
               </span>

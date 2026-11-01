@@ -1,6 +1,9 @@
 import { getAttendanceSheet } from "@platform/database";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { AttendanceSheetView } from "../../../../components/hr/AttendanceSheetView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("hr/attendance");
 
 export const dynamic = "force-dynamic";
 

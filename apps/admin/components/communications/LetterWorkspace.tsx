@@ -23,6 +23,7 @@ import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import { ApprovalDecisionPanel } from "../approvals/ApprovalDecisionPanel";
 import { BilingualPdfActions } from "../shared/BilingualPdfActions";
+import { PageHeader } from "../layout/PageHeader";
 type Templates = Awaited<ReturnType<typeof listLetterTemplates>>;
 export function LetterWorkspace({
   letter,
@@ -91,14 +92,10 @@ export function LetterWorkspace({
   };
   return (
     <div className="max-w-5xl mx-auto space-y-5">
-      <header data-page-header>
-        <Link href={ROUTES.letters.list()} className="text-sm text-accent">
-          {c.letters}
-        </Link>
-        <h1 className="text-2xl font-bold">
-          {letter ? `${letter.reference} · ${labels[letter.status]}` : c.new}
-        </h1>
-      </header>
+      <PageHeader
+        title={letter ? `${letter.reference} · ${labels[letter.status]}` : c.new}
+        back={{ href: ROUTES.letters.list(), label: c.letters }}
+      />
       {editable ? (
         <form
           className="space-y-5 rounded-3xl border border-outline-variant p-6"

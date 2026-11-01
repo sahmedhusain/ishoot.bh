@@ -2,6 +2,9 @@ import { getCompanySettings, getWebsiteEditor, listCmsPages, requireFeatureEnabl
 import { resolveWebsiteConfig, validateWebsiteConfig } from "@platform/database/website-config";
 import { requirePagePermission } from "../../../../lib/auth";
 import { MenusEditorView } from "../../../../components/cms/MenusEditorView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("cms/menus");
 
 export const dynamic = "force-dynamic";
 

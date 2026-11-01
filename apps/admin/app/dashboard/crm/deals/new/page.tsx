@@ -1,11 +1,11 @@
-import { getTranslations } from "@platform/locales";
 import { getActiveDealStages, getCRMContactById } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../../lib/cached-queries";
 import { hasPermission, requirePagePermission } from "../../../../../lib/auth";
 import { NewDealFormView } from "../../../../../components/crm/NewDealFormView";
 import type { NewDealQuery } from "../../../../../constants/routes";
+import { pageMetadata } from "../../../../../lib/company-metadata";
 
-export const metadata = { title: getTranslations("ar").admin.copy.newDeal };
+export const generateMetadata = () => pageMetadata("crm/deals/new");
 
 export default async function NewDealPage({
   searchParams,

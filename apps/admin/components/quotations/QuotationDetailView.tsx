@@ -486,14 +486,14 @@ export function QuotationDetailView({
             <Card className="p-6 bg-surface-raised dark:bg-surface-raised/50 border border-outline-variant rounded-lg space-y-3">
               <div className="flex items-center justify-between border-b border-outline-variant dark:border-white/10 pb-2">
                 <span className="text-xs font-mono uppercase text-ink-muted">{t.quotationDetail.governanceReview}</span>
-                <span className="text-xs font-mono px-2 py-0.5 rounded bg-surface-sunken dark:bg-surface-raised text-ink dark:text-ink">
+                <span className="text-xs font-mono px-2 py-0.5 rounded bg-surface-sunken dark:bg-surface-raised text-ink">
                   {approvalRequest.status}
                 </span>
               </div>
               {approvalRequest.discountReason && (
                 <div className="text-xs space-y-1">
                   <span className="text-ink-muted font-mono text-[11px]">{t.quotationDetail.commercialDiscountReason}</span>
-                  <div className="p-2 bg-surface-raised dark:bg-surface-raised rounded border border-outline-variant dark:border-white/5 font-mono text-ink dark:text-ink">
+                  <div className="p-2 bg-surface-raised rounded border border-outline-variant dark:border-white/5 font-mono text-ink">
                     {approvalRequest.discountReason}
                   </div>
                 </div>
@@ -502,14 +502,14 @@ export function QuotationDetailView({
                 <div className="space-y-2 pt-2 border-t border-outline-variant dark:border-white/10 text-xs">
                   <span className="text-ink-muted font-mono text-[11px]">{t.quotationDetail.decisionsHistory}</span>
                   {approvalRequest.decisions.map((dec) => (
-                    <div key={dec.id} className="p-2 rounded bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-white/5 text-[11px]">
-                      <div className="font-semibold text-ink dark:text-ink capitalize">
+                    <div key={dec.id} className="p-2 rounded bg-surface-raised border border-outline-variant dark:border-white/5 text-[11px]">
+                      <div className="font-semibold text-ink capitalize">
                         {dec.decision} {t.copy.by}<bdi dir="auto">{dec.decidedBy?.fullName || t.quotationDetail.superAdmin}</bdi>
                       </div>
                       <div className="text-ink-muted font-mono text-[10px]">
                         {formatDate(dec.decidedAt, locale, "time")}
                       </div>
-                      {dec.reason && <div className="text-ink-muted dark:text-ink-muted mt-1">{dec.reason}</div>}
+                      {dec.reason && <div className="text-ink-muted mt-1">{dec.reason}</div>}
                     </div>
                   ))}
                 </div>
@@ -532,7 +532,7 @@ export function QuotationDetailView({
         description={
           <>
             {t.quotationDetail.thisQuotationContainsACommercial}{" "}
-            <strong className="font-mono text-ink dark:text-ink">
+            <strong className="font-mono text-ink">
               {Number(quotation.discountAmount).toFixed(3)} {quotation.currency}
             </strong>
             {t.quotationDetail.superAdminApprovalPolicyStrictly}
@@ -543,7 +543,7 @@ export function QuotationDetailView({
         confirmDisabled={!discountReason.trim() || loadingAction === "submit"}
         onConfirm={handleSubmitForApproval}
       >
-        <label className="block text-xs font-medium text-ink dark:text-ink mb-1">
+        <label className="block text-xs font-medium text-ink mb-1">
           {t.quotationDetail.discountReasonAndBusinessJustification}
           <textarea
             rows={3}
@@ -551,7 +551,7 @@ export function QuotationDetailView({
             value={discountReason}
             onChange={(e) => setDiscountReason(e.target.value)}
             placeholder={t.quotationDetail.eGVolumeDiscountNegotiated}
-            className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink mt-1"
+            className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised p-2 text-ink mt-1"
           />
         </label>
       </QuotationActionDialog>
@@ -567,12 +567,12 @@ export function QuotationDetailView({
         confirmDisabled={loadingAction === "issue"}
         onConfirm={handleIssue}
       >
-        <label className="block text-xs font-medium text-ink dark:text-ink mb-1">
+        <label className="block text-xs font-medium text-ink mb-1">
           {t.quotationDetail.deliveryChannel}
           <Select
             value={deliveryChannel}
             onChange={(e) => setDeliveryChannel(e.target.value as typeof deliveryChannel)}
-            className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink mt-1"
+            className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised p-2 text-ink mt-1"
           >
             <option value="email">{t.quotationDetail.emailNotificationToClient}</option>
             <option value="portal">{t.quotationDetail.publishToClientPortal}</option>
@@ -610,7 +610,7 @@ export function QuotationDetailView({
         confirmDisabled={!rejectReason.trim() || loadingAction === "reject"}
         onConfirm={handleReject}
       >
-        <label className="block text-xs font-medium text-ink dark:text-ink mb-1">
+        <label className="block text-xs font-medium text-ink mb-1">
           {t.quotationDetail.rejectionReason}
           <textarea
             rows={3}
@@ -618,7 +618,7 @@ export function QuotationDetailView({
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}
             placeholder={t.quotationDetail.eGDiscountExceedsAllowed}
-            className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink mt-1"
+            className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised p-2 text-ink mt-1"
           />
         </label>
       </QuotationActionDialog>
@@ -634,14 +634,14 @@ export function QuotationDetailView({
         confirmDisabled={loadingAction === "accept"}
         onConfirm={handleAccept}
       >
-        <label className="block text-xs font-medium text-ink dark:text-ink mb-1">
+        <label className="block text-xs font-medium text-ink mb-1">
           {t.quotationDetail.acceptanceReferenceNotes}
           <input
             type="text"
             value={acceptanceEvidence}
             onChange={(e) => setAcceptanceEvidence(e.target.value)}
             placeholder={t.quotationDetail.eGSignedPoPo}
-            className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink mt-1"
+            className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised p-2 text-ink mt-1"
           />
         </label>
       </QuotationActionDialog>

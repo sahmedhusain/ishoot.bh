@@ -8,6 +8,7 @@ import { Plus, Edit, Trash2 } from "lucide-react";
 import { createFaqAction, updateFaqAction, deleteFaqAction } from "../../app/actions/cms";
 import type { ContentLanguage } from "@platform/database/constants/languages";
 import { LanguageFields } from "../setup/LanguageFields";
+import { PageHeader } from "../layout/PageHeader";
 
 export function FaqsManagementView({ initialFaqs, languages }: { initialFaqs: FaqItem[]; languages: readonly ContentLanguage[] }) {
   const modalFormId = React.useId();
@@ -70,17 +71,11 @@ export function FaqsManagementView({ initialFaqs, languages }: { initialFaqs: Fa
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex items-center justify-between" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">
-            {t.faqsView.title}
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">{t.faqsView.subtitle}</p>
-        </div>
-        <Button onClick={handleOpenNew} className="bg-accent text-accent-foreground">
+      <PageHeader
+        actions={<Button onClick={handleOpenNew} className="bg-accent text-accent-foreground">
           <Plus className="w-4 h-4 me-2" /> {t.faqsView.newFaq}
-        </Button>
-      </div>
+        </Button>}
+      />
 
       <div className="space-y-3">
         {faqs.map((faq) => (
@@ -97,7 +92,7 @@ export function FaqsManagementView({ initialFaqs, languages }: { initialFaqs: Fa
               <h3 className="font-bold text-sm dark:text-ink">
                 {isRTL && faq.questionAr ? faq.questionAr : faq.questionEn}
               </h3>
-              <p className="text-sm text-ink-muted dark:text-ink-muted mt-1">
+              <p className="text-sm text-ink-muted mt-1">
                 {isRTL && faq.answerAr ? faq.answerAr : faq.answerEn}
               </p>
             </div>

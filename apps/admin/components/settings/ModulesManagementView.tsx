@@ -6,6 +6,7 @@ import { Card } from "@platform/ui";
 import { toggleFeatureAction } from "../../app/actions/settings";
 import type { FeatureToggle } from "@platform/database/types";
 import { ShieldAlert, ToggleLeft, ToggleRight } from "lucide-react";
+import { PageHeader } from "../layout/PageHeader";
 
 interface ModulesManagementViewProps {
   initialToggles: FeatureToggle[];
@@ -34,14 +35,7 @@ export function ModulesManagementView({ initialToggles }: ModulesManagementViewP
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16" >
-      <div data-page-header>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">
-          {t.modulesView.title}
-        </h1>
-        <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 leading-relaxed">
-          {t.modulesView.subtitle}
-        </p>
-      </div>
+      <PageHeader />
 
       <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex gap-3 text-amber-700 dark:text-amber-400">
         <ShieldAlert className="w-5 h-5 shrink-0" />
@@ -64,14 +58,14 @@ export function ModulesManagementView({ initialToggles }: ModulesManagementViewP
           >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 className="font-bold text-ink dark:text-ink">
+                <h3 className="font-bold text-ink">
                   {isArabic ? toggle.nameAr : toggle.nameEn}
                 </h3>
-                <p className="text-xs text-ink-muted dark:text-ink-muted  mt-1">
+                <p className="text-xs text-ink-muted mt-1">
                   {t.copy.idLabel}{toggle.moduleKey}
                 </p>
                 {toggle.description && (
-                  <p className="text-xs text-ink-muted dark:text-ink-muted mt-2">
+                  <p className="text-xs text-ink-muted mt-2">
                     {toggle.description}
                   </p>
                 )}

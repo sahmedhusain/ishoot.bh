@@ -2,6 +2,9 @@ import { hasPermission, requirePagePermission } from "../../../lib/auth";
 import { expiringBatches, getStockOverview, listWarehouses, requireFeatureEnabled } from "@platform/database";
 import { getCachedCompanySettings } from "../../../lib/cached-queries";
 import { InventoryStockView } from "../../../components/inventory/InventoryStockView";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("inventory");
 
 export const dynamic = "force-dynamic";
 

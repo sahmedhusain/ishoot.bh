@@ -5,6 +5,9 @@ import {
   decidableSalaryDocumentIds,
 } from "../../../../lib/salary-documents";
 import { SalaryDocumentsView } from "../../../../components/hr/SalaryDocumentsView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("hr/documents");
 
 export const dynamic = "force-dynamic";
 

@@ -2,6 +2,9 @@ import { requirePagePermission } from "../../../../lib/auth";
 import { listMovements, listWarehouses, requireFeatureEnabled } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { StockMovementsView } from "../../../../components/inventory/StockMovementsView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("inventory/movements");
 
 export const dynamic = "force-dynamic";
 

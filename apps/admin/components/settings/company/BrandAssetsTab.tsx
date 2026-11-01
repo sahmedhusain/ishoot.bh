@@ -232,32 +232,32 @@ export function BrandAssetsTab({
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <Card className="p-6 bg-surface-raised dark:bg-surface-container-low border border-outline-variant dark:border-outline-variant shadow-xs rounded-2xl space-y-6">
-        <div className="flex items-center gap-3 pb-3 border-b border-outline-variant dark:border-outline-variant">
+      <Card className="p-6 bg-surface-raised dark:bg-surface-container-low border border-outline-variant shadow-xs rounded-2xl space-y-6">
+        <div className="flex items-center gap-3 pb-3 border-b border-outline-variant">
           <div className="p-2 rounded-xl bg-accent/10 text-accent">
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-ink dark:text-ink">
+            <h2 className="text-sm font-bold text-ink">
               {t.companySettingsTabs.brandAssets}
             </h2>
-            <p className="text-xs text-ink-muted dark:text-ink-muted">
+            <p className="text-xs text-ink-muted">
               {t.companySettingsTabs.brandAssetsSubtitle}
             </p>
           </div>
         </div>
 
         {/* Brand Pairing Live Verification Card */}
-        <div className="p-5 rounded-2xl bg-surface-container border border-outline-variant dark:border-outline-variant space-y-4">
+        <div className="p-5 rounded-2xl bg-surface-container border border-outline-variant space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <h3 className="text-xs font-bold text-ink dark:text-ink uppercase tracking-wider flex items-center gap-2">
+              <h3 className="text-xs font-bold text-ink uppercase tracking-wider flex items-center gap-2">
                 <span>{t.brandAssetsTab.brandIdentityPairingIconWordmark}</span>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20  lowercase">
                   {t.brandAssetsTab.liveDatabaseState}
                 </span>
               </h3>
-              <p className="text-[11px] text-ink-muted dark:text-ink-muted mt-0.5">
+              <p className="text-[11px] text-ink-muted mt-0.5">
                 {t.brandAssetsTab.alwaysEnsureTheBrandIcon}
               </p>
             </div>
@@ -347,15 +347,15 @@ export function BrandAssetsTab({
             return (
               <div
                 key={slot.key}
-                className="p-4 rounded-xl border border-outline-variant dark:border-outline-variant bg-surface-raised/50 dark:bg-surface-raised/30 flex flex-col justify-between space-y-4 hover:border-accent/40 transition-colors"
+                className="p-4 rounded-xl border border-outline-variant bg-surface-raised/50 dark:bg-surface-raised/30 flex flex-col justify-between space-y-4 hover:border-accent/40 transition-colors"
               >
                 <div>
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <h3 className="text-xs font-bold text-ink dark:text-ink">
+                      <h3 className="text-xs font-bold text-ink">
                         {title}
                       </h3>
-                      <p className="text-[11px] text-ink-muted dark:text-ink-muted mt-0.5 line-clamp-2">
+                      <p className="text-[11px] text-ink-muted mt-0.5 line-clamp-2">
                         {desc}
                       </p>
                     </div>
@@ -381,7 +381,7 @@ export function BrandAssetsTab({
                         className="relative max-h-20 max-w-[85%] object-contain p-2"
                       />
                     ) : (
-                      <div className="relative flex flex-col items-center justify-center text-ink-muted dark:text-ink-muted">
+                      <div className="relative flex flex-col items-center justify-center text-ink-muted">
                         <ImageIcon className="w-7 h-7 stroke-1 mb-1" />
                         <span className="text-[10px] font-medium">
                           {t.companySettingsTabs.assetEmpty}
@@ -390,7 +390,7 @@ export function BrandAssetsTab({
                     )}
                   </div>
 
-                  <p className="text-[10px] text-ink-muted dark:text-ink-muted mt-2">
+                  <p className="text-[10px] text-ink-muted mt-2">
                     {formatMessage(t.copy[slot.recommended], { sizes: "64 × 64 / 32 × 32", dimensions: slot.key === "letterhead_header" ? "2480 × 350" : "2480 × 250", percent: "10–15" })}
                   </p>
                 </div>
@@ -445,7 +445,7 @@ export function BrandAssetsTab({
                           href={currentAsset.fileUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="p-1.5 rounded-lg border border-outline-variant dark:border-outline-variant text-ink-muted dark:text-ink hover:text-primary dark:hover:text-mint hover:bg-surface-sunken dark:hover:bg-surface-raised transition-colors"
+                          className="p-1.5 rounded-lg border border-outline-variant text-ink-muted dark:text-ink hover:text-primary dark:hover:text-mint hover:bg-surface-sunken dark:hover:bg-surface-raised transition-colors"
                           title={t.actions.view}
                         >
                           <ExternalLink className="w-4 h-4" />
