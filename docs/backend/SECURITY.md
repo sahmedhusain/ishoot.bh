@@ -51,6 +51,9 @@ They are never committed, never logged (`pkg/logx` redacts any key that looks se
   - Only platform pods reach the other services' HTTP ports.
   - Only the monitoring namespace reaches admin ports.
   - Egress is limited to DNS, platform services and the data stores.
+- **Database:** each service signs in as its own login (`svc_<service>`), owning its schema and nothing else: no
+  superuser, no schema creation, no access to other services' schemas or to the apps' tables. Logins have a
+  statement timeout and an idle-in-transaction timeout of their own.
 - **Containers** are distroless and non-root (UID 65532), with a read-only root filesystem, no capabilities, no
   privilege escalation, the RuntimeDefault seccomp profile and no service-account token.
 

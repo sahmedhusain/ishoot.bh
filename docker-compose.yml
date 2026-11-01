@@ -28,7 +28,8 @@ x-files: &files
     <<: *service-env
     SERVICE_NAME: files
     HTTP_BODY_LIMIT: ${FILES_HTTP_BODY_LIMIT:-11M}
-    DATABASE_URL: postgres://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_URL: postgres://svc_files:${FILES_DB_PASSWORD}@pgbouncer:6432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_DIRECT_URL: postgres://svc_files:${FILES_DB_PASSWORD:?Set FILES_DB_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
     DATABASE_LOG_QUERIES: ${DATABASE_LOG_QUERIES:-false}
     S3_ENDPOINT: http://seaweedfs:8333
     S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
@@ -47,7 +48,8 @@ x-itsm: &itsm
   environment:
     <<: *service-env
     SERVICE_NAME: itsm
-    DATABASE_URL: postgres://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_URL: postgres://svc_itsm:${ITSM_DB_PASSWORD}@pgbouncer:6432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_DIRECT_URL: postgres://svc_itsm:${ITSM_DB_PASSWORD:?Set ITSM_DB_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
     DATABASE_LOG_QUERIES: ${DATABASE_LOG_QUERIES:-false}
     AUTH_SERVICE_KEYS_FILE: /config/service-keys.json
     # IT-realm tokens for the desk are issued by identity.
@@ -67,7 +69,8 @@ x-system: &system
   environment:
     <<: *service-env
     SERVICE_NAME: system
-    DATABASE_URL: postgres://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_URL: postgres://svc_system:${SYSTEM_DB_PASSWORD}@pgbouncer:6432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_DIRECT_URL: postgres://svc_system:${SYSTEM_DB_PASSWORD:?Set SYSTEM_DB_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
     DATABASE_LOG_QUERIES: ${DATABASE_LOG_QUERIES:-false}
     AUTH_SERVICE_KEYS_FILE: /config/service-keys.json
     AUTH_ISSUER: ${AUTH_ISSUER:-http://identity:8080}
@@ -93,7 +96,8 @@ x-identity: &identity
     <<: *service-env
     SERVICE_NAME: identity
     HTTP_TRUSTED_PROXIES: ${IDENTITY_TRUSTED_PROXIES:-}
-    DATABASE_URL: postgres://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_URL: postgres://svc_identity:${IDENTITY_DB_PASSWORD}@pgbouncer:6432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_DIRECT_URL: postgres://svc_identity:${IDENTITY_DB_PASSWORD:?Set IDENTITY_DB_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
     AUTH_SERVICE_KEYS_FILE: /keys/service-keys.json
     IDENTITY_ISSUER: ${IDENTITY_ISSUER:-http://identity:8080}
     IDENTITY_SIGNING_JWK: ${IDENTITY_SIGNING_JWK:-}
@@ -200,6 +204,47 @@ services:
       timeout: 3s
       retries: 30
 
+  # Gives each service its own login, owning its schema and nothing else (tools/db-roles). Runs on every start.
+  db-roles:
+    <<: *service
+    restart: "no"
+    build:
+      context: backend
+      args: { SERVICE: db-roles, PACKAGE: ./tools/db-roles }
+    image: platform/db-roles:dev
+    healthcheck:
+      disable: true
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
+      DB_ROLES: files,identity,system,itsm
+      DB_ROLE_PASSWORD_FILES: ${FILES_DB_PASSWORD:?Set FILES_DB_PASSWORD in .env}
+      DB_ROLE_PASSWORD_IDENTITY: ${IDENTITY_DB_PASSWORD:?Set IDENTITY_DB_PASSWORD in .env}
+      DB_ROLE_PASSWORD_SYSTEM: ${SYSTEM_DB_PASSWORD:?Set SYSTEM_DB_PASSWORD in .env}
+      DB_ROLE_PASSWORD_ITSM: ${ITSM_DB_PASSWORD:?Set ITSM_DB_PASSWORD in .env}
+      DB_ROLE_STATEMENT_TIMEOUT: ${DB_ROLE_STATEMENT_TIMEOUT:-15s}
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  # Transaction pooling for the services' request paths (deploy/pgbouncer/pgbouncer.ini).
+  pgbouncer:
+    image: edoburu/pgbouncer:v1.24.1-p1
+    restart: unless-stopped
+    environment:
+      AUTH_TYPE: scram-sha-256
+      DATABASE_URLS: >-
+        postgres://svc_files:${FILES_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_identity:${IDENTITY_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_system:${SYSTEM_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_itsm:${ITSM_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db}
+    volumes:
+      - ./deploy/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+    ports:
+      - "127.0.0.1:${PGBOUNCER_PORT:-6432}:6432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-p", "6432"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    depends_on:
+      db-roles: { condition: service_completed_successfully }
+
   files-migrate:
     <<: *files
     restart: "no"
@@ -208,7 +253,7 @@ services:
       disable: true
     ports: []
     depends_on:
-      postgres: { condition: service_healthy }
+      db-roles: { condition: service_completed_successfully }
 
   files:
     <<: *files
@@ -217,6 +262,7 @@ services:
       - "127.0.0.1:${FILES_ADMIN_PORT:-9081}:9090"
     depends_on:
       files-migrate: { condition: service_completed_successfully }
+      pgbouncer: { condition: service_healthy }
       seaweedfs: { condition: service_healthy }
 
   files-worker:
@@ -235,7 +281,7 @@ services:
       disable: true
     ports: []
     depends_on:
-      postgres: { condition: service_healthy }
+      db-roles: { condition: service_completed_successfully }
 
   system:
     <<: *system
@@ -244,6 +290,7 @@ services:
       - "127.0.0.1:${SYSTEM_ADMIN_PORT:-9084}:9090"
     depends_on:
       system-migrate: { condition: service_completed_successfully }
+      pgbouncer: { condition: service_healthy }
       identity: { condition: service_healthy }
       nats: { condition: service_healthy }
 
@@ -255,7 +302,7 @@ services:
       disable: true
     ports: []
     depends_on:
-      postgres: { condition: service_healthy }
+      db-roles: { condition: service_completed_successfully }
 
   itsm:
     <<: *itsm
@@ -264,6 +311,7 @@ services:
       - "127.0.0.1:${ITSM_ADMIN_PORT:-9083}:9090"
     depends_on:
       itsm-migrate: { condition: service_completed_successfully }
+      pgbouncer: { condition: service_healthy }
       identity: { condition: service_healthy }
 
   itsm-worker:
@@ -312,7 +360,7 @@ services:
     command: ["migrate"]
     healthcheck: { disable: true }
     depends_on:
-      postgres: { condition: service_healthy }
+      db-roles: { condition: service_completed_successfully }
 
   identity:
     <<: *identity
@@ -322,6 +370,7 @@ services:
       - "127.0.0.1:${IDENTITY_ADMIN_PORT:-9082}:9090"
     depends_on:
       identity-migrate: { condition: service_completed_successfully }
+      pgbouncer: { condition: service_healthy }
       valkey: { condition: service_healthy }
 
   identity-worker:
@@ -331,7 +380,8 @@ services:
     environment:
       <<: *service-env
       SERVICE_NAME: identity
-      DATABASE_URL: postgres://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
+      DATABASE_URL: postgres://svc_identity:${IDENTITY_DB_PASSWORD:?Set IDENTITY_DB_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
+      DATABASE_DIRECT_URL: postgres://svc_identity:${IDENTITY_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
       IDENTITY_CLEANUP_INTERVAL: ${IDENTITY_CLEANUP_INTERVAL:-}
       IDENTITY_CLEANUP_BATCH: ${IDENTITY_CLEANUP_BATCH:-}
       IDENTITY_CLEANUP_WORKERS: ${IDENTITY_CLEANUP_WORKERS:-}

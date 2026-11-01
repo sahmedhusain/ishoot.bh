@@ -34,8 +34,16 @@ func Run(ctx context.Context, pool *pgxpool.Pool, opts Options) error {
 	if !schemaName.MatchString(opts.Schema) {
 		return fmt.Errorf("migrate: invalid schema name %q", opts.Schema)
 	}
-	if _, err := pool.Exec(ctx, "CREATE SCHEMA IF NOT EXISTS "+pgx.Identifier{opts.Schema}.Sanitize()); err != nil {
-		return fmt.Errorf("migrate: creating schema: %w", err)
+	// A service's own database role owns its schema (tools/db-roles) but may not create schemas, so the schema is
+	// created only when it is missing (local runs as the database owner).
+	var exists bool
+	if err := pool.QueryRow(ctx, "SELECT to_regnamespace($1) IS NOT NULL", opts.Schema).Scan(&exists); err != nil {
+		return fmt.Errorf("migrate: checking schema: %w", err)
+	}
+	if !exists {
+		if _, err := pool.Exec(ctx, "CREATE SCHEMA IF NOT EXISTS "+pgx.Identifier{opts.Schema}.Sanitize()); err != nil {
+			return fmt.Errorf("migrate: creating schema: %w", err)
+		}
 	}
 
 	store, err := database.NewStore(database.DialectPostgres, opts.Schema+".goose_db_version")

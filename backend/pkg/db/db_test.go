@@ -66,3 +66,11 @@ func TestOpenTransactionsAndTimeout(t *testing.T) {
 	_, err = pool.Exec(ctx, `SELECT pg_sleep(1)`)
 	assert.ErrorContains(t, err, "statement timeout")
 }
+
+func TestSession(t *testing.T) {
+	cfg := db.Config{URL: "postgres://pooler/db"}
+	require.Equal(t, "postgres://pooler/db", cfg.Session().URL, "without a direct URL the one URL is direct")
+	cfg.DirectURL = "postgres://postgres/db"
+	require.Equal(t, "postgres://postgres/db", cfg.Session().URL)
+	require.Equal(t, "postgres://pooler/db", cfg.URL)
+}

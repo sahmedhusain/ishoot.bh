@@ -21,15 +21,29 @@ import (
 
 // Config is embedded in a service config with envPrefix:"DATABASE_".
 type Config struct {
-	URL               string        `env:"URL" validate:"required"`
+	// URL is the request path's connection, through PgBouncer where there is one.
+	URL string `env:"URL" validate:"required"`
+	// DirectURL reaches Postgres itself, for work that needs a session: migrations (locks) and River workers
+	// (LISTEN, leader election). Empty: URL is direct too.
+	DirectURL         string        `env:"DIRECT_URL"`
 	MaxConns          int32         `env:"MAX_CONNS" envDefault:"10" validate:"gt=0"`
 	MinConns          int32         `env:"MIN_CONNS" envDefault:"0" validate:"gte=0"`
 	MaxConnLifetime   time.Duration `env:"MAX_CONN_LIFETIME" envDefault:"30m" validate:"gt=0"`
 	MaxConnIdleTime   time.Duration `env:"MAX_CONN_IDLE_TIME" envDefault:"5m" validate:"gt=0"`
 	HealthCheckPeriod time.Duration `env:"HEALTH_CHECK_PERIOD" envDefault:"30s" validate:"gt=0"`
-	StatementTimeout  time.Duration `env:"STATEMENT_TIMEOUT" envDefault:"15s" validate:"gt=0"`
+	// StatementTimeout applies on direct connections. Behind PgBouncer (transaction pooling) the login's own default
+	// applies instead (tools/db-roles: DB_ROLE_STATEMENT_TIMEOUT_<SERVICE>), as the pooler cannot keep it per client.
+	StatementTimeout time.Duration `env:"STATEMENT_TIMEOUT" envDefault:"15s" validate:"gt=0"`
 	// LogQueries logs every SQL statement at debug level. For development only; arguments are never logged.
 	LogQueries bool `env:"LOG_QUERIES" envDefault:"false"`
+}
+
+// Session returns the configuration for a command that needs a whole session (migrate, worker): DirectURL when set.
+func (c Config) Session() Config {
+	if c.DirectURL != "" {
+		c.URL = c.DirectURL
+	}
+	return c
 }
 
 // Open connects and verifies the connection.

@@ -1,5 +1,5 @@
 -- +goose Up
-CREATE SCHEMA IF NOT EXISTS identity;
+-- pkg/migrate creates the schema (the service's own login owns it but may not create schemas).
 CREATE TABLE identity.session_family (
  id uuid PRIMARY KEY,
  subject_id text NOT NULL,

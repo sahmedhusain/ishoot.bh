@@ -3,7 +3,7 @@
 -- idempotent and names match what that migration produces.
 
 -- +goose Up
-CREATE SCHEMA IF NOT EXISTS files;
+-- pkg/migrate creates the schema (the service's own login owns it but may not create schemas).
 
 CREATE TABLE IF NOT EXISTS files.upload_object (
     id          text        NOT NULL,

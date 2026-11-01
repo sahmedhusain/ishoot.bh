@@ -50,7 +50,8 @@ backend/
     internal/...       everything else: domain rules, use cases, HTTP and database adapters
     api/               OpenAPI contract (gateway routes live in deploy/helm/platform/files/gateway)
     README.md          purpose, endpoints, configuration, runbook
-  tools/               generators (catalogue copy, configuration reference)
+  tools/               generators (catalogue copy, configuration reference), db-roles (each service's own login),
+                       one-off import and storage-copy tools
   Dockerfile           one image recipe for every service (--build-arg SERVICE=<name>)
   Makefile
 ```

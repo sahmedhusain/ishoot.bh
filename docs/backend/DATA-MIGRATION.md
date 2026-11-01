@@ -19,4 +19,4 @@ There is no automated reverse handoff migration yet. The Go `Down` migration dro
 
 ## Current boundaries
 
-The local Compose stack shares a development database role. Production schema-specific roles and grants must be provisioned separately. Attachments stay in the business domain. File claims occur outside its Prisma transaction; a failed business write can leave a claimed file that needs reconciliation. Cross-service sagas and idempotent business retries remain part of the later migration work.
+Each service has its own database login owning only its schema (`backend/tools/db-roles`, run before the migrations locally and as a Helm hook in Kubernetes). A hand-off migration run by the apps' login leaves the moved table owned by that login until `db-roles` runs again, which happens on every start. Attachments stay in the business domain. File claims occur outside its Prisma transaction; a failed business write can leave a claimed file that needs reconciliation. Cross-service sagas and idempotent business retries remain part of the later migration work.

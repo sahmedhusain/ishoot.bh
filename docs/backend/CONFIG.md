@@ -29,6 +29,7 @@ the environment. A service refuses to start when a value is missing or fails its
 | `OTEL_EXPORTER_OTLP_INSECURE` | `false` |  |
 | `OTEL_TRACES_SAMPLER_RATIO` | `1` | `gte=0,lte=1` |
 | `DATABASE_URL` |  | `required` |
+| `DATABASE_DIRECT_URL` |  |  |
 | `DATABASE_MAX_CONNS` | `10` | `gt=0` |
 | `DATABASE_MIN_CONNS` | `0` | `gte=0` |
 | `DATABASE_MAX_CONN_LIFETIME` | `30m` | `gt=0` |
@@ -130,6 +131,7 @@ the environment. A service refuses to start when a value is missing or fails its
 | `OTEL_EXPORTER_OTLP_INSECURE` | `false` |  |
 | `OTEL_TRACES_SAMPLER_RATIO` | `1` | `gte=0,lte=1` |
 | `DATABASE_URL` |  | `required` |
+| `DATABASE_DIRECT_URL` |  |  |
 | `DATABASE_MAX_CONNS` | `10` | `gt=0` |
 | `DATABASE_MIN_CONNS` | `0` | `gte=0` |
 | `DATABASE_MAX_CONN_LIFETIME` | `30m` | `gt=0` |
@@ -208,6 +210,7 @@ the environment. A service refuses to start when a value is missing or fails its
 | `OTEL_EXPORTER_OTLP_INSECURE` | `false` |  |
 | `OTEL_TRACES_SAMPLER_RATIO` | `1` | `gte=0,lte=1` |
 | `DATABASE_URL` |  | `required` |
+| `DATABASE_DIRECT_URL` |  |  |
 | `DATABASE_MAX_CONNS` | `10` | `gt=0` |
 | `DATABASE_MIN_CONNS` | `0` | `gte=0` |
 | `DATABASE_MAX_CONN_LIFETIME` | `30m` | `gt=0` |
@@ -258,6 +261,7 @@ the environment. A service refuses to start when a value is missing or fails its
 | `OTEL_EXPORTER_OTLP_INSECURE` | `false` |  |
 | `OTEL_TRACES_SAMPLER_RATIO` | `1` | `gte=0,lte=1` |
 | `DATABASE_URL` |  | `required` |
+| `DATABASE_DIRECT_URL` |  |  |
 | `DATABASE_MAX_CONNS` | `10` | `gt=0` |
 | `DATABASE_MIN_CONNS` | `0` | `gte=0` |
 | `DATABASE_MAX_CONN_LIFETIME` | `30m` | `gt=0` |

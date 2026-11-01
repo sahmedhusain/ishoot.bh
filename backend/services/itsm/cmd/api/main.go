@@ -68,7 +68,11 @@ func run(command string) error {
 	}
 	defer func() { _ = shutdownTracing(context.WithoutCancel(ctx)) }()
 
-	pool, err := db.Open(ctx, cfg.Database, logger.Logger)
+	dbCfg := cfg.Database
+	if command == "migrate" || command == "worker" {
+		dbCfg = dbCfg.Session() // past the pooler: they need a whole session
+	}
+	pool, err := db.Open(ctx, dbCfg, logger.Logger)
 	if err != nil {
 		return err
 	}

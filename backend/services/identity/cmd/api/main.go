@@ -52,7 +52,11 @@ func run(command string) error {
 		return fmt.Errorf("unknown command %q", command)
 	}
 	logger := logx.New(os.Stdout, logx.Options{Level: cfg.Log.Level, Format: cfg.Log.Format, Service: cfg.ServiceName, Version: cfg.Version, Env: cfg.AppEnv})
-	pool, err := db.Open(ctx, cfg.Database, logger.Logger)
+	dbCfg := cfg.Database
+	if command == "migrate" || command == "worker" {
+		dbCfg = dbCfg.Session() // past the pooler: they need a whole session
+	}
+	pool, err := db.Open(ctx, dbCfg, logger.Logger)
 	if err != nil {
 		return err
 	}

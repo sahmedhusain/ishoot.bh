@@ -2,7 +2,8 @@
 // Manages the root .env against .env.example. Never prints secret values.
 //   init     copy .env.example to .env (refuses to overwrite), then fill in empty secrets
 //   sync     add the variables .env.example defines and .env lacks (existing values are never changed)
-//   secrets  generate every empty secret (JWT, revalidation, MFA, encryption, customer auth, cron, docker)
+//   secrets  generate every empty secret (JWT, revalidation, MFA, encryption, customer auth, cron, docker,
+//            the backend services' database logins)
 //   check    validate the values the apps need; --production adds the live-installation rules
 //   keys     list each variable as set / empty / missing, and the ones the code no longer reads
 //   service-keys  write the public keys of the apps' service keys (JWKS) for the backend services to trust
@@ -26,6 +27,11 @@ const SECRETS = {
   CUSTOMER_AUTH_SECRET: () => crypto.randomBytes(32).toString("base64url"),
   CRON_SECRET: () => crypto.randomBytes(32).toString("base64url"),
   POSTGRES_PASSWORD: () => crypto.randomBytes(18).toString("base64url"),
+  // Each backend service's own database login (tools/db-roles); URL-safe, as they go into connection strings.
+  FILES_DB_PASSWORD: () => crypto.randomBytes(24).toString("base64url"),
+  IDENTITY_DB_PASSWORD: () => crypto.randomBytes(24).toString("base64url"),
+  SYSTEM_DB_PASSWORD: () => crypto.randomBytes(24).toString("base64url"),
+  ITSM_DB_PASSWORD: () => crypto.randomBytes(24).toString("base64url"),
   VALKEY_PASSWORD: () => crypto.randomBytes(24).toString("base64url"),
   GRAFANA_ADMIN_PASSWORD: () => crypto.randomBytes(18).toString("base64url"),
   S3_ACCESS_KEY_ID: () => `platform${crypto.randomBytes(6).toString("hex")}`,

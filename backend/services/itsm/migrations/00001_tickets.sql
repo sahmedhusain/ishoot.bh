@@ -1,5 +1,5 @@
 -- +goose Up
-CREATE SCHEMA IF NOT EXISTS itsm;
+-- pkg/migrate creates the schema (the service's own login owns it but may not create schemas).
 
 CREATE SEQUENCE itsm.ticket_number_seq;
 

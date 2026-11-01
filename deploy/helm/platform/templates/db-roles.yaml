@@ -1,0 +1,24 @@
+{{- if .Values.dbRoles.enabled }}
+# Gives each service its own database login, owning its schema and nothing else (backend/tools/db-roles), before
+# the migration jobs run. Idempotent; it also rotates passwords and hands over objects created by another login.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-roles
+  labels: {{- include "platform.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-5"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 300
+  template:
+    metadata:
+      labels:
+        {{- include "platform.labels" . | nindent 8 }}
+        {{- include "platform.selector" (dict "root" . "name" "db-roles" "component" "job") | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      {{- include "platform.podSpec" (dict "root" . "name" "db-roles" "svc" .Values.dbRoles "probes" false) | nindent 6 }}
+{{- end }}

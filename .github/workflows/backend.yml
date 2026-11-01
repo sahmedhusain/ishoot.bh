@@ -69,7 +69,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        service: [gateway, files, identity, itsm, system]
+        service: [gateway, files, identity, itsm, system, db-roles]
     env:
       IMAGE: ghcr.io/${{ github.repository_owner }}/platform/${{ matrix.service }}
       PUSH: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
@@ -88,6 +88,7 @@ jobs:
           context: backend
           build-args: |
             SERVICE=${{ matrix.service }}
+            PACKAGE=${{ matrix.service == 'db-roles' && './tools/db-roles' || '' }}
             VERSION=${{ github.sha }}
           tags: ${{ env.IMAGE }}:${{ github.sha }}
           load: true
@@ -106,6 +107,7 @@ jobs:
           context: backend
           build-args: |
             SERVICE=${{ matrix.service }}
+            PACKAGE=${{ matrix.service == 'db-roles' && './tools/db-roles' || '' }}
             VERSION=${{ github.sha }}
           tags: ${{ env.IMAGE }}:${{ github.sha }}
           push: true

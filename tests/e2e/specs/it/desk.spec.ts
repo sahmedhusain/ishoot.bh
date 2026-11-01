@@ -17,6 +17,8 @@ const accountFile = path.resolve(
 test.describe.configure({ mode: "serial" });
 
 test("IT works a ticket from the desk", async ({ page }) => {
+  // It drives the IT dashboard, the backend and the website; a cold development build can take a while.
+  test.slow();
   test.skip(
     !fs.existsSync(accountFile),
     "run node tests/e2e/it-account.cjs first",

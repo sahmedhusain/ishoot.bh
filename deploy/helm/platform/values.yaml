@@ -30,6 +30,19 @@ ingress:
     cert-manager.io/cluster-issuer: letsencrypt
     nginx.ingress.kubernetes.io/proxy-body-size: 25m
 
+# Each service's own database login (backend/tools/db-roles), made before the migrations. Secret db-roles-secrets:
+# DATABASE_URL (the database owner, direct) and DB_ROLE_PASSWORD_<SERVICE> for each service in DB_ROLES. Behind
+# PgBouncer the login's statement timeout is the one that applies (DB_ROLE_STATEMENT_TIMEOUT_<SERVICE> overrides).
+dbRoles:
+  enabled: true
+  env:
+    DB_ROLES: files,identity,system,itsm
+    DB_ROLE_STATEMENT_TIMEOUT: 15s
+    DB_ROLE_IDLE_IN_TRANSACTION_TIMEOUT: 60s
+  resources:
+    requests: { cpu: 50m, memory: 32Mi }
+    limits: { memory: 128Mi }
+
 serviceMonitor:
   enabled: true
   interval: 30s
@@ -77,7 +90,7 @@ services:
       FILES_PUBLIC_BUCKET: public-assets
       FILES_PRIVATE_BUCKET: private-assets
       AUTH_SERVICE_KEYS_FILE: /keys/service-keys.json
-    # Secrets (files-secrets): DATABASE_URL, S3_ENDPOINT, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY.
+    # Secrets (files-secrets): DATABASE_URL (svc_<service> through PgBouncer), DATABASE_DIRECT_URL (the same login, direct), S3_ENDPOINT, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY.
     configFiles: []
     talksTo: []
 
@@ -97,7 +110,7 @@ services:
       AUTH_ISSUER: ""
       AUTH_JWKS_URL: "http://identity:8080/.well-known/jwks.json"
       ITSM_REQUEST_CALLERS: admin
-    # Secrets (itsm-secrets): DATABASE_URL.
+    # Secrets (itsm-secrets): DATABASE_URL (svc_<service> through PgBouncer), DATABASE_DIRECT_URL (the same login, direct).
     configFiles: []
     talksTo: [identity]
 
@@ -121,7 +134,7 @@ services:
       IDENTITY_CALLERS_STAFF: admin
       IDENTITY_CALLERS_CUSTOMER: web
       IDENTITY_CALLERS_IT: it
-    # Secrets (identity-secrets): DATABASE_URL, IDENTITY_SIGNING_JWK, IDENTITY_LOGIN_REDIS_URL,
+    # Secrets (identity-secrets): DATABASE_URL (svc_<service> through PgBouncer), DATABASE_DIRECT_URL (the same login, direct), IDENTITY_SIGNING_JWK, IDENTITY_LOGIN_REDIS_URL,
     # IDENTITY_LOGIN_RATE_KEY, IDENTITY_LOGIN_MFA_KEYS, IDENTITY_LOGIN_MFA_LEGACY_KEY.
     configFiles: []
     talksTo: []
@@ -147,6 +160,6 @@ services:
       # The events broker: the official NATS chart with JetStream (3 replicas) in the "nats" namespace.
       NATS_URL: nats://nats.nats:4222
       NATS_REPLICAS: "3"
-    # Secrets (system-secrets): DATABASE_URL, SECRETS_KEYS, SECRETS_PRIMARY_KEY_ID, SECRETS_LEGACY_INTEGRATION_KEY.
+    # Secrets (system-secrets): DATABASE_URL (svc_<service> through PgBouncer), DATABASE_DIRECT_URL (the same login, direct), SECRETS_KEYS, SECRETS_PRIMARY_KEY_ID, SECRETS_LEGACY_INTEGRATION_KEY.
     configFiles: []
     talksTo: [identity]
