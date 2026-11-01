@@ -21,5 +21,16 @@ routes:
     upstream: itsm
     realms: [service]
     rateLimit: services
-  # /v1/itsm/desk/ (IT-realm tokens) is added with the IT dashboard, once identity serves the IT realm: user routes
-  # need GATEWAY_IDENTITY_STATUS_URL.
+  # The IT desk: IT staff with their own IT-realm tokens (each request is checked live against identity).
+  - name: itsm-desk
+    prefix: /v1/itsm/desk/
+    upstream: itsm
+    realms: [it]
+    rateLimit: default
+  # Identity: apps sign people in with their service tokens; IT staff manage their own authenticator with their
+  # access tokens. Identity itself decides which credential each endpoint takes and limits attempts per account.
+  - name: identity
+    prefix: /v1/identity/
+    upstream: identity
+    realms: [service, it]
+    rateLimit: services

@@ -37,3 +37,9 @@ WHERE (realm,subject_id) IN (
  SELECT a.realm,a.subject_id FROM identity.account AS a WHERE a.mfa_pending_expires_at <= @cutoff
  ORDER BY a.mfa_pending_expires_at,a.realm,a.subject_id LIMIT @batch_size::int FOR UPDATE SKIP LOCKED
 );
+
+-- name: CountRealmAccounts :one
+SELECT count(*) FROM identity.account WHERE realm=$1;
+-- name: InsertAccount :exec
+INSERT INTO identity.account (realm,subject_id,email,password_hash,roles,mfa_enabled,mfa_secret_encrypted,created_at,updated_at)
+VALUES (@realm,@subject_id,@email,@password_hash,@roles::text[],@mfa_enabled,@mfa_secret_encrypted,@now,@now);

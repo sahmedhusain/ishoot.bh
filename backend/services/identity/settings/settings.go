@@ -47,6 +47,10 @@ type Login struct {
 	MFALegacyKey     string          `env:"MFA_LEGACY_KEY"`
 	Password         password.Config `envPrefix:"PASSWORD_"`
 	TOTP             totp.Config     `envPrefix:"TOTP_"`
+	// MFAIssuer labels the entry in authenticator apps.
+	MFAIssuer string `env:"MFA_ISSUER" envDefault:"Platform IT" validate:"required,max=100"`
+	// ITPasswordMinLength applies to IT accounts created by bootstrap-it.
+	ITPasswordMinLength int `env:"IT_PASSWORD_MIN_LENGTH" envDefault:"14" validate:"gte=12,lte=128"`
 }
 
 // Callers lists the service identities allowed to authenticate each realm.

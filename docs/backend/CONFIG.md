@@ -176,6 +176,8 @@ the environment. A service refuses to start when a value is missing or fails its
 | `IDENTITY_LOGIN_TOTP_PERIOD` | `30s` |  |
 | `IDENTITY_LOGIN_TOTP_DIGITS` | `6` |  |
 | `IDENTITY_LOGIN_TOTP_WINDOW` | `1` |  |
+| `IDENTITY_LOGIN_MFA_ISSUER` | `Platform IT` | `required,max=100` |
+| `IDENTITY_LOGIN_IT_PASSWORD_MIN_LENGTH` | `14` | `gte=12,lte=128` |
 | `IDENTITY_CALLERS_STAFF` | `admin` | `min=1,dive,required` |
 | `IDENTITY_CALLERS_CUSTOMER` | `web` | `min=1,dive,required` |
 | `IDENTITY_CALLERS_IT` | `it` | `min=1,dive,required` |

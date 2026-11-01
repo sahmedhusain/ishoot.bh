@@ -80,6 +80,17 @@ func (q *Queries) ConsumeAccountRecovery(ctx context.Context, arg ConsumeAccount
 	return result.RowsAffected(), nil
 }
 
+const countRealmAccounts = `-- name: CountRealmAccounts :one
+SELECT count(*) FROM identity.account WHERE realm=$1
+`
+
+func (q *Queries) CountRealmAccounts(ctx context.Context, realm string) (int64, error) {
+	row := q.db.QueryRow(ctx, countRealmAccounts, realm)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const deleteAccountRecovery = `-- name: DeleteAccountRecovery :exec
 DELETE FROM identity.mfa_recovery_code WHERE realm=$1 AND subject_id=$2
 `
@@ -154,6 +165,36 @@ func (q *Queries) FindAccountBySubject(ctx context.Context, arg FindAccountBySub
 		&i.MfaPendingExpiresAt,
 	)
 	return i, err
+}
+
+const insertAccount = `-- name: InsertAccount :exec
+INSERT INTO identity.account (realm,subject_id,email,password_hash,roles,mfa_enabled,mfa_secret_encrypted,created_at,updated_at)
+VALUES ($1,$2,$3,$4,$5::text[],$6,$7,$8,$8)
+`
+
+type InsertAccountParams struct {
+	Realm              string
+	SubjectID          string
+	Email              string
+	PasswordHash       *string
+	Roles              []string
+	MfaEnabled         bool
+	MfaSecretEncrypted *string
+	Now                time.Time
+}
+
+func (q *Queries) InsertAccount(ctx context.Context, arg InsertAccountParams) error {
+	_, err := q.db.Exec(ctx, insertAccount,
+		arg.Realm,
+		arg.SubjectID,
+		arg.Email,
+		arg.PasswordHash,
+		arg.Roles,
+		arg.MfaEnabled,
+		arg.MfaSecretEncrypted,
+		arg.Now,
+	)
+	return err
 }
 
 const insertAccountRecovery = `-- name: InsertAccountRecovery :exec

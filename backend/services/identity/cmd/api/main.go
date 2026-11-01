@@ -1,4 +1,5 @@
-// Command api starts the incomplete identity session API, runs migrations, or probes readiness.
+// Command api runs the identity service. Subcommands: serve (default), worker, migrate, healthcheck, and
+// bootstrap-it (creates the first IT account; see the README).
 package main
 
 import (
@@ -47,7 +48,7 @@ func run(command string) error {
 	if command == httpx.HealthcheckCommand {
 		return httpx.Probe(ctx, cfg.Admin.Addr, cfg.Admin.ReadinessTimeout)
 	}
-	if command != "serve" && command != "migrate" && command != "worker" {
+	if command != "serve" && command != "migrate" && command != "worker" && command != "bootstrap-it" {
 		return fmt.Errorf("unknown command %q", command)
 	}
 	logger := logx.New(os.Stdout, logx.Options{Level: cfg.Log.Level, Format: cfg.Log.Format, Service: cfg.ServiceName, Version: cfg.Version, Env: cfg.AppEnv})
@@ -58,6 +59,9 @@ func run(command string) error {
 	defer pool.Close()
 	if command == "migrate" {
 		return migrate.Run(ctx, pool, migrate.Options{Schema: "identity", Migrations: migrations.FS, WithRiver: true, Logger: logger.Logger})
+	}
+	if command == "bootstrap-it" {
+		return bootstrapIT(ctx, os.Args[2:], cfg.Login, pool)
 	}
 	shutdownTracing, err := telemetry.Setup(ctx, cfg.Common)
 	if err != nil {

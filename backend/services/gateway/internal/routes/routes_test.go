@@ -1,6 +1,9 @@
 package routes
 
 import (
+	"os"
+	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -73,4 +76,20 @@ func TestParseRejectsMistakes(t *testing.T) {
 			assert.Error(t, err)
 		})
 	}
+}
+
+// The table shipped for Compose and Helm must load with the upstreams both of them configure.
+func TestShippedTableLoads(t *testing.T) {
+	values, err := os.ReadFile("../../../../../deploy/helm/platform/values.yaml")
+	require.NoError(t, err)
+	match := regexp.MustCompile(`GATEWAY_UPSTREAMS: "([^"]+)"`).FindSubmatch(values)
+	require.NotNil(t, match, "values.yaml sets GATEWAY_UPSTREAMS")
+	upstreams := map[string]string{}
+	for _, pair := range strings.Split(string(match[1]), ",") {
+		name, target, ok := strings.Cut(pair, "=")
+		require.True(t, ok, pair)
+		upstreams[name] = target
+	}
+	_, err = Load("../../../../../deploy/helm/platform/files/gateway/routes.yaml", upstreams)
+	require.NoError(t, err)
 }

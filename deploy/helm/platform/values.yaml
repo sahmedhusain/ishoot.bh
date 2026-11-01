@@ -47,17 +47,19 @@ services:
       limits: { memory: 256Mi }
     env:
       GATEWAY_ROUTES_FILE: /config/routes.yaml
-      GATEWAY_UPSTREAMS: "files=http://files:8080,itsm=http://itsm:8080"
+      GATEWAY_UPSTREAMS: "files=http://files:8080,itsm=http://itsm:8080,identity=http://identity:8080"
+      GATEWAY_IDENTITY_STATUS_URL: "http://identity:8080/v1/identity/session"
       HTTP_BODY_LIMIT: "11M"
+      # Set AUTH_ISSUER to identity's public issuer (IDENTITY_ISSUER); keys are read inside the cluster.
       AUTH_ISSUER: ""
-      AUTH_JWKS_URL: ""
+      AUTH_JWKS_URL: "http://identity:8080/.well-known/jwks.json"
       HTTP_TRUSTED_PROXIES: "10.0.0.0/8"
     # Files from the chart's files/<service>/ folder, mounted under /config. The same route table is used by
     # docker-compose.yml, so local and Kubernetes routing never differ.
     configFiles:
       - routes.yaml
     # Services the gateway may call (NetworkPolicy egress); filled in as services are added.
-    talksTo: [files, itsm]
+    talksTo: [files, itsm, identity]
 
   files:
     enabled: true
@@ -93,8 +95,33 @@ services:
     env:
       AUTH_SERVICE_KEYS_FILE: /keys/service-keys.json
       AUTH_ISSUER: ""
-      AUTH_JWKS_URL: ""
+      AUTH_JWKS_URL: "http://identity:8080/.well-known/jwks.json"
       ITSM_REQUEST_CALLERS: admin
     # Secrets (itsm-secrets): DATABASE_URL.
+    configFiles: []
+    talksTo: [identity]
+
+  identity:
+    enabled: true
+    public: false
+    replicas: 2
+    autoscaling: { enabled: true, minReplicas: 2, maxReplicas: 6, targetCPU: 70 }
+    migrate: true
+    # Expired sessions and abandoned MFA enrollments.
+    worker: { enabled: true, replicas: 1 }
+    resources:
+      # Argon2id needs memory per concurrent sign-in (IDENTITY_LOGIN_PASSWORD_MEMORY_KIB × MAX_CONCURRENT_KDF).
+      requests: { cpu: 100m, memory: 128Mi }
+      limits: { memory: 512Mi }
+    env:
+      AUTH_SERVICE_KEYS_FILE: /keys/service-keys.json
+      IDENTITY_ISSUER: ""
+      IDENTITY_LOGIN_ENABLED: "true"
+      IDENTITY_LOGIN_MFA_PRIMARY_ID: primary
+      IDENTITY_CALLERS_STAFF: admin
+      IDENTITY_CALLERS_CUSTOMER: web
+      IDENTITY_CALLERS_IT: it
+    # Secrets (identity-secrets): DATABASE_URL, IDENTITY_SIGNING_JWK, IDENTITY_LOGIN_REDIS_URL,
+    # IDENTITY_LOGIN_RATE_KEY, IDENTITY_LOGIN_MFA_KEYS, IDENTITY_LOGIN_MFA_LEGACY_KEY.
     configFiles: []
     talksTo: []

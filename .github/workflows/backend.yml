@@ -158,6 +158,7 @@ jobs:
         run: |
           curl -fsS http://127.0.0.1:9080/readyz
           curl -fsS http://127.0.0.1:9081/readyz
+          curl -fsS http://127.0.0.1:9082/readyz
           curl -fsS http://127.0.0.1:9083/readyz
           docker compose exec -T itsm-worker /app healthcheck
           docker compose exec -T files-worker /app healthcheck

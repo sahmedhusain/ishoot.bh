@@ -50,9 +50,9 @@ x-itsm: &itsm
     DATABASE_URL: postgres://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
     DATABASE_LOG_QUERIES: ${DATABASE_LOG_QUERIES:-false}
     AUTH_SERVICE_KEYS_FILE: /config/service-keys.json
-    # IT-realm tokens for the desk come from identity once it runs (empty: only service callers are accepted).
-    AUTH_ISSUER: ${AUTH_ISSUER:-}
-    AUTH_JWKS_URL: ${AUTH_JWKS_URL:-}
+    # IT-realm tokens for the desk are issued by identity.
+    AUTH_ISSUER: ${AUTH_ISSUER:-http://identity:8080}
+    AUTH_JWKS_URL: ${AUTH_JWKS_URL:-http://identity:8080/.well-known/jwks.json}
     ITSM_REQUEST_CALLERS: ${ITSM_REQUEST_CALLERS:-admin}
     ITSM_IT_DISPLAY_NAME: ${ITSM_IT_DISPLAY_NAME:-IT Support}
   volumes:
@@ -60,7 +60,6 @@ x-itsm: &itsm
 
 x-identity: &identity
   <<: *service
-  profiles: [identity]
   build:
     context: backend
     args: { SERVICE: identity }
@@ -79,7 +78,7 @@ x-identity: &identity
     IDENTITY_CALLERS_IT: ${IDENTITY_CALLERS_IT:-it}
     IDENTITY_LOGIN_MFA_ENROLLMENT_TTL: ${IDENTITY_LOGIN_MFA_ENROLLMENT_TTL:-10m}
     IDENTITY_LOGIN_MFA_RECOVERY_COUNT: ${IDENTITY_LOGIN_MFA_RECOVERY_COUNT:-10}
-    IDENTITY_LOGIN_ENABLED: ${IDENTITY_LOGIN_ENABLED:-false}
+    IDENTITY_LOGIN_ENABLED: ${IDENTITY_LOGIN_ENABLED:-true}
     IDENTITY_LOGIN_REDIS_URL: ${IDENTITY_LOGIN_REDIS_URL:-redis://:${VALKEY_PASSWORD}@valkey:6379/0}
     IDENTITY_LOGIN_RATE_KEY: ${IDENTITY_LOGIN_RATE_KEY:-}
     IDENTITY_LOGIN_MFA_KEYS: ${IDENTITY_LOGIN_MFA_KEYS:-}
@@ -220,6 +219,7 @@ services:
       - "127.0.0.1:${ITSM_ADMIN_PORT:-9083}:9090"
     depends_on:
       itsm-migrate: { condition: service_completed_successfully }
+      identity: { condition: service_healthy }
 
   itsm-worker:
     <<: *itsm
@@ -239,14 +239,14 @@ services:
       SERVICE_NAME: gateway
       REDIS_URL: redis://:${VALKEY_PASSWORD}@valkey:6379/0
       GATEWAY_ROUTES_FILE: /config/routes.yaml
-      GATEWAY_UPSTREAMS: ${GATEWAY_UPSTREAMS:-files=http://files:8080,itsm=http://itsm:8080}
-      GATEWAY_IDENTITY_STATUS_URL: ${GATEWAY_IDENTITY_STATUS_URL:-}
+      GATEWAY_UPSTREAMS: ${GATEWAY_UPSTREAMS:-files=http://files:8080,itsm=http://itsm:8080,identity=http://identity:8080}
+      GATEWAY_IDENTITY_STATUS_URL: ${GATEWAY_IDENTITY_STATUS_URL:-http://identity:8080/v1/identity/session}
       GATEWAY_IDENTITY_STATUS_TIMEOUT: ${GATEWAY_IDENTITY_STATUS_TIMEOUT:-3s}
       HTTP_CORS_ORIGINS: ${GATEWAY_CORS_ORIGINS:-}
       HTTP_BODY_LIMIT: ${GATEWAY_HTTP_BODY_LIMIT:-11M}
       HTTP_TRUSTED_PROXIES: ${GATEWAY_TRUSTED_PROXIES:-}
-      AUTH_ISSUER: ${AUTH_ISSUER:-}
-      AUTH_JWKS_URL: ${AUTH_JWKS_URL:-}
+      AUTH_ISSUER: ${AUTH_ISSUER:-http://identity:8080}
+      AUTH_JWKS_URL: ${AUTH_JWKS_URL:-http://identity:8080/.well-known/jwks.json}
       AUTH_SERVICE_KEYS_FILE: /keys/service-keys.json
     volumes:
       - ./deploy/helm/platform/files/gateway:/config:ro
@@ -258,6 +258,7 @@ services:
       valkey: { condition: service_healthy }
       files: { condition: service_healthy }
       itsm: { condition: service_healthy }
+      identity: { condition: service_healthy }
 
   identity-migrate:
     <<: *identity

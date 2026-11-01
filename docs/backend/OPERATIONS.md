@@ -17,17 +17,19 @@ See [DATA-MIGRATION](DATA-MIGRATION.md) before moving an existing installation.
 
 Default ports (all can be changed in `.env`):
 
-| Port | Service       |
-| ---- | ------------- |
-| 5432 | Postgres      |
-| 6379 | Valkey        |
-| 8080 | gateway       |
-| 9080 | gateway admin |
-| 9081 | files admin   |
-| 9083 | itsm admin    |
-| 8333 | SeaweedFS S3  |
-| 3300 | Grafana       |
-| 9091 | Prometheus    |
+| Port | Service        |
+| ---- | -------------- |
+| 5432 | Postgres       |
+| 6379 | Valkey         |
+| 8080 | gateway        |
+| 9080 | gateway admin  |
+| 9081 | files admin    |
+| 8082 | identity       |
+| 9082 | identity admin |
+| 9083 | itsm admin     |
+| 8333 | SeaweedFS S3   |
+| 3300 | Grafana        |
+| 9091 | Prometheus     |
 
 ## Continuous integration
 
