@@ -5,7 +5,6 @@ import { formatMessage } from "@platform/locales";
 import { CountUp, CurrencyDisplay, DateDisplay, StatusBadge } from "@platform/ui";
 import {
   Activity,
-  AlertTriangle,
   ArrowUpRight,
   Briefcase,
   Building2,
@@ -183,10 +182,10 @@ export function DashboardWidget({
                 return (
                   <li key={key} className="space-y-1 text-xs">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-ink-muted dark:text-ink-muted font-medium truncate">
+                      <span className="text-ink-muted font-medium truncate">
                         {stage ? dealStageLabel(stage, t, locale) : ((t.stages as Record<string, string>)[key] ?? key)} ({stat.count})
                       </span>
-                      {data.showMoney ? <span className="font-bold text-ink dark:text-ink">{money(stat.value)}</span> : null}
+                      {data.showMoney ? <span className="font-bold text-ink">{money(stat.value)}</span> : null}
                     </div>
                     <div className="w-full h-1.5 bg-surface-sunken dark:bg-white/5 rounded-full overflow-hidden">
                       <div className="h-full bg-accent rounded-full motion-safe:transition-[width] motion-safe:duration-700" style={{ width: `${Math.min(100, Math.max(0, share))}%` }} />
@@ -611,16 +610,3 @@ export function DashboardWidget({
   return null;
 }
 
-/** Shown in place of a widget whose data is not loaded yet. */
-export function DashboardWidgetPlaceholder({ id }: { id: string }) {
-  const { t } = useAdminLocale();
-  return (
-    <div className={`${widgetCard} p-4 space-y-2`}>
-      <div className="text-xs font-bold text-ink flex items-center gap-2">
-        <AlertTriangle className="w-3.5 h-3.5 text-ink-muted" aria-hidden="true" />
-        {(t.dashboardBoard.widgets as Record<string, string>)[id] ?? id}
-      </div>
-      <p className="text-[11px] text-ink-muted">{t.dashboardBoard.pendingData}</p>
-    </div>
-  );
-}

@@ -1,6 +1,9 @@
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { listProductCategories, listStockCounts, listWarehouses, requireFeatureEnabled } from "@platform/database";
 import { StockCountsView } from "../../../../components/inventory/StockCountsView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("inventory/counts");
 
 export const dynamic = "force-dynamic";
 

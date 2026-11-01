@@ -1,6 +1,9 @@
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { db, getAllServices, getFeatureToggle } from "@platform/database";
 import { NewRequestFormView } from "../../../../components/requests/NewRequestFormView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("requests/new");
 
 export const dynamic = "force-dynamic";
 

@@ -3,6 +3,9 @@ import { getCmsArticle, getCompanySettings, getWebsiteEditor, requireFeatureEnab
 import { resolveWebsiteConfig, validateWebsiteConfig } from "@platform/database/website-config";
 import { hasPermission, requirePagePermission } from "../../../../../lib/auth";
 import { ArticleEditorView } from "../../../../../components/cms/ArticleEditorView";
+import { pageMetadata } from "../../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("cms/articles/[id]");
 
 export const dynamic = "force-dynamic";
 

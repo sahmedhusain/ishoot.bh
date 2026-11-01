@@ -1,6 +1,9 @@
 import { requirePagePermission } from "../../../../lib/auth";
 import { getAllEquipment } from "@platform/database";
 import { EquipmentManagementView } from "../../../../components/cms/EquipmentManagementView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("cms/equipment");
 
 export const dynamic = "force-dynamic";
 

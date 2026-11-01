@@ -26,8 +26,8 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
   return (
     <section className="space-y-4 rounded-xl border border-outline-variant p-4 sm:p-5">
       <div className="space-y-0.5">
-        <h3 className="text-sm font-bold text-ink dark:text-ink">{title}</h3>
-        {hint ? <p className="text-xs text-ink-muted dark:text-ink-muted">{hint}</p> : null}
+        <h3 className="text-sm font-bold text-ink">{title}</h3>
+        {hint ? <p className="text-xs text-ink-muted">{hint}</p> : null}
       </div>
       {children}
     </section>
@@ -40,7 +40,7 @@ function Toggle({ label, checked, onChange, disabled, hint }: { label: string; c
       <input type="checkbox" className="mt-0.5 h-4 w-4 accent-accent" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} />
       <span>
         {label}
-        {hint ? <span className="block text-[11px] text-ink-muted dark:text-ink-muted">{hint}</span> : null}
+        {hint ? <span className="block text-[11px] text-ink-muted">{hint}</span> : null}
       </span>
     </label>
   );
@@ -134,7 +134,7 @@ export function WebsiteSetupFields({ config, onChange, languages, primaryLanguag
           })}
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <button type="button" onClick={() => apply(config.purpose)} className="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant px-3 py-1.5 text-xs font-semibold text-ink hover:border-accent hover:text-accent dark:text-ink">
+          <button type="button" onClick={() => apply(config.purpose)} className="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant px-3 py-1.5 text-xs font-semibold text-ink hover:border-accent hover:text-accent">
             <RotateCcw className="h-3.5 w-3.5" />
             {copy.applyRecommended}
           </button>
@@ -142,16 +142,16 @@ export function WebsiteSetupFields({ config, onChange, languages, primaryLanguag
         </div>
         <dl className="grid gap-2 rounded-lg bg-ink/[0.04] p-3 text-xs sm:grid-cols-3">
           <div>
-            <dt className="text-ink-muted dark:text-ink-muted">{copy.summaryAddress}</dt>
-            <dd className="font-mono text-ink dark:text-ink" dir="ltr">/{primaryLanguage}/{collection.slug}</dd>
+            <dt className="text-ink-muted">{copy.summaryAddress}</dt>
+            <dd className="font-mono text-ink" dir="ltr">/{primaryLanguage}/{collection.slug}</dd>
           </div>
           <div>
-            <dt className="text-ink-muted dark:text-ink-muted">{copy.collectionLayout}</dt>
-            <dd className="text-ink dark:text-ink">{copy.layouts[collection.layout]}</dd>
+            <dt className="text-ink-muted">{copy.collectionLayout}</dt>
+            <dd className="text-ink">{copy.layouts[collection.layout]}</dd>
           </div>
           <div>
-            <dt className="text-ink-muted dark:text-ink-muted">{copy.heroTitle}</dt>
-            <dd className="text-ink dark:text-ink"><bdi dir="auto">{copy.heroStyles[config.heroStyle].name}</bdi></dd>
+            <dt className="text-ink-muted">{copy.heroTitle}</dt>
+            <dd className="text-ink"><bdi dir="auto">{copy.heroStyles[config.heroStyle].name}</bdi></dd>
           </div>
         </dl>
       </Section>
@@ -204,8 +204,8 @@ export function WebsiteSetupFields({ config, onChange, languages, primaryLanguag
               className={`space-y-2 rounded-xl border p-3 text-start transition-colors ${config.heroStyle === style ? "border-accent bg-accent/10" : "border-outline-variant hover:border-ink/30"}`}
             >
               <HeroSketch style={style} />
-              <span className="block text-sm font-semibold text-ink dark:text-ink"><bdi dir="auto">{copy.heroStyles[style].name}</bdi></span>
-              <span className="block text-[11px] text-ink-muted dark:text-ink-muted">{copy.heroStyles[style].description}</span>
+              <span className="block text-sm font-semibold text-ink"><bdi dir="auto">{copy.heroStyles[style].name}</bdi></span>
+              <span className="block text-[11px] text-ink-muted">{copy.heroStyles[style].description}</span>
             </button>
           ))}
         </div>

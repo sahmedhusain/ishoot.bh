@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
@@ -11,7 +12,6 @@ import {
   ExternalLink,
   File,
   FileText,
-  FolderOpen,
   Image as ImageIcon,
   Plus,
   Search,
@@ -46,6 +46,7 @@ import { uploadForClaim } from "../../lib/upload-client";
 import { CustomFoldersWidget } from "../dashboard/FolderWidgets";
 import { BilingualPdfActions } from "../shared/BilingualPdfActions";
 import { LinkOrUploadField } from "../shared/LinkOrUploadField";
+import { PageHeader } from "../layout/PageHeader";
 
 const SORTS = ["newest", "oldest", "name", "expiry", "largest"] as const;
 const EXPIRY = ["all", "expired", "expiring", "valid", "none"] as const;
@@ -254,15 +255,8 @@ export function CompanyArchiveView({
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-ink flex items-center gap-2">
-            <FolderOpen className="h-5 w-5 text-accent" />
-            <bdi dir="auto">{v.title}</bdi>
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">{v.subtitle}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
+      <PageHeader
+        actions={<div className="flex flex-wrap items-center gap-2">
           <BilingualPdfActions
             label={t.communications.letterhead}
             pdfUrl={(lang, download) =>
@@ -297,8 +291,8 @@ export function CompanyArchiveView({
               {v.upload}
             </Button>
           ) : null}
-        </div>
-      </div>
+        </div>}
+      />
 
       {uploading ? (
         <form
@@ -412,7 +406,7 @@ export function CompanyArchiveView({
           <Link
             key={String(label)}
             href={String(link)}
-            className="rounded-2xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-4 hover:border-accent/40"
+            className="rounded-2xl border border-outline-variant bg-surface-raised p-4 hover:border-accent/40"
           >
             <div className="text-[11px] text-ink-muted">{label}</div>
             <div className={`text-lg font-bold mt-0.5 ${tone}`}>{value}</div>
@@ -534,8 +528,8 @@ export function CompanyArchiveView({
       </div>
 
       {items.length ? (
-        <div className="overflow-x-auto rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto rounded-3xl border border-outline-variant bg-surface-raised">
+          <DataTable className="w-full text-sm">
             <thead className="text-[11px] uppercase tracking-wide text-ink-muted">
               <tr className="border-b border-outline-variant">
                 <th className="px-4 py-3 text-start">{v.columns.document}</th>
@@ -629,7 +623,7 @@ export function CompanyArchiveView({
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
         </div>
       ) : (
         <div className="rounded-3xl border border-dashed border-outline-variant p-10 text-center text-sm text-ink-muted">

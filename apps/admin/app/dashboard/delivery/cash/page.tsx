@@ -2,6 +2,9 @@ import { cashToSettle, listCodSettlements, requireFeatureEnabled } from "@platfo
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { CashSettlementView } from "../../../../components/delivery/CashSettlementView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("delivery/cash");
 
 export const dynamic = "force-dynamic";
 

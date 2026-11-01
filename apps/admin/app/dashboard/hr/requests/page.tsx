@@ -4,6 +4,9 @@ import { canManageSalaryDocuments } from "../../../../lib/salary-documents";
 import { ROUTES } from "../../../../constants/routes";
 import { HrRequestsView, type HrRequestRow } from "../../../../components/hr/HrRequestsView";
 import { dataScope } from "../../../../lib/data-scope";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("hr/requests");
 
 export const dynamic = "force-dynamic";
 

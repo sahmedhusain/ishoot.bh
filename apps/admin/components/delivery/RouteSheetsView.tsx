@@ -13,6 +13,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { Field } from "../setup/LanguageFields";
 import { ShipmentStatusPill } from "./ShipmentPills";
+import { PageHeader } from "../layout/PageHeader";
 
 type Sheet = Awaited<ReturnType<typeof listRouteSheets>>[number];
 type Routable = Awaited<ReturnType<typeof routableShipments>>[number];
@@ -54,18 +55,14 @@ export function RouteSheetsView({ sheets, shipments, drivers, vehicles }: { shee
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
-          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
-        </div>
-        {!planning && (
+      <PageHeader
+        actions={!planning && (
           <Button type="button" size="sm" variant="primary" className="rounded-full gap-1.5" onClick={() => setPlanning(true)}>
             <Plus className="w-4 h-4" />
             {copy.new}
           </Button>
         )}
-      </div>
+      />
 
       {planning && (
         <Card className="p-5 space-y-4" data-testid="route-planner">

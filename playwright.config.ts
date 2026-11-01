@@ -1,5 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
+// Disposable encryption key shared by fixture writers and the isolated test servers.
+process.env.ENCRYPTION_KEY ||= "0123456789abcdef0123456789abcdef";
+
 // End-to-end tests for both apps. Each app runs against its own disposable database (tests/e2e/prepare-db.cjs):
 //   admin + web     → seeded demo company (E2E_SEEDED_DATABASE, default platform_e2e_test)
 //   setup wizard    → blank install       (E2E_BLANK_DATABASE,  default platform_e2e_blank_test)
@@ -7,7 +10,7 @@ import { defineConfig, devices } from "@playwright/test";
 // `pnpm exec playwright test` reuses them. E2E_SERVER_MODE=start serves production builds.
 const seeded = process.env.E2E_SEEDED_DATABASE || "platform_e2e_test";
 const blank = process.env.E2E_BLANK_DATABASE || "platform_e2e_blank_test";
-export const ports = { admin: 3101, web: 3102, setup: 3103, stripe: 3199 };
+export const ports = { admin: 3012, web: 3013, setup: 3014, stripe: 3199 };
 const session = "tests/.results/admin-session.json";
 /** The test servers' own secret for the scheduled-jobs endpoint, so specs can run the jobs. */
 export const cronSecret = "e2e-cron-secret";
@@ -57,6 +60,7 @@ export default defineConfig({
         ],
       ],
   use: {
+    reducedMotion: "reduce",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "retain-on-failure",

@@ -4,6 +4,9 @@ import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { deliveryScope } from "../../../../lib/delivery-scope";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { ShipmentView } from "../../../../components/delivery/ShipmentView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("delivery/[id]");
 
 export const dynamic = "force-dynamic";
 

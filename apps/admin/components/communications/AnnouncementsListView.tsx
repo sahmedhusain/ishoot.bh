@@ -7,6 +7,7 @@ import type { AnnouncementItem } from "@platform/database";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { ROUTES } from "../../constants/routes";
 import { communicationSettingsAction } from "../../app/actions/communications";
+import { PageHeader } from "../layout/PageHeader";
 export function AnnouncementsListView({
   items,
   view,
@@ -27,9 +28,8 @@ export function AnnouncementsListView({
   const [busy, setBusy] = useState(false);
   return (
     <div className="max-w-5xl mx-auto space-y-5">
-      <header className="flex justify-between" data-page-header>
-        <h1 className="text-2xl font-bold">{c.announcements}</h1>
-        {canCreate && (
+      <PageHeader
+        actions={canCreate && (
           <Link
             href={ROUTES.announcements.create}
             className="rounded-full bg-accent px-4 py-2 text-accent-foreground"
@@ -37,7 +37,7 @@ export function AnnouncementsListView({
             {c.new}
           </Link>
         )}
-      </header>
+      />
       <nav className="flex gap-3 flex-wrap">
         {["inbox", "unread", "hidden", "manage"].map((v) => (
           <Link

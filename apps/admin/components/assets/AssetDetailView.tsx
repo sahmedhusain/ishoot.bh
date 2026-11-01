@@ -3,7 +3,7 @@
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRightLeft, Pencil, Undo2, UserPlus } from "lucide-react";
+import { ArrowRightLeft, Pencil, Undo2, UserPlus } from "lucide-react";
 import { Button, formatCurrencyValue, formatDate } from "@platform/ui";
 import type { AssetCategoryRecord, AssetRecord } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
@@ -11,6 +11,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { AssetForm } from "./AssetForm";
 import { HandoverForm } from "./HandoverForm";
 import { ASSET_STATUS_STYLE } from "./AssetsListView";
+import { PageHeader } from "../layout/PageHeader";
 
 type Handover = { id: string; reference: string; kind: string; status: string; handover_date: string; condition: string; employee: { name_en: string; name_ar: string }; damage_charge?: number };
 
@@ -41,26 +42,20 @@ export function AssetDetailView({ asset, handovers, categories, employees, canEd
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3" data-page-header>
-          <Link href={ROUTES.assets.list()} aria-label={t.actions.back} className="rounded-full border border-outline-variant p-2 text-ink-muted hover:text-ink"><ArrowLeft className="h-4 w-4 rtl:-scale-x-100" /></Link>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-ink"><bdi dir="auto">{asset.name}</bdi></h1>
-            <p className="text-xs text-ink-muted mt-1 flex flex-wrap items-center gap-2">
-              <bdi dir="ltr">{asset.asset_tag}</bdi>
-              <span>· {isAr ? asset.category.name_ar : asset.category.name_en}</span>
-              <span className={`rounded-full px-2 py-0.5 font-semibold ${ASSET_STATUS_STYLE[asset.status]}`}>{a.statuses[asset.status as keyof typeof a.statuses]}</span>
-            </p>
-          </div>
-        </div>
-        {canEdit && mode === "view" ? (
+      <PageHeader
+        title={asset.name}
+        description={<><bdi dir="ltr">{asset.asset_tag}</bdi>
+            <span>· {isAr ? asset.category.name_ar : asset.category.name_en}</span>
+            <span className={`rounded-full px-2 py-0.5 font-semibold ${ASSET_STATUS_STYLE[asset.status]}`}>{a.statuses[asset.status as keyof typeof a.statuses]}</span></>}
+        back={{ href: ROUTES.assets.list() }}
+        actions={canEdit && mode === "view" ? (
           <div className="flex flex-wrap gap-2">
             {asset.status === "available" && !asset.open_handover ? <Button size="sm" className="gap-1.5" onClick={() => setMode("issue")}><UserPlus className="h-4 w-4" />{a.handover.issue}</Button> : null}
             {asset.status === "assigned" && !asset.open_handover ? <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setMode("return")}><Undo2 className="h-4 w-4" />{a.handover.return}</Button> : null}
             <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setMode("edit")}><Pencil className="h-4 w-4" />{a.edit}</Button>
           </div>
         ) : null}
-      </div>
+      />
 
       {asset.open_handover ? (
         <Link href={ROUTES.assets.handover(asset.open_handover.id)} className="flex items-center gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm font-semibold text-amber-800 dark:text-amber-200">
@@ -70,12 +65,12 @@ export function AssetDetailView({ asset, handovers, categories, employees, canEd
       ) : null}
 
       {mode === "edit" ? (
-        <div className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-5"><AssetForm categories={categories} asset={asset} employees={employees} onDone={() => setMode("view")} /></div>
+        <div className="rounded-3xl border border-outline-variant bg-surface-raised p-5"><AssetForm categories={categories} asset={asset} employees={employees} onDone={() => setMode("view")} /></div>
       ) : mode === "issue" || mode === "return" ? (
         <HandoverForm asset={asset} kind={mode} employees={employees} onCancel={() => setMode("view")} />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <section className="lg:col-span-2 rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-5 space-y-5">
+          <section className="lg:col-span-2 rounded-3xl border border-outline-variant bg-surface-raised p-5 space-y-5">
             <dl className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {item(a.fields.brand, asset.brand)}
               {item(a.fields.model, asset.model)}
@@ -99,7 +94,7 @@ export function AssetDetailView({ asset, handovers, categories, employees, canEd
             ) : null}
             {asset.notes ? <p className="border-t border-outline-variant pt-4 text-xs text-ink whitespace-pre-wrap">{asset.notes}</p> : null}
           </section>
-          <section className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-5 space-y-3" data-page-section>
+          <section className="rounded-3xl border border-outline-variant bg-surface-raised p-5 space-y-3" data-page-section>
             <h2 className="text-sm font-bold text-ink">{a.history}</h2>
             {handovers.length === 0 ? <p className="text-xs text-ink-muted">{a.noHistory}</p> : null}
             <ul className="space-y-2">

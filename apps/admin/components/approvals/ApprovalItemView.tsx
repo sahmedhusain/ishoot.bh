@@ -4,7 +4,6 @@ import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import Link from "next/link";
 import {
-  ArrowLeft,
   ArrowRight,
   Check,
   Clock,
@@ -21,6 +20,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import type { ApprovalItemDetail, FactValue } from "../../lib/approval-item";
 import { ContentImage } from "../shared/ContentImage";
 import { ApprovalDecisionPanel } from "./ApprovalDecisionPanel";
+import { PageHeader } from "../layout/PageHeader";
 
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
@@ -79,38 +79,24 @@ export function ApprovalItemView({ item }: { item: ApprovalItemDetail }) {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-16">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3" data-page-header>
-          <Link
-            href={ROUTES.approvals()}
-            aria-label={t.actions.back}
-            className="rounded-full border border-outline-variant p-2 text-ink-muted hover:text-ink"
-          >
-            <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" aria-hidden />
-          </Link>
-          <div>
-            <p className="text-xs text-ink-muted"><bdi dir="auto">{a.title}</bdi></p>
-            <h1 className="text-xl sm:text-2xl font-bold text-ink">
-              {typeLabel}
-            </h1>
-            <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-ink-muted">
-              {item.reference ? (
-                <bdi dir="ltr" className="font-mono">
-                  {item.reference}
-                </bdi>
-              ) : null}
-              {approval ? (
-                <span
-                  className={`rounded-full px-2 py-0.5 font-semibold ${STATUS_STYLES[approval.status] ?? "bg-ink/5 text-ink-muted"}`}
-                >
-                  {a.status[approval.status as keyof typeof a.status] ??
-                    approval.status}
-                </span>
-              ) : null}
-            </p>
-          </div>
-        </div>
-        {item.recordUrl ? (
+      <PageHeader
+        title={typeLabel}
+        description={<>{item.reference ? (
+              <bdi dir="ltr" className="font-mono">
+                {item.reference}
+              </bdi>
+            ) : null}
+            {approval ? (
+              <span
+                className={`rounded-full px-2 py-0.5 font-semibold ${STATUS_STYLES[approval.status] ?? "bg-ink/5 text-ink-muted"}`}
+              >
+                {a.status[approval.status as keyof typeof a.status] ??
+                  approval.status}
+              </span>
+            ) : null}</>}
+        back={{ href: ROUTES.approvals() }}
+        eyebrow={a.title}
+        actions={item.recordUrl ? (
           <Link
             href={item.recordUrl}
             className="inline-flex h-9 items-center gap-1.5 self-start rounded-full border border-outline-variant px-4 text-xs font-semibold text-ink hover:bg-ink/5"
@@ -119,12 +105,12 @@ export function ApprovalItemView({ item }: { item: ApprovalItemDetail }) {
             <ExternalLink className="h-3.5 w-3.5" aria-hidden />
           </Link>
         ) : null}
-      </div>
+      />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           {item.subject ? (
-            <section className="flex items-center gap-3 rounded-3xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised">
+            <section className="flex items-center gap-3 rounded-3xl border border-outline-variant bg-surface-raised p-5">
               <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent/10 text-accent">
                 <User className="h-5 w-5" aria-hidden />
               </span>
@@ -146,7 +132,7 @@ export function ApprovalItemView({ item }: { item: ApprovalItemDetail }) {
           ) : null}
 
           {item.changes.length ? (
-            <section className="rounded-3xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised" data-page-section>
+            <section className="rounded-3xl border border-outline-variant bg-surface-raised p-5" data-page-section>
               <h2 className="mb-3 text-sm font-bold text-ink">
                 {it.requestedChanges}
               </h2>
@@ -178,7 +164,7 @@ export function ApprovalItemView({ item }: { item: ApprovalItemDetail }) {
           ) : null}
 
           {item.images.length ? (
-            <section className="rounded-3xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised">
+            <section className="rounded-3xl border border-outline-variant bg-surface-raised p-5">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {item.images.map((image) => (
                   <figure key={image.key} className="space-y-2">
@@ -207,7 +193,7 @@ export function ApprovalItemView({ item }: { item: ApprovalItemDetail }) {
           ) : null}
 
           {item.facts.length ? (
-            <section className="rounded-3xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised" data-page-section>
+            <section className="rounded-3xl border border-outline-variant bg-surface-raised p-5" data-page-section>
               <h2 className="mb-3 text-sm font-bold text-ink">{a.details}</h2>
               <dl className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2 md:grid-cols-3">
                 {item.facts.map((fact) => (
@@ -223,7 +209,7 @@ export function ApprovalItemView({ item }: { item: ApprovalItemDetail }) {
           ) : null}
 
           {item.note ? (
-            <section className="rounded-3xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised" data-page-section>
+            <section className="rounded-3xl border border-outline-variant bg-surface-raised p-5" data-page-section>
               <h2 className="mb-2 text-sm font-bold text-ink">{it.reason}</h2>
               <p className="whitespace-pre-wrap text-sm text-ink">
                 {item.note}
@@ -232,7 +218,7 @@ export function ApprovalItemView({ item }: { item: ApprovalItemDetail }) {
           ) : null}
 
           {item.files.length ? (
-            <section className="rounded-3xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised" data-page-section>
+            <section className="rounded-3xl border border-outline-variant bg-surface-raised p-5" data-page-section>
               <h2 className="mb-2 flex items-center gap-2 text-sm font-bold text-ink">
                 <Paperclip className="h-4 w-4" aria-hidden />
                 {it.files}
@@ -259,7 +245,7 @@ export function ApprovalItemView({ item }: { item: ApprovalItemDetail }) {
 
         <aside className="space-y-4">
           {approval ? (
-            <section className="space-y-3 rounded-3xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised" data-page-section>
+            <section className="space-y-3 rounded-3xl border border-outline-variant bg-surface-raised p-5" data-page-section>
               <h2 className="text-sm font-bold text-ink">{it.progress}</h2>
               <p className="text-xs text-ink-muted">
                 {formatMessage(a.requestedBy, { name: approval.requestedBy.name })} ·{" "}

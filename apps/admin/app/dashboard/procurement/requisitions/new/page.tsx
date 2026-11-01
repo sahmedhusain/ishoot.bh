@@ -2,6 +2,9 @@ import { requirePagePermission } from "../../../../../lib/auth";
 import { procurementProductOptions, requireFeatureEnabled } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../../lib/cached-queries";
 import { RequisitionView } from "../../../../../components/procurement/RequisitionView";
+import { pageMetadata } from "../../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("procurement/requisitions/new");
 
 export const dynamic = "force-dynamic";
 

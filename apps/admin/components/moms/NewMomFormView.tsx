@@ -7,17 +7,15 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Card, Button, Input, Select } from "@platform/ui";
 import {
-  FileSignature,
   Plus,
   Trash2, Users,
   CheckCircle,
   Save,
-  ArrowLeft,
-  ArrowRight
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { createMomAction } from "../../app/actions/mom";
 import type { MomAttendee, MomDiscussionPoint, MomActionItem } from "@platform/database";
+import { PageHeader } from "../layout/PageHeader";
 
 interface NewMomFormViewProps {
   clients: Array<{ id: string; name: string; company?: string | null }>;
@@ -28,7 +26,7 @@ interface NewMomFormViewProps {
 
 export function NewMomFormView({ clients, deals, companyName, initialAttendee }: NewMomFormViewProps) {
   const router = useRouter();
-  const { t, isRTL } = useAdminLocale();
+  const { t } = useAdminLocale();
 
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -178,23 +176,9 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
   return (
     <form onSubmit={handleSubmit} className="space-y-8 max-w-5xl mx-auto pb-24 text-xs">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant pb-6" data-page-header>
-        <div>
-          <button
-            type="button"
-            onClick={() => router.push(ROUTES.moms.list)}
-            className="flex items-center gap-2 text-ink-muted hover:text-ink mb-2 transition-colors"
-          >
-            {isRTL ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
-            <span>{t.newMomForm.backToMeetingMinutes}</span>
-          </button>
-          <h1 className="text-2xl font-bold tracking-tight text-ink font-display flex items-center gap-2">
-            <FileSignature className="w-6 h-6 text-accent" />
-            <span>{t.newMomForm.composeMinutesOfMeeting}</span>
-          </h1>
-        </div>
-
-        <div className="flex items-center gap-3">
+      <PageHeader
+        back={{ href: ROUTES.moms.list, label: t.newMomForm.backToMeetingMinutes }}
+        actions={<div className="flex items-center gap-3">
           <Button
             type="button"
             variant="outline"
@@ -212,8 +196,8 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
             <Save className="w-4 h-4" />
             <span>{saving ? (t.newMomForm.saving) : t.newMomForm.saveDocument}</span>
           </Button>
-        </div>
-      </div>
+        </div>}
+      />
 
       {error && (
         <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 font-medium">

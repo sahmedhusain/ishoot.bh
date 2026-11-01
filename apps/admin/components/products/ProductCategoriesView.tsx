@@ -12,6 +12,7 @@ import { deleteProductCategoryAction, saveProductCategoryAction } from "../../ap
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { Field, LanguageFields } from "../setup/LanguageFields";
+import { PageHeader } from "../layout/PageHeader";
 
 interface Draft {
   id?: string;
@@ -92,18 +93,14 @@ export function ProductCategoriesView({ categories, languages, canEdit, canDelet
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
-          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
-        </div>
-        {canEdit && !draft && (
+      <PageHeader
+        actions={canEdit && !draft && (
           <Button type="button" variant="primary" size="sm" className="rounded-full gap-1.5" onClick={() => setDraft({ nameEn: "", nameAr: "", parentId: "", isActive: true })}>
             <Plus className="w-3.5 h-3.5" />
             {copy.add}
           </Button>
         )}
-      </div>
+      />
       {error && <p role="alert" className="text-sm rounded-xl px-4 py-3 bg-rose-500/10 text-rose-700 dark:text-rose-300">{error}</p>}
       {editor}
       <Card className="overflow-hidden">

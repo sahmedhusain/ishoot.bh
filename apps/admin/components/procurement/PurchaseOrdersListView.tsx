@@ -10,6 +10,7 @@ import { PURCHASE_ORDER_STATUSES } from "@platform/database/constants/procuremen
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { StatusPill } from "./StatusPill";
+import { PageHeader } from "../layout/PageHeader";
 
 interface Row {
   id: string;
@@ -34,18 +35,14 @@ export function PurchaseOrdersListView({ rows, total, page, pageSize, filters, c
   };
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
-          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
-        </div>
-        {canCreate && (
+      <PageHeader
+        actions={canCreate && (
           <Link href={ROUTES.procurement.newOrder()} className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 h-9 text-sm font-semibold text-primary-foreground hover:opacity-90">
             <Plus className="w-4 h-4" />
             {copy.new}
           </Link>
         )}
-      </div>
+      />
       <form role="search" className="flex flex-col sm:flex-row gap-2" onSubmit={(e) => { e.preventDefault(); router.push(href({ q: search.trim() })); }}>
         <div className="relative flex-1">
           <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted" aria-hidden="true" />

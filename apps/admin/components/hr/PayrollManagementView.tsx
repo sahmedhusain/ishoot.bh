@@ -32,6 +32,7 @@ import {
   recalculatePayrollRunAction,
 } from "../../app/actions/payroll";
 import { toast } from "sonner";
+import { PageHeader } from "../layout/PageHeader";
 
 interface PayrollManagementViewProps {
   runs: PayrollRun[];
@@ -205,22 +206,9 @@ export function PayrollManagementView({
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-16">
       {/* Editorial Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-outline-variant pb-6" data-page-header>
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono uppercase tracking-widest text-accent bg-secondary-container dark:bg-tone-15/40 dark:text-mint px-2.5 py-0.5 rounded-full font-medium">
-              {t.payrollManagement.hrAndStatutoryPayroll}
-            </span>
-          </div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-ink dark:text-ink mt-1">
-            {t.payrollManagement.payrollAndCompensationRuns}
-          </h1>
-          <p className="text-sm text-ink-muted dark:text-ink-muted mt-1">
-            {t.payrollManagement.employeeSpecificGosiSettingsAllowances}
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
+      <PageHeader
+        eyebrow={t.payrollManagement.hrAndStatutoryPayroll}
+        actions={<div className="flex flex-wrap items-center gap-2">
           <Link href={ROUTES.hr.attendance} className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-outline-variant px-3.5 text-xs font-medium text-primary hover:bg-primary/[0.06] dark:text-accent">
             <CalendarCheck className="w-3.5 h-3.5" />
             {t.payroll.attendanceLink}
@@ -238,16 +226,16 @@ export function PayrollManagementView({
             <Plus className="w-3.5 h-3.5" />
             <span>{t.payrollManagement.generateMonthlyRun}</span>
           </Button>}
-        </div>
-      </div>
+        </div>}
+      />
 
       {/* Metrics Bento Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
-          <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
+        <div className="bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
+          <div className="text-xs text-ink-muted uppercase tracking-wider font-mono">
             {t.payrollManagement.totalNetSalaryOutlay}
           </div>
-          <div className="text-2xl font-bold font-mono text-ink dark:text-ink">
+          <div className="text-2xl font-bold font-mono text-ink">
             {totalNetDisbursed.toFixed(3)}{" "}
             <span className="text-xs font-normal text-ink-muted">
               {companyCurrency}
@@ -256,11 +244,11 @@ export function PayrollManagementView({
           <div className="text-xs text-ink-muted">{t.payrollManagement.netPaidAcrossAllRuns}</div>
         </div>
 
-        <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
-          <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
+        <div className="bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
+          <div className="text-xs text-ink-muted uppercase tracking-wider font-mono">
             {t.payrollManagement.totalEmployerGosiAndCosts}
           </div>
-          <div className="text-2xl font-bold font-mono text-ink dark:text-ink">
+          <div className="text-2xl font-bold font-mono text-ink">
             {totalEmployerCosts.toFixed(3)}{" "}
             <span className="text-xs font-normal text-ink-muted">
               {companyCurrency}
@@ -269,8 +257,8 @@ export function PayrollManagementView({
           <div className="text-xs text-ink-muted">{t.payrollManagement.includingStatutoryEmployerContributions}</div>
         </div>
 
-        <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
-          <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
+        <div className="bg-surface-raised border border-outline-variant p-5 rounded-lg space-y-1">
+          <div className="text-xs text-ink-muted uppercase tracking-wider font-mono">
             {t.payrollManagement.recordedPayrollCycles}
           </div>
           <div className="text-2xl font-bold font-mono text-primary dark:text-mint">
@@ -285,7 +273,7 @@ export function PayrollManagementView({
         {runs.length === 0 ? (
           <div className="p-12 text-center rounded-lg border border-dashed border-outline-variant bg-white/50 dark:bg-surface-raised/50">
             <DollarSign className="w-10 h-10 text-ink-muted mx-auto mb-3" />
-            <h3 className="text-base font-semibold text-ink dark:text-ink">
+            <h3 className="text-base font-semibold text-ink">
               {t.payrollManagement.noPayrollRunsGenerated}
             </h3>
             <p className="text-xs text-ink-muted max-w-sm mx-auto mt-1 mb-4">
@@ -308,7 +296,7 @@ export function PayrollManagementView({
             return (
               <Card
                 key={run.id}
-                className="bg-surface-raised dark:bg-surface-raised border border-outline-variant rounded-lg overflow-hidden space-y-0"
+                className="bg-surface-raised border border-outline-variant rounded-lg overflow-hidden space-y-0"
               >
                 {/* Run Summary Header */}
                 <div className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-raised/50 dark:bg-surface-raised/30">
@@ -327,7 +315,7 @@ export function PayrollManagementView({
                     </button>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-base font-bold text-ink dark:text-ink">
+                        <span className="text-base font-bold text-ink">
                           {monthName} {run.year}
                         </span>
                         <span
@@ -345,7 +333,7 @@ export function PayrollManagementView({
                           ] || run.status}
                         </span>
                       </div>
-                      <div className="text-xs text-ink-muted dark:text-ink-muted mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5">
+                      <div className="text-xs text-ink-muted mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5">
                         <span>{run.items?.length || 0} {t.payrollManagement.employeesIncluded}</span>
                         {run.attendanceStart && run.attendanceEnd && (
                           <span><bdi dir="ltr">{fill(t.payroll.attendanceWindow, { start: run.attendanceStart.slice(0, 10), end: run.attendanceEnd.slice(0, 10) })}</bdi></span>
@@ -364,7 +352,7 @@ export function PayrollManagementView({
                       <span className="text-ink-muted block text-[10px] uppercase font-mono">
                         {t.payrollManagement.grossTotal}
                       </span>
-                      <span className="font-mono font-semibold text-ink dark:text-ink">
+                      <span className="font-mono font-semibold text-ink">
                         {Number(run.totalGross).toFixed(3)}
                         {companyCurrency}
                       </span>
@@ -394,7 +382,7 @@ export function PayrollManagementView({
                       <span className="text-ink-muted block text-[10px] uppercase font-mono">
                         {t.payrollManagement.totalEmployerCost}
                       </span>
-                      <span className="font-mono font-semibold text-ink dark:text-ink">
+                      <span className="font-mono font-semibold text-ink">
                         {Number(run.totalEmployerCost).toFixed(3)}
                         {companyCurrency}
                       </span>
@@ -470,7 +458,7 @@ export function PayrollManagementView({
                         placeholder={t.payroll.search}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="w-full sm:w-56 rounded-full border border-outline-variant bg-surface-raised dark:bg-surface px-3.5 py-1.5 text-xs text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent/40"
+                        className="w-full sm:w-56 rounded-full border border-outline-variant bg-surface-raised dark:bg-surface px-3.5 py-1.5 text-xs text-ink focus:outline-none focus:ring-2 focus:ring-accent/40"
                       />
                     </div>
                     <ul className="divide-y divide-outline-variant rounded-xl border border-outline-variant overflow-hidden">
@@ -491,10 +479,10 @@ export function PayrollManagementView({
                             <li key={item.id}>
                               <Link href={ROUTES.hr.payrollItem(item.id)} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 hover:bg-ink/[0.04] focus-visible:bg-ink/[0.06] focus-visible:outline-none">
                                 <div className="min-w-0 flex-1 basis-48">
-                                  <p className="truncate text-sm font-semibold text-ink dark:text-ink">
+                                  <p className="truncate text-sm font-semibold text-ink">
                                     {locale === "ar" && e?.firstNameAr ? `${e.firstNameAr} ${e.lastNameAr}` : `${e?.firstNameEn ?? ""} ${e?.lastNameEn ?? ""}`}
                                   </p>
-                                  <p className="flex flex-wrap gap-x-2 text-[11px] text-ink-muted dark:text-ink-muted">
+                                  <p className="flex flex-wrap gap-x-2 text-[11px] text-ink-muted">
                                     <bdi dir="ltr">{e?.employeeNumber}</bdi>
                                     {summary?.absentDays ? <span className="text-rose-700 dark:text-rose-400">{t.payroll.absent} {summary.absentDays}</span> : null}
                                     {leaveDays ? <span>{t.payroll.leave} {leaveDays}</span> : null}
@@ -504,7 +492,7 @@ export function PayrollManagementView({
                                   </p>
                                 </div>
                                 <dl className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs">
-                                  <div><dt className="text-[10px] text-ink-muted">{t.payrollManagement.grossSalary}</dt><dd className="font-mono text-ink dark:text-ink"><bdi dir="ltr">{fmt(Number(item.grossSalary))}</bdi></dd></div>
+                                  <div><dt className="text-[10px] text-ink-muted">{t.payrollManagement.grossSalary}</dt><dd className="font-mono text-ink"><bdi dir="ltr">{fmt(Number(item.grossSalary))}</bdi></dd></div>
                                   <div><dt className="text-[10px] text-ink-muted">{t.payroll.deductions}</dt><dd className="font-mono text-rose-700 dark:text-rose-400"><bdi dir="ltr">−{fmt(deductions)}</bdi></dd></div>
                                   <div><dt className="text-[10px] text-ink-muted">{t.payrollManagement.netSalary}</dt><dd className="font-mono font-bold text-primary dark:text-accent"><bdi dir="ltr">{fmt(Number(item.netSalary))}</bdi></dd></div>
                                 </dl>
@@ -537,15 +525,15 @@ export function PayrollManagementView({
           className="space-y-4"
          id={modalFormId}>
           <p className="text-sm text-ink-muted dark:text-ink">{t.payroll.payAllBody}</p>
-          <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
+          <label className="block space-y-1 text-xs font-medium text-ink">
             {t.payrollItem.method}
-            <Select value={payMethod} onChange={(e) => setPayMethod(e.target.value)} className="w-full rounded-lg border border-outline-variant bg-surface-raised dark:bg-surface px-3 py-2 text-sm text-ink dark:text-ink">
+            <Select value={payMethod} onChange={(e) => setPayMethod(e.target.value)} className="w-full rounded-lg border border-outline-variant bg-surface-raised dark:bg-surface px-3 py-2 text-sm text-ink">
               {Object.entries(t.payroll.methods).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
             </Select>
           </label>
-          <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
+          <label className="block space-y-1 text-xs font-medium text-ink">
             {t.payrollItem.reference}
-            <input dir="ltr" maxLength={120} value={payReference} onChange={(e) => setPayReference(e.target.value)} className="w-full rounded-lg border border-outline-variant bg-surface-raised dark:bg-surface px-3 py-2 text-sm text-ink dark:text-ink" />
+            <input dir="ltr" maxLength={120} value={payReference} onChange={(e) => setPayReference(e.target.value)} className="w-full rounded-lg border border-outline-variant bg-surface-raised dark:bg-surface px-3 py-2 text-sm text-ink" />
           </label>
 
         </form>
@@ -557,14 +545,14 @@ export function PayrollManagementView({
           <fieldset disabled={generating}>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label htmlFor={`${generateFormId}-month`} className="block text-xs font-medium text-ink dark:text-ink mb-1">
+                <label htmlFor={`${generateFormId}-month`} className="block text-xs font-medium text-ink mb-1">
                   {t.payrollManagement.month}
                 </label>
                 <Select
                   id={`${generateFormId}-month`}
                   value={generateMonth}
                   onChange={(e) => setGenerateMonth(Number(e.target.value))}
-                  className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
+                  className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised p-2 text-ink"
                 >
                   {months.map((m, idx) => (
                     <option key={idx} value={idx + 1}>
@@ -575,7 +563,7 @@ export function PayrollManagementView({
               </div>
 
               <div>
-                <label htmlFor={`${generateFormId}-year`} className="block text-xs font-medium text-ink dark:text-ink mb-1">
+                <label htmlFor={`${generateFormId}-year`} className="block text-xs font-medium text-ink mb-1">
                   {t.payrollManagement.year}
                 </label>
                 <Input
@@ -587,7 +575,7 @@ export function PayrollManagementView({
                   max="2035"
                   value={generateYear}
                   onChange={(e) => setGenerateYear(Number(e.target.value))}
-                  className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
+                  className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised p-2 text-ink"
                 />
               </div>
             </div>

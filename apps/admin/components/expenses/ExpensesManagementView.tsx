@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 
 import * as React from "react";
 import Link from "next/link";
@@ -9,6 +10,7 @@ import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { usePermissions } from "../../hooks/usePermissions";
 import { deleteExpenseAction } from "../../app/actions/finance";
+import { PageHeader } from "../layout/PageHeader";
 
 interface ExpensesManagementViewProps {
   totals: { currency: string; amount: number }[];
@@ -16,9 +18,11 @@ interface ExpensesManagementViewProps {
   scopeCounts?: Record<string, number>;
   initialExpenses: Expense[];
   categories: ExpenseCategory[];
+  /** Search, filters and paging, shown under the header. */
+  controls?: React.ReactNode;
 }
 
-export function ExpensesManagementView({ initialExpenses, categories, totals, count, scopeCounts = {} }: ExpensesManagementViewProps) {
+export function ExpensesManagementView({ initialExpenses, categories, totals, count, scopeCounts = {}, controls }: ExpensesManagementViewProps) {
   const { t, locale } = useAdminLocale();
   const { can } = usePermissions();
   const [expenses, setExpenses] = React.useState<Expense[]>(initialExpenses);
@@ -58,12 +62,8 @@ export function ExpensesManagementView({ initialExpenses, categories, totals, co
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">{t.nav.expenses}</h1>
-          <p className="text-xs text-ink-muted mt-1">{t.expensesView.subtitle}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+      <PageHeader
+        actions={<div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
           {can("expenses", "write") && (
             <Link href={ROUTES.expenses.recurring} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-outline-variant text-xs font-semibold text-ink hover:bg-ink/5">
               <Repeat className="w-3.5 h-3.5" />
@@ -82,8 +82,9 @@ export function ExpensesManagementView({ initialExpenses, categories, totals, co
               {t.actions.addExpense}
             </Link>
           )}
-        </div>
-      </div>
+        </div>}
+      />
+      {controls && <div className="[&>div]:mb-0">{controls}</div>}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <Card className="p-6 bg-surface border border-outline-variant space-y-2 rounded-3xl">
@@ -133,7 +134,7 @@ export function ExpensesManagementView({ initialExpenses, categories, totals, co
       </div>
 
       <div className="bg-surface border border-outline-variant rounded-3xl overflow-x-auto">
-        <table className="w-full text-start text-xs min-w-[860px]">
+        <DataTable className="w-full text-start text-xs min-w-[860px]">
           <thead className="bg-surface-sunken border-b border-outline-variant text-ink-muted uppercase tracking-wider">
             <tr>
               <th className="p-4 text-start">{t.expensesView.desc}</th>
@@ -196,7 +197,7 @@ export function ExpensesManagementView({ initialExpenses, categories, totals, co
               </tr>
             ))}
           </tbody>
-        </table>
+        </DataTable>
       </div>
 
       <ConfirmDialog

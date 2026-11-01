@@ -9,6 +9,10 @@ import {
 import { requireAuth } from "../../../../lib/auth";
 import { communicationOptions } from "../../../../lib/communication-options";
 import { AnnouncementDetailView } from "../../../../components/communications/AnnouncementDetailView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("announcements/[id]");
+
 export const dynamic = "force-dynamic";
 export default async function Page({
   params,

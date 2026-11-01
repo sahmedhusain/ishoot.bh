@@ -13,13 +13,11 @@ import { useRouter } from "next/navigation";
 import { Select, Card, Button, Input } from "@platform/ui";
 import { LinkOrUploadField } from "../shared/LinkOrUploadField";
 import {
-  ArrowLeft,
   CheckCircle2,
-  Receipt,
   Settings2,
   Briefcase,
   UserRound,
-  Building2,
+  Building2 ,
 } from "lucide-react";
 import type {
   ExpenseCategory,
@@ -33,6 +31,7 @@ import {
 import { createExpenseAction } from "../../app/actions/finance";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { EntityLookup } from "../shared/EntityLookup";
+import { PageHeader } from "../layout/PageHeader";
 
 interface NewExpenseFormViewProps {
   categories: ExpenseCategory[];
@@ -141,27 +140,9 @@ export function NewExpenseFormView({
 
   return (
     <div inert={saving} aria-busy={saving} className="space-y-6 max-w-4xl mx-auto pb-16">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4" data-page-header>
-          <Link href={ROUTES.expenses.list()}>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1.5 text-ink-muted"
-            >
-              <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
-              <span>{t.actions.back}</span>
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-ink font-display flex items-center gap-2">
-              <Receipt className="w-6 h-6 text-accent" />
-              <span><bdi dir="auto">{nT.title}</bdi></span>
-            </h1>
-            <p className="text-xs text-ink-muted mt-1">{nT.subtitle}</p>
-          </div>
-        </div>
-        {canManageCategories && (
+      <PageHeader
+        back={{ href: ROUTES.expenses.list() }}
+        actions={canManageCategories && (
           <Link
             href={ROUTES.expenses.categories}
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-accent hover:underline"
@@ -170,7 +151,7 @@ export function NewExpenseFormView({
             {nT.manageCategories}
           </Link>
         )}
-      </div>
+      />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error ? (

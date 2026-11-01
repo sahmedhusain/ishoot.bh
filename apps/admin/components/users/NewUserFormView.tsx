@@ -7,9 +7,10 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, Button, Input, Select } from "@platform/ui";
-import { ArrowLeft, CheckCircle2, ShieldCheck } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { createUserAction } from "../../app/actions/users";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { PageHeader } from "../layout/PageHeader";
 
 export function NewUserFormView({
   roles,
@@ -65,25 +66,9 @@ export function NewUserFormView({
 
   return (
     <div inert={saving} aria-busy={saving} className="space-y-8 max-w-4xl mx-auto pb-16">
-      <div className="flex items-center gap-4" data-page-header>
-        <Link href={ROUTES.users.list}>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1.5 text-ink-muted"
-          >
-            <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
-            <span>{t.actions.back}</span>
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-ink font-display flex items-center gap-2">
-            <ShieldCheck className="w-6 h-6 text-accent" />
-            <span>{t.usersNew.title}</span>
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">{t.usersNew.subtitle}</p>
-        </div>
-      </div>
+      <PageHeader
+        back={{ href: ROUTES.users.list }}
+      />
 
       <Card className="p-8 bg-surface border border-outline-variant rounded-3xl">
         <form onSubmit={handleSubmit} className="space-y-6">

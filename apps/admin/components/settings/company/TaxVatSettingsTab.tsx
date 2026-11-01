@@ -42,8 +42,8 @@ export function TaxVatSettingsTab({
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <Card className="p-6 bg-surface-raised dark:bg-surface-container-low border border-outline-variant dark:border-outline-variant shadow-xs rounded-2xl space-y-6">
-        <div className="flex items-center justify-between pb-3 border-b border-outline-variant dark:border-outline-variant">
+      <Card className="p-6 bg-surface-raised dark:bg-surface-container-low border border-outline-variant shadow-xs rounded-2xl space-y-6">
+        <div className="flex items-center justify-between pb-3 border-b border-outline-variant">
           <div className="flex items-center gap-3">
             <div
               className={`p-2 rounded-xl transition-colors ${settings.vat_enabled
@@ -54,10 +54,10 @@ export function TaxVatSettingsTab({
               <Percent className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-ink dark:text-ink">
+              <h2 className="text-sm font-bold text-ink">
                 {t.settings.vatTitle}
               </h2>
-              <p className="text-xs text-ink-muted dark:text-ink-muted">
+              <p className="text-xs text-ink-muted">
                 {t.companySettingsView.vatToggleSubtitle}
               </p>
             </div>
@@ -69,7 +69,7 @@ export function TaxVatSettingsTab({
               <span>{t.companySettingsView.vatActiveBadge}</span>
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-surface-sunken dark:bg-surface-raised text-ink-muted dark:text-ink-muted border border-outline-variant dark:border-outline-variant animate-fade-in">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-surface-sunken dark:bg-surface-raised text-ink-muted border border-outline-variant animate-fade-in">
               <span>{t.companySettingsView.vatInactiveBadge}</span>
             </span>
           )}
@@ -84,7 +84,7 @@ export function TaxVatSettingsTab({
         >
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-ink dark:text-ink">
+              <span className="text-sm font-bold text-ink">
                 {settings.vat_enabled
                   ? `${t.companySettingsView.vatActiveBadge} (${settings.vat_percentage}%)`
                   : t.companySettingsView.vatInactiveBadge}
@@ -100,7 +100,7 @@ export function TaxVatSettingsTab({
                   : t.companySettingsView.vatInactiveBadge}
               </span>
             </div>
-            <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-xl">
+            <p className="text-xs text-ink-muted mt-1 max-w-xl">
               {settings.vat_enabled
                 ? t.companySettingsView.vatActiveDesc
                 : t.companySettingsView.vatInactiveDesc}
@@ -134,7 +134,7 @@ export function TaxVatSettingsTab({
         {settings.vat_enabled && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2 animate-fade-in">
             <label className="block space-y-1.5">
-              <span className="text-xs font-medium text-ink dark:text-ink">
+              <span className="text-xs font-medium text-ink">
                 {t.settings.vatId}
               </span>
               <Input
@@ -148,7 +148,7 @@ export function TaxVatSettingsTab({
             </label>
 
             <label className="block space-y-1.5">
-              <span className="text-xs font-medium text-ink dark:text-ink">
+              <span className="text-xs font-medium text-ink">
                 {t.companySettingsView.vatRatePercent}
               </span>
               <Input
@@ -167,11 +167,11 @@ export function TaxVatSettingsTab({
 
             <div className="space-y-2 sm:col-span-2">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-ink dark:text-ink flex items-center gap-1.5">
+                <label className="text-xs font-semibold text-ink flex items-center gap-1.5">
                   <FileCheck className="w-4 h-4 text-primary dark:text-mint" />
                   <span>{t.companySettingsTabs.certificateTitle}</span>
                 </label>
-                <span className="text-[10px]  text-ink-muted dark:text-ink-muted">
+                <span className="text-[10px] text-ink-muted">
                   {t.taxVatSettingsTab.nbrOfficialCertificatePdfImage}
                 </span>
               </div>
@@ -220,7 +220,7 @@ export function TaxVatSettingsTab({
                 </p>
               )}
 
-              <div className="flex items-center justify-between text-[11px] text-ink-muted dark:text-ink-muted pt-1">
+              <div className="flex items-center justify-between text-[11px] text-ink-muted pt-1">
                 <span>{t.companySettingsTabs.certificateRequirement}</span>
                 <a
                   href={ROUTES.archive}

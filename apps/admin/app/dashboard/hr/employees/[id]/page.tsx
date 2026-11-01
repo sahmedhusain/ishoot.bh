@@ -28,6 +28,9 @@ import { EmployeeAccountCard } from "../../../../../components/hr/EmployeeAccoun
 import { LeaveBalancesCard } from "../../../../../components/hr/LeaveBalancesCard";
 import { EmployeePayHistory } from "../../../../../components/hr/EmployeePayHistory";
 import { EmployeeDetailView } from "../../../../../components/hr/EmployeeDetailView";
+import { pageMetadata } from "../../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("hr/employees/[id]");
 
 export const dynamic = "force-dynamic";
 

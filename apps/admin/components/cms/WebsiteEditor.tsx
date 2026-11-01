@@ -25,6 +25,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import type { WebsiteSnapshotSection } from "@platform/database";
 import { UnpublishedChangesNotice } from "./UnpublishedChangesNotice";
 import { SampleContentCard } from "./SampleContentCard";
+import { PageHeader } from "../layout/PageHeader";
 export function WebsiteEditor({
   config,
   revision,
@@ -72,7 +73,7 @@ export function WebsiteEditor({
   const field =
     "w-full rounded-lg border border-outline-variant dark:border-outline-variant bg-transparent p-3 text-sm";
   const button =
-    "rounded-lg border border-outline-variant dark:border-outline-variant px-4 py-2 text-sm disabled:opacity-50";
+    "inline-flex min-h-10 items-center rounded-full border border-m3-outline px-5 text-sm font-medium text-m3-primary transition-colors hover:bg-surface-container-high disabled:opacity-50";
   async function run(fn: () => Promise<unknown>) {
     setBusy(true);
     setError("");
@@ -101,35 +102,38 @@ export function WebsiteEditor({
   }
   return (
     <div inert={busy} aria-busy={busy} className="max-w-5xl mx-auto space-y-8 pb-16">
-      <header>
-        <Link className="text-sm underline" href={ROUTES.settings.web}>
-          {t.websiteEditor.websiteSettings}
-        </Link>
-        <h1 className="text-2xl font-bold mt-3">
-          {t.websiteEditor.websitePublishing}
-        </h1>
-        <p className="text-sm text-ink-muted mt-2">
-          {t.websiteEditor.arrangeSectionsEditContactContent}
-        </p>
-        {publishedAt && (
-          <p className="text-xs text-ink-muted mt-2">
-            {`${t.websiteEditor.lastPublished} ${formatDate(publishedAt, locale, "time")}`}
-          </p>
-        )}
-        <div className="mt-3">
-          <UnpublishedChangesNotice status={publication} canPublish />
-        </div>
-        <div className="mt-3">
-          <SampleContentCard activity={company.activity} count={sampleCount} />
-        </div>
-        {deliveryStatus && (
-          <p className="text-xs text-ink-muted mt-2">
-            {t.websiteEditor.publicRefresh}{" "}
-            {(t.websiteEditor.deliveryStatuses as Record<string, string>)[deliveryStatus] ?? deliveryStatus}
-          </p>
-        )}
-      </header>
-      <div className="flex flex-wrap gap-3 sticky top-0 z-10 bg-surface-raised dark:bg-surface-raised py-3 border-b border-outline-variant dark:border-outline-variant">
+      <PageHeader
+        title={t.websiteEditor.websitePublishing}
+        description={t.websiteEditor.arrangeSectionsEditContactContent}
+        meta={
+          <>
+            {publishedAt && (
+              <span className="text-xs text-on-surface-variant">
+                {`${t.websiteEditor.lastPublished} ${formatDate(publishedAt, locale, "time")}`}
+              </span>
+            )}
+            {deliveryStatus && (
+              <span className="text-xs text-on-surface-variant">
+                {t.websiteEditor.publicRefresh}{" "}
+                {(t.websiteEditor.deliveryStatuses as Record<string, string>)[deliveryStatus] ?? deliveryStatus}
+              </span>
+            )}
+          </>
+        }
+        actions={
+          <Link
+            href={ROUTES.settings.web}
+            className="inline-flex min-h-10 items-center rounded-full border border-m3-outline px-5 text-sm font-medium text-m3-primary"
+          >
+            {t.websiteEditor.websiteSettings}
+          </Link>
+        }
+      />
+      <div className="space-y-3">
+        <UnpublishedChangesNotice status={publication} canPublish />
+        <SampleContentCard activity={company.activity} count={sampleCount} />
+      </div>
+      <div className="flex flex-wrap gap-3 sticky top-0 z-10 bg-surface py-3 border-b border-outline-variant">
         <button disabled={busy} className={button} onClick={() => run(save)}>
           {t.websiteEditor.saveDraft}
           {dirty ? " *" : ""}
@@ -244,7 +248,7 @@ export function WebsiteEditor({
         {services.map((service) => (
           <form
             key={`${service.id}-${service.isPublic}-${service.imageUrl}`}
-            className="grid sm:grid-cols-[1fr_2fr_auto] gap-3 items-center border-b border-outline-variant dark:border-outline-variant pb-4"
+            className="grid sm:grid-cols-[1fr_2fr_auto] gap-3 items-center border-b border-outline-variant pb-4"
             onSubmit={(e) => {
               e.preventDefault();
               const form = new FormData(e.currentTarget);

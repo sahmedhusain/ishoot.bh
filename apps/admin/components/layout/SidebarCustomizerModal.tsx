@@ -25,7 +25,7 @@ import {
   type SidebarPresetId,
 } from "../../lib/sidebar-navigation";
 
-export interface CustomizerSectionItem {
+interface CustomizerSectionItem {
   id: string;
   title: string;
   items: {

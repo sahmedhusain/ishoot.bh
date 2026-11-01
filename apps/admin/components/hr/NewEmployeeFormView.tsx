@@ -19,8 +19,6 @@ import { needsWorkVisa } from "@platform/database/constants/employee-documents";
 import { countryOptions } from "@platform/database/constants/clients";
 import { CredentialFields, emptyCredential } from "./CredentialFields";
 import {
-  ArrowLeft,
-  ArrowRight,
   Building,
   CheckCircle2,
   DollarSign,
@@ -29,6 +27,7 @@ import {
 import { createEmployeeAction } from "../../app/actions/hrms";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { toast } from "sonner";
+import { PageHeader } from "../layout/PageHeader";
 
 interface NewEmployeeFormViewProps {
   departments: Department[];
@@ -43,7 +42,7 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
   const companyCurrency = useCompanyCurrency();
   const router = useRouter();
   const companyCountry = useCompanyCountry();
-  const { isRTL, t } = useAdminLocale();
+  const { t } = useAdminLocale();
 
   const [submitting, setSubmitting] = React.useState(false);
 
@@ -134,29 +133,10 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
   return (
     <form inert={submitting} aria-busy={submitting} onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-8 pb-16">
       {/* Editorial Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant pb-5">
-        <div className="flex items-center gap-3" data-page-header>
-          <Link
-            href={ROUTES.hr.employees}
-            className="p-2 rounded-md hover:bg-surface-sunken dark:hover:bg-surface-raised text-ink-muted hover:text-ink dark:hover:text-white transition-colors"
-          >
-            {isRTL ? (
-              <ArrowRight className="w-5 h-5" />
-            ) : (
-              <ArrowLeft className="w-5 h-5" />
-            )}
-          </Link>
-          <div>
-            <div className="text-xs font-mono uppercase tracking-widest text-accent font-medium">
-              {t.newEmployeeForm.hrmsRegistry}
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight text-ink dark:text-ink">
-              {t.newEmployeeForm.onboardNewEmployee}
-            </h1>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
+      <PageHeader
+        back={{ href: ROUTES.hr.employees }}
+        eyebrow={t.newEmployeeForm.hrmsRegistry}
+        actions={<div className="flex items-center gap-3">
           <Link
             href={ROUTES.hr.employees}
             className="px-4 py-2 text-xs font-medium rounded-md border border-outline-variant text-ink-muted dark:text-ink hover:bg-surface-raised dark:hover:bg-surface-raised transition-colors"
@@ -171,20 +151,20 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
             <CheckCircle2 className="w-4 h-4" />
             <span>{submitting ? t.shared.saving : t.newEmployeeForm.saveEmployeeRecord}</span>
           </Button>
-        </div>
-      </div>
+        </div>}
+      />
 
       <div className="space-y-6">
         {/* Personal & Compliance Information */}
-        <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-ink dark:text-ink font-mono flex items-center gap-2 border-b border-outline-variant pb-3">
+        <Card className="p-6 bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-ink font-mono flex items-center gap-2 border-b border-outline-variant pb-3">
             <ShieldCheck className="w-4 h-4 text-accent" />
             {t.newEmployeeForm.personalAndStatutoryComplianceBahrain}
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <label>
-              <span className="block text-xs font-medium text-ink dark:text-ink mb-1">
+              <span className="block text-xs font-medium text-ink mb-1">
                 {t.newEmployeeForm.firstNameEnglish}
               </span>
               <input
@@ -193,11 +173,11 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
                 value={firstNameEn}
                 onChange={(e) => setFirstNameEn(e.target.value)}
                 placeholder={t.newEmployeeForm.eGAhmed}
-                className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
+                className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised p-2 text-ink"
                dir="ltr"/>
             </label>
             <label>
-              <span className="block text-xs font-medium text-ink dark:text-ink mb-1">
+              <span className="block text-xs font-medium text-ink mb-1">
                 {t.newEmployeeForm.lastNameEnglish}
               </span>
               <input
@@ -206,12 +186,12 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
                 value={lastNameEn}
                 onChange={(e) => setLastNameEn(e.target.value)}
                 placeholder={t.newEmployeeForm.eGAlMansoor}
-                className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
+                className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised p-2 text-ink"
                dir="ltr"/>
             </label>
 
             <label>
-              <span className="block text-xs font-medium text-ink dark:text-ink mb-1">
+              <span className="block text-xs font-medium text-ink mb-1">
                 {t.newEmployeeForm.firstNameArabic}
               </span>
               <input
@@ -220,11 +200,11 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
                 value={firstNameAr}
                 onChange={(e) => setFirstNameAr(e.target.value)}
                 placeholder={t.newEmployeeForm.exampleAhmed}
-                className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
+                className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised p-2 text-ink"
               />
             </label>
             <label>
-              <span className="block text-xs font-medium text-ink dark:text-ink mb-1">
+              <span className="block text-xs font-medium text-ink mb-1">
                 {t.newEmployeeForm.lastNameArabic}
               </span>
               <input
@@ -233,12 +213,12 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
                 value={lastNameAr}
                 onChange={(e) => setLastNameAr(e.target.value)}
                 placeholder={t.newEmployeeForm.exampleAlMansoor}
-                className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
+                className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised p-2 text-ink"
               />
             </label>
 
             <label>
-              <span className="block text-xs font-medium text-ink dark:text-ink mb-1">
+              <span className="block text-xs font-medium text-ink mb-1">
                 {t.newEmployeeForm.cprNumberBahrainId}
               </span>
               <input
@@ -246,11 +226,11 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
                 value={cprNumber}
                 onChange={(e) => setCprNumber(e.target.value)}
                 placeholder={t.newEmployeeForm.eG950812345}
-                className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
+                className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised p-2 text-ink"
               />
             </label>
             <label>
-              <span className="block text-xs font-medium text-ink dark:text-ink mb-1">
+              <span className="block text-xs font-medium text-ink mb-1">
                 {t.newEmployeeForm.emailAddress}
               </span>
               <input
@@ -258,11 +238,11 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t.newEmployeeForm.employeeEmailExample}
-                className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
+                className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised p-2 text-ink"
               />
             </label>
             <label>
-              <span className="block text-xs font-medium text-ink dark:text-ink mb-1">
+              <span className="block text-xs font-medium text-ink mb-1">
                 {t.shared.phoneNumber}
               </span>
               <PhoneInput
@@ -274,25 +254,25 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
         </Card>
 
         {/* Job & Department Details */}
-        <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-ink dark:text-ink font-mono flex items-center gap-2 border-b border-outline-variant pb-3">
+        <Card className="p-6 bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-ink font-mono flex items-center gap-2 border-b border-outline-variant pb-3">
             <ShieldCheck className="w-4 h-4 text-accent" />
             {t.employeeResidency.identity}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <label className="block">
-              <span className="block text-xs font-medium text-ink dark:text-ink mb-1">{t.employeeResidency.fields.nationality}</span>
+              <span className="block text-xs font-medium text-ink mb-1">{t.employeeResidency.fields.nationality}</span>
               <Select value={identity.nationality ?? ""} onChange={(e) => setId("nationality", e.target.value)}>
                 <option value="">{t.employeeResidency.fields.select}</option>
                 {countries.map((o) => <option key={o.code} value={o.code}>{o.name}</option>)}
               </Select>
             </label>
             <label className="block">
-              <span className="block text-xs font-medium text-ink dark:text-ink mb-1">{t.employeeResidency.fields.dateOfBirth}</span>
+              <span className="block text-xs font-medium text-ink mb-1">{t.employeeResidency.fields.dateOfBirth}</span>
               <Input type="date" value={identity.date_of_birth ?? ""} onChange={(e) => setId("date_of_birth", e.target.value)} />
             </label>
             <label className="block">
-              <span className="block text-xs font-medium text-ink dark:text-ink mb-1">{t.employeeResidency.fields.gender}</span>
+              <span className="block text-xs font-medium text-ink mb-1">{t.employeeResidency.fields.gender}</span>
               <Select value={identity.gender ?? ""} onChange={(e) => setId("gender", e.target.value as "male" | "female" | "")}>
                 <option value="">{t.employeeResidency.fields.select}</option>
                 <option value="male">{t.employeeResidency.genders.male}</option>
@@ -300,22 +280,22 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
               </Select>
             </label>
             <label className="block">
-              <span className="block text-xs font-medium text-ink dark:text-ink mb-1">{t.employeeResidency.fields.cprExpiry}</span>
+              <span className="block text-xs font-medium text-ink mb-1">{t.employeeResidency.fields.cprExpiry}</span>
               <Input type="date" value={identity.cpr_expiry_date ?? ""} onChange={(e) => setId("cpr_expiry_date", e.target.value)} />
             </label>
             <label className="block">
-              <span className="block text-xs font-medium text-ink dark:text-ink mb-1">{t.employeeResidency.fields.passportNumber}</span>
+              <span className="block text-xs font-medium text-ink mb-1">{t.employeeResidency.fields.passportNumber}</span>
               <Input dir="ltr" value={identity.passport_number ?? ""} onChange={(e) => setId("passport_number", e.target.value)} />
             </label>
             <label className="block">
-              <span className="block text-xs font-medium text-ink dark:text-ink mb-1">{t.employeeResidency.fields.passportCountry}</span>
+              <span className="block text-xs font-medium text-ink mb-1">{t.employeeResidency.fields.passportCountry}</span>
               <Select value={identity.passport_country || identity.nationality || ""} onChange={(e) => setId("passport_country", e.target.value)}>
                 <option value="">{t.employeeResidency.fields.select}</option>
                 {countries.map((o) => <option key={o.code} value={o.code}>{o.name}</option>)}
               </Select>
             </label>
             <label className="block">
-              <span className="block text-xs font-medium text-ink dark:text-ink mb-1">{t.employeeResidency.fields.passportExpiry}</span>
+              <span className="block text-xs font-medium text-ink mb-1">{t.employeeResidency.fields.passportExpiry}</span>
               <Input type="date" value={identity.passport_expiry_date ?? ""} onChange={(e) => setId("passport_expiry_date", e.target.value)} />
             </label>
           </div>
@@ -332,15 +312,15 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
           )}
         </Card>
 
-        <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-ink dark:text-ink font-mono flex items-center gap-2 border-b border-outline-variant pb-3">
+        <Card className="p-6 bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-ink font-mono flex items-center gap-2 border-b border-outline-variant pb-3">
             <Building className="w-4 h-4 text-accent" />
             {t.newEmployeeForm.jobRoleAndOrganization}
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <label>
-              <span className="block text-xs font-medium text-ink dark:text-ink mb-1">
+              <span className="block text-xs font-medium text-ink mb-1">
                 {t.shared.jobTitleEnglish}
               </span>
               <input
@@ -352,11 +332,11 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
                   t.newEmployeeForm.jobTitlePlaceholderEn ||
                   t.newEmployeeForm.eGSeniorCinematographer
                 }
-                className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
+                className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised p-2 text-ink"
                dir="ltr"/>
             </label>
             <label>
-              <span className="block text-xs font-medium text-ink dark:text-ink mb-1">
+              <span className="block text-xs font-medium text-ink mb-1">
                 {t.shared.text}
               </span>
               <input
@@ -368,18 +348,18 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
                   t.newEmployeeForm.jobTitlePlaceholderAr ||
                   t.newEmployeeForm.exampleSeniorCinematographer
                 }
-                className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
+                className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised p-2 text-ink"
               />
             </label>
 
             <label>
-              <span className="block text-xs font-medium text-ink dark:text-ink mb-1">
+              <span className="block text-xs font-medium text-ink mb-1">
                 {t.shared.department}
               </span>
               <Select
                 value={departmentId}
                 onChange={(e) => setDepartmentId(e.target.value)}
-                className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2.5 text-ink dark:text-ink"
+                className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised p-2.5 text-ink"
               >
                 {departments.map((d) => (
                   <option key={d.id} value={d.id}>
@@ -390,13 +370,13 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
             </label>
 
             <label>
-              <span className="block text-xs font-medium text-ink dark:text-ink mb-1">
+              <span className="block text-xs font-medium text-ink mb-1">
                 {t.newEmployeeForm.contractType}
               </span>
               <Select
                 value={contractType}
                 onChange={(e) => setContractType(e.target.value as any)}
-                className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2.5 text-ink dark:text-ink"
+                className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised p-2.5 text-ink"
               >
                 <option value="full_time">{t.newEmployeeForm.fullTimeEmployment}</option>
                 <option value="part_time">{t.newEmployeeForm.partTime}</option>
@@ -405,14 +385,14 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
             </label>
 
             <label>
-              <span className="block text-xs font-medium text-ink dark:text-ink mb-1">
+              <span className="block text-xs font-medium text-ink mb-1">
                 {t.shared.hireDate}
               </span>
               <input
                 type="date"
                 value={hireDate}
                 onChange={(e) => setHireDate(e.target.value)}
-                className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
+                className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised p-2 text-ink"
               />
             </label>
           </div>
@@ -420,9 +400,9 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
 
         {/* Compensation & Allowances */}
         {canSetPay ? (<>
-          <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
+          <Card className="p-6 bg-surface-raised border border-outline-variant rounded-lg space-y-4" data-page-section>
             <div className="flex items-center justify-between border-b border-outline-variant pb-3">
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-ink dark:text-ink font-mono flex items-center gap-2">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-ink font-mono flex items-center gap-2">
                 <DollarSign className="w-4 h-4 text-accent" />
                 {t.newEmployeeForm.monthlyCompensationStructure || t.newEmployeeForm.monthlyCompensationStructureBhd}
               </h2>
@@ -435,7 +415,7 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <label>
-                <span className="block text-xs font-medium text-ink-muted dark:text-ink-muted mb-1">
+                <span className="block text-xs font-medium text-ink-muted mb-1">
                   {t.newEmployeeForm.basicSalary || t.newEmployeeForm.basicSalaryBhd}
                 </span>
                 <input
@@ -444,11 +424,11 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
                   step="1"
                   value={basicSalary}
                   onChange={(e) => setBasicSalary(Number(e.target.value))}
-                  className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
+                  className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised p-2 text-ink"
                 />
               </label>
               <label>
-                <span className="block text-xs font-medium text-ink-muted dark:text-ink-muted mb-1">
+                <span className="block text-xs font-medium text-ink-muted mb-1">
                   {t.shared.housingAllowance}
                 </span>
                 <input
@@ -457,11 +437,11 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
                   step="1"
                   value={housingAllowance}
                   onChange={(e) => setHousingAllowance(Number(e.target.value))}
-                  className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
+                  className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised p-2 text-ink"
                 />
               </label>
               <label>
-                <span className="block text-xs font-medium text-ink-muted dark:text-ink-muted mb-1">
+                <span className="block text-xs font-medium text-ink-muted mb-1">
                   {t.newEmployeeForm.transportAllowance}
                 </span>
                 <input
@@ -470,11 +450,11 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
                   step="1"
                   value={transportAllowance}
                   onChange={(e) => setTransportAllowance(Number(e.target.value))}
-                  className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
+                  className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised p-2 text-ink"
                 />
               </label>
               <label>
-                <span className="block text-xs font-medium text-ink-muted dark:text-ink-muted mb-1">
+                <span className="block text-xs font-medium text-ink-muted mb-1">
                   {t.shared.otherAllowances}
                 </span>
                 <input
@@ -483,7 +463,7 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
                   step="1"
                   value={otherAllowances}
                   onChange={(e) => setOtherAllowances(Number(e.target.value))}
-                  className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2 text-ink dark:text-ink"
+                  className="w-full text-xs font-mono rounded-md border border-outline-variant bg-surface-raised p-2 text-ink"
                 />
               </label>
             </div>

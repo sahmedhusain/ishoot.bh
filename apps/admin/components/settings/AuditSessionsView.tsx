@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 
 import * as React from "react";
 import type { ActivityLog } from "@platform/database/types";
@@ -17,6 +18,7 @@ import {
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { SettingsNavTabs } from "./SettingsNavTabs";
 import { Select, formatDate } from "@platform/ui";
+import { PageHeader } from "../layout/PageHeader";
 
 interface AuditSessionsViewProps {
   initialLogs: ActivityLog[];
@@ -150,23 +152,16 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
     <div className="space-y-8 max-w-6xl mx-auto pb-16">
       <SettingsNavTabs />
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div data-page-header>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">
-            {t.audit.title}
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">{t.audit.subtitle}</p>
-        </div>
-
-        <div className="flex items-center gap-2">
+      <PageHeader
+        actions={<div className="flex items-center gap-2">
           <Badge
             variant="outline"
             className=" text-xs px-3 py-1 bg-ink/5 border-outline-variant"
           >
             {filteredLogs.length} {t.audit.eventsLogged}
           </Badge>
-        </div>
-      </div>
+        </div>}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="p-5 bg-surface border border-outline-variant rounded-2xl flex items-center gap-4">
@@ -255,7 +250,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
 
       <Card className="bg-surface border border-outline-variant rounded-3xl overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-xs text-start">
+          <DataTable className="w-full text-xs text-start">
             <thead className="bg-surface-sunken border-b border-outline-variant text-ink-muted uppercase  tracking-wider text-[11px]">
               <tr>
                 <th className="p-4 text-start">{t.audit.userCol}</th>
@@ -320,7 +315,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
                             log.details.after &&
                             typeof log.details.before === "object" &&
                             typeof log.details.after === "object" ? (
-                            <table className="mt-3 text-xs w-full table-fixed">
+                            <DataTable className="mt-3 text-xs w-full table-fixed">
                               <thead>
                                 <tr>
                                   <th className="text-start">
@@ -394,7 +389,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
                                     </tr>
                                   ))}
                               </tbody>
-                            </table>
+                            </DataTable>
                           ) : (
                             <dl className="space-y-2 mt-2">
                               {Object.entries(log.details).map(
@@ -430,7 +425,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
                 ))
               )}
             </tbody>
-          </table>
+          </DataTable>
         </div>
       </Card>
     </div>

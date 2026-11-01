@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
@@ -13,6 +14,7 @@ import { setProductsActiveAction } from "../../app/actions/products";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { ContentImage } from "../shared/ContentImage";
+import { PageHeader } from "../layout/PageHeader";
 
 interface ProductsListViewProps {
   rows: ProductRow[];
@@ -63,18 +65,14 @@ export function ProductsListView({ rows, total, page, pageSize, filters, categor
   const allChecked = rows.length > 0 && rows.every((row) => selected.includes(row.id));
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
-          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
-        </div>
-        {canCreate && (
+      <PageHeader
+        actions={canCreate && (
           <Link href={ROUTES.products.new} className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 h-9 text-sm font-semibold text-primary-foreground hover:opacity-90">
             <Plus className="w-4 h-4" />
             {copy.newProduct}
           </Link>
         )}
-      </div>
+      />
 
       <form
         role="search"
@@ -117,7 +115,7 @@ export function ProductsListView({ rows, total, page, pageSize, filters, categor
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <DataTable className="w-full text-sm">
               <thead className="bg-ink/[0.03] text-xs text-ink-muted">
                 <tr>
                   {canEdit && (
@@ -166,7 +164,7 @@ export function ProductsListView({ rows, total, page, pageSize, filters, categor
                   );
                 })}
               </tbody>
-            </table>
+            </DataTable>
           </div>
         )}
         <div className="flex items-center justify-between gap-3 border-t border-outline-variant px-4 py-3 text-xs">

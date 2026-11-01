@@ -2,11 +2,9 @@
 
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
-  ArrowLeft,
   Check,
   CheckSquare,
   CircleX,
@@ -32,6 +30,7 @@ import { errorMessage } from "../../lib/error-text";
 import { BilingualPdfActions } from "../shared/BilingualPdfActions";
 import { SignatureCanvas } from "../shared/SignatureCanvas";
 import { ContentImage } from "../shared/ContentImage";
+import { PageHeader } from "../layout/PageHeader";
 
 const STATUS_STYLE: Record<string, string> = {
   awaiting_employee: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
@@ -121,44 +120,28 @@ export function HandoverDetailView({
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3" data-page-header>
-          <Link
-            href={
-              canEdit
-                ? ROUTES.assets.detail(handover.asset.id)
-                : ROUTES.profile()
-            }
-            aria-label={t.actions.back}
-            className="rounded-full border border-outline-variant p-2 text-ink-muted hover:text-ink"
-          >
-            <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
-          </Link>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-ink">
-              {handover.kind === "issue" ? h.issueDocTitle : h.returnDocTitle}
-            </h1>
-            <p className="text-xs text-ink-muted mt-1 flex flex-wrap items-center gap-2">
-              <bdi dir="ltr">{handover.reference}</bdi>
-              <span
-                className={`rounded-full px-2 py-0.5 font-semibold ${STATUS_STYLE[handover.status]}`}
-              >
-                {
-                  a.handoverStatuses[
-                  handover.status as keyof typeof a.handoverStatuses
-                  ]
-                }
-              </span>
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
+      <PageHeader
+        title={handover.kind === "issue" ? h.issueDocTitle : h.returnDocTitle}
+        description={<><bdi dir="ltr">{handover.reference}</bdi>
+            <span
+              className={`rounded-full px-2 py-0.5 font-semibold ${STATUS_STYLE[handover.status]}`}
+            >
+              {
+                a.handoverStatuses[
+                handover.status as keyof typeof a.handoverStatuses
+                ]
+              }
+            </span></>}
+        back={{ href: canEdit
+              ? ROUTES.assets.detail(handover.asset.id)
+              : ROUTES.profile() }}
+        actions={<div className="flex flex-wrap gap-2">
           <BilingualPdfActions pdfUrl={pdf} />
-        </div>
-      </div>
+        </div>}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <section className="lg:col-span-2 rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-5 space-y-5">
+        <section className="lg:col-span-2 rounded-3xl border border-outline-variant bg-surface-raised p-5 space-y-5">
           <dl className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
             {[
               [
@@ -267,7 +250,7 @@ export function HandoverDetailView({
           </dl>
         </section>
 
-        <section className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-5 space-y-3" data-page-section>
+        <section className="rounded-3xl border border-outline-variant bg-surface-raised p-5 space-y-3" data-page-section>
           <h2 className="text-sm font-bold text-ink">{h.signatures}</h2>
           {signatureBox(
             h.issuedBy,
@@ -350,7 +333,7 @@ export function HandoverDetailView({
             links={signingLinks}
             reference={handover.reference}
           />
-          <section className="rounded-3xl border border-outline-variant bg-surface-raised p-5 space-y-3 dark:bg-surface-raised" data-page-section>
+          <section className="rounded-3xl border border-outline-variant bg-surface-raised p-5 space-y-3" data-page-section>
             <h2 className="flex items-center gap-2 text-sm font-bold text-ink">
               <PenLine className="h-4 w-4 text-accent" />
               {h.signInPerson}

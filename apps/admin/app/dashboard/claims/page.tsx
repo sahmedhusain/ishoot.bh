@@ -2,6 +2,9 @@ import { getCurrentPermissions, requirePagePermission } from "../../../lib/auth"
 import { getExpenseCategories, listExpenseClaims } from "@platform/database";
 import { ClaimsView } from "../../../components/claims/ClaimsView";
 import { dataScope } from "../../../lib/data-scope";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("claims");
 
 export const dynamic = "force-dynamic";
 

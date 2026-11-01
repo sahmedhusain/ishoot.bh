@@ -3,6 +3,9 @@ import { getCmsPage, getCompanySettings, getWebsiteEditor, requireFeatureEnabled
 import { resolveWebsiteConfig, validateWebsiteConfig } from "@platform/database/website-config";
 import { hasPermission, requirePagePermission } from "../../../../../lib/auth";
 import { PageEditorView } from "../../../../../components/cms/PageEditorView";
+import { pageMetadata } from "../../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("cms/pages/[id]");
 
 export const dynamic = "force-dynamic";
 

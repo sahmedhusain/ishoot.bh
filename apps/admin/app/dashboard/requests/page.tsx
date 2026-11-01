@@ -3,6 +3,9 @@ import { REQUEST_DUE_FILTERS, REQUEST_KINDS, REQUEST_SORTS, REQUEST_SOURCES, typ
 import { hasPermission, requirePagePermission } from "../../../lib/auth";
 import { RequestsInboxView } from "../../../components/requests/RequestsInboxView";
 import { dataScope } from "../../../lib/data-scope";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("requests");
 
 export const dynamic = "force-dynamic";
 

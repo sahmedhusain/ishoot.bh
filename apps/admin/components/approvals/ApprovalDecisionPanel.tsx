@@ -80,7 +80,7 @@ export function ApprovalDecisionPanel({
         />
       </label>
       {requiresSignature ? (
-        <div className="space-y-2 rounded-2xl border border-outline-variant bg-surface-raised p-3 dark:bg-surface-raised">
+        <div className="space-y-2 rounded-2xl border border-outline-variant bg-surface-raised p-3">
           <div className="flex items-center gap-2 text-xs font-semibold text-ink">
             <PenLine className="h-4 w-4 text-accent" aria-hidden />
             {a.item.signNow}

@@ -2,6 +2,9 @@ import { listBroadcasts, listCampaigns, listSegments, requireFeatureEnabled } fr
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { AudienceView } from "../../../../components/outreach/AudienceView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("marketing/audience");
 
 export const dynamic = "force-dynamic";
 

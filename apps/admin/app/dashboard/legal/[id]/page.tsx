@@ -3,6 +3,9 @@ import { getLegalMatter, requireFeatureEnabled, taskChoices } from "@platform/da
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { LegalMatterView } from "../../../../components/outreach/LegalView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("legal/[id]");
 
 export const dynamic = "force-dynamic";
 

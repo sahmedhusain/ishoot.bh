@@ -131,32 +131,6 @@ export async function setPermission(
   }
 }
 
-export async function seedDefaultPermissions(): Promise<void> {
-  for (const role of ALL_ROLES) {
-    for (const resource of ALL_RESOURCES) {
-      for (const action of ALL_ACTIONS) {
-        const allowed = isDefaultAllowed(role, resource, action);
-        await db.permission.upsert({
-          where: {
-            role_resource_action: {
-              role,
-              resource,
-              action,
-            },
-          },
-          update: { allowed },
-          create: {
-            role,
-            resource,
-            action,
-            allowed,
-          },
-        });
-      }
-    }
-  }
-}
-
 // One role query supplies the complete UI matrix, including explicit denials.
 export async function getEffectivePermissions(
   role: string,

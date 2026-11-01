@@ -38,6 +38,7 @@ import { usePermissions } from "../../hooks/usePermissions";
 import { SettingsNavTabs } from "./SettingsNavTabs";
 import { IconPicker } from "../shared/LazyIconPicker";
 import { PlatformPicker, SocialBrandIcon } from "../shared/PlatformPicker";
+import { PageHeader } from "../layout/PageHeader";
 
 interface WebSettingsViewProps {
   initialSettings: CompanySettings;
@@ -157,25 +158,16 @@ export function WebSettingsView({
         {t.webSettings.websiteEditorPreviewAndPublishing}
       </Link>
       {/* Top Navigation */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink flex items-center gap-2.5">
-            <span>{t.webSettingsView.title}</span>
-            <span className="text-xs font-bold text-accent font-sans">
+      <PageHeader
+        title={<><span>{t.webSettingsView.title}</span><span className="text-xs font-bold text-accent font-sans">
               &lt;&lt; {t.webSettingsView.badge} &gt;&gt;
-            </span>
-          </h1>
-          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1">
-            {t.webSettingsView.subtitle}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2.5">
+            </span></>}
+        actions={<div className="flex items-center gap-2.5">
           <button
             type="button"
             disabled={isRevalidating}
             onClick={handleRevalidate}
-            className="px-3.5 py-2 rounded-xl bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-white/10 hover:border-accent/40 text-xs font-semibold text-ink dark:text-ink hover:text-accent inline-flex items-center gap-2 transition-all shadow-2xs"
+            className="px-3.5 py-2 rounded-xl bg-surface-raised border border-outline-variant dark:border-white/10 hover:border-accent/40 text-xs font-semibold text-ink hover:text-accent inline-flex items-center gap-2 transition-all shadow-2xs"
             title={t.webSettingsView.purgeTooltip}
           >
             <RefreshCw
@@ -198,8 +190,8 @@ export function WebSettingsView({
             <span>{t.webSettingsView.viewLiveWebsite}</span>
             <ExternalLink className="w-3 h-3 text-white/70" />
           </a>
-        </div>
-      </div>
+        </div>}
+      />
 
       {/* Settings Navigation Tabs */}
       <SettingsNavTabs />
@@ -278,17 +270,17 @@ export function WebSettingsView({
         {/* TAB 1: Hero & Media Showcase */}
         {activeTab === "hero" && (
           <div className="space-y-6" data-tab-panel>
-            <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl space-y-5">
+            <Card className="p-6 bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl space-y-5">
               <div className="flex items-center justify-between pb-3 border-b border-outline-variant dark:border-white/10">
                 <div className="flex items-center gap-2.5">
                   <div className="p-2 rounded-xl bg-accent/10 text-accent">
                     <Film className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-ink dark:text-ink">
+                    <h3 className="text-sm font-bold text-ink">
                       {t.webSettingsView.heroCardTitle}
                     </h3>
-                    <p className="text-xs text-ink-muted dark:text-ink-muted">
+                    <p className="text-xs text-ink-muted">
                       {t.webSettingsView.heroCardDesc}
                     </p>
                   </div>
@@ -296,7 +288,7 @@ export function WebSettingsView({
 
                 <Link
                   href={ROUTES.cms.banners}
-                  className="px-3 py-1.5 rounded-lg bg-surface-sunken dark:bg-white/5 hover:bg-surface-sunken dark:hover:bg-white/10 text-xs font-semibold text-ink dark:text-ink inline-flex items-center gap-1.5 transition-colors"
+                  className="px-3 py-1.5 rounded-lg bg-surface-sunken dark:bg-white/5 hover:bg-surface-sunken dark:hover:bg-white/10 text-xs font-semibold text-ink inline-flex items-center gap-1.5 transition-colors"
                 >
                   <span>
                     {formatMessage(t.webSettingsView.manageBanners, { count: String(cmsCounts.banners) })}
@@ -307,7 +299,7 @@ export function WebSettingsView({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <label className="block space-y-1">
-                  <span className="text-xs font-semibold text-ink dark:text-ink">
+                  <span className="text-xs font-semibold text-ink">
                     {t.webSettingsView.webNameEn}
                   </span>
                   <Input
@@ -322,7 +314,7 @@ export function WebSettingsView({
                 </label>
 
                 <label className="block space-y-1">
-                  <span className="text-xs font-semibold text-ink dark:text-ink">
+                  <span className="text-xs font-semibold text-ink">
                     {t.webSettingsView.webNameAr}
                   </span>
                   <Input
@@ -340,10 +332,10 @@ export function WebSettingsView({
 
               <div className="p-4 rounded-xl bg-surface-raised dark:bg-white/[0.02] border border-outline-variant dark:border-white/5 flex items-center justify-between">
                 <div>
-                  <div className="text-xs font-bold text-ink dark:text-ink">
+                  <div className="text-xs font-bold text-ink">
                     {t.webSettingsView.brandPresentationTitle}
                   </div>
-                  <div className="text-[11px] text-ink-muted dark:text-ink-muted mt-0.5">
+                  <div className="text-[11px] text-ink-muted mt-0.5">
                     {t.webSettingsView.brandPresentationDesc}
                   </div>
                 </div>
@@ -362,16 +354,16 @@ export function WebSettingsView({
         {/* TAB 2: Brand Story, CEO & About */}
         {activeTab === "narrative" && (
           <div className="space-y-6" data-tab-panel>
-            <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl space-y-6">
+            <Card className="p-6 bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl space-y-6">
               <div className="flex items-center gap-2.5 pb-3 border-b border-outline-variant dark:border-white/10">
                 <div className="p-2 rounded-xl bg-accent/10 text-accent">
                   <User className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-ink dark:text-ink">
+                  <h3 className="text-sm font-bold text-ink">
                     {t.webSettingsView.ceoStoryTitle}
                   </h3>
-                  <p className="text-xs text-ink-muted dark:text-ink-muted">
+                  <p className="text-xs text-ink-muted">
                     {t.webSettingsView.ceoStoryDesc}
                   </p>
                 </div>
@@ -382,7 +374,7 @@ export function WebSettingsView({
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <label className="block space-y-1">
-                  <span className="text-xs font-semibold text-ink dark:text-ink">
+                  <span className="text-xs font-semibold text-ink">
                     {t.webSettingsView.ceoNameEn}
                   </span>
                   <Input
@@ -395,7 +387,7 @@ export function WebSettingsView({
                 </label>
 
                 <label className="block space-y-1">
-                  <span className="text-xs font-semibold text-ink dark:text-ink">
+                  <span className="text-xs font-semibold text-ink">
                     {t.webSettingsView.ceoNameAr}
                   </span>
                   <Input
@@ -409,7 +401,7 @@ export function WebSettingsView({
                 </label>
 
                 <label className="block space-y-1">
-                  <span className="text-xs font-semibold text-ink dark:text-ink">
+                  <span className="text-xs font-semibold text-ink">
                     {t.webSettingsView.ceoTitleEn}
                   </span>
                   <Input
@@ -422,7 +414,7 @@ export function WebSettingsView({
                 </label>
 
                 <label className="block space-y-1">
-                  <span className="text-xs font-semibold text-ink dark:text-ink">
+                  <span className="text-xs font-semibold text-ink">
                     {t.webSettingsView.ceoTitleAr}
                   </span>
                   <Input
@@ -436,7 +428,7 @@ export function WebSettingsView({
                 </label>
 
                 <label className="block space-y-1 md:col-span-2">
-                  <span className="text-xs font-semibold text-ink dark:text-ink">
+                  <span className="text-xs font-semibold text-ink">
                     {t.webSettingsView.ceoQuoteEn}
                   </span>
                   <Textarea
@@ -450,7 +442,7 @@ export function WebSettingsView({
                 </label>
 
                 <label className="block space-y-1 md:col-span-2">
-                  <span className="text-xs font-semibold text-ink dark:text-ink">
+                  <span className="text-xs font-semibold text-ink">
                     {t.webSettingsView.ceoQuoteAr}
                   </span>
                   <Textarea
@@ -467,13 +459,13 @@ export function WebSettingsView({
 
               {/* Mission & Vision */}
               <div className="pt-4 border-t border-outline-variant dark:border-white/10 space-y-4">
-                <div className="text-xs font-bold text-ink dark:text-ink uppercase tracking-wider">
+                <div className="text-xs font-bold text-ink uppercase tracking-wider">
                   {t.webSettingsView.corporateMissionVision}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <label className="block space-y-1">
-                    <span className="text-xs font-semibold text-ink dark:text-ink">
+                    <span className="text-xs font-semibold text-ink">
                       {t.webSettingsView.missionEn}
                     </span>
                     <Textarea
@@ -487,7 +479,7 @@ export function WebSettingsView({
                   </label>
 
                   <label className="block space-y-1">
-                    <span className="text-xs font-semibold text-ink dark:text-ink">
+                    <span className="text-xs font-semibold text-ink">
                       {t.webSettingsView.missionAr}
                     </span>
                     <Textarea
@@ -502,7 +494,7 @@ export function WebSettingsView({
                   </label>
 
                   <label className="block space-y-1">
-                    <span className="text-xs font-semibold text-ink dark:text-ink">
+                    <span className="text-xs font-semibold text-ink">
                       {t.webSettingsView.visionEn}
                     </span>
                     <Textarea
@@ -516,7 +508,7 @@ export function WebSettingsView({
                   </label>
 
                   <label className="block space-y-1">
-                    <span className="text-xs font-semibold text-ink dark:text-ink">
+                    <span className="text-xs font-semibold text-ink">
                       {t.webSettingsView.visionAr}
                     </span>
                     <Textarea
@@ -538,16 +530,16 @@ export function WebSettingsView({
         {/* TAB 2.5: Legal & Rules */}
         {activeTab === "legal" && (
           <div className="space-y-6" data-tab-panel>
-            <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl space-y-6">
+            <Card className="p-6 bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl space-y-6">
               <div className="flex items-center gap-2.5 pb-3 border-b border-outline-variant dark:border-white/10">
                 <div className="p-2 rounded-xl bg-accent/10 text-accent">
                   <Shield className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-ink dark:text-ink">
+                  <h3 className="text-sm font-bold text-ink">
                     {t.webSettings.termsOfConditionsAndPrivacy}
                   </h3>
-                  <p className="text-xs text-ink-muted dark:text-ink-muted">
+                  <p className="text-xs text-ink-muted">
                     {t.webSettings.manageTheTermsOfConditions}
                   </p>
                 </div>
@@ -555,7 +547,7 @@ export function WebSettingsView({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <label className="block space-y-1">
-                  <span className="text-xs font-semibold text-ink dark:text-ink">
+                  <span className="text-xs font-semibold text-ink">
                     {t.webSettings.termsOfConditionsEnglish}
                   </span>
                   <Textarea
@@ -568,7 +560,7 @@ export function WebSettingsView({
                 </label>
 
                 <label className="block space-y-1">
-                  <span className="text-xs font-semibold text-ink dark:text-ink">
+                  <span className="text-xs font-semibold text-ink">
                     {t.webSettings.termsOfConditionsArabic}
                   </span>
                   <Textarea
@@ -582,7 +574,7 @@ export function WebSettingsView({
                 </label>
 
                 <label className="block space-y-1">
-                  <span className="text-xs font-semibold text-ink dark:text-ink">
+                  <span className="text-xs font-semibold text-ink">
                     {t.webSettings.privacyAndSecurityPolicyEnglish}
                   </span>
                   <Textarea
@@ -595,7 +587,7 @@ export function WebSettingsView({
                 </label>
 
                 <label className="block space-y-1">
-                  <span className="text-xs font-semibold text-ink dark:text-ink">
+                  <span className="text-xs font-semibold text-ink">
                     {t.webSettings.privacyAndSecurityPolicyArabic}
                   </span>
                   <Textarea
@@ -615,16 +607,16 @@ export function WebSettingsView({
         {/* TAB 3: Contact & Social Channels */}
         {activeTab === "social" && (
           <div className="space-y-6" data-tab-panel>
-            <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl space-y-6">
+            <Card className="p-6 bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl space-y-6">
               <div className="flex items-center gap-2.5 pb-3 border-b border-outline-variant dark:border-white/10">
                 <div className="p-2 rounded-xl bg-accent/10 text-accent">
                   <Share2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-ink dark:text-ink">
+                  <h3 className="text-sm font-bold text-ink">
                     {t.webSettings.dynamicSocialLinks}
                   </h3>
-                  <p className="text-xs text-ink-muted dark:text-ink-muted">
+                  <p className="text-xs text-ink-muted">
                     {t.webSettings.addAndManageSocialMedia}
                   </p>
                 </div>
@@ -742,16 +734,16 @@ export function WebSettingsView({
               </div>
             </Card>
 
-            <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl space-y-6">
+            <Card className="p-6 bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl space-y-6">
               <div className="flex items-center gap-2.5 pb-3 border-b border-outline-variant dark:border-white/10">
                 <div className="p-2 rounded-xl bg-accent/10 text-accent">
                   <Phone className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-ink dark:text-ink">
+                  <h3 className="text-sm font-bold text-ink">
                     {t.webSettings.contactDetails}
                   </h3>
-                  <p className="text-xs text-ink-muted dark:text-ink-muted">
+                  <p className="text-xs text-ink-muted">
                     {t.webSettings.phoneNumbersAndAddressesFor}
                   </p>
                 </div>
@@ -759,7 +751,7 @@ export function WebSettingsView({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <label className="block space-y-1">
-                  <span className="text-xs font-semibold text-ink dark:text-ink flex items-center gap-1.5">
+                  <span className="text-xs font-semibold text-ink flex items-center gap-1.5">
                     <Phone className="w-3.5 h-3.5 text-emerald-500" />
                     <span>{t.webSettingsView.waPhone}</span>
                   </span>
@@ -771,7 +763,7 @@ export function WebSettingsView({
                 </label>
 
                 <label className="block space-y-1">
-                  <span className="text-xs font-semibold text-ink dark:text-ink flex items-center gap-1.5">
+                  <span className="text-xs font-semibold text-ink flex items-center gap-1.5">
                     <Phone className="w-3.5 h-3.5 text-ink-muted" />
                     <span>{t.webSettingsView.studioPhone}</span>
                   </span>
@@ -783,7 +775,7 @@ export function WebSettingsView({
                 </label>
 
                 <label className="block space-y-1 md:col-span-2">
-                  <span className="text-xs font-semibold text-ink dark:text-ink flex items-center gap-1.5">
+                  <span className="text-xs font-semibold text-ink flex items-center gap-1.5">
                     <Mail className="w-3.5 h-3.5 text-ink-muted" />
                     <span>{t.webSettingsView.inquiriesEmail}</span>
                   </span>
@@ -797,7 +789,7 @@ export function WebSettingsView({
                 </label>
 
                 <label className="block space-y-1 md:col-span-2">
-                  <span className="text-xs font-semibold text-ink dark:text-ink flex items-center gap-1.5">
+                  <span className="text-xs font-semibold text-ink flex items-center gap-1.5">
                     <MapPin className="w-3.5 h-3.5 text-ink-muted" />
                     <span>{t.webSettingsView.addressEn}</span>
                   </span>
@@ -810,7 +802,7 @@ export function WebSettingsView({
                 </label>
 
                 <label className="block space-y-1 md:col-span-2">
-                  <span className="text-xs font-semibold text-ink dark:text-ink flex items-center gap-1.5">
+                  <span className="text-xs font-semibold text-ink flex items-center gap-1.5">
                     <MapPin className="w-3.5 h-3.5 text-ink-muted" />
                     <span>{t.webSettingsView.addressAr}</span>
                   </span>
@@ -830,16 +822,16 @@ export function WebSettingsView({
         {/* TAB 4: CMS Content Hub & Live Stats */}
         {activeTab === "cms" && (
           <div className="space-y-6" data-tab-panel>
-            <Card className="p-6 bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl space-y-6">
+            <Card className="p-6 bg-surface-raised border border-outline-variant dark:border-white/10 rounded-2xl space-y-6">
               <div className="flex items-center gap-2.5 pb-3 border-b border-outline-variant dark:border-white/10">
                 <div className="p-2 rounded-xl bg-accent/10 text-accent">
                   <Layers className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-ink dark:text-ink">
+                  <h3 className="text-sm font-bold text-ink">
                     {t.webSettingsView.cmsHubTitle}
                   </h3>
-                  <p className="text-xs text-ink-muted dark:text-ink-muted">
+                  <p className="text-xs text-ink-muted">
                     {t.webSettingsView.cmsHubDesc}
                   </p>
                 </div>
@@ -855,7 +847,7 @@ export function WebSettingsView({
                       <Film className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-ink dark:text-ink group-hover:text-accent transition-colors">
+                      <div className="text-xs font-bold text-ink group-hover:text-accent transition-colors">
                         {t.webSettingsView.manageShowcaseBanners}
                       </div>
                       <div className="text-[11px] text-ink-muted ">
@@ -875,7 +867,7 @@ export function WebSettingsView({
                       <FolderOpen className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-ink dark:text-ink group-hover:text-accent transition-colors">
+                      <div className="text-xs font-bold text-ink group-hover:text-accent transition-colors">
                         {t.webSettingsView.managePortfolio}
                       </div>
                       <div className="text-[11px] text-ink-muted ">
@@ -895,7 +887,7 @@ export function WebSettingsView({
                       <Users className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-ink dark:text-ink group-hover:text-accent transition-colors">
+                      <div className="text-xs font-bold text-ink group-hover:text-accent transition-colors">
                         {t.webSettingsView.manageClients}
                       </div>
                       <div className="text-[11px] text-ink-muted ">
@@ -915,7 +907,7 @@ export function WebSettingsView({
                       <Camera className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-ink dark:text-ink group-hover:text-accent transition-colors">
+                      <div className="text-xs font-bold text-ink group-hover:text-accent transition-colors">
                         {t.webSettingsView.manageEquipment}
                       </div>
                       <div className="text-[11px] text-ink-muted ">
@@ -935,7 +927,7 @@ export function WebSettingsView({
                       <Star className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-ink dark:text-ink group-hover:text-accent transition-colors flex items-center gap-1.5">
+                      <div className="text-xs font-bold text-ink group-hover:text-accent transition-colors flex items-center gap-1.5">
                         <span>{t.webSettingsView.manageReviews}</span>
                         {cmsCounts.pendingReviews > 0 && (
                           <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-500 text-white">
@@ -960,7 +952,7 @@ export function WebSettingsView({
                       <HelpCircle className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-ink dark:text-ink group-hover:text-accent transition-colors">
+                      <div className="text-xs font-bold text-ink group-hover:text-accent transition-colors">
                         {t.webSettingsView.manageFaqs}
                       </div>
                       <div className="text-[11px] text-ink-muted ">
@@ -976,8 +968,8 @@ export function WebSettingsView({
         )}
 
         {/* Save Bar */}
-        <div className="flex items-center justify-between p-4 rounded-2xl bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-white/10 shadow-xs">
-          <div className="text-xs text-ink-muted dark:text-ink-muted flex items-center gap-2">
+        <div className="flex items-center justify-between p-4 rounded-2xl bg-surface-raised border border-outline-variant dark:border-white/10 shadow-xs">
+          <div className="text-xs text-ink-muted flex items-center gap-2">
             {saveSuccess ? (
               <span className="text-emerald-500 dark:text-emerald-400 font-bold flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4" />

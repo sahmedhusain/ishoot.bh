@@ -12,6 +12,7 @@ import { KanbanColumn } from "./KanbanColumn";
 import { Button } from "@platform/ui";
 import { Plus, SlidersHorizontal } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { PageHeader } from "../layout/PageHeader";
 
 interface KanbanBoardProps {
   initialDeals: CRMDeal[];
@@ -20,9 +21,11 @@ interface KanbanBoardProps {
   stages: DealPipelineStage[];
   /** Shows the link to Settings → Sales pipeline. */
   canCustomize?: boolean;
+  /** Search, filters and paging, shown under the header. */
+  controls?: React.ReactNode;
 }
 
-export function KanbanBoard({ initialDeals, contacts = [], stages, canCustomize }: KanbanBoardProps) {
+export function KanbanBoard({ initialDeals, contacts = [], stages, canCustomize, controls }: KanbanBoardProps) {
   const { t, locale } = useAdminLocale();
   const [deals, setDeals] = React.useState<CRMDeal[]>(initialDeals);
 
@@ -56,14 +59,8 @@ export function KanbanBoard({ initialDeals, contacts = [], stages, canCustomize 
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">
-            {t.nav.deals}
-          </h1>
-        </div>
-
-        <div className="flex items-center gap-2">
+      <PageHeader
+        actions={<div className="flex items-center gap-2">
           {canCustomize && (
             <Link href={ROUTES.settings.pipeline} className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-semibold text-ink-muted hover:text-ink hover:bg-ink/5 transition-colors">
               <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -80,8 +77,9 @@ export function KanbanBoard({ initialDeals, contacts = [], stages, canCustomize 
               <span>{t.actions.newDeal}</span>
             </Button>
           </Link>
-        </div>
-      </div>
+        </div>}
+      />
+      {controls && <div className="[&>div]:mb-0">{controls}</div>}
 
       <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
         <div className="flex gap-4 overflow-x-auto pb-6 select-none">

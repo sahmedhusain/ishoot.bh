@@ -1,6 +1,9 @@
 import { requirePagePermission } from "../../../lib/auth";
 import { getAllServices, getCompanySettings } from "@platform/database";
 import { ServicesManagementView } from "../../../components/services/ServicesManagementView";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("services");
 
 export const dynamic = "force-dynamic";
 

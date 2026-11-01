@@ -5,7 +5,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Select, Card } from "@platform/ui";
-import { CalendarClock, CheckCircle2, HandCoins, Paperclip, Plus, Wallet, XCircle } from "lucide-react";
+import { CalendarClock, CheckCircle2, Paperclip, Plus, Wallet, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import type { ExpenseCategory } from "@platform/database/types";
 import type { ExpenseClaimListResult, ExpenseClaimRow, ExpenseClaimStatus } from "@platform/database/queries/expense-claims";
@@ -13,6 +13,7 @@ import { EXPENSE_PAYMENT_METHODS } from "@platform/database/constants/finance";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { cancelExpenseClaimAction, payExpenseClaimAction, scheduleExpenseClaimAction } from "../../app/actions/claims";
+import { PageHeader } from "../layout/PageHeader";
 
 const STEPS: ExpenseClaimStatus[] = ["submitted", "approved", "scheduled", "paid"];
 
@@ -65,19 +66,12 @@ export function ClaimsView({ view, status, data, canProcess, currentUserId, cate
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display flex items-center gap-2">
-            <HandCoins className="w-7 h-7 text-accent" />
-            {c.title}
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">{c.subtitle}</p>
-        </div>
-        <Link href={ROUTES.claims.create} className="inline-flex items-center gap-1.5 self-start px-4 py-2 rounded-full bg-accent text-accent-foreground text-xs font-semibold hover:bg-accent-hover">
+      <PageHeader
+        actions={<Link href={ROUTES.claims.create} className="inline-flex items-center gap-1.5 self-start px-4 py-2 rounded-full bg-accent text-accent-foreground text-xs font-semibold hover:bg-accent-hover">
           <Plus className="w-4 h-4" />
           {c.newClaim}
-        </Link>
-      </div>
+        </Link>}
+      />
 
       {canProcess && (
         <div role="tablist" className="inline-flex p-1 rounded-full bg-surface-sunken border border-outline-variant">

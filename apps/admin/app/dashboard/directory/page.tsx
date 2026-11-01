@@ -1,6 +1,9 @@
 import { requireAuth } from "../../../lib/auth";
 import { getCompanyDirectory, getDepartmentTree } from "@platform/database";
 import { DirectoryView } from "../../../components/directory/DirectoryView";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("directory");
 
 export const dynamic = "force-dynamic";
 

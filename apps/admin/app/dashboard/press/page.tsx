@@ -1,6 +1,9 @@
 import { coverageSummary, listCoverage, listMediaContacts, listPressReleases, requireFeatureEnabled } from "@platform/database";
 import { hasPermission, requirePagePermission } from "../../../lib/auth";
 import { PressView } from "../../../components/outreach/PressView";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("press");
 
 export const dynamic = "force-dynamic";
 

@@ -13,6 +13,9 @@ import {
 } from "@platform/database";
 import { hasPermission, requireAuth } from "../../../../lib/auth";
 import { IntegrationsView } from "../../../../components/settings/IntegrationsView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("settings/integrations");
 
 export const dynamic = "force-dynamic";
 

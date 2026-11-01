@@ -98,7 +98,7 @@ for (const locale of ["en", "ar"] as const) {
     const blocked = new Promise<void>((resolve) => {
       release = resolve;
     });
-    await page.route("**/dashboard/quotations/**", async (route) => {
+    await page.route(/\/dashboard\/quotations(?:\/.*)?$/, async (route) => {
       if (route.request().method() !== "POST") return route.continue();
       await blocked;
       await route.fulfill({
@@ -133,23 +133,27 @@ for (const locale of ["en", "ar"] as const) {
     ).toBe("issued");
 
     await page.goto("/dashboard/hr/gosi");
-    await page
+    await expect(page.locator("[data-overlay-scroll-ready]")).toBeAttached();
+    const historyButton = page
       .getByRole("row")
       .filter({
         hasText: locale === "en" ? "E2E dialog component" : "بند اختبار الحوار",
       })
-      .getByRole("button", { name: t.gosi.history, exact: true })
-      .click();
-    await page
+      .getByRole("button", { name: t.gosi.history, exact: true });
+    await historyButton.click();
+    const endButton = page
       .getByRole("main")
-      .getByRole("button", { name: t.gosi.end, exact: true })
-      .click();
+      .getByRole("button", { name: t.gosi.end, exact: true });
+    if (!(await endButton.isVisible({ timeout: 2000 }).catch(() => false))) {
+      await historyButton.click();
+    }
+    await endButton.click();
     const endDate = dialog.getByLabel(t.gosi.endDateLabel, { exact: true });
     await endDate.fill("1999-12-31");
     await dialog.getByRole("button", { name: t.gosi.end, exact: true }).click();
     await expect(dialog.getByRole("alert")).toHaveText(t.gosi.endBeforeStart);
     await endDate.fill("2000-01-02");
-    await page.route("**/dashboard/hr/gosi", (route) =>
+    await page.route(/\/dashboard\/hr\/(?:gosi|pensions)(?:\?.*)?$/, (route) =>
       route.request().method() === "POST"
         ? route.fulfill({
             status: 500,
@@ -179,7 +183,7 @@ for (const locale of ["en", "ar"] as const) {
       exact: true,
     });
     await url.fill("https://example.test/payment-proof");
-    await page.route("**/dashboard/payments/**", (route) =>
+    await page.route(/\/dashboard\/payments(?:\/.*)?$/, (route) =>
       route.request().method() === "POST"
         ? route.fulfill({
             status: 500,

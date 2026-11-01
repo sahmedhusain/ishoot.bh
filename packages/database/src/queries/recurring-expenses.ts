@@ -370,16 +370,14 @@ export async function processRecurringExpenses() {
   const due = await db.recurringExpense.findMany({
     where: { isActive: true, autoRecord: true, nextDueDate: { lte: today } },
   });
+  const fallbackRecorder = due.some((r) => !r.createdById) ? (await financeUsers())[0] : undefined;
   for (const r of due) {
     for (let i = 0; i < 12; i++) {
       const current = await db.recurringExpense.findUnique({
         where: { id: r.id },
       });
       if (!current?.isActive || current.nextDueDate > today) break;
-      await recordRecurringExpense(
-        r.id,
-        current.createdById ?? (await financeUsers())[0],
-      );
+      await recordRecurringExpense(r.id, current.createdById ?? fallbackRecorder!);
       recorded++;
     }
   }
@@ -387,22 +385,27 @@ export async function processRecurringExpenses() {
     where: { isActive: true, autoRecord: false },
   });
   const recipients = manual.length ? await financeUsers() : [];
-  for (const r of manual) {
+  const reminders = manual.flatMap((r) => {
     const days = Math.round(
       (r.nextDueDate.getTime() - today.getTime()) / 86400000,
     );
-    if (days > r.remindDaysBefore) continue;
-    const key = `recurring-expense:${r.id}:${iso(r.nextDueDate)}:${days < 0 ? "overdue" : "due"}`;
-    const already = new Set(
-      (
-        await db.notification.findMany({
-          where: { eventKey: key },
-          select: { userId: true },
-        })
-      ).map((n) => n.userId),
-    );
+    if (days > r.remindDaysBefore) return [];
+    return [{ r, days, key: `recurring-expense:${r.id}:${iso(r.nextDueDate)}:${days < 0 ? "overdue" : "due"}` }];
+  });
+  // Who was already told about each bill, read in one query.
+  const told = new Set(
+    reminders.length
+      ? (
+          await db.notification.findMany({
+            where: { eventKey: { in: reminders.map((entry) => entry.key) } },
+            select: { eventKey: true, userId: true },
+          })
+        ).map((n) => `${n.eventKey}|${n.userId}`)
+      : [],
+  );
+  for (const { r, days, key } of reminders) {
     const data = recipients
-      .filter((u) => !already.has(u))
+      .filter((u) => !told.has(`${key}|${u}`))
       .map((userId) => ({
         userId,
         title: days < 0 ? "Bill overdue" : "Bill due",

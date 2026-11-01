@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
@@ -8,6 +9,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import type { Quotation } from "@platform/database/types";
 import type { QuotationListSummary } from "@platform/database";
 import { ListControls } from "../shared/ListControls";
+import { PageHeader } from "../layout/PageHeader";
 
 export interface QuotationListItem extends Quotation {
   client?: {
@@ -53,22 +55,9 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
   return (
     <div className="p-6 md:p-8 space-y-8 max-w-7xl mx-auto">
       {/* Editorial Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-outline-variant pb-6" data-page-header>
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono uppercase tracking-widest text-accent bg-secondary-container dark:bg-tone-15/40 dark:text-mint px-2.5 py-0.5 rounded-full font-medium">
-              {qListT.commercialBadge}
-            </span>
-          </div>
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-ink dark:text-ink mt-1">
-            <bdi dir="auto">{qListT.title}</bdi>
-          </h1>
-          <p className="text-sm text-ink-muted dark:text-ink-muted mt-1 max-w-2xl">
-            {qListT.subtitle}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
+      <PageHeader
+        eyebrow={qListT.commercialBadge}
+        actions={<div className="flex items-center gap-3">
           <Link
             href={ROUTES.quotations.create()}
             className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-primary-foreground px-4 py-2.5 rounded-lg text-sm font-medium shadow-xs active:scale-[0.98] transition-all duration-150 ease-out"
@@ -76,26 +65,26 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
             <Plus className="w-4 h-4" />
             <span>{qListT.newQuotation}</span>
           </Link>
-        </div>
-      </div>
+        </div>}
+      />
 
       {/* Metrics Bento Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-xl shadow-xs">
-          <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
+        <div className="bg-surface-raised border border-outline-variant p-5 rounded-xl shadow-xs">
+          <div className="text-xs text-ink-muted uppercase tracking-wider font-mono">
             {qListT.totalQuotations}
           </div>
-          <div className="text-2xl font-bold text-ink dark:text-ink mt-2">
+          <div className="text-2xl font-bold text-ink mt-2">
             {summary.total}
           </div>
           <div className="text-xs text-ink-muted mt-1">{qListT.allTimeCreated}</div>
         </div>
 
-        <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-xl shadow-xs">
-          <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
+        <div className="bg-surface-raised border border-outline-variant p-5 rounded-xl shadow-xs">
+          <div className="text-xs text-ink-muted uppercase tracking-wider font-mono">
             {qListT.pipelineVolume}
           </div>
-          <div className="text-2xl font-bold text-ink dark:text-ink mt-2 space-y-0.5">
+          <div className="text-2xl font-bold text-ink mt-2 space-y-0.5">
             {openValues.length === 0 ? (
               <div>0.000</div>
             ) : (
@@ -109,8 +98,8 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
           <div className="text-xs text-ink-muted mt-1">{qListT.activeQuoteAmounts}</div>
         </div>
 
-        <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-xl shadow-xs">
-          <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
+        <div className="bg-surface-raised border border-outline-variant p-5 rounded-xl shadow-xs">
+          <div className="text-xs text-ink-muted uppercase tracking-wider font-mono">
             {qListT.pendingApproval}
           </div>
           <div className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-2 flex items-center gap-2">
@@ -120,8 +109,8 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
           <div className="text-xs text-ink-muted mt-1">{qListT.requiresSuperAdmin}</div>
         </div>
 
-        <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant p-5 rounded-xl shadow-xs">
-          <div className="text-xs text-ink-muted dark:text-ink-muted uppercase tracking-wider font-mono">
+        <div className="bg-surface-raised border border-outline-variant p-5 rounded-xl shadow-xs">
+          <div className="text-xs text-ink-muted uppercase tracking-wider font-mono">
             {qListT.acceptedConverted}
           </div>
           <div className="text-2xl font-bold text-teal-600 dark:text-teal-400 mt-2 flex items-center gap-2">
@@ -161,10 +150,10 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
       </div>
 
       {/* Quotations Table */}
-      <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant rounded-xl overflow-hidden shadow-xs">
+      <div className="bg-surface-raised border border-outline-variant rounded-xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left rtl:text-right text-sm">
-            <thead className="bg-surface-raised/70 dark:bg-white/5 border-b border-outline-variant text-xs font-mono uppercase text-ink-muted dark:text-ink-muted">
+          <DataTable className="w-full text-left rtl:text-right text-sm">
+            <thead className="bg-surface-raised/70 dark:bg-white/5 border-b border-outline-variant text-xs font-mono uppercase text-ink-muted">
               <tr>
                 <th className="py-3 px-4">{qListT.quoteNumber}</th>
                 <th className="py-3 px-4">{qListT.client}</th>
@@ -178,7 +167,7 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
             <tbody className="divide-y divide-outline-variant dark:divide-white/5">
               {quotations.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-ink-muted dark:text-ink-muted">
+                  <td colSpan={7} className="py-12 text-center text-ink-muted">
                     <FileSignature className="w-10 h-10 mx-auto text-ink dark:text-ink-muted mb-3" />
                     <p className="text-sm font-medium">{qListT.noQuotationsFound}</p>
                     <Link
@@ -202,7 +191,7 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
                       key={q.id}
                       className="hover:bg-surface-raised/50 dark:hover:bg-white/[0.02] transition-colors"
                     >
-                      <td className="py-3.5 px-4 font-mono font-medium text-ink dark:text-ink">
+                      <td className="py-3.5 px-4 font-mono font-medium text-ink">
                         <Link
                           href={ROUTES.quotations.detail(q.id)}
                           className="hover:text-accent transition-colors underline-offset-4 hover:underline"
@@ -210,7 +199,7 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
                           {q.quotationNumber}
                         </Link>
                       </td>
-                      <td className="py-3.5 px-4 text-ink dark:text-ink font-medium">
+                      <td className="py-3.5 px-4 text-ink font-medium">
                         {clientDisplay}
                       </td>
                       <td className="py-3.5 px-4 text-ink-muted font-mono text-xs">
@@ -219,7 +208,7 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
                       <td className="py-3.5 px-4 text-ink-muted font-mono text-xs">
                         {new Date(q.validUntilDate).toLocaleDateString("en-GB")}
                       </td>
-                      <td className="py-3.5 px-4 text-right rtl:text-left font-mono font-semibold text-ink dark:text-ink">
+                      <td className="py-3.5 px-4 text-right rtl:text-left font-mono font-semibold text-ink">
                         {Number(q.totalAmount).toFixed(3)}{" "}
                         <span className="text-xs text-ink-muted font-normal">{q.currency}</span>
                       </td>
@@ -265,7 +254,7 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
                 })
               )}
             </tbody>
-          </table>
+          </DataTable>
         </div>
       </div>
     </div>

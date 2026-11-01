@@ -8,6 +8,7 @@ import type { OrgChartNode } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { ContentImage } from "../shared/ContentImage";
+import { PageHeader } from "../layout/PageHeader";
 
 function Avatar({ name, url, size = "h-8 w-8" }: { name: string; url: string | null; size?: string }) {
   const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("");
@@ -89,19 +90,12 @@ export function OrgChartView({ departments, unassigned }: { departments: OrgChar
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display flex items-center gap-2">
-            <Network className="w-7 h-7 text-accent" />
-            {copy.title}
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">{copy.subtitle}</p>
-        </div>
-        <Link href={ROUTES.directory} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-outline-variant text-sm font-semibold text-ink hover:bg-ink/5">
+      <PageHeader
+        actions={<Link href={ROUTES.directory} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-outline-variant text-sm font-semibold text-ink hover:bg-ink/5">
           <UserRound className="w-4 h-4 text-accent" />
           {t.directory.title}
-        </Link>
-      </div>
+        </Link>}
+      />
       {departments.length === 0 ? (
         <p className="p-12 text-center text-sm text-ink-muted rounded-3xl border border-outline-variant bg-surface">{copy.empty}</p>
       ) : (

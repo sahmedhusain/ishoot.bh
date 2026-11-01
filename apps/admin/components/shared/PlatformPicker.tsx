@@ -103,13 +103,13 @@ export function PlatformPicker({
           value={selectedPreset}
           onChange={handleSelectChange}
           style={{ "--select-ps": "2.5rem" } as React.CSSProperties}
-          className="w-full appearance-none bg-surface-raised dark:bg-surface border border-outline-variant dark:border-white/10 rounded-xl text-xs font-semibold text-ink dark:text-ink hover:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all cursor-pointer shadow-2xs ps-10 pe-8"
+          className="w-full appearance-none bg-surface-raised dark:bg-surface border border-outline-variant dark:border-white/10 rounded-xl text-xs font-semibold text-ink hover:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all cursor-pointer shadow-2xs ps-10 pe-8"
         >
           {PLATFORM_PRESETS.map((preset) => (
             <option
               key={preset.id}
               value={preset.id}
-              className="bg-surface-raised dark:bg-surface-raised text-ink dark:text-ink"
+              className="bg-surface-raised text-ink"
             >
               {preset.id === "website"
                 ? t.platformPicker.website

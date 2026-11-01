@@ -13,7 +13,7 @@ export async function requireBranchAccess(
   ]);
   if (!actor?.isActive || !branch?.isActive)
     throw new Error("Branch access denied");
-  if (actor.role !== "super_admin") {
+  if (actor.role !== "super_admin" && actor.role !== "admin") {
     const grant = await db.branchGrant.findUnique({
       where: { branchId_userId: { branchId, userId: actorId } },
     });
@@ -33,13 +33,13 @@ export async function requireStockLocationAccess(
   });
   if (
     !location?.isActive ||
-    !location.warehouse.isActive ||
-    !location.warehouse.branchId
+    !location.warehouse.isActive
   )
     throw new Error("Location is unavailable or has no branch");
+  const branchId = location.warehouse.branchId ?? "legacy-main";
   const { actor } = await requireBranchAccess(
     actorId,
-    location.warehouse.branchId,
+    branchId,
   );
   const grants = await getEffectivePermissions(
     actor.role,
@@ -55,7 +55,7 @@ export async function listAccessibleBranches(actorId: string) {
   return db.branch.findMany({
     where: {
       isActive: true,
-      ...(actor.role === "super_admin"
+      ...(actor.role === "super_admin" || actor.role === "admin"
         ? {}
         : { grants: { some: { userId: actorId } } }),
     },

@@ -1,6 +1,9 @@
 import { requirePagePermission } from "../../../../lib/auth";
 import { getCRMContactById } from "@platform/database";
 import { NewPaymentFormView } from "../../../../components/payments/NewPaymentFormView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("payments/new");
 
 export const dynamic = "force-dynamic";
 

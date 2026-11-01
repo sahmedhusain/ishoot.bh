@@ -61,7 +61,7 @@ export function DomainSettingsCard({ initialWebsiteDomain, initialAdminDomain, c
     const invalid = values[kind].trim() !== "" && !normalizeDomain(values[kind]);
     return (
       <div className="space-y-1.5">
-        <label htmlFor={id} className="text-xs font-medium text-ink dark:text-ink">
+        <label htmlFor={id} className="text-xs font-medium text-ink">
           {kind === "website" ? copy.websiteLabel : copy.adminLabel}
         </label>
         <div className="flex items-center rounded-lg border border-outline-variant bg-surface focus-within:ring-2 focus-within:ring-accent">

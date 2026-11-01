@@ -1,13 +1,15 @@
 "use client";
+import { DataTable } from "@platform/ui";
 import { useCompanyCurrency } from "@platform/ui";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Laptop, Plus, Search, Settings2, X } from "lucide-react";
+import { Plus, Search, Settings2, X } from "lucide-react";
 import { Select, Button, formatCurrencyValue, formatDate } from "@platform/ui";
 import type { AssetRecord } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { PageHeader } from "../layout/PageHeader";
 
 const STATUSES = ["available", "assigned", "maintenance", "lost", "retired"] as const;
 const CONDITIONS = ["new", "excellent", "good", "fair", "poor", "damaged"] as const;
@@ -53,12 +55,8 @@ export function AssetsListView({ items, counts, totalValue, filters, categories,
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-ink flex items-center gap-2"><Laptop className="h-5 w-5 text-accent" /><bdi dir="auto">{a.title}</bdi></h1>
-          <p className="text-xs text-ink-muted mt-1">{a.subtitle}</p>
-        </div>
-        <div className="flex items-center gap-2">
+      <PageHeader
+        actions={<div className="flex items-center gap-2">
           {canEdit ? (
             <Link href={ROUTES.assets.categories} className="inline-flex items-center gap-1.5 h-9 rounded-full border border-outline-variant px-4 text-xs font-semibold text-ink hover:bg-ink/5">
               <Settings2 className="h-3.5 w-3.5" />{a.categories}
@@ -67,8 +65,8 @@ export function AssetsListView({ items, counts, totalValue, filters, categories,
           {canCreate ? (
             <Link href={ROUTES.assets.create}><Button size="sm" className="gap-1.5 rounded-full h-9"><Plus className="h-4 w-4" />{a.add}</Button></Link>
           ) : null}
-        </div>
-      </div>
+        </div>}
+      />
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {[
@@ -85,16 +83,16 @@ export function AssetsListView({ items, counts, totalValue, filters, categories,
             </>
           );
           return link ? (
-            <Link key={title} href={link} className="rounded-2xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-4 hover:border-accent/50">{body}</Link>
+            <Link key={title} href={link} className="rounded-2xl border border-outline-variant bg-surface-raised p-4 hover:border-accent/50">{body}</Link>
           ) : (
-            <div key={title} className="rounded-2xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-4">{body}</div>
+            <div key={title} className="rounded-2xl border border-outline-variant bg-surface-raised p-4">{body}</div>
           );
         })}
       </div>
 
       <form
         role="search"
-        className="flex flex-wrap items-center gap-2 rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-3"
+        className="flex flex-wrap items-center gap-2 rounded-3xl border border-outline-variant bg-surface-raised p-3"
         onSubmit={(e) => {
           e.preventDefault();
           const data = new FormData(e.currentTarget);
@@ -132,9 +130,9 @@ export function AssetsListView({ items, counts, totalValue, filters, categories,
         ) : null}
       </form>
 
-      <div className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised overflow-hidden">
+      <div className="rounded-3xl border border-outline-variant bg-surface-raised overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <DataTable className="w-full text-sm">
             <thead className="bg-ink/[0.03] text-[11px] text-ink-muted">
               <tr>
                 <th className="px-4 py-3 text-start font-semibold">{a.columns.asset}</th>
@@ -167,7 +165,7 @@ export function AssetsListView({ items, counts, totalValue, filters, categories,
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
         </div>
       </div>
     </div>

@@ -1,17 +1,19 @@
 "use client";
+import { DataTable } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowRightLeft, Plus, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { Button, Input, Select, formatDate } from "@platform/ui";
 import type { listEmployeeHandovers } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { openEmployeeHandoverAction } from "../../app/actions/employee-handovers";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
+import { PageHeader } from "../layout/PageHeader";
 
 type Row = Awaited<ReturnType<typeof listEmployeeHandovers>>[number];
 type Option = { id: string; name_en: string; name_ar: string };
@@ -69,13 +71,9 @@ export function HandoversListView({ items, status, kind, startFor, employees, ca
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-ink flex items-center gap-2"><ArrowRightLeft className="h-5 w-5 text-accent" /><bdi dir="auto">{e.title}</bdi></h1>
-          <p className="text-xs text-ink-muted mt-1">{e.subtitle}</p>
-        </div>
-        {canEdit && !starting ? <Button size="sm" className="gap-1.5 rounded-full h-9 self-start" onClick={() => setStarting(true)}><Plus className="h-4 w-4" />{e.start}</Button> : null}
-      </div>
+      <PageHeader
+        actions={canEdit && !starting ? <Button size="sm" className="gap-1.5 rounded-full h-9 self-start" onClick={() => setStarting(true)}><Plus className="h-4 w-4" />{e.start}</Button> : null}
+      />
 
       {starting ? (
         <form onSubmit={start} className="rounded-3xl border border-accent/30 bg-accent/5 p-5 space-y-4">
@@ -128,8 +126,8 @@ export function HandoversListView({ items, status, kind, startFor, employees, ca
       </div>
 
       {items.length ? (
-        <div className="overflow-x-auto rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto rounded-3xl border border-outline-variant bg-surface-raised">
+          <DataTable className="w-full text-sm">
             <thead className="text-[11px] uppercase tracking-wide text-ink-muted">
               <tr className="border-b border-outline-variant">
                 <th className="px-4 py-3 text-start"><bdi dir="ltr">{e.reference}</bdi></th>
@@ -158,7 +156,7 @@ export function HandoversListView({ items, status, kind, startFor, employees, ca
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
         </div>
       ) : (
         <div className="rounded-3xl border border-dashed border-outline-variant p-10 text-center text-sm text-ink-muted">{e.empty}</div>

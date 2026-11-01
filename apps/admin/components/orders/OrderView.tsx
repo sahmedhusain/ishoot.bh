@@ -4,7 +4,7 @@ import { useConfirmation } from "@platform/ui";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Copy, CreditCard, Link2, Loader2, Paperclip } from "lucide-react";
+import { Copy, CreditCard, Link2, Loader2, Paperclip } from "lucide-react";
 import { Button, Card, CurrencyDisplay, Input, Select, formatCurrencyValue, formatDate } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import type { OrderRecord, orderPaymentAttempts, requestsForOrder } from "@platform/database";
@@ -17,6 +17,7 @@ import { errorMessage } from "../../lib/error-text";
 import { uploadForClaim } from "../../lib/upload-client";
 import { Field } from "../setup/LanguageFields";
 import { OrderStatusPill, PaymentStatusPill } from "./OrderPills";
+import { PageHeader } from "../layout/PageHeader";
 
 /** One order: who and where, the items and totals, moving it along, payments, refunds, invoice and history. */
 type Attempt = Awaited<ReturnType<typeof orderPaymentAttempts>>[number];
@@ -62,20 +63,11 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <Link href={ROUTES.orders.list} className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent">
-            <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" />
-            {copy.back}
-          </Link>
-          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink flex flex-wrap items-center gap-3">
-            <span dir="ltr">{order.number}</span>
-            <OrderStatusPill status={currentStatus} fulfilment={order.fulfilment} />
-            <PaymentStatusPill status={order.payment_status} />
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">{[(t.orders.channels as Record<string, string>)[order.channel], (t.orders.paymentMethods as Record<string, string>)[order.payment_method], formatDate(order.placed_at, locale, "time")].join(" · ")}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
+      <PageHeader
+        title={<><span dir="ltr">{order.number}</span><OrderStatusPill status={currentStatus} fulfilment={order.fulfilment} /><PaymentStatusPill status={order.payment_status} /></>}
+        description={[(t.orders.channels as Record<string, string>)[order.channel], (t.orders.paymentMethods as Record<string, string>)[order.payment_method], formatDate(order.placed_at, locale, "time")].join(" · ")}
+        back={{ href: ROUTES.orders.list, label: copy.back }}
+        actions={<div className="flex flex-wrap gap-2">
           {rights.edit && next.map((targetStatus) => (
             <Button key={targetStatus} type="button" size="sm" variant={targetStatus === "cancelled" || targetStatus === "returned" ? "ghost" : "primary"} className={`rounded-full ${targetStatus === "cancelled" ? "text-rose-600" : ""}`} disabled={busy} onClick={() => { const description = (copy.moveConfirm as Record<string, string>)[targetStatus]; const onConfirm = () => run(async () => { await moveOrderAction(order.id, targetStatus, note); setCurrentStatus(targetStatus as OrderStatus); }); if (description) confirmAction({ description, onConfirm }); else void onConfirm(); }} data-testid={`order-move-${targetStatus}`}>
               {order.fulfilment === "pickup" && targetStatus === "shipped" ? copy.readyForCollection : order.fulfilment === "pickup" && targetStatus === "delivered" ? copy.markCollected : (copy.moveTo as Record<string, string>)[targetStatus]}
@@ -87,8 +79,8 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
             <Button type="button" size="sm" variant="outline" className="rounded-full" disabled={busy} onClick={() => run(() => issueOrderInvoiceAction(order.id))}>{copy.issueInvoice}</Button>
           ) : null}
           {busy && <Loader2 className="w-4 h-4 animate-spin self-center" aria-hidden="true" />}
-        </div>
-      </div>
+        </div>}
+      />
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
 
       <div className="grid md:grid-cols-2 gap-4">

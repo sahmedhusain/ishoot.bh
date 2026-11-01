@@ -2,6 +2,9 @@ import { notFound } from "next/navigation";
 import { db, getAsset, listAssetCategories } from "@platform/database";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { AssetDetailView } from "../../../../components/assets/AssetDetailView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("assets/[id]");
 
 export const dynamic = "force-dynamic";
 

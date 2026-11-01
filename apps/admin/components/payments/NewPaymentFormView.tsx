@@ -12,9 +12,6 @@ import { useRouter } from "next/navigation";
 import type { CRMContact, Invoice } from "@platform/database/types";
 import { Card, Button, Input, Select, CurrencyDisplay } from "@platform/ui";
 import {
-  ArrowLeft,
-  ArrowRight,
-  CreditCard,
   CheckCircle2,
   FileText,
   AlertCircle,
@@ -23,11 +20,12 @@ import {
   Loader2,
   Trash2,
   ShieldCheck,
-  FileCheck,
+  FileCheck ,
 } from "lucide-react";
 import { createPaymentAction } from "../../app/actions/finance";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { ClientAutocomplete } from "../crm/ClientAutocomplete";
+import { PageHeader } from "../layout/PageHeader";
 
 interface NewPaymentFormViewProps {
   initialContacts: CRMContact[];
@@ -48,7 +46,7 @@ export function NewPaymentFormView({
   preselectedClientId,
 }: NewPaymentFormViewProps) {
   const router = useRouter();
-  const { t, isRTL } = useAdminLocale();
+  const { t } = useAdminLocale();
 
   const [contacts] = React.useState<CRMContact[]>(initialContacts);
   const [invoices, setInvoices] = React.useState<Invoice[]>(initialInvoices);
@@ -225,27 +223,11 @@ export function NewPaymentFormView({
     }
   };
 
-  const BackIcon = isRTL ? ArrowRight : ArrowLeft;
-
   return (
     <div inert={saving} aria-busy={saving} className="space-y-8 max-w-4xl mx-auto pb-16">
-      <div className="flex items-center gap-4" data-page-header>
-        <Link href={ROUTES.payments.list}>
-          <Button variant="outline" size="sm" className="gap-1.5">
-            <BackIcon className="w-4 h-4" />
-            <span>{t.actions.back}</span>
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-ink dark:text-ink font-display flex items-center gap-2">
-            <CreditCard className="w-6 h-6 text-accent" />
-            <span>{t.paymentsNew.title}</span>
-          </h1>
-          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1">
-            {t.paymentsNew.subtitle}
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        back={{ href: ROUTES.payments.list }}
+      />
 
       <Card className="p-6 sm:p-8 space-y-6">
         {error ? (
@@ -258,7 +240,7 @@ export function NewPaymentFormView({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {/* Step 1: Select Client */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-ink dark:text-ink block">
+              <label className="text-xs font-semibold text-ink block">
                 {t.newPaymentView.selectClientLabel} *
               </label>
               <ClientAutocomplete
@@ -276,7 +258,7 @@ export function NewPaymentFormView({
 
             {/* Step 2: Select Invoice */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs font-semibold text-ink dark:text-ink">
+              <div className="flex items-center justify-between text-xs font-semibold text-ink">
                 <label>{t.newPaymentView.selectInvoiceLabel} *</label>
                 {fetchingInvoices && (
                   <span className="text-[10px] text-accent  animate-pulse">
@@ -297,7 +279,7 @@ export function NewPaymentFormView({
           {selectedInvoice && (
             <div className="p-4 rounded-2xl bg-surface-raised dark:bg-white/5 border border-outline-variant dark:border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs animate-fade-in">
               <div>
-                <span className="text-ink-muted dark:text-ink-muted block mb-0.5">
+                <span className="text-ink-muted block mb-0.5">
                   {t.newPaymentView.invoiceNumber}
                 </span>
                 <Link
@@ -312,10 +294,10 @@ export function NewPaymentFormView({
               </div>
 
               <div>
-                <span className="text-ink-muted dark:text-ink-muted block mb-0.5">
+                <span className="text-ink-muted block mb-0.5">
                   {t.newPaymentView.totalInvoiced}
                 </span>
-                <span className=" font-bold text-ink dark:text-ink">
+                <span className="font-bold text-ink">
                   <CurrencyDisplay
                     amount={selectedInvoice.total_amount}
                     currency={selectedInvoice.currency}
@@ -324,7 +306,7 @@ export function NewPaymentFormView({
               </div>
 
               <div>
-                <span className="text-ink-muted dark:text-ink-muted block mb-0.5">
+                <span className="text-ink-muted block mb-0.5">
                   {t.newPaymentView.balanceDue}
                 </span>
                 <span className=" font-bold text-amber-600 dark:text-amber-400">
@@ -336,7 +318,7 @@ export function NewPaymentFormView({
               </div>
 
               <div>
-                <span className="text-ink-muted dark:text-ink-muted block mb-0.5">
+                <span className="text-ink-muted block mb-0.5">
                   {t.newPaymentView.balanceAfterPayment}
                 </span>
                 <span
@@ -359,7 +341,7 @@ export function NewPaymentFormView({
           {/* Payment Details Inputs */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <label className="block space-y-2">
-              <span className="text-xs font-semibold text-ink dark:text-ink block">
+              <span className="text-xs font-semibold text-ink block">
                 {t.paymentsNew.amountLabel} *
               </span>
               <Input
@@ -375,7 +357,7 @@ export function NewPaymentFormView({
             </label>
 
             <label className="block space-y-2">
-              <span className="text-xs font-semibold text-ink dark:text-ink block">
+              <span className="text-xs font-semibold text-ink block">
                 {t.newPaymentView.paymentDate}
               </span>
               <Input
@@ -386,7 +368,7 @@ export function NewPaymentFormView({
             </label>
 
             <label className="block space-y-2">
-              <span className="text-xs font-semibold text-ink dark:text-ink block">
+              <span className="text-xs font-semibold text-ink block">
                 {t.paymentsNew.methodLabel}
               </span>
               <Select
@@ -404,7 +386,7 @@ export function NewPaymentFormView({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <label className="block space-y-2">
-              <span className="text-xs font-semibold text-ink dark:text-ink block">
+              <span className="text-xs font-semibold text-ink block">
                 <bdi dir="ltr">{t.newPaymentView.referenceNumber}</bdi>
               </span>
               <Input
@@ -414,7 +396,7 @@ export function NewPaymentFormView({
               />
             </label>
             <label className="block space-y-2">
-              <span className="text-xs font-semibold text-ink dark:text-ink block">
+              <span className="text-xs font-semibold text-ink block">
                 {t.newPaymentView.notesAllocation}
               </span>
               <Input
@@ -432,7 +414,7 @@ export function NewPaymentFormView({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="w-4 h-4 text-primary dark:text-mint" />
-                    <h3 className="text-xs font-bold text-ink dark:text-ink uppercase tracking-wider">
+                    <h3 className="text-xs font-bold text-ink uppercase tracking-wider">
                       {t.newPaymentView.chequeSettlementDocsTitle}
                     </h3>
                   </div>
@@ -445,7 +427,7 @@ export function NewPaymentFormView({
                   {/* Document 1: Cheque Copy */}
                   <div className="p-4 rounded-2xl bg-surface-raised/70 dark:bg-tone-15/20 border border-outline-variant dark:border-white/10 space-y-3">
                     <div className="flex items-center justify-between">
-                      <label className="text-xs font-bold text-ink dark:text-ink flex items-center gap-1.5">
+                      <label className="text-xs font-bold text-ink flex items-center gap-1.5">
                         <FileCheck className="w-3.5 h-3.5 text-primary dark:text-mint" />
                         <span>{t.newPaymentView.chequeCopyLabel} *</span>
                       </label>
@@ -466,11 +448,11 @@ export function NewPaymentFormView({
                     />
 
                     {chequeFile ? (
-                      <div className="p-3 rounded-xl bg-surface-raised dark:bg-surface-raised border border-emerald-300 dark:border-emerald-700 flex items-center justify-between gap-2 shadow-xs">
+                      <div className="p-3 rounded-xl bg-surface-raised border border-emerald-300 dark:border-emerald-700 flex items-center justify-between gap-2 shadow-xs">
                         <div className="flex items-center gap-2 min-w-0">
                           <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                           <div className="min-w-0">
-                            <p className="text-xs font-semibold text-ink dark:text-ink truncate">
+                            <p className="text-xs font-semibold text-ink truncate">
                               {chequeFile.fileName}
                             </p>
                             <span className="text-[10px] text-emerald-600 dark:text-emerald-400 ">
@@ -483,7 +465,7 @@ export function NewPaymentFormView({
                             href={chequeFile.fileUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="p-1 text-ink-muted hover:text-ink dark:text-ink-muted dark:hover:text-white"
+                            className="p-1 text-ink-muted hover:text-ink dark:hover:text-white"
                             title={t.actions.view}
                             aria-label={t.actions.view}
                           >
@@ -506,7 +488,7 @@ export function NewPaymentFormView({
                           onClick={() =>
                             !uploadingCheque && chequeInputRef.current?.click()
                           }
-                          className="border-2 border-dashed border-outline-variant dark:border-outline-variant hover:border-primary dark:hover:border-mint rounded-xl p-4 text-center cursor-pointer transition-colors"
+                          className="border-2 border-dashed border-outline-variant hover:border-primary dark:hover:border-mint rounded-xl p-4 text-center cursor-pointer transition-colors"
                         >
                           <div className="flex flex-col items-center justify-center space-y-1.5">
                             <div className="w-8 h-8 rounded-full bg-primary/10 text-primary dark:text-mint flex items-center justify-center">
@@ -516,7 +498,7 @@ export function NewPaymentFormView({
                                 <UploadCloud className="w-4 h-4" />
                               )}
                             </div>
-                            <p className="text-xs font-medium text-ink dark:text-ink">
+                            <p className="text-xs font-medium text-ink">
                               {uploadingCheque
                                 ? t.newPaymentView.uploadingCheque
                                 : t.newPaymentView.clickOrDropCheque}
@@ -541,7 +523,7 @@ export function NewPaymentFormView({
                   {/* Document 2: Bank Transfer Slip / Statement Advice */}
                   <div className="p-4 rounded-2xl bg-surface-raised/70 dark:bg-tone-15/20 border border-outline-variant dark:border-white/10 space-y-3">
                     <div className="flex items-center justify-between">
-                      <label className="text-xs font-bold text-ink dark:text-ink flex items-center gap-1.5">
+                      <label className="text-xs font-bold text-ink flex items-center gap-1.5">
                         <FileCheck className="w-3.5 h-3.5 text-primary dark:text-mint" />
                         <span>{t.newPaymentView.bankSlipLabel} *</span>
                       </label>
@@ -562,11 +544,11 @@ export function NewPaymentFormView({
                     />
 
                     {bankReceiptFile ? (
-                      <div className="p-3 rounded-xl bg-surface-raised dark:bg-surface-raised border border-emerald-300 dark:border-emerald-700 flex items-center justify-between gap-2 shadow-xs">
+                      <div className="p-3 rounded-xl bg-surface-raised border border-emerald-300 dark:border-emerald-700 flex items-center justify-between gap-2 shadow-xs">
                         <div className="flex items-center gap-2 min-w-0">
                           <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                           <div className="min-w-0">
-                            <p className="text-xs font-semibold text-ink dark:text-ink truncate">
+                            <p className="text-xs font-semibold text-ink truncate">
                               {bankReceiptFile.fileName}
                             </p>
                             <span className="text-[10px] text-emerald-600 dark:text-emerald-400 ">
@@ -579,7 +561,7 @@ export function NewPaymentFormView({
                             href={bankReceiptFile.fileUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="p-1 text-ink-muted hover:text-ink dark:text-ink-muted dark:hover:text-white"
+                            className="p-1 text-ink-muted hover:text-ink dark:hover:text-white"
                             title={t.actions.view}
                             aria-label={t.actions.view}
                           >
@@ -603,7 +585,7 @@ export function NewPaymentFormView({
                             !uploadingBankReceipt &&
                             bankReceiptInputRef.current?.click()
                           }
-                          className="border-2 border-dashed border-outline-variant dark:border-outline-variant hover:border-primary dark:hover:border-mint rounded-xl p-4 text-center cursor-pointer transition-colors"
+                          className="border-2 border-dashed border-outline-variant hover:border-primary dark:hover:border-mint rounded-xl p-4 text-center cursor-pointer transition-colors"
                         >
                           <div className="flex flex-col items-center justify-center space-y-1.5">
                             <div className="w-8 h-8 rounded-full bg-primary/10 text-primary dark:text-mint flex items-center justify-center">
@@ -613,7 +595,7 @@ export function NewPaymentFormView({
                                 <UploadCloud className="w-4 h-4" />
                               )}
                             </div>
-                            <p className="text-xs font-medium text-ink dark:text-ink">
+                            <p className="text-xs font-medium text-ink">
                               {uploadingBankReceipt
                                 ? t.newPaymentView.uploadingBankSlip
                                 : t.newPaymentView.clickOrDropBankSlip}
@@ -639,7 +621,7 @@ export function NewPaymentFormView({
             ) : (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-ink dark:text-ink flex items-center gap-1.5">
+                  <label className="text-xs font-bold text-ink flex items-center gap-1.5">
                     <FileCheck className="w-3.5 h-3.5 text-primary dark:text-mint" />
                     <span>{t.newPaymentView.proofOptionalTitle}</span>
                   </label>
@@ -660,11 +642,11 @@ export function NewPaymentFormView({
                 />
 
                 {generalProofFile ? (
-                  <div className="p-3.5 rounded-xl bg-surface-raised dark:bg-surface-raised border border-emerald-300 dark:border-emerald-700 flex items-center justify-between gap-2 shadow-xs">
+                  <div className="p-3.5 rounded-xl bg-surface-raised border border-emerald-300 dark:border-emerald-700 flex items-center justify-between gap-2 shadow-xs">
                     <div className="flex items-center gap-2 min-w-0">
                       <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                       <div className="min-w-0">
-                        <p className="text-xs font-semibold text-ink dark:text-ink truncate">
+                        <p className="text-xs font-semibold text-ink truncate">
                           {generalProofFile.fileName}
                         </p>
                         <span className="text-[10px] text-emerald-600 dark:text-emerald-400 ">
@@ -677,7 +659,7 @@ export function NewPaymentFormView({
                         href={generalProofFile.fileUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="p-1.5 text-ink-muted hover:text-ink dark:text-ink-muted dark:hover:text-white"
+                        className="p-1.5 text-ink-muted hover:text-ink dark:hover:text-white"
                         title={t.actions.view}
                         aria-label={t.actions.view}
                       >
@@ -700,7 +682,7 @@ export function NewPaymentFormView({
                       onClick={() =>
                         !uploadingProof && proofInputRef.current?.click()
                       }
-                      className="border-2 border-dashed border-outline-variant dark:border-outline-variant hover:border-primary dark:hover:border-mint rounded-xl p-4 text-center cursor-pointer transition-colors"
+                      className="border-2 border-dashed border-outline-variant hover:border-primary dark:hover:border-mint rounded-xl p-4 text-center cursor-pointer transition-colors"
                     >
                       <div className="flex flex-col items-center justify-center space-y-1">
                         <div className="w-8 h-8 rounded-full bg-primary/10 text-primary dark:text-mint flex items-center justify-center">
@@ -710,7 +692,7 @@ export function NewPaymentFormView({
                             <UploadCloud className="w-4 h-4" />
                           )}
                         </div>
-                        <p className="text-xs font-medium text-ink dark:text-ink">
+                        <p className="text-xs font-medium text-ink">
                           {uploadingProof
                             ? t.newPaymentView.uploadingProof
                             : t.newPaymentView.clickOrDropProof}

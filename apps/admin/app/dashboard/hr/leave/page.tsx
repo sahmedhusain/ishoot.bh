@@ -1,6 +1,9 @@
 import { requirePagePermission } from "../../../../lib/auth";
 import { listLeaveRequests, listLeaveTypes, db, canDecideApproval, getLeaveBalances } from "@platform/database";
 import { LeaveManagementView } from "../../../../components/hr/LeaveManagementView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("hr/leave");
 
 export const dynamic = "force-dynamic";
 

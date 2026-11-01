@@ -13,6 +13,7 @@ import { saveCoverageAction, saveMediaContactAction } from "../../app/actions/ou
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { Field } from "../setup/LanguageFields";
+import { PageHeader } from "../layout/PageHeader";
 
 type Release = Awaited<ReturnType<typeof listPressReleases>>[number];
 type Summary = Awaited<ReturnType<typeof coverageSummary>>;
@@ -47,11 +48,9 @@ export function PressView({ releases, contacts, coverage, summary, canEdit, canW
   const today = new Date().toISOString().slice(0, 10);
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div data-page-header>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
-        <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
-        <p className="mt-2 text-sm font-semibold text-ink" data-testid="press-summary">{formatMessage(copy.summary, { pieces: summary.pieces, reach: summary.reach.toLocaleString("en") })}</p>
-      </div>
+      <PageHeader
+        actions={<p className="mt-2 text-sm font-semibold text-ink" data-testid="press-summary">{formatMessage(copy.summary, { pieces: summary.pieces, reach: summary.reach.toLocaleString("en") })}</p>}
+      />
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
 
       <Card className="p-5 space-y-3" data-page-section>

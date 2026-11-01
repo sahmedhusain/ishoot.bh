@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 import { useCompanyCurrency } from "@platform/ui";
 
 import { ROUTES } from "../../constants/routes";
@@ -10,17 +11,21 @@ import { Plus, Eye, ExternalLink, FileCheck, ArrowRight, ArrowLeft } from "lucid
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 import type { InvoiceListRow } from "@platform/database";
+import { PageHeader } from "../layout/PageHeader";
 
 interface InvoicesListViewProps {
   initialInvoices: InvoiceListRow[];
   finance: Pick<FinancialSummary, "outstanding" | "overdue" | "discountsGiven">;
   acceptedQuotations?: Quotation[];
+  /** Search, filters and paging, shown under the header. */
+  controls?: React.ReactNode;
 }
 
 export function InvoicesListView({
   initialInvoices,
   finance,
   acceptedQuotations = [],
+  controls,
 }: InvoicesListViewProps) {
   const companyCurrency = useCompanyCurrency();
   const { t, isRTL } = useAdminLocale();
@@ -31,14 +36,8 @@ export function InvoicesListView({
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">
-            {t.nav.invoices}
-          </h1>
-        </div>
-
-        <Link href={ROUTES.invoices.create()}>
+      <PageHeader
+        actions={<Link href={ROUTES.invoices.create()}>
           <Button
             variant="primary"
             size="sm"
@@ -47,8 +46,9 @@ export function InvoicesListView({
             <Plus className="w-3.5 h-3.5" />
             <span>{t.actions.newInvoice}</span>
           </Button>
-        </Link>
-      </div>
+        </Link>}
+      />
+      {controls && <div className="[&>div]:mb-0">{controls}</div>}
 
       {/* Accepted Quotations Banner (Ready for Invoicing) */}
       {acceptedQuotations.length > 0 && (
@@ -59,13 +59,13 @@ export function InvoicesListView({
                 <FileCheck className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-xs font-bold text-ink dark:text-ink flex items-center gap-2">
+                <h3 className="text-xs font-bold text-ink flex items-center gap-2">
                   <span>{t.invoicesList.acceptedQuotesBanner || (t.invoicesList.acceptedQuotationsReadyForInvoicing)}</span>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-tone-95 dark:bg-tone-15 text-primary dark:text-mint">
                     {acceptedQuotations.length}
                   </span>
                 </h3>
-                <p className="text-[11px] text-ink-muted dark:text-ink-muted">
+                <p className="text-[11px] text-ink-muted">
                   {t.invoicesList.acceptedQuotesSubtitle || (t.invoicesList.clientsAcceptedTheseQuotesYou)}
                 </p>
               </div>
@@ -86,13 +86,13 @@ export function InvoicesListView({
             {acceptedQuotations.slice(0, 3).map((q) => (
               <div
                 key={q.id}
-                className="p-3 bg-surface-raised dark:bg-surface-raised rounded-xl border border-teal-100 dark:border-teal-900/30 flex items-center justify-between gap-3 shadow-xs hover:border-teal-300 dark:hover:border-teal-700 transition-colors"
+                className="p-3 bg-surface-raised rounded-xl border border-teal-100 dark:border-teal-900/30 flex items-center justify-between gap-3 shadow-xs hover:border-teal-300 dark:hover:border-teal-700 transition-colors"
               >
                 <div className="min-w-0">
-                  <div className="font-mono font-bold text-xs text-ink dark:text-ink">
+                  <div className="font-mono font-bold text-xs text-ink">
                     <bdi dir="ltr">{q.quotationNumber}</bdi>
                   </div>
-                  <div className="text-[11px] text-ink-muted dark:text-ink-muted truncate mt-0.5">
+                  <div className="text-[11px] text-ink-muted truncate mt-0.5">
                     <bdi dir="auto">{q.client?.companyName || q.client?.firstName || t.invoicesList.directClient}</bdi>
                   </div>
                   <div className="text-xs font-mono font-semibold text-primary dark:text-mint mt-1">
@@ -117,17 +117,17 @@ export function InvoicesListView({
 
       {/* KPI Chips */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="p-4 bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-outline-variant rounded-xl shadow-xs space-y-1">
-          <div className="text-xs font-medium text-ink-muted dark:text-ink-muted">
+        <div className="p-4 bg-surface-raised border border-outline-variant rounded-xl shadow-xs space-y-1">
+          <div className="text-xs font-medium text-ink-muted">
             {t.kpi.receivables}
           </div>
-          <div className="text-xl font-bold text-ink dark:text-ink ">
+          <div className="text-xl font-bold text-ink">
             <CurrencyDisplay amount={finance.outstanding} currency={companyCurrency} />
           </div>
         </div>
 
-        <div className="p-4 bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-outline-variant rounded-xl shadow-xs space-y-1">
-          <div className="text-xs font-medium text-ink-muted dark:text-ink-muted">
+        <div className="p-4 bg-surface-raised border border-outline-variant rounded-xl shadow-xs space-y-1">
+          <div className="text-xs font-medium text-ink-muted">
             {t.kpi.overdueAlert}
           </div>
           <div
@@ -140,8 +140,8 @@ export function InvoicesListView({
           </div>
         </div>
 
-        <div className="p-4 bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-outline-variant rounded-xl shadow-xs space-y-1">
-          <div className="text-xs font-medium text-ink-muted dark:text-ink-muted">
+        <div className="p-4 bg-surface-raised border border-outline-variant rounded-xl shadow-xs space-y-1">
+          <div className="text-xs font-medium text-ink-muted">
             {t.charts.discountsGiven}
           </div>
           <div className="text-xl font-bold text-primary dark:text-mint ">
@@ -151,10 +151,10 @@ export function InvoicesListView({
       </div>
 
       {/* Search & Filter Toolbar + Table */}
-      <div className="bg-surface-raised dark:bg-surface-raised border border-outline-variant dark:border-outline-variant rounded-xl overflow-hidden shadow-xs">
+      <div className="bg-surface-raised border border-outline-variant rounded-xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-start text-xs">
-            <thead className="bg-surface dark:bg-surface-container-low border-b border-outline-variant dark:border-outline-variant text-ink-muted dark:text-ink-muted uppercase  tracking-wider text-[11px]">
+          <DataTable className="w-full text-start text-xs">
+            <thead className="bg-surface dark:bg-surface-container-low border-b border-outline-variant text-ink-muted uppercase tracking-wider text-[11px]">
               <tr>
                 <th className="p-3.5 text-start font-semibold">{t.finance.invoiceNumber}</th>
                 <th className="p-3.5 text-start font-semibold">{t.finance.client}</th>
@@ -171,7 +171,7 @@ export function InvoicesListView({
                   key={inv.id}
                   className="hover:bg-surface-raised/70 dark:hover:bg-surface-raised/40 transition-colors"
                 >
-                  <td className="p-3.5  font-bold text-ink dark:text-ink">
+                  <td className="p-3.5 font-bold text-ink">
                     <Link
                       href={ROUTES.invoices.detail(inv.id)}
                       className="hover:text-primary dark:hover:text-mint transition-colors"
@@ -183,7 +183,7 @@ export function InvoicesListView({
                     {inv.contact_id ? (
                       <Link
                         href={ROUTES.crm.customer(inv.contact_id)}
-                        className="font-medium text-ink dark:text-ink hover:text-primary dark:hover:text-mint hover:underline transition-colors inline-flex items-center gap-1"
+                        className="font-medium text-ink hover:text-primary dark:hover:text-mint hover:underline transition-colors inline-flex items-center gap-1"
                       >
                         <span>
                           {inv.contact?.company ||
@@ -193,23 +193,23 @@ export function InvoicesListView({
                         <ExternalLink className="w-3 h-3 text-ink-muted shrink-0" />
                       </Link>
                     ) : (
-                      <div className="font-medium text-ink dark:text-ink">
+                      <div className="font-medium text-ink">
                         {inv.contact?.company ||
                           inv.contact?.full_name ||
                           t.invoicesList.clientFallback}
                       </div>
                     )}
-                    <div className="text-[11px] text-ink-muted dark:text-ink-muted">
+                    <div className="text-[11px] text-ink-muted">
                       <bdi dir="ltr">{inv.contact?.email}</bdi>
                     </div>
                   </td>
-                  <td className="p-3.5 text-ink-muted dark:text-ink-muted  text-[11px]">
+                  <td className="p-3.5 text-ink-muted text-[11px]">
                     <div>{inv.issue_date}</div>
                     <div className="opacity-60">
                       {t.invoicesList.duePrefix} {inv.due_date}
                     </div>
                   </td>
-                  <td className="p-3.5 text-end  font-bold text-ink dark:text-ink">
+                  <td className="p-3.5 text-end font-bold text-ink">
                     <CurrencyDisplay
                       amount={inv.total_amount}
                       currency={inv.currency}
@@ -238,7 +238,7 @@ export function InvoicesListView({
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 w-7 p-0 rounded-lg text-ink-muted hover:text-ink hover:bg-surface-sunken dark:text-ink-muted dark:hover:text-white dark:hover:bg-surface-raised"
+                          className="h-7 w-7 p-0 rounded-lg text-ink-muted hover:text-ink hover:bg-surface-sunken dark:hover:text-white dark:hover:bg-surface-raised"
                           title={t.actions.view}
                         >
                           <Eye className="w-3.5 h-3.5" />
@@ -249,7 +249,7 @@ export function InvoicesListView({
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
         </div>
       </div>
     </div>

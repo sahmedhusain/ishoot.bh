@@ -4,6 +4,9 @@ import { notFound } from "next/navigation";
 import { getPaymentById, getSigningState, canSignDocument } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { PaymentDetailView } from "../../../../components/payments/PaymentDetailView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("payments/[id]");
 
 export const dynamic = "force-dynamic";
 

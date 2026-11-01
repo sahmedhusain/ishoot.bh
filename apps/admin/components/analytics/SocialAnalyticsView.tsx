@@ -36,6 +36,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { usePermissions } from "../../hooks/usePermissions";
 import { refreshSocialAnalyticsAction, saveSocialPlanAction, deleteSocialPlanAction } from "../../app/actions/social";
 import { SocialBrandIcon } from "../shared/PlatformPicker";
+import { PageHeader } from "../layout/PageHeader";
 
 type Tab = "overview" | "posts" | "planner";
 
@@ -80,7 +81,7 @@ function Kpi({ icon, label, value, footer }: { icon: React.ReactNode; label: str
         <span className="text-xs font-medium text-ink-muted dark:text-ink">{label}</span>
         <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary dark:bg-white/10 dark:text-accent">{icon}</span>
       </div>
-      <p className="text-2xl font-bold text-ink dark:text-ink"><bdi dir="ltr">{value}</bdi></p>
+      <p className="text-2xl font-bold text-ink"><bdi dir="ltr">{value}</bdi></p>
       {footer && <div className="min-h-4">{footer}</div>}
     </Card>
   );
@@ -141,13 +142,13 @@ function PostRow({ post }: { post: SocialPostView }) {
             <SocialBrandIcon name={post.platform} className="w-5 h-5" />
           </span>
         )}
-        <span className="absolute bottom-0.5 end-0.5 rounded bg-white/90 p-0.5 text-ink dark:bg-black/70 dark:text-ink">
+        <span className="absolute bottom-0.5 end-0.5 rounded bg-white/90 p-0.5 text-ink dark:bg-black/70">
           <SocialBrandIcon name={post.platform} className="w-3 h-3" />
         </span>
       </div>
       <div className="min-w-0 flex-1 space-y-1">
-        <p className="line-clamp-2 text-sm text-ink dark:text-ink" dir="auto">{post.caption || s.noCaption}</p>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-ink-muted dark:text-ink-muted">
+        <p className="line-clamp-2 text-sm text-ink" dir="auto">{post.caption || s.noCaption}</p>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-ink-muted">
           <DateDisplay date={post.publishedAt} locale={locale} />
           <span className="inline-flex items-center gap-1" title={s.likes}><Heart className="w-3 h-3" />{number.compact(post.likes)}</span>
           <span className="inline-flex items-center gap-1" title={s.comments}><MessageCircle className="w-3 h-3" />{number.compact(post.comments)}</span>
@@ -213,16 +214,16 @@ function PlanForm({
 
   return (
     <form onSubmit={submit} className="space-y-3" id={modalFormId}>
-      <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
+      <label className="block space-y-1 text-xs font-medium text-ink">
         {p.title}
         <input required maxLength={200} className={fieldClass} value={form.title} onChange={(e) => set("title", e.target.value)} />
       </label>
-      <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
+      <label className="block space-y-1 text-xs font-medium text-ink">
         {p.caption}
         <textarea rows={4} maxLength={5000} className={fieldClass} value={form.caption} onChange={(e) => set("caption", e.target.value)} />
       </label>
       <fieldset>
-        <legend className="mb-1.5 text-xs font-medium text-ink dark:text-ink">{p.platforms}</legend>
+        <legend className="mb-1.5 text-xs font-medium text-ink">{p.platforms}</legend>
         <div className="flex flex-wrap gap-1.5">
           {SOCIAL_PLATFORM_IDS.map((id) => {
             const on = form.platforms.includes(id);
@@ -237,30 +238,30 @@ function PlanForm({
         </div>
       </fieldset>
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
+        <label className="block space-y-1 text-xs font-medium text-ink">
           {p.status}
           <Select className={fieldClass} value={form.status} onChange={(e) => set("status", e.target.value as SocialPlanStatus)}>
             {SOCIAL_PLAN_STATUSES.map((status) => <option key={status} value={status}>{p.statuses[status]}</option>)}
           </Select>
         </label>
-        <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
+        <label className="block space-y-1 text-xs font-medium text-ink">
           {p.scheduledFor}
           <input type="datetime-local" className={fieldClass} required={form.status === "scheduled"} value={form.scheduledFor} onChange={(e) => set("scheduledFor", e.target.value)} />
         </label>
-        <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
+        <label className="block space-y-1 text-xs font-medium text-ink">
           {p.assignee}
           <Select className={fieldClass} value={form.assigneeId} onChange={(e) => set("assigneeId", e.target.value)}>
             <option value="">{p.unassigned}</option>
             {team.map((member) => <option key={member.id} value={member.id}>{member.fullName}</option>)}
           </Select>
         </label>
-        <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
+        <label className="block space-y-1 text-xs font-medium text-ink">
           {p.media}
           <input type="url" dir="ltr" className={fieldClass} placeholder={t.copy.urlExample} value={form.mediaUrl} onChange={(e) => set("mediaUrl", e.target.value)} />
         </label>
       </div>
       {form.status === "published" && (
-        <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
+        <label className="block space-y-1 text-xs font-medium text-ink">
           {p.publishedUrl}
           <input type="url" dir="ltr" className={fieldClass} placeholder={t.copy.urlExample} value={form.publishedUrl} onChange={(e) => set("publishedUrl", e.target.value)} />
         </label>
@@ -318,7 +319,7 @@ function Planner({ plans, team, canEdit, canDelete }: { plans: SocialPlanView[];
             return (
               <Card key={plan.id} className="flex flex-col gap-2 p-4 dark:bg-surface-raised">
                 <div className="flex items-start gap-2">
-                  <h3 className="min-w-0 flex-1 text-sm font-semibold text-ink dark:text-ink" dir="auto"><bdi dir="auto">{plan.title}</bdi></h3>
+                  <h3 className="min-w-0 flex-1 text-sm font-semibold text-ink" dir="auto"><bdi dir="auto">{plan.title}</bdi></h3>
                   <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${planTone[plan.status]}`}>{p.statuses[plan.status]}</span>
                 </div>
                 {plan.caption && <p className="line-clamp-3 text-xs text-ink-muted dark:text-ink whitespace-pre-wrap" dir="auto">{plan.caption}</p>}
@@ -327,7 +328,7 @@ function Planner({ plans, team, canEdit, canDelete }: { plans: SocialPlanView[];
                     <span key={id} title={t.socialAnalytics.platforms[id]}><SocialBrandIcon name={id} className="w-3.5 h-3.5" /></span>
                   ))}
                 </div>
-                <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 text-[11px] text-ink-muted dark:text-ink-muted">
+                <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 text-[11px] text-ink-muted">
                   <span className={`inline-flex items-center gap-1 ${overdue ? "font-semibold text-rose-700 dark:text-rose-400" : ""}`}>
                     <CalendarClock className="w-3 h-3" />
                     {plan.scheduledFor ? <DateDisplay date={plan.scheduledFor} locale={locale} /> : p.unscheduled}
@@ -434,19 +435,24 @@ export function SocialAnalyticsView({
 
   return (
     <div className="space-y-6 pb-16">
-      <header className="flex flex-wrap items-end gap-3">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-bold tracking-tight text-ink dark:text-ink">{s.title}</h1>
-          <p className="mt-1 text-sm text-ink-muted dark:text-ink">{s.subtitle}</p>
-          <p className="mt-1 text-xs text-ink-muted">{s.snapshotScope}</p>
-          {analytics.partial && <p role="status" className="mt-1 text-xs text-amber-700 dark:text-amber-400">{s.partial}</p>}
-          {lastSynced && (
-            <p className="mt-1 flex flex-wrap items-center gap-1 text-xs text-ink-muted">
-              {s.updated} <DateDisplay date={lastSynced} locale={locale} format="time" />
-            </p>
-          )}
-        </div>
-        <div className="flex flex-wrap items-center gap-2" data-page-toolbar>
+      <PageHeader
+        meta={
+          <>
+            <span className="text-xs text-on-surface-variant">{s.snapshotScope}</span>
+            {analytics.partial && (
+              <span role="status" className="rounded-full bg-tertiary-container px-2.5 py-0.5 text-xs font-medium text-on-tertiary-container">
+                {s.partial}
+              </span>
+            )}
+            {lastSynced && (
+              <span className="inline-flex flex-wrap items-center gap-1 text-xs text-on-surface-variant">
+                {s.updated} <DateDisplay date={lastSynced} locale={locale} format="time" />
+              </span>
+            )}
+          </>
+        }
+        actions={
+          <>
           <Select aria-label={s.period} className={`${fieldClass} w-auto`} value={String(analytics.periodDays)} onChange={(e) => setParam("days", e.target.value === "30" ? null : e.target.value)}>
             {(["7", "30", "90", "365"] as const).map((days) => <option key={days} value={days}>{s.periods[days]}</option>)}
           </Select>
@@ -460,8 +466,9 @@ export function SocialAnalyticsView({
               {refreshing ? s.refreshing : s.refresh}
             </Button>
           )}
-        </div>
-      </header>
+          </>
+        }
+      />
 
       <div className="flex gap-1 border-b border-outline-variant" role="tablist">
         {(["overview", "posts", "planner"] as const).map((key) => (
@@ -515,11 +522,11 @@ export function SocialAnalyticsView({
                   <SocialBrandIcon name={account.platform} className="w-5 h-5" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-ink dark:text-ink">{s.platforms[account.platform]}</p>
-                  <p className="text-xs text-ink-muted dark:text-ink-muted">
+                  <p className="text-sm font-semibold text-ink">{s.platforms[account.platform]}</p>
+                  <p className="text-xs text-ink-muted">
                     {account.followers != null ? (
                       <>
-                        <bdi dir="ltr" className="font-semibold text-ink dark:text-ink">{number.full(account.followers)}</bdi> {s.metrics.followers}
+                        <bdi dir="ltr" className="font-semibold text-ink">{number.full(account.followers)}</bdi> {s.metrics.followers}
                         {account.followersChange ? (
                           <span className={account.followersChange > 0 ? "text-emerald-700 dark:text-emerald-400" : "text-rose-700 dark:text-rose-400"}>
                             {" "}<bdi dir="ltr">({account.followersChange > 0 ? "+" : ""}{number.full(account.followersChange)})</bdi>
@@ -541,7 +548,7 @@ export function SocialAnalyticsView({
 
           {analytics.ownerInsights.map(owner => (
             <Card key={owner.platform} data-testid={`social-owner-${owner.platform}`} className="space-y-4 p-4 sm:p-5 dark:bg-surface-raised" data-page-section>
-              <h2 className="text-sm font-semibold text-ink dark:text-ink">{formatMessage(s.owner.title, { platform: s.platforms[owner.platform] })}</h2>
+              <h2 className="text-sm font-semibold text-ink">{formatMessage(s.owner.title, { platform: s.platforms[owner.platform] })}</h2>
               <p className="text-xs text-ink-muted">{s.owner.scope}</p>
               {owner.snapshot ? <>
                 <p className="flex flex-wrap items-center gap-2 text-xs text-ink-muted" data-testid="owner-period">
@@ -571,11 +578,11 @@ export function SocialAnalyticsView({
 
           <div className="grid gap-4 lg:grid-cols-3">
             <Card className="space-y-3 p-4 sm:p-5 lg:col-span-2 dark:bg-surface-raised" data-page-section>
-              <h2 className="text-sm font-semibold text-ink dark:text-ink">{s.chartTitle}</h2>
+              <h2 className="text-sm font-semibold text-ink">{s.chartTitle}</h2>
               {analytics.daily.some(day => day.interactions != null) ? <InteractionsChart daily={analytics.daily} /> : <p className="text-xs text-ink-muted">{s.noData}</p>}
             </Card>
             <Card className="space-y-3 p-4 sm:p-5 dark:bg-surface-raised" data-page-section>
-              <h2 className="text-sm font-semibold text-ink dark:text-ink">{s.byPlatform}</h2>
+              <h2 className="text-sm font-semibold text-ink">{s.byPlatform}</h2>
               {analytics.byPlatform.length === 0 ? (
                 <p className="text-xs text-ink-muted">{s.noPosts}</p>
               ) : (
@@ -584,8 +591,8 @@ export function SocialAnalyticsView({
                     <li key={row.platform} className="space-y-1">
                       <div className="flex items-center gap-2 text-xs">
                         <SocialBrandIcon name={row.platform} className="w-3.5 h-3.5" />
-                        <span className="font-medium text-ink dark:text-ink">{s.platforms[row.platform]}</span>
-                        <span className="ms-auto text-ink-muted dark:text-ink-muted"><bdi dir="ltr">{number.compact(row.interactions)}</bdi> · {row.posts} {s.chartPosts}</span>
+                        <span className="font-medium text-ink">{s.platforms[row.platform]}</span>
+                        <span className="ms-auto text-ink-muted"><bdi dir="ltr">{number.compact(row.interactions)}</bdi> · {row.posts} {s.chartPosts}</span>
                       </div>
                       <div className="h-2 overflow-hidden rounded-full bg-ink/10">
                         <div className="h-full rounded-full bg-accent" style={{ width: `${((row.interactions ?? 0) / maxPlatform) * 100}%` }} />
@@ -598,7 +605,7 @@ export function SocialAnalyticsView({
           </div>
 
           <Card className="p-4 sm:p-5 dark:bg-surface-raised" data-page-section>
-            <h2 className="text-sm font-semibold text-ink dark:text-ink">{s.topPosts}</h2>
+            <h2 className="text-sm font-semibold text-ink">{s.topPosts}</h2>
             {analytics.topPosts.length === 0 ? (
               <p className="mt-3 text-xs text-ink-muted">{s.noPosts}</p>
             ) : (

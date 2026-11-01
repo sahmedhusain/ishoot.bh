@@ -2,11 +2,10 @@
 
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
-import Link from "next/link";
 import type { ExpenseCategory } from "@platform/database/types";
 import { EXPENSE_CATEGORY_KINDS, type ExpenseCategoryKind } from "@platform/database/constants/finance";
 import { Select, Card, Button, Input } from "@platform/ui";
-import { ArrowLeft, Plus, Eye, EyeOff, Trash2, Lock, Save } from "lucide-react";
+import { Plus, Eye, EyeOff, Trash2, Lock, Save } from "lucide-react";
 import { toast } from "sonner";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -15,6 +14,7 @@ import {
   updateExpenseCategoryAction,
   deleteExpenseCategoryAction,
 } from "../../app/actions/finance";
+import { PageHeader } from "../layout/PageHeader";
 
 export function ExpenseCategoriesView({ initialCategories, canDelete }: { initialCategories: ExpenseCategory[]; canDelete: boolean }) {
   const { t, locale } = useAdminLocale();
@@ -40,18 +40,9 @@ export function ExpenseCategoriesView({ initialCategories, canDelete }: { initia
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex items-center gap-4" data-page-header>
-        <Link href={ROUTES.expenses.list()}>
-          <Button variant="outline" size="sm" className="gap-1.5 text-ink-muted">
-            <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
-            <span>{t.actions.back}</span>
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-ink font-display"><bdi dir="auto">{cT.title}</bdi></h1>
-          <p className="text-xs text-ink-muted mt-1">{cT.subtitle}</p>
-        </div>
-      </div>
+      <PageHeader
+        back={{ href: ROUTES.expenses.list() }}
+      />
 
       <Card className="p-5 bg-surface border border-outline-variant rounded-3xl">
         <form

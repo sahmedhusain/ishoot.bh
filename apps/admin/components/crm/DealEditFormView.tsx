@@ -13,10 +13,11 @@ import type { CRMDeal, CRMContact, DealStage } from "@platform/database/types";
 import type { DealPipelineStage } from "@platform/database";
 import { dealStageLabel } from "../../lib/deal-stages";
 import { Card, Input, Select, Button, Textarea } from "@platform/ui";
-import { ArrowLeft, CheckCircle2, Briefcase, ExternalLink } from "lucide-react";
+import { CheckCircle2, ExternalLink } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { updateDealAction } from "../../app/actions/crm";
 import { EditConfirmModal, type FieldChange } from "../shared/EditConfirmModal";
+import { PageHeader } from "../layout/PageHeader";
 
 interface DealEditFormViewProps {
   deal: CRMDeal;
@@ -137,34 +138,16 @@ export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFor
 
   return (
     <div inert={saving} aria-busy={saving} className="space-y-8 max-w-4xl mx-auto pb-16">
-      <div className="flex items-center gap-4" data-page-header>
-        <Link href={ROUTES.crm.deal(deal.id)}>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1.5 text-ink-muted dark:text-ink"
-          >
-            <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
-            <span>{t.actions.back}</span>
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-ink dark:text-ink font-display flex items-center gap-2">
-            <Briefcase className="w-6 h-6 text-accent" />
-            <span>{t.dealEdit.title}</span>
-          </h1>
-          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1">
-            {t.dealEdit.subtitle}
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        back={{ href: ROUTES.crm.deal(deal.id) }}
+      />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && <p role="alert" className="text-red-600">{error}</p>}
         <Card className="p-6 space-y-4">
           <div>
             <label htmlFor="deal-owner" className="block mb-2">{t.dealEditForm.dealOwner}</label>
-            <Select id="deal-owner" value={assignedTo} onChange={(event) => setAssignedTo(event.target.value)} className="w-full rounded border p-2 bg-surface-raised dark:bg-surface-raised">
+            <Select id="deal-owner" value={assignedTo} onChange={(event) => setAssignedTo(event.target.value)} className="w-full rounded border p-2 bg-surface-raised">
               <option value="">{t.dealEditForm.unassigned}</option>
               {owners.map((owner) => <option key={owner.id} value={owner.id}>{owner.fullName}</option>)}
             </Select>
@@ -174,10 +157,10 @@ export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFor
             <Textarea id="lost-reason" required value={lostReason} onChange={(event) => setLostReason(event.target.value)} />
           </div>}
         </Card>
-        <Card className="p-8 bg-surface-raised dark:bg-surface-raised border border-outline-variant/80 dark:border-white/10 rounded-2xl shadow-sm space-y-6">
+        <Card className="p-8 bg-surface-raised border border-outline-variant/80 dark:border-white/10 rounded-2xl shadow-sm space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <label>
-              <span className="text-xs font-semibold text-ink dark:text-ink mb-1.5 block">
+              <span className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.dealEdit.titleLabel} *
               </span>
               <Input
@@ -190,7 +173,7 @@ export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFor
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-semibold text-ink dark:text-ink block">
+                <label className="text-xs font-semibold text-ink block">
                   {t.dealEdit.clientLabel}
                 </label>
                 {selectedContact && (
@@ -211,7 +194,7 @@ export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFor
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <label>
-              <span className="text-xs font-semibold text-ink dark:text-ink mb-1.5 block">
+              <span className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.dealEdit.stageLabel}
               </span>
               <Select
@@ -227,7 +210,7 @@ export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFor
             </label>
 
             <label>
-              <span className="text-xs font-semibold text-ink dark:text-ink mb-1.5 block">
+              <span className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.dealEdit.valueLabel} ({currencyLabel})
               </span>
               <Input
@@ -242,7 +225,7 @@ export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFor
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <label>
-              <span className="text-xs font-semibold text-ink dark:text-ink mb-1.5 block">
+              <span className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.dealEdit.probabilityLabel}
               </span>
               <Input
@@ -256,7 +239,7 @@ export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFor
             </label>
 
             <label>
-              <span className="text-xs font-semibold text-ink dark:text-ink mb-1.5 block">
+              <span className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.dealEdit.closeDateLabel}
               </span>
               <Input
@@ -268,7 +251,7 @@ export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFor
           </div>
 
           <label>
-            <span className="text-xs font-semibold text-ink dark:text-ink mb-1.5 block">
+            <span className="text-xs font-semibold text-ink mb-1.5 block">
               {t.dealEdit.scheduledDateLabel || t.dealEdit.shootDateLabel}
             </span>
             <Input
@@ -279,7 +262,7 @@ export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFor
           </label>
 
           <label>
-            <span className="text-xs font-semibold text-ink dark:text-ink mb-1.5 block">
+            <span className="text-xs font-semibold text-ink mb-1.5 block">
               {t.dealEdit.notesLabel}
             </span>
             <Textarea

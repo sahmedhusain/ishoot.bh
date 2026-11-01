@@ -4,11 +4,12 @@ import { Select } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import Link from "next/link";
-import { Mail, Phone, MessageCircle, Search, Users, Plane, Network } from "lucide-react";
+import { Mail, Phone, MessageCircle, Search, Plane, Network } from "lucide-react";
 import { ROUTES } from "../../constants/routes";
 import type { DirectoryEntry } from "@platform/database/queries/directory";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { ContentImage } from "../shared/ContentImage";
+import { PageHeader } from "../layout/PageHeader";
 
 function initials(name: string) {
   return name
@@ -46,15 +47,9 @@ export function DirectoryView({
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div data-page-header>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display flex items-center gap-2">
-            <Users className="w-7 h-7 text-accent" />
-            <bdi dir="auto">{d.title}</bdi>
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">{formatMessage(d.subtitle, { count: String(total) })}</p>
-        </div>
-        <form method="get" action={ROUTES.directory} role="search" className="flex flex-wrap gap-2">
+      <PageHeader
+        description={formatMessage(d.subtitle, { count: String(total) })}
+        actions={<form method="get" action={ROUTES.directory} role="search" className="flex flex-wrap gap-2">
           <label className="relative">
             <Search className="w-4 h-4 text-ink-muted absolute start-3 top-1/2 -translate-y-1/2" />
             <input
@@ -75,8 +70,8 @@ export function DirectoryView({
             <Network className="w-4 h-4 text-accent" />
             {d.orgChart}
           </Link>
-        </form>
-      </div>
+        </form>}
+      />
 
       {visible.length === 0 ? (
         <p className="p-12 text-center text-sm text-ink-muted rounded-3xl border border-outline-variant bg-surface">{d.empty}</p>

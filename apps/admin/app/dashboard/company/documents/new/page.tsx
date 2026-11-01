@@ -1,8 +1,8 @@
 import { requirePagePermission } from "../../../../../lib/auth";
-import { getTranslations } from "@platform/locales";
 import { NewCompanyDocumentFormView } from "../../../../../components/company/NewCompanyDocumentFormView";
+import { pageMetadata } from "../../../../../lib/company-metadata";
 
-export const metadata = { title: getTranslations("ar").admin.copy.newLegalDocument };
+export const generateMetadata = () => pageMetadata("company/documents/new");
 
 export default async function NewCompanyDocumentPage() {
   await requirePagePermission("settings", "write");

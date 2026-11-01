@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 
 import * as React from "react";
 import Link from "next/link";
@@ -12,6 +13,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { createLeaveRequestAction } from "../../app/actions/leave";
 import { payslipMonthsForEmployeeAction } from "../../app/actions/salary-documents";
 import { SalaryDocumentsView } from "./SalaryDocumentsView";
+import { PageHeader } from "../layout/PageHeader";
 
 export interface HrRequestRow {
   key: string;
@@ -75,10 +77,7 @@ export function HrRequestsView(props: {
           <span className="w-12 h-12 shrink-0 rounded-2xl bg-accent/10 text-accent flex items-center justify-center" aria-hidden>
             <ClipboardList className="w-6 h-6" />
           </span>
-          <div className="space-y-1" data-page-header>
-            <h1 className="text-2xl font-bold tracking-tight text-ink">{c.title}</h1>
-            <p className="text-sm text-ink-muted">{c.subtitle}</p>
-          </div>
+          <PageHeader />
         </div>
         {canFile && (
           <Button type="button" onClick={() => setFiling(true)} className="gap-1.5">
@@ -114,7 +113,7 @@ export function HrRequestsView(props: {
           <p className="p-10 text-center text-sm text-ink-muted">{c.empty}</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <DataTable className="w-full text-sm">
               <thead className="bg-surface-sunken text-xs text-ink-muted">
                 <tr>
                   {[c.columns.employee, c.columns.type, c.columns.request, c.columns.status, c.columns.date].map((h) => (
@@ -145,7 +144,7 @@ export function HrRequestsView(props: {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
           </div>
         )}
       </Card>

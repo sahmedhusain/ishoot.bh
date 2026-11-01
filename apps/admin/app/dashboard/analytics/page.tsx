@@ -1,6 +1,9 @@
 import { db, getSocialAnalytics, listSocialPlans } from "@platform/database";
 import { requirePagePermission } from "../../../lib/auth";
 import { SocialAnalyticsView } from "../../../components/analytics/SocialAnalyticsView";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("analytics");
 
 export const dynamic = "force-dynamic";
 

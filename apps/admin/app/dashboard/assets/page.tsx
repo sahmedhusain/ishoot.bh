@@ -1,6 +1,9 @@
 import { db, listAssetCategories, listAssets, ASSET_SORTS } from "@platform/database";
 import { hasPermission, requirePagePermission } from "../../../lib/auth";
 import { AssetsListView } from "../../../components/assets/AssetsListView";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("assets");
 
 export const dynamic = "force-dynamic";
 

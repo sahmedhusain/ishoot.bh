@@ -3,6 +3,9 @@ import { approvalTargetUrl } from "@platform/database";
 import { requireAuth } from "../../../../../lib/auth";
 import { getApprovalItem } from "../../../../../lib/approval-item";
 import { ApprovalItemView } from "../../../../../components/approvals/ApprovalItemView";
+import { pageMetadata } from "../../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("approvals/[type]/[id]");
 
 export const dynamic = "force-dynamic";
 

@@ -1,5 +1,6 @@
 "use client";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { PageHeader } from "../layout/PageHeader";
 export function ProfileWorkspace({
   hasEmployee,
   children,
@@ -17,12 +18,7 @@ export function ProfileWorkspace({
   ];
   return (
     <div className="mx-auto max-w-6xl space-y-6 pb-12">
-      <header data-page-header>
-        <h1 className="text-2xl font-semibold tracking-tight text-ink">
-          {t.sidebar.myProfile}
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm text-ink-muted">{p.subtitle}</p>
-      </header>
+      <PageHeader />
       <nav
         aria-label={t.sidebar.myProfile}
         className="flex flex-wrap gap-2 border-b border-outline-variant pb-4"

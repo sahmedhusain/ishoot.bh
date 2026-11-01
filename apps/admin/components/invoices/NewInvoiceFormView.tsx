@@ -44,6 +44,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { calculateInvoiceTotals } from "@platform/database/types";
 import { ClientAutocomplete } from "../crm/ClientAutocomplete";
 import { toast } from "sonner";
+import { PageHeader } from "../layout/PageHeader";
 
 interface NewInvoiceFormViewProps {
   initialContacts: CRMContact[];
@@ -337,19 +338,14 @@ export function NewInvoiceFormView({
       <div>
         <Link
           href={ROUTES.invoices.list}
-          className="inline-flex items-center gap-2 text-xs text-ink-muted hover:text-accent dark:text-ink-muted dark:hover:text-accent transition-colors font-medium active:scale-[0.98]"
+          className="inline-flex items-center gap-2 text-xs text-ink-muted hover:text-accent dark:hover:text-accent transition-colors font-medium active:scale-[0.98]"
         >
           <BackIcon className="w-4 h-4" />
           <span>{t.actions.backToInvoices}</span>
         </Link>
       </div>
 
-      <div data-page-header>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink dark:text-ink font-display">
-          {t.invoiceForm.title}
-        </h1>
-        <p className="text-xs text-ink-muted dark:text-ink-muted mt-1">{t.invoiceForm.subtitle}</p>
-      </div>
+      <PageHeader />
 
       {/* Option: Import from Accepted Quotations */}
       {acceptedQuotations.length > 0 && (
@@ -360,13 +356,13 @@ export function NewInvoiceFormView({
                 <FileCheck className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-ink dark:text-ink flex items-center gap-2">
+                <h3 className="text-sm font-bold text-ink flex items-center gap-2">
                   <span>{t.invoicesList.acceptedQuotesBanner || (t.newInvoiceForm.acceptedQuotationsReadyForInvoicing)}</span>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-tone-95 dark:bg-tone-15 text-primary dark:text-mint">
                     {acceptedQuotations.length}
                   </span>
                 </h3>
-                <p className="text-xs text-ink-muted dark:text-ink-muted">
+                <p className="text-xs text-ink-muted">
                   {t.invoicesList.acceptedQuotesSubtitle || (t.newInvoiceForm.selectAnAcceptedQuotationTo)}
                 </p>
               </div>
@@ -380,7 +376,7 @@ export function NewInvoiceFormView({
                   if (q) applyQuotation(q);
                   else setSelectedQuotationId("");
                 }}
-                className="text-xs font-medium rounded-lg border border-teal-300 dark:border-teal-800 bg-surface-raised dark:bg-surface-raised px-3 py-1.5 text-ink dark:text-ink"
+                className="text-xs font-medium rounded-lg border border-teal-300 dark:border-teal-800 bg-surface-raised px-3 py-1.5 text-ink"
               >
                 <option value="">{t.newInvoiceForm.selectAcceptedQuote}</option>
                 {acceptedQuotations.map((q) => (
@@ -411,7 +407,7 @@ export function NewInvoiceFormView({
         {/* Unified Client Selection Card (Dual Flow: Search Existing or Create New Inline) */}
         <Card className="p-6 space-y-6" data-page-section>
           <div className="flex items-center justify-between border-b border-outline-variant dark:border-white/10 pb-3">
-            <h2 className="text-sm font-bold text-ink dark:text-ink uppercase tracking-wider flex items-center gap-2">
+            <h2 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
               <Layers className="w-4 h-4 text-accent" />
               <span>{t.invoiceForm.particulars}</span>
             </h2>
@@ -445,7 +441,7 @@ export function NewInvoiceFormView({
             {/* Document Attributes */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-2">
               <label className="block space-y-1.5">
-                <span className="text-xs font-medium text-ink-muted dark:text-ink-muted">
+                <span className="text-xs font-medium text-ink-muted">
                   {t.invoiceForm.currencyLabel}
                 </span>
                 <Select value={currency} disabled className="w-full"><option value={currency}>{currency}</option></Select>
@@ -453,7 +449,7 @@ export function NewInvoiceFormView({
 
               {salesPeople.length > 0 && (
                 <label className="block space-y-1.5">
-                  <span className="text-xs font-medium text-ink-muted dark:text-ink-muted">{t.attribution.creditedTo}</span>
+                  <span className="text-xs font-medium text-ink-muted">{t.attribution.creditedTo}</span>
                   <Select value={salesOwnerId} onChange={(e) => setSalesOwnerId(e.target.value)}>
                     {currentUserId && !salesPeople.some((p) => p.id === currentUserId) && <option value={currentUserId}>{t.attribution.me}</option>}
                     {salesPeople.map((p) => (
@@ -464,7 +460,7 @@ export function NewInvoiceFormView({
               )}
 
               <label className="block space-y-1.5">
-                <span className="text-xs font-medium text-ink-muted dark:text-ink-muted">
+                <span className="text-xs font-medium text-ink-muted">
                   {t.invoiceForm.docLangLabel}
                 </span>
                 <Select
@@ -477,7 +473,7 @@ export function NewInvoiceFormView({
               </label>
 
               <label className="block space-y-1.5">
-                <span className="text-xs font-medium text-ink-muted dark:text-ink-muted">
+                <span className="text-xs font-medium text-ink-muted">
                   {t.finance.issueDate}
                 </span>
                 <Input
@@ -488,7 +484,7 @@ export function NewInvoiceFormView({
               </label>
 
               <label className="block space-y-1.5">
-                <span className="text-xs font-medium text-ink-muted dark:text-ink-muted">
+                <span className="text-xs font-medium text-ink-muted">
                   {t.finance.dueDate}
                 </span>
                 <Input
@@ -504,7 +500,7 @@ export function NewInvoiceFormView({
         {/* Line Items Card */}
         <Card className="p-6 space-y-6" data-page-section>
           <div className="flex items-center justify-between border-b border-outline-variant dark:border-white/10 pb-3">
-            <h2 className="text-sm font-bold text-ink dark:text-ink uppercase tracking-wider flex items-center gap-2">
+            <h2 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
               <Calculator className="w-4 h-4 text-accent" />
               <span>{t.invoiceForm.deliverables}</span>
             </h2>
@@ -528,7 +524,7 @@ export function NewInvoiceFormView({
               >
                 {services.length > 0 && (
                   <label className="sm:col-span-12 md:col-span-3 space-y-1">
-                    <span className="text-[11px] font-medium text-ink-muted dark:text-ink-muted">
+                    <span className="text-[11px] font-medium text-ink-muted">
                       {t.invoiceForm.presetService}
                     </span>
                     <Select
@@ -569,7 +565,7 @@ export function NewInvoiceFormView({
                     : "sm:col-span-12 md:col-span-6"
                     }`}
                 >
-                  <span className="text-[11px] font-medium text-ink-muted dark:text-ink-muted">
+                  <span className="text-[11px] font-medium text-ink-muted">
                     {t.invoiceForm.descEnLabel}
                   </span>
                   <Input
@@ -588,7 +584,7 @@ export function NewInvoiceFormView({
                     : "sm:col-span-12 md:col-span-4"
                     }`}
                 >
-                  <span className="text-[11px] font-medium text-ink-muted dark:text-ink-muted">
+                  <span className="text-[11px] font-medium text-ink-muted">
                     {t.invoiceForm.descArLabel}
                   </span>
                   <Input
@@ -602,7 +598,7 @@ export function NewInvoiceFormView({
                 </label>
 
                 <label className="sm:col-span-4 md:col-span-2 space-y-1">
-                  <span className="text-[11px] font-medium text-ink-muted dark:text-ink-muted">
+                  <span className="text-[11px] font-medium text-ink-muted">
                     {t.invoiceForm.qty}
                   </span>
                   <Input
@@ -618,7 +614,7 @@ export function NewInvoiceFormView({
                 </label>
 
                 <label className="sm:col-span-4 md:col-span-2 space-y-1">
-                  <span className="text-[11px] font-medium text-ink-muted dark:text-ink-muted">
+                  <span className="text-[11px] font-medium text-ink-muted">
                     {t.invoiceForm.rate}
                   </span>
                   <Input
@@ -634,7 +630,7 @@ export function NewInvoiceFormView({
                 </label>
 
                 <div className="sm:col-span-4 md:col-span-2 space-y-1">
-                  <label className="text-[11px] font-medium text-ink-muted dark:text-ink-muted">
+                  <label className="text-[11px] font-medium text-ink-muted">
                     {t.finance.totalAmount}
                   </label>
                   <div className="h-10 px-3 py-2 rounded-xl bg-surface-sunken dark:bg-white/5 border border-outline-variant dark:border-white/10 text-xs font-mono font-bold flex items-center justify-end">
@@ -662,14 +658,14 @@ export function NewInvoiceFormView({
         {/* Adjustments & Totals */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="p-6 space-y-4" data-page-section>
-            <h2 className="text-sm font-bold text-ink dark:text-ink uppercase tracking-wider">
+            <h2 className="text-sm font-bold text-ink uppercase tracking-wider">
               {t.invoiceForm.deductionsTitle}
             </h2>
 
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <label className="block space-y-1.5">
-                  <span className="text-xs font-medium text-ink-muted dark:text-ink-muted">
+                  <span className="text-xs font-medium text-ink-muted">
                     {t.finance.discount}
                   </span>
                   <Select
@@ -686,7 +682,7 @@ export function NewInvoiceFormView({
 
                 {discountType !== "none" && (
                   <label className="block space-y-1.5">
-                    <span className="text-xs font-medium text-ink-muted dark:text-ink-muted">
+                    <span className="text-xs font-medium text-ink-muted">
                       {t.invoiceForm.discountAmtLabel}
                     </span>
                     <Input
@@ -707,12 +703,12 @@ export function NewInvoiceFormView({
 
           <Card className="p-6 bg-surface-raised dark:bg-white/[0.02] border-outline-variant dark:border-white/10 flex flex-col justify-between" data-page-section>
             <div className="space-y-3">
-              <h2 className="text-sm font-bold text-ink dark:text-ink uppercase tracking-wider border-b border-outline-variant dark:border-white/10 pb-2">
+              <h2 className="text-sm font-bold text-ink uppercase tracking-wider border-b border-outline-variant dark:border-white/10 pb-2">
                 {t.invoiceForm.summaryTitle}
               </h2>
 
               <div className="space-y-2 text-xs">
-                <div className="flex justify-between text-ink-muted dark:text-ink-muted">
+                <div className="flex justify-between text-ink-muted">
                   <span>{t.finance.subtotal}</span>
                   <span className="font-mono font-medium">
                     {totals.subtotal.toFixed(3)} {currency}
@@ -731,7 +727,7 @@ export function NewInvoiceFormView({
                 )}
 
                 {vatEnabled && (
-                  <div className="flex justify-between text-ink-muted dark:text-ink-muted">
+                  <div className="flex justify-between text-ink-muted">
                     <span>{t.finance.vat} ({vatPercentage}%)</span>
                     <span className="font-mono font-medium">
                       {totals.vatAmount.toFixed(3)} {currency}
@@ -740,7 +736,7 @@ export function NewInvoiceFormView({
                 )}
 
                 {otherTaxes.map((tax) => (
-                  <div key={tax.code} className="flex justify-between text-ink-muted dark:text-ink-muted">
+                  <div key={tax.code} className="flex justify-between text-ink-muted">
                     <span>{isArabic ? tax.name_ar : tax.name_en} ({tax.rate}%)</span>
                     <span className="font-mono font-medium">
                       {(totals.taxes.find((x) => x.code === tax.code)?.amount ?? 0).toFixed(3)} {currency}
@@ -748,7 +744,7 @@ export function NewInvoiceFormView({
                   </div>
                 ))}
 
-                <div className="pt-3 border-t border-outline-variant dark:border-white/10 flex justify-between text-base font-bold text-ink dark:text-ink">
+                <div className="pt-3 border-t border-outline-variant dark:border-white/10 flex justify-between text-base font-bold text-ink">
                   <span>{t.finance.totalAmount}</span>
                   <span className="font-mono text-primary dark:text-mint">
                     {totals.totalAmount.toFixed(3)} {currency}

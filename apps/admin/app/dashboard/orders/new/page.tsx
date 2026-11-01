@@ -2,6 +2,9 @@ import { requirePagePermission } from "../../../../lib/auth";
 import { getStoreSettings, requireFeatureEnabled, saleProductOptions } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { NewSaleView } from "../../../../components/orders/NewSaleView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("orders/new");
 
 export const dynamic = "force-dynamic";
 

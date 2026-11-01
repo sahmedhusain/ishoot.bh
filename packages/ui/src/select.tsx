@@ -377,6 +377,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
               new FocusEvent("focusout", { bubbles: true }),
             )
           }
+          suppressHydrationWarning
         >
           <bdi dir="auto" className="m3-select-value">
             {selectedText || copy.selectOption}
@@ -411,6 +412,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
               trigger.current?.focus();
             }
           }}
+          suppressHydrationWarning
         >
           {children}
         </select>

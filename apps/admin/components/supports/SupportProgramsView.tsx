@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 import { useCompanyCurrency } from "@platform/ui";
 import { useConfirmation } from "@platform/ui";
 
@@ -9,7 +10,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   CalendarClock,
-  HandHeart,
   History,
   Pencil,
   Plus,
@@ -43,6 +43,7 @@ import {
 } from "../../app/actions/social-insurance";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
+import { PageHeader } from "../layout/PageHeader";
 
 type Program = Awaited<ReturnType<typeof listSupportPrograms>>[number];
 type Employee = { id: string; number: string; nameEn: string; nameAr: string };
@@ -201,15 +202,8 @@ export function SupportProgramsView({
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 pb-4">
-      <header className="flex flex-wrap items-end justify-between gap-3" data-page-header>
-        <div>
-          <h1 className="flex items-center gap-2 text-xl font-bold text-ink sm:text-2xl">
-            <HandHeart className="h-5 w-5 text-accent" aria-hidden />
-            {s.title}
-          </h1>
-          <p className="mt-1 text-xs text-ink-muted">{s.subtitle}</p>
-        </div>
-        {canEdit && (
+      <PageHeader
+        actions={canEdit && (
           <Button
             size="sm"
             variant="outline"
@@ -230,7 +224,7 @@ export function SupportProgramsView({
             {s.addProgram}
           </Button>
         )}
-      </header>
+      />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {programs.map((p) => {
@@ -828,7 +822,7 @@ export function SupportProgramsView({
           </p>
         ) : (
           <div className="overflow-x-auto rounded-2xl border border-outline-variant">
-            <table className="w-full text-xs">
+            <DataTable className="w-full text-xs">
               <thead className="bg-ink/[0.03] text-[11px] text-ink-muted">
                 <tr>
                   <th className="px-3 py-2 text-start">{s.fields.employee}</th>
@@ -984,7 +978,7 @@ export function SupportProgramsView({
                   </React.Fragment>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
           </div>
         )}
       </section>

@@ -2,6 +2,9 @@ import { requirePagePermission } from "../../../lib/auth";
 import { getQuotationListSummary, listQuotations } from "@platform/database";
 import { QUOTATION_STATUSES } from "@platform/database/constants/finance";
 import { QuotationsListView, type QuotationListItem } from "../../../components/quotations/QuotationsListView";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("quotations");
 
 export const dynamic = "force-dynamic";
 

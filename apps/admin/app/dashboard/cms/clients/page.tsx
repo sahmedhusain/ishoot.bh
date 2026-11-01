@@ -2,6 +2,9 @@ import { requirePagePermission } from "../../../../lib/auth";
 import { getAllClientLogos } from "@platform/database";
 import { ClientsManagementView } from "../../../../components/cms/ClientsManagementView";
 import { WebsitePublicationNotice } from "../../../../components/cms/WebsitePublicationNotice";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("cms/clients");
 
 export const dynamic = "force-dynamic";
 

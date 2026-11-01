@@ -1,6 +1,9 @@
 import { getCurrentPermissions, requirePagePermission } from "../../../../lib/auth";
 import { getExpenseCategories } from "@platform/database";
 import { ExpenseCategoriesView } from "../../../../components/expenses/ExpenseCategoriesView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("expenses/categories");
 
 export const dynamic = "force-dynamic";
 

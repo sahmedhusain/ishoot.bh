@@ -30,6 +30,7 @@ import type { CustomerDossier } from "@platform/database";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import type { DossierActions } from "../../types/crm";
 import { ClientProfilePanel, ClientTierBadge, type ClientStanding } from "./ClientProfilePanel";
+import { PageHeader } from "../layout/PageHeader";
 
 interface Customer360DossierViewProps {
   dossier: CustomerDossier;
@@ -82,24 +83,25 @@ export function Customer360DossierView({
             </Button>
           </Link>
           <div>
-            <div className="flex items-center gap-3" data-page-header>
-              <h1 className="text-2xl sm:text-3xl font-bold font-display text-ink dark:text-ink flex items-center gap-2">
-                <span>{(locale === "ar" && contact.company_name_ar) || contact.company || contact.full_name}</span>
-                {contact.company && contact.company_name_ar && (
-                  <span className="text-base font-normal text-ink-muted dark:text-ink-muted" dir={locale === "ar" ? "ltr" : "rtl"}>
+            <PageHeader
+              title={<><span>{(locale === "ar" && contact.company_name_ar) || contact.company || contact.full_name}</span>{contact.company && contact.company_name_ar && (
+                  <span className="text-base font-normal text-ink-muted" dir={locale === "ar" ? "ltr" : "rtl"}>
                     {locale === "ar" ? contact.company : contact.company_name_ar}
                   </span>
-                )}
-              </h1>
-              <Badge
-                variant="outline"
-                className="text-xs uppercase  border-accent/40 text-accent bg-tone-95 dark:bg-accent/10"
-              >
-                {t.clients.kinds[contact.client_kind ?? "individual"]}
-              </Badge>
-              {standing ? <ClientTierBadge standing={standing} /> : null}
-            </div>
-            <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 ">
+                )}</>}
+              actions={
+                <>
+                  <Badge
+                    variant="outline"
+                    className="text-xs uppercase  border-accent/40 text-accent bg-tone-95 dark:bg-accent/10"
+                  >
+                    {t.clients.kinds[contact.client_kind ?? "individual"]}
+                  </Badge>
+                  {standing ? <ClientTierBadge standing={standing} /> : null}
+                </>
+              }
+            />
+            <p className="text-xs text-ink-muted mt-1">
               {t.customer360Dossier.registered}{" "}
               <DateDisplay date={contact.created_at} locale={locale} />
               {metrics.lastActivityDate && (
@@ -169,11 +171,11 @@ export function Customer360DossierView({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* LTV */}
         <Card className="p-5 space-y-2">
-          <div className="flex items-center justify-between text-xs text-ink-muted dark:text-ink-muted">
+          <div className="flex items-center justify-between text-xs text-ink-muted">
             <span>{t.customer360.ltv}</span>
             <DollarSign className="w-4 h-4 text-accent" />
           </div>
-          <div className="text-2xl font-bold  text-ink dark:text-ink">
+          <div className="text-2xl font-bold text-ink">
             <CurrencyDisplay amount={metrics.totalLtv} currency={companyCurrency} />
           </div>
           <div className="text-[11px] text-accent  flex items-center justify-between">
@@ -195,14 +197,14 @@ export function Customer360DossierView({
 
         {/* Total Settled */}
         <Card className="p-5 space-y-2">
-          <div className="flex items-center justify-between text-xs text-ink-muted dark:text-ink-muted">
+          <div className="flex items-center justify-between text-xs text-ink-muted">
             <span>{t.customer360.totalSettled}</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
           </div>
           <div className="text-2xl font-bold  text-emerald-600 dark:text-emerald-400">
             <CurrencyDisplay amount={metrics.totalPaid} currency={companyCurrency} />
           </div>
-          <div className="text-[11px] text-ink-muted dark:text-ink-muted ">
+          <div className="text-[11px] text-ink-muted">
             {metrics.settledReceiptsCount || payments.length}{" "}
             {t.customer360.reconciledReceipts}
           </div>
@@ -210,7 +212,7 @@ export function Customer360DossierView({
 
         {/* Outstanding Balance */}
         <Card className="p-5 space-y-2">
-          <div className="flex items-center justify-between text-xs text-ink-muted dark:text-ink-muted">
+          <div className="flex items-center justify-between text-xs text-ink-muted">
             <span>{t.customer360.outstandingBalance}</span>
             <AlertCircle
               className={`w-4 h-4 ${metrics.totalOutstanding > 0 ? "text-amber-500" : "text-emerald-500"}`}
@@ -221,7 +223,7 @@ export function Customer360DossierView({
           >
             <CurrencyDisplay amount={metrics.totalOutstanding} currency={companyCurrency} />
           </div>
-          <div className="text-[11px] text-ink-muted dark:text-ink-muted ">
+          <div className="text-[11px] text-ink-muted">
             {metrics.totalOutstanding > 0
               ? t.customer360.pendingCollection
               : t.customer360.fullySettled}
@@ -230,17 +232,17 @@ export function Customer360DossierView({
 
         {/* Pipeline & Win Rate */}
         <Card className="p-5 space-y-2">
-          <div className="flex items-center justify-between text-xs text-ink-muted dark:text-ink-muted">
+          <div className="flex items-center justify-between text-xs text-ink-muted">
             <span>{t.customer360.winRate}</span>
             <TrendingUp className="w-4 h-4 text-blue-500" />
           </div>
-          <div className="text-2xl font-bold  text-ink dark:text-ink flex items-baseline gap-2">
+          <div className="text-2xl font-bold text-ink flex items-baseline gap-2">
             <span>{metrics.winRate}%</span>
             <span className="text-xs font-normal text-ink-muted">
               ({formatMessage(t.customer360.dealsCount, { n: String(dossier.pagination?.deals.total ?? deals.length) })})
             </span>
           </div>
-          <div className="text-[11px] text-ink-muted dark:text-ink-muted  flex items-center justify-between">
+          <div className="text-[11px] text-ink-muted flex items-center justify-between">
             <span>
               {t.customer360.activeDeals}: {metrics.activeDealsCount}
             </span>
@@ -301,30 +303,30 @@ export function Customer360DossierView({
           <ClientProfilePanel contact={contact} standing={standing} className="md:col-span-2" />
 
           <Card className="p-6 space-y-4">
-            <h3 className="text-base font-bold text-ink dark:text-ink flex items-center gap-2">
+            <h3 className="text-base font-bold text-ink flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-accent" />
               <span>{t.customer360.accountSummary}</span>
             </h3>
 
             <div className="space-y-3 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-ink-muted dark:text-ink-muted">
+                <span className="text-ink-muted">
                   {t.customer360.totalDeals}
                 </span>
-                <span className=" font-bold text-ink dark:text-ink">
+                <span className="font-bold text-ink">
                   {dossier.pagination?.deals.total ?? deals.length}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-ink-muted dark:text-ink-muted">
+                <span className="text-ink-muted">
                   {t.customer360.totalInvoices}
                 </span>
-                <span className=" font-bold text-ink dark:text-ink">
+                <span className="font-bold text-ink">
                   {dossier.pagination?.invoices.total ?? invoices.length}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-ink-muted dark:text-ink-muted">
+                <span className="text-ink-muted">
                   {t.customer360.settledReceipts}
                 </span>
                 <span className=" font-bold text-emerald-600 dark:text-emerald-400">
@@ -332,18 +334,18 @@ export function Customer360DossierView({
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-ink-muted dark:text-ink-muted">
+                <span className="text-ink-muted">
                   {t.customer360.contractsIssued}
                 </span>
-                <span className=" font-bold text-ink dark:text-ink">
+                <span className="font-bold text-ink">
                   {dossier.pagination?.contracts.total ?? contracts.length}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-ink-muted dark:text-ink-muted">
+                <span className="text-ink-muted">
                   {t.customer360.vaultDocuments}
                 </span>
-                <span className=" font-bold text-ink dark:text-ink">
+                <span className="font-bold text-ink">
                   {dossier.pagination?.attachments.total ?? attachments.length}
                 </span>
               </div>
@@ -355,13 +357,13 @@ export function Customer360DossierView({
       {/* TAB 2: INQUIRIES & INTERACTIONS */}
       {activeTab === "interactions" && (
         <Card className="p-6 space-y-6" data-tab-panel>
-          <h3 className="text-base font-bold text-ink dark:text-ink flex items-center gap-2">
+          <h3 className="text-base font-bold text-ink flex items-center gap-2">
             <Mail className="w-4 h-4 text-accent" />
             <span>{t.customer360.inboundInquiries}</span>
           </h3>
 
           {inquiries.length === 0 ? (
-            <p className="text-xs text-ink-muted dark:text-ink-muted">
+            <p className="text-xs text-ink-muted">
               {t.customer360.noInquiries}
             </p>
           ) : (
@@ -372,14 +374,14 @@ export function Customer360DossierView({
                   className="p-4 rounded-2xl bg-surface-raised dark:bg-white/5 border border-outline-variant dark:border-white/10 space-y-2"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-ink dark:text-ink text-xs">
+                    <span className="font-bold text-ink text-xs">
                       <bdi dir="auto">{inq.full_name}</bdi>
                     </span>
-                    <span className="text-[11px]  text-ink-muted dark:text-ink-muted">
+                    <span className="text-[11px] text-ink-muted">
                       <DateDisplay date={inq.created_at} locale={locale} />
                     </span>
                   </div>
-                  <p className="text-xs text-ink dark:text-ink">
+                  <p className="text-xs text-ink">
                     {inq.message}
                   </p>
                 </div>
@@ -393,7 +395,7 @@ export function Customer360DossierView({
       {activeTab === "deals" && (
         <Card className="p-6 space-y-6" data-tab-panel>
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-bold text-ink dark:text-ink flex items-center gap-2">
+            <h3 className="text-base font-bold text-ink flex items-center gap-2">
               <Briefcase className="w-4 h-4 text-accent" />
               <span>{t.customer360.commercialDeals}</span>
             </h3>
@@ -407,7 +409,7 @@ export function Customer360DossierView({
           </div>
 
           {deals.length === 0 ? (
-            <p className="text-xs text-ink-muted dark:text-ink-muted">
+            <p className="text-xs text-ink-muted">
               {t.customer360.noDeals}
             </p>
           ) : (
@@ -424,11 +426,11 @@ export function Customer360DossierView({
                     >
                       {deal.title}
                     </Link>
-                    <p className="text-[11px] text-ink-muted dark:text-ink-muted  mt-0.5">
+                    <p className="text-[11px] text-ink-muted mt-0.5">
                       {formatMessage(t.copy.stageValue, { stage: (t.statusLabels as Record<string, string>)[deal.stage] ?? deal.stage, percent: deal.probability })}
                     </p>
                   </div>
-                  <div className=" text-end font-bold text-ink dark:text-ink">
+                  <div className="text-end font-bold text-ink">
                     <CurrencyDisplay
                       amount={deal.value}
                       currency={deal.currency}
@@ -445,7 +447,7 @@ export function Customer360DossierView({
       {activeTab === "finance" && (
         <Card className="p-6 space-y-6" data-tab-panel>
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-bold text-ink dark:text-ink flex items-center gap-2">
+            <h3 className="text-base font-bold text-ink flex items-center gap-2">
               <CreditCard className="w-4 h-4 text-accent" />
               <span>{t.customer360.financialLedger}</span>
             </h3>
@@ -469,7 +471,7 @@ export function Customer360DossierView({
 
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-start">
-              <thead className="bg-surface-raised dark:bg-white/5 text-ink-muted dark:text-ink-muted uppercase ">
+              <thead className="bg-surface-raised dark:bg-white/5 text-ink-muted uppercase">
                 <tr>
                   <th className="p-3 text-start">{t.customer360.invoiceNum}</th>
                   <th className="p-3 text-start">{t.customer360.issueDate}</th>
@@ -494,13 +496,13 @@ export function Customer360DossierView({
                         <ExternalLink className="w-3 h-3 opacity-60" />
                       </Link>
                     </td>
-                    <td className="p-3  text-ink-muted dark:text-ink-muted">
+                    <td className="p-3 text-ink-muted">
                       <DateDisplay date={inv.issue_date} locale={locale} />
                     </td>
                     <td className="p-3">
                       <StatusBadge status={inv.status} />
                     </td>
-                    <td className="p-3 text-end  text-ink dark:text-ink font-semibold">
+                    <td className="p-3 text-end text-ink font-semibold">
                       <CurrencyDisplay
                         amount={inv.total_amount}
                         currency={inv.currency}
@@ -529,13 +531,13 @@ export function Customer360DossierView({
       {/* TAB 5: VAULT */}
       {activeTab === "vault" && (
         <Card className="p-6 space-y-6" data-tab-panel>
-          <h3 className="text-base font-bold text-ink dark:text-ink flex items-center gap-2">
+          <h3 className="text-base font-bold text-ink flex items-center gap-2">
             <FolderLock className="w-4 h-4 text-accent" />
             <span>{t.customer360.legalRepo}</span>
           </h3>
 
           {attachments.length === 0 ? (
-            <p className="text-xs text-ink-muted dark:text-ink-muted">
+            <p className="text-xs text-ink-muted">
               {t.customer360.noAttachments}
             </p>
           ) : (
@@ -546,10 +548,10 @@ export function Customer360DossierView({
                   className="p-4 rounded-2xl bg-surface-raised dark:bg-white/5 border border-outline-variant dark:border-white/10 flex items-center justify-between text-xs"
                 >
                   <div>
-                    <p className="font-bold text-ink dark:text-ink">
+                    <p className="font-bold text-ink">
                       {att.file_name}
                     </p>
-                    <p className="text-[10px] text-ink-muted dark:text-ink-muted ">
+                    <p className="text-[10px] text-ink-muted">
                       {t.customer360Dossier.uploaded}{" "}
                       <DateDisplay date={att.created_at} locale={locale} />
                     </p>

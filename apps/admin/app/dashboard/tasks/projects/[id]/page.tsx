@@ -3,6 +3,9 @@ import { listProjects, listTasks, requireFeatureEnabled, taskChoices } from "@pl
 import { requirePagePermission } from "../../../../../lib/auth";
 import { taskScope } from "../../../../../lib/task-scope";
 import { ProjectView } from "../../../../../components/tasks/ProjectsView";
+import { pageMetadata } from "../../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("tasks/projects/[id]");
 
 export const dynamic = "force-dynamic";
 

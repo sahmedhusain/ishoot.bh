@@ -16,7 +16,7 @@ export function EmployeeHandoversCard({ employeeId, items, canStart }: { employe
   const e = t.employeeHandovers;
   if (!items.length && !canStart) return null;
   return (
-    <section className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-5 sm:p-6 shadow-xs space-y-4">
+    <section className="rounded-3xl border border-outline-variant bg-surface-raised p-5 sm:p-6 shadow-xs space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <h2 className="flex items-center gap-2 text-base font-bold text-ink"><ArrowRightLeft className="h-4 w-4 text-accent" /><bdi dir="auto">{e.title}</bdi></h2>

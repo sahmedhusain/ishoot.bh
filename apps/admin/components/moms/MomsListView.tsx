@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
@@ -6,7 +7,6 @@ import Link from "next/link";
 import type { MinuteOfMeetingItem } from "@platform/database";
 import { Card, Button, ConfirmDialog } from "@platform/ui";
 import {
-  FileSignature,
   Plus,
   Search,
   Calendar, Trash2,
@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { deleteMomAction } from "../../app/actions/mom";
+import { PageHeader } from "../layout/PageHeader";
 
 interface MomsListViewProps {
   initialMoms: MinuteOfMeetingItem[];
@@ -83,24 +84,14 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-ink font-display flex items-center gap-2">
-            <FileSignature className="w-6 h-6 text-accent" />
-            <span>{t.momsList.minutesOfMeetingsMom}</span>
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">
-            {t.momsList.officialCorporateMeetingMinutesWith}
-          </p>
-        </div>
-
-        <Link href={ROUTES.moms.create}>
+      <PageHeader
+        actions={<Link href={ROUTES.moms.create}>
           <Button className="bg-accent hover:bg-tone-25 text-accent-foreground flex items-center gap-2 text-xs">
             <Plus className="w-4 h-4" />
             <span>{t.momsList.newMeetingMinutes}</span>
           </Button>
-        </Link>
-      </div>
+        </Link>}
+      />
 
       {/* Filter and Search Bar */}
       <Card className="p-4 bg-surface border border-outline-variant rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -142,7 +133,7 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
       {/* MOM Table */}
       <Card className="bg-surface border border-outline-variant rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-start text-xs">
+          <DataTable className="w-full text-start text-xs">
             <thead className="bg-surface-sunken text-ink-muted uppercase text-[11px] border-b border-outline-variant">
               <tr>
                 <th className="p-4 text-start">{t.momsList.mom}</th>
@@ -236,7 +227,7 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
                 ))
               )}
             </tbody>
-          </table>
+          </DataTable>
         </div>
       </Card>
 

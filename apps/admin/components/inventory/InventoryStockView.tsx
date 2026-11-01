@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 
 import * as React from "react";
 import Link from "next/link";
@@ -11,6 +12,7 @@ import { daysToExpiry } from "@platform/database/constants/inventory";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { StockChangeModal, TransferModal, useLocationOptions, type StockTarget } from "./StockDialogs";
+import { PageHeader } from "../layout/PageHeader";
 
 interface InventoryStockViewProps {
   rows: StockRow[];
@@ -49,13 +51,9 @@ export function InventoryStockView({ rows, total, page, pageSize, totalValue, fi
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div data-page-header>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
-          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
-        </div>
-        <p className="text-sm font-semibold text-ink" data-testid="stock-value">{formatMessage(copy.totalValue, { value: formatCurrencyValue(totalValue, currency, locale === "ar") })}</p>
-      </div>
+      <PageHeader
+        actions={<p className="text-sm font-semibold text-ink" data-testid="stock-value">{formatMessage(copy.totalValue, { value: formatCurrencyValue(totalValue, currency, locale === "ar") })}</p>}
+      />
 
       {expiring.length > 0 && (
         <Card className="p-4 border-amber-500/30 bg-amber-500/[0.06]" data-page-section>
@@ -100,7 +98,7 @@ export function InventoryStockView({ rows, total, page, pageSize, totalValue, fi
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm" data-testid="stock-table">
+            <DataTable className="w-full text-sm" data-testid="stock-table">
               <thead className="bg-ink/[0.03] text-xs text-ink-muted">
                 <tr>
                   <th scope="col" className="px-4 py-3 text-start font-semibold">{copy.columns.item}</th>
@@ -148,7 +146,7 @@ export function InventoryStockView({ rows, total, page, pageSize, totalValue, fi
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
           </div>
         )}
         <div className="flex items-center justify-between gap-3 border-t border-outline-variant px-4 py-3 text-xs">

@@ -100,7 +100,13 @@ test.beforeAll(async () => {
   });
   const employee = await db.employee.upsert({
     where: { userId: user.id },
-    update: { status: "active" },
+    update: {
+      status: "active",
+      firstNameEn: "Dana",
+      lastNameEn: "Driver",
+      firstNameAr: "دانة",
+      lastNameAr: "السائقة",
+    },
     create: {
       employeeNumber: "E2E-DRV-1",
       userId: user.id,

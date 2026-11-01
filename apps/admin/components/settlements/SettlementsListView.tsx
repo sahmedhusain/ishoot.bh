@@ -1,10 +1,11 @@
 "use client";
+import { DataTable } from "@platform/ui";
 
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { FileSignature, Plus, Search, Settings2 } from "lucide-react";
+import { Plus, Search, Settings2 } from "lucide-react";
 import {
   Button,
   Input,
@@ -18,14 +19,15 @@ import { ROUTES } from "../../constants/routes";
 import { updateSettlementRulesAction } from "../../app/actions/final-settlements";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
+import { PageHeader } from "../layout/PageHeader";
 
 type Row = Awaited<ReturnType<typeof listFinalSettlements>>[number];
 export const SETTLEMENT_STATUS_STYLE: Record<string, string> = {
-  draft: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
-  submitted: "bg-sky-500/10 text-sky-700 dark:text-sky-300",
-  approved: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-  paid: "bg-emerald-600 text-white",
-  rejected: "bg-rose-500/10 text-rose-700 dark:text-rose-300",
+  draft: "bg-m3-tertiary-container text-m3-on-tertiary-container",
+  submitted: "bg-m3-secondary-container text-m3-on-secondary-container",
+  approved: "bg-m3-primary-container text-m3-on-primary-container",
+  paid: "bg-m3-primary text-m3-on-primary",
+  rejected: "bg-m3-error-container text-m3-on-error-container",
   cancelled: "bg-ink/10 text-ink-muted",
 };
 const STATUSES = [
@@ -98,15 +100,8 @@ export function SettlementsListView({
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 pb-16">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center" data-page-header>
-        <div>
-          <h1 className="flex items-center gap-2 text-xl font-bold text-ink sm:text-2xl">
-            <FileSignature className="h-5 w-5 text-accent" aria-hidden />
-            <bdi dir="auto">{f.title}</bdi>
-          </h1>
-          <p className="mt-1 text-xs text-ink-muted">{f.subtitle}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
+      <PageHeader
+        actions={<div className="flex flex-wrap gap-2">
           {canEdit && (
             <Button
               size="sm"
@@ -127,8 +122,8 @@ export function SettlementsListView({
               {f.new}
             </Link>
           )}
-        </div>
-      </div>
+        </div>}
+      />
 
       {editingRules && (
         <form
@@ -327,8 +322,8 @@ export function SettlementsListView({
           {f.empty}
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto rounded-3xl border border-outline-variant bg-surface-raised">
+          <DataTable className="w-full text-sm">
             <thead className="bg-ink/[0.03] text-xs text-ink-muted">
               <tr>
                 <th className="px-4 py-3 text-start"><bdi dir="ltr">{f.fields.reference}</bdi></th>
@@ -382,7 +377,7 @@ export function SettlementsListView({
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
         </div>
       )}
     </div>

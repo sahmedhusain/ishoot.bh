@@ -258,6 +258,12 @@ async function main() {
             where: { id: expat.id },
             data: { nationality: "IN" },
           });
+          // Registration only covers nationalities the company has configured.
+          const gosiRules = await gosi.getGosiRules();
+          await gosi.updateGosiRules(
+            { ...gosiRules, nationalityCategories: { BH: "bahraini", "*": "expat" } },
+            actor.id,
+          );
           const result = await gosi.registerUnregisteredEmployees(
             "2199-01-01",
             actor.id,

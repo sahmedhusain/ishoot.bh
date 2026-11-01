@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 import { useCompanyCurrency } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
@@ -7,6 +8,7 @@ import type { PaymentListRow } from "@platform/database";
 import { CurrencyDisplay, DateDisplay } from "@platform/ui";
 import { Banknote, CreditCard, FileText, Globe, Landmark, Plus, Receipt, ReceiptText, Wallet } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { PageHeader } from "../layout/PageHeader";
 
 const METHOD_ICONS: Record<string, typeof Banknote> = {
   bank_transfer: Landmark,
@@ -30,19 +32,15 @@ export function PaymentsManagementView({ initialPayments, totals, receiptCount, 
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink">{t.nav.payments}</h1>
-          <p className="text-sm text-ink-muted max-w-2xl">{t.paymentsView.subtitle}</p>
-        </div>
-        <Link
+      <PageHeader
+        actions={<Link
           className="inline-flex items-center gap-2 self-start sm:self-auto h-11 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors"
           href={ROUTES.payments.create()}
         >
           <Plus className="w-4 h-4" aria-hidden />
           {t.finance.recordPayment}
-        </Link>
-      </header>
+        </Link>}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Kpi icon={Wallet} tone="bg-accent/10 text-accent" label={t.kpi.totalRevenue} hint={t.paymentsView.allReconciled}>
@@ -60,9 +58,9 @@ export function PaymentsManagementView({ initialPayments, totals, receiptCount, 
 
       {controls && <div className="[&>div]:mb-0">{controls}</div>}
 
-      <div className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised shadow-xs overflow-hidden">
+      <div className="rounded-3xl border border-outline-variant bg-surface-raised shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <DataTable className="w-full text-sm">
             <thead className="bg-surface-sunken/70 text-ink-muted">
               <tr>
                 {columns.map((label, i) => (
@@ -96,7 +94,7 @@ export function PaymentsManagementView({ initialPayments, totals, receiptCount, 
                 );
               })}
             </tbody>
-          </table>
+          </DataTable>
         </div>
         {!initialPayments.length && (
           <div className="flex flex-col items-center gap-2 px-6 py-14 text-center">
@@ -111,7 +109,7 @@ export function PaymentsManagementView({ initialPayments, totals, receiptCount, 
 
 function Kpi({ icon: Icon, tone, label, hint, children }: { icon: typeof Wallet; tone: string; label: string; hint: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-5 shadow-xs flex items-start gap-4">
+    <div className="rounded-3xl border border-outline-variant bg-surface-raised p-5 shadow-xs flex items-start gap-4">
       <span className={`w-11 h-11 shrink-0 rounded-2xl flex items-center justify-center ${tone}`} aria-hidden>
         <Icon className="w-5 h-5" />
       </span>

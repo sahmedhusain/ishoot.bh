@@ -179,7 +179,7 @@ export function AccountSettingsDialog({
             <tbody className="divide-y divide-outline-variant">
               {changed.map((field) => (
                 <tr key={field}>
-                  <th scope="row" className="py-2 pe-3 text-start font-medium text-ink dark:text-ink">{label(field)}</th>
+                  <th scope="row" className="py-2 pe-3 text-start font-medium text-ink">{label(field)}</th>
                   <td className="py-2 pe-3 text-ink-muted line-through decoration-slate-400/60">{display(field, value)}</td>
                   <td className="py-2 font-semibold text-primary dark:text-accent">{display(field, form)}</td>
                 </tr>

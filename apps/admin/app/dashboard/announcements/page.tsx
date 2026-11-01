@@ -6,6 +6,10 @@ import {
 } from "@platform/database";
 import { requireAuth, hasPermission } from "../../../lib/auth";
 import { AnnouncementsListView } from "../../../components/communications/AnnouncementsListView";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("announcements");
+
 export const dynamic = "force-dynamic";
 export default async function Page({
   searchParams,

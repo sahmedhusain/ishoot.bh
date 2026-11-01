@@ -1,6 +1,9 @@
 import { getCurrentPermissions, requirePagePermission } from "../../../../lib/auth";
 import { db, getExpenseCategories } from "@platform/database";
 import { NewClaimFormView } from "../../../../components/claims/NewClaimFormView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("claims/new");
 
 export const dynamic = "force-dynamic";
 

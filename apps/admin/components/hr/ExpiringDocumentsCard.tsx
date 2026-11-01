@@ -39,7 +39,7 @@ export function ExpiringDocumentsCard({ rows }: { rows: ExpiringDocumentRow[] })
       <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
         {rows.slice(0, 10).map((r) => (
           <li key={`${r.employeeId}-${r.document}-${r.label ?? ""}-${r.expiryDate}`}>
-            <Link href={ROUTES.hr.employee(r.employeeId)} className="flex items-center justify-between gap-3 rounded-2xl bg-surface-raised dark:bg-surface-raised border border-outline-variant px-3 py-2 hover:border-accent/50">
+            <Link href={ROUTES.hr.employee(r.employeeId)} className="flex items-center justify-between gap-3 rounded-2xl bg-surface-raised border border-outline-variant px-3 py-2 hover:border-accent/50">
               <span className="min-w-0">
                 <span className="block truncate text-sm font-semibold text-ink">{locale === "ar" ? r.nameAr : r.nameEn}</span>
                 <span className="block text-[11px] text-ink-muted">{r.label || names[r.document] || r.document} · {formatDate(r.expiryDate, locale)}</span>

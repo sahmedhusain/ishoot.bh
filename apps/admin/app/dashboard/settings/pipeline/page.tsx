@@ -1,6 +1,9 @@
 import { getCompanySettings, getDealPipeline, requireFeatureEnabled } from "@platform/database";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { PipelineSettingsView } from "../../../../components/settings/PipelineSettingsView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("settings/pipeline");
 
 export const dynamic = "force-dynamic";
 

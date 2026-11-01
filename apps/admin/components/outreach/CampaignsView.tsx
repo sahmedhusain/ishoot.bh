@@ -11,6 +11,7 @@ import { saveCampaignAction } from "../../app/actions/outreach";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { Field } from "../setup/LanguageFields";
+import { PageHeader } from "../layout/PageHeader";
 
 const blank: CampaignInput = { name: "", channel: "social", status: "planned", startDate: "", endDate: "", budget: "", spend: "", utmCampaign: "", couponCode: "", notes: "" };
 
@@ -40,15 +41,11 @@ export function CampaignsView({ campaigns, currency, canEdit, websiteUrl }: { ca
   };
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
-          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
-        </div>
-        {canEdit && !draft && (
+      <PageHeader
+        actions={canEdit && !draft && (
           <Button type="button" size="sm" variant="primary" className="rounded-full gap-1.5" onClick={() => setDraft(blank)} data-testid="campaign-new"><Plus className="w-4 h-4" />{copy.new}</Button>
         )}
-      </div>
+      />
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
       {draft && (
         <Card className="p-5 grid sm:grid-cols-3 gap-4" data-testid="campaign-form">

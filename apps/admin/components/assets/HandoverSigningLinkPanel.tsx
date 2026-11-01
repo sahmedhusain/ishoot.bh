@@ -106,7 +106,7 @@ export function HandoverSigningLinkPanel({
         </Button>
       </div>
       {created ? (
-        <div className="space-y-2 rounded-2xl border border-outline-variant bg-surface-raised p-3 dark:bg-surface-raised">
+        <div className="space-y-2 rounded-2xl border border-outline-variant bg-surface-raised p-3">
           <div className="flex items-center gap-2">
             <input
               readOnly
@@ -157,7 +157,7 @@ export function HandoverSigningLinkPanel({
           {links.map((link) => (
             <li
               key={link.id}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-outline-variant bg-surface-raised px-3 py-2 text-xs dark:bg-surface-raised"
+              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-outline-variant bg-surface-raised px-3 py-2 text-xs"
             >
               <span className="flex flex-wrap items-center gap-2">
                 <span

@@ -15,6 +15,7 @@ import { DATA_SCOPES, DATA_SCOPE_AREAS, defaultDataScope } from "@platform/datab
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { upsertRoleAction, deleteRoleAction } from "../../app/actions/roles";
 import type { RoleWithGrants } from "../../types/roles";
+import { PageHeader } from "../layout/PageHeader";
 
 /** "write" is a legacy aggregate of create/edit and is derived on save. */
 const MATRIX_ACTIONS = ALL_ACTIONS.filter((action): action is Exclude<PermissionAction, "write"> => action !== "write");
@@ -101,18 +102,12 @@ export function RolesManagementView({ initialRoles }: { initialRoles: RoleWithGr
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
-      <div className="flex items-center justify-between" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">
-            {t.rolesView.title}
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">{t.rolesView.subtitle}</p>
-        </div>
-        <Button onClick={() => openEditor(null)} className="bg-accent text-accent-foreground">
+      <PageHeader
+        actions={<Button onClick={() => openEditor(null)} className="bg-accent text-accent-foreground">
           <Plus className="w-4 h-4 me-2" />
           {t.rolesView.newRole}
-        </Button>
-      </div>
+        </Button>}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {roles.map((role) => (

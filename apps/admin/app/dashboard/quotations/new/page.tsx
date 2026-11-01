@@ -3,6 +3,9 @@ import { discountDecision, listSalesPeople } from "@platform/database";
 import { getCRMContactById, getAllServices } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { NewQuotationFormView } from "../../../../components/quotations/NewQuotationFormView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("quotations/new");
 
 export const dynamic = "force-dynamic";
 

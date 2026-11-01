@@ -10,6 +10,7 @@ import { settleCashAction } from "../../app/actions/delivery";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { Field } from "../setup/LanguageFields";
+import { PageHeader } from "../layout/PageHeader";
 
 type Settlement = Awaited<ReturnType<typeof listCodSettlements>>[number];
 
@@ -23,10 +24,7 @@ export function CashSettlementView({ pending, history, currency, canSettle }: { 
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-16">
-      <div data-page-header>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
-        <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
-      </div>
+      <PageHeader />
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
       <section className="space-y-3" data-page-section>
         <h2 className="font-bold text-ink">{copy.toSettle}</h2>

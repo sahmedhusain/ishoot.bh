@@ -552,11 +552,16 @@ async function requestPage(
   const buckets = ["urgent", "high", "normal"];
   const rest: Prisma.InquiryWhereInput = { priority: { notIn: buckets } };
   const groups = [...buckets.map((priority) => ({ priority })), rest];
+  // Bucket sizes from one grouped count; anything outside the named buckets falls in the last one.
+  const counted = await db.inquiry.groupBy({ by: ["priority"], where, _count: { _all: true } });
+  const sizes = buckets.map((priority) => counted.find((row) => row.priority === priority)?._count._all ?? 0);
+  sizes.push(counted.filter((row) => !buckets.includes(row.priority as string)).reduce((sum, row) => sum + row._count._all, 0));
   const rows: ListRecord[] = [];
-  for (const group of groups) {
+  for (let index = 0; index < groups.length; index++) {
     if (rows.length >= take) break;
+    const group = groups[index];
     const bucket: Prisma.InquiryWhereInput = { AND: [where, group] };
-    const count = await db.inquiry.count({ where: bucket });
+    const count = sizes[index];
     if (skip >= count) {
       skip -= count;
       continue;

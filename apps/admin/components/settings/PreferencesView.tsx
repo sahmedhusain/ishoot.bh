@@ -31,6 +31,7 @@ import {
   type AdminAppearance,
 } from "../../lib/admin-appearance";
 import { SettingsNavTabs } from "./SettingsNavTabs";
+import { PageHeader } from "../layout/PageHeader";
 
 function ChoiceRow({
   label,
@@ -231,15 +232,8 @@ export function PreferencesView() {
   return (
     <div className="max-w-6xl mx-auto pb-24">
       <SettingsNavTabs />
-      <header
-        className="flex flex-col sm:flex-row justify-between gap-6 mb-6"
-        data-page-header
-      >
-        <div>
-          <h1 className="text-ink">{copy.title}</h1>
-          <p className="text-ink-muted">{copy.subtitle}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2.5 self-start shrink-0">
+      <PageHeader
+        actions={<div className="flex flex-wrap items-center gap-2.5 self-start shrink-0">
           {isDirty ? (
             <Button
               type="button"
@@ -270,8 +264,8 @@ export function PreferencesView() {
             <Save aria-hidden className="w-4 h-4" />
             {copy.saveChanges}
           </Button>
-        </div>
-      </header>
+        </div>}
+      />
 
       {savedNotice && !isDirty ? (
         <div

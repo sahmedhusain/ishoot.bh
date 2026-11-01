@@ -35,17 +35,17 @@ export function DealCard({ deal }: DealCardProps) {
       className={`cursor-grab active:cursor-grabbing transition-shadow ${isDragging ? "opacity-50 z-50 shadow-2xl scale-105" : ""
         }`}
     >
-      <Card className="p-4 bg-surface-raised dark:bg-surface-raised border border-outline-variant/80 dark:border-white/10 hover:border-accent/50 transition-all rounded-xl shadow-sm space-y-3">
+      <Card className="p-4 bg-surface-raised border border-outline-variant/80 dark:border-white/10 hover:border-accent/50 transition-all rounded-xl shadow-sm space-y-3">
         <Link
           href={ROUTES.crm.deal(deal.id)}
-          className="text-sm font-bold text-ink dark:text-ink hover:text-primary dark:hover:text-accent leading-snug line-clamp-2 block transition-colors"
+          className="text-sm font-bold text-ink hover:text-primary dark:hover:text-accent leading-snug line-clamp-2 block transition-colors"
           onClick={(e) => e.stopPropagation()}
         >
           {deal.title}
         </Link>
 
         <div className="flex items-center justify-between text-xs">
-          <div className="flex items-center gap-1.5 text-ink-muted dark:text-ink-muted truncate">
+          <div className="flex items-center gap-1.5 text-ink-muted truncate">
             <User className="w-3.5 h-3.5 text-accent shrink-0" />
             {deal.contact ? (
               <Link
@@ -63,7 +63,7 @@ export function DealCard({ deal }: DealCardProps) {
         </div>
 
         {deal.shoot_date && (
-          <div className="flex items-center gap-1.5 text-[11px] text-ink-muted dark:text-ink-muted ">
+          <div className="flex items-center gap-1.5 text-[11px] text-ink-muted">
             <Calendar className="w-3 h-3 text-ink-muted" />
             <span>
               {t.deals.shootPrefix}
@@ -73,7 +73,7 @@ export function DealCard({ deal }: DealCardProps) {
         )}
 
         <div className="pt-2 border-t border-outline-variant dark:border-white/5 flex items-center justify-between text-xs">
-          <span className="text-ink-muted dark:text-ink-muted ">
+          <span className="text-ink-muted">
             {t.deals.dealValue}
           </span>
           <span className=" font-bold text-primary dark:text-accent">

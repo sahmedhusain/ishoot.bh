@@ -1,6 +1,9 @@
 import { requirePagePermission } from "../../../../lib/auth";
 import { ensureDefaultFeatureModules } from "@platform/database";
 import { ModulesManagementView } from "../../../../components/settings/ModulesManagementView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("settings/modules");
 
 export default async function ModulesSettingsPage() {
   await requirePagePermission("settings", "read");

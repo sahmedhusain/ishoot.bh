@@ -11,6 +11,7 @@ import type { AttendanceCell, AttendanceSheet } from "@platform/database/queries
 import { ROUTES } from "@platform/database/constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { deleteAttendanceAction, markMonthPresentAction, saveAttendanceAction } from "../../app/actions/hr-settings";
+import { PageHeader } from "../layout/PageHeader";
 
 type Employee = AttendanceSheet["employees"][number];
 
@@ -113,7 +114,7 @@ function CellEditor({
   return (
     <form onSubmit={save} className="space-y-3" id={modalFormId}>
       <p className="text-xs text-ink-muted dark:text-ink"><bdi dir="ltr">{date}</bdi></p>
-      <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
+      <label className="block space-y-1 text-xs font-medium text-ink">
         {a.status}
         <Select className={fieldClass} value={form.status} onChange={(e) => set("status", e.target.value)}>
           {(["present", "absent", "half_day", "on_leave", "holiday"] as const).map((s) => (
@@ -124,11 +125,11 @@ function CellEditor({
       {present && (
         <>
           <div className="grid grid-cols-2 gap-3">
-            <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
+            <label className="block space-y-1 text-xs font-medium text-ink">
               {a.checkIn}
               <input type="time" dir="ltr" className={fieldClass} value={form.checkIn} onChange={(e) => set("checkIn", e.target.value)} />
             </label>
-            <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
+            <label className="block space-y-1 text-xs font-medium text-ink">
               {a.checkOut}
               <input type="time" dir="ltr" className={fieldClass} value={form.checkOut} onChange={(e) => set("checkOut", e.target.value)} />
             </label>
@@ -142,14 +143,14 @@ function CellEditor({
               ["overtimeRestDayMinutes", a.otRest],
               ["overtimeHolidayMinutes", a.otHoliday],
             ] as const).map(([key, label]) => (
-              <label key={key} className="block space-y-1 text-[11px] font-medium text-ink dark:text-ink">
+              <label key={key} className="block space-y-1 text-[11px] font-medium text-ink">
                 {label}
                 <input type="number" min={0} max={1440} step={1} inputMode="numeric" dir="ltr" placeholder="—" className={fieldClass} value={form[key]} onChange={(e) => set(key, e.target.value)} />
               </label>
             ))}
           </div>
           {sheet.shiftTypes.length > 0 && (
-            <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
+            <label className="block space-y-1 text-xs font-medium text-ink">
               {a.shift}
               <Select className={fieldClass} value={form.shiftTypeId} onChange={(e) => set("shiftTypeId", e.target.value)}>
                 <option value="">{a.noShift}</option>
@@ -159,7 +160,7 @@ function CellEditor({
           )}
         </>
       )}
-      <label className="block space-y-1 text-xs font-medium text-ink dark:text-ink">
+      <label className="block space-y-1 text-xs font-medium text-ink">
         {a.notes}
         <input maxLength={500} className={fieldClass} value={form.notes} onChange={(e) => set("notes", e.target.value)} />
       </label>
@@ -205,14 +206,10 @@ export function AttendanceSheetView({ sheet, canEdit }: { sheet: AttendanceSheet
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-5 pb-16">
-      <header className="flex flex-wrap items-end gap-3" data-page-header>
-        <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-bold tracking-tight text-ink dark:text-ink"><bdi dir="auto">{a.title}</bdi></h1>
-          <p className="mt-1 max-w-2xl text-sm text-ink-muted dark:text-ink">{a.subtitle}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
+      <PageHeader
+        actions={<div className="flex flex-wrap items-center gap-2">
           <Link href={`?month=${prev}`} aria-label={a.previousMonth} className="rounded-full p-2 hover:bg-ink/[0.06]"><PrevIcon className="w-4 h-4" /></Link>
-          <span className="min-w-32 text-center text-sm font-semibold text-ink dark:text-ink">{title}</span>
+          <span className="min-w-32 text-center text-sm font-semibold text-ink">{title}</span>
           <Link href={`?month=${next}`} aria-label={a.nextMonth} className="rounded-full p-2 hover:bg-ink/[0.06]"><NextIcon className="w-4 h-4" /></Link>
           {canEdit && (
             <Button type="button" size="sm" variant="secondary" disabled={marking} onClick={markPresent} title={a.markPresentBody}>
@@ -223,11 +220,11 @@ export function AttendanceSheetView({ sheet, canEdit }: { sheet: AttendanceSheet
           <Link href={ROUTES.hr.payroll()} className="inline-flex min-h-8 items-center rounded-full border border-outline-variant px-3.5 text-xs font-medium text-primary hover:bg-primary/[0.06] dark:text-accent">
             {t.payrollManagement.payrollAndCompensationRuns}
           </Link>
-        </div>
-      </header>
+        </div>}
+      />
 
       {sheet.lockedThrough && (
-        <p className="flex items-center gap-2 rounded-xl bg-surface-sunken px-3 py-2 text-xs text-ink dark:text-ink">
+        <p className="flex items-center gap-2 rounded-xl bg-surface-sunken px-3 py-2 text-xs text-ink">
           <Lock className="w-3.5 h-3.5 shrink-0" />
           {fill(a.locked, { date: sheet.lockedThrough })}
         </p>
@@ -249,14 +246,14 @@ export function AttendanceSheetView({ sheet, canEdit }: { sheet: AttendanceSheet
             <table className="w-max min-w-full border-separate border-spacing-0 text-xs">
               <thead>
                 <tr>
-                  <th scope="col" className="sticky start-0 z-10 bg-surface-raised px-3 py-2 text-start font-semibold text-ink dark:bg-surface-raised dark:text-ink">{a.employee}</th>
+                  <th scope="col" className="sticky start-0 z-10 bg-surface-raised px-3 py-2 text-start font-semibold text-ink">{a.employee}</th>
                   {sheet.days.map((day) => (
                     <th key={day.date} scope="col" title={day.holiday ?? undefined} className={`w-8 px-0.5 py-1 text-center font-medium ${day.working ? "text-ink-muted dark:text-ink" : "bg-ink/[0.05] text-ink-muted"} ${day.date === today ? "text-primary dark:text-accent" : ""}`}>
                       <span className="block text-[10px]">{weekday.format(new Date(`${day.date}T00:00:00Z`))}</span>
                       <span className="block">{Number(day.date.slice(8))}</span>
                     </th>
                   ))}
-                  <th scope="col" className="px-3 py-2 text-start font-semibold text-ink dark:text-ink">{a.summary}</th>
+                  <th scope="col" className="px-3 py-2 text-start font-semibold text-ink">{a.summary}</th>
                 </tr>
               </thead>
               <tbody>
@@ -267,7 +264,7 @@ export function AttendanceSheetView({ sheet, canEdit }: { sheet: AttendanceSheet
                   const otHours = Math.round((cells.reduce((s, c) => s + overtimeOf(c), 0) / 60) * 10) / 10;
                   return (
                     <tr key={employee.id} className="border-t border-outline-variant">
-                      <th scope="row" className="sticky start-0 z-10 max-w-48 border-t border-outline-variant bg-surface-raised px-3 py-1.5 text-start font-medium text-ink dark:bg-surface-raised dark:text-ink">
+                      <th scope="row" className="sticky start-0 z-10 max-w-48 border-t border-outline-variant bg-surface-raised px-3 py-1.5 text-start font-medium text-ink">
                         <span className="block truncate">{locale === "ar" ? employee.nameAr : employee.name}</span>
                         <bdi dir="ltr" className="block text-[10px] font-normal text-ink-muted">{employee.employeeNumber}</bdi>
                       </th>

@@ -28,6 +28,7 @@ import {
   emailSalaryDocumentAction,
   whatsappSalaryDocumentAction,
 } from "../../app/actions/salary-documents";
+import { PageHeader } from "../layout/PageHeader";
 export interface SalaryDocumentItem {
   id: string;
   kind: string;
@@ -151,12 +152,7 @@ export function SalaryDocumentsView({
           >
             <FileText className="w-6 h-6" />
           </span>
-          <div className="space-y-1" data-page-header>
-            <h1 className="text-2xl font-bold tracking-tight text-ink">
-              {h.salaryDocuments}
-            </h1>
-            <p className="text-sm text-ink-muted">{h.documentsSubtitle}</p>
-          </div>
+          <PageHeader />
         </header>
       )}
 
@@ -165,7 +161,7 @@ export function SalaryDocumentsView({
       {employeeId && canRequest && (
         <section
           aria-labelledby="salary-request"
-          className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-5 sm:p-6 shadow-xs space-y-5"
+          className="rounded-3xl border border-outline-variant bg-surface-raised p-5 sm:p-6 shadow-xs space-y-5"
          data-page-section>
           <h2 id="salary-request" className="text-base font-bold text-ink">
             {h.requestTitle}
@@ -316,7 +312,7 @@ export function SalaryDocumentsView({
 
       <section
         aria-labelledby="salary-history"
-        className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-5 sm:p-6 shadow-xs space-y-4"
+        className="rounded-3xl border border-outline-variant bg-surface-raised p-5 sm:p-6 shadow-xs space-y-4"
        data-page-section>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 id="salary-history" className="text-base font-bold text-ink">

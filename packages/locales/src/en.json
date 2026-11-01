@@ -1,5 +1,6 @@
 {
   "common": {
+    "loading": "Loading…",
     "confirmDelete": "Are you sure you want to delete this item? This action cannot be undone.",
     "backToTop": "Back to top",
     "online": "Online",

@@ -20,6 +20,7 @@ import {
   saveShiftTypeAction,
   updateHrPolicyAction,
 } from "../../app/actions/hr-settings";
+import { PageHeader } from "../layout/PageHeader";
 
 type Tab = "policy" | "leave" | "holidays" | "shifts";
 type Holiday = { id: string; date: string; nameEn: string; nameAr: string };
@@ -33,7 +34,7 @@ const fill = (template: string, values: Record<string, string | number>) =>
 function Section({ title, icon, children }: { title: string; icon?: React.ReactNode; children: React.ReactNode }) {
   return (
     <Card className="space-y-4 p-5 dark:bg-surface-raised" data-page-section>
-      <h2 className="flex items-center gap-2 text-sm font-semibold text-ink dark:text-ink">{icon}{title}</h2>
+      <h2 className="flex items-center gap-2 text-sm font-semibold text-ink">{icon}{title}</h2>
       {children}
     </Card>
   );
@@ -112,13 +113,13 @@ function PolicyForm({ policy, editable }: { policy: HrPolicyRules; editable: boo
               </label>
             )}
           </div>
-          <p className="rounded-xl bg-surface-sunken px-3 py-2 text-xs text-ink dark:text-ink">{fill(h.example, { example })}</p>
+          <p className="rounded-xl bg-surface-sunken px-3 py-2 text-xs text-ink">{fill(h.example, { example })}</p>
         </Section>
 
         <Section title={h.week} icon={<CalendarDays className="w-4 h-4" />}>
           <label className={labelClass}><span>{h.visaExemptCountries}</span><Select multiple value={form.visaExemptCountries ?? []} onChange={(event) => set("visaExemptCountries", Array.from(event.target.selectedOptions, (option) => option.value))}>{countryOptions(t.countries).map((country) => <option key={country.code} value={country.code}>{country.name}</option>)}</Select><span className="block text-xs text-ink-muted">{h.visaExemptCountriesHint}</span></label>
           <fieldset>
-            <legend className="mb-1.5 text-xs font-medium text-ink dark:text-ink">{h.weekendDays}</legend>
+            <legend className="mb-1.5 text-xs font-medium text-ink">{h.weekendDays}</legend>
             <div className="flex flex-wrap gap-1.5">
               {h.weekdays.map((dayName: string, index: number) => {
                 const on = form.weekendDays.includes(index);
@@ -185,7 +186,7 @@ function PolicyForm({ policy, editable }: { policy: HrPolicyRules; editable: boo
 
         <Section title={h.lateness}>
           <div className="grid items-end gap-3 sm:grid-cols-2">
-            <label className="flex items-center gap-2 text-sm text-ink dark:text-ink">
+            <label className="flex items-center gap-2 text-sm text-ink">
               <input type="checkbox" role="switch" className="accent-accent" checked={form.deductLateness} onChange={(e) => set("deductLateness", e.target.checked)} />
               {h.deductLateness}
             </label>
@@ -194,11 +195,11 @@ function PolicyForm({ policy, editable }: { policy: HrPolicyRules; editable: boo
         </Section>
 
         <Section title={h.other}>
-          <label className="flex items-center gap-2 text-sm text-ink dark:text-ink">
+          <label className="flex items-center gap-2 text-sm text-ink">
             <input type="checkbox" role="switch" className="accent-accent" checked={form.prorateJoiners} onChange={(e) => set("prorateJoiners", e.target.checked)} />
             {h.prorate}
           </label>
-          <label className="flex items-center gap-2 text-sm text-ink dark:text-ink">
+          <label className="flex items-center gap-2 text-sm text-ink">
             <input type="checkbox" role="switch" className="accent-accent" checked={form.commissionInPayroll} onChange={(e) => set("commissionInPayroll", e.target.checked)} />
             {h.commission}
           </label>
@@ -271,7 +272,7 @@ function LeaveTypeForm({ value, onClose }: { value: LeaveTypeView; onClose: () =
         <label className={labelClass}>{h.order}{num("sortOrder", { min: 0, max: 999, step: 1 })}</label>
       </div>
       <fieldset className="space-y-2 rounded-xl border border-outline-variant p-3">
-        <legend className="px-1 text-xs font-semibold text-ink dark:text-ink">{h.pay}</legend>
+        <legend className="px-1 text-xs font-semibold text-ink">{h.pay}</legend>
         {tiers.length === 0 ? (
           <label className={labelClass}>{h.payPercent} (%){num("payPercent", { min: 0, max: 100, step: 1 })}</label>
         ) : (
@@ -289,7 +290,7 @@ function LeaveTypeForm({ value, onClose }: { value: LeaveTypeView; onClose: () =
           <Plus className="w-3.5 h-3.5" />{h.addBand}
         </Button>
       </fieldset>
-      <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-ink dark:text-ink">
+      <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-ink">
         {([["allowHalfDay", h.allowHalf], ["allowHours", h.allowHours], ["countCalendarDays", h.calendarDays], ["requiresAttachment", h.attachment], ["requiresHandover", h.handover], ["isActive", h.active]] as const).map(([key, label]) => (
           <label key={key} className="flex items-center gap-2">
             <input type="checkbox" className="accent-accent" checked={!!form[key]} onChange={(e) => set(key, e.target.checked)} />
@@ -321,23 +322,23 @@ function LeaveTypes({ leaveTypes, editable }: { leaveTypes: LeaveTypeView[]; edi
           <Card key={type.id} className={`space-y-2 p-4 dark:bg-surface-raised ${type.isActive ? "" : "opacity-60"}`}>
             <div className="flex items-start gap-2">
               <div className="min-w-0 flex-1">
-                <h3 className="text-sm font-semibold text-ink dark:text-ink">{locale === "ar" ? type.nameAr : type.nameEn}</h3>
+                <h3 className="text-sm font-semibold text-ink">{locale === "ar" ? type.nameAr : type.nameEn}</h3>
                 <p className="text-[11px] text-ink-muted"><bdi dir="ltr">{type.code}</bdi>{!type.isActive && ` · ${h.inactive}`}</p>
               </div>
               {editable && <Button type="button" variant="ghost" size="sm" aria-label={h.edit} onClick={() => setEditing(type)}><Pencil className="w-3.5 h-3.5" /></Button>}
             </div>
             <ul className="flex flex-wrap gap-1.5 text-[11px]">
-              <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-ink dark:text-ink">
+              <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-ink">
                 {type.payTiers?.length ? `${h.payBands}: ${type.payTiers.map((b) => `≤${b.upToDays} → ${b.percent}%`).join(" · ")}` : `${h.payPercent} ${type.payPercent}%`}
               </li>
-              <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-ink dark:text-ink">
+              <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-ink">
                 {type.accrual === "none" ? h.accrualNone : `${type.accrual === "monthly" ? h.accrualMonthly : h.accrualAnnual} · ${type.daysAllowedPerYear}`}
               </li>
-              {type.maxCarryOverDays > 0 && <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-ink dark:text-ink">{h.carryOver} {type.maxCarryOverDays}</li>}
-              {type.eligibleAfterMonths > 0 && <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-ink dark:text-ink">{h.eligibleAfter} {type.eligibleAfterMonths}</li>}
-              {type.allowHalfDay && <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-ink dark:text-ink">{h.allowHalf}</li>}
-              {type.allowHours && <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-ink dark:text-ink">{h.allowHours}</li>}
-              {type.countCalendarDays && <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-ink dark:text-ink">{h.calendarDays}</li>}
+              {type.maxCarryOverDays > 0 && <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-ink">{h.carryOver} {type.maxCarryOverDays}</li>}
+              {type.eligibleAfterMonths > 0 && <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-ink">{h.eligibleAfter} {type.eligibleAfterMonths}</li>}
+              {type.allowHalfDay && <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-ink">{h.allowHalf}</li>}
+              {type.allowHours && <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-ink">{h.allowHours}</li>}
+              {type.countCalendarDays && <li className="rounded-full bg-surface-sunken px-2 py-0.5 text-ink">{h.calendarDays}</li>}
             </ul>
           </Card>
         ))}
@@ -370,7 +371,7 @@ function Holidays({ holidays, year, editable }: { holidays: Holiday[]; year: num
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <Link href={`?year=${year - 1}`} className="rounded-full px-3 py-1 text-xs hover:bg-ink/[0.06]"><bdi dir="ltr">{year - 1}</bdi></Link>
-        <span className="text-sm font-semibold text-ink dark:text-ink"><bdi dir="ltr">{year}</bdi></span>
+        <span className="text-sm font-semibold text-ink"><bdi dir="ltr">{year}</bdi></span>
         <Link href={`?year=${year + 1}`} className="rounded-full px-3 py-1 text-xs hover:bg-ink/[0.06]"><bdi dir="ltr">{year + 1}</bdi></Link>
       </div>
       {editable && (
@@ -388,7 +389,7 @@ function Holidays({ holidays, year, editable }: { holidays: Holiday[]; year: num
           {holidays.map((holiday) => (
             <li key={holiday.id} className="flex items-center gap-3 px-4 py-2.5 text-sm">
               <span className="w-36 shrink-0 text-ink-muted dark:text-ink"><DateDisplay date={holiday.date} locale={locale} /></span>
-              <span className="min-w-0 flex-1 truncate text-ink dark:text-ink">{locale === "ar" ? holiday.nameAr : holiday.nameEn}</span>
+              <span className="min-w-0 flex-1 truncate text-ink">{locale === "ar" ? holiday.nameAr : holiday.nameEn}</span>
               {editable && <Button type="button" variant="ghost" size="sm" aria-label={h.delete} onClick={() => setDeleting(holiday)}><Trash2 className="w-3.5 h-3.5 text-rose-600" /></Button>}
             </li>
           ))}
@@ -447,7 +448,7 @@ function Shifts({ shiftTypes, editable }: { shiftTypes: ShiftTypeView[]; editabl
         <ul className="divide-y divide-outline-variant rounded-2xl border border-outline-variant">
           {shiftTypes.map((shift) => (
             <li key={shift.id} className={`flex flex-wrap items-center gap-3 px-4 py-2.5 text-sm ${shift.isActive ? "" : "opacity-60"}`}>
-              <span className="min-w-0 flex-1 text-ink dark:text-ink">{locale === "ar" ? shift.nameAr : shift.nameEn} <bdi dir="ltr" className="text-[11px] text-ink-muted">{shift.code}</bdi></span>
+              <span className="min-w-0 flex-1 text-ink">{locale === "ar" ? shift.nameAr : shift.nameEn} <bdi dir="ltr" className="text-[11px] text-ink-muted">{shift.code}</bdi></span>
               <span className="text-xs text-ink-muted dark:text-ink">
                 <bdi dir="ltr">{shift.allowanceMode === "fixed" ? `${shift.allowanceValue.toFixed(3)} ${companyCurrency}` : `${shift.allowanceValue}%`}</bdi>
               </span>
@@ -474,7 +475,7 @@ function Shifts({ shiftTypes, editable }: { shiftTypes: ShiftTypeView[]; editabl
               </label>
               <label className={labelClass}>&nbsp;<input type="number" dir="ltr" min={0} step="any" className={fieldClass} value={editing.allowanceValue} onChange={(e) => setEditing({ ...editing, allowanceValue: Number(e.target.value) })} /></label>
             </div>
-            <label className="flex items-center gap-2 text-sm text-ink dark:text-ink">
+            <label className="flex items-center gap-2 text-sm text-ink">
               <input type="checkbox" className="accent-accent" checked={editing.isActive} onChange={(e) => setEditing({ ...editing, isActive: e.target.checked })} />
               {h.active}
             </label>
@@ -511,10 +512,7 @@ export function HrSettingsView({
   const [tab, setTab] = React.useState<Tab>("policy");
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-16">
-      <header data-page-header>
-        <h1 className="text-2xl font-bold tracking-tight text-ink dark:text-ink">{h.title}</h1>
-        <p className="mt-1 text-sm text-ink-muted dark:text-ink">{h.subtitle}</p>
-      </header>
+      <PageHeader />
       <div className="flex gap-1 overflow-x-auto border-b border-outline-variant" role="tablist">
         {(["policy", "leave", "holidays", "shifts"] as const).map((key) => (
           <button

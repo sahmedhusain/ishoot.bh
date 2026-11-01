@@ -13,6 +13,7 @@ import { addCatalogueDepartmentsAction, deleteDepartmentAction, saveDepartmentAc
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { Field, LanguageFields } from "../setup/LanguageFields";
+import { PageHeader } from "../layout/PageHeader";
 
 interface Draft {
   id?: string;
@@ -122,18 +123,14 @@ export function DepartmentsSettingsView({ departments, people, languages, canEdi
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
-          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
-        </div>
-        {canEdit && (
+      <PageHeader
+        actions={canEdit && (
           <Button variant="primary" size="sm" className="gap-1.5 rounded-full" onClick={() => setDraft({ ...EMPTY })}>
             <Plus className="w-3.5 h-3.5" />
             {copy.add}
           </Button>
         )}
-      </div>
+      />
 
       {message && (
         <p role="status" className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>

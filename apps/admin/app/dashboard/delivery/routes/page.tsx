@@ -1,6 +1,9 @@
 import { listDrivers, listRouteSheets, listVehicles, requireFeatureEnabled, routableShipments } from "@platform/database";
 import { requirePagePermission } from "../../../../lib/auth";
 import { RouteSheetsView } from "../../../../components/delivery/RouteSheetsView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("delivery/routes");
 
 export const dynamic = "force-dynamic";
 

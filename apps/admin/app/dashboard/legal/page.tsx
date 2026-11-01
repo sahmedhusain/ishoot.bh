@@ -2,6 +2,9 @@ import { contractRegister, licenceRegister, listLegalMatters, requireFeatureEnab
 import { hasPermission, requirePagePermission } from "../../../lib/auth";
 import { getCachedCompanySettings } from "../../../lib/cached-queries";
 import { LegalView } from "../../../components/outreach/LegalView";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("legal");
 
 export const dynamic = "force-dynamic";
 

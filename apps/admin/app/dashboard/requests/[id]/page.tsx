@@ -5,6 +5,9 @@ import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { getConsolidatedRequestById, db, findPendingApproval, canDecideApproval, listCannedReplies, requestReplies } from "@platform/database";
 import { ServiceReplyPanel } from "../../../../components/requests/ServiceReplyPanel";
 import { RequestDetailView } from "../../../../components/requests/RequestDetailView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("requests/[id]");
 
 export const dynamic = "force-dynamic";
 

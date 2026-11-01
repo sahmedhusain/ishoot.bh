@@ -2,6 +2,9 @@ import { forbidden } from "next/navigation";
 import { dashboardDepartments, departmentDashboard, departmentSubtree } from "@platform/database";
 import { getCurrentPermissions, requireAuth } from "../../../lib/auth";
 import { DepartmentDashboardView } from "../../../components/dashboard/DepartmentDashboardView";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("department");
 
 export const dynamic = "force-dynamic";
 

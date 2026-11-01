@@ -980,7 +980,7 @@ html[data-motion="reduced"] [data-ui="button"]:active {
     transform: none;
   }
   :is([data-modal-card][role="dialog"], .admin-popover) {
-    animation-name: admin-scrim-in !important;
+    animation: none !important;
   }
 }
 @media print {

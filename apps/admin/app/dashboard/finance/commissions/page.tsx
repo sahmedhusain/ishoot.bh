@@ -1,6 +1,9 @@
 import { getCurrentPermissions, requirePagePermission } from "../../../../lib/auth";
 import { getCommissionStatement } from "@platform/database";
 import { CommissionsView } from "../../../../components/sales/CommissionsView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("finance/commissions");
 
 export const dynamic = "force-dynamic";
 

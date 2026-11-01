@@ -1,6 +1,9 @@
 import { db, getCompanySettings, getDepartmentTree } from "@platform/database";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { DepartmentsSettingsView } from "../../../../components/settings/DepartmentsSettingsView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("settings/departments");
 
 export const dynamic = "force-dynamic";
 

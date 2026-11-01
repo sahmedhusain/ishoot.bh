@@ -1,11 +1,14 @@
 import { requirePagePermission, hasPermission } from "../../../../lib/auth";
 import { notFound } from "next/navigation";
-import { getInvoiceById, getAllPayments, getAttribution, listSalesPeople, getSigningState, canSignDocument, listClientSignatures, SIGNABLE_STATUSES } from "@platform/database";
+import { db, getInvoiceById, getAllPayments, getAttribution, listSalesPeople, getSigningState, canSignDocument, listClientSignatures, SIGNABLE_STATUSES } from "@platform/database";
 import { ClientSignaturePanel } from "../../../../components/shared/ClientSignaturePanel";
 import { SigningPanel } from "../../../../components/sales/SigningPanel";
 import { AttributionPanel } from "../../../../components/sales/AttributionPanel";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { InvoiceDetailView } from "../../../../components/invoices/InvoiceDetailView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("invoices/[id]");
 
 export const dynamic = "force-dynamic";
 
@@ -40,13 +43,26 @@ export default async function InvoiceDetailPage({
   if (!invoice || !company) {
     notFound();
   }
-  const clientSignatures = await listClientSignatures("invoice", invoice.id);
+  const [clientSignatures, canReadQuotations, canReadDeals] = await Promise.all([
+    listClientSignatures("invoice", invoice.id),
+    hasPermission("quotations", "read"),
+    hasPermission("deals", "read"),
+  ]);
+  // Links card: the quotation this invoice came from and its deal, each shown only to those who can open it.
+  const [quotation, deal] = await Promise.all([
+    canReadQuotations
+      ? db.quotation.findUnique({ where: { invoiceId: invoice.id }, select: { id: true, quotationNumber: true } })
+      : null,
+    canReadDeals && invoice.deal_id
+      ? db.crmDeal.findUnique({ where: { id: invoice.deal_id }, select: { id: true, title: true } })
+      : null,
+  ]);
 
   const invoicePayments = allPayments;
 
   return (
     <>
-      <InvoiceDetailView invoice={invoice} company={company} payments={invoicePayments} signing={signing.signed ? { signatureUrl: signing.signatureUrl, signerName: signing.signedBy?.name ?? "" } : null} />
+      <InvoiceDetailView invoice={invoice} company={company} payments={invoicePayments} quotation={quotation} deal={deal} signing={signing.signed ? { signatureUrl: signing.signatureUrl, signerName: signing.signedBy?.name ?? "" } : null} />
       <div className="max-w-6xl mx-auto mt-6 no-print grid gap-6 lg:grid-cols-2">
         <SigningPanel type="invoice" id={id} state={signing} canSign={canSign} canRequestApproval={canWrite} hasSignature={!!user.signature_url} />
         <AttributionPanel entityType="invoice" entityId={id} info={attribution} salesPeople={salesPeople} canReassign={canEdit || canAssign} />

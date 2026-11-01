@@ -1,6 +1,9 @@
 import { db, getCompanySettings } from "@platform/database";
 import { hasPermission, requirePagePermission } from "../../../../../lib/auth";
 import { ImportPeopleView } from "../../../../../components/hr/ImportPeopleView";
+import { pageMetadata } from "../../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("hr/employees/import");
 
 export const dynamic = "force-dynamic";
 

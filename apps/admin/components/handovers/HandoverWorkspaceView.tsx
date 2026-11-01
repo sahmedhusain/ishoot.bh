@@ -36,6 +36,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { HandoverForm } from "../assets/HandoverForm";
 import { HANDOVER_STATUS_STYLE } from "./HandoversListView";
+import { PageHeader } from "../layout/PageHeader";
 
 type User = { id: string; name: string };
 const MODES = ["delegate", "spread", "manual"] as const;
@@ -158,16 +159,14 @@ export function HandoverWorkspaceView({
             <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
           </Link>
           <div>
-            <div className="flex flex-wrap items-center gap-2" data-page-header>
-              <h1 className="text-xl sm:text-2xl font-bold text-ink">
-                {handover.kind === "exit" ? e.exitTitle : e.leaveTitle}
-              </h1>
-              <span
+            <PageHeader
+              title={handover.kind === "exit" ? e.exitTitle : e.leaveTitle}
+              actions={<span
                 className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${HANDOVER_STATUS_STYLE[handover.status] ?? ""}`}
               >
                 {e.statuses[handover.status as keyof typeof e.statuses]}
-              </span>
-            </div>
+              </span>}
+            />
             <p className="text-xs text-ink-muted mt-1 font-mono">
               <bdi dir="ltr">{handover.reference}</bdi>
             </p>

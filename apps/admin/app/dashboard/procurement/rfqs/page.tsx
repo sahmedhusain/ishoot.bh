@@ -1,6 +1,9 @@
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { listRfqs, procurementProductOptions, requireFeatureEnabled } from "@platform/database";
 import { RfqsListView } from "../../../../components/procurement/RfqsListView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("procurement/rfqs");
 
 export const dynamic = "force-dynamic";
 

@@ -7,7 +7,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Building2, CheckCircle2, Landmark, Plus, Star, Trash2, User, UserCog, UserPlus } from "lucide-react";
+import { Building2, CheckCircle2, Landmark, Plus, Star, Trash2, User } from "lucide-react";
 import { Button, Card, Input, PhoneInput, Select } from "@platform/ui";
 import type { ClientContactPersonInput, ClientProfileInput, CRMContact } from "@platform/database/types";
 import { CONTACT_TYPES } from "@platform/config/constants";
@@ -23,6 +23,7 @@ import { createContactAction, updateContactAction } from "../../app/actions/crm"
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { useCompanyVat } from "../../hooks/useCompanyVat";
 import { errorMessage } from "../../lib/error-text";
+import { PageHeader } from "../layout/PageHeader";
 
 type Person = ClientContactPersonInput & { key: string; id?: string };
 const KIND_ICONS = { individual: User, company: Building2, government: Landmark } as const;
@@ -152,21 +153,11 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex items-center gap-4" data-page-header>
-        <Link href={contact ? ROUTES.crm.customer(contact.id) : ROUTES.crm.contacts}>
-          <Button variant="outline" size="sm" className="gap-1.5 text-ink-muted">
-            <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
-            <span>{t.actions.back}</span>
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-ink font-display flex items-center gap-2">
-            {contact ? <UserCog className="w-6 h-6 text-accent" /> : <UserPlus className="w-6 h-6 text-accent" />}
-            <span>{contact ? f.editTitle : f.newTitle}</span>
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">{contact ? f.editSubtitle : f.newSubtitle}</p>
-        </div>
-      </div>
+      <PageHeader
+        title={contact ? f.editTitle : f.newTitle}
+        description={contact ? f.editSubtitle : f.newSubtitle}
+        back={{ href: contact ? ROUTES.crm.customer(contact.id) : ROUTES.crm.contacts }}
+      />
 
       <form onSubmit={submit} className="space-y-6">
         <Card className="p-6 sm:p-8 bg-surface border border-outline-variant rounded-3xl space-y-8">

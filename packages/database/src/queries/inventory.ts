@@ -24,8 +24,9 @@ async function scopedLocations(actorId?:string, warehouseId?:string):Promise<Pri
  if(!actorId)return warehouseId?{warehouseId}:{};
  const branches=await listAccessibleBranches(actorId);
  const branchIds=branches.map(b=>b.id);
- if(warehouseId&&!await db.warehouse.count({where:{id:warehouseId,branchId:{in:branchIds}}}))throw new Error("Branch access denied");
- return {warehouse:{branchId:{in:branchIds}},...(warehouseId?{warehouseId}:{})};
+ const branchCondition: Prisma.WarehouseWhereInput = { OR: [{ branchId: { in: branchIds } }, { branchId: null }] };
+ if(warehouseId&&!await db.warehouse.count({where:{id:warehouseId, ...branchCondition}}))throw new Error("Branch access denied");
+ return {warehouse:{...branchCondition},...(warehouseId?{warehouseId}:{})};
 }
 // ─── Warehouses and locations ────────────────────────────────────────────────────────────────────────────────────
 
@@ -46,7 +47,16 @@ export async function ensureDefaultWarehouse(client: Tx | typeof db = db) {
     where: { isDefault: true },
     include: { locations: { orderBy: { createdAt: "asc" } } },
   });
-  if (existing) return existing;
+  if (existing) {
+    if (!existing.branchId) {
+      return client.warehouse.update({
+        where: { id: existing.id },
+        data: { branchId: "legacy-main" },
+        include: { locations: { orderBy: { createdAt: "asc" } } },
+      });
+    }
+    return existing;
+  }
   const any = await client.warehouse.findFirst({
     orderBy: { createdAt: "asc" },
     include: { locations: { orderBy: { createdAt: "asc" } } },
@@ -54,7 +64,7 @@ export async function ensureDefaultWarehouse(client: Tx | typeof db = db) {
   if (any)
     return client.warehouse.update({
       where: { id: any.id },
-      data: { isDefault: true },
+      data: { isDefault: true, branchId: any.branchId ?? "legacy-main" },
       include: { locations: { orderBy: { createdAt: "asc" } } },
     });
   const en = getTranslations("en").admin.inventory;
@@ -76,7 +86,7 @@ export async function listWarehouses(actorId?: string): Promise<WarehouseRecord[
   await ensureDefaultWarehouse();
   const branchIds = actorId ? (await listAccessibleBranches(actorId)).map(b=>b.id) : null;
   const rows = await db.warehouse.findMany({
-    where: branchIds ? {branchId:{in:branchIds}} : {},
+    where: branchIds ? { OR: [{ branchId: { in: branchIds } }, { branchId: null }] } : {},
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
     include: { locations: { orderBy: { createdAt: "asc" } } },
   });

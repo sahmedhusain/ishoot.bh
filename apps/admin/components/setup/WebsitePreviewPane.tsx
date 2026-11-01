@@ -82,7 +82,7 @@ export function WebsitePreviewPane({ theme, revision }: { theme: BrandTheme; rev
   return (
     <aside className="space-y-3 lg:sticky lg:top-6" aria-label={copy.title} data-testid="website-preview">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-bold text-ink dark:text-ink">{copy.title}</h3>
+        <h3 className="text-sm font-bold text-ink">{copy.title}</h3>
         <div className="flex items-center gap-1">
           {(["desktop", "phone"] as const).map((option) => {
             const Icon = option === "desktop" ? Monitor : Smartphone;
@@ -110,7 +110,7 @@ export function WebsitePreviewPane({ theme, revision }: { theme: BrandTheme; rev
           )}
         </div>
       </div>
-      <p className="text-xs text-ink-muted dark:text-ink-muted">{copy.hint}</p>
+      <p className="text-xs text-ink-muted">{copy.hint}</p>
     </aside>
   );
 }

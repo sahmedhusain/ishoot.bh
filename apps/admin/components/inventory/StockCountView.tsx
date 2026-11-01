@@ -3,9 +3,8 @@ import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, CheckCircle2, Loader2, ScanLine } from "lucide-react";
+import { CheckCircle2, Loader2, ScanLine } from "lucide-react";
 import { Button, Card, Input, Select } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import type { StockCountLineRecord } from "@platform/database";
@@ -15,6 +14,7 @@ import { approveStockCountAction, saveCountedAction, scanCountItemAction, setSto
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { Field } from "../setup/LanguageFields";
+import { PageHeader } from "../layout/PageHeader";
 
 interface StockCountViewProps {
   count: {
@@ -131,21 +131,11 @@ export function StockCountView({ count, locations, canEdit, canApprove }: StockC
 
   return (
     <div inert={busy} aria-busy={busy} className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <Link href={ROUTES.inventory.counts} className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent">
-            <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" />
-            {copy.back}
-          </Link>
-          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink flex flex-wrap items-center gap-3">
-            <span dir="ltr">{count.number}</span>
-            <span className="rounded-full bg-ink/10 px-2.5 py-0.5 text-xs font-medium text-ink" data-testid="count-status">{statusName}</span>
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">
-            {[locale === "ar" ? count.warehouse_ar : count.warehouse_en, (copy.scopes as Record<string, string>)[count.scope], count.created_by && formatMessage(copy.createdBy, { name: count.created_by }), count.approved_by && formatMessage(copy.approvedBy, { name: count.approved_by })].filter(Boolean).join(" · ")}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
+      <PageHeader
+        title={<><span dir="ltr">{count.number}</span><span className="rounded-full bg-ink/10 px-2.5 py-0.5 text-xs font-medium text-ink" data-testid="count-status">{statusName}</span></>}
+        description={[locale === "ar" ? count.warehouse_ar : count.warehouse_en, (copy.scopes as Record<string, string>)[count.scope], count.created_by && formatMessage(copy.createdBy, { name: count.created_by }), count.approved_by && formatMessage(copy.approvedBy, { name: count.approved_by })].filter(Boolean).join(" · ")}
+        back={{ href: ROUTES.inventory.counts, label: copy.back }}
+        actions={<div className="flex flex-wrap gap-2">
           {open && (
             <>
               <Button type="button" variant="outline" size="sm" className="rounded-full" disabled={busy || !dirty} onClick={() => run(saveCounts, copy.saved)} data-testid="count-save">{copy.save}</Button>
@@ -165,8 +155,8 @@ export function StockCountView({ count, locations, canEdit, canApprove }: StockC
             <Button type="button" variant="ghost" size="sm" className="rounded-full text-rose-600" disabled={busy} onClick={() => confirmAction({ description: copy.cancelConfirm, onConfirm: () => run(async () => { await setStockCountStatusAction(count.id, "cancelled"); editedLines.current.clear(); markSaved([]); setDirty(false); setCounted(Object.fromEntries(count.lines.map(l => [l.id, l.counted == null ? "" : String(l.counted)]))); }, undefined, true) })}>{copy.cancel}</Button>
           )}
           {busy && <Loader2 className="w-4 h-4 animate-spin self-center" aria-hidden="true" />}
-        </div>
-      </div>
+        </div>}
+      />
 
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
 

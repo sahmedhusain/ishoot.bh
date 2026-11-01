@@ -4,7 +4,7 @@ import { useConfirmation } from "@platform/ui";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Copy, Loader2, MapPin, Phone } from "lucide-react";
+import { Copy, Loader2, MapPin, Phone } from "lucide-react";
 import { Button, Card, Input, Select, formatCurrencyValue, formatDate } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { UNRESOLVED_COURIER_BOOKINGS, measuredCourierParcel, FAILURE_REASONS, SHIPMENT_TRANSITIONS, type ShipmentStatus } from "@platform/database/constants/delivery";
@@ -15,6 +15,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { Field } from "../setup/LanguageFields";
 import { LatePill, ShipmentStatusPill } from "./ShipmentPills";
+import { PageHeader } from "../layout/PageHeader";
 
 /** One shipment: where and when, what is in it, moving it along (with a reason when it fails) and its history. */
 export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drivers, vehicles, agencies, currency }: { shipment: ShipmentRecord; trackingLink: string; canEdit: boolean; canAssign: boolean; drivers: DriverOption[]; vehicles: VehicleRecord[]; agencies: CourierAgencyRecord[]; currency: string }) {
@@ -97,26 +98,15 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <Link href={ROUTES.delivery.shipments} className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent">
-            <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" />
-            {copy.back}
-          </Link>
-          <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink flex flex-wrap items-center gap-3">
-            <span dir="ltr" className="break-all">{shipment.number}</span>
-            <ShipmentStatusPill status={shipment.status} />
-            {shipment.late && <LatePill />}
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">
-            <Link href={ROUTES.orders.detail(shipment.order.id)} className="hover:text-accent">{formatMessage(copy.order, { number: shipment.order.number })}</Link>
+      <PageHeader
+        title={<><span dir="ltr" className="break-all">{shipment.number}</span><ShipmentStatusPill status={shipment.status} />{shipment.late && <LatePill />}</>}
+        description={<><Link href={ROUTES.orders.detail(shipment.order.id)} className="hover:text-accent">{formatMessage(copy.order, { number: shipment.order.number })}</Link>
             {" · "}
             {(t.delivery.methods as Record<string, string>)[shipment.method]}
             {" · "}
-            {formatMessage(copy.attempts, { count: shipment.attempts })}
-          </p>
-        </div>
-        {canEdit && next.length > 0 && (
+            {formatMessage(copy.attempts, { count: shipment.attempts })}</>}
+        back={{ href: ROUTES.delivery.shipments, label: copy.back }}
+        actions={canEdit && next.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {next.map((to) => (
               <Button key={to} type="button" size="sm" variant={to === "cancelled" || to === "returned" || to === "failed" ? "ghost" : "primary"} className={`rounded-full ${to === "failed" || to === "cancelled" ? "text-rose-600" : ""}`} disabled={busy} onClick={() => (to === "failed" ? setFailing(true) : void move(to, to === "delivered" ? { codCollected: Number(collected) || 0 } : {}))} data-testid={`shipment-move-${to}`}>
@@ -126,7 +116,7 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
             {busy && <Loader2 className="w-4 h-4 animate-spin self-center" aria-hidden="true" />}
           </div>
         )}
-      </div>
+      />
       {bookingBlocked && <div role="status" data-testid="courier-booking-warning" className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-800 dark:text-amber-200">{shipment.courier_booking === "pending" ? t.delivery.handover.bookingPending : shipment.courier_booking === "review" ? t.delivery.handover.needsReview : t.delivery.handover.bookingUncertain}{shipment.courier_booking_agency && <span className="ms-1 font-semibold"><bdi dir="auto">{shipment.courier_booking_agency.name}</bdi></span>}</div>}
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>{message.text}</p>}
 

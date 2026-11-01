@@ -17,6 +17,32 @@ import { AddToCart } from "../../../../components/store/AddToCart";
 import { currentCustomer, storeEnabled, orderingEnabled } from "../../../../lib/customer";
 import { WishlistButton } from "../../../../components/account/WishlistButton";
 
+/** The item's or article's own title, summary and image, so shared links and search results show it. */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; collection: string; slug: string }>;
+}) {
+  const { locale, collection, slug } = await params;
+  const { website, info } = await getSite();
+  if (!website) return {};
+  if (collection === info.articles.slug && collection !== info.collection.slug) {
+    const article = liveArticles(website.articles).find((entry) => entry.slug === slug);
+    if (!article) return {};
+    const title = pickText(article.title_en, article.title_ar, locale);
+    const description = pickText(article.excerpt_en, article.excerpt_ar, locale) || undefined;
+    const images = article.cover_url ? [article.cover_url] : undefined;
+    return { title, description, openGraph: { type: "article", title, description, images } };
+  }
+  if (collection !== info.collection.slug) return {};
+  const item = website.portfolio.find((project) => project.slug === slug);
+  if (!item) return {};
+  const title = pickText(item.title_en, item.title_ar, locale);
+  const description = (pickText(item.subtitle_en, item.subtitle_ar, locale) || pickText(item.description_en, item.description_ar, locale)).slice(0, 200) || undefined;
+  const images = item.thumbnail_url ? [item.thumbnail_url] : undefined;
+  return { title, description, openGraph: { title, description, images } };
+}
+
 /** One catalogue item: a project, product, property, dish, program… shown with the details its activity uses. */
 export default async function CollectionItemPage({
   params,

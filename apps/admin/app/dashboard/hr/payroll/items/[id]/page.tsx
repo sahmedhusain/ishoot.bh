@@ -2,6 +2,9 @@ import { notFound } from "next/navigation";
 import { getPayrollItemDetail } from "@platform/database";
 import { hasPermission, requirePagePermission } from "../../../../../../lib/auth";
 import { PayrollItemView } from "../../../../../../components/hr/PayrollItemView";
+import { pageMetadata } from "../../../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("hr/payroll/items/[id]");
 
 export const dynamic = "force-dynamic";
 

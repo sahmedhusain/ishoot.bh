@@ -164,7 +164,7 @@ export function UserProfileView({
         );
       case "cancelled":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-surface-sunken text-ink-muted dark:bg-white/10 dark:text-ink-muted">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-surface-sunken text-ink-muted dark:bg-white/10">
             <span>{t.profileWorkspace.withdrawn}</span>
           </span>
         );
@@ -176,21 +176,21 @@ export function UserProfileView({
   return (
     <div id="details" className="scroll-mt-20 space-y-6">
       {/* Profile Header Banner */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-surface-raised dark:bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+      <div className="p-6 sm:p-8 rounded-3xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-2xl bg-accent/10 border border-accent/20 text-accent font-bold text-2xl flex items-center justify-center font-display">
             {user.full_name ? user.full_name.charAt(0).toUpperCase() : "U"}
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink font-display">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-ink font-display">
                 <bdi dir="auto">{user.full_name}</bdi>
               </h2>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-surface-sunken dark:bg-white/10 text-ink dark:text-ink">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-surface-sunken dark:bg-white/10 text-ink">
                 {(t.roles as Record<string, string>)[user.role] ?? user.role}
               </span>
             </div>
-            <div className="flex flex-wrap items-center gap-3 text-xs text-ink-muted dark:text-ink-muted">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-ink-muted">
               <span className="flex items-center gap-1 font-mono">
                 <Mail className="w-3.5 h-3.5" />
                 <span><bdi dir="ltr">{user.email}</bdi></span>
@@ -231,14 +231,14 @@ export function UserProfileView({
         {/* Left 2 Cols: Self-Service Forms */}
         <div className="lg:col-span-2 space-y-6">
           {/* Section 1: Immediate Contact & Signature Update */}
-          <div className="p-6 rounded-2xl bg-surface-raised dark:bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm space-y-4">
+          <div className="p-6 rounded-2xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-outline-variant dark:border-white/5">
               <Phone className="w-4 h-4 text-accent" />
-              <h2 className="text-sm font-bold text-ink dark:text-ink uppercase tracking-wider">
+              <h2 className="text-sm font-bold text-ink uppercase tracking-wider">
                 {t.profileWorkspace.contact}
               </h2>
             </div>
-            <p className="text-xs text-ink-muted dark:text-ink-muted">
+            <p className="text-xs text-ink-muted">
               {t.profileWorkspace.contactHint}
             </p>
 
@@ -246,7 +246,7 @@ export function UserProfileView({
               <div>
                 <label
                   htmlFor="profile-phone"
-                  className="block text-xs font-semibold text-ink dark:text-ink mb-1"
+                  className="block text-xs font-semibold text-ink mb-1"
                 >
                   {t.shared.phoneNumber}
                 </label>
@@ -286,16 +286,16 @@ export function UserProfileView({
           </div>
 
           {/* Section 2: Identity Change Request (Manager Approved) */}
-          <div className="p-6 rounded-2xl bg-surface-raised dark:bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm space-y-4">
+          <div className="p-6 rounded-2xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-outline-variant dark:border-white/5">
               <ShieldCheck className="w-4 h-4 text-accent" />
-              <h2 className="text-sm font-bold text-ink dark:text-ink uppercase tracking-wider">
+              <h2 className="text-sm font-bold text-ink uppercase tracking-wider">
                 {t.profileWorkspace.identity}
               </h2>
             </div>
 
-            <div className="p-4 rounded-xl bg-surface-raised dark:bg-white/[0.02] border border-outline-variant/60 dark:border-white/5 text-xs text-ink-muted dark:text-ink-muted space-y-1">
-              <span className="font-semibold text-ink dark:text-ink block">
+            <div className="p-4 rounded-xl bg-surface-raised dark:bg-white/[0.02] border border-outline-variant/60 dark:border-white/5 text-xs text-ink-muted space-y-1">
+              <span className="font-semibold text-ink block">
                 {t.profileWorkspace.approvalRequired}
               </span>
               <p className="leading-relaxed">
@@ -308,7 +308,7 @@ export function UserProfileView({
                 <div>
                   <label
                     htmlFor="profile-name"
-                    className="block text-xs font-semibold text-ink dark:text-ink mb-1"
+                    className="block text-xs font-semibold text-ink mb-1"
                   >
                     {t.userProfile.proposedFullName}
                   </label>
@@ -319,7 +319,7 @@ export function UserProfileView({
                     value={proposedFullName}
                     onChange={(e) => setProposedFullName(e.target.value)}
                     placeholder={user.full_name}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-outline-variant dark:border-white/10 bg-surface-raised dark:bg-black/30 text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-outline-variant dark:border-white/10 bg-surface-raised dark:bg-black/30 text-ink focus:outline-none focus:ring-2 focus:ring-accent"
                   />
                   <span className="text-[10px] text-ink-muted mt-1 block">
                     {formatMessage(t.profileWorkspace.currentName, {
@@ -331,7 +331,7 @@ export function UserProfileView({
                 <div>
                   <label
                     htmlFor="profile-email"
-                    className="block text-xs font-semibold text-ink dark:text-ink mb-1"
+                    className="block text-xs font-semibold text-ink mb-1"
                   >
                     {t.userProfile.proposedEmail}
                   </label>
@@ -342,7 +342,7 @@ export function UserProfileView({
                     value={proposedEmail}
                     onChange={(e) => setProposedEmail(e.target.value)}
                     placeholder={user.email}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-outline-variant dark:border-white/10 bg-surface-raised dark:bg-black/30 text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent font-mono"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-outline-variant dark:border-white/10 bg-surface-raised dark:bg-black/30 text-ink focus:outline-none focus:ring-2 focus:ring-accent font-mono"
                   />
                   <span className="text-[10px] text-ink-muted mt-1 block font-mono">
                     {formatMessage(t.profileWorkspace.currentEmail, {
@@ -355,7 +355,7 @@ export function UserProfileView({
               <div>
                 <label
                   htmlFor="profile-reason"
-                  className="block text-xs font-semibold text-ink dark:text-ink mb-1"
+                  className="block text-xs font-semibold text-ink mb-1"
                 >
                   {t.userProfile.reasonForIdentityChange}
                 </label>
@@ -365,7 +365,7 @@ export function UserProfileView({
                   value={changeReason}
                   onChange={(e) => setChangeReason(e.target.value)}
                   placeholder={t.userProfile.eGLegalNameUpdate}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-outline-variant dark:border-white/10 bg-surface-raised dark:bg-black/30 text-ink dark:text-ink focus:outline-none focus:ring-2 focus:ring-accent"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-outline-variant dark:border-white/10 bg-surface-raised dark:bg-black/30 text-ink focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
 
@@ -416,8 +416,8 @@ export function UserProfileView({
           </div>
 
           {/* Section 3: My Change Requests History */}
-          <div className="p-6 rounded-2xl bg-surface-raised dark:bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm space-y-4">
-            <h2 className="text-sm font-bold text-ink dark:text-ink uppercase tracking-wider flex items-center gap-2">
+          <div className="p-6 rounded-2xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm space-y-4">
+            <h2 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
               <Clock className="w-4 h-4 text-accent" />
               <span>{t.profileWorkspace.requests}</span>
             </h2>
@@ -438,7 +438,7 @@ export function UserProfileView({
                             {formatDate(req.createdAt, locale)}
                           </span>
                         </div>
-                        <div className="text-ink dark:text-ink">
+                        <div className="text-ink">
                           {newVals.fullName && (
                             <span>
                               {formatMessage(t.profileWorkspace.requestedName, {
@@ -527,7 +527,7 @@ export function UserProfileView({
         {/* Right Col: Reporting Line & Employee Profile */}
         <div className="space-y-6">
           {/* Manager Card */}
-          <div className="p-6 rounded-2xl bg-surface-raised dark:bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm space-y-4">
+          <div className="p-6 rounded-2xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm space-y-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-accent flex items-center gap-2">
               <Users className="w-4 h-4" />
               <span>{t.userProfile.assignedReportingManager}</span>
@@ -539,7 +539,7 @@ export function UserProfileView({
                   <span className="text-ink-muted block text-[11px]">
                     {t.userProfile.managerName}
                   </span>
-                  <div className="font-semibold text-ink dark:text-ink mt-0.5">
+                  <div className="font-semibold text-ink mt-0.5">
                     <bdi dir="auto">{manager.fullName}</bdi>
                   </div>
                 </div>
@@ -547,7 +547,7 @@ export function UserProfileView({
                   <span className="text-ink-muted block text-[11px]">
                     <bdi dir="ltr">{t.shared.email}</bdi>
                   </span>
-                  <div className="font-mono text-ink dark:text-ink">
+                  <div className="font-mono text-ink">
                     <bdi dir="ltr">{manager.email}</bdi>
                   </div>
                 </div>
@@ -555,7 +555,7 @@ export function UserProfileView({
                   <span className="text-ink-muted block text-[11px]">
                     {t.userProfile.role}
                   </span>
-                  <span className="px-2 py-0.5 rounded bg-surface-sunken dark:bg-white/10 text-ink dark:text-ink font-semibold capitalize mt-0.5 inline-block">
+                  <span className="px-2 py-0.5 rounded bg-surface-sunken dark:bg-white/10 text-ink font-semibold capitalize mt-0.5 inline-block">
                     {(t.roles as Record<string, string>)[manager.role] ??
                       manager.role}
                   </span>
@@ -570,7 +570,7 @@ export function UserProfileView({
 
           {/* Linked Employee Record Card */}
           {employeeRecord && (
-            <div className="p-6 rounded-2xl bg-surface-raised dark:bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm space-y-4">
+            <div className="p-6 rounded-2xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-accent flex items-center gap-2">
                 <FileText className="w-4 h-4" />
                 <span>{t.userProfile.linkedHrmsEmployeeRecord}</span>
@@ -581,7 +581,7 @@ export function UserProfileView({
                   <span className="text-ink-muted block text-[11px]">
                     {t.userProfile.jobTitle}
                   </span>
-                  <div className="font-semibold text-ink dark:text-ink mt-0.5">
+                  <div className="font-semibold text-ink mt-0.5">
                     {isArabic
                       ? employeeRecord.jobTitleAr || employeeRecord.jobTitleEn
                       : employeeRecord.jobTitleEn}
@@ -592,7 +592,7 @@ export function UserProfileView({
                   <span className="text-ink-muted block text-[11px]">
                     {t.shared.department}
                   </span>
-                  <div className="font-semibold text-ink dark:text-ink mt-0.5">
+                  <div className="font-semibold text-ink mt-0.5">
                     {(isArabic
                       ? employeeRecord.department?.nameAr
                       : employeeRecord.department?.nameEn) ||
@@ -606,7 +606,7 @@ export function UserProfileView({
                     <span className="text-ink-muted block text-[11px]">
                       {t.userProfile.bahrainCprId}
                     </span>
-                    <div className="font-mono text-ink dark:text-ink">
+                    <div className="font-mono text-ink">
                       •••• •••• {employeeRecord.cprNumber.slice(-3)}
                     </div>
                   </div>
@@ -616,7 +616,7 @@ export function UserProfileView({
                   <span className="text-ink-muted block text-[11px]">
                     {t.shared.hireDate}
                   </span>
-                  <div className="font-mono text-ink dark:text-ink">
+                  <div className="font-mono text-ink">
                     {formatDate(employeeRecord.hireDate, locale, "long")}
                   </div>
                 </div>

@@ -1,6 +1,9 @@
 import { getArticlesPage, getWebsitePublicationStatus, requireFeatureEnabled } from "@platform/database";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { ArticlesListView } from "../../../../components/cms/ArticlesListView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("cms/articles");
 
 export const dynamic = "force-dynamic";
 

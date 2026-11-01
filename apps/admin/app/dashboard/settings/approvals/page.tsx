@@ -8,6 +8,9 @@ import {
 } from "@platform/database";
 import { ApprovalPoliciesView } from "../../../../components/settings/ApprovalPoliciesView";
 import { SignaturePoliciesPanel } from "../../../../components/settings/SignaturePoliciesPanel";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("settings/approvals");
 
 export const dynamic = "force-dynamic";
 

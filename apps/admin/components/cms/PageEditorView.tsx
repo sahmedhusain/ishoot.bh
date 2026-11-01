@@ -4,9 +4,8 @@ import { INDUSTRY_PAGES, industryPageBlocks } from "@platform/database/cms/indus
 import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowDown, ArrowLeft, ArrowUp, Copy, Eye, EyeOff, Loader2, Plus, Save, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Copy, Eye, EyeOff, Loader2, Plus, Save, Trash2 } from "lucide-react";
 import { Select, Button, Card, Input, Textarea } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { BLOCK_TYPES, CODE_BLOCKS, EMBED_PRESETS, newBlockData, type Block, type BlockType, type LocalText } from "@platform/database/cms/blocks";
@@ -20,6 +19,7 @@ import { errorMessage } from "../../lib/error-text";
 import { AssetUrlInput } from "../shared/AssetUrlInput";
 import { Field, LanguageFields } from "../setup/LanguageFields";
 import { RichTextEditor } from "./RichTextEditor";
+import { PageHeader } from "../layout/PageHeader";
 
 const blockId = () => Math.random().toString(36).slice(2, 10);
 
@@ -314,12 +314,10 @@ export function PageEditorView({ page, languages, canCode, catalogueSlug, activi
 
   return (
     <div inert={saving} aria-busy={saving} className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link href={ROUTES.cms.pages} className="inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink">
-          <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
-          {copy.title}
-        </Link>
-        <div className="flex gap-2">
+      <PageHeader
+        back={{ href: ROUTES.cms.pages, label: copy.title }}
+        actions={
+          <>
           <Button type="button" variant="outline" size="sm" className="rounded-full gap-1.5" onClick={preview}>
             <Eye className="w-3.5 h-3.5" />
             {copy.preview}
@@ -328,11 +326,12 @@ export function PageEditorView({ page, languages, canCode, catalogueSlug, activi
             {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
             {copy.save}
           </Button>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {message && (
-        <p role="status" className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>
+        <p role="status" className={`text-sm rounded-2xl px-4 py-3 ${message.tone === "ok" ? "bg-primary-container text-on-primary-container" : "bg-m3-error-container text-m3-on-error-container"}`}>
           {message.text}
         </p>
       )}

@@ -3,6 +3,9 @@ import { readableApprovalTypes } from "../../../lib/approval-access";
 import { listApprovalRequests, canDecideApproval, approvalTargetUrl, APPROVAL_TARGET_TYPES } from "@platform/database";
 import { ApprovalsCenterView } from "../../../components/approvals/ApprovalsCenterView";
 import type { ApprovalListItem, ApprovalScope } from "../../../types/approvals";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("approvals");
 
 export const dynamic = "force-dynamic";
 

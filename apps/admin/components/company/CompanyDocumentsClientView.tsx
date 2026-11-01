@@ -11,7 +11,6 @@ import {
   ConfirmDialog,
 } from "@platform/ui";
 import {
-  Building2,
   Plus,
   Download,
   FileText,
@@ -20,6 +19,7 @@ import {
 import type { CompanyDocument } from "@platform/database";
 import { deleteCompanyDocumentAction } from "../../app/actions/documents";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { PageHeader } from "../layout/PageHeader";
 
 interface CompanyDocumentsClientViewProps {
   initialDocuments: CompanyDocument[];
@@ -82,18 +82,8 @@ export function CompanyDocumentsClientView({
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-ink font-display flex items-center gap-2">
-            <Building2 className="w-7 h-7 text-accent" />
-            <span>{t.companyDocumentsView.title}</span>
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">
-            {t.companyDocumentsView.subtitle}
-          </p>
-        </div>
-
-        <Link href={ROUTES.company.newDocument}>
+      <PageHeader
+        actions={<Link href={ROUTES.company.newDocument}>
           <Button
             variant="primary"
             size="sm"
@@ -102,8 +92,8 @@ export function CompanyDocumentsClientView({
             <Plus className="w-4 h-4" />
             <span>{t.companyDocumentsView.uploadLegalAsset}</span>
           </Button>
-        </Link>
-      </div>
+        </Link>}
+      />
 
       <div className="flex items-center gap-2 overflow-x-auto pb-2">
         {categories.map((cat) => (

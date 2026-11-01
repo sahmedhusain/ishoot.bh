@@ -10,6 +10,10 @@ import { requireAuth, hasPermission } from "../../../../lib/auth";
 import { letterEmployees } from "../../../../lib/communication-options";
 import { LetterWorkspace } from "../../../../components/communications/LetterWorkspace";
 import { ForbiddenView } from "../../../../components/shared/ForbiddenView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("letters/[id]");
+
 export const dynamic = "force-dynamic";
 export default async function Page({
   params,

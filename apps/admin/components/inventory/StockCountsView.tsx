@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 
 import * as React from "react";
 import Link from "next/link";
@@ -12,6 +13,7 @@ import { createStockCountAction } from "../../app/actions/inventory";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { Field } from "../setup/LanguageFields";
+import { PageHeader } from "../layout/PageHeader";
 
 interface CountRow {
   id: string;
@@ -57,18 +59,14 @@ export function StockCountsView({ counts, warehouses, categories, canCreate }: {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
-          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
-        </div>
-        {canCreate && !draft && (
+      <PageHeader
+        actions={canCreate && !draft && (
           <Button type="button" variant="primary" size="sm" className="rounded-full gap-1.5" onClick={() => setDraft({ warehouseId: (active.find((w) => w.is_default) ?? active[0])?.id ?? "", scope: "full", categoryId: categories[0]?.id ?? "", note: "" })}>
             <Plus className="w-3.5 h-3.5" />
             {copy.new}
           </Button>
         )}
-      </div>
+      />
       {draft && (
         <Card className="p-5 space-y-4" data-testid="count-new">
           <div className="grid sm:grid-cols-2 gap-4">
@@ -118,7 +116,7 @@ export function StockCountsView({ counts, warehouses, categories, canCreate }: {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <DataTable className="w-full text-sm">
               <thead className="bg-ink/[0.03] text-xs text-ink-muted">
                 <tr>
                   <th scope="col" className="px-4 py-3 text-start font-semibold">{copy.columns.number}</th>
@@ -141,7 +139,7 @@ export function StockCountsView({ counts, warehouses, categories, canCreate }: {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
           </div>
         )}
       </Card>

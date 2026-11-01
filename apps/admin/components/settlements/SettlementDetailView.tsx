@@ -3,12 +3,10 @@ import { useConfirmation } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   AlertTriangle,
-  ArrowLeft,
   Check,
   CircleX,
   PenLine,
@@ -48,6 +46,8 @@ import { BilingualPdfActions } from "../shared/BilingualPdfActions";
 import { ContentImage } from "../shared/ContentImage";
 import { SignatureCanvas } from "../shared/SignatureCanvas";
 import { SETTLEMENT_STATUS_STYLE } from "./SettlementsListView";
+import { DocumentCard } from "../documents/DocumentCard";
+import { PageHeader } from "../layout/PageHeader";
 
 type ManualLine = {
   kind: "addition" | "deduction";
@@ -142,7 +142,7 @@ export function SettlementDetailView({
     return (
       <div className="overflow-hidden rounded-2xl border border-outline-variant">
         <div
-          className={`flex items-center justify-between px-4 py-2 text-xs font-bold text-white ${kind === "addition" ? "bg-primary" : "bg-rose-700"}`}
+          className={`flex items-center justify-between px-4 py-2 text-xs font-bold ${kind === "addition" ? "bg-m3-primary text-m3-on-primary" : "bg-m3-error text-m3-on-error"}`}
         >
           <span>
             {kind === "addition" ? f.owedToEmployee : f.owedByEmployee}
@@ -192,49 +192,35 @@ export function SettlementDetailView({
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-16">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div className="flex items-center gap-3" data-page-header>
-          <Link
-            href={ROUTES.hr.settlements()}
-            aria-label={t.actions.back}
-            className="rounded-full border border-outline-variant p-2 text-ink-muted hover:text-ink"
-          >
-            <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold text-ink sm:text-2xl">
-              {formatMessage(f.titleFor, { name: isAr ? s.employee.nameAr : s.employee.nameEn })}
-            </h1>
-            <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-ink-muted">
-              <bdi dir="ltr" className="font-mono">
-                {s.reference}
-              </bdi>
-              <span
-                className={`rounded-full px-2 py-0.5 font-semibold ${SETTLEMENT_STATUS_STYLE[s.status]}`}
-              >
-                {f.statuses[s.status as keyof typeof f.statuses]}
-              </span>
-              <span>
-                {f.reasons[s.reason as keyof typeof f.reasons]} ·{" "}
-                {formatMessage(f.lastDay, { date: formatDate(s.lastWorkingDay, locale) })}
-              </span>
-            </p>
-          </div>
-        </div>
-        <BilingualPdfActions
+      <PageHeader
+        title={formatMessage(f.titleFor, { name: isAr ? s.employee.nameAr : s.employee.nameEn })}
+        description={<><bdi dir="ltr" className="font-mono">
+              {s.reference}
+            </bdi>
+            <span
+              className={`rounded-full px-2 py-0.5 font-semibold ${SETTLEMENT_STATUS_STYLE[s.status]}`}
+            >
+              {f.statuses[s.status as keyof typeof f.statuses]}
+            </span>
+            <span>
+              {f.reasons[s.reason as keyof typeof f.reasons]} ·{" "}
+              {formatMessage(f.lastDay, { date: formatDate(s.lastWorkingDay, locale) })}
+            </span></>}
+        back={{ href: ROUTES.hr.settlements() }}
+        actions={<BilingualPdfActions
           pdfUrl={(language, download) =>
             `/api/hr/settlements/${s.id}/pdf?locale=${language}${download ? "&download=true" : ""}`
           }
-        />
-      </div>
+        />}
+      />
 
       {warnings.length ? (
-        <section className="space-y-1 rounded-3xl border border-amber-400/40 bg-amber-500/5 p-4" data-page-section>
-          <h2 className="flex items-center gap-2 text-sm font-bold text-amber-800 dark:text-amber-300">
+        <section className="space-y-1 rounded-3xl border border-m3-outline-variant bg-m3-tertiary-container p-4" data-page-section>
+          <h2 className="flex items-center gap-2 text-sm font-bold text-m3-on-tertiary-container">
             <AlertTriangle className="h-4 w-4" aria-hidden />
             {f.checkBeforePaying}
           </h2>
-          <ul className="list-disc space-y-0.5 ps-6 text-xs text-amber-900 dark:text-amber-200">
+          <ul className="list-disc space-y-0.5 ps-6 text-xs text-m3-on-tertiary-container">
             {warnings.map((w) => (
               <li key={w}>{warningText(w)}</li>
             ))}
@@ -247,7 +233,7 @@ export function SettlementDetailView({
           {section("addition")}
           {section("deduction")}
           <div
-            className={`flex items-center justify-between rounded-2xl px-5 py-4 text-white ${s.netAmount < 0 ? "bg-rose-700" : "bg-primary"}`}
+            className={`flex items-center justify-between rounded-2xl px-5 py-4 ${s.netAmount < 0 ? "bg-m3-error text-m3-on-error" : "bg-m3-primary text-m3-on-primary"}`}
           >
             <span className="text-sm font-bold">
               {s.netAmount < 0 ? f.netOwedByEmployee : f.netPayable}
@@ -264,8 +250,7 @@ export function SettlementDetailView({
         </div>
 
         <aside className="space-y-4">
-          <section className="space-y-2 rounded-3xl border border-outline-variant bg-surface-raised p-5 text-xs dark:bg-surface-raised" data-page-section>
-            <h2 className="text-sm font-bold text-ink">{f.basedOn}</h2>
+          <DocumentCard title={f.basedOn} variant="side" className="text-xs">
             <dl className="space-y-1.5">
               {[
                 [
@@ -310,13 +295,10 @@ export function SettlementDetailView({
             {s.notes ? (
               <p className="rounded-xl bg-ink/[0.03] p-2 text-ink">{s.notes}</p>
             ) : null}
-          </section>
+          </DocumentCard>
 
           {s.approval?.decisions.length ? (
-            <section className="space-y-2 rounded-3xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised" data-page-section>
-              <h2 className="text-sm font-bold text-ink">
-                {t.approvals.item.progress}
-              </h2>
+            <DocumentCard title={t.approvals.item.progress} variant="side">
               {s.approval.decisions.map((d, i) => (
                 <div
                   key={i}
@@ -324,12 +306,12 @@ export function SettlementDetailView({
                 >
                   {d.decision === "approved" ? (
                     <Check
-                      className="mt-0.5 h-4 w-4 text-emerald-600"
+                      className="mt-0.5 h-4 w-4 text-m3-primary"
                       aria-hidden
                     />
                   ) : (
                     <CircleX
-                      className="mt-0.5 h-4 w-4 text-rose-500"
+                      className="mt-0.5 h-4 w-4 text-m3-error"
                       aria-hidden
                     />
                   )}
@@ -352,13 +334,13 @@ export function SettlementDetailView({
                   </div>
                 </div>
               ))}
-            </section>
+            </DocumentCard>
           ) : null}
         </aside>
       </div>
 
       {editable && (
-        <section className="space-y-4 rounded-3xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised" data-page-section>
+        <section className="space-y-4 rounded-3xl border border-outline-variant bg-surface-raised p-5" data-page-section>
           <h2 className="text-sm font-bold text-ink">{f.adjust}</h2>
           <div className="flex flex-wrap items-end gap-3">
             <label className="text-xs">
@@ -604,7 +586,7 @@ export function SettlementDetailView({
       ) : null}
 
       {["approved", "paid"].includes(s.status) && (
-        <section className="space-y-3 rounded-3xl border border-outline-variant bg-surface-raised p-5 dark:bg-surface-raised" data-page-section>
+        <section className="space-y-3 rounded-3xl border border-outline-variant bg-surface-raised p-5" data-page-section>
           <h2 className="flex items-center gap-2 text-sm font-bold text-ink">
             <PenLine className="h-4 w-4 text-accent" aria-hidden />
             {f.acknowledgement}
@@ -687,7 +669,7 @@ export function SettlementDetailView({
 
       {s.status === "approved" && canPay && (
         <form
-          className="space-y-3 rounded-3xl border border-emerald-500/30 bg-emerald-500/5 p-5"
+          className="space-y-3 rounded-3xl border border-outline-variant bg-m3-primary-container p-5"
           onSubmit={(e) => {
             e.preventDefault();
             confirmAction({
@@ -704,7 +686,7 @@ export function SettlementDetailView({
           }}
         >
           <h2 className="flex items-center gap-2 text-sm font-bold text-ink">
-            <Wallet className="h-4 w-4 text-emerald-600" aria-hidden />
+            <Wallet className="h-4 w-4 text-m3-primary" aria-hidden />
             {f.recordPayment}
           </h2>
           <p className="text-[11px] text-ink-muted">{f.payHint}</p>
@@ -756,7 +738,7 @@ export function SettlementDetailView({
         </form>
       )}
       {s.status === "paid" ? (
-        <p className="text-xs text-emerald-700 dark:text-emerald-300">
+        <p className="text-xs text-m3-primary">
           {formatMessage(f.paidOn, { date: formatDate(s.paidAt!, locale), name: s.paidBy ?? "" })}
         </p>
       ) : null}

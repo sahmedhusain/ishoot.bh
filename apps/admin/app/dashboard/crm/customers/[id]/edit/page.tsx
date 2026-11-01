@@ -2,6 +2,9 @@ import { requirePagePermission } from "../../../../../../lib/auth";
 import { getClientProfile, getCompanySettings } from "@platform/database";
 import { notFound } from "next/navigation";
 import { ClientProfileForm } from "../../../../../../components/crm/ClientProfileForm";
+import { pageMetadata } from "../../../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("crm/customers/[id]/edit");
 
 export const dynamic = "force-dynamic";
 

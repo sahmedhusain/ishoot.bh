@@ -1,6 +1,9 @@
 import { getWebsitePublicationStatus, listCmsPages, requireFeatureEnabled } from "@platform/database";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { PagesListView } from "../../../../components/cms/PagesListView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("cms/pages");
 
 export const dynamic = "force-dynamic";
 

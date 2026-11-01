@@ -83,8 +83,8 @@ function Group({ title, hint, children }: { title: string; hint?: string; childr
   return (
     <fieldset className="space-y-4">
       <div className="space-y-0.5">
-        <legend className="text-sm font-bold text-ink dark:text-ink">{title}</legend>
-        {hint ? <p className="text-xs text-ink-muted dark:text-ink-muted">{hint}</p> : null}
+        <legend className="text-sm font-bold text-ink">{title}</legend>
+        {hint ? <p className="text-xs text-ink-muted">{hint}</p> : null}
       </div>
       {children}
     </fieldset>
@@ -106,8 +106,8 @@ function ChoiceCard({ selected, onSelect, icon: Icon, title, description, testId
         <Icon className="h-4 w-4" />
       </span>
       <span className="min-w-0">
-        <span className="block text-sm font-semibold text-ink dark:text-ink">{title}</span>
-        <span className="block text-xs leading-relaxed text-ink-muted dark:text-ink-muted">{description}</span>
+        <span className="block text-sm font-semibold text-ink">{title}</span>
+        <span className="block text-xs leading-relaxed text-ink-muted">{description}</span>
       </span>
     </button>
   );
@@ -296,13 +296,13 @@ export function SetupWizard(props: SetupWizardProps) {
       <div className="mx-auto max-w-6xl space-y-8">
         <header className="flex flex-wrap items-start justify-between gap-4" data-page-header>
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold text-ink dark:text-ink font-display">{copy.title}</h1>
-            <p className="max-w-2xl text-sm text-ink-muted dark:text-ink-muted">{copy.subtitle}</p>
+            <h1 className="text-2xl font-bold text-ink font-display">{copy.title}</h1>
+            <p className="max-w-2xl text-sm text-ink-muted">{copy.subtitle}</p>
           </div>
           <button
             type="button"
             onClick={() => setLocale(locale === "ar" ? "en" : "ar")}
-            className="inline-flex items-center gap-2 whitespace-nowrap rounded-xl border border-outline-variant px-3 py-1.5 text-xs font-medium text-ink hover:border-accent dark:text-ink"
+            className="inline-flex items-center gap-2 whitespace-nowrap rounded-xl border border-outline-variant px-3 py-1.5 text-xs font-medium text-ink hover:border-accent"
           >
             <Globe className="h-3.5 w-3.5 text-accent" />
             {t.loginView.switchLanguage}
@@ -328,7 +328,7 @@ export function SetupWizard(props: SetupWizardProps) {
                     <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${done ? "bg-accent text-accent-foreground" : current ? "bg-primary text-primary-foreground" : "bg-ink/10 text-ink-muted"}`}>
                       {done ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
                     </span>
-                    <span className="hidden text-xs font-semibold text-ink dark:text-ink lg:block">{copy.steps[s]}</span>
+                    <span className="hidden text-xs font-semibold text-ink lg:block">{copy.steps[s]}</span>
                   </button>
                 </li>
               );
@@ -343,8 +343,8 @@ export function SetupWizard(props: SetupWizardProps) {
         <Card className="space-y-6 rounded-2xl border border-outline-variant bg-surface-raised p-5 shadow-xs dark:bg-surface sm:p-8" data-page-section>
           <div className="space-y-1 border-b border-outline-variant pb-4">
             <p className="text-xs font-semibold uppercase tracking-wider text-accent">{formatMessage(copy.stepOf, { current: index + 1, total: STEPS.length })}</p>
-            <h2 ref={headingRef} tabIndex={-1} className="text-lg font-bold text-ink outline-none dark:text-ink">{copy.steps[step]}</h2>
-            <p className="text-sm text-ink-muted dark:text-ink-muted">{copy.stepDescriptions[step]}</p>
+            <h2 ref={headingRef} tabIndex={-1} className="text-lg font-bold text-ink outline-none">{copy.steps[step]}</h2>
+            <p className="text-sm text-ink-muted">{copy.stepDescriptions[step]}</p>
           </div>
 
           <div className={showPreview ? `grid items-start gap-6 ${previewBeside ? "xl:grid-cols-[minmax(0,1fr)_minmax(320px,440px)]" : ""}` : undefined}>
@@ -462,8 +462,8 @@ export function SetupWizard(props: SetupWizardProps) {
                       return (
                         <li key={slot.key} className="flex flex-col gap-3 rounded-xl border border-outline-variant p-4" data-testid={`asset-${slot.key}`}>
                           <div>
-                            <p className="text-sm font-semibold text-ink dark:text-ink">{copy.assets[slot.label]}</p>
-                            <p className="text-xs text-ink-muted dark:text-ink-muted">{copy.assets[`${slot.label}Hint`]}</p>
+                            <p className="text-sm font-semibold text-ink">{copy.assets[slot.label]}</p>
+                            <p className="text-xs text-ink-muted">{copy.assets[`${slot.label}Hint`]}</p>
                           </div>
                           <div className={`flex h-24 items-center justify-center rounded-lg ${slot.dark ? "bg-surface-raised" : "bg-surface-raised"}`}>
                             {url ? <ContentImage src={url} alt={copy.assets[slot.label]} width={200} height={80} className="max-h-16 w-auto object-contain" /> : <ImageIcon className="h-6 w-6 text-ink-muted" />}
@@ -515,21 +515,21 @@ export function SetupWizard(props: SetupWizardProps) {
                           hasWhatsapp={!!company.whatsappPhone?.trim()}
                         />
                         <div className="flex flex-col gap-3 rounded-xl border border-outline-variant p-4 sm:flex-row sm:items-start">
-                          <label className="flex flex-1 items-start gap-3 text-sm text-ink dark:text-ink">
+                          <label className="flex flex-1 items-start gap-3 text-sm text-ink">
                             <input type="checkbox" className="mt-0.5 h-4 w-4 accent-accent" checked={sampleContent} onChange={(e) => setSampleContent(e.target.checked)} data-testid="sample-content" />
                             <span>
                               <span className="block font-semibold">{t.sampleContent.start}</span>
-                              <span className="block text-xs text-ink-muted dark:text-ink-muted">{t.sampleContent.startHint}</span>
+                              <span className="block text-xs text-ink-muted">{t.sampleContent.startHint}</span>
                             </span>
                           </label>
                           {activity ? <ShowExampleButton activity={activity} /> : null}
                         </div>
                         <DomainSettingsCard compact canEdit initialWebsiteDomain={props.domains.websiteDomain} initialAdminDomain={props.domains.adminDomain} />
-                        <label className="flex items-start gap-3 rounded-xl border border-accent/40 bg-accent/[0.06] p-4 text-sm text-ink dark:text-ink">
+                        <label className="flex items-start gap-3 rounded-xl border border-accent/40 bg-accent/[0.06] p-4 text-sm text-ink">
                           <input type="checkbox" className="mt-0.5 h-4 w-4 accent-accent" checked={publishWebsite} onChange={(e) => setPublishWebsite(e.target.checked)} />
                           <span>
                             <span className="block font-semibold">{copy.website.publishOnFinish}</span>
-                            <span className="block text-xs text-ink-muted dark:text-ink-muted">{copy.website.publishHint}</span>
+                            <span className="block text-xs text-ink-muted">{copy.website.publishHint}</span>
                           </span>
                         </label>
                       </>
@@ -551,8 +551,8 @@ export function SetupWizard(props: SetupWizardProps) {
                         {(id) => <Input id={id} type="number" min={0} max={365} value={config.paymentTermsDays} onChange={(e) => setConfig({ ...config, paymentTermsDays: Number(e.target.value) })} className="rounded-lg" />}
                       </Field>
                       <div className="space-y-1.5">
-                        <span className="text-xs font-medium text-ink dark:text-ink">{copy.configuration.vatEnabled}</span>
-                        <label className="flex h-11 items-center gap-3 rounded-lg border border-outline-variant px-3 text-sm text-ink dark:text-ink">
+                        <span className="text-xs font-medium text-ink">{copy.configuration.vatEnabled}</span>
+                        <label className="flex h-11 items-center gap-3 rounded-lg border border-outline-variant px-3 text-sm text-ink">
                           <input type="checkbox" className="h-4 w-4 accent-accent" checked={config.vatEnabled} onChange={(e) => setConfig({ ...config, vatEnabled: e.target.checked })} />
                           {copy.configuration.vatEnabled}
                         </label>
@@ -580,17 +580,17 @@ export function SetupWizard(props: SetupWizardProps) {
                       <Field label={copy.configuration.receiptNextNumber}>
                         {(id) => <Input id={id} type="number" min={1} value={config.receiptNextNumber} onChange={(e) => setConfig({ ...config, receiptNextNumber: Number(e.target.value) })} className="rounded-lg" />}
                       </Field>
-                      <p className="text-xs text-ink-muted dark:text-ink-muted sm:col-span-2 lg:col-span-4" dir="ltr">
+                      <p className="text-xs text-ink-muted sm:col-span-2 lg:col-span-4" dir="ltr">
                         {formatMessage(copy.configuration.numberPreview, { example: `${sampleNumber(config.invoicePrefix, config.invoiceNextNumber)} · ${sampleNumber(config.receiptPrefix || "RCT", config.receiptNextNumber)}` })}
                       </p>
                     </div>
 
                     <fieldset className="space-y-3">
-                      <legend className="text-sm font-bold text-ink dark:text-ink">{copy.configuration.modules}</legend>
-                      <p className="text-xs text-ink-muted dark:text-ink-muted">{activity ? formatMessage(copy.configuration.modulesRecommended, { activity: activityName }) : copy.configuration.modulesHint}</p>
+                      <legend className="text-sm font-bold text-ink">{copy.configuration.modules}</legend>
+                      <p className="text-xs text-ink-muted">{activity ? formatMessage(copy.configuration.modulesRecommended, { activity: activityName }) : copy.configuration.modulesHint}</p>
                       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                         {props.modules.map((m) => (
-                          <label key={m.moduleKey} className="flex items-center gap-3 rounded-lg border border-outline-variant px-3 py-2.5 text-sm text-ink dark:text-ink">
+                          <label key={m.moduleKey} className="flex items-center gap-3 rounded-lg border border-outline-variant px-3 py-2.5 text-sm text-ink">
                             <input
                               type="checkbox"
                               className="h-4 w-4 accent-accent"
@@ -610,13 +610,13 @@ export function SetupWizard(props: SetupWizardProps) {
                     </fieldset>
 
                     <fieldset className="space-y-3" data-testid="setup-departments">
-                      <legend className="text-sm font-bold text-ink dark:text-ink">{copy.configuration.departments}</legend>
-                      <p className="text-xs text-ink-muted dark:text-ink-muted">{activity ? formatMessage(copy.configuration.departmentsRecommended, { activity: activityName }) : copy.configuration.departmentsHint}</p>
+                      <legend className="text-sm font-bold text-ink">{copy.configuration.departments}</legend>
+                      <p className="text-xs text-ink-muted">{activity ? formatMessage(copy.configuration.departmentsRecommended, { activity: activityName }) : copy.configuration.departmentsHint}</p>
                       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                         {DEPARTMENT_CATALOGUE.map((key) => {
                           const kept = props.existingDepartments.includes(key);
                           return (
-                            <label key={key} className="flex items-center gap-3 rounded-lg border border-outline-variant px-3 py-2.5 text-sm text-ink dark:text-ink">
+                            <label key={key} className="flex items-center gap-3 rounded-lg border border-outline-variant px-3 py-2.5 text-sm text-ink">
                               <input
                                 type="checkbox"
                                 className="h-4 w-4 accent-accent"
@@ -633,11 +633,11 @@ export function SetupWizard(props: SetupWizardProps) {
                         })}
                       </div>
                       <div className="space-y-2 rounded-xl bg-ink/[0.03] p-4">
-                        <p className="text-xs font-semibold text-ink dark:text-ink">{copy.configuration.rolesReady}</p>
+                        <p className="text-xs font-semibold text-ink">{copy.configuration.rolesReady}</p>
                         <ul className="flex flex-wrap gap-1.5" aria-label={copy.configuration.rolesReady}>
-                          {readyRoles.map((role) => <li key={role} className="rounded-full border border-outline-variant bg-surface-raised px-2.5 py-1 text-xs text-ink dark:bg-surface dark:text-ink">{roleNames[role] ?? role}</li>)}
+                          {readyRoles.map((role) => <li key={role} className="rounded-full border border-outline-variant bg-surface-raised px-2.5 py-1 text-xs text-ink dark:bg-surface">{roleNames[role] ?? role}</li>)}
                         </ul>
-                        <p className="text-xs text-ink-muted dark:text-ink-muted">{copy.configuration.rolesHint}</p>
+                        <p className="text-xs text-ink-muted">{copy.configuration.rolesHint}</p>
                       </div>
                     </fieldset>
                   </div>
@@ -663,10 +663,10 @@ export function SetupWizard(props: SetupWizardProps) {
                     ] as [Exclude<Step, "review">, string[]][]).map(([section, lines]) => (
                       <div key={section} className="space-y-2 rounded-xl border border-outline-variant p-4">
                         <div className="flex items-center justify-between">
-                          <dt className="text-sm font-semibold text-ink dark:text-ink">{copy.review[section]}</dt>
+                          <dt className="text-sm font-semibold text-ink">{copy.review[section]}</dt>
                           <button type="button" onClick={() => go(section)} className="text-xs font-semibold text-accent hover:underline">{copy.review.edit}</button>
                         </div>
-                        {lines.map((line) => <dd key={line} className="text-sm text-ink-muted dark:text-ink-muted">{line}</dd>)}
+                        {lines.map((line) => <dd key={line} className="text-sm text-ink-muted">{line}</dd>)}
                         {section === "brand" ? (
                           <dd className="flex gap-2 pt-1" aria-hidden>
                             <span className="h-6 w-6 rounded-full" style={{ background: theme.primary }} />
@@ -675,7 +675,7 @@ export function SetupWizard(props: SetupWizardProps) {
                         ) : null}
                       </div>
                     ))}
-                    <p className="text-sm text-ink dark:text-ink sm:col-span-2">{copy.review.ready}</p>
+                    <p className="text-sm text-ink sm:col-span-2">{copy.review.ready}</p>
                   </dl>
                 ) : null}
               </motion.div>
@@ -714,8 +714,8 @@ export function SetupWizard(props: SetupWizardProps) {
               <motion.span className="flex h-16 w-16 items-center justify-center rounded-full bg-accent text-accent-foreground" initial={reduceMotion ? false : { scale: 0.4, rotate: -20 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 220, damping: 12 }}>
                 <PartyPopper className="h-7 w-7" />
               </motion.span>
-              <p className="text-lg font-bold text-ink dark:text-ink">{copy.finished}</p>
-              <p className="text-sm text-ink-muted dark:text-ink-muted">{copy.finishedHint}</p>
+              <p className="text-lg font-bold text-ink">{copy.finished}</p>
+              <p className="text-sm text-ink-muted">{copy.finishedHint}</p>
             </div>
           </motion.div>
         ) : null}

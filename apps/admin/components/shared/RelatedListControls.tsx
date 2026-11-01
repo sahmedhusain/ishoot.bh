@@ -20,7 +20,7 @@ export function RelatedListControls({ pagination }: { pagination: Record<string,
   }
   const paged = Object.entries(pagination).filter(([, v]) => v.total > PAGE_SIZE || v.page > 1);
   return (
-    <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-2.5 shadow-xs">
+    <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between rounded-3xl border border-outline-variant bg-surface-raised p-2.5 shadow-xs">
       <form action={path} method="get" role="search" className="flex w-full flex-wrap items-center gap-2 lg:w-auto lg:flex-1">
         <div className="relative flex-1 basis-48 min-w-0 lg:max-w-md">
           <Search className="pointer-events-none absolute top-1/2 -translate-y-1/2 start-3.5 w-4 h-4 text-ink-muted" aria-hidden />

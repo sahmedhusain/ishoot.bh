@@ -12,6 +12,9 @@ import { RelatedExpensesPanel } from "../../../../../components/expenses/Related
 import { notFound } from "next/navigation";
 import { DealDossierView } from "../../../../../components/crm/DealDossierView";
 import { requireRecordInScope } from "../../../../../lib/data-scope";
+import { pageMetadata } from "../../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("crm/deals/[id]");
 
 export const dynamic = "force-dynamic";
 

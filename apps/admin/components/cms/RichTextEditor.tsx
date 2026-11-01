@@ -225,7 +225,7 @@ export function RichTextEditor({ value, onChange, label, dir, imageResource }: {
   });
   return (
     <div className="space-y-1.5">
-      <span id={id} className="text-xs font-medium text-ink dark:text-ink">{label}</span>
+      <span id={id} className="text-xs font-medium text-ink">{label}</span>
       <div className="rounded-xl border border-outline-variant bg-surface overflow-hidden focus-within:ring-2 focus-within:ring-accent/40 transition-shadow">
         {editor ? <Toolbar editor={editor} imageResource={imageResource} /> : <div className="h-11 border-b border-outline-variant" />}
         <EditorContent editor={editor} />

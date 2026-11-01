@@ -1,6 +1,9 @@
 import { requirePagePermission, hasPermission } from "../../../lib/auth";
 import { getUsersPage, getDepartmentTree, db, ALL_RESOURCES, ALL_ACTIONS, ensureRoleTemplates, resolveGrant } from "@platform/database";
 import { UsersManagementView } from "../../../components/users/UsersManagementView";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("users");
 
 export const dynamic = "force-dynamic";
 

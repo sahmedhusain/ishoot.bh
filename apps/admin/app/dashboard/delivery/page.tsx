@@ -3,6 +3,9 @@ import { requirePagePermission } from "../../../lib/auth";
 import { deliveryScope } from "../../../lib/delivery-scope";
 import { getCachedCompanySettings } from "../../../lib/cached-queries";
 import { ShipmentsListView } from "../../../components/delivery/ShipmentsListView";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("delivery");
 
 export const dynamic = "force-dynamic";
 

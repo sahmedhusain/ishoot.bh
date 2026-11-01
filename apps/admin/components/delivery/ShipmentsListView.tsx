@@ -11,6 +11,7 @@ import type { listShipments, shipmentCounts } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { LatePill, ShipmentStatusPill } from "./ShipmentPills";
+import { PageHeader } from "../layout/PageHeader";
 
 type Result = Awaited<ReturnType<typeof listShipments>>;
 interface Filters {
@@ -44,10 +45,7 @@ export function ShipmentsListView({ rows, total, page, pageSize, counts, zones, 
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
-      <div data-page-header>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
-        <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 max-w-2xl leading-relaxed">{copy.subtitle}</p>
-      </div>
+      <PageHeader />
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3" data-testid="delivery-board">
         {board.map((b) => (
           <Link key={b.key} href={b.key === "late" ? href({ late: true, status: "" }) : href({ status: b.key, late: false })} className={`rounded-2xl border px-4 py-3 hover:border-accent ${b.key === "late" && b.count ? "border-rose-500/40 bg-rose-500/5" : "border-outline-variant bg-surface-raised dark:bg-surface"}`}>

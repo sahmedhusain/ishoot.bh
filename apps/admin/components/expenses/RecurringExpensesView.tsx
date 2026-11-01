@@ -1,12 +1,12 @@
 "use client";
+import { DataTable } from "@platform/ui";
 import { useCompanyCurrency } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { AlarmClock, ArrowLeft, CalendarClock, CheckCircle2, Pause, Pencil, Play, Plus, Repeat, SkipForward, Trash2, X, Zap } from "lucide-react";
+import { AlarmClock, CalendarClock, CheckCircle2, Pause, Pencil, Play, Plus, SkipForward, Trash2, X, Zap } from "lucide-react";
 import { Button, Input, Select, formatCurrencyValue, formatDate } from "@platform/ui";
 import type { ExpenseCategory } from "@platform/database/types";
 import type { RecurringExpenseInput, RecurringExpenseRecord } from "@platform/database";
@@ -20,6 +20,7 @@ import {
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { useCompanyVat } from "../../hooks/useCompanyVat";
 import { errorMessage } from "../../lib/error-text";
+import { PageHeader } from "../layout/PageHeader";
 
 const FREQUENCIES = ["weekly", "monthly", "quarterly", "semiannual", "yearly"] as const;
 const PAYMENT_METHODS = ["bank_transfer", "card", "cash", "cheque", "online"] as const;
@@ -85,20 +86,12 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3" data-page-header>
-          <Link href={ROUTES.expenses.list()} aria-label={t.actions.back} className="rounded-full border border-outline-variant p-2 text-ink-muted hover:text-ink">
-            <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
-          </Link>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-ink flex items-center gap-2"><Repeat className="h-5 w-5 text-accent" />{c.title}</h1>
-            <p className="text-xs text-ink-muted mt-1">{c.subtitle}</p>
-          </div>
-        </div>
-        {canWrite && !editing ? (
+      <PageHeader
+        back={{ href: ROUTES.expenses.list() }}
+        actions={canWrite && !editing ? (
           <Button size="sm" className="gap-1.5 self-start" onClick={() => setEditing({ value: empty(companyCurrency) })}><Plus className="h-4 w-4" />{c.add}</Button>
         ) : null}
-      </div>
+      />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
@@ -107,7 +100,7 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
           [c.stats.yearly, money(monthly * 12)],
           [c.stats.dueSoon, String(dueSoon.length), overdue.length ? "text-rose-600 dark:text-rose-300" : ""],
         ].map(([label, value, tone]) => (
-          <div key={label} className="rounded-2xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-4">
+          <div key={label} className="rounded-2xl border border-outline-variant bg-surface-raised p-4">
             <div className="text-[11px] text-ink-muted">{label}</div>
             <div className={`mt-1 text-lg font-bold tabular-nums ${tone || "text-ink"}`}>{value}</div>
           </div>
@@ -184,9 +177,9 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
       ) : null}
 
       {items.length ? (
-        <div className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised overflow-hidden">
+        <div className="rounded-3xl border border-outline-variant bg-surface-raised overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <DataTable className="w-full text-sm">
               <thead className="bg-ink/[0.03] text-[11px] text-ink-muted">
                 <tr>
                   <th className="px-4 py-3 text-start font-semibold">{c.columns.bill}</th>
@@ -255,7 +248,7 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
           </div>
           <p className="border-t border-outline-variant px-4 py-3 text-[11px] text-ink-muted">{c.footnote}</p>
         </div>

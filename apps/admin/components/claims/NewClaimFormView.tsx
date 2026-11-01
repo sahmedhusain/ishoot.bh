@@ -8,12 +8,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Select, Card, Button, Input } from "@platform/ui";
 import {
-  ArrowLeft,
   Camera,
   CheckCircle2,
-  HandCoins,
   Loader2,
-  X,
+  X ,
 } from "lucide-react";
 import type { ExpenseCategory } from "@platform/database/types";
 import {
@@ -26,6 +24,7 @@ import { uploadFileDirectly } from "../../lib/upload-client";
 import { isHttpsLink } from "../shared/LinkOrUploadField";
 import { submitExpenseClaimAction } from "../../app/actions/claims";
 import { EntityLookup } from "../shared/EntityLookup";
+import { PageHeader } from "../layout/PageHeader";
 
 interface NewClaimFormViewProps {
   categories: ExpenseCategory[];
@@ -120,25 +119,9 @@ export function NewClaimFormView({
 
   return (
     <div inert={saving} aria-busy={saving} className="space-y-6 max-w-3xl mx-auto pb-16">
-      <div className="flex items-center gap-4" data-page-header>
-        <Link href={ROUTES.claims.list()}>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1.5 text-ink-muted"
-          >
-            <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
-            <span>{t.actions.back}</span>
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-ink font-display flex items-center gap-2">
-            <HandCoins className="w-6 h-6 text-accent" />
-            {c.newTitle}
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">{c.newSubtitle}</p>
-        </div>
-      </div>
+      <PageHeader
+        back={{ href: ROUTES.claims.list() }}
+      />
 
       <form onSubmit={submit} className="space-y-6">
         {error && (

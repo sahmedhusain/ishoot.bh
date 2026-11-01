@@ -1,6 +1,5 @@
 "use client";
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button, Card, Select } from "@platform/ui";
 import type { getTransferWorkspace } from "@platform/database/queries/transfer-workspace";
@@ -15,6 +14,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { SignatureCanvas } from "../shared/SignatureCanvas";
 import { Field } from "../setup/LanguageFields";
+import { PageHeader } from "../layout/PageHeader";
 
 type Data = Awaited<ReturnType<typeof getTransferWorkspace>>;
 type Preview = Awaited<ReturnType<typeof previewStockHandoverAction>>;
@@ -88,13 +88,9 @@ export function StockTransfersView({ data }: { data: Data }) {
     });
   return (
     <div className="mx-auto max-w-5xl space-y-5 pb-16">
-      <div data-page-header>
-        <Link href="/dashboard/inventory" className="text-sm underline">
-          {t.inventory.nav.stock}
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold">{c.title}</h1>
-        <p className="text-sm text-ink-muted">{c.description}</p>
-      </div>
+      <PageHeader
+        back={{ href: "/dashboard/inventory", label: t.inventory.nav.stock }}
+      />
       {error && (
         <p
           role="alert"

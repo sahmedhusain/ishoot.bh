@@ -54,6 +54,7 @@ import {
   WEATHER_CITY_PRESETS,
   WORLD_CLOCK_CITIES,
 } from "./LifestyleWidgets";
+import { PageHeader } from "../layout/PageHeader";
 
 export interface CatalogueEntry {
   id: string;
@@ -876,9 +877,9 @@ export function DashboardBoard({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          {showDepartmentLink ? (
+      <PageHeader
+        meta={
+          showDepartmentLink ? (
             <Link
               href={ROUTES.departmentDashboard()}
               className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant bg-surface-container-lowest px-3.5 py-1.5 text-xs font-semibold text-ink hover:border-accent/50 transition-colors"
@@ -886,10 +887,10 @@ export function DashboardBoard({
               <Building2 className="w-3.5 h-3.5 text-accent" aria-hidden="true" />
               {b.myDepartment}
             </Link>
-          ) : null}
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {customizing ? (
+          ) : null
+        }
+        actions={
+          customizing ? (
             <>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/12 text-primary px-3 py-1 text-xs font-bold">
                 <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
@@ -932,13 +933,14 @@ export function DashboardBoard({
               variant="secondary"
               size="sm"
               onClick={() => setCustomizing(true)}
+              data-testid="dashboard-customize"
             >
               <SlidersHorizontal className="w-3.5 h-3.5" aria-hidden="true" />
               {b.customize}
             </Button>
-          )}
-        </div>
-      </div>
+          )
+        }
+      />
 
       {/* Streamlined Material Design 3 Widget Drawer (Zero Redundancy) */}
       {customizing ? (

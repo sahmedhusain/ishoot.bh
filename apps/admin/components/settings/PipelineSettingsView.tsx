@@ -13,6 +13,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { dealStageLabel } from "../../lib/deal-stages";
 import { errorMessage } from "../../lib/error-text";
 import { LanguageFields } from "../setup/LanguageFields";
+import { PageHeader } from "../layout/PageHeader";
 
 interface Row {
   id: string;
@@ -109,12 +110,8 @@ export function PipelineSettingsView({ initialStages, languages, canEdit }: { in
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-page-header>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink">{copy.title}</h1>
-          <p className="text-xs text-ink-muted dark:text-ink-muted mt-1 leading-relaxed max-w-2xl">{copy.subtitle}</p>
-        </div>
-        {canEdit && (
+      <PageHeader
+        actions={canEdit && (
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={reset} disabled={saving} className="gap-1.5 rounded-full">
               <RotateCcw className="w-3.5 h-3.5" />
@@ -126,7 +123,7 @@ export function PipelineSettingsView({ initialStages, languages, canEdit }: { in
             </Button>
           </div>
         )}
-      </div>
+      />
 
       {message && (
         <p role="status" className={`text-sm rounded-xl px-4 py-3 ${message.tone === "ok" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-rose-500/10 text-rose-700 dark:text-rose-300"}`}>
@@ -180,11 +177,11 @@ export function PipelineSettingsView({ initialStages, languages, canEdit }: { in
                   </div>
                   {canEdit && (
                     <div className="flex items-end gap-3">
-                      <label className="block space-y-1.5 text-xs font-medium text-ink dark:text-ink">
+                      <label className="block space-y-1.5 text-xs font-medium text-ink">
                         <span className="block">{copy.probability}</span>
                         <Input type="number" min={0} max={100} value={row.probability} disabled={locked} onChange={(e) => update(row.id, { probability: Math.max(0, Math.min(100, Number(e.target.value) || 0)) })} className="w-20 rounded-lg" />
                       </label>
-                      <label className="block space-y-1.5 text-xs font-medium text-ink dark:text-ink">
+                      <label className="block space-y-1.5 text-xs font-medium text-ink">
                         <span className="block">{copy.color}</span>
                         <input type="color" value={row.color || "#64748b"} onChange={(e) => update(row.id, { color: e.target.value })} className="h-9 w-12 rounded-lg border border-outline-variant bg-transparent" />
                       </label>
@@ -208,7 +205,7 @@ export function PipelineSettingsView({ initialStages, languages, canEdit }: { in
 
       {canEdit && (
         <Card className="p-4 flex flex-wrap items-end gap-3">
-          <label className="block space-y-1.5 text-xs font-medium text-ink dark:text-ink flex-1 min-w-[220px]">
+          <label className="block space-y-1.5 text-xs font-medium text-ink flex-1 min-w-[220px]">
             <span className="block">{copy.addLabel}</span>
             <Select value={adding} onChange={(e) => setAdding(e.target.value)} className="w-full h-9 rounded-lg border border-outline-variant bg-surface px-3 text-sm">
               <option value="">{copy.addChoose}</option>

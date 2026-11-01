@@ -14,6 +14,7 @@ import {
 } from "../../app/actions/communications";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
+import { PageHeader } from "../layout/PageHeader";
 export function AnnouncementDetailView({
   item,
   options,
@@ -45,14 +46,10 @@ export function AnnouncementDetailView({
   };
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <header data-page-header>
-        <h1 className="text-2xl font-bold">
-          {locale === "ar" ? item.titleAr : item.titleEn}
-        </h1>
-        <p className="text-sm text-ink-muted">
-          <bdi dir="ltr">{item.reference}</bdi> · {labels[item.status]} · {item.author}
-        </p>
-      </header>
+      <PageHeader
+        title={locale === "ar" ? item.titleAr : item.titleEn}
+        description={<><bdi dir="ltr">{item.reference}</bdi> · {labels[item.status]} · {item.author}</>}
+      />
       {item.canEdit ? (
         <AnnouncementForm
           initial={item}

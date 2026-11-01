@@ -23,16 +23,16 @@ export function BankCoordinatesTab({
 }: BankCoordinatesTabProps) {
   return (
     <div className="space-y-6 animate-fade-in">
-      <Card className="p-6 bg-surface-raised dark:bg-surface-container-low border border-outline-variant dark:border-outline-variant shadow-xs rounded-2xl space-y-5">
-        <div className="flex items-center gap-3 pb-3 border-b border-outline-variant dark:border-outline-variant">
+      <Card className="p-6 bg-surface-raised dark:bg-surface-container-low border border-outline-variant shadow-xs rounded-2xl space-y-5">
+        <div className="flex items-center gap-3 pb-3 border-b border-outline-variant">
           <div className="p-2 rounded-xl bg-accent/10 text-accent">
             <Landmark className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-ink dark:text-ink">
+            <h2 className="text-sm font-bold text-ink">
               {t.settings.bankTitle}
             </h2>
-            <p className="text-xs text-ink-muted dark:text-ink-muted">
+            <p className="text-xs text-ink-muted">
               {t.companySettingsView.bankSubtitle}
             </p>
           </div>
@@ -40,7 +40,7 @@ export function BankCoordinatesTab({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <label className="block space-y-1.5">
-            <span className="text-xs font-medium text-ink dark:text-ink">
+            <span className="text-xs font-medium text-ink">
               {t.settings.bankName}
             </span>
             <Input
@@ -54,7 +54,7 @@ export function BankCoordinatesTab({
           </label>
 
           <label className="block space-y-1.5">
-            <span className="text-xs font-medium text-ink dark:text-ink">
+            <span className="text-xs font-medium text-ink">
               {t.settings.bankIban}
             </span>
             <Input
@@ -68,7 +68,7 @@ export function BankCoordinatesTab({
           </label>
 
           <label className="block space-y-1.5">
-            <span className="text-xs font-medium text-ink dark:text-ink">
+            <span className="text-xs font-medium text-ink">
               {t.settings.bankAccount}
             </span>
             <Input
@@ -85,7 +85,7 @@ export function BankCoordinatesTab({
           </label>
 
           <label className="block space-y-1.5">
-            <span className="text-xs font-medium text-ink dark:text-ink">
+            <span className="text-xs font-medium text-ink">
               {t.settings.bankSwift}
             </span>
             <Input
@@ -101,7 +101,7 @@ export function BankCoordinatesTab({
 
         <div className="p-4 rounded-xl bg-surface-raised dark:bg-surface-raised/40 border border-outline-variant dark:border-outline-variant/60 flex items-start gap-3">
           <ShieldCheck className="w-4 h-4 text-accent shrink-0 mt-0.5" />
-          <p className="text-xs text-ink-muted dark:text-ink-muted leading-relaxed">
+          <p className="text-xs text-ink-muted leading-relaxed">
             {t.companySettingsTabs.bankingSubtitle}
           </p>
         </div>

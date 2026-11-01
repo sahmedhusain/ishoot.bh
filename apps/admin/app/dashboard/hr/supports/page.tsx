@@ -7,6 +7,9 @@ import {
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { SupportProgramsView } from "../../../../components/supports/SupportProgramsView";
 import { SupportClaimsPanel } from "../../../../components/hr/SupportClaimsPanel";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("hr/supports");
 
 export const dynamic = "force-dynamic";
 

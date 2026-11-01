@@ -216,7 +216,7 @@ export function HandoverForm({
               </span>
             ) : null}
           </div>
-          <ul className="divide-y divide-outline-variant rounded-2xl border border-outline-variant bg-surface-raised dark:bg-surface-raised">
+          <ul className="divide-y divide-outline-variant rounded-2xl border border-outline-variant bg-surface-raised">
             {asset.category.checklist.map((item) => {
               const state = checks[item.key];
               return (
@@ -316,7 +316,7 @@ export function HandoverForm({
         </label>
       </div>
 
-      <div className="rounded-2xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-4 space-y-3">
+      <div className="rounded-2xl border border-outline-variant bg-surface-raised p-4 space-y-3">
         <label className="flex items-center gap-2 text-sm font-semibold text-ink">
           <input
             type="checkbox"
@@ -346,7 +346,7 @@ export function HandoverForm({
       </div>
 
       {issuerLive ? (
-        <div className="rounded-2xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-4 space-y-2">
+        <div className="rounded-2xl border border-outline-variant bg-surface-raised p-4 space-y-2">
           <div className="text-sm font-semibold text-ink">
             {h.issuerSignature}
           </div>

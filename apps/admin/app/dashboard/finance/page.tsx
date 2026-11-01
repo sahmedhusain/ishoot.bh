@@ -7,6 +7,9 @@ import {
   getReceivablesInsight,
 } from "@platform/database";
 import { FinancialAnalyticsView } from "../../../components/finance/FinancialAnalyticsView";
+import { pageMetadata } from "../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("finance");
 
 export const dynamic = "force-dynamic";
 

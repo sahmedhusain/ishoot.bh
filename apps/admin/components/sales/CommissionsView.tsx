@@ -1,4 +1,5 @@
 "use client";
+import { DataTable } from "@platform/ui";
 import { useCompanyCurrency } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { getCurrencyLabel } from "@platform/config/currency";
@@ -8,12 +9,13 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card } from "@platform/ui";
-import { BadgeDollarSign, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import type { CommissionRow } from "@platform/database/queries/sales-attribution";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { recordCommissionPayoutAction } from "../../app/actions/sales";
+import { PageHeader } from "../layout/PageHeader";
 
 const fmt = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 3, maximumFractionDigits: 3 });
 
@@ -47,15 +49,8 @@ export function CommissionsView({ month, rows, canRecord, canSetRates }: { month
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div data-page-header>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display flex items-center gap-2">
-            <BadgeDollarSign className="w-7 h-7 text-accent" />
-            {c.title}
-          </h1>
-          <p className="text-xs text-ink-muted mt-1 max-w-2xl">{c.subtitle}</p>
-        </div>
-        <div className="flex items-center gap-2">
+      <PageHeader
+        actions={<div className="flex items-center gap-2">
           <Link href={ROUTES.finance.commissions({ month: shiftMonth(month, -1) })} aria-label={c.previous} className="p-2 rounded-full border border-outline-variant hover:bg-ink/5">
             <ChevronLeft className="w-4 h-4 rtl:-scale-x-100" />
           </Link>
@@ -67,8 +62,8 @@ export function CommissionsView({ month, rows, canRecord, canSetRates }: { month
               <ChevronRight className="w-4 h-4 rtl:-scale-x-100" />
             </Link>
           )}
-        </div>
-      </div>
+        </div>}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="p-5 rounded-3xl bg-surface border border-outline-variant">
@@ -89,7 +84,7 @@ export function CommissionsView({ month, rows, canRecord, canSetRates }: { month
         {rows.length === 0 ? (
           <p className="p-10 text-center text-sm text-ink-muted">{c.empty}</p>
         ) : (
-          <table className="w-full text-xs min-w-[720px]">
+          <DataTable className="w-full text-xs min-w-[720px]">
             <thead className="bg-surface-sunken text-ink-muted">
               <tr>
                 <th className="p-3 ps-5 text-start">{c.person}</th>
@@ -130,7 +125,7 @@ export function CommissionsView({ month, rows, canRecord, canSetRates }: { month
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
         )}
       </Card>
     </div>

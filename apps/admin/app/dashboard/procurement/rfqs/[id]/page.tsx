@@ -3,6 +3,9 @@ import { hasPermission, requirePagePermission } from "../../../../../lib/auth";
 import { getRfq, listSuppliers, requireFeatureEnabled } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../../lib/cached-queries";
 import { RfqView } from "../../../../../components/procurement/RfqView";
+import { pageMetadata } from "../../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("procurement/rfqs/[id]");
 
 export const dynamic = "force-dynamic";
 

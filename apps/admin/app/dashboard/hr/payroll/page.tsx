@@ -2,6 +2,9 @@ import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { listPayrollRuns, db, canDecideApproval, getSupportClaims } from "@platform/database";
 import { SupportClaimsPanel } from "../../../../components/hr/SupportClaimsPanel";
 import { PayrollManagementView } from "../../../../components/hr/PayrollManagementView";
+import { pageMetadata } from "../../../../lib/company-metadata";
+
+export const generateMetadata = () => pageMetadata("hr/payroll");
 
 export const dynamic = "force-dynamic";
 

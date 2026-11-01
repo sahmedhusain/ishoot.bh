@@ -159,7 +159,7 @@ export function EmployeeResidencyPanel({
     );
 
   return (
-    <section className="rounded-3xl border border-outline-variant bg-surface-raised dark:bg-surface-raised p-5 sm:p-6 shadow-xs space-y-6">
+    <section className="rounded-3xl border border-outline-variant bg-surface-raised p-5 sm:p-6 shadow-xs space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-base font-bold text-ink">{c.title}</h2>
