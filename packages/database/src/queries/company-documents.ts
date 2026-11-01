@@ -58,9 +58,7 @@ export async function createCompanyDocument(data: {
   uploaded_by_id?: string;
 }): Promise<CompanyDocument> {
   return runAtomicMutation(async () => {
-    const upload = await claimUploadOrLink(
-      db,
-      data.file_url,
+    const upload = await claimUploadOrLink(data.file_url,
       data.uploaded_by_id,
     );
     const created = await db.companyDocument.create({

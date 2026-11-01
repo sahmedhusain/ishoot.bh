@@ -1,4 +1,5 @@
 "use server";
+import { lookupFile } from "@platform/api-client";
 import { serverMessages } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@platform/database";
@@ -32,7 +33,7 @@ export async function saveWebsiteDraftAction(value: unknown, revision: number) {
     const config = validateWebsiteConfig(value);
     for (const document of config.documents ?? []) {
       if (!document.url.startsWith("/")) continue;
-      const upload = await db.uploadObject.findUnique({ where: { fileUrl: document.url }, select: { isPublic: true, claimedAt: true, mimeType: true } });
+      const upload = await lookupFile(document.url);
       if (!upload?.isPublic || !upload.claimedAt || upload.mimeType !== "application/pdf") throw new Error(serverMessages.invalidUploadedFile);
     }
     // Site-wide tracking and code only change with the custom-code permission (it runs on every page).

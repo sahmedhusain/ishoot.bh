@@ -10,13 +10,14 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@platform/api-client": "workspace:*",
     "@platform/config": "workspace:*",
+    "@platform/contracts": "workspace:*",
     "@platform/database": "workspace:*",
     "@platform/email": "workspace:*",
     "@platform/locales": "workspace:*",
     "@platform/ui": "workspace:*",
     "@prisma/client": "5.22.0",
-    "@supabase/supabase-js": "^2.117.2",
     "framer-motion": "^13.4.6",
     "lenis": "^1.1.20",
     "libphonenumber-js": "^1.13.14",

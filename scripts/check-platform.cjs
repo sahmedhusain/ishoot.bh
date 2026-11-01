@@ -11,6 +11,9 @@ function load(file, mocks) {
   if (mocks["@platform/database"]) { mocks["@platform/database"].runAtomicMutation ??= async (fn) => fn(); mocks["@platform/database"].memoizeOperation ??= async (_key, fn) => fn(); mocks["@platform/database"].requireFeatureEnabled ??= async () => { }; mocks["@platform/database"].measureOperation ??= async (_name, fn) => fn(); if (mocks["@platform/database"].db) mocks["@platform/database"].db.$queryRaw ??= async () => []; }
   mocks["../../lib/action-input"] ??= require("../apps/admin/lib/action-input.ts");
   mocks["../services/uploads"] ??= { claimUpload: async () => ({ fileSize: 1, mimeType: "application/pdf" }) };
+  // The files service is outside these checks; actions that look files up see none.
+  mocks["@platform/api-client"] ??= { lookupFile: async () => null, lookupFiles: async () => [] };
+  mocks["@platform/contracts"] ??= require("../contracts/src/index.ts");
   if (mocks["../db"]?.db) mocks["../db"].db.featureToggle ??= { findUnique: async () => null, findMany: async () => [] };
 
   const module = { exports: {} };
@@ -330,6 +333,7 @@ async function main() {
     crypto: require("node:crypto"),
     "../../../../lib/auth": { getCurrentUser: async () => null },
     "../../../../lib/attachment-access": {},
+    "../../../../lib/upload-errors": {},
     "@platform/database": {},
     "@platform/locales": { getTranslations: () => ({ api: { upload: {} } }) },
     "next/cache": {},

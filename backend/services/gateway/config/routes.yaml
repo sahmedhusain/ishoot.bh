@@ -1,6 +1,0 @@
-# Gateway route table (see services/gateway/README.md). Each service adds its routes when it goes live.
-# Upstream names map to URLs through GATEWAY_UPSTREAMS; limits apply per signed-in account, or per client IP.
-rateLimits:
-  default: { requests: 300, window: 1m }
-  sensitive: { requests: 10, window: 1m }
-routes: []

@@ -5,7 +5,7 @@ import {
   normalizeTheme,
   themeWarnings,
 } from "../../packages/database/src/constants/theme";
-import { detectFileType } from "../../packages/database/src/services/storage";
+import { detectFileType } from "../../contracts/src";
 
 const root = path.resolve(__dirname, "../..");
 const profilesDir = path.join(root, "company/profiles");

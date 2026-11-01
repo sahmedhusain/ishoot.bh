@@ -167,7 +167,7 @@ export async function createAttachment(data: {
   uploadedById?: string;
 }) {
   return db.$transaction(async (tx) => {
-    const upload = await claimUploadOrLink(tx, data.fileUrl, data.uploadedById);
+    const upload = await claimUploadOrLink(data.fileUrl, data.uploadedById);
     return tx.attachment.create({
       data: {
         fileName: data.fileName,

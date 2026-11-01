@@ -9,7 +9,9 @@ metadata:
   name: {{ $name }}-config
   labels: {{- include "platform.labels" $ | nindent 4 }}
 data:
-  {{- toYaml $svc.configFiles | nindent 2 }}
+  {{- range $file := $svc.configFiles }}
+  {{ $file }}: {{ $.Files.Get (printf "files/%s/%s" $name $file) | required (printf "files/%s/%s is missing from the chart" $name $file) | quote }}
+  {{- end }}
 {{- end }}
 ---
 apiVersion: apps/v1
@@ -35,73 +37,62 @@ spec:
         {{- include "platform.labels" $ | nindent 8 }}
         {{- include "platform.selector" $ctx | nindent 8 }}
       annotations:
-        checksum/config: {{ toYaml $svc.configFiles | sha256sum }}
+        checksum/config: {{ include "platform.configChecksum" (dict "root" $ "name" $name "svc" $svc) }}
     spec:
-      {{- with $.Values.global.imagePullSecrets }}
-      imagePullSecrets: {{- toYaml . | nindent 8 }}
-      {{- end }}
-      automountServiceAccountToken: false
-      terminationGracePeriodSeconds: 30
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 65532
-        runAsGroup: 65532
-        fsGroup: 65532
-        seccompProfile: { type: RuntimeDefault }
+      {{- include "platform.podSpec" (dict "root" $ "name" $name "svc" $svc "probes" true) | nindent 6 }}
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: kubernetes.io/hostname
           whenUnsatisfiable: ScheduleAnyway
           labelSelector:
             matchLabels: {{- include "platform.selector" $ctx | nindent 14 }}
-      containers:
-        - name: {{ $name }}
-          image: {{ include "platform.image" $ctx }}
-          imagePullPolicy: {{ $.Values.global.image.pullPolicy }}
-          ports:
-            - { name: http, containerPort: 8080 }
-            - { name: admin, containerPort: 9090 }
-          env:
-            - { name: SERVICE_NAME, value: {{ $name | quote }} }
-            - { name: SERVICE_VERSION, value: {{ default $.Chart.AppVersion $.Values.global.image.tag | quote }} }
-            - { name: APP_ENV, value: {{ $.Values.global.appEnv | quote }} }
-            - { name: LOG_LEVEL, value: {{ $.Values.global.logLevel | quote }} }
-            - { name: LOG_FORMAT, value: {{ $.Values.global.logFormat | quote }} }
-            - { name: OTEL_EXPORTER_OTLP_ENDPOINT, value: {{ $.Values.global.otelEndpoint | quote }} }
-            - { name: OTEL_EXPORTER_OTLP_INSECURE, value: "true" }
-            - { name: OTEL_TRACES_SAMPLER_RATIO, value: {{ $.Values.global.tracesSampleRatio | quote }} }
-            {{- range $key, $value := $svc.env }}
-            - { name: {{ $key }}, value: {{ $value | quote }} }
-            {{- end }}
-          envFrom:
-            - secretRef: { name: {{ $.Values.global.sharedSecret }} }
-            - secretRef: { name: {{ $name }}-secrets, optional: true }
-          readinessProbe:
-            httpGet: { path: /readyz, port: admin }
-            periodSeconds: 10
-            failureThreshold: 3
-          livenessProbe:
-            httpGet: { path: /livez, port: admin }
-            periodSeconds: 15
-            failureThreshold: 3
-          startupProbe:
-            httpGet: { path: /livez, port: admin }
-            periodSeconds: 2
-            failureThreshold: 30
-          resources: {{- toYaml $svc.resources | nindent 12 }}
-          securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            capabilities: { drop: [ALL] }
-          {{- if $svc.configFiles }}
-          volumeMounts:
-            - { name: config, mountPath: /config, readOnly: true }
-          {{- end }}
-      {{- if $svc.configFiles }}
-      volumes:
-        - name: config
-          configMap: { name: {{ $name }}-config }
-      {{- end }}
+{{- if and $svc.worker $svc.worker.enabled }}
+{{- $workerCtx := dict "root" $ "name" $name "component" "worker" }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}-worker
+  labels:
+    {{- include "platform.labels" $ | nindent 4 }}
+    {{- include "platform.selector" $workerCtx | nindent 4 }}
+spec:
+  replicas: {{ $svc.worker.replicas }}
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels: {{- include "platform.selector" $workerCtx | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "platform.labels" $ | nindent 8 }}
+        {{- include "platform.selector" $workerCtx | nindent 8 }}
+    spec:
+      {{- include "platform.podSpec" (dict "root" $ "name" $name "svc" $svc "probes" true "args" (list "worker")) | nindent 6 }}
+{{- end }}
+{{- if $svc.migrate }}
+---
+# Applies the service's migrations before its new version starts (ADR 0002). Safe to repeat.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $name }}-migrate
+  labels: {{- include "platform.labels" $ | nindent 4 }}
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "0"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 600
+  template:
+    metadata:
+      labels:
+        {{- include "platform.labels" $ | nindent 8 }}
+        {{- include "platform.selector" (dict "root" $ "name" $name "component" "migrate") | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      {{- include "platform.podSpec" (dict "root" $ "name" $name "svc" $svc "probes" false "args" (list "migrate")) | nindent 6 }}
+{{- end }}
 ---
 apiVersion: v1
 kind: Service
@@ -156,9 +147,12 @@ spec:
     - { port: admin, path: /metrics, interval: {{ $.Values.serviceMonitor.interval }} }
 {{- end }}
 {{- if $.Values.global.networkPolicy.enabled }}
+{{- $callers := list }}
+{{- range $other, $o := $.Values.services }}{{ if and $o.enabled (has $name $o.talksTo) }}{{ $callers = append $callers $other }}{{ end }}{{ end }}
 ---
-# Deny by default: only the gateway (or the ingress controller, for public services) reaches the HTTP port, only
-# Prometheus reaches the admin port, and egress is limited to DNS, the listed services and data stores.
+# Deny by default. The HTTP port is reached only by the ingress controller (public services) or by the services
+# that list this one in talksTo; the admin port only by monitoring; egress only to DNS, the services this one lists
+# and the data stores.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -166,29 +160,38 @@ metadata:
   labels: {{- include "platform.labels" $ | nindent 4 }}
 spec:
   podSelector:
-    matchLabels: {{- include "platform.selector" $ctx | nindent 6 }}
+    matchLabels:
+      app.kubernetes.io/name: {{ $name }}
+      app.kubernetes.io/instance: {{ $.Release.Name }}
   policyTypes: [Ingress, Egress]
   ingress:
+    {{- if $svc.public }}
     - ports: [{ port: http }]
       from:
-        {{- if $svc.public }}
         - namespaceSelector:
             matchLabels: { kubernetes.io/metadata.name: {{ $.Values.global.networkPolicy.ingressNamespace }} }
-        {{- else }}
+    {{- end }}
+    {{- if $callers }}
+    - ports: [{ port: http }]
+      from:
         - podSelector:
-            matchLabels: { app.kubernetes.io/part-of: platform }
-        {{- end }}
+            matchExpressions:
+              - { key: app.kubernetes.io/name, operator: In, values: {{ toJson $callers }} }
+    {{- end }}
     - ports: [{ port: admin }]
       from:
         - namespaceSelector:
             matchLabels: { kubernetes.io/metadata.name: {{ $.Values.global.networkPolicy.monitoringNamespace }} }
   egress:
     - ports: [{ port: 53, protocol: UDP }, { port: 53, protocol: TCP }]
+    {{- if $svc.talksTo }}
     - to:
         - podSelector:
-            matchLabels: { app.kubernetes.io/part-of: platform }
+            matchExpressions:
+              - { key: app.kubernetes.io/name, operator: In, values: {{ toJson $svc.talksTo }} }
       ports: [{ port: http }]
-    - ports: [{ port: 5432 }, { port: 6379 }, { port: 4222 }, { port: 4318 }, { port: 443 }]
+    {{- end }}
+    - ports: [{ port: 5432 }, { port: 6379 }, { port: 4222 }, { port: 4318 }, { port: 443 }, { port: 8333 }]
 {{- end }}
 {{- end }}
 {{- end }}

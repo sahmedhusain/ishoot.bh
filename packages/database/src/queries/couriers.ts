@@ -1,7 +1,6 @@
 import { isValidEmail } from "../constants/validation";
 import { companyCurrency as getAccountingCurrency } from "../finance/company-currency";
 import { normalizeContactInput } from "./contact-validation";
-import crypto from "node:crypto";
 import { getTranslations, serverMessages } from "@platform/locales";
 import { db } from "../db";
 import {
@@ -19,13 +18,14 @@ import {
 } from "../constants/delivery";
 import { moveShipment } from "./shipments";
 import type { OrderAddress } from "./store";
-import { storeFileBytes } from "../services/uploads";
+import { storeFile } from "@platform/api-client";
 
 const num = (value: { toString(): string } | null | undefined) =>
   value == null ? 0 : Number(value.toString());
 const numOrNull = (value: { toString(): string } | null | undefined) =>
   value == null ? null : Number(value.toString());
-const roundStoredAmount = (value: number) => Math.round(value * 1_000_000) / 1_000_000;
+const roundStoredAmount = (value: number) =>
+  Math.round(value * 1_000_000) / 1_000_000;
 
 // ─── Agencies ────────────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -130,34 +130,27 @@ async function storeLabel(
     bytes.length > 5 * 1024 * 1024
   )
     return null;
-  const fileUrl = `/api/files/general/${crypto.randomUUID()}_label.pdf`;
-  await storeFileBytes(fileUrl, bytes, "application/pdf");
-  const now = new Date();
-  await db.$transaction([
-    db.uploadObject.create({
-      data: {
-        fileUrl,
-        ownerId,
-        fileName: "shipping-label.pdf",
-        fileSize: bytes.length,
-        mimeType: "application/pdf",
-        claimedAt: now,
-        expiresAt: now,
-      },
-    }),
-    db.attachment.create({
-      data: {
-        fileName: "shipping-label.pdf",
-        fileUrl,
-        fileSize: bytes.length,
-        mimeType: "application/pdf",
-        entityType: "shipment",
-        entityId: shipmentId,
-        uploadedById: ownerId,
-      },
-    }),
-  ]);
-  return fileUrl;
+  const stored = await storeFile(
+    { folder: "general", namePrefix: "label" },
+    bytes,
+    {
+      ownerId,
+      fileName: "shipping-label.pdf",
+    },
+  );
+  if (!stored) return null;
+  await db.attachment.create({
+    data: {
+      fileName: stored.fileName,
+      fileUrl: stored.fileUrl,
+      fileSize: stored.fileSize,
+      mimeType: stored.mimeType,
+      entityType: "shipment",
+      entityId: shipmentId,
+      uploadedById: ownerId,
+    },
+  });
+  return stored.fileUrl;
 }
 
 export interface HandToAgencyInput {

@@ -385,7 +385,7 @@ export async function attachSupplierBillFileAction(
     const user = await requirePermission("procurement", "edit");
     validateActionArguments("attachSupplierBillFileAction", { id, fileUrl });
     await db.$transaction(async (tx) => {
-      const upload = await claimUpload(tx, fileUrl, user.id);
+      const upload = await claimUpload(fileUrl, user.id);
       await tx.attachment.create({
         data: {
           fileName: upload.fileName.slice(0, 200),

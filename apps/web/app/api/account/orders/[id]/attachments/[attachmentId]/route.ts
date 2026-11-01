@@ -1,14 +1,5 @@
-import { realpath, stat } from "node:fs/promises";
-import { createReadStream } from "node:fs";
-import { Readable } from "node:stream";
-import path from "node:path";
-import {
-  db,
-  generateDownloadUrl,
-  isSupabaseStorageConfigured,
-  uploadRoot,
-  uploadStorageLocation,
-} from "@platform/database";
+import { lookupFile } from "@platform/api-client";
+import { db, fileResponse } from "@platform/database";
 import {
   accountsEnabled,
   currentCustomer,
@@ -47,31 +38,11 @@ export async function GET(
   )
     return new Response(null, { status: 404 });
   try {
-    const location = uploadStorageLocation(file.fileUrl, false);
-    if (isSupabaseStorageConfigured())
-      return new Response(null, {
-        status: 307,
-        headers: {
-          Location: await generateDownloadUrl(location.bucket, location.path),
-          "Cache-Control": "private, no-store",
-        },
-      });
-    const root = await realpath(uploadRoot());
-    const target = await realpath(path.join(root, location.path));
-    if (!target.startsWith(root + path.sep))
-      return new Response(null, { status: 404 });
-    return new Response(
-      Readable.toWeb(createReadStream(target)) as ReadableStream,
-      {
-        headers: {
-          "Content-Type": file.mimeType || "application/octet-stream",
-          "Content-Length": String((await stat(target)).size),
-          "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(file.fileName)}`,
-          "Cache-Control": "private, no-store",
-          "X-Content-Type-Options": "nosniff",
-        },
-      },
-    );
+    const upload = await lookupFile(file.fileUrl);
+    const response =
+      upload &&
+      (await fileResponse(upload, { download: true, fileName: file.fileName }));
+    return response ?? new Response(null, { status: 404 });
   } catch {
     return new Response(null, { status: 404 });
   }

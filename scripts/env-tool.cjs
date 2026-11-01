@@ -5,6 +5,7 @@
 //   secrets  generate every empty secret (JWT, revalidation, MFA, encryption, customer auth, cron, docker)
 //   check    validate the values the apps need; --production adds the live-installation rules
 //   keys     list each variable as set / empty / missing, and the ones the code no longer reads
+//   service-keys  write the public keys of the apps' service keys (JWKS) for the backend services to trust
 const crypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -27,6 +28,10 @@ const SECRETS = {
   POSTGRES_PASSWORD: () => crypto.randomBytes(18).toString("base64url"),
   VALKEY_PASSWORD: () => crypto.randomBytes(24).toString("base64url"),
   GRAFANA_ADMIN_PASSWORD: () => crypto.randomBytes(18).toString("base64url"),
+  S3_ACCESS_KEY_ID: () => `platform${crypto.randomBytes(6).toString("hex")}`,
+  S3_SECRET_ACCESS_KEY: () => crypto.randomBytes(30).toString("base64url"),
+  ADMIN_SERVICE_KEY: () => serviceKey("admin"),
+  WEB_SERVICE_KEY: () => serviceKey("web"),
   PGADMIN_DEFAULT_PASSWORD: () => crypto.randomBytes(18).toString("base64url"),
 };
 // Variables older versions of .env.example listed that no code reads any more.
@@ -36,7 +41,44 @@ const RETIRED = {
   WHATSAPP_PHONE_ID: "set in Settings → Integrations → WhatsApp",
   FACEBOOK_APP_ID: "set in Settings → Integrations",
   FACEBOOK_APP_SECRET: "set in Settings → Integrations",
+  SUPABASE_URL: "files are kept by the files service in S3-compatible storage (S3_* variables)",
+  SUPABASE_SERVICE_ROLE_KEY: "files are kept by the files service in S3-compatible storage (S3_* variables)",
+  NEXT_PUBLIC_SUPABASE_URL: "Supabase is no longer used",
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: "Supabase is no longer used",
+  UPLOAD_ROOT: "files are kept by the files service in S3-compatible storage",
 };
+
+// Service keys (docs/adr/0011): each app signs its calls to the backend with its own Ed25519 key, stored in .env as
+// a base64url private JWK whose key ID starts with the caller's name. The services trust the public halves, written
+// to SERVICE_KEYS_FILE as a JWKS document. During a rotation, <APP>_SERVICE_KEY_PREVIOUS stays trusted.
+const SERVICE_CALLERS = ["admin", "web"];
+function serviceKey(caller) {
+  const { privateKey } = crypto.generateKeyPairSync("ed25519");
+  const jwk = privateKey.export({ format: "jwk" });
+  const kid = `${caller}:${crypto.randomBytes(6).toString("hex")}`;
+  return Buffer.from(JSON.stringify({ ...jwk, kid, alg: "EdDSA" })).toString("base64url");
+}
+function writeServiceKeys(env) {
+  const keys = [];
+  for (const caller of SERVICE_CALLERS)
+    for (const name of [`${caller.toUpperCase()}_SERVICE_KEY`, `${caller.toUpperCase()}_SERVICE_KEY_PREVIOUS`]) {
+      if (!env[name]) continue;
+      let jwk;
+      try {
+        jwk = JSON.parse(Buffer.from(env[name], "base64url").toString("utf8"));
+      } catch {
+        fail(`${name} is not a base64url JSON Web Key`);
+      }
+      if (jwk.kty !== "OKP" || jwk.crv !== "Ed25519" || !jwk.x || !String(jwk.kid).startsWith(`${caller}:`))
+        fail(`${name} must be an Ed25519 key whose kid starts with "${caller}:"`);
+      keys.push({ kty: "OKP", crv: "Ed25519", x: jwk.x, kid: jwk.kid, alg: "EdDSA", use: "sig" });
+    }
+  const target = path.resolve(root, env.SERVICE_KEYS_FILE || "./.local/service-keys.json");
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.writeFileSync(target, `${JSON.stringify({ keys }, null, 2)}\n`);
+  console.log(`Wrote ${keys.length} service key(s) to ${shown(target)}.`);
+}
+const envValues = () => Object.fromEntries([...parse(read(envFile) ?? "").entries()].filter(([, e]) => !e.commented).map(([k, e]) => [k, e.value]));
 
 const LINE = /^\s*(#\s*)?([A-Z][A-Z0-9_]*)=(.*)$/;
 function parse(text) {
@@ -74,6 +116,14 @@ function setValue(text, key, value) {
   return lines.join("\n");
 }
 
+// Connection URLs for the local stack's Postgres, built from the generated password when left empty.
+const localDatabaseUrl = (env) =>
+  `postgresql://${env.POSTGRES_USER || "platform"}:${encodeURIComponent(env.POSTGRES_PASSWORD)}@127.0.0.1:${env.POSTGRES_PORT || "5432"}/${env.POSTGRES_DB || "platform_db"}`;
+const DERIVED = {
+  DATABASE_URL: (env) => `${localDatabaseUrl(env)}?connection_limit=10`,
+  DIRECT_URL: localDatabaseUrl,
+};
+
 function fillSecrets() {
   let text = read(envFile) ?? fail(`${shown(envFile)} does not exist; run: ./run.sh env init`);
   const env = parse(text);
@@ -84,8 +134,19 @@ function fillSecrets() {
     text = setValue(text, key, make());
     filled.push(key);
   }
+  const values = Object.fromEntries([...parse(text).entries()].filter(([, e]) => !e.commented).map(([k, e]) => [k, e.value]));
+  for (const [key, make] of Object.entries(DERIVED)) {
+    if (values[key]) continue;
+    text = setValue(text, key, make(values));
+    filled.push(key);
+  }
   fs.writeFileSync(envFile, text);
   console.log(filled.length ? `Generated: ${filled.join(", ")}` : "Every secret already has a value.");
+  writeServiceKeys(envValues());
+}
+
+function pickServiceEnv() {
+  return Object.fromEntries(Object.entries(process.env).filter(([k]) => /_SERVICE_KEY(_PREVIOUS)?$|^SERVICE_KEYS_FILE$/.test(k)));
 }
 
 function sync() {
@@ -125,8 +186,10 @@ function check() {
   need(Buffer.byteLength(env.ENCRYPTION_KEY || "", "utf8") === 32, "ENCRYPTION_KEY must be exactly 32 characters");
   need(!env.SUPER_ADMIN_PASSWORD || (Buffer.byteLength(env.SUPER_ADMIN_PASSWORD) >= 12 && Buffer.byteLength(env.SUPER_ADMIN_PASSWORD) <= 72), "SUPER_ADMIN_PASSWORD must be 12 to 72 bytes");
   need(!!env.SUPER_ADMIN_EMAIL && !!env.SUPER_ADMIN_PASSWORD, "SUPER_ADMIN_EMAIL and SUPER_ADMIN_PASSWORD are needed to seed or bootstrap", warnings);
-  need(!!env.SUPABASE_URL || !production, "SUPABASE_URL is empty: files would be kept on local disk");
-  need(!env.SUPABASE_URL || !!env.SUPABASE_SERVICE_ROLE_KEY, "SUPABASE_SERVICE_ROLE_KEY is empty: files are kept on local disk instead of Supabase Storage", production ? problems : warnings);
+  for (const [key, entry] of parse(text))
+    need(entry.commented || !/^\s*[A-Z0-9_]+="[^"]*$/.test(entry.line.replace(/\s+#.*$/, "")), `${key} has an unclosed quote: docker compose cannot read this file`);
+  need(!!env.API_URL, "API_URL is empty: the apps cannot reach the backend gateway (files, and later every service)");
+  for (const caller of ["ADMIN", "WEB"]) need(!!env[`${caller}_SERVICE_KEY`], `${caller}_SERVICE_KEY is empty: run ./run.sh env secrets`);
   need(!!env.CRON_SECRET, "CRON_SECRET is empty: /api/cron (reminders, payments, tracking, reports) cannot run", production ? problems : warnings);
   need(!!env.RESEND_API_KEY && !!env.FROM_EMAIL, "No legacy mail credentials: configure the encrypted Resend integration in Settings", warnings);
   need(!!env.RESEND_WEBHOOK_SECRET, "No legacy webhook secret: configure the signing secret in the encrypted Resend integration", warnings);
@@ -174,6 +237,10 @@ switch (command) {
   case "keys":
     keys();
     break;
+  case "service-keys":
+    // CI and containers pass the keys as environment variables instead of a .env file.
+    writeServiceKeys(fs.existsSync(envFile) ? { ...envValues(), ...pickServiceEnv() } : pickServiceEnv());
+    break;
   default:
-    fail("Usage: node scripts/env-tool.cjs <init|sync|secrets|check|keys> [--file <path>] [--production]");
+    fail("Usage: node scripts/env-tool.cjs <init|sync|secrets|check|keys|service-keys> [--file <path>] [--production]");
 }

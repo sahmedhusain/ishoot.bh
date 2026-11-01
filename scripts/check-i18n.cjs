@@ -25,9 +25,7 @@ const flat = (o, p = "", acc = {}) => {
 const EASTERN = /[٠-٩۰-۹]/;
 // These existing error messages deliberately redact technical/provider details in Arabic.
 const redactedTemplates = new Set([
-  "actionProhibited0EmployeesOnApprovedLeave", "assignmentConflict0", "failedToGenerateDownloadUrl0",
-  "failedToGenerateUploadUrl0", "invalidInputFor0", "invalidationHttp0", "noApprovalHandlerRegisteredFor0",
-  "objectMetadataUnavailable0", "publicSiteRevalidationFailed0", "storageUploadFailed0", "unknownStatisticPreset0",
+  "actionProhibited0EmployeesOnApprovedLeave", "assignmentConflict0", "invalidInputFor0", "invalidationHttp0", "noApprovalHandlerRegisteredFor0", "publicSiteRevalidationFailed0", "unknownStatisticPreset0",
 ]);
 const placeholders = (text) => [...String(text).matchAll(/\{([A-Za-z0-9_]+)\}/g)].map((match) => match[1]).sort();
 for (const base of ["packages/locales/src", "packages/locales/src/admin", "packages/locales/src/ui", "packages/locales/src/common"]) {

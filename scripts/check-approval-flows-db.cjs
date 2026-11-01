@@ -33,6 +33,8 @@ require("../packages/database/src/queries/final-settlements.ts");
 require("../packages/database/src/queries/announcements.ts");
 require("../packages/database/src/queries/official-letters.ts");
 
+require("../packages/database/src/queries/procurement.ts");
+
 const rollback = new Error("ROLLBACK_APPROVAL_FLOWS_TEST");
 
 const sharp = require(
@@ -449,6 +451,25 @@ async function main() {
                   .status,
               approved: "approved",
               rejected: "rejected",
+            },
+            purchase_requisition: {
+              make: async () => (await tx.purchaseRequisition.create({ data: {
+                number: `REQ-${require("node:crypto").randomUUID()}`, requestedById: requester.id,
+                status: "pending_approval", estimatedTotal: 100,
+              } })).id,
+              state: async (id) => (await tx.purchaseRequisition.findUniqueOrThrow({ where: { id } })).status,
+              approved: "approved", rejected: "rejected",
+            },
+            purchase_order: {
+              make: async () => {
+                const supplier = await tx.crmContact.create({ data: { firstName: "Approval supplier", contactType: "vendor" } });
+                return (await tx.purchaseOrder.create({ data: {
+                  number: `PO-${require("node:crypto").randomUUID()}`, supplierId: supplier.id,
+                  status: "pending_approval", total: 100, createdById: requester.id,
+                } })).id;
+              },
+              state: async (id) => (await tx.purchaseOrder.findUniqueOrThrow({ where: { id } })).status,
+              approved: "approved", rejected: "draft",
             },
             signature_change: {
               make: async () =>

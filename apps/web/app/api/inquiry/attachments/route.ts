@@ -1,12 +1,11 @@
-import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { consumeAbuseLimit, db, storeFileBytes } from "@platform/database";
+import { consumeAbuseLimit, db } from "@platform/database";
 import { inquiryFromUploadToken } from "@platform/database/services/inquiry-upload-token";
 import { sameOrigin, signInSecret, jsonError } from "../../../../lib/customer";
 import { getSite } from "../../../../lib/site";
 import { isWebsitePreview } from "../../../../lib/website";
 import {
-  readPrivateUpload,
+  storePrivateUpload,
   discardPrivateUpload,
 } from "../../../../lib/private-upload";
 
@@ -43,14 +42,9 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     return jsonError(error);
   }
-  const file = await readPrivateUpload(req);
+  const file = await storePrivateUpload(req, "inquiry");
   if (file instanceof Response) return file;
-  const fileUrl = `/api/files/general/inquiry_${randomUUID()}.${file.extension}`;
-  try {
-    await storeFileBytes(fileUrl, file.bytes, file.type, false);
-  } catch {
-    return NextResponse.json({ error: "generic" }, { status: 503 });
-  }
+  const { fileUrl } = file;
   try {
     await db.$transaction(async (tx) => {
       const existing = await tx.$queryRaw<
@@ -69,8 +63,8 @@ export async function POST(req: NextRequest) {
           entityId: id!,
           fileUrl,
           fileName: file.fileName,
-          fileSize: file.size,
-          mimeType: file.type,
+          fileSize: file.fileSize,
+          mimeType: file.mimeType,
         },
       });
     });

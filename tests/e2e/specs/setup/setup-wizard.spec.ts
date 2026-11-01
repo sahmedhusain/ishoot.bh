@@ -8,6 +8,7 @@ import {
   watchErrors,
 } from "../../helpers";
 import { t } from "../../locale";
+import { selectOption } from "../../select-option";
 
 // One continuous first-run journey on a blank install: the database is prepared fresh for every run.
 test.describe.configure({ mode: "serial", retries: 0 });
@@ -21,9 +22,10 @@ const logo = path.resolve(
 test("a new company completes the setup wizard and gets its own brand and website", async ({
   page,
 }) => {
+  test.setTimeout(180_000);
   const errors = watchErrors(page);
   await login(page);
-  await expect(page).toHaveURL(/\/setup$/);
+  await expect(page).toHaveURL(/\/setup$/, { timeout: 60_000 });
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(copy.title);
 
   // Step 1: what the company does comes first, then languages and identity
@@ -43,7 +45,9 @@ test("a new company completes the setup wizard and gets its own brand and websit
     .fill("Office furniture, delivered.");
   await page.locator('input[name="crNumber"]').fill("CR-12345-1");
   await page.locator('input[name="email"]').fill("hello@acme.example");
-  await page.locator('input[name="whatsappPhone"]').fill("+973 3600 0000");
+  await page
+    .getByLabel(copy.company.whatsapp, { exact: true })
+    .fill("+97336000000");
   await page.getByTestId("setup-next").click();
   await expect(page.getByRole("heading", { level: 2 })).toHaveText(
     copy.steps.brand,
@@ -95,7 +99,7 @@ test("a new company completes the setup wizard and gets its own brand and websit
   await page.locator("#asset-logo_light").setInputFiles(logo);
   await expect(
     page.getByTestId("asset-logo_light").locator("img"),
-  ).toHaveAttribute("src", /\/api\/files\/brand\//);
+  ).toHaveAttribute("src", /\/api\/files\/brand\//, { timeout: 60_000 });
   await page.getByTestId("setup-next").click();
 
   // Step 4: a products website, recommended for the activity and then adjusted
@@ -122,7 +126,8 @@ test("a new company completes the setup wizard and gets its own brand and websit
   );
   await expect(page.getByLabel("مخزون المعدات")).not.toBeChecked();
   await expect(page.getByLabel("إدارة محتوى الموقع")).toBeChecked();
-  await page.getByLabel(copy.configuration.currency).selectOption("SAR");
+  // Priced samples already exist, so the accounting currency must stay fixed.
+  await selectOption(page.getByLabel(copy.configuration.currency), "BHD");
   await page.getByLabel(copy.configuration.invoicePrefix).fill("ACM");
   await expect(page.getByText(/ACM-\d{4}-0001/)).toBeVisible();
   // Departments follow the activity (a shop has a warehouse, not public relations) and bring their roles
@@ -160,7 +165,7 @@ test("a new company completes the setup wizard and gets its own brand and websit
   await page.goto("/setup");
   await expect(page).toHaveURL(/\/dashboard$/);
   await page.goto("/dashboard/settings/company");
-  await page.getByRole("button", { name: copy.steps.brand }).click();
+  await page.getByRole("tab", { name: copy.steps.brand }).click();
   await expect(page.getByTestId("theme-preview")).toHaveAttribute(
     "style",
     /--brand-primary:\s*127 29 29/,

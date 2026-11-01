@@ -5,6 +5,7 @@ import {
 } from "@platform/locales";
 
 import { db, runAtomicMutation } from "../db";
+import { lookupFile } from "@platform/api-client";
 import { claimUpload } from "../services/uploads";
 
 export interface SignatureChangeRow {
@@ -41,7 +42,7 @@ const map = (c: {
 /** Files a drawn signature (a private PNG the user just uploaded) as a pending change; one at a time. */
 export async function requestSignatureChange(userId: string, fileUrl: string) {
   return runAtomicMutation(async () => {
-    const upload = await db.uploadObject.findUnique({ where: { fileUrl } });
+    const upload = await lookupFile(fileUrl);
     if (
       !upload ||
       upload.isPublic ||
@@ -56,7 +57,7 @@ export async function requestSignatureChange(userId: string, fileUrl: string) {
       })
     )
       throw new Error(serverMessages.youAlreadyHaveASignatureChangeWaiting);
-    await claimUpload(db, fileUrl, userId);
+    await claimUpload(fileUrl, userId);
     const user = await db.user.findUniqueOrThrow({
       where: { id: userId },
       select: { signatureUrl: true },

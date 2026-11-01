@@ -16,12 +16,11 @@ const STATIC_CHECKS = [
   "check-hrms",
   "check-payroll-engine",
   "check-upload-storage",
-  "check-local-uploads",
 ];
 
 describe("static checks", () => {
-  test.each(STATIC_CHECKS)("%s", (name) => {
-    const { ok, output } = runCheck(name);
+  test.each(STATIC_CHECKS)("%s", async (name) => {
+    const { ok, output } = await runCheck(name);
     expect(ok, output).toBe(true);
   });
 });

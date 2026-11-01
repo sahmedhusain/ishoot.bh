@@ -13,7 +13,8 @@ concurrency:
 permissions:
   contents: read
 
-# Disposable values for CI only. Every database is a throwaway *_test database on the job's own Postgres.
+# Disposable values for CI only. Every database is a throwaway *_test database on the job's own Postgres (from the
+# compose stack, which also runs the backend services the apps call).
 env:
   NODE_VERSION: 22
   PNPM_VERSION: 12.6.0
@@ -24,8 +25,11 @@ env:
   MFA_ENCRYPTION_KEY: ci-only-mfa-key-with-at-least-thirty-two-chars
   ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef"
   RESEND_API_KEY: ""
-  SUPABASE_URL: ""
-  SUPABASE_SERVICE_ROLE_KEY: ""
+  # The compose stack (.github/actions/backend-stack) runs Postgres with these, and the backend gateway.
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: disposable_ci_only
+  POSTGRES_DB: postgres
+  API_URL: http://127.0.0.1:8080
   NEXT_TELEMETRY_DISABLED: 1
 
 jobs:
@@ -48,6 +52,8 @@ jobs:
         run: pnpm lint
       - name: Type-check (apps, packages, company seed)
         run: pnpm type-check && pnpm --filter @platform/company type-check
+      - name: Generated files client is current
+        run: pnpm --filter @platform/api-client generate && git diff --exit-code -- packages/api-client/src/generated/files.ts
       - name: Unused files, exports and dependencies
         run: pnpm audit:unused
       - name: Server action input schemas are up to date
@@ -69,20 +75,6 @@ jobs:
     name: Business rules on Postgres
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    services:
-      postgres:
-        image: postgres:17-alpine
-        env:
-          POSTGRES_PASSWORD: disposable_ci_only
-        ports: ["5432:5432"]
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      UPLOAD_ROOT: ${{ github.workspace }}/tests/e2e/.uploads
-      E2E_UPLOAD_ROOT: ${{ github.workspace }}/tests/e2e/.uploads
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -94,6 +86,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec prisma generate --schema packages/database/prisma/schema.prisma
+      - uses: ./.github/actions/backend-stack
       - name: Prepare a bare and a seeded database (full demo volume)
         run: |
           node tests/e2e/prepare-db.cjs bare platform_bare_test
@@ -117,7 +110,8 @@ jobs:
           SUPER_ADMIN_PASSWORD: disposable-seed-password
           SEED_VOLUME: "off"
         run: |
-          for profile in $(ls company/profiles); do
+          for dir in company/profiles/*/; do
+            profile="$(basename "$dir")"
             echo "::group::$profile"
             node tests/e2e/prepare-db.cjs bare platform_profile_test
             COMPANY_PROFILE=$profile pnpm db:seed
@@ -146,20 +140,8 @@ jobs:
     name: End-to-end (admin, setup wizard, website)
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    services:
-      postgres:
-        image: postgres:17-alpine
-        env:
-          POSTGRES_PASSWORD: disposable_ci_only
-        ports: ["5432:5432"]
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
     env:
       E2E_SERVER_MODE: start
-      E2E_UPLOAD_ROOT: ${{ github.workspace }}/tests/e2e/.uploads
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -171,6 +153,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec prisma generate --schema packages/database/prisma/schema.prisma
+      - uses: ./.github/actions/backend-stack
       - name: Prepare seeded and blank databases
         run: pnpm test:e2e:prepare
       - name: Production builds of both apps

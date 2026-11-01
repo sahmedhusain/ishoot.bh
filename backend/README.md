@@ -6,8 +6,9 @@ Go services that replace the TypeScript backend of the Next.js apps, one busines
 ## Quick start
 
 ```bash
-./run.sh env sync                  # adds the backend variables to .env and generates their secrets
-docker compose up -d --build       # Postgres 17, Valkey and the gateway on 127.0.0.1
+./run.sh env sync                  # adds missing variables without changing existing values
+./run.sh env secrets               # generates missing secrets and the public service-key file
+docker compose up -d --build       # Postgres 17, Valkey, SeaweedFS, files API/worker and gateway
 curl -s localhost:9080/readyz      # gateway readiness (admin port)
 ```
 
@@ -45,7 +46,7 @@ backend/
     cmd/api            the service's entry point
     settings           its configuration struct (exported for the config reference)
     internal/...       everything else: domain rules, use cases, HTTP and database adapters
-    config/            files mounted into the container (e.g. the gateway route table)
+    api/               OpenAPI contract (gateway routes live in deploy/helm/platform/files/gateway)
     README.md          purpose, endpoints, configuration, runbook
   tools/               generators (catalogue copy, configuration reference)
   Dockerfile           one image recipe for every service (--build-arg SERVICE=<name>)

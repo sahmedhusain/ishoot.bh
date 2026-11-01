@@ -30,7 +30,7 @@ const {
 const prefix = `audit-${randomUUID()}`;
 let sourceBytes = 0,
   reads = 0;
-const queries = new Set();
+const queries = new Map();
 db.$use(async (params, next) => {
   if (["findMany", "queryRaw"].includes(params.action)) reads++;
   if (params.action === "queryRaw") {
@@ -45,7 +45,7 @@ db.$use(async (params, next) => {
         : typeof raw === "string"
           ? raw
           : null);
-    if (sql && !sql.startsWith("EXPLAIN")) queries.add(sql);
+    if (sql && !sql.startsWith("EXPLAIN")) queries.set(sql, Array.isArray(raw?.values) ? raw.values : params.args.slice(1));
   }
   return next(params);
 });
@@ -91,6 +91,8 @@ vm.runInNewContext(legacyCode, {
   console,
 });
 async function main() {
+  await assert.rejects(getCompanySettings(), /settings are missing/);
+  await db.companySetting.create({ data: { companyNameEn: prefix, companyNameAr: prefix, defaultCurrency: "BHD" } });
   const { ALL_ROLES } = require("../packages/database/src/queries/permissions.ts");
   await db.role.createMany({ data: [...ALL_ROLES, prefix].map(id => ({ id, nameEn: id, nameAr: id, isSystem: true })), skipDuplicates: true });
   // Compare against the previous algorithm using real Decimal/date/relation records.
@@ -210,7 +212,6 @@ async function main() {
   assert.equal(cashflow[0].revenue, 0);
   assert.deepEqual(await finance.getExpenseCategoryTotals(), { other: 20 });
   await assert.rejects(finance.getMonthlyCashflow(121), /Month count/);
-  await assert.rejects(getCompanySettings(), /settings are missing/);
   assert.equal(
     await permissions.hasPermission("admin", "invoices", "read"),
     false,
@@ -354,12 +355,12 @@ async function main() {
     finance.getFinancialSummary(),
     finance.getMonthlyCashflow(6),
   ]);
-  for (const query of queries) {
+  for (const [query, values] of queries) {
     if (!query.includes("WITH bounds") && !query.includes("WITH paid"))
       continue;
     const plan = await db.$queryRawUnsafe(
       `EXPLAIN (ANALYZE, FORMAT JSON) ${query}`,
-      ...(query.includes("$1") ? [6] : []),
+      ...values,
     );
     const detail = plan[0]["QUERY PLAN"][0];
     console.log(
@@ -432,6 +433,7 @@ main()
     await db.expense.deleteMany({ where: { descriptionEn: prefix } });
     await db.permission.deleteMany({ where: { role: prefix } });
     await db.role.deleteMany({ where: { id: prefix } });
+    await db.companySetting.deleteMany({ where: { companyNameEn: prefix } });
     await db.$disconnect();
   })
   .catch((e) => {

@@ -7,10 +7,7 @@ const { db } = require("../packages/database/src/db.ts");
 const { transactionContext } = require("../packages/database/src/transaction-context.ts");
 const sig = require("../packages/database/src/queries/signature-changes.ts");
 const { submitForApproval, decideApprovalRequest } = require("../packages/database/src/services/approval-engine.ts");
-const { storeFileBytes, uploadRoot } = require("../packages/database/src/services/uploads.ts");
-const fs = require("node:fs");
-const path = require("node:path");
-const written = [];
+const { fixtureUpload, removeFixtureUploads } = require("./lib/upload-fixtures.cjs");
 const { SAMPLE_RECEIPT_JPEG } = require("../packages/database/src/services/sample-files.ts");
 // A real 1x1 PNG: uploads are checked against the stored bytes when claimed.
 const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==", "base64");
@@ -25,13 +22,8 @@ async function main() {
       const stamp = Date.now();
       const manager = await tx.user.create({ data: { email: `mgr-${stamp}@sig.test`, fullName: "Sig Manager", passwordHash: "x", role: "operations_manager" } });
       const user = await tx.user.create({ data: { email: `usr-${stamp}@sig.test`, fullName: "Sig User", passwordHash: "x", role: "project_lead", managerId: manager.id, signatureUrl: "/api/files/general/old_sig.png" } });
-      const upload = async (name, owner = user.id, mimeType = "image/png") => {
-        const bytes = mimeType === "image/png" ? PNG : SAMPLE_RECEIPT_JPEG;
-        const fileUrl = `/api/files/general/${name}_${stamp}.png`;
-        await storeFileBytes(fileUrl, bytes, mimeType);
-        written.push(fileUrl);
-        return tx.uploadObject.create({ data: { fileUrl, ownerId: owner, fileName: "signature.png", fileSize: bytes.length, mimeType, expiresAt: new Date(Date.now() + 3600000) } });
-      };
+      const upload = (name, owner = user.id, mimeType = "image/png") =>
+        fixtureUpload(owner, { fileName: `${name}.png`, mimeType, bytes: mimeType === "image/png" ? PNG : SAMPLE_RECEIPT_JPEG });
 
       const jpeg = await upload("jpeg", user.id, "image/jpeg");
       await assert.rejects(sig.requestSignatureChange(user.id, jpeg.fileUrl), /Draw your signature/);
@@ -75,8 +67,8 @@ async function main() {
 }
 main()
   .catch((error) => { console.error(error); process.exitCode = 1; })
-  .finally(() => {
+  .finally(async () => {
     // The rows were rolled back; remove the test files too.
-    for (const url of written) fs.rmSync(path.join(uploadRoot(), url.slice("/api/files/".length)), { force: true });
-    return db.$disconnect();
+    await removeFixtureUploads();
+    await db.$disconnect();
   });

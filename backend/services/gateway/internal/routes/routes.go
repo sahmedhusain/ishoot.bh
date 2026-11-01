@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/labstack/gommon/bytes"
 	"go.yaml.in/yaml/v3"
 
 	"platform.local/backend/pkg/authn"
@@ -21,8 +22,10 @@ const Public = "public"
 
 // Table is the parsed routes file.
 type Table struct {
-	RateLimits map[string]RateLimit `yaml:"rateLimits"`
-	Routes     []Route              `yaml:"routes"`
+	// DefaultBodyLimit applies to routes without their own (e.g. "1M"); HTTP_BODY_LIMIT is the hard ceiling.
+	DefaultBodyLimit string               `yaml:"defaultBodyLimit"`
+	RateLimits       map[string]RateLimit `yaml:"rateLimits"`
+	Routes           []Route              `yaml:"routes"`
 }
 
 // RateLimit is a named rule in the routes file.
@@ -40,6 +43,15 @@ type Route struct {
 	Realms      []string `yaml:"realms"`
 	StripPrefix bool     `yaml:"stripPrefix"`
 	RateLimit   string   `yaml:"rateLimit"`
+	BodyLimit   string   `yaml:"bodyLimit"`
+}
+
+// BodyLimit returns the route's request body limit.
+func (t Table) BodyLimit(route Route) string {
+	if route.BodyLimit != "" {
+		return route.BodyLimit
+	}
+	return t.DefaultBodyLimit
 }
 
 // IsPublic reports whether the route admits callers without a token.
@@ -93,6 +105,9 @@ func Parse(body []byte, upstreams map[string]string) (Table, error) {
 }
 
 func (t Table) validate(upstreams map[string]string) error {
+	if _, err := bytes.Parse(t.DefaultBodyLimit); err != nil || t.DefaultBodyLimit == "" {
+		return fmt.Errorf("routes: defaultBodyLimit %q must be a size such as 1M", t.DefaultBodyLimit)
+	}
 	for name, limit := range t.RateLimits {
 		rule := ratelimit.Rule{Name: name, Requests: limit.Requests, Window: limit.Window, Burst: limit.Burst}
 		if err := rule.Validate(); err != nil {
@@ -116,6 +131,9 @@ func (t Table) validate(upstreams map[string]string) error {
 			return fmt.Errorf("routes: %s: a public route cannot also list realms", r.Name)
 		case r.RateLimit == "":
 			return fmt.Errorf("routes: %s: every route needs a rate limit", r.Name)
+		}
+		if _, err := bytes.Parse(t.BodyLimit(r)); err != nil {
+			return fmt.Errorf("routes: %s: bodyLimit %q must be a size such as 11M", r.Name, r.BodyLimit)
 		}
 		if _, ok := t.RateLimits[r.RateLimit]; !ok {
 			return fmt.Errorf("routes: %s: unknown rate limit %q", r.Name, r.RateLimit)

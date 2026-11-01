@@ -2,6 +2,7 @@ import { isCountryCode } from "../constants/clients";
 import { normalizeContactInput } from "./contact-validation";
 import { formatPhoneE164, countryIso } from "../constants/phone";
 import { serverMessages } from "@platform/locales";
+import { lookupFile, lookupFiles } from "@platform/api-client";
 import { assertSupportedCurrency } from "../constants/finance";
 import {
   isFontMimeType,
@@ -160,12 +161,26 @@ async function updateCompanySettingsInTransaction(
   );
   const updates = mirrorBilingual(input, languages);
   if (updates.country?.trim()) {
-    const country = countryIso(updates.country) ?? updates.country.trim().toUpperCase();
-    if (!isCountryCode(country)) throw new Error(serverMessages.chooseACountryFromTheList);
+    const country =
+      countryIso(updates.country) ?? updates.country.trim().toUpperCase();
+    if (!isCountryCode(country))
+      throw new Error(serverMessages.chooseACountryFromTheList);
     updates.country = country;
   }
-  if (updates.vat_percentage !== undefined && (!Number.isFinite(updates.vat_percentage) || updates.vat_percentage < 0 || updates.vat_percentage > 100)) throw new Error(serverMessages.invalidInput);
-  if (updates.payment_terms_days !== undefined && (!Number.isInteger(updates.payment_terms_days) || updates.payment_terms_days < 0 || updates.payment_terms_days > 365)) throw new Error(serverMessages.paymentTermsMustBeBetween0);
+  if (
+    updates.vat_percentage !== undefined &&
+    (!Number.isFinite(updates.vat_percentage) ||
+      updates.vat_percentage < 0 ||
+      updates.vat_percentage > 100)
+  )
+    throw new Error(serverMessages.invalidInput);
+  if (
+    updates.payment_terms_days !== undefined &&
+    (!Number.isInteger(updates.payment_terms_days) ||
+      updates.payment_terms_days < 0 ||
+      updates.payment_terms_days > 365)
+  )
+    throw new Error(serverMessages.paymentTermsMustBeBetween0);
   if (updates.company_name_en !== undefined && !updates.company_name_en.trim())
     throw new Error(serverMessages.companyEnglishNameIsRequired);
   if (updates.company_name_ar !== undefined && !updates.company_name_ar.trim())
@@ -182,15 +197,57 @@ async function updateCompanySettingsInTransaction(
     throw new Error(serverMessages.theDiscountLimitMustBeBetween0);
   await db.$queryRaw`SELECT id FROM "CompanySetting" WHERE singleton = 1 FOR UPDATE`;
   const current = await getCompanySettings();
-  if (updates.default_currency && updates.default_currency !== current.default_currency) {
-    const counts = await Promise.all([db.invoice.count(), db.quotation.count(), db.payment.count(), db.expense.count(), db.payrollRun.count(), db.salesOrder.count(), db.purchaseOrder.count(), db.expenseClaim.count(), db.recurringExpense.count(), db.finalSettlement.count(), db.crmDeal.count(), db.asset.count(), db.product.count({ where: { OR: [{ price: { gt: 0 } }, { cost: { gt: 0 } }] } }), db.productVariant.count({ where: { OR: [{ price: { gt: 0 } }, { cost: { gt: 0 } }] } }), db.portfolioItem.count({ where: { price: { gt: 0 } } }), db.service.count({ where: { defaultRate: { gt: 0 } } }), db.employmentRecord.count({ where: { OR: [{ basicSalary: { gt: 0 } }, { housingAllowance: { gt: 0 } }, { transportAllowance: { gt: 0 } }, { otherAllowances: { gt: 0 } }] } })]);
-    if (counts.some((count) => count > 0)) throw new Error(serverMessages.companyCurrencyLocked);
+  if (
+    updates.default_currency &&
+    updates.default_currency !== current.default_currency
+  ) {
+    const counts = await Promise.all([
+      db.invoice.count(),
+      db.quotation.count(),
+      db.payment.count(),
+      db.expense.count(),
+      db.payrollRun.count(),
+      db.salesOrder.count(),
+      db.purchaseOrder.count(),
+      db.expenseClaim.count(),
+      db.recurringExpense.count(),
+      db.finalSettlement.count(),
+      db.crmDeal.count(),
+      db.asset.count(),
+      db.product.count({
+        where: { OR: [{ price: { gt: 0 } }, { cost: { gt: 0 } }] },
+      }),
+      db.productVariant.count({
+        where: { OR: [{ price: { gt: 0 } }, { cost: { gt: 0 } }] },
+      }),
+      db.portfolioItem.count({ where: { price: { gt: 0 } } }),
+      db.service.count({ where: { defaultRate: { gt: 0 } } }),
+      db.employmentRecord.count({
+        where: {
+          OR: [
+            { basicSalary: { gt: 0 } },
+            { housingAllowance: { gt: 0 } },
+            { transportAllowance: { gt: 0 } },
+            { otherAllowances: { gt: 0 } },
+          ],
+        },
+      }),
+    ]);
+    if (counts.some((count) => count > 0))
+      throw new Error(serverMessages.companyCurrencyLocked);
   }
-  const contact = await normalizeContactInput({ email: updates.email, phone: updates.phone }, updates.country ?? current.country);
+  const contact = await normalizeContactInput(
+    { email: updates.email, phone: updates.phone },
+    updates.country ?? current.country,
+  );
   updates.email = contact.email;
   updates.phone = contact.phone;
   if (updates.whatsapp_phone?.trim()) {
-    const phone = formatPhoneE164(updates.whatsapp_phone, undefined, updates.country ?? current.country ?? "");
+    const phone = formatPhoneE164(
+      updates.whatsapp_phone,
+      undefined,
+      updates.country ?? current.country ?? "",
+    );
     if (!phone) throw new Error(serverMessages.invalidPhoneNumber);
     updates.whatsapp_phone = phone;
   }
@@ -218,10 +275,7 @@ async function updateCompanySettingsInTransaction(
   ] as const) {
     const value = updates[field];
     if (value && value !== current[field] && value.startsWith("/api/files/")) {
-      const upload = await db.uploadObject.findUnique({
-        where: { fileUrl: value },
-        select: { isPublic: true },
-      });
+      const upload = await lookupFile(value);
       const asset = await db.attachment.findFirst({
         where: { fileUrl: value, entityType: "company_asset" },
         select: { id: true },
@@ -253,7 +307,9 @@ async function updateCompanySettingsInTransaction(
       vatPercentage: updates.vat_percentage,
       vatCertificateUrl: updates.vat_certificate_url,
       defaultCurrency: updates.default_currency,
-      currencyDecimals: getCurrencyDecimals(updates.default_currency ?? current.default_currency),
+      currencyDecimals: getCurrencyDecimals(
+        updates.default_currency ?? current.default_currency,
+      ),
       addressEn: updates.address_en,
       addressAr: updates.address_ar,
       phone: updates.phone,
@@ -364,10 +420,9 @@ export async function updateCompanyTheme(
   const theme = normalizeTheme(input);
   for (const font of [theme.fonts.body, theme.fonts.heading]) {
     if (font.kind !== "upload") continue;
-    const uploads = await db.uploadObject.findMany({
-      where: { fileUrl: { in: font.files.map((f) => f.url) } },
-      select: { isPublic: true, mimeType: true },
-    });
+    const uploads = await lookupFiles(
+      Array.from(new Set(font.files.map((f) => f.url))),
+    );
     if (
       uploads.length !== new Set(font.files.map((f) => f.url)).size ||
       uploads.some((u) => !u.isPublic || !isFontMimeType(u.mimeType))
@@ -390,6 +445,8 @@ export async function completeCompanySetup(): Promise<CompanySettings> {
   return mapSettings(settings);
 }
 
-export async function updateCompanySettings(input: Partial<CompanySettings>): Promise<CompanySettings> {
+export async function updateCompanySettings(
+  input: Partial<CompanySettings>,
+): Promise<CompanySettings> {
   return runAtomicMutation(() => updateCompanySettingsInTransaction(input));
 }

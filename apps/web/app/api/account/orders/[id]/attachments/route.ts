@@ -1,7 +1,6 @@
 import { isWebsitePreview } from "../../../../../../lib/website";
-import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { consumeAbuseLimit, db, storeFileBytes } from "@platform/database";
+import { consumeAbuseLimit, db } from "@platform/database";
 import {
   accountsEnabled,
   currentCustomer,
@@ -9,7 +8,7 @@ import {
   jsonError,
 } from "../../../../../../lib/customer";
 import {
-  readPrivateUpload,
+  storePrivateUpload,
   discardPrivateUpload,
 } from "../../../../../../lib/private-upload";
 import { getSite } from "../../../../../../lib/site";
@@ -46,15 +45,9 @@ export async function POST(
   } catch (error) {
     return jsonError(error);
   }
-  const file = await readPrivateUpload(req);
+  const file = await storePrivateUpload(req, "customer");
   if (file instanceof Response) return file;
-  const { bytes, type, extension, size, fileName } = file;
-  const fileUrl = `/api/files/general/customer_${randomUUID()}.${extension}`;
-  try {
-    await storeFileBytes(fileUrl, bytes, type!, false);
-  } catch {
-    return NextResponse.json({ error: "generic" }, { status: 503 });
-  }
+  const { fileUrl, fileName, fileSize, mimeType } = file;
   try {
     const attachment = await db.$transaction(async (tx) => {
       // Serialize the per-order quota so parallel uploads cannot exceed it.
@@ -77,8 +70,8 @@ export async function POST(
           entityId: id,
           fileUrl,
           fileName,
-          fileSize: size,
-          mimeType: type!,
+          fileSize,
+          mimeType,
         },
         select: { id: true },
       });

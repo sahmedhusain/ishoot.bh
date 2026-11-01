@@ -1,11 +1,9 @@
 import { Font } from "@react-pdf/renderer";
-import path from "path";
-import {
-  generateDownloadUrl,
-  isSupabaseStorageConfigured,
-  uploadRoot,
-  uploadStorageLocation,
-} from "@platform/database";
+import { createHash } from "node:crypto";
+import { mkdir, stat, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { readFileBytes } from "@platform/api-client";
 import {
   FONT_LIBRARY,
   type BrandTheme,
@@ -26,12 +24,23 @@ const nearest = (files: { weight: number; url: string }[], weight: number) =>
     (a, b) => Math.abs(a.weight - weight) - Math.abs(b.weight - weight),
   )[0];
 
+/**
+ * The renderer loads fonts from a path, so an uploaded font is copied once to a temporary folder. Uploaded files
+ * never change under the same address, so the copy never goes stale.
+ */
 async function uploadedFontSource(url: string) {
-  if (isSupabaseStorageConfigured()) {
-    const location = uploadStorageLocation(url, true);
-    return generateDownloadUrl(location.bucket, location.path, 600);
-  }
-  return path.join(uploadRoot(), url.slice("/api/files/".length));
+  const extension = path.extname(url);
+  const target = path.join(
+    tmpdir(),
+    "platform-pdf-fonts",
+    createHash("sha256").update(url).digest("hex") + extension,
+  );
+  if (await stat(target).then(() => true, () => false)) return target;
+  const bytes = await readFileBytes(url);
+  if (!bytes) return null;
+  await mkdir(path.dirname(target), { recursive: true });
+  await writeFile(target, bytes);
+  return target;
 }
 
 /** Google serves complete TrueType files (Arabic and Latin together) to non-browser clients. */
@@ -64,10 +73,9 @@ async function fontSources(
   font: FontChoice,
 ): Promise<{ regular: string; bold: string } | null> {
   if (font.kind === "upload") {
-    return {
-      regular: await uploadedFontSource(nearest(font.files, 400).url),
-      bold: await uploadedFontSource(nearest(font.files, 700).url),
-    };
+    const regular = await uploadedFontSource(nearest(font.files, 400).url);
+    const bold = await uploadedFontSource(nearest(font.files, 700).url);
+    return regular && bold ? { regular, bold } : null;
   }
   if (font.kind === "google") {
     const sources = await googleFontSources(font.family);

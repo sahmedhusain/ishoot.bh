@@ -3,16 +3,17 @@
 ## Local stack
 
 `docker-compose.yml` at the repository root. Everything binds to 127.0.0.1. Values come from `.env`; `./run.sh env sync` adds
-the backend variables and generates their secrets.
+the backend variables. Run `./run.sh env secrets` separately to generate missing secrets and service keys.
 
 | Command                                        | Starts                                                           |
 | ---------------------------------------------- | ---------------------------------------------------------------- |
-| `docker compose up -d --build`                 | Postgres 17 (with `pg_stat_statements`), Valkey, the gateway     |
+| `docker compose up -d --build`                 | Postgres 17, Valkey, SeaweedFS, files API/worker, gateway        |
 | `docker compose --profile observability up -d` | OpenTelemetry Collector, Prometheus, Loki, Tempo, Alloy, Grafana |
 | `docker compose --profile tools up -d`         | pgAdmin                                                          |
 
 The compose Postgres uses the volume `pgdata17`, which is separate from the one older versions of this file created.
-The Next.js apps keep using the Supabase stack until phase 2.
+The Next.js apps use this Postgres through Prisma for unmigrated domains. Files use the Go service and S3.
+See [DATA-MIGRATION](DATA-MIGRATION.md) before moving an existing installation.
 
 Default ports (all can be changed in `.env`):
 
@@ -22,6 +23,8 @@ Default ports (all can be changed in `.env`):
 | 6379 | Valkey        |
 | 8080 | gateway       |
 | 9080 | gateway admin |
+| 9081 | files admin   |
+| 8333 | SeaweedFS S3  |
 | 3300 | Grafana       |
 | 9091 | Prometheus    |
 

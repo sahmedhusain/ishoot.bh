@@ -57,3 +57,8 @@ tests/.results/
 # Database dumps from ./run.sh db backup
 backups/
 .next-material-check/
+.local/
+
+# Retained local Supabase runtime data after removing its tracked configuration.
+supabase/.temp/
+supabase/.branches/

@@ -27,15 +27,15 @@ Browser ─▶ apps/web · apps/admin · apps/it   (Next.js: UI, cookies, server
 
 ## Migration status
 
-| Phase | Scope                                                                                 | Status   |
-| ----- | ------------------------------------------------------------------------------------- | -------- |
-| 1     | Shared kit, catalogue, gateway, local stack, CI, Helm, docs                           | **Done** |
-| 2     | `files` on S3-compatible storage; Supabase removed                                    | Next     |
-| 3     | `identity` (staff, customer and IT realms)                                            | Planned  |
-| 4     | `system`, `audit`, `notify` and the IT dashboard (`apps/it`)                          | Planned  |
-| 5     | `itsm` and IT support in the admin app                                                | Planned  |
-| 6     | Domain waves: cms → sales → finance → workflow → hr → inventory → commerce → delivery | Planned  |
-| 7     | Retire Prisma, the cron route and the Node workers                                    | Planned  |
+| Phase | Scope                                                                                 | Status       |
+| ----- | ------------------------------------------------------------------------------------- | ------------ |
+| 1     | Shared kit, catalogue, gateway, local stack, CI, Helm, docs                           | **Done**     |
+| 2     | `files` on S3-compatible storage; Supabase removed                                    | Verification |
+| 3     | `identity` (staff, customer and IT realms)                                            | Planned      |
+| 4     | `system`, `audit`, `notify` and the IT dashboard (`apps/it`)                          | Planned      |
+| 5     | `itsm` and IT support in the admin app                                                | Planned      |
+| 6     | Domain waves: cms → sales → finance → workflow → hr → inventory → commerce → delivery | Planned      |
+| 7     | Retire Prisma, the cron route and the Node workers                                    | Planned      |
 
 Until a domain moves, the Next.js apps keep using `packages/database` (Prisma) for it, as described in
 [../ARCHITECTURE.md](../ARCHITECTURE.md).
@@ -48,3 +48,5 @@ Until a domain moves, the Next.js apps keep using `packages/database` (Prisma) f
 3. The service verifies the token again, checks the permission against the catalogue and the stored grants, and runs
    the use case in one database transaction, writing any events to its outbox.
 4. Errors come back as RFC 9457 problem details with a stable `code`, which the apps translate.
+
+Phase 2 authenticates app servers with short-lived service tokens ([ADR 0011](../adr/0011-service-authentication.md)). Apps still enforce user permissions. Files are streamed through same-origin app routes; S3 buckets stay private. Attachment business records remain in Prisma. Claims now cross a service boundary and are not rolled back with a failed Prisma transaction. Identity, per-service database roles and cross-service sagas remain later work.

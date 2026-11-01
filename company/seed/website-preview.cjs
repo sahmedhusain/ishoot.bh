@@ -37,7 +37,7 @@ async function main() {
   // Preview images come from the neutral demo profile.
   const profile = loadCompanyProfile("demo");
   const banners = [];
-  for (let i = 1; i <= 3; i++) banners.push(await importProfileFile(db, profile, `media/banners/banner-0${i}.jpg`, admin.id));
+  for (let i = 1; i <= 3; i++) banners.push(await importProfileFile(profile, `media/banners/banner-0${i}.jpg`, admin.id));
   await db.heroBanner.upsert({
     where: { id: "preview-banner" },
     update: {},

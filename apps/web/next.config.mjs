@@ -16,7 +16,7 @@ const origin = (value) => {
 // The admin's live preview frames the website; nothing else may.
 const adminOrigin = origin(process.env.NEXT_PUBLIC_ADMIN_URL || process.env.ADMIN_URL);
 const securityHeaders = [
-  { key: "Content-Security-Policy", value: `frame-ancestors 'self' ${adminOrigin}`.trim() },
+  { key: "Content-Security-Policy", value: `frame-ancestors 'self' ${[adminOrigin, ...(process.env.ADMIN_PREVIEW_ORIGINS || "").split(",").map(origin)].filter(Boolean).join(" ")}`.trim() },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   ...(process.env.NODE_ENV === "production"
@@ -31,8 +31,10 @@ const nextConfig = {
   reactStrictMode: true,
   distDir: process.env.NEXT_DIST_DIR || ".next",
   devIndicators: process.env.NEXT_DIST_DIR?.startsWith(".next-e2e") ? false : undefined,
-  serverExternalPackages: ['@supabase/supabase-js', 'libphonenumber-js'],
-  transpilePackages: ['@platform/ui', '@platform/database', '@platform/locales', '@platform/email', '@platform/config'],
+  serverExternalPackages: ['libphonenumber-js'],
+  transpilePackages: ['@platform/ui', '@platform/database', '@platform/locales', '@platform/email', '@platform/config', '@platform/api-client', '@platform/contracts'],
+  // Which service key this app signs its backend calls with (docs/adr/0011).
+  env: { SERVICE_CALLER: 'web' },
   experimental: {
     optimizePackageImports: ['lucide-react', '@platform/ui'],
     // The development-only Segment Explorer wraps pages in a node the server and the browser disagree on, which
@@ -43,7 +45,6 @@ const nextConfig = {
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com' },
       { protocol: 'https', hostname: 'assets.mixkit.co' },
-      { protocol: 'https', hostname: '**.supabase.co' },
     ],
   },
   async headers() {

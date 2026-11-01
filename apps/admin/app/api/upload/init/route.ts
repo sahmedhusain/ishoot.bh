@@ -1,24 +1,14 @@
-import {
-  serverTemplates,
-  formatMessage,
-  serverMessages,
-} from "@platform/locales";
+import { serverMessages } from "@platform/locales";
 
-import { measureOperation, db } from "@platform/database";
-import {
-  FONT_FILE_TYPES,
-  isFontMimeType,
-} from "@platform/database/constants/theme";
+import { measureOperation } from "@platform/database";
+import { isFontMimeType } from "@platform/database/constants/theme";
+import { isApiError, registerUpload } from "@platform/api-client";
+import { FILE_URL_PREFIX } from "@platform/contracts";
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "../../../../lib/auth";
 import { requireAttachmentAccess } from "../../../../lib/attachment-access";
-import { randomUUID } from "crypto";
-import {
-  getStorageClient,
-  isSupabaseStorageConfigured,
-} from "@platform/database";
+import { tooLargeMessage } from "../../../../lib/upload-errors";
 
-const maxUploadMb = 10;
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
@@ -59,28 +49,10 @@ export async function POST(req: NextRequest) {
           { error: serverMessages.runtimeInvalidUploadInput },
           { status: 400 },
         );
-      if (fileSize > maxUploadMb * 1024 * 1024)
-        return NextResponse.json(
-          {
-            error: formatMessage(serverTemplates.maximumFileSize, {
-              0: maxUploadMb,
-            }),
-          },
-          { status: 413 },
-        );
-      const extensions: Record<string, string> = {
-        "application/pdf": ".pdf",
-        "image/jpeg": ".jpg",
-        "image/png": ".png",
-        "image/webp": ".webp",
-      };
       // Brand fonts (woff2, woff, ttf, otf) are accepted only for the company theme, and are public like the logos.
+      // Which types each storage folder accepts is checked by the files service (contracts/catalog/files.json).
       const brandFont = entityType === "company_font";
-      if (
-        brandFont
-          ? !isFontMimeType(fileType)
-          : !Object.hasOwn(extensions, fileType)
-      )
+      if (brandFont !== isFontMimeType(fileType))
         return NextResponse.json(
           { error: serverMessages.runtimeUnsupportedFileType },
           { status: 415 },
@@ -115,69 +87,51 @@ export async function POST(req: NextRequest) {
             "icon_dark",
             "icon",
           ].includes(entityId)) ||
-        entityType === "cms_asset" || entityType === "cms_document";
-      if ((publicBrand && entityType !== "cms_document" && fileType === "application/pdf") || (entityType === "cms_document" && fileType !== "application/pdf"))
+        entityType === "cms_asset" ||
+        entityType === "cms_document";
+      if (
+        (publicBrand &&
+          entityType !== "cms_document" &&
+          fileType === "application/pdf") ||
+        (entityType === "cms_document" && fileType !== "application/pdf")
+      )
         return NextResponse.json(
           { error: serverMessages.runtimeBrandAssetsMustBeImages },
           { status: 415 },
         );
       if (publicBrand) subfolder = "brand";
 
-      const ext = isFontMimeType(fileType)
-        ? `.${FONT_FILE_TYPES[fileType].extension}`
-        : extensions[fileType];
-      const rawBase = fileName
-        .replace(/\.[^/.]+$/, "")
-        .replace(/[^a-zA-Z0-9_-]/g, "_")
-        .slice(0, 40);
-      const uniqueFileName = `${randomUUID()}_${rawBase}${ext}`;
-      const filePath = `${subfolder}/${uniqueFileName}`;
-      const bucket = publicBrand ? "public-assets" : "private-assets";
-
-      const fileUrl = `/api/files/${subfolder}/${uniqueFileName}`;
-      // Without Supabase Storage (local development), the browser sends the file to our own owner-checked endpoint.
-      let signed: { signedUrl: string; token: string | null };
-      if (isSupabaseStorageConfigured()) {
-        const { data, error } = await getStorageClient()
-          .storage.from(bucket)
-          .createSignedUploadUrl(filePath);
-        if (error) {
-          console.error("Upload init storage error:", error.message);
-          return NextResponse.json(
-            {
-              error:
-                serverMessages.runtimeFileStorageIsUnavailableTryAgainShortly,
-            },
-            { status: 503 },
-          );
-        }
-        signed = { signedUrl: data.signedUrl, token: data.token };
-      } else {
-        signed = {
-          signedUrl: `/api/upload/local/${subfolder}/${uniqueFileName}`,
-          token: null,
-        };
-      }
-      await db.uploadObject.create({
-        data: {
-          fileUrl,
+      let upload;
+      try {
+        upload = await registerUpload({
           ownerId: user.id,
-          fileName: fileName.slice(0, 200),
-          fileSize,
+          folder: subfolder,
+          fileName,
           mimeType: fileType,
-          isPublic: publicBrand,
-          expiresAt: new Date(Date.now() + 86400000),
-        },
-      });
+          fileSize,
+        });
+      } catch (error) {
+        if (isApiError(error, "unsupported_file_type"))
+          return NextResponse.json(
+            { error: serverMessages.runtimeUnsupportedFileType },
+            { status: 415 },
+          );
+        if (isApiError(error, "payload_too_large"))
+          return NextResponse.json(
+            { error: tooLargeMessage(error.extra.maxFileSize) },
+            { status: 413 },
+          );
+        throw error;
+      }
 
+      // The browser sends the bytes to our own owner-checked route, which streams them to the files service.
       return NextResponse.json({
         success: true,
-        signedUrl: signed.signedUrl,
-        fileUrl,
-        filePath,
-        token: signed.token,
-        bucket,
-        uniqueFileName,
+        signedUrl: upload.fileUrl.replace(
+          FILE_URL_PREFIX,
+          "/api/upload/content/",
+        ),
+        fileUrl: upload.fileUrl,
       });
     } catch (err: unknown) {
       console.error("Upload init error:", err);

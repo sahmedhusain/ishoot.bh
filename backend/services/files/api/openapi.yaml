@@ -1,0 +1,355 @@
+openapi: 3.1.0
+info:
+  title: Files service
+  version: 1.0.0
+  description: |
+    Stored files and the upload protocol (ADR 0009). Callers are the platform's apps and services, authenticated
+    with service tokens (ADR 0011). A caller acting for a signed-in user checks that user's permission first and
+    passes the user's ID as `ownerId`; this service enforces ownership of uploads.
+
+    A file is identified by its address, `/api/files/<folder>/<name>`, which other services store. Folders and the
+    file types they accept come from the shared catalogue (`contracts/catalog/files.json`).
+
+    Upload flow:
+    1. `POST /v1/files/uploads` reserves an address for a user's upload.
+    2. `PUT /v1/files/uploads/content` sends its bytes (exactly the declared size and type).
+    3. `POST /v1/files/uploads/verify` checks the stored bytes; `POST /v1/files/uploads/claim` also makes the file
+       permanent. Unclaimed uploads are deleted once they expire.
+servers:
+  - url: /
+security:
+  - serviceToken: []
+tags:
+  - name: uploads
+    description: Files users upload from the apps
+  - name: files
+    description: Reading, storing and deleting files
+paths:
+  /v1/files/uploads:
+    post:
+      tags: [uploads]
+      operationId: registerUpload
+      summary: Reserve an address for an upload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterUpload"
+      responses:
+        "201":
+          $ref: "#/components/responses/File"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/files/uploads/content:
+    put:
+      tags: [uploads]
+      operationId: writeUpload
+      summary: Send the bytes of a reserved upload
+      parameters:
+        - $ref: "#/components/parameters/FileUrl"
+        - $ref: "#/components/parameters/OwnerId"
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          $ref: "#/components/responses/File"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/files/uploads/verify:
+    post:
+      tags: [uploads]
+      operationId: verifyUpload
+      summary: Check that an upload is still the owner's and arrived intact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UploadRef"
+      responses:
+        "200":
+          $ref: "#/components/responses/File"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/files/uploads/claim:
+    post:
+      tags: [uploads]
+      operationId: claimUpload
+      summary: Verify an upload and make it permanent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClaimUpload"
+      responses:
+        "200":
+          $ref: "#/components/responses/File"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/files/records:
+    get:
+      tags: [files]
+      operationId: lookupFiles
+      summary: Records of the given files (missing ones are left out)
+      parameters:
+        - name: fileUrl
+          in: query
+          required: true
+          style: form
+          explode: true
+          schema:
+            type: array
+            minItems: 1
+            items:
+              type: string
+      responses:
+        "200":
+          description: The records found
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/File"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/files/content:
+    get:
+      tags: [files]
+      operationId: readFile
+      summary: A file's bytes
+      parameters:
+        - $ref: "#/components/parameters/FileUrl"
+      responses:
+        "200":
+          description: The file, with its own media type as Content-Type
+          headers:
+            X-File-Public:
+              description: Whether the file is in a public folder
+              schema:
+                type: boolean
+            X-File-Name:
+              description: The file's display name, percent-encoded
+              schema:
+                type: string
+          content:
+            "*/*":
+              schema:
+                type: string
+                format: binary
+        default:
+          $ref: "#/components/responses/Problem"
+    put:
+      tags: [files]
+      operationId: storeFile
+      summary: Store a file the platform keeps (seed data, generated documents, website visitors' attachments)
+      description: |
+        Give either `fileUrl` (a chosen address; the bytes must match its type) or `folder` and `namePrefix` (the
+        address is generated from the type detected in the bytes and returned).
+      parameters:
+        - name: fileUrl
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 300
+        - name: folder
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 40
+        - name: namePrefix
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: "^[a-z0-9_]{1,40}$"
+        - name: ownerId
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 64
+        - name: fileName
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 200
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "201":
+          $ref: "#/components/responses/File"
+        default:
+          $ref: "#/components/responses/Problem"
+    delete:
+      tags: [files]
+      operationId: deleteFile
+      summary: Delete a file and its record
+      parameters:
+        - $ref: "#/components/parameters/FileUrl"
+      responses:
+        "204":
+          description: Deleted
+        default:
+          $ref: "#/components/responses/Problem"
+components:
+  securitySchemes:
+    serviceToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    FileUrl:
+      name: fileUrl
+      in: query
+      required: true
+      schema:
+        type: string
+        maxLength: 300
+    OwnerId:
+      name: ownerId
+      in: query
+      required: true
+      schema:
+        type: string
+        maxLength: 64
+  responses:
+    File:
+      description: The file's record
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/File"
+    Problem:
+      description: |
+        An error (RFC 9457). Codes: `invalid_file_url`, `unsupported_file_type`, `payload_too_large`,
+        `file_not_found`, `upload_not_owned`, `upload_unavailable`, `file_content_mismatch`, `file_exists`,
+        `file_not_private`, `validation_failed`, `unauthenticated`.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+  schemas:
+    RegisterUpload:
+      type: object
+      additionalProperties: false
+      required: [ownerId, folder, fileName, mimeType, fileSize]
+      properties:
+        ownerId:
+          type: string
+          maxLength: 64
+        folder:
+          type: string
+          description: A folder key from the catalogue
+        fileName:
+          type: string
+          maxLength: 255
+        mimeType:
+          type: string
+        fileSize:
+          type: integer
+          format: int64
+          minimum: 1
+    UploadRef:
+      type: object
+      additionalProperties: false
+      required: [fileUrl, ownerId]
+      properties:
+        fileUrl:
+          type: string
+          maxLength: 300
+        ownerId:
+          type: string
+          maxLength: 64
+    ClaimUpload:
+      type: object
+      additionalProperties: false
+      required: [fileUrl, ownerId]
+      properties:
+        fileUrl:
+          type: string
+          maxLength: 300
+        ownerId:
+          type: string
+          maxLength: 64
+        requirePrivate:
+          type: boolean
+          description: Refuse files in public folders
+    File:
+      type: object
+      required: [id, fileUrl, fileName, fileSize, mimeType, isPublic, expiresAt, createdAt]
+      properties:
+        id:
+          type: string
+        fileUrl:
+          type: string
+        ownerId:
+          type: string
+        fileName:
+          type: string
+        fileSize:
+          type: integer
+          format: int64
+        mimeType:
+          type: string
+        isPublic:
+          type: boolean
+        claimedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    Problem:
+      type: object
+      required: [type, title, status, code]
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        code:
+          type: string
+        requestId:
+          type: string
+        extra:
+          type: object
+          description: "Details for some codes: payload_too_large carries maxFileSize (bytes)"
+        errors:
+          type: array
+          items:
+            type: object
+            required: [field, code]
+            properties:
+              field:
+                type: string
+              code:
+                type: string

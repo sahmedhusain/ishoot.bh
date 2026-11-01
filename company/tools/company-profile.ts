@@ -10,17 +10,13 @@ import fs from "node:fs";
 import path from "node:path";
 import type { Prisma, PrismaClient } from "@prisma/client";
 import {
-  FONT_FILE_TYPES,
   isFontMimeType,
   normalizeTheme,
   type BrandTheme,
   type FontChoice,
 } from "../../packages/database/src/constants/theme";
-import { detectFileType } from "../../packages/database/src/services/storage";
-import {
-  storeFileBytes,
-  workspaceRoot,
-} from "../../packages/database/src/services/uploads";
+import { detectFileType, extensionFor } from "../../contracts/src";
+import { storeFileBytes } from "../../packages/database/src/services/uploads";
 
 type Db = PrismaClient | Prisma.TransactionClient;
 
@@ -100,18 +96,10 @@ export interface CompanyProfile {
 }
 
 const PROFILE_NAME = /^[a-z0-9][a-z0-9-]{0,40}$/;
-const UPLOAD_EXT: Record<string, string> = {
-  "image/png": "png",
-  "image/jpeg": "jpg",
-  "image/webp": "webp",
-  "application/pdf": "pdf",
-  ...Object.fromEntries(
-    Object.entries(FONT_FILE_TYPES).map(([mime, t]) => [mime, t.extension]),
-  ),
-};
 
+/** company/profiles, found from this file so the admin server, seeds and scripts agree whatever their cwd. */
 function companyProfilesDir() {
-  return path.join(workspaceRoot(), "company", "profiles");
+  return path.resolve(__dirname, "..", "profiles");
 }
 
 /** The profile named by COMPANY_PROFILE, or the neutral demo profile. */
@@ -161,7 +149,6 @@ export function profileAssetPath(profile: CompanyProfile, relative: string) {
  * The name carries a content hash, so installing the same profile twice reuses the same file.
  */
 export async function importProfileFile(
-  db: Db,
   profile: CompanyProfile,
   relative: string,
   ownerId: string,
@@ -185,22 +172,10 @@ export async function importProfileFile(
     .update(bytes)
     .digest("hex")
     .slice(0, 12);
-  const fileUrl = `/api/files/${folder}/${stem}_${hash}.${UPLOAD_EXT[mimeType]}`;
-  const isPublic = folder === "brand";
-  await storeFileBytes(fileUrl, bytes, mimeType, isPublic);
-  await db.uploadObject.upsert({
-    where: { fileUrl },
-    update: {},
-    create: {
-      fileUrl,
-      ownerId,
-      fileName: path.basename(relative),
-      fileSize: bytes.length,
-      mimeType,
-      isPublic,
-      claimedAt: new Date(),
-      expiresAt: new Date("2999-12-31T00:00:00Z"),
-    },
+  const fileUrl = `/api/files/${folder}/${stem}_${hash}.${extensionFor(mimeType)}`;
+  await storeFileBytes(fileUrl, bytes, {
+    ownerId,
+    fileName: path.basename(relative),
   });
   return fileUrl;
 }
@@ -224,7 +199,7 @@ async function installTheme(
       files.push({
         weight: f.weight,
         url: f.file
-          ? await importProfileFile(db, profile, f.file, ownerId)
+          ? await importProfileFile(profile, f.file, ownerId)
           : String(f.url),
       });
     }
@@ -253,9 +228,7 @@ export async function installCompanyProfile(
     string,
   ][]) {
     if (!BRAND_SLOTS[slot] || !file) continue;
-    urls[BRAND_SLOTS[slot].field] = await importProfileFile(
-      db,
-      profile,
+    urls[BRAND_SLOTS[slot].field] = await importProfileFile(profile,
       file,
       ownerId,
     );
@@ -355,7 +328,7 @@ export async function remapLegacyPublicFiles(
         continue;
       }
       if (!uploaded.has(file))
-        uploaded.set(file, await importProfileFile(db, profile, file, ownerId));
+        uploaded.set(file, await importProfileFile(profile, file, ownerId));
       await db.$executeRawUnsafe(
         `UPDATE "${table}" SET "${column}" = $1 WHERE "${column}" = $2`,
         uploaded.get(file),

@@ -1,13 +1,6 @@
 import sharp from "sharp";
-import fs from "fs/promises";
-import { uploadRoot } from "@platform/database";
-import path from "path";
-import {
-  db,
-  getStorageClient,
-  uploadStorageLocation,
-  isSupabaseStorageConfigured,
-} from "@platform/database";
+import { readFileBytes } from "@platform/api-client";
+import { detectFileType } from "@platform/contracts";
 
 /** PDF images: empty margins are trimmed so a signature or stamp fills the box it is placed in. */
 async function printReady(buffer: Buffer): Promise<Buffer> {
@@ -45,41 +38,13 @@ export async function resolveConfiguredPdfAsset(
   if (!url || !url.startsWith("/api/files/")) return;
   if (/[?#\\\u0000]/.test(url)) return;
 
-  if (isSupabaseStorageConfigured()) {
-    try {
-      const upload = await db.uploadObject.findUnique({
-        where: { fileUrl: url },
-      });
-      if (!upload) return undefined;
-      const location = uploadStorageLocation(url, upload.isPublic);
-      const client = getStorageClient();
-      const { data, error } = await client.storage
-        .from(location.bucket)
-        .download(location.path);
-      if (!error && data) {
-        const buffer = Buffer.from(await data.arrayBuffer());
-        return printReady(buffer);
-      }
-    } catch (e) {
-      console.warn("Storage fetch failed", e);
-    }
-    return undefined;
-  }
-
-  // Local disk storage (development, single server)
-  const root = uploadRoot();
-  let target = path.resolve(root, url.slice("/api/files/".length));
-  if (!/\.(png|jpe?g|webp)$/i.test(target)) return;
   try {
-    const resolvedRoot = await fs.realpath(root);
-    target = await fs.realpath(target);
-    if (
-      !target.startsWith(resolvedRoot + path.sep) ||
-      !(await fs.stat(target)).isFile()
-    )
-      return;
-    return printReady(await fs.readFile(target));
-  } catch {
+    const bytes = await readFileBytes(url);
+    // Only images are drawn into PDFs.
+    if (!bytes || !detectFileType(bytes)?.startsWith("image/")) return;
+    return printReady(bytes);
+  } catch (error) {
+    console.warn("PDF asset fetch failed", error);
     return;
   }
 }

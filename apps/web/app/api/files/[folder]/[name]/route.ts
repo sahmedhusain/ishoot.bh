@@ -1,72 +1,42 @@
 import { getSite } from "../../../../../lib/site";
-import { measureOperation } from "@platform/database";
-import { FONT_UPLOAD_URL } from "@platform/database/constants/theme";
+import { lookupFile } from "@platform/api-client";
+import { FILE_URL_PREFIX } from "@platform/contracts";
+import { fileResponse, measureOperation } from "@platform/database";
 import { NextRequest, NextResponse } from "next/server";
-import { realpath, stat } from "node:fs/promises";
-import { createReadStream } from "node:fs";
-import { Readable } from "node:stream";
-import path from "node:path";
-import {
-  db,
-  uploadRoot,
-  generateDownloadUrl,
-  uploadStorageLocation,
-  isSupabaseStorageConfigured,
-} from "@platform/database";
+
+/** Public brand files and the website's published documents; nothing private is ever served here. */
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ folder: string; name: string }> },
 ) {
   return measureOperation("web:files/[folder]/[name]:GET", async () => {
     const { folder, name } = await params;
-    if (
-      folder !== "brand" ||
-      !(
-        /^[a-zA-Z0-9_-]+\.(pdf|png|jpg|jpeg|webp)$/.test(name) ||
-        FONT_UPLOAD_URL.test(`/api/files/brand/${name}`)
-      )
-    )
+    if (folder !== "brand" || !/^[a-zA-Z0-9_-]+\.[a-z0-9]+$/.test(name))
       return new NextResponse(null, { status: 404 });
-    const upload = await db.uploadObject.findUnique({
-      where: { fileUrl: `/api/files/${folder}/${name}` },
-      select: { isPublic: true, mimeType: true },
-    });
-    if (!upload?.isPublic) return new NextResponse(null, { status: 404 });
-    const document = upload.mimeType === "application/pdf";
-    if (document) {
-      const { config } = await getSite();
-      if (!config.commerce.capabilities.downloads || !config.documents?.some(doc => doc.url === `/api/files/${folder}/${name}`)) return new NextResponse(null, { status: 404 });
-    }
+    const fileUrl = `${FILE_URL_PREFIX}${folder}/${name}`;
     try {
-      if (isSupabaseStorageConfigured() && upload) {
-        const location = uploadStorageLocation(
-          `/api/files/${folder}/${name}`,
-          upload.isPublic,
-        );
-        const url = await generateDownloadUrl(location.bucket, location.path);
-        // Never cache redirects beyond the short lifetime of their signed URL.
-        return new NextResponse(null, {
-          status: 307,
-          headers: { Location: url, "Cache-Control": "private, no-store" },
-        });
+      const upload = await lookupFile(fileUrl);
+      if (!upload?.isPublic) return new NextResponse(null, { status: 404 });
+      const document = upload.mimeType === "application/pdf";
+      if (document) {
+        const { config } = await getSite();
+        if (
+          !config.commerce.capabilities.downloads ||
+          !config.documents?.some((doc) => doc.url === fileUrl)
+        )
+          return new NextResponse(null, { status: 404 });
       }
-      const root = await realpath(uploadRoot());
-      const target = await realpath(path.join(root, folder, name));
-      if (!target.startsWith(root + path.sep))
-        return new NextResponse(null, { status: 404 });
-      const info = await stat(target);
-      return new NextResponse(
-        Readable.toWeb(createReadStream(target)) as ReadableStream,
-        {
-          headers: {
-            "Content-Type": upload.mimeType,
-            "Content-Length": String(info.size),
-            "Cache-Control": document ? "private, no-store" : "public, max-age=31536000, immutable",
-            ...(document ? { "Content-Disposition": `attachment; filename="${name}"` } : {}),
-            "X-Content-Type-Options": "nosniff",
-          },
-        },
+      const response = await fileResponse(
+        upload,
+        document
+          ? {
+              download: true,
+              fileName: name,
+              cacheControl: "private, no-store",
+            }
+          : {},
       );
+      return response ?? new NextResponse(null, { status: 404 });
     } catch {
       return new NextResponse(null, { status: 404 });
     }

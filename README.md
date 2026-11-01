@@ -38,7 +38,7 @@ Prerequisites: Node 22 or newer, pnpm 12 and Docker.
 ./run.sh setup
 ```
 
-This installs dependencies, creates `.env` from [`.env.example`](.env.example) with generated secrets, starts the local Supabase stack (Postgres and storage) and builds the demo database. Set `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD` in `.env` (and the `service_role` key from `./run.sh services status`) when it asks, then:
+This installs dependencies, creates `.env` from [`.env.example`](.env.example) with generated secrets, starts the local Compose stack (Postgres 17, Valkey, SeaweedFS, files and gateway) and builds the demo database. Set `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD` in `.env` when it asks, then:
 
 ```bash
 ./run.sh dev
@@ -62,7 +62,7 @@ Admin: http://localhost:3001 · Website: http://localhost:3000.
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Getting started | `setup [--light\|--empty]` · `doctor` · `install` · `upgrade` (pull, install, new `.env` variables, migrate)                                                                                                                                                 |
 | Environment     | `env init` · `env sync` (adds new variables, keeps yours) · `env secrets` · `env check [--production]` · `env keys`                                                                                                                                          |
-| Local services  | `services up\|down\|restart\|status` (Supabase) · `services docker [up\|down\|logs]` (plain Postgres and pgAdmin)                                                                                                                                            |
+| Local services  | `services up\|down\|restart\|status` (Compose) · `services observability` (metrics and logs)                                                                                                                                                                 |
 | Database        | `db reset [--light\|--empty\|--profile <name>]` · `db migrate` · `db status` · `db new <name>` · `db generate` · `db seed` · `db bootstrap` · `db integrity` · `db studio` · `db psql` · `db backup` · `db restore <file>` · `db test-list` · `db test-drop` |
 | Development     | `dev [admin\|web]` · `build [--clean]` · `start [admin\|web]` · `lint` · `types` · `format` · `clean` · `kill-ports`                                                                                                                                         |
 | Tests           | `check` (everything CI's static job runs) · `test [unit\|checks]` · `test db` · `test e2e [playwright args]` · `test e2e:ui` · `test volume` · `test ci`                                                                                                     |

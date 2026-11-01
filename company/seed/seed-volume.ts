@@ -54,7 +54,7 @@ import {
   returnRequest,
 } from "../../packages/database/src/queries/inquiries";
 import { createLeaveRequest } from "../../packages/database/src/queries/leave";
-import { storeFileBytes } from "../../packages/database/src/services/uploads";
+import { registerUpload, writeUpload } from "../../packages/api-client/src";
 import { SAMPLE_RECEIPT_JPEG } from "../../packages/database/src/services/sample-files";
 import { createEmployee } from "../../packages/database/src/queries/hrms";
 import {
@@ -1890,19 +1890,15 @@ export async function seedVolume(
       const deal = chance(0.5) ? pick(deals) : null;
       const meeting =
         !deal && meetings.length && chance(0.35) ? pick(meetings) : null;
-      const fileUrl = `/api/files/general/seed_claim_${i}_${claimant.id.slice(0, 8)}.jpg`;
-      // A real (sample) receipt file, so the claim's receipt opens and passes upload verification.
-      await storeFileBytes(fileUrl, SAMPLE_RECEIPT_JPEG, "image/jpeg");
-      await prisma.uploadObject.create({
-        data: {
-          fileUrl,
-          ownerId: claimant.id,
-          fileName: `receipt-${i + 1}.jpg`,
-          fileSize: SAMPLE_RECEIPT_JPEG.length,
-          mimeType: "image/jpeg",
-          expiresAt: new Date(Date.now() + 86400000),
-        },
+      // A real (sample) receipt uploaded as the claimant, so the claim's receipt opens and passes verification.
+      const { fileUrl } = await registerUpload({
+        ownerId: claimant.id,
+        folder: "general",
+        fileName: `receipt-${i + 1}.jpg`,
+        mimeType: "image/jpeg",
+        fileSize: SAMPLE_RECEIPT_JPEG.length,
       });
+      await writeUpload(fileUrl, claimant.id, SAMPLE_RECEIPT_JPEG, SAMPLE_RECEIPT_JPEG.length);
       const claim = await createExpenseClaim(
         {
           amount: round3(int(3, 95) + rand()),

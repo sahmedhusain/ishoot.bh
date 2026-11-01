@@ -248,7 +248,7 @@ export async function createExpense(
         throw new Error(serverMessages.chooseAnActiveExpenseCategory);
     }
     const upload = expense.receipt_url
-      ? await claimUploadOrLink(db, expense.receipt_url, ownerId)
+      ? await claimUploadOrLink(expense.receipt_url, ownerId)
       : null;
     const created = await db.expense.create({
       data: {

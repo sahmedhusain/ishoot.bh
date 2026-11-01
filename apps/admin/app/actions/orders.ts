@@ -77,7 +77,7 @@ export async function recordOrderPaymentAction(
     // The customer's proof of a bank transfer (uploaded beforehand) is kept on the order as a private file.
     if (input.proofUrl) {
       await db.$transaction(async (tx) => {
-        const upload = await claimUpload(tx, input.proofUrl!, user.id);
+        const upload = await claimUpload(input.proofUrl!, user.id);
         await tx.attachment.create({
           data: {
             fileName: upload.fileName.slice(0, 200),

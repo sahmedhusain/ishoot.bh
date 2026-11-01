@@ -1,0 +1,157 @@
+{
+  "urlPrefix": "/api/files/",
+  "types": [
+    {
+      "mime": "application/pdf",
+      "extensions": ["pdf"],
+      "signatures": [
+        [
+          {
+            "offset": 0,
+            "hex": "25504446"
+          }
+        ]
+      ]
+    },
+    {
+      "mime": "image/png",
+      "extensions": ["png"],
+      "signatures": [
+        [
+          {
+            "offset": 0,
+            "hex": "89504e470d0a1a0a"
+          }
+        ]
+      ]
+    },
+    {
+      "mime": "image/jpeg",
+      "extensions": ["jpg", "jpeg"],
+      "signatures": [
+        [
+          {
+            "offset": 0,
+            "hex": "ffd8ff"
+          }
+        ]
+      ]
+    },
+    {
+      "mime": "image/webp",
+      "extensions": ["webp"],
+      "signatures": [
+        [
+          {
+            "offset": 0,
+            "hex": "52494646"
+          },
+          {
+            "offset": 8,
+            "hex": "57454250"
+          }
+        ]
+      ]
+    },
+    {
+      "mime": "font/woff2",
+      "extensions": ["woff2"],
+      "signatures": [
+        [
+          {
+            "offset": 0,
+            "hex": "774f4632"
+          }
+        ]
+      ]
+    },
+    {
+      "mime": "font/woff",
+      "extensions": ["woff"],
+      "signatures": [
+        [
+          {
+            "offset": 0,
+            "hex": "774f4646"
+          }
+        ]
+      ]
+    },
+    {
+      "mime": "font/ttf",
+      "extensions": ["ttf"],
+      "signatures": [
+        [
+          {
+            "offset": 0,
+            "hex": "00010000"
+          }
+        ],
+        [
+          {
+            "offset": 0,
+            "hex": "74727565"
+          }
+        ]
+      ]
+    },
+    {
+      "mime": "font/otf",
+      "extensions": ["otf"],
+      "signatures": [
+        [
+          {
+            "offset": 0,
+            "hex": "4f54544f"
+          }
+        ]
+      ]
+    }
+  ],
+  "folders": [
+    {
+      "key": "brand",
+      "public": true,
+      "types": [
+        "image/png",
+        "image/jpeg",
+        "image/webp",
+        "application/pdf",
+        "font/woff2",
+        "font/woff",
+        "font/ttf",
+        "font/otf"
+      ]
+    },
+    {
+      "key": "general",
+      "public": false,
+      "types": ["application/pdf", "image/png", "image/jpeg", "image/webp"]
+    },
+    {
+      "key": "payments",
+      "public": false,
+      "types": ["application/pdf", "image/png", "image/jpeg", "image/webp"]
+    },
+    {
+      "key": "invoices",
+      "public": false,
+      "types": ["application/pdf", "image/png", "image/jpeg", "image/webp"]
+    },
+    {
+      "key": "certificates",
+      "public": false,
+      "types": ["application/pdf", "image/png", "image/jpeg", "image/webp"]
+    },
+    {
+      "key": "vault",
+      "public": false,
+      "types": ["application/pdf", "image/png", "image/jpeg", "image/webp"]
+    },
+    {
+      "key": "deals",
+      "public": false,
+      "types": ["application/pdf", "image/png", "image/jpeg", "image/webp"]
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 # Local stack for the backend (docs/backend/OPERATIONS.md). Everything binds to 127.0.0.1.
-#   docker compose up -d                          Postgres, Valkey and the gateway
+#   docker compose up -d                          Postgres, Valkey, SeaweedFS (S3), the gateway and the services
 #   docker compose --profile observability up -d  + OpenTelemetry Collector, Prometheus, Loki, Tempo, Grafana
 #   docker compose --profile tools up -d          + pgAdmin
 # Values come from .env (see .env.example, "Backend" section).
@@ -17,6 +17,26 @@ x-service: &service
     OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
     OTEL_EXPORTER_OTLP_INSECURE: "true"
     ADMIN_ENABLE_PPROF: ${ADMIN_ENABLE_PPROF:-false}
+
+x-files: &files
+  <<: *service
+  build:
+    context: backend
+    args: { SERVICE: files }
+  image: platform/files:dev
+  environment:
+    <<: *service-env
+    SERVICE_NAME: files
+    HTTP_BODY_LIMIT: ${FILES_HTTP_BODY_LIMIT:-11M}
+    DATABASE_URL: postgres://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_LOG_QUERIES: ${DATABASE_LOG_QUERIES:-false}
+    S3_ENDPOINT: http://seaweedfs:8333
+    S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
+    S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
+    FILES_CREATE_BUCKETS: "true"
+    AUTH_SERVICE_KEYS_FILE: /config/service-keys.json
+  volumes:
+    - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/config/service-keys.json:ro
 
 services:
   postgres:
@@ -71,6 +91,50 @@ services:
     environment:
       VALKEY_PASSWORD: ${VALKEY_PASSWORD}
 
+  seaweedfs:
+    image: chrislusf/seaweedfs:4.51
+    restart: unless-stopped
+    command: ["server", "-s3", "-dir=/data", "-master.volumeSizeLimitMB=1024"]
+    environment:
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:?Set S3_ACCESS_KEY_ID in .env}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:?Set S3_SECRET_ACCESS_KEY in .env}
+    ports:
+      - "127.0.0.1:${S3_PORT:-8333}:8333"
+    volumes:
+      - s3data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:9333/cluster/status"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  files-migrate:
+    <<: *files
+    restart: "no"
+    command: ["migrate"]
+    healthcheck:
+      disable: true
+    ports: []
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  files:
+    <<: *files
+    command: ["serve"]
+    ports:
+      - "127.0.0.1:${FILES_ADMIN_PORT:-9081}:9090"
+    depends_on:
+      files-migrate: { condition: service_completed_successfully }
+      seaweedfs: { condition: service_healthy }
+
+  files-worker:
+    <<: *files
+    command: ["worker"]
+    ports: []
+    depends_on:
+      files-migrate: { condition: service_completed_successfully }
+      seaweedfs: { condition: service_healthy }
+
   gateway:
     <<: *service
     build:
@@ -82,18 +146,22 @@ services:
       SERVICE_NAME: gateway
       REDIS_URL: redis://:${VALKEY_PASSWORD}@valkey:6379/0
       GATEWAY_ROUTES_FILE: /config/routes.yaml
-      GATEWAY_UPSTREAMS: ${GATEWAY_UPSTREAMS:-}
+      GATEWAY_UPSTREAMS: ${GATEWAY_UPSTREAMS:-files=http://files:8080}
       HTTP_CORS_ORIGINS: ${GATEWAY_CORS_ORIGINS:-}
+      HTTP_BODY_LIMIT: ${GATEWAY_HTTP_BODY_LIMIT:-11M}
       HTTP_TRUSTED_PROXIES: ${GATEWAY_TRUSTED_PROXIES:-}
       AUTH_ISSUER: ${AUTH_ISSUER:-}
       AUTH_JWKS_URL: ${AUTH_JWKS_URL:-}
+      AUTH_SERVICE_KEYS_FILE: /keys/service-keys.json
     volumes:
-      - ./backend/services/gateway/config:/config:ro
+      - ./deploy/helm/platform/files/gateway:/config:ro
+      - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/keys/service-keys.json:ro
     ports:
       - "127.0.0.1:${GATEWAY_PORT:-8080}:8080"
       - "127.0.0.1:${GATEWAY_ADMIN_PORT:-9080}:9090"
     depends_on:
       valkey: { condition: service_healthy }
+      files: { condition: service_healthy }
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.120.0
@@ -168,3 +236,4 @@ services:
 
 volumes:
   pgdata17:
+  s3data:

@@ -16,6 +16,13 @@ async function main() {
   try {
     await db.$transaction((tx) => transactionContext.run(tx, async () => {
       const actor = await tx.user.findFirstOrThrow({ where: { role: "super_admin", isActive: true } });
+      // A complete, isolated employee keeps this check independent of demo onboarding records.
+      await tx.employee.updateMany({ data: { status: "suspended" } });
+      await require("../packages/database/src/queries/hrms.ts").createEmployee({
+        firstNameEn: "Pay", lastNameEn: "Lines", firstNameAr: "اختبار", lastNameAr: "رواتب",
+        jobTitleEn: "Tester", jobTitleAr: "اختبار", hireDate: new Date("2020-01-01"), basicSalary: 1000,
+        payrollSettings: { employee: { mode: "fixed", value: 0 }, employer: { mode: "fixed", value: 0 }, supports: [] },
+      }, actor.id);
       const year = 2198, month = 3, key = "2198-03";
       await tx.payrollRun.deleteMany({ where: { year } });
       const probe = await payroll.createPayrollRun(month, year, actor.id);

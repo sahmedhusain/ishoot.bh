@@ -175,7 +175,7 @@ export async function completeDeliveryAction(
       throw new Error(serverMessages.deliveryProofRequired);
     if (input.photoUrl) {
       await db.$transaction(async (tx) => {
-        const upload = await claimUpload(tx, input.photoUrl!, user.id);
+        const upload = await claimUpload(input.photoUrl!, user.id);
         await tx.attachment.create({
           data: {
             fileName: "delivery-photo",

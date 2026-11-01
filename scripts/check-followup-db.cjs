@@ -26,6 +26,7 @@ let actor, request, contact, savedWebsite;
 const publicationJobs = [];
 const ids = [];
 async function main() {
+  await db.companySetting.create({ data: { companyNameEn: prefix, companyNameAr: prefix, defaultCurrency: "BHD" } });
   actor = await db.user.create({
     data: {
       email: prefix + "@example.invalid",
@@ -315,11 +316,12 @@ async function main() {
     { compilerOptions: { module: 1, target: 9 } },
   ).outputText;
   const dependencies = {
+    "@platform/api-client": require("../packages/api-client/src/index.ts"),
     "node:crypto": require("node:crypto"),
-    "@platform/database": { db, ...websiteQueries, requireFeatureEnabled: async () => { }, measureOperation: async (_name, fn) => fn() },
+    "@platform/database": { db, runAtomicMutation: require("../packages/database/src/db.ts").runAtomicMutation, ...websiteQueries, requireFeatureEnabled: async () => { }, measureOperation: async (_name, fn) => fn() },
     "../../lib/action-input": require("../apps/admin/lib/action-input.ts"),
     "@platform/database/website-config": require("../packages/database/src/website-config.ts"),
-    "../../lib/auth": { requirePermission: async () => ({ id: actor.id }) },
+    "../../lib/auth": { hasPermission: async () => true, requirePermission: async () => ({ id: actor.id }) },
     "next/cache": { revalidatePath: () => { } },
     "../../lib/revalidate-web": { revalidatePublicSite: async () => false },
     "../../lib/public-paths": { publicSitePaths: async () => ["/"] },
@@ -414,5 +416,6 @@ main()
     });
     if (actor) await db.session.deleteMany({ where: { userId: actor.id } });
     if (actor) await db.user.delete({ where: { id: actor.id } });
+    await db.companySetting.deleteMany({ where: { companyNameEn: prefix } });
     await db.$disconnect();
   });

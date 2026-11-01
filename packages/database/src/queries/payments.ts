@@ -306,9 +306,7 @@ export async function createPayment(paymentData: {
       paymentData.proof_attachments.length > 0
     ) {
       for (const att of paymentData.proof_attachments) {
-        const upload = await claimUploadOrLink(
-          tx,
-          att.fileUrl,
+        const upload = await claimUploadOrLink(att.fileUrl,
           paymentData.created_by,
         );
         await tx.attachment.create({

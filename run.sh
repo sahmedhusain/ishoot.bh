@@ -49,31 +49,26 @@ is_local_db() {
   node -e 'const h=new URL(process.argv[1]).hostname;process.exit(["localhost","127.0.0.1","::1","[::1]"].includes(h)?0:1)' "$1"
 }
 
-# Runs a Postgres client tool: the installed one, else the Supabase database container, else a throwaway one.
+# Runs a Postgres client tool: the installed one, else the compose Postgres container, else a throwaway one.
 pg_tool() {
   local tool="$1"; shift
   if have "$tool"; then
     "$tool" "$@"
-  elif have docker && docker ps --format '{{.Names}}' 2>/dev/null | grep -q "^$(supabase_db_container)$"; then
-    # Inside the container the database is on its own port 5432.
+  elif have docker && [ -n "$(compose ps -q --status running postgres 2>/dev/null)" ]; then
+    # Inside the container the database listens on its own port 5432.
     local args=() a
-    for a in "$@"; do args+=("$(printf '%s' "$a" | sed -e 's#@127\.0\.0\.1:54322/#@127.0.0.1:5432/#' -e 's#@localhost:54322/#@127.0.0.1:5432/#')"); done
-    docker exec -i "$(supabase_db_container)" "$tool" "${args[@]}"
+    for a in "$@"; do args+=("$(printf '%s' "$a" | sed -E 's#@(127\.0\.0\.1|localhost):[0-9]+/#@127.0.0.1:5432/#')"); done
+    compose exec -T postgres "$tool" "${args[@]}"
   elif have docker; then
     local args=() a
     for a in "$@"; do args+=("$(printf '%s' "$a" | sed -e 's#@127\.0\.0\.1:#@host.docker.internal:#' -e 's#@localhost:#@host.docker.internal:#')"); done
-    docker run --rm -i postgres:15-alpine "$tool" "${args[@]}"
+    docker run --rm -i postgres:17-alpine "$tool" "${args[@]}"
   else
     die "$tool is not installed and Docker is not available (brew install libpq, or install Docker)."
   fi
 }
-supabase_db_container() {
-  local id
-  id="$(sed -n 's/^project_id *= *"\(.*\)"/\1/p' supabase/config.toml 2>/dev/null | head -1)"
-  echo "supabase_db_${id:-platform}"
-}
-SUPABASE_EXCLUDE="studio,postgres-meta,logflare,vector,supavisor,edge-runtime,realtime,imgproxy,mailpit"
-supabase() { pnpm dlx supabase "$@"; }
+# docker compose with the project's .env (docker-compose.yml: Postgres, Valkey, SeaweedFS, backend services).
+compose() { docker compose --env-file .env "$@"; }
 
 # ----------------------------------------------------------------------------------------------------------
 # help
@@ -94,12 +89,15 @@ ${BOLD}Environment (.env)${RESET}
   env secrets                      Generate any secret that is still empty
   env check [--production]         Validate .env (formats, required values, sandbox overrides)
   env keys                         List every variable as set / empty / missing / retired (no values shown)
+  env service-keys                 Write the apps' public service keys for the backend (.local/service-keys.json)
   env edit                         Open .env in \$EDITOR
 
 ${BOLD}Local services${RESET}
-  services up | down | restart     Local Supabase: Postgres on 54322, storage on 54321
-  services status                  Supabase status (local URLs and keys)
-  services docker [up|down|logs]   Plain Postgres and pgAdmin from docker-compose.yml instead
+  services up | down | restart     Local stack (docker-compose.yml): Postgres, Valkey, S3 storage, gateway, services
+  services status                  What is running, and each service's health
+  services logs [service]          Follow the logs (all services, or one)
+  services observability           Add Grafana, Prometheus, Loki and Tempo (http://localhost:3300)
+  services import-supabase         Move data and files from the old local Supabase stack (one-off)
 
 ${BOLD}Database${RESET}
   db reset [--light|--empty|--profile <name>] [--yes]   Fresh local database and files, seeded (local only)
@@ -190,9 +188,6 @@ cmd_setup() {
   fi
   if is_local_db "$DATABASE_URL"; then
     cmd_services up
-    if [ -z "${SUPABASE_SERVICE_ROLE_KEY:-}" ]; then
-      warn "Copy the service_role key from './run.sh services status' into SUPABASE_SERVICE_ROLE_KEY (until then files stay on disk)."
-    fi
   fi
   if [ -n "${SUPER_ADMIN_PASSWORD:-}" ]; then
     case "$mode" in
@@ -217,7 +212,7 @@ cmd_doctor() {
     [ "$major" -ge 22 ] || { warn "Node $major is older than 22"; failures=$((failures + 1)); }
   fi
   check_tool pnpm "corepack enable" required
-  check_tool docker "needed for local Supabase"
+  check_tool docker "needed for the local stack" required
   check_tool git
   check_tool psql "optional: brew install libpq"
   check_tool vercel "optional: only for ./run.sh deploy vercel"
@@ -263,10 +258,10 @@ cmd_upgrade() {
 cmd_env() {
   local sub="${1:-keys}"; shift || true
   case "$sub" in
-    init | sync | secrets | keys) node scripts/env-tool.cjs "$sub" "$@" ;;
+    init | sync | secrets | keys | service-keys) node scripts/env-tool.cjs "$sub" "$@" ;;
     check) node scripts/env-tool.cjs check "$@" ;;
     edit) [ -f .env ] || die ".env is missing. Run: ./run.sh env init"; "${EDITOR:-vi}" .env ;;
-    *) die "Unknown: env $sub (init, sync, secrets, check, keys, edit)" ;;
+    *) die "Unknown: env $sub (init, sync, secrets, check, keys, service-keys, edit)" ;;
   esac
 }
 
@@ -275,29 +270,60 @@ cmd_env() {
 # ----------------------------------------------------------------------------------------------------------
 cmd_services() {
   local sub="${1:-status}"; shift || true
+  [ -f .env ] || die ".env is missing. Run: ./run.sh env init"
+  have docker || die "Docker is needed for the local stack."
+  docker info >/dev/null 2>&1 || die "Docker is not running."
   case "$sub" in
     up | start)
-      have docker || die "Docker is needed for local Supabase."
-      docker info >/dev/null 2>&1 || die "Docker is not running."
-      step "Starting local Supabase"
-      supabase start -x "$SUPABASE_EXCLUDE"
+      node scripts/env-tool.cjs service-keys >/dev/null
+      step "Starting the local stack"
+      run compose up -d --build --wait
+      ok "Gateway on http://127.0.0.1:${GATEWAY_PORT:-8080}, Postgres on 127.0.0.1:${POSTGRES_PORT:-5432}, S3 on 127.0.0.1:${S3_PORT:-8333}"
       ;;
-    down | stop) step "Stopping local Supabase"; supabase stop ;;
-    restart) supabase stop || true; supabase start -x "$SUPABASE_EXCLUDE" ;;
-    status) supabase status ;;
-    docker)
-      local action="${1:-up}"
-      [ -f .env ] || die ".env is missing. Run: ./run.sh env init"
-      case "$action" in
-        up) run docker compose --env-file .env up -d db pgadmin; ok "Postgres on 127.0.0.1:${POSTGRES_PORT:-5432}, pgAdmin on http://localhost:${PGADMIN_PORT:-5050}"
-            warn "Point DATABASE_URL and DIRECT_URL at it and leave SUPABASE_URL empty to keep files on disk." ;;
-        down) run docker compose --env-file .env down ;;
-        logs) run docker compose --env-file .env logs -f ;;
-        *) die "services docker [up|down|logs]" ;;
-      esac
+    down | stop) step "Stopping the local stack"; run compose --profile observability --profile tools down ;;
+    restart) cmd_services down; cmd_services up ;;
+    status)
+      compose ps
+      for svc in gateway files; do
+        printf '%s: ' "$svc"; compose exec -T "$svc" /app healthcheck >/dev/null 2>&1 && echo ready || echo "not ready"
+      done
       ;;
-    *) die "Unknown: services $sub (up, down, restart, status, docker)" ;;
+    logs) run compose logs -f "$@" ;;
+    observability) run compose --profile observability up -d; ok "Grafana on http://localhost:${GRAFANA_PORT:-3300}" ;;
+    import-supabase) services_import_supabase "$@" ;;
+    *) die "Unknown: services $sub (up, down, restart, status, logs, observability, import-supabase)" ;;
   esac
+}
+
+# One-off move from the old local Supabase stack: copies its database into the compose Postgres and its stored
+# files into the new storage. Run it once, with the Supabase stack still running, before pointing .env at compose.
+services_import_supabase() {
+  local source_url="${1:-postgresql://postgres:postgres@127.0.0.1:54322/postgres}"
+  load_env
+  local target_url="postgresql://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD}@127.0.0.1:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-platform_db}"
+  confirm "Replace the compose database ${POSTGRES_DB:-platform_db} with a copy of $source_url?" || die "Cancelled."
+  cmd_services up
+  local dump; dump="$(mktemp -t platform-supabase-XXXXXX).dump"
+  step "Copying the database"
+  docker run --rm --network host postgres:17-alpine pg_dump --format=custom --no-owner --no-privileges --schema=public "$source_url" >"$dump"
+  docker run --rm -i --network host postgres:17-alpine pg_restore --clean --if-exists --no-owner --no-privileges --dbname="$target_url" <"$dump"
+  rm -f "$dump"
+  step "Moving uploads into the files schema"
+  DATABASE_URL="$target_url" DIRECT_URL="$target_url" run pnpm --filter @platform/database exec prisma migrate deploy --schema=prisma/schema.prisma
+  run compose run --rm files-migrate
+  step "Copying stored files"
+  warn "Supabase Storage's S3 keys are shown by: pnpm dlx supabase status (S3 Access Key / S3 Secret Key)."
+  printf 'Supabase S3 access key: '; read -r access
+  printf 'Supabase S3 secret key: '; read -rs secret; echo
+  (cd backend && DATABASE_URL="$target_url?sslmode=disable" S3_ENDPOINT="http://127.0.0.1:${S3_PORT:-8333}" \
+    S3_ACCESS_KEY_ID="$S3_ACCESS_KEY_ID" S3_SECRET_ACCESS_KEY="$S3_SECRET_ACCESS_KEY" \
+    go run ./tools/storage-copy -from-s3 http://127.0.0.1:54321/storage/v1/s3 -from-access-key "$access" -from-secret-key "$secret" -from-region local)
+  if [ -d apps/admin/private/uploads ]; then
+    (cd backend && DATABASE_URL="$target_url?sslmode=disable" S3_ENDPOINT="http://127.0.0.1:${S3_PORT:-8333}" \
+      S3_ACCESS_KEY_ID="$S3_ACCESS_KEY_ID" S3_SECRET_ACCESS_KEY="$S3_SECRET_ACCESS_KEY" \
+      go run ./tools/storage-copy -from-dir ../apps/admin/private/uploads)
+  fi
+  ok "Imported. Set DATABASE_URL and DIRECT_URL in .env to $target_url, then stop Supabase: pnpm dlx supabase stop"
 }
 
 # ----------------------------------------------------------------------------------------------------------
@@ -552,10 +578,12 @@ cmd_urls() {
   cat <<EOF
   Website           http://localhost:3000   (/en, /ar)
   Admin             http://localhost:3001
-  Supabase API      http://127.0.0.1:54321
-  Postgres          127.0.0.1:54322
+  Backend gateway   http://127.0.0.1:8080   (admin port 9080: /readyz, /metrics)
+  Postgres          127.0.0.1:5432
+  S3 storage        http://127.0.0.1:8333   (SeaweedFS)
+  Grafana           http://localhost:3300   (./run.sh services observability)
   Prisma Studio     http://localhost:5555   (./run.sh db studio)
-  pgAdmin           http://localhost:5050   (./run.sh services docker)
+  pgAdmin           http://localhost:5050   (docker compose --profile tools up -d)
   E2E test servers  admin 3101, website 3102, setup wizard 3103
 EOF
 }

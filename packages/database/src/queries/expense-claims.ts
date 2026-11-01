@@ -156,7 +156,7 @@ export async function createExpenseClaim(
       }))
     )
       throw new Error(serverMessages.meetingNotFound);
-    const upload = await claimUploadOrLink(db, input.receiptUrl, claimantId);
+    const upload = await claimUploadOrLink(input.receiptUrl, claimantId);
     const claim = await db.expenseClaim.create({
       data: {
         claimNumber: await getNextSequenceNumber("CLM", date.getUTCFullYear()),

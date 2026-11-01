@@ -6,8 +6,8 @@ if (url) { need(['postgres:', 'postgresql:'].includes(url.protocol), 'Use a Post
 need(Buffer.byteLength(process.env.JWT_SECRET || '') >= 32, 'JWT_SECRET must contain at least 32 UTF-8 bytes');
 need(Buffer.from(process.env.MFA_ENCRYPTION_KEY || '', 'base64').length === 32, 'Set a separate 32-byte base64 MFA_ENCRYPTION_KEY');
 need(!!process.env.REVALIDATION_SECRET, 'Configure REVALIDATION_SECRET in both apps and the worker');
-need(!!process.env.SUPABASE_URL, 'Configure SUPABASE_URL for server-side object storage');
-need(!!process.env.SUPABASE_SERVICE_ROLE_KEY, 'Configure SUPABASE_SERVICE_ROLE_KEY on the server only');
+need(!!process.env.API_URL, 'Configure API_URL (the backend gateway) for files and every backend service');
+need(!!process.env.ADMIN_SERVICE_KEY && !!process.env.WEB_SERVICE_KEY, 'Configure ADMIN_SERVICE_KEY and WEB_SERVICE_KEY (docs/adr/0011)');
 need(Buffer.byteLength(process.env.ENCRYPTION_KEY || '', 'utf8') === 32, 'Set a separate 32-byte ENCRYPTION_KEY for integrations');
 need(!!process.env.CRON_SECRET, 'Configure CRON_SECRET for authenticated maintenance');
 need(!process.env.TRUSTED_CLIENT_IP_HEADER || /^[a-z0-9-]{1,80}$/.test(process.env.TRUSTED_CLIENT_IP_HEADER), 'Trusted ingress header name is invalid');
@@ -22,7 +22,7 @@ async function finish() {
   } catch { failures.push('Could not validate mail settings; check database connectivity and the integration encryption key'); }
   finally { await db.$disconnect(); }
   for (const item of failures) console.error('FAIL: ' + item);
-  console.log(JSON.stringify({ checksFailed: failures.length, productionValidated: false, manualChecks: ['Total pool budget across apps, workers and replicas', 'Ingress must overwrite the trusted header and block backend bypass', 'Supabase buckets: private-assets is private; public-assets contains only public branding; enforce 10 MiB and allowed MIME types', 'Mail domain verification and provider delivery evidence', 'Shared cache invalidation, backup restore and worker alerts', 'App/database regions and measured production p95'] }));
+  console.log(JSON.stringify({ checksFailed: failures.length, productionValidated: false, manualChecks: ['Total pool budget across apps, workers and replicas', 'Ingress must overwrite the trusted header and block backend bypass', 'Object storage buckets are private to the files service; FILES_MAX_FILE_SIZE matches the gateway and ingress body limits', 'Mail domain verification and provider delivery evidence', 'Shared cache invalidation, backup restore and worker alerts', 'App/database regions and measured production p95'] }));
   if (failures.length) process.exitCode = 1;
 
 }

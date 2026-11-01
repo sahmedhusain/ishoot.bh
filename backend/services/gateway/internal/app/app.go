@@ -2,12 +2,14 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"sort"
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/httpx"
@@ -30,8 +32,8 @@ type Dependencies struct {
 
 // NewHandler builds the gateway's public HTTP handler from its configuration and route table.
 func NewHandler(cfg settings.Config, table routes.Table, deps Dependencies) (http.Handler, error) {
-	if err := cfg.Auth.ValidateFor(table.NeedsAuth()); err != nil {
-		return nil, err
+	if table.NeedsAuth() && (deps.Verifier == nil || !cfg.Auth.Configured()) {
+		return nil, fmt.Errorf("gateway: a route needs a token: set AUTH_ISSUER and AUTH_JWKS_URL, or AUTH_SERVICE_KEYS_FILE")
 	}
 	e, err := httpx.New(cfg.Common, deps.Logger, deps.Metrics)
 	if err != nil {
@@ -51,7 +53,7 @@ func NewHandler(cfg settings.Config, table routes.Table, deps Dependencies) (htt
 			Name: route.Name, Prefix: route.Prefix, Upstream: upstream, StripPrefix: route.StripPrefix,
 		}, deps.Transport, deps.Logger)
 
-		var chain []echo.MiddlewareFunc
+		chain := []echo.MiddlewareFunc{middleware.BodyLimit(table.BodyLimit(route))}
 		if !route.IsPublic() {
 			chain = append(chain, authn.Require(deps.Verifier, route.AuthRealms()...))
 		}

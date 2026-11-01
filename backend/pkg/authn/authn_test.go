@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -17,8 +19,12 @@ import (
 	"platform.local/backend/pkg/authn/authntest"
 )
 
-func verifier(s *authntest.Signer) *authn.Verifier {
-	return authn.NewVerifier(authn.StaticKeys{Set: s.Public}, authntest.Issuer, time.Second)
+func verifier(signers ...*authntest.Signer) *authn.Verifier {
+	trusts := make([]authn.Trust, 0, len(signers))
+	for _, s := range signers {
+		trusts = append(trusts, s.Trust())
+	}
+	return authn.NewVerifier(time.Second, trusts...)
 }
 
 func TestVerifyAcceptsAValidToken(t *testing.T) {
@@ -76,7 +82,7 @@ func TestRemoteKeysCachesAndRefreshesOnRotation(t *testing.T) {
 	defer srv.Close()
 
 	keys := authn.NewRemoteKeys(srv.URL, srv.Client(), time.Hour, 0)
-	v := authn.NewVerifier(keys, authntest.Issuer, time.Second)
+	v := authn.NewVerifier(time.Second, authn.Trust{Issuer: authntest.Issuer, Keys: keys, Realms: authn.UserRealms})
 
 	for range 3 {
 		_, err := v.Verify(context.Background(), first.Sign(t, authntest.Token{}), authn.RealmStaff)
@@ -125,4 +131,46 @@ func TestParseRealm(t *testing.T) {
 	assert.Equal(t, "platform:it", realm.Audience())
 	_, err = authn.ParseRealm("root")
 	assert.Error(t, err)
+}
+
+func TestServiceTokens(t *testing.T) {
+	user := authntest.NewSigner(t, "identity-1")
+	admin := authntest.NewServiceSigner(t, "admin")
+	v := verifier(user, admin)
+
+	p, err := v.Verify(context.Background(), admin.Sign(t, authntest.Token{Subject: "admin"}), authn.RealmService)
+	require.NoError(t, err)
+	assert.Equal(t, authn.RealmService, p.Realm)
+	assert.Equal(t, "admin", p.Subject)
+
+	_, err = v.Verify(context.Background(), admin.Sign(t, authntest.Token{Realm: authn.RealmStaff}), authn.RealmStaff)
+	assert.Error(t, err, "service keys cannot issue user tokens")
+
+	_, err = v.Verify(context.Background(), user.Sign(t, authntest.Token{Realm: authn.RealmService}), authn.RealmService)
+	assert.Error(t, err, "the identity service does not issue service tokens")
+
+	_, err = v.Verify(context.Background(), admin.Sign(t, authntest.Token{Issuer: "service:web"}), authn.RealmService)
+	assert.Error(t, err, "a caller cannot sign as another caller")
+
+	_, err = v.Verify(context.Background(), admin.Sign(t, authntest.Token{Issuer: "https://other.test"}), authn.RealmService)
+	assert.Error(t, err, "untrusted issuer")
+}
+
+func TestVerifierFromConfig(t *testing.T) {
+	admin := authntest.NewServiceSigner(t, "admin")
+	body, err := json.Marshal(admin.Public)
+	require.NoError(t, err)
+	file := filepath.Join(t.TempDir(), "keys.json")
+	require.NoError(t, os.WriteFile(file, body, 0o600))
+
+	cfg := authn.Config{ServiceKeysFile: file, ClockSkew: time.Second}
+	assert.True(t, cfg.Configured())
+	v, err := authn.NewVerifierFromConfig(cfg)
+	require.NoError(t, err)
+	_, err = v.Verify(context.Background(), admin.Sign(t, authntest.Token{Subject: "admin"}), authn.RealmService)
+	require.NoError(t, err)
+
+	_, err = authn.NewVerifierFromConfig(authn.Config{Issuer: "https://identity.test"})
+	assert.Error(t, err, "issuer without JWKS URL")
+	assert.False(t, authn.Config{}.Configured())
 }

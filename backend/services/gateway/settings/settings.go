@@ -3,9 +3,9 @@
 package settings
 
 import (
-	"fmt"
 	"time"
 
+	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/config"
 	"platform.local/backend/pkg/redisx"
 )
@@ -15,7 +15,7 @@ type Config struct {
 	config.Common
 	Redis   redisx.Config `envPrefix:"REDIS_"`
 	Gateway Gateway       `envPrefix:"GATEWAY_"`
-	Auth    Auth          `envPrefix:"AUTH_"`
+	Auth    authn.Config  `envPrefix:"AUTH_"`
 }
 
 // Gateway holds the routing settings.
@@ -29,22 +29,4 @@ type Gateway struct {
 	MaxIdleConnsPerHost   int               `env:"UPSTREAM_MAX_IDLE_CONNS_PER_HOST" envDefault:"64" validate:"gt=0"`
 	RateLimitPrefix       string            `env:"RATE_LIMIT_PREFIX" envDefault:"gateway:rl:" validate:"required"`
 	RateLimitFailOpen     bool              `env:"RATE_LIMIT_FAIL_OPEN" envDefault:"false"`
-}
-
-// Auth configures token verification. Required as soon as one route is not public.
-type Auth struct {
-	Issuer         string        `env:"ISSUER"`
-	JWKSURL        string        `env:"JWKS_URL" validate:"omitempty,url"`
-	JWKSTTL        time.Duration `env:"JWKS_TTL" envDefault:"10m" validate:"gt=0"`
-	JWKSMinRefresh time.Duration `env:"JWKS_MIN_REFRESH" envDefault:"30s" validate:"gt=0"`
-	ClockSkew      time.Duration `env:"CLOCK_SKEW" envDefault:"30s" validate:"gte=0"`
-	FetchTimeout   time.Duration `env:"JWKS_FETCH_TIMEOUT" envDefault:"5s" validate:"gt=0"`
-}
-
-// ValidateFor checks that token settings are present when a route needs a token.
-func (a Auth) ValidateFor(needed bool) error {
-	if needed && (a.Issuer == "" || a.JWKSURL == "") {
-		return fmt.Errorf("config: AUTH_ISSUER and AUTH_JWKS_URL are required when a route needs a token")
-	}
-	return nil
 }

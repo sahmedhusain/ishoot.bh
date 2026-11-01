@@ -6,29 +6,15 @@ Run every command from the repository root. Each step below has a `./run.sh` sho
 
 ## 1. Start a local database
 
-The recommended setup is the local Supabase stack, which gives you Postgres on port **54322** plus file storage on **54321**.
+The local Compose stack supplies PostgreSQL 17 on port **5432**, plus the files service and SeaweedFS S3. Initialize `.env` before starting it:
 
 ```bash
+./run.sh env init
 ./run.sh services up
-```
-
-```bash
 ./run.sh services status
 ```
 
-(These run `pnpm dlx supabase start -x studio,postgres-meta,logflare,vector,supavisor,edge-runtime,realtime,imgproxy,mailpit` and `pnpm dlx supabase status`.)
-
-Copy the values from `supabase status` into `.env` (start from `.env.example`):
-
-| Variable                                    | Local value                                               |
-| ------------------------------------------- | --------------------------------------------------------- |
-| `DATABASE_URL`, `DIRECT_URL`                | `postgresql://postgres:postgres@127.0.0.1:54322/postgres` |
-| `SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`  | `http://127.0.0.1:54321`                                  |
-| `SUPABASE_SERVICE_ROLE_KEY`                 | The `service_role` key, kept server-only                  |
-| `SUPER_ADMIN_EMAIL`, `SUPER_ADMIN_PASSWORD` | Your first administrator (password ≥ 12 characters)       |
-| `COMPANY_PROFILE`                           | `demo`, or another folder in `company/profiles/`          |
-
-You can also run without Supabase. If `SUPABASE_URL` is left empty, uploads are stored on disk under `apps/admin/private/uploads` (or `UPLOAD_ROOT`). The plain Postgres from `docker-compose.yml` (`./run.sh services docker`, with pgAdmin on port 5050; set `POSTGRES_PASSWORD` and `PGADMIN_DEFAULT_PASSWORD` in `.env`) works in that mode.
+The env tool generates matching database credentials and service signing keys. Set your first administrator credentials and company profile in `.env`. Prisma owns the remaining business tables; `files.upload_object` and the files service's River/goose tables are managed by Go migrations. See [the migration runbook](backend/DATA-MIGRATION.md) for existing installations.
 
 ## 2. First run
 
@@ -112,14 +98,14 @@ All demo people and companies are fictional and use `example.com` or `.example` 
 
 Never edit a migration that has already been applied anywhere; add a new one. There is no `db:push`, because it bypasses migrations and lets databases drift.
 
-| Command                  | What it does                                                                                |
-| ------------------------ | ------------------------------------------------------------------------------------------- |
-| `pnpm db:migrate`        | Apply pending migrations (safe for every environment)                                       |
-| `pnpm db:status`         | Show applied and pending migrations                                                         |
-| `pnpm db:generate`       | Regenerate the Prisma client                                                                |
-| `pnpm db:studio`         | Browse and edit data at http://localhost:5555                                               |
-| `./run.sh db new <name>` | Same as `pnpm db:migrate:new --name <name>`                                                 |
-| `./run.sh db psql`       | A `psql` session on `DIRECT_URL` (uses the Supabase container when `psql` is not installed) |
+| Command                  | What it does                                                                                        |
+| ------------------------ | --------------------------------------------------------------------------------------------------- |
+| `pnpm db:migrate`        | Apply pending migrations (safe for every environment)                                               |
+| `pnpm db:status`         | Show applied and pending migrations                                                                 |
+| `pnpm db:generate`       | Regenerate the Prisma client                                                                        |
+| `pnpm db:studio`         | Browse and edit data at http://localhost:5555                                                       |
+| `./run.sh db new <name>` | Same as `pnpm db:migrate:new --name <name>`                                                         |
+| `./run.sh db psql`       | A `psql` session on `DIRECT_URL` (uses the Compose Postgres container when `psql` is not installed) |
 
 Prisma's generated SQL does not include CHECK constraints: add them to the migration by hand, as the existing migrations do for statuses, amounts and quantities.
 
@@ -136,7 +122,7 @@ Prisma's generated SQL does not include CHECK constraints: add them to the migra
 ./run.sh db backup
 ```
 
-writes a `pg_dump` custom-format file to `backups/<database>-<time>.dump` (ignored by git), or to the path given. `./run.sh db restore <file>` restores one into the configured database after a confirmation; it refuses a remote database unless `--force` is added. Both use the installed `pg_dump`/`pg_restore`, the local Supabase container, or a throwaway `postgres:15` container, in that order.
+writes a `pg_dump` custom-format file to `backups/<database>-<time>.dump` (ignored by git), or to the path given. `./run.sh db restore <file>` restores one into the configured database after a confirmation; it refuses a remote database unless `--force` is added. Both use the installed `pg_dump`/`pg_restore`, the local Compose Postgres container, or a throwaway `postgres:17-alpine` container, in that order.
 
 ## 7. Test databases
 

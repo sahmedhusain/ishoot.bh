@@ -34,8 +34,8 @@ setup wizard / Settings ──────────────────�
 ## Infrastructure
 
 - **Hosting:** any Node host or Vercel. With serverless hosting, connect through the database pooler and schedule `/api/cron` for maintenance.
-- **Database:** PostgreSQL (Supabase locally and in the cloud). Migrations are the only way the schema changes.
-- **Storage:** Supabase Storage, or the local disk in development. Browsers upload directly with short-lived signed URLs; the server verifies type, size, permission and the stored bytes. The `public-assets` bucket holds brand files and website media; `private-assets` holds everything else.
+- **Database:** PostgreSQL 17 (Compose locally). Migrations are the only way the schema changes.
+- **Storage:** The Go files service owns upload records and S3 bytes (SeaweedFS locally). Browsers stream through same-origin app routes. Apps enforce permissions; the service verifies type, size, ownership and stored bytes. Both S3 buckets are private, including `public-assets`, whose files are served publicly through app routes.
 - **Email:** Resend, through a durable outbox, with signature-verified delivery webhooks.
 - **Payments and couriers:** hosted payment pages (the card never touches the platform), verified and de-duplicated webhooks, and courier APIs, all configured as encrypted integrations.
 

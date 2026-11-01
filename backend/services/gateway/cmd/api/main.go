@@ -4,7 +4,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -63,10 +62,10 @@ func run() error {
 	defer redisClient.Close()
 
 	var verifier *authn.Verifier
-	if table.NeedsAuth() {
-		client := &http.Client{Timeout: cfg.Auth.FetchTimeout, Transport: telemetry.Transport(nil)}
-		keys := authn.NewRemoteKeys(cfg.Auth.JWKSURL, client, cfg.Auth.JWKSTTL, cfg.Auth.JWKSMinRefresh)
-		verifier = authn.NewVerifier(keys, cfg.Auth.Issuer, cfg.Auth.ClockSkew)
+	if cfg.Auth.Configured() {
+		if verifier, err = authn.NewVerifierFromConfig(cfg.Auth); err != nil {
+			return err
+		}
 	}
 
 	metrics := httpx.NewMetrics(cfg.ServiceName)

@@ -46,8 +46,8 @@ function suite(title: string, url: string | undefined, checks: string[]) {
   describe.skipIf(!database.endsWith("_test"))(
     `${title} (${database || "not configured"})`,
     () => {
-      test.each(checks)("%s", (name) => {
-        const { ok, output } = runCheck(name, {
+      test.each(checks)("%s", async (name) => {
+        const { ok, output } = await runCheck(name, {
           DATABASE_URL: url,
           DIRECT_URL: url,
         });

@@ -291,7 +291,7 @@ export async function saveEmployeeCredential(
       throw new Error(serverMessages.documentNotFound);
     // A new file is an uploaded copy (claimed now) or a link to where the document is kept.
     if (data.fileUrl && data.fileUrl !== existing?.fileUrl)
-      await claimUploadOrLink(db, data.fileUrl, actorId);
+      await claimUploadOrLink(data.fileUrl, actorId);
     if (input.id)
       return db.employeeCredential.update({ where: { id: input.id }, data });
     const exists = await db.employee.findUnique({

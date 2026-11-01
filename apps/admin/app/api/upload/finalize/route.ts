@@ -1,12 +1,13 @@
 import { serverMessages } from "@platform/locales";
 
 import { ROUTES } from "../../../../constants/routes";
-import {
-  verifyStoredUpload,
-  isSupabaseStorageConfigured,
-  uploadRoot,
-} from "@platform/database";
 import { measureOperation, db } from "@platform/database";
+import {
+  claimUpload,
+  isApiError,
+  verifyUpload,
+  type FileRecord,
+} from "@platform/api-client";
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "../../../../lib/auth";
 import { requireAttachmentAccess } from "../../../../lib/attachment-access";
@@ -58,77 +59,74 @@ export async function POST(req: NextRequest) {
           { status: 403 },
         );
       }
-      const upload = await db.uploadObject.findUnique({ where: { fileUrl } });
-      if (!upload || upload.ownerId !== user.id) {
-        return NextResponse.json(
-          { error: serverMessages.runtimeUploadRecordNotFoundOrNotOwnedByYou },
-          { status: 404 },
-        );
-      }
-      if (upload.claimedAt || upload.expiresAt <= new Date()) {
-        return NextResponse.json(
-          { error: serverMessages.runtimeUploadIsAlreadyClaimedOrExpired },
-          { status: 400 },
-        );
-      }
+      // A pending upload (its record does not exist yet) is only checked; a server action claims it later.
+      const pending = !entityId || entityId === "pending";
+      let upload: FileRecord;
       try {
-        await verifyStoredUpload(
-          upload,
-          isSupabaseStorageConfigured() ? undefined : uploadRoot(),
-        );
-      } catch {
-        return NextResponse.json(
-          {
-            error: serverMessages.runtimeTheFileDidNotArriveIntactUploadItAgain,
-          },
-          { status: 422 },
-        );
-      }
-      const createdAttachment = await db.$transaction(async (tx) => {
-        const finalName = customName || upload.fileName;
-        const claimed = await tx.uploadObject.updateMany({
-          where: {
-            fileUrl,
-            ownerId: user.id,
-            claimedAt: null,
-            expiresAt: { gt: new Date() },
-          },
-          data: {
-            claimedAt: entityId && entityId !== "pending" ? new Date() : null,
-          },
-        });
-        if (claimed.count !== 1)
-          throw new Error(
-            serverMessages.runtimeUploadIsAlreadyClaimedOrExpired,
+        upload = pending
+          ? await verifyUpload(fileUrl, user.id)
+          : await claimUpload(fileUrl, user.id);
+      } catch (error) {
+        if (
+          isApiError(
+            error,
+            "file_not_found",
+            "upload_not_owned",
+            "invalid_file_url",
+          )
+        )
+          return NextResponse.json(
+            {
+              error: serverMessages.runtimeUploadRecordNotFoundOrNotOwnedByYou,
+            },
+            { status: 404 },
           );
-        if (!entityId || entityId === "pending") return null;
+        if (isApiError(error, "upload_unavailable"))
+          return NextResponse.json(
+            { error: serverMessages.runtimeUploadIsAlreadyClaimedOrExpired },
+            { status: 400 },
+          );
+        if (isApiError(error, "file_content_mismatch"))
+          return NextResponse.json(
+            {
+              error:
+                serverMessages.runtimeTheFileDidNotArriveIntactUploadItAgain,
+            },
+            { status: 422 },
+          );
+        throw error;
+      }
+      const createdAttachment = pending
+        ? null
+        : await db.$transaction(async (tx) => {
+            const finalName = customName || upload.fileName;
 
-        const attachment = await tx.attachment.create({
-          data: {
-            fileName: finalName.slice(0, 200),
-            fileUrl,
-            fileSize: upload.fileSize,
-            mimeType: upload.mimeType,
-            entityType,
-            entityId,
-            uploadedById: user.id,
-          },
-        });
+            const attachment = await tx.attachment.create({
+              data: {
+                fileName: finalName.slice(0, 200),
+                fileUrl,
+                fileSize: upload.fileSize,
+                mimeType: upload.mimeType,
+                entityType,
+                entityId,
+                uploadedById: user.id,
+              },
+            });
 
-        // The VAT certificate is set from Settings → Tax, never as a side effect of filing a document here:
-        // other tax certificates and archived files share this entity type.
+            // The VAT certificate is set from Settings → Tax, never as a side effect of filing a document here:
+            // other tax certificates and archived files share this entity type.
 
-        await tx.activityLog.create({
-          data: {
-            userId: user.id,
-            action: "upload",
-            entityType: "attachment",
-            entityId: attachment.id,
-            details: { entityType, entityId, fileSize: upload.fileSize },
-          },
-        });
-        return attachment;
-      });
+            await tx.activityLog.create({
+              data: {
+                userId: user.id,
+                action: "upload",
+                entityType: "attachment",
+                entityId: attachment.id,
+                details: { entityType, entityId, fileSize: upload.fileSize },
+              },
+            });
+            return attachment;
+          });
 
       if (entityType === "employee")
         revalidatePath(ROUTES.hr.employee(entityId));

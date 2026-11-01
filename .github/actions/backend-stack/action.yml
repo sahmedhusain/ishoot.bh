@@ -1,0 +1,17 @@
+name: Backend stack
+description: >
+  Starts the local stack from docker-compose.yml (Postgres, Valkey, SeaweedFS, the files service and the gateway)
+  with freshly generated keys in .env. Database settings come from the workflow's environment.
+runs:
+  using: composite
+  steps:
+    - name: Generate .env (service keys, storage credentials)
+      shell: bash
+      run: node scripts/env-tool.cjs init
+    - name: Start the stack
+      shell: bash
+      run: docker compose up -d --build --wait
+    - name: Show the stack when it fails
+      if: failure()
+      shell: bash
+      run: docker compose ps && docker compose logs --tail=200

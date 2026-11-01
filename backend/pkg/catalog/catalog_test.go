@@ -74,3 +74,28 @@ func TestValidationCatchesBrokenData(t *testing.T) {
 	tickets.Transitions = map[string]Transition{"x": {From: []string{"new"}, To: "nowhere"}}
 	assert.Error(t, tickets.validate())
 }
+
+func TestFileRules(t *testing.T) {
+	brand, ok := Files.Folder("brand")
+	require.True(t, ok)
+	assert.True(t, brand.Public)
+	assert.True(t, brand.Allows("font/woff2"))
+	general, ok := Files.Folder("general")
+	require.True(t, ok)
+	assert.False(t, general.Public)
+	assert.False(t, general.Allows("font/woff2"))
+	jpeg, ok := Files.Type("image/jpeg")
+	require.True(t, ok)
+	assert.Equal(t, "jpg", jpeg.Extensions[0])
+
+	assert.Equal(t, "application/pdf", Files.DetectType([]byte("%PDF-1.7")))
+	assert.Equal(t, "image/webp", Files.DetectType([]byte("RIFF\x00\x00\x00\x00WEBP")))
+	assert.Empty(t, Files.DetectType([]byte("RIFF")))
+	assert.Equal(t, 12, Files.SniffLength())
+
+	broken := Files
+	broken.Folders = []FileFolder{{Key: "x", Types: []string{"text/html"}}}
+	assert.Error(t, broken.validate())
+	badSignature := FileRules{URLPrefix: "/f/", Types: []FileType{{MIME: "a/b", Extensions: []string{"b"}, Signatures: [][]SignaturePart{{{Hex: "zz"}}}}}}
+	assert.Error(t, badSignature.validate())
+}

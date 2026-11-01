@@ -11,7 +11,6 @@ import {
   syncAgencyTracking,
   processEmailJobs,
   processRevalidationJobs,
-  removeExpiredUploads,
   markOverdueInvoices,
   sendExpiryReminders,
   processRecurringExpenses,
@@ -33,7 +32,6 @@ export async function GET(req: Request) {
         webUrl: process.env.WEB_URL,
         secret: process.env.REVALIDATION_SECRET,
       });
-    const removedUploads = await removeExpiredUploads();
     await db.abuseWindow.deleteMany({
       where: { expiresAt: { lt: new Date(Date.now() - 86400000) } },
     });
@@ -57,7 +55,6 @@ export async function GET(req: Request) {
     const reportsSent = await deliverReportSchedules();
     return NextResponse.json({
       success: true,
-      removedUploads,
       invoicesMarkedOverdue,
       expiryReminders,
       recurringExpenses,

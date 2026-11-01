@@ -1,81 +1,76 @@
+// Uploads and stored files live in the files service (backend/services/files, docs/adr/0009). These helpers keep the
+// shape the domain code expects and turn the service's error codes into the platform's messages.
+import { serverMessages } from "@platform/locales";
 import {
-  serverTemplates,
-  formatMessage,
-  serverMessages,
-} from "@platform/locales";
+  claimUpload as claimFileUpload,
+  isApiError,
+  readFile,
+  storeFile,
+  type FileRecord,
+} from "@platform/api-client";
 
-import {
-  getStorageClient,
-  isSupabaseStorageConfigured,
-  uploadStorageLocation,
-  verifyStoredUpload,
-  writeLocalUpload,
-} from "./storage";
-import path from "node:path";
-import { existsSync } from "node:fs";
+/** A claimed upload, as the domain code stores it next to its own records. */
+export type StoredUpload = {
+  id: string;
+  fileUrl: string;
+  ownerId: string | null;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  isPublic: boolean;
+  claimedAt: Date | null;
+  createdAt: Date;
+};
 
-/** The monorepo root, so the admin server, seed and workers agree on one upload folder whatever their cwd. */
-export function workspaceRoot() {
-  let dir = process.cwd();
-  for (let i = 0; i < 8; i++) {
-    if (existsSync(path.join(dir, "pnpm-workspace.yaml"))) return dir;
-    const parent = path.dirname(dir);
-    if (parent === dir) break;
-    dir = parent;
-  }
-  return process.cwd();
-}
-import type { Prisma } from "@prisma/client";
-export function uploadRoot() {
-  const configured = process.env.UPLOAD_ROOT;
+export const toStoredUpload = (record: FileRecord): StoredUpload => ({
+  id: record.id,
+  fileUrl: record.fileUrl,
+  ownerId: record.ownerId ?? null,
+  fileName: record.fileName,
+  fileSize: record.fileSize,
+  mimeType: record.mimeType,
+  isPublic: record.isPublic,
+  claimedAt: record.claimedAt ? new Date(record.claimedAt) : null,
+  createdAt: new Date(record.createdAt),
+});
+
+/** The platform message for a files-service refusal; other errors pass through unchanged. */
+export function uploadError(error: unknown): unknown {
+  if (isApiError(error, "file_content_mismatch"))
+    return new Error(serverMessages.uploadedObjectDoesNotMatchTheRegistered);
   if (
-    process.env.NODE_ENV === "production" &&
-    (!configured || !path.isAbsolute(configured))
-  )
-    throw new Error(serverMessages.configureAnAbsoluteUploadRootOnDurable);
-  return configured
-    ? path.resolve(configured)
-    : path.join(workspaceRoot(), "apps", "admin", "private", "uploads");
-}
-export async function claimUpload(
-  tx: Prisma.TransactionClient,
-  fileUrl: string,
-  ownerId?: string,
-) {
-  if (
-    !ownerId ||
-    typeof fileUrl !== "string" ||
-    !/^\/api\/files\/[a-z]+\/[a-zA-Z0-9_-]+\.(pdf|png|jpg|jpeg|webp)$/.test(
-      fileUrl,
+    isApiError(
+      error,
+      "invalid_file_url",
+      "unsupported_file_type",
+      "validation_failed",
     )
   )
-    throw new Error(serverMessages.invalidUploadedFile);
-  const upload = await tx.uploadObject.findUnique({ where: { fileUrl } });
+    return new Error(serverMessages.invalidUploadedFile);
   if (
-    !upload ||
-    upload.ownerId !== ownerId ||
-    upload.claimedAt ||
-    upload.expiresAt <= new Date()
+    isApiError(
+      error,
+      "file_not_found",
+      "upload_not_owned",
+      "upload_unavailable",
+      "file_not_private",
+    )
   )
-    throw new Error(serverMessages.uploadIsExpiredAlreadyClaimedOrBelongs);
-  // Both storage modes check the stored bytes match what was registered.
-  await verifyStoredUpload(
-    upload,
-    isSupabaseStorageConfigured() ? undefined : uploadRoot(),
-  );
-  const claimed = await tx.uploadObject.updateMany({
-    where: {
-      fileUrl,
-      ownerId,
-      claimedAt: null,
-      expiresAt: { gt: new Date() },
-      isPublic: false,
-    },
-    data: { claimedAt: new Date() },
-  });
-  if (claimed.count !== 1)
-    throw new Error(serverMessages.uploadIsExpiredAlreadyClaimedOrBelongs);
-  return tx.uploadObject.findUniqueOrThrow({ where: { fileUrl } });
+    return new Error(serverMessages.uploadIsExpiredAlreadyClaimedOrBelongs);
+  return error;
+}
+
+/** Verifies a user's private upload and makes it permanent. Call it before writing the record that points at it. */
+export async function claimUpload(fileUrl: string, ownerId?: string) {
+  if (!ownerId || typeof fileUrl !== "string")
+    throw new Error(serverMessages.invalidUploadedFile);
+  try {
+    return toStoredUpload(
+      await claimFileUpload(fileUrl, ownerId, { requirePrivate: true }),
+    );
+  } catch (error) {
+    throw uploadError(error);
+  }
 }
 
 /**
@@ -99,11 +94,7 @@ export function isDocumentLink(value: unknown): boolean {
 }
 
 /** The file a document points at: a claimed upload, or an external https link recorded as it is. */
-export async function claimUploadOrLink(
-  tx: Prisma.TransactionClient,
-  fileUrl: string,
-  ownerId?: string,
-) {
+export async function claimUploadOrLink(fileUrl: string, ownerId?: string) {
   if (isDocumentLink(fileUrl)) {
     if (!ownerId) throw new Error(serverMessages.invalidUploadedFile);
     const url = new URL(fileUrl);
@@ -118,33 +109,55 @@ export async function claimUploadOrLink(
       isLink: true as const,
     };
   }
-  const upload = await claimUpload(tx, fileUrl, ownerId);
+  const upload = await claimUpload(fileUrl, ownerId);
   return { ...upload, isLink: false as const };
 }
 
-/** Stores bytes for an /api/files URL in whichever storage is active (used by seeds and repairs, not user uploads). */
+/**
+ * Stores bytes the platform keeps at a fixed address (seed data, repairs). Storing the same address again keeps the
+ * existing file, so seeds can run more than once.
+ */
 export async function storeFileBytes(
   fileUrl: string,
   bytes: Uint8Array,
-  contentType: string,
-  isPublic = false,
+  options: { ownerId?: string; fileName?: string } = {},
 ) {
-  if (isSupabaseStorageConfigured()) {
-    const location = uploadStorageLocation(fileUrl, isPublic);
-    const { error } = await getStorageClient()
-      .storage.from(location.bucket)
-      .upload(location.path, bytes, { contentType, upsert: false });
-    if (error && !/exists/i.test(error.message))
-      throw new Error(
-        formatMessage(serverTemplates.storageUploadFailed0, {
-          0: error.message,
-        }),
-      );
-    return;
-  }
   try {
-    await writeLocalUpload(fileUrl, uploadRoot(), bytes);
+    await storeFile({ fileUrl }, bytes, { ...options, ifExists: "keep" });
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+    throw uploadError(error);
   }
+}
+
+/**
+ * A file's bytes as an HTTP response for the apps' file routes. Public files (brand, website media) never change
+ * under the same address, so browsers may cache them for a year; everything else is never cached unless the caller
+ * sets its own Cache-Control. With a file name, browsers save it under that name.
+ */
+export async function fileResponse(
+  record: Pick<FileRecord, "fileUrl" | "mimeType" | "fileSize" | "isPublic">,
+  options: {
+    download?: boolean;
+    fileName?: string;
+    cacheControl?: string;
+  } = {},
+): Promise<Response | null> {
+  const file = await readFile(record.fileUrl);
+  if (!file?.body) return null;
+  const disposition = options.download ? "attachment" : "inline";
+  return new Response(file.body, {
+    headers: {
+      "Content-Type": record.mimeType,
+      "Content-Length": String(record.fileSize),
+      "Cache-Control":
+        options.cacheControl ??
+        (record.isPublic
+          ? "public, max-age=31536000, immutable"
+          : "private, no-store"),
+      "X-Content-Type-Options": "nosniff",
+      "Content-Disposition": options.fileName
+        ? `${disposition}; filename*=UTF-8''${encodeURIComponent(options.fileName)}`
+        : disposition,
+    },
+  });
 }

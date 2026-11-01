@@ -26,8 +26,10 @@ const server = (app: "admin" | "web", port: number, database: string) => ({
   env: {
     NEXT_PUBLIC_WEB_URL: `http://localhost:${ports.web}`,
     NEXT_PUBLIC_ADMIN_URL: `http://localhost:${ports.admin}`,
+    ADMIN_PREVIEW_ORIGINS: `http://localhost:${ports.setup}`,
     WEB_URL: `http://localhost:${ports.web}`,
     ADMIN_URL: `http://localhost:${ports.admin}`,
+    ADMIN_PREVIEW_ORIGINS: `http://localhost:${ports.setup}`,
     // Card payments go to a local stand-in for Stripe's API that the payment specs start (tests/e2e/stripe-stand-in.ts).
     PAYMENT_GATEWAY_BASE_URL_STRIPE: `http://localhost:${ports.stripe}`,
     CRON_SECRET: cronSecret,

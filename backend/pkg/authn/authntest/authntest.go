@@ -20,8 +20,25 @@ const Issuer = "https://identity.test"
 // Signer signs tokens with a fresh Ed25519 key.
 type Signer struct {
 	KeyID   string
+	Issuer  string
 	private jwk.Key
 	Public  jwk.Set
+}
+
+// NewServiceSigner returns a signer for a caller's own service tokens (ADR 0011).
+func NewServiceSigner(t testing.TB, caller string) *Signer {
+	t.Helper()
+	s := NewSigner(t, caller+":1")
+	s.Issuer = authn.ServiceIssuerPrefix + caller
+	return s
+}
+
+// Trust returns the authn.Trust that accepts this signer's tokens.
+func (s *Signer) Trust() authn.Trust {
+	if s.Issuer != Issuer {
+		return authn.Trust{Issuer: authn.ServiceIssuerPrefix, Keys: authn.StaticKeys{Set: s.Public}, Realms: []authn.Realm{authn.RealmService}}
+	}
+	return authn.Trust{Issuer: Issuer, Keys: authn.StaticKeys{Set: s.Public}, Realms: authn.UserRealms}
 }
 
 // NewSigner creates a key pair and its public JWKS.
@@ -43,7 +60,7 @@ func NewSigner(t testing.TB, keyID string) *Signer {
 	}
 	set := jwk.NewSet()
 	must(t, set.AddKey(public))
-	return &Signer{KeyID: keyID, private: private, Public: set}
+	return &Signer{KeyID: keyID, Issuer: Issuer, private: private, Public: set}
 }
 
 // Token describes a test token. Zero values get sensible defaults.
@@ -63,11 +80,14 @@ func (s *Signer) Sign(t testing.TB, spec Token) string {
 	if spec.Subject == "" {
 		spec.Subject = "user-1"
 	}
+	if spec.Issuer == "" {
+		spec.Issuer = s.Issuer
+	}
+	if spec.Realm == "" && s.Issuer != Issuer {
+		spec.Realm = authn.RealmService
+	}
 	if spec.Realm == "" {
 		spec.Realm = authn.RealmStaff
-	}
-	if spec.Issuer == "" {
-		spec.Issuer = Issuer
 	}
 	if spec.TokenUse == "" {
 		spec.TokenUse = authn.TokenUseAccess

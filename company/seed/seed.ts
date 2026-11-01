@@ -65,21 +65,7 @@ async function demoDocument(fileName: string, ownerId: string) {
     fileName.replace(/\.pdf$/i, "").replace(/-/g, " "),
   );
   const fileUrl = `/api/files/vault/seed_${crypto.createHash("sha256").update(fileName).digest("hex").slice(0, 16)}.pdf`;
-  await storeFileBytes(fileUrl, bytes, "application/pdf");
-  await prisma.uploadObject.upsert({
-    where: { fileUrl },
-    update: {},
-    create: {
-      fileUrl,
-      ownerId,
-      fileName,
-      fileSize: bytes.length,
-      mimeType: "application/pdf",
-      isPublic: false,
-      claimedAt: new Date(),
-      expiresAt: new Date("2999-12-31T00:00:00Z"),
-    },
-  });
+  await storeFileBytes(fileUrl, bytes, { ownerId, fileName });
   return fileUrl;
 }
 
@@ -132,7 +118,6 @@ async function main() {
     prisma.service.count(),
     prisma.socialLink.count(),
     prisma.quotation.count(),
-    prisma.uploadObject.count(),
     prisma.product.count(),
     prisma.productCategory.count(),
     prisma.warehouse.count(),
@@ -336,9 +321,7 @@ async function main() {
         ? profile.assets.signature
         : undefined;
     if (!file || !fs.existsSync(profileAssetPath(profile, file))) continue;
-    signatureUrls[u.key] = await importProfileFile(
-      prisma,
-      profile,
+    signatureUrls[u.key] = await importProfileFile(profile,
       file,
       owner.id,
     );
@@ -468,9 +451,7 @@ async function main() {
   const bannerUrls: string[] = [];
   for (const file of bannerFiles)
     bannerUrls.push(
-      await importProfileFile(
-        prisma,
-        profile,
+      await importProfileFile(profile,
         `media/banners/${file}`,
         owner.id,
       ),
@@ -715,7 +696,7 @@ async function main() {
     if (!fs.existsSync(profileAssetPath(profile, file))) continue;
     const data = {
       name: client.name,
-      logoUrl: await importProfileFile(prisma, profile, file, owner.id),
+      logoUrl: await importProfileFile(profile, file, owner.id),
       websiteUrl: `https://${client.slug}.example`,
       displayOrder: index + 1,
     };

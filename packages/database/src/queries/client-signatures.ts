@@ -367,7 +367,7 @@ export async function recordSignedCopy(
     assertSignable(doc);
     if (await signedRecord(type, id, tx))
       throw new Error(serverMessages.theClientHasAlreadySignedThisDocument);
-    const upload = await claimUploadOrLink(tx, input.fileUrl, actorId);
+    const upload = await claimUploadOrLink(input.fileUrl, actorId);
     await tx.clientSignature.updateMany({
       where: { documentType: type, documentId: id, status: "pending" },
       data: { status: "revoked", revokedAt: new Date() },

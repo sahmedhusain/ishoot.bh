@@ -28,9 +28,6 @@ const env = {
   ...process.env,
   DATABASE_URL: target,
   DIRECT_URL: target,
-  UPLOAD_ROOT: process.env.E2E_UPLOAD_ROOT || path.join(root, "tests/e2e/.uploads"),
-  SUPABASE_URL: "",
-  SUPABASE_SERVICE_ROLE_KEY: "",
   NODE_ENV: "test",
 };
 const run = (command, args, extra = {}) => execFileSync(command, args, { cwd: root, env: { ...env, ...extra }, stdio: "inherit" });

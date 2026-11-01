@@ -9,14 +9,14 @@ const path = require("node:path");
 const { db } = require("../packages/database/src/db.ts");
 const { transactionContext } = require("../packages/database/src/transaction-context.ts");
 const cs = require("../packages/database/src/queries/client-signatures.ts");
-const { storeFileBytes, uploadRoot } = require("../packages/database/src/services/uploads.ts");
+const { fixtureUpload, removeFixtureUploads } = require("./lib/upload-fixtures.cjs");
+const { lookupFile } = require("../packages/api-client/src/files.ts");
 const { samplePdf } = require("../packages/database/src/services/sample-files.ts");
 
 const rollback = new Error("ROLLBACK_CLIENT_SIGNATURE_TEST");
 const consent = (language, number, type) => `consent:${language}:${type}:${number}`;
 // A real signature-sized PNG (drawn strokes compress to a few hundred bytes).
 const sharp = require(require.resolve("sharp", { paths: [path.resolve(__dirname, "../apps/admin")] }));
-const written = [];
 
 async function main() {
   const url = new URL(process.env.DATABASE_URL);
@@ -41,7 +41,7 @@ async function main() {
       assert.equal(first.record.tokenHash.length, 64);
       const second = await cs.createSigningLink("quotation", quotation.id, staff.id, { days: 30 });
       assert.equal((await cs.getSigningSession(first.token, consent)).state, "revoked", "a new link replaces the old one");
-      assert.ok(second.record.expiresAt <= new Date(`${future.toISOString().slice(0, 10)}T23:59:59+03:00`), "a link never outlives the quotation's validity");
+      assert.ok(second.record.expiresAt <= new Date(`${future.toISOString().slice(0, 10)}T23:59:59.999Z`), "a link never outlives the quotation's UTC validity date");
 
       const open = await cs.getSigningSession(second.token, consent);
       assert.equal(open.state, "open");
@@ -91,16 +91,13 @@ async function main() {
 
       // ---- Signed copy uploaded by staff (invoice)
       const pdf = samplePdf("Signed copy");
-      const fileUrl = `/api/files/invoices/signed_${Date.now()}.pdf`;
-      await storeFileBytes(fileUrl, pdf, "application/pdf");
-      written.push(fileUrl);
-      await tx.uploadObject.create({ data: { fileUrl, ownerId: staff.id, fileName: "signed.pdf", fileSize: pdf.length, mimeType: "application/pdf", expiresAt: new Date(Date.now() + 3600000) } });
+      const { fileUrl } = await fixtureUpload(staff.id, { folder: "invoices", fileName: "signed.pdf", mimeType: "application/pdf", bytes: pdf });
       await assert.rejects(cs.recordSignedCopy("invoice", invoice.id, staff.id, { signerName: "", signedAt: "2026-10-01", fileUrl }), /name of the person/);
       await assert.rejects(cs.recordSignedCopy("invoice", invoice.id, staff.id, { signerName: "Client Signer", signedAt: "2099-01-01", fileUrl }), /date it was signed/);
       const copy = await cs.recordSignedCopy("invoice", invoice.id, staff.id, { signerName: "Client Signer", signedAt: "2026-10-01", fileUrl, fileName: "signed.pdf" });
       assert.equal(copy.status, "signed");
       assert.ok(await tx.attachment.findFirst({ where: { entityType: "invoice", entityId: invoice.id, fileUrl } }), "the signed copy is attached to the invoice");
-      assert.ok((await tx.uploadObject.findUniqueOrThrow({ where: { fileUrl } })).claimedAt, "the upload is claimed");
+      assert.ok((await lookupFile(fileUrl)).claimedAt, "the upload is claimed");
       assert.equal((await cs.getClientAcceptance("invoice", invoice.id)).method, "upload");
       await assert.rejects(cs.recordSignedCopy("invoice", invoice.id, staff.id, { signerName: "Again", signedAt: "2026-10-01", fileUrl }), /already signed/);
 
@@ -114,7 +111,7 @@ async function main() {
 
 main()
   .catch((error) => { console.error(error); process.exitCode = 1; })
-  .finally(() => {
-    for (const url of written) fs.rmSync(path.join(uploadRoot(), url.slice("/api/files/".length)), { force: true });
-    return db.$disconnect();
+  .finally(async () => {
+    await removeFixtureUploads();
+    await db.$disconnect();
   });

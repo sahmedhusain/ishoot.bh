@@ -1,4 +1,5 @@
 "use server";
+import { lookupFile } from "@platform/api-client";
 import { publicSitePaths } from "../../lib/public-paths";
 import { serverMessages } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
@@ -59,9 +60,7 @@ export async function saveCompanyAssetAction(
     const { asset } = await runAtomicMutation(async () => {
       let verified = data;
       if (data.fileUrl.startsWith("/api/files/")) {
-        const upload = await db.uploadObject.findUnique({
-          where: { fileUrl: data.fileUrl },
-        });
+        const upload = await lookupFile(data.fileUrl);
         const publicKey = [
           "logo_light",
           "logo_dark",
@@ -80,7 +79,7 @@ export async function saveCompanyAssetAction(
           select: { id: true },
         });
         if (!attached) {
-          await claimUpload(db, data.fileUrl, user.id);
+          await claimUpload(data.fileUrl, user.id);
           await db.attachment.create({
             data: {
               fileName: upload.fileName,

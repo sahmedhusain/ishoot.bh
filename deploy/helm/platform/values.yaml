@@ -13,6 +13,8 @@ global:
   tracesSampleRatio: "0.1"
   # Name of a Secret (created by External Secrets or sealed-secrets) holding shared values such as REDIS_URL.
   sharedSecret: platform-shared
+  # Secret holding service-keys.json: the public keys of the callers services trust (docs/adr/0011).
+  serviceKeysSecret: platform-service-keys
   networkPolicy:
     enabled: true
     # Namespaces allowed to scrape the admin port (Prometheus) and reach the gateway (ingress controller).
@@ -45,16 +47,34 @@ services:
       limits: { memory: 256Mi }
     env:
       GATEWAY_ROUTES_FILE: /config/routes.yaml
-      GATEWAY_UPSTREAMS: ""
+      GATEWAY_UPSTREAMS: "files=http://files:8080"
+      HTTP_BODY_LIMIT: "11M"
       AUTH_ISSUER: ""
       AUTH_JWKS_URL: ""
       HTTP_TRUSTED_PROXIES: "10.0.0.0/8"
-    # Mounted at /config/routes.yaml; kept in step with backend/services/gateway/config/routes.yaml.
+    # Files from the chart's files/<service>/ folder, mounted under /config. The same route table is used by
+    # docker-compose.yml, so local and Kubernetes routing never differ.
     configFiles:
-      routes.yaml: |
-        rateLimits:
-          default: { requests: 300, window: 1m }
-          sensitive: { requests: 10, window: 1m }
-        routes: []
+      - routes.yaml
     # Services the gateway may call (NetworkPolicy egress); filled in as services are added.
+    talksTo: [files]
+
+  files:
+    enabled: true
+    public: false
+    replicas: 2
+    autoscaling: { enabled: true, minReplicas: 2, maxReplicas: 8, targetCPU: 70 }
+    # Runs `migrate` as a pre-install/pre-upgrade Job, and a separate `worker` Deployment for background jobs.
+    migrate: true
+    worker: { enabled: true, replicas: 1 }
+    resources:
+      requests: { cpu: 100m, memory: 128Mi }
+      limits: { memory: 512Mi }
+    env:
+      HTTP_BODY_LIMIT: "11M"
+      FILES_PUBLIC_BUCKET: public-assets
+      FILES_PRIVATE_BUCKET: private-assets
+      AUTH_SERVICE_KEYS_FILE: /keys/service-keys.json
+    # Secrets (files-secrets): DATABASE_URL, S3_ENDPOINT, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY.
+    configFiles: []
     talksTo: []

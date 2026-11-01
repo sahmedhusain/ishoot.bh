@@ -12,12 +12,12 @@ const { expiryStatus, monthlyCost, needsWorkVisa } = require("../packages/databa
 
 const rollback = new Error("ROLLBACK_RESIDENCY_TEST");
 const rejects = (promise, message) => assert.rejects(promise, (error) => error.message === message);
-const inDays = (n) => new Date(Date.now() + 3 * 3600000 + n * 86400000).toISOString().slice(0, 10);
+const inDays = (n) => new Date(Date.now() + n * 86400000).toISOString().slice(0, 10);
 
 async function main() {
-  assert.equal(needsWorkVisa("BH"), false);
-  assert.equal(needsWorkVisa("SA"), false);
-  assert.equal(needsWorkVisa("IN"), true);
+  assert.equal(needsWorkVisa("BH", ["BH", "SA"]), false);
+  assert.equal(needsWorkVisa("SA", ["BH", "SA"]), false);
+  assert.equal(needsWorkVisa("IN", ["BH", "SA"]), true);
   assert.equal(monthlyCost(120, "yearly"), 10);
   assert.equal(monthlyCost(240, "term", 24), 10);
   assert.equal(monthlyCost(500, "one_time"), 0);
@@ -30,7 +30,7 @@ async function main() {
       const employee = await tx.employee.findFirstOrThrow({ where: { status: "active" } });
 
       // ---- identity
-      await rejects(ec.updateEmployeeIdentity(employee.id, { cpr_number: "12345" }), "A CPR number has 9 digits");
+      await rejects(ec.updateEmployeeIdentity(employee.id, { cpr_number: "123$" }), require("../packages/locales/src/index.ts").serverMessages.aCPRNumberHas9Digits);
       await rejects(ec.updateEmployeeIdentity(employee.id, { nationality: "XX" }), "Choose a country from the list");
       await rejects(ec.updateEmployeeIdentity(employee.id, { date_of_birth: inDays(5) }), "Enter a valid date of birth");
       await ec.updateEmployeeIdentity(employee.id, {

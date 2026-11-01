@@ -29,6 +29,7 @@ import (
 )
 
 const routesFile = `
+defaultBodyLimit: 1K
 rateLimits:
   default: { requests: 100, window: 1m }
   tight: { requests: 2, window: 1m }
@@ -37,6 +38,7 @@ routes:
   - { name: tickets, prefix: /v1/tickets/, upstream: itsm, realms: [staff, it], stripPrefix: true, rateLimit: default }
   - { name: tickets-admin, prefix: /v1/tickets/admin/, upstream: itsm, realms: [it], rateLimit: default }
   - { name: broken, prefix: /v1/broken/, upstream: down, realms: [public], rateLimit: default }
+  - { name: files, prefix: /v1/files/, upstream: identity, realms: [service], rateLimit: default, bodyLimit: 4K }
 `
 
 type seen struct {
@@ -49,6 +51,7 @@ type seen struct {
 type fixture struct {
 	handler http.Handler
 	signer  *authntest.Signer
+	service *authntest.Signer
 }
 
 func setup(t *testing.T) fixture {
@@ -64,18 +67,25 @@ func setup(t *testing.T) fixture {
 	dead := httptest.NewServer(http.NotFoundHandler())
 	dead.Close()
 
+	service := authntest.NewServiceSigner(t, "admin")
+	keysJSON, err := json.Marshal(service.Public)
+	require.NoError(t, err)
+	keysFile := filepath.Join(t.TempDir(), "service-keys.json")
+	require.NoError(t, os.WriteFile(keysFile, keysJSON, 0o600))
+
 	path := filepath.Join(t.TempDir(), "routes.yaml")
 	require.NoError(t, os.WriteFile(path, []byte(routesFile), 0o600))
 
 	var cfg settings.Config
 	require.NoError(t, config.LoadFrom(&cfg, map[string]string{
-		"SERVICE_NAME":        "gateway",
-		"APP_ENV":             "test",
-		"REDIS_URL":           "redis://unused:6379",
-		"GATEWAY_ROUTES_FILE": path,
-		"GATEWAY_UPSTREAMS":   "identity=" + upstream.URL + ",itsm=" + upstream.URL + "/api,down=" + dead.URL,
-		"AUTH_ISSUER":         authntest.Issuer,
-		"AUTH_JWKS_URL":       "http://identity/.well-known/jwks.json",
+		"SERVICE_NAME":           "gateway",
+		"APP_ENV":                "test",
+		"REDIS_URL":              "redis://unused:6379",
+		"GATEWAY_ROUTES_FILE":    path,
+		"GATEWAY_UPSTREAMS":      "identity=" + upstream.URL + ",itsm=" + upstream.URL + "/api,down=" + dead.URL,
+		"AUTH_ISSUER":            authntest.Issuer,
+		"AUTH_JWKS_URL":          "http://identity/.well-known/jwks.json",
+		"AUTH_SERVICE_KEYS_FILE": keysFile,
 	}))
 	table, err := routes.Load(cfg.Gateway.RoutesFile, cfg.Gateway.Upstreams)
 	require.NoError(t, err)
@@ -89,11 +99,11 @@ func setup(t *testing.T) fixture {
 		Logger:    logx.New(io.Discard, logx.Options{}),
 		Metrics:   httpx.NewMetrics("gateway"),
 		Limiter:   ratelimit.NewRedisLimiter(client, cfg.Gateway.RateLimitPrefix),
-		Verifier:  authn.NewVerifier(authn.StaticKeys{Set: signer.Public}, authntest.Issuer, time.Second),
+		Verifier:  authn.NewVerifier(time.Second, signer.Trust(), service.Trust()),
 		Transport: proxy.NewTransport(proxy.TransportConfig{DialTimeout: time.Second, ResponseHeaderTimeout: time.Second, IdleConnTimeout: time.Second, MaxIdleConnsPerHost: 4}),
 	})
 	require.NoError(t, err)
-	return fixture{handler: handler, signer: signer}
+	return fixture{handler: handler, signer: signer, service: service}
 }
 
 func (f fixture) do(t *testing.T, method, path, token string) (*httptest.ResponseRecorder, seen) {
@@ -181,5 +191,28 @@ func TestAuthSettingsRequiredForProtectedRoutes(t *testing.T) {
 	require.NoError(t, err)
 	_, err = NewHandler(settings.Config{}, table, Dependencies{})
 	assert.ErrorContains(t, err, "AUTH_ISSUER")
-	assert.True(t, strings.Contains(err.Error(), "JWKS"))
+	assert.True(t, strings.Contains(err.Error(), "AUTH_SERVICE_KEYS_FILE"))
+}
+
+func TestServiceRouteAcceptsOnlyServiceTokens(t *testing.T) {
+	f := setup(t)
+	rec, _ := f.do(t, http.MethodGet, "/v1/files/records", f.signer.Sign(t, authntest.Token{Realm: authn.RealmStaff}))
+	assert.Equal(t, http.StatusUnauthorized, rec.Code)
+	rec, _ = f.do(t, http.MethodGet, "/v1/files/records", f.service.Sign(t, authntest.Token{Subject: "admin"}))
+	assert.Equal(t, http.StatusOK, rec.Code)
+}
+
+func TestBodyLimitPerRoute(t *testing.T) {
+	f := setup(t)
+	send := func(path, token string, size int) int {
+		req := httptest.NewRequest(http.MethodPost, path, strings.NewReader(strings.Repeat("x", size)))
+		req.Header.Set("Authorization", "Bearer "+token)
+		rec := httptest.NewRecorder()
+		f.handler.ServeHTTP(rec, req)
+		return rec.Code
+	}
+	service := f.service.Sign(t, authntest.Token{Subject: "admin"})
+	assert.Equal(t, http.StatusOK, send("/v1/files/content", service, 3000), "the files route allows larger bodies")
+	assert.Equal(t, http.StatusRequestEntityTooLarge, send("/v1/files/content", service, 5000))
+	assert.Equal(t, http.StatusRequestEntityTooLarge, send("/v1/auth/login", "", 2000), "other routes keep the default")
 }

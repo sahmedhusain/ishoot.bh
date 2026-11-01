@@ -131,6 +131,15 @@ test("a phone order is paid from a payment link and refunded through the gateway
   await expect(page.getByTestId("order-payment-link")).toHaveCount(0);
   await page.locator('input[name="refundAmount"]').fill("1");
   await page.getByTestId("order-refund").click();
+  const confirmation = page
+    .getByRole("dialog")
+    .filter({ has: page.locator("[data-confirm-dialog]") });
+  await expect(confirmation).toBeVisible();
+  const orderNumber = (await db.salesOrder.findUniqueOrThrow({ where: { id } }))
+    .number;
+  await confirmation.getByRole("textbox").fill(orderNumber);
+  await confirmation.getByRole("button").last().click();
+  await expect(confirmation).toHaveCount(0);
   await expect
     .poll(async () =>
       Number(

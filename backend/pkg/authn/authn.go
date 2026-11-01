@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/lestrrat-go/jwx/v3/jwa"
@@ -69,17 +70,31 @@ var (
 	ErrInvalidToken = errors.New("authn: invalid token")
 )
 
-// Verifier checks access tokens against the identity service's keys.
+// UserRealms are the realms whose tokens the identity service issues.
+var UserRealms = []Realm{RealmStaff, RealmCustomer, RealmIT}
+
+// ServiceIssuerPrefix starts the issuer of every service token: "service:<caller>" (ADR 0011).
+const ServiceIssuerPrefix = "service:"
+
+// Trust is one token issuer the verifier accepts, its keys and the realms it may issue tokens for. A trust whose
+// Issuer is ServiceIssuerPrefix accepts every "service:<caller>" issuer, but only with keys whose ID starts with
+// "<caller>:", so one caller cannot sign as another.
+type Trust struct {
+	Issuer string
+	Keys   KeySource
+	Realms []Realm
+}
+
+// Verifier checks access tokens against the keys of the issuers it trusts.
 type Verifier struct {
-	keys   KeySource
-	issuer string
+	trusts []Trust
 	skew   time.Duration
 	now    func() time.Time
 }
 
-// NewVerifier returns a verifier accepting tokens from issuer, allowing skew of clock difference.
-func NewVerifier(keys KeySource, issuer string, skew time.Duration) *Verifier {
-	return &Verifier{keys: keys, issuer: issuer, skew: skew, now: time.Now}
+// NewVerifier returns a verifier accepting tokens from the given issuers, allowing skew of clock difference.
+func NewVerifier(skew time.Duration, trusts ...Trust) *Verifier {
+	return &Verifier{trusts: trusts, skew: skew, now: time.Now}
 }
 
 // Verify parses and validates token for one of the allowed realms and returns its principal.
@@ -91,20 +106,24 @@ func (v *Verifier) Verify(ctx context.Context, token string, allowed ...Realm) (
 	if err != nil {
 		return Principal{}, err
 	}
-	set, err := v.keys.Keys(ctx)
+	issuer, trust, err := v.trustFor(token, kid)
+	if err != nil {
+		return Principal{}, err
+	}
+	set, err := trust.Keys.Keys(ctx)
 	if err != nil {
 		return Principal{}, fmt.Errorf("authn: loading keys: %w", err)
 	}
 	if _, known := set.LookupKeyID(kid); !known {
-		// The identity service may have rotated its keys since the set was cached.
-		v.keys.Invalidate()
-		if set, err = v.keys.Keys(ctx); err != nil {
+		// The issuer may have rotated its keys since the set was cached.
+		trust.Keys.Invalidate()
+		if set, err = trust.Keys.Keys(ctx); err != nil {
 			return Principal{}, fmt.Errorf("authn: loading keys: %w", err)
 		}
 	}
 	parsed, err := jwt.ParseString(token,
 		jwt.WithKeySet(set, jws.WithRequireKid(true), jws.WithInferAlgorithmFromKey(false)),
-		jwt.WithIssuer(v.issuer),
+		jwt.WithIssuer(issuer),
 		jwt.WithAcceptableSkew(v.skew),
 		jwt.WithClock(jwt.ClockFunc(v.now)),
 		jwt.WithRequiredClaim(jwt.SubjectKey),
@@ -113,6 +132,7 @@ func (v *Verifier) Verify(ctx context.Context, token string, allowed ...Realm) (
 	if err != nil {
 		return Principal{}, fmt.Errorf("%w: %w", ErrInvalidToken, err)
 	}
+	allowed = slices.DeleteFunc(slices.Clone(allowed), func(r Realm) bool { return !slices.Contains(trust.Realms, r) })
 
 	var use string
 	if err := parsed.Get(ClaimTokenUse, &use); err != nil || use != TokenUseAccess {
@@ -129,6 +149,31 @@ func (v *Verifier) Verify(ctx context.Context, token string, allowed ...Realm) (
 	principal.Roles = stringList(parsed, ClaimRoles)
 	_ = parsed.Get(ClaimSessionID, &principal.SessionID)
 	return principal, nil
+}
+
+// trustFor picks the trust for the token's (not yet verified) issuer.
+func (v *Verifier) trustFor(token, kid string) (string, Trust, error) {
+	unverified, err := jwt.ParseInsecure([]byte(token))
+	if err != nil {
+		return "", Trust{}, fmt.Errorf("%w: malformed claims", ErrInvalidToken)
+	}
+	issuer, ok := unverified.Issuer()
+	if !ok || issuer == "" {
+		return "", Trust{}, fmt.Errorf("%w: missing issuer", ErrInvalidToken)
+	}
+	for _, trust := range v.trusts {
+		if trust.Issuer == issuer && trust.Issuer != ServiceIssuerPrefix {
+			return issuer, trust, nil
+		}
+		if trust.Issuer == ServiceIssuerPrefix && strings.HasPrefix(issuer, ServiceIssuerPrefix) {
+			caller := strings.TrimPrefix(issuer, ServiceIssuerPrefix)
+			if caller == "" || !strings.HasPrefix(kid, caller+":") {
+				return "", Trust{}, fmt.Errorf("%w: key does not belong to the caller", ErrInvalidToken)
+			}
+			return issuer, trust, nil
+		}
+	}
+	return "", Trust{}, fmt.Errorf("%w: untrusted issuer", ErrInvalidToken)
 }
 
 // checkHeader refuses any token not signed with EdDSA, whatever the key set contains, and returns its key ID.

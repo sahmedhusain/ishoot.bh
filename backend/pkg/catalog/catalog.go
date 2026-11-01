@@ -8,6 +8,7 @@ package catalog
 import (
 	"bytes"
 	"embed"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"slices"
@@ -81,6 +82,35 @@ type Subcategory struct {
 	NameAr string `json:"nameAr"`
 }
 
+// FileRules lists the file types and storage folders uploads may use.
+type FileRules struct {
+	URLPrefix string       `json:"urlPrefix"`
+	Types     []FileType   `json:"types"`
+	Folders   []FileFolder `json:"folders"`
+}
+
+// FileType is an accepted media type, the file extensions it may carry (the first is used for new files) and the
+// byte signatures that identify it: a file matches when every part of any one signature matches.
+type FileType struct {
+	MIME       string            `json:"mime"`
+	Extensions []string          `json:"extensions"`
+	Signatures [][]SignaturePart `json:"signatures"`
+}
+
+// SignaturePart is a run of bytes (hex) expected at an offset.
+type SignaturePart struct {
+	Offset int    `json:"offset"`
+	Hex    string `json:"hex"`
+	bytes  []byte
+}
+
+// FileFolder is a storage folder: public folders hold brand and website files anyone may read.
+type FileFolder struct {
+	Key    string   `json:"key"`
+	Public bool     `json:"public"`
+	Types  []string `json:"types"`
+}
+
 // The loaded catalogue.
 var (
 	StaffAccess Access
@@ -88,6 +118,7 @@ var (
 	Modules     []Module
 	Scopes      DataScopes
 	Tickets     ITSM
+	Files       FileRules
 )
 
 // SuperAdminRole holds every staff permission regardless of stored grants.
@@ -102,11 +133,13 @@ func init() {
 	must(decode("modules.json", &modules))
 	must(decode("data-scopes.json", &Scopes))
 	must(decode("itsm.json", &Tickets))
+	must(decode("files.json", &Files))
 	Modules = modules.Modules
 	must(StaffAccess.validate("staff"))
 	must(ITAccess.validate("it"))
 	must(Scopes.validate(StaffAccess))
 	must(Tickets.validate())
+	must(Files.validate())
 }
 
 func must(err error) {
@@ -264,6 +297,96 @@ func (t ITSM) validate() error {
 			return fmt.Errorf("catalog: itsm: duplicate category %q", c.Key)
 		}
 		seen[c.Key] = true
+	}
+	return nil
+}
+
+// DetectType returns the media type whose signature matches the file's first bytes, or "".
+func (f FileRules) DetectType(head []byte) string {
+	for _, t := range f.Types {
+		for _, signature := range t.Signatures {
+			if matchesAll(head, signature) {
+				return t.MIME
+			}
+		}
+	}
+	return ""
+}
+
+// SniffLength is how many leading bytes DetectType needs to see.
+func (f FileRules) SniffLength() int {
+	n := 0
+	for _, t := range f.Types {
+		for _, signature := range t.Signatures {
+			for _, part := range signature {
+				n = max(n, part.Offset+len(part.bytes))
+			}
+		}
+	}
+	return n
+}
+
+func matchesAll(head []byte, signature []SignaturePart) bool {
+	for _, part := range signature {
+		end := part.Offset + len(part.bytes)
+		if end > len(head) || !bytes.Equal(head[part.Offset:end], part.bytes) {
+			return false
+		}
+	}
+	return true
+}
+
+// Folder returns a folder by key.
+func (f FileRules) Folder(key string) (FileFolder, bool) {
+	for _, folder := range f.Folders {
+		if folder.Key == key {
+			return folder, true
+		}
+	}
+	return FileFolder{}, false
+}
+
+// Type returns an accepted type by media type.
+func (f FileRules) Type(mime string) (FileType, bool) {
+	for _, t := range f.Types {
+		if t.MIME == mime {
+			return t, true
+		}
+	}
+	return FileType{}, false
+}
+
+// Allows reports whether the folder accepts the media type.
+func (f FileFolder) Allows(mime string) bool { return slices.Contains(f.Types, mime) }
+
+func (f FileRules) validate() error {
+	if f.URLPrefix == "" || f.URLPrefix[0] != '/' || f.URLPrefix[len(f.URLPrefix)-1] != '/' {
+		return fmt.Errorf("catalog: files: urlPrefix must start and end with /")
+	}
+	for ti := range f.Types {
+		t := &f.Types[ti]
+		if len(t.Extensions) == 0 || len(t.Signatures) == 0 {
+			return fmt.Errorf("catalog: files: type %q needs extensions and signatures", t.MIME)
+		}
+		for _, signature := range t.Signatures {
+			if len(signature) == 0 {
+				return fmt.Errorf("catalog: files: type %q has an empty signature", t.MIME)
+			}
+			for pi := range signature {
+				decoded, err := hex.DecodeString(signature[pi].Hex)
+				if err != nil || len(decoded) == 0 || signature[pi].Offset < 0 {
+					return fmt.Errorf("catalog: files: type %q has an invalid signature", t.MIME)
+				}
+				signature[pi].bytes = decoded
+			}
+		}
+	}
+	for _, folder := range f.Folders {
+		for _, mime := range folder.Types {
+			if _, ok := f.Type(mime); !ok {
+				return fmt.Errorf("catalog: files: folder %q allows unknown type %q", folder.Key, mime)
+			}
+		}
 	}
 	return nil
 }

@@ -6,12 +6,11 @@ const assert = require("node:assert/strict");
 const { db } = require("../packages/database/src/db.ts");
 const { transactionContext } = require("../packages/database/src/transaction-context.ts");
 const claims = require("../packages/database/src/queries/expense-claims.ts");
+const { serverMessages } = require("../packages/locales/src/index.ts");
 const { submitForApproval, decideApprovalRequest } = require("../packages/database/src/services/approval-engine.ts");
 
-const { storeFileBytes, uploadRoot } = require("../packages/database/src/services/uploads.ts");
-const { isSupabaseStorageConfigured, localUploadPath } = require("../packages/database/src/services/storage.ts");
+const { fixtureUpload, removeFixtureUploads } = require("./lib/upload-fixtures.cjs");
 const { SAMPLE_RECEIPT_JPEG } = require("../packages/database/src/services/sample-files.ts");
-const stored = [];
 
 const rollback = new Error("ROLLBACK_CLAIMS_TEST");
 
@@ -30,16 +29,12 @@ async function main() {
       const category = await tx.expenseCategory.findFirstOrThrow({ where: { slug: "fuel_transport" } });
       const deal = await tx.crmDeal.findFirstOrThrow({ where: { contactId: { not: null } } });
       // Receipts are verified against the stored bytes, so the test stores a real (sample) JPEG.
-      const receipt = async (name) => {
-        const fileUrl = `/api/files/general/${name}-${stamp}.jpg`;
-        await storeFileBytes(fileUrl, SAMPLE_RECEIPT_JPEG, "image/jpeg");
-        stored.push(fileUrl);
-        return tx.uploadObject.create({ data: { fileUrl, ownerId: producer.id, fileName: `${name}.jpg`, fileSize: SAMPLE_RECEIPT_JPEG.length, mimeType: "image/jpeg", expiresAt: new Date(Date.now() + 3600000) } });
-      };
+      const receipt = (name) =>
+        fixtureUpload(producer.id, { fileName: `${name}.jpg`, mimeType: "image/jpeg", bytes: SAMPLE_RECEIPT_JPEG });
       const upload = await receipt("claim");
 
       await assert.rejects(claims.createExpenseClaim({ amount: 5, expenseDate: "2026-01-01", reason: "x", receiptUrl: "" }, producer.id), /receipt/);
-      await assert.rejects(claims.createExpenseClaim({ amount: 5, currency: "JPY", expenseDate: "2026-01-01", reason: "x", receiptUrl: upload.fileUrl }, producer.id), /Unsupported currency/);
+      await assert.rejects(claims.createExpenseClaim({ amount: 5, currency: "JPY", expenseDate: "2026-01-01", reason: "x", receiptUrl: upload.fileUrl }, producer.id), { message: serverMessages.companyCurrencyRequired });
 
       const claim = await claims.createExpenseClaim(
         { amount: 12.5, expenseDate: "2026-09-20", reason: "Taxi to the client shoot", categoryId: category.id, dealId: deal.id, receiptUrl: upload.fileUrl },
@@ -88,6 +83,6 @@ main()
   .catch((error) => { console.error(error); process.exitCode = 1; })
   .finally(async () => {
     // The database rows were rolled back; remove the sample files written for them too.
-    if (!isSupabaseStorageConfigured()) for (const fileUrl of stored) require("node:fs").rmSync(localUploadPath(fileUrl, uploadRoot()), { force: true });
+    await removeFixtureUploads();
     await db.$disconnect();
   });

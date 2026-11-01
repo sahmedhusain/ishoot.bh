@@ -6,10 +6,8 @@
 //   --empty    no demo data: roles, permissions and SUPER_ADMIN only; the admin then shows the setup wizard
 // Refuses to run against anything but a database on this machine, or with NODE_ENV=production.
 const { execFileSync } = require("node:child_process");
-const fs = require("node:fs");
 const path = require("node:path");
 const readline = require("node:readline/promises");
-const { createRequire } = require("node:module");
 
 const root = path.resolve(__dirname, "..");
 require("dotenv").config({ path: path.join(root, ".env"), quiet: true });
@@ -68,33 +66,15 @@ async function confirm() {
 const run = (command, commandArgs, extra = {}) =>
   execFileSync(command, commandArgs, { cwd: root, stdio: "inherit", env: { ...process.env, ...extra } });
 
-/** Empties local upload storage, or the two Supabase buckets (creating them if missing). */
-async function resetUploads() {
-  const supabaseUrl = process.env.SUPABASE_URL?.trim();
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
-  if (supabaseUrl && serviceKey) {
-    const host = new URL(supabaseUrl).hostname;
-    if (!LOCAL_HOSTS.includes(host)) throw new Error(`Refusing to empty storage on ${host}; point SUPABASE_URL at the local stack.`);
-    const { createClient } = createRequire(path.join(root, "packages/database/package.json"))("@supabase/supabase-js");
-    const storage = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } }).storage;
-    for (const [bucket, isPublic] of [["public-assets", true], ["private-assets", false]]) {
-      const { error: missing } = await storage.getBucket(bucket);
-      if (missing) {
-        const { error } = await storage.createBucket(bucket, { public: isPublic, fileSizeLimit: "10MB" });
-        if (error) throw new Error(`Could not create bucket ${bucket}: ${error.message}`);
-        console.log(`Created storage bucket ${bucket} (${isPublic ? "public" : "private"})`);
-        continue;
-      }
-      const { error } = await storage.emptyBucket(bucket);
-      if (error) throw new Error(`Could not empty bucket ${bucket}: ${error.message}`);
-      console.log(`Emptied storage bucket ${bucket}`);
-    }
-    return;
-  }
-  const uploadRoot = process.env.UPLOAD_ROOT ? path.resolve(process.env.UPLOAD_ROOT) : path.join(root, "apps/admin/private/uploads");
-  fs.rmSync(uploadRoot, { recursive: true, force: true });
-  fs.mkdirSync(uploadRoot, { recursive: true });
-  console.log(`Emptied ${uploadRoot.startsWith(root + path.sep) ? path.relative(root, uploadRoot) : uploadRoot}`);
+/**
+ * The reset drops the whole local database, the files service's schema included. Start the local stack and
+ * re-create the files service's tables, so the seed can store its files (docs/backend/OPERATIONS.md).
+ */
+function resetFilesService() {
+  const compose = ["compose", "--env-file", path.join(root, ".env")];
+  run("node", ["scripts/env-tool.cjs", "service-keys"]);
+  run("docker", [...compose, "up", "-d", "--build", "--wait"]);
+  run("docker", [...compose, "run", "--rm", "files-migrate"]);
 }
 
 async function main() {
@@ -104,7 +84,7 @@ async function main() {
   // Drops every table in the schema and re-applies all migrations from scratch.
   run(path.join(root, "node_modules/.bin/prisma"), ["migrate", "reset", "--force", "--skip-seed", "--skip-generate", "--schema", "packages/database/prisma/schema.prisma"]);
   run(path.join(root, "node_modules/.bin/prisma"), ["generate", "--schema", "packages/database/prisma/schema.prisma"]);
-  await resetUploads();
+  resetFilesService();
 
   if (mode === "empty") {
     run(process.execPath, ["scripts/bootstrap-database.cjs"], { COMPANY_PROFILE: "" });
