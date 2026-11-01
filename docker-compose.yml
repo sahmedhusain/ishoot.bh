@@ -1,5 +1,5 @@
 # Local stack for the backend (docs/backend/OPERATIONS.md). Everything binds to 127.0.0.1.
-#   docker compose up -d                          Postgres, Valkey, SeaweedFS (S3), the gateway and the services
+#   docker compose up -d                          Postgres, Valkey, SeaweedFS (S3), NATS, Mailpit, the gateway and the services
 #   docker compose --profile observability up -d  + OpenTelemetry Collector, Prometheus, Loki, Tempo, Grafana
 #   docker compose --profile tools up -d          + pgAdmin
 # Values come from .env (see .env.example, "Backend" section).
@@ -76,6 +76,7 @@ x-system: &system
     SYSTEM_MODULE_WRITERS: ${SYSTEM_MODULE_WRITERS:-admin}
     SYSTEM_INTEGRATION_WRITERS: ${SYSTEM_INTEGRATION_WRITERS:-admin}
     SYSTEM_DOMAIN_WRITERS: ${SYSTEM_DOMAIN_WRITERS:-admin}
+    NATS_URL: ${NATS_URL:-nats://nats:4222}
     SECRETS_KEYS: ${SECRETS_KEYS:-primary:MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=}
     SECRETS_PRIMARY_KEY_ID: ${SECRETS_PRIMARY_KEY_ID:-primary}
     SECRETS_LEGACY_INTEGRATION_KEY: ${SECRETS_LEGACY_INTEGRATION_KEY:-${ENCRYPTION_KEY:-01234567890123456789012345678901}}
@@ -244,6 +245,7 @@ services:
     depends_on:
       system-migrate: { condition: service_completed_successfully }
       identity: { condition: service_healthy }
+      nats: { condition: service_healthy }
 
   itsm-migrate:
     <<: *itsm
@@ -337,6 +339,39 @@ services:
     depends_on:
       identity-migrate: { condition: service_completed_successfully }
 
+  # Events (ADR 0003): JetStream keeps the EVENTS stream on disk; the services create it on start.
+  nats:
+    image: nats:2.12-alpine
+    restart: unless-stopped
+    command: ["--jetstream", "--store_dir=/data", "--http_port=8222"]
+    ports:
+      - "127.0.0.1:${NATS_PORT:-4222}:4222"
+      - "127.0.0.1:${NATS_MONITOR_PORT:-8222}:8222"
+    volumes:
+      - natsdata:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null 'http://127.0.0.1:8222/healthz?js-enabled-only=true'"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # Local mail: catches everything sent over SMTP (127.0.0.1:1025) and shows it at http://localhost:8025.
+  mailpit:
+    image: axllent/mailpit:v1.27
+    restart: unless-stopped
+    environment:
+      MP_MAX_MESSAGES: "5000"
+      MP_SMTP_AUTH_ACCEPT_ANY: "true"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "true"
+    ports:
+      - "127.0.0.1:${MAILPIT_SMTP_PORT:-1025}:1025"
+      - "127.0.0.1:${MAILPIT_UI_PORT:-8025}:8025"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8025/livez"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.120.0
     profiles: [observability]
@@ -411,3 +446,4 @@ services:
 volumes:
   pgdata17:
   s3data:
+  natsdata:

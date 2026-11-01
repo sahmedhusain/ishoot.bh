@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/system.integration.changed.v1.json",
+  "title": "system.integration.changed",
+  "description": "An integration's settings were saved (credentials are never included).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "provider",
+    "isActive",
+    "changedBy"
+  ],
+  "properties": {
+    "provider": {
+      "type": "string"
+    },
+    "isActive": {
+      "type": "boolean"
+    },
+    "changedBy": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Who made the change: <caller>:<person> or it:<IT account>"
+    }
+  }
+}

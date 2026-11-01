@@ -11,6 +11,8 @@ import (
 	"unicode/utf8"
 
 	"github.com/jackc/pgx/v5"
+
+	"platform.local/backend/services/system/internal/postgres"
 )
 
 // ErrDomainsMustDiffer means the website and the admin were given the same domain.
@@ -155,7 +157,10 @@ func (s *Service) SetSiteDomains(ctx context.Context, website, admin, by string)
 		}
 		return &v
 	}
-	if err := s.store.SetSiteDomains(ctx, optional(normalized[0]), optional(normalized[1]), by, s.now()); err != nil {
+	event := DomainsChanged{WebsiteDomain: normalized[0], AdminDomain: normalized[1], ChangedBy: by}
+	if err := s.change(ctx, EventDomainsChanged, event, func(st *postgres.Store) error {
+		return st.SetSiteDomains(ctx, optional(normalized[0]), optional(normalized[1]), by, s.now())
+	}); err != nil {
 		return Site{}, err
 	}
 	return s.Site(ctx)
@@ -171,7 +176,9 @@ func (s *Service) SetSiteCode(ctx context.Context, in SiteCode, by string) (Site
 	if err != nil {
 		return Site{}, err
 	}
-	if err := s.store.SetSiteCode(ctx, raw, by, s.now()); err != nil {
+	if err := s.change(ctx, EventSiteCodeChanged, SiteCodeChanged{ChangedBy: by}, func(st *postgres.Store) error {
+		return st.SetSiteCode(ctx, raw, by, s.now())
+	}); err != nil {
 		return Site{}, err
 	}
 	return s.Site(ctx)

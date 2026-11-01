@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/system.integration.unlinked.v1.json",
+  "title": "system.integration.unlinked",
+  "description": "An integration was disconnected and its credentials cleared.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "provider",
+    "changedBy"
+  ],
+  "properties": {
+    "provider": {
+      "type": "string"
+    },
+    "changedBy": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Who made the change: <caller>:<person> or it:<IT account>"
+    }
+  }
+}

@@ -129,7 +129,8 @@ func (s *Service) Modules(ctx context.Context) ([]Module, error) {
 func (s *Service) SetModule(ctx context.Context, key string, enabled bool, by string) error {
 	for _, m := range catalog.Modules {
 		if m.Key == key {
-			return s.store.SetModule(ctx, key, enabled, by, s.now())
+			return s.change(ctx, EventModuleChanged, ModuleChanged{Key: key, Enabled: enabled, ChangedBy: by},
+				func(st *postgres.Store) error { return st.SetModule(ctx, key, enabled, by, s.now()) })
 		}
 	}
 	return ErrUnknownModule
@@ -388,7 +389,7 @@ func (s *Service) SetIntegration(ctx context.Context, providerID string, in Save
 
 	now := s.now()
 	byStr := by
-	err = s.store.UpsertIntegration(ctx, sqlcdb.UpsertIntegrationParams{
+	upsert := sqlcdb.UpsertIntegrationParams{
 		Provider:     providerID,
 		IsActive:     in.IsActive,
 		Credentials:  sealed,
@@ -398,7 +399,9 @@ func (s *Service) SetIntegration(ctx context.Context, providerID string, in Save
 		AccountName:  accountName,
 		UpdatedBy:    &byStr,
 		UpdatedAt:    now,
-	})
+	}
+	err = s.change(ctx, EventIntegrationChanged, IntegrationChanged{Provider: providerID, IsActive: in.IsActive, ChangedBy: by},
+		func(st *postgres.Store) error { return st.UpsertIntegration(ctx, upsert) })
 	if err != nil {
 		return ServiceIntegration{}, err
 	}
@@ -420,7 +423,8 @@ func (s *Service) SetIntegration(ctx context.Context, providerID string, in Save
 
 // UnlinkIntegration clears credentials and sets active to false.
 func (s *Service) UnlinkIntegration(ctx context.Context, providerID string, by string) error {
-	return s.store.UnlinkIntegration(ctx, providerID, by, s.now())
+	return s.change(ctx, EventIntegrationRemoved, IntegrationUnlinked{Provider: providerID, ChangedBy: by},
+		func(st *postgres.Store) error { return st.UnlinkIntegration(ctx, providerID, by, s.now()) })
 }
 
 // UpdateIntegrationStatus updates status fields and optionally refreshed credentials.

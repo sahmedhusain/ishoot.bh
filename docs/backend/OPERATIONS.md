@@ -7,7 +7,7 @@ the backend variables. Run `./run.sh env secrets` separately to generate missing
 
 | Command                                        | Starts                                                           |
 | ---------------------------------------------- | ---------------------------------------------------------------- |
-| `docker compose up -d --build`                 | Postgres 17, Valkey, SeaweedFS, files API/worker, gateway        |
+| `docker compose up -d --build`                 | Postgres 17, Valkey, SeaweedFS, NATS, Mailpit, gateway, services |
 | `docker compose --profile observability up -d` | OpenTelemetry Collector, Prometheus, Loki, Tempo, Alloy, Grafana |
 | `docker compose --profile tools up -d`         | pgAdmin                                                          |
 
@@ -28,8 +28,28 @@ Default ports (all can be changed in `.env`):
 | 9082 | identity admin |
 | 9083 | itsm admin     |
 | 8333 | SeaweedFS S3   |
+| 4222 | NATS           |
+| 8222 | NATS monitor   |
+| 1025 | Mailpit SMTP   |
+| 8025 | Mailpit inbox  |
 | 3300 | Grafana        |
 | 9091 | Prometheus     |
+
+## Events
+
+A service writes each event to its own `outbox` table in the transaction that makes the change
+([ADR 0003](../adr/0003-events-outbox-nats.md), `pkg/outbox`). Its relay publishes pending rows to the JetStream stream
+`EVENTS` with the event ID as the message ID, so a re-sent event is stored once. When NATS is down, events wait in the
+outbox and go out once it is back; nothing is lost. Watch `outbox_pending` and `outbox_publish_failures_total` on each
+service's admin port, and the stream at `http://127.0.0.1:8222/jsz?streams=true`. Payload schemas are in
+`contracts/events/`. Today the system service publishes its events; the audit and notify services will consume them.
+
+To read events locally: `docker run --rm --network platform_default natsio/nats-box nats -s nats://nats:4222 stream view EVENTS`.
+
+## Local mail
+
+Mailpit catches every message sent to `127.0.0.1:1025` and shows it at http://localhost:8025; nothing leaves the
+machine. The notify service will send through it in development.
 
 ## Continuous integration
 

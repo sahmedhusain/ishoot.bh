@@ -38,6 +38,8 @@ backend/
     ratelimit          shared rate limits (Redis/Valkey, GCRA)
     telemetry          OpenTelemetry tracing
     db                 PostgreSQL pool, statement timeout, transactions
+    outbox             transactional outbox, its relay and the consumers' inbox (ADR 0003)
+    natsx              NATS JetStream: the EVENTS stream, publishing and durable consumers
     redisx             Redis/Valkey client
     secrets            AES-256-GCM key ring (reads the old TypeScript formats too)
     catalog            shared constants from contracts/catalog (go generate)

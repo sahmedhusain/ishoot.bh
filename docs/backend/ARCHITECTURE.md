@@ -39,8 +39,8 @@ Browser ─▶ apps/web · apps/admin · apps/it   (Next.js: UI, cookies, server
 
 What exists today (2026-11-02): identity runs the IT realm with mandatory MFA; staff and customer sign-in still run in
 the apps. The system service owns modules, integrations, and the website's domains and site-wide code, all managed
-from the IT dashboard. `itsm` holds IT tickets with SLAs; employees raise them from the admin. Audit, notify, NATS and
-the remaining IT pages are not built yet, and no business domain has moved.
+from the IT dashboard, and publishes its changes as events (transactional outbox to NATS JetStream). `itsm` holds IT tickets with SLAs; employees raise them from the admin. Audit, notify,
+PgBouncer with per-service database roles, and the remaining IT pages are not built yet, and no business domain has moved.
 
 Until a domain moves, the Next.js apps keep using `packages/database` (Prisma) for it, as described in
 [../ARCHITECTURE.md](../ARCHITECTURE.md).

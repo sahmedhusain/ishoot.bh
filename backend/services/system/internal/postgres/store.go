@@ -5,10 +5,15 @@ import (
 	"context"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"platform.local/backend/pkg/db"
 	"platform.local/backend/services/system/internal/postgres/sqlcdb"
 )
+
+// Schema is the service's database schema (ADR 0002); its outbox is system.outbox.
+const Schema = "system"
 
 // ModuleSetting is a stored choice for one module.
 type ModuleSetting = sqlcdb.SystemModuleSetting
@@ -20,10 +25,20 @@ type IntegrationSetting = sqlcdb.SystemIntegrationSetting
 type SiteSetting = sqlcdb.SystemSiteSetting
 
 // Store reads and writes the system schema.
-type Store struct{ q *sqlcdb.Queries }
+type Store struct {
+	pool *pgxpool.Pool
+	q    *sqlcdb.Queries
+}
 
 // New returns a store on the pool.
-func New(pool *pgxpool.Pool) *Store { return &Store{q: sqlcdb.New(pool)} }
+func New(pool *pgxpool.Pool) *Store { return &Store{pool: pool, q: sqlcdb.New(pool)} }
+
+// Tx runs fn with a store bound to one transaction; the events of the change are written in the same transaction.
+func (s *Store) Tx(ctx context.Context, fn func(*Store, pgx.Tx) error) error {
+	return db.WithTx(ctx, s.pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		return fn(&Store{q: s.q.WithTx(tx)}, tx)
+	})
+}
 
 // ModuleSettings returns every stored module choice.
 func (s *Store) ModuleSettings(ctx context.Context) ([]ModuleSetting, error) {

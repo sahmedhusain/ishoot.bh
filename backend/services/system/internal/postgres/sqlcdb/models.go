@@ -9,6 +9,12 @@ import (
 	"time"
 )
 
+type SystemInbox struct {
+	Consumer  string
+	EventID   string
+	HandledAt time.Time
+}
+
 type SystemIntegrationSetting struct {
 	Provider       string
 	IsActive       bool
@@ -30,6 +36,18 @@ type SystemModuleSetting struct {
 	Enabled   bool
 	UpdatedBy *string
 	UpdatedAt time.Time
+}
+
+type SystemOutbox struct {
+	ID          string
+	Subject     string
+	Payload     json.RawMessage
+	Headers     json.RawMessage
+	CreatedAt   time.Time
+	PublishedAt *time.Time
+	Attempts    int32
+	NextTryAt   time.Time
+	LastError   *string
 }
 
 type SystemSiteSetting struct {

@@ -144,6 +144,9 @@ services:
       SYSTEM_MODULE_WRITERS: admin
       SYSTEM_INTEGRATION_WRITERS: admin
       SYSTEM_DOMAIN_WRITERS: admin
+      # The events broker: the official NATS chart with JetStream (3 replicas) in the "nats" namespace.
+      NATS_URL: nats://nats.nats:4222
+      NATS_REPLICAS: "3"
     # Secrets (system-secrets): DATABASE_URL, SECRETS_KEYS, SECRETS_PRIMARY_KEY_ID, SECRETS_LEGACY_INTEGRATION_KEY.
     configFiles: []
     talksTo: [identity]

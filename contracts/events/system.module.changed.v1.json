@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/system.module.changed.v1.json",
+  "title": "system.module.changed",
+  "description": "A module was switched on or off.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "key",
+    "enabled",
+    "changedBy"
+  ],
+  "properties": {
+    "key": {
+      "type": "string"
+    },
+    "enabled": {
+      "type": "boolean"
+    },
+    "changedBy": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Who made the change: <caller>:<person> or it:<IT account>"
+    }
+  }
+}

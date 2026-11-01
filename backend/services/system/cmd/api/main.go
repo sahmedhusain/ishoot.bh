@@ -14,6 +14,9 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/prometheus/client_golang/prometheus"
+
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/config"
 	"platform.local/backend/pkg/db"
@@ -21,6 +24,8 @@ import (
 	"platform.local/backend/pkg/httpx"
 	"platform.local/backend/pkg/logx"
 	"platform.local/backend/pkg/migrate"
+	"platform.local/backend/pkg/natsx"
+	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/pkg/secrets"
 	"platform.local/backend/pkg/telemetry"
 	"platform.local/backend/services/system/internal/app"
@@ -93,10 +98,10 @@ func run(command string) error {
 	if command != "serve" {
 		return fmt.Errorf("unknown command %q (serve, migrate, healthcheck)", command)
 	}
-	return serve(ctx, cfg, logger, svc, metrics, admin)
+	return serve(ctx, cfg, logger, pool, svc, metrics, admin)
 }
 
-func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, svc *app.Service, metrics *httpx.Metrics, admin http.Handler) error {
+func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, pool *pgxpool.Pool, svc *app.Service, metrics *httpx.Metrics, admin http.Handler) error {
 	if !cfg.Auth.Configured() {
 		return errors.New("set AUTH_SERVICE_KEYS_FILE (and AUTH_ISSUER/AUTH_JWKS_URL once identity runs)")
 	}
@@ -116,7 +121,42 @@ func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, svc *a
 		JSONBodyLimit: cfg.System.JSONBodyLimit, SiteCodeBodyLimit: cfg.System.SiteCodeBodyLimit,
 	})
 
+	relayDone, err := startRelay(ctx, cfg, logger, pool, metrics.Registry)
+	if err != nil {
+		return err
+	}
 	public, adminServer := httpx.Servers(cfg.Common, telemetry.Handler(cfg.ServiceName, e), admin)
 	logger.Info("system service starting")
-	return httpx.Run(ctx, cfg.Common, logger, public, adminServer)
+	runErr := httpx.Run(ctx, cfg.Common, logger, public, adminServer)
+	<-relayDone
+	return runErr
+}
+
+// startRelay publishes system.outbox to NATS until ctx ends. Without NATS_URL nothing is published: events wait in the
+// outbox (and the outbox_pending metric grows) until a relay runs.
+func startRelay(ctx context.Context, cfg settings.Config, logger *logx.Logger, pool *pgxpool.Pool, registry prometheus.Registerer) (<-chan struct{}, error) {
+	done := make(chan struct{})
+	if !cfg.NATS.Configured() {
+		logger.Warn("NATS_URL is not set: events stay in system.outbox until a relay publishes them")
+		close(done)
+		return done, nil
+	}
+	client, err := natsx.Connect(ctx, cfg.NATS, cfg.ServiceName, logger.Logger)
+	if err != nil {
+		return nil, err
+	}
+	relay, err := outbox.NewRelay(pool, outbox.RelayOptions{
+		Schema: Schema, Publisher: client, Logger: logger.Logger, Interval: cfg.Outbox.Interval,
+		Batch: cfg.Outbox.Batch, Retention: cfg.Outbox.Retention, Metrics: registry,
+	})
+	if err != nil {
+		client.Close()
+		return nil, err
+	}
+	go func() {
+		defer close(done)
+		defer client.Close()
+		_ = relay.Run(ctx)
+	}()
+	return done, nil
 }

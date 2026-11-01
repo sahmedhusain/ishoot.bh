@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/system.site_domains.changed.v1.json",
+  "title": "system.site_domains.changed",
+  "description": "The website or admin domain changed (empty: unset).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "websiteDomain",
+    "adminDomain",
+    "changedBy"
+  ],
+  "properties": {
+    "websiteDomain": {
+      "type": "string"
+    },
+    "adminDomain": {
+      "type": "string"
+    },
+    "changedBy": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Who made the change: <caller>:<person> or it:<IT account>"
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/system.site_code.changed.v1.json",
+  "title": "system.site_code.changed",
+  "description": "The site-wide analytics ids or custom code changed (the code is never included).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "changedBy"
+  ],
+  "properties": {
+    "changedBy": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Who made the change: <caller>:<person> or it:<IT account>"
+    }
+  }
+}

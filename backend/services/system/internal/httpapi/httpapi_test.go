@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -234,4 +235,57 @@ func TestModules(t *testing.T) {
 	rec = call(it("it_engineer"), http.MethodGet, "/v1/system/desk/site/code", nil)
 	require.Equal(t, http.StatusOK, rec.Code)
 	assert.Contains(t, rec.Body.String(), `"googleAnalyticsId":"G-ABC1234"`)
+
+	// Every successful change wrote its event in the same transaction; refused ones wrote none. Payloads follow
+	// contracts/events and carry no credentials or code.
+	rows, err := pool.Query(ctx, `SELECT subject, payload FROM system.outbox ORDER BY created_at, id`)
+	require.NoError(t, err)
+	counts := map[string]int{}
+	for rows.Next() {
+		var subject string
+		var payload []byte
+		require.NoError(t, rows.Scan(&subject, &payload))
+		counts[subject]++
+		checkEvent(t, subject, payload)
+		assert.NotContains(t, string(payload), "secret-token-long-value")
+		assert.NotContains(t, string(payload), "<meta")
+	}
+	require.NoError(t, rows.Err())
+	assert.Equal(t, map[string]int{
+		app.EventModuleChanged:      2,
+		app.EventIntegrationChanged: 1,
+		app.EventIntegrationRemoved: 1,
+		app.EventDomainsChanged:     2,
+		app.EventSiteCodeChanged:    1,
+	}, counts)
+}
+
+// checkEvent compares a payload with its schema: the required keys are present, no other keys, and the JSON types
+// match.
+func checkEvent(t *testing.T, subject string, payload []byte) {
+	t.Helper()
+	raw, err := os.ReadFile("../../../../../contracts/events/" + subject + ".v1.json")
+	require.NoError(t, err, "no schema for %s", subject)
+	var schema struct {
+		Required   []string
+		Properties map[string]struct{ Type string }
+	}
+	require.NoError(t, json.Unmarshal(raw, &schema))
+	var body map[string]any
+	require.NoError(t, json.Unmarshal(payload, &body))
+	for _, key := range schema.Required {
+		assert.Contains(t, body, key, subject)
+	}
+	for key, value := range body {
+		prop, ok := schema.Properties[key]
+		require.True(t, ok, "%s: %s is not in the schema", subject, key)
+		switch value.(type) {
+		case string:
+			assert.Equal(t, "string", prop.Type, "%s.%s", subject, key)
+		case bool:
+			assert.Equal(t, "boolean", prop.Type, "%s.%s", subject, key)
+		default:
+			t.Errorf("%s.%s: unexpected type %T", subject, key, value)
+		}
+	}
 }

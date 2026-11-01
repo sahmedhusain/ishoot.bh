@@ -6,6 +6,8 @@ import (
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/config"
 	"platform.local/backend/pkg/db"
+	"platform.local/backend/pkg/natsx"
+	"platform.local/backend/pkg/outbox"
 )
 
 // Config is the system service's configuration (see docs/backend/CONFIG.md).
@@ -15,6 +17,9 @@ type Config struct {
 	Auth     authn.Config `envPrefix:"AUTH_"`
 	Secrets  Secrets      `envPrefix:"SECRETS_"`
 	System   System       `envPrefix:"SYSTEM_"`
+	// NATS receives the service's events; without NATS_URL they wait in system.outbox.
+	NATS   natsx.Config  `envPrefix:"NATS_"`
+	Outbox outbox.Config `envPrefix:"OUTBOX_"`
 }
 
 // Secrets configures encryption for stored credentials.
