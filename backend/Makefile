@@ -17,7 +17,7 @@ gen: ## Regenerate code and docs from contracts and config structs
 	go run ./tools/config-doc ../docs/backend/CONFIG.md
 
 gen-check: gen ## Fail when generated code or docs are out of date
-	git diff --exit-code -- pkg/catalog/data services/files/internal/postgres/sqlcdb services/identity/internal/postgres/sqlcdb ../docs/backend/CONFIG.md
+	git diff --exit-code -- pkg/catalog/data services/files/internal/postgres/sqlcdb services/identity/internal/postgres/sqlcdb services/itsm/internal/postgres/sqlcdb ../docs/backend/CONFIG.md
 
 fmt: ## Format the code
 	gofmt -w .

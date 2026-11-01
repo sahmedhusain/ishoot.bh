@@ -24,6 +24,7 @@ Default ports (all can be changed in `.env`):
 | 8080 | gateway       |
 | 9080 | gateway admin |
 | 9081 | files admin   |
+| 9083 | itsm admin    |
 | 8333 | SeaweedFS S3  |
 | 3300 | Grafana       |
 | 9091 | Prometheus    |

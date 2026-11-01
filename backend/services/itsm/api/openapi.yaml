@@ -1,0 +1,375 @@
+openapi: 3.1.0
+info:
+  title: IT service management (itsm)
+  version: 1.0.0
+  description: |
+    IT tickets (ADR 0010). Two kinds of caller:
+
+    - `/v1/itsm/requests` — employees, through the admin app. The app authenticates with its service token
+      (ADR 0011), has already signed the employee in, and passes the employee as the requester. A requester only
+      ever sees their own tickets and never sees internal notes.
+    - `/v1/itsm/desk` — IT staff, with their own IT-realm access tokens. Each operation needs the catalogue
+      permission named in its description (`contracts/catalog/it-access.json`).
+
+    Categories, priorities, statuses and transitions come from `contracts/catalog/itsm.json`. Lists are newest
+    first and paged with an opaque `cursor`.
+servers:
+  - url: /
+tags:
+  - name: requests
+  - name: desk
+paths:
+  /v1/itsm/requests/tickets:
+    post:
+      tags: [requests]
+      operationId: createTicket
+      security: [{ serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NewTicket" }
+      responses:
+        "201":
+          description: The new ticket
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ticket" }
+        default: { $ref: "#/components/responses/Problem" }
+    get:
+      tags: [requests]
+      operationId: listMyTickets
+      security: [{ serviceToken: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/RequesterId" }
+        - { $ref: "#/components/parameters/Status" }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses:
+        "200": { $ref: "#/components/responses/TicketPage" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/itsm/requests/tickets/{id}:
+    parameters: [{ $ref: "#/components/parameters/TicketId" }]
+    get:
+      tags: [requests]
+      operationId: getMyTicket
+      security: [{ serviceToken: [] }]
+      parameters: [{ $ref: "#/components/parameters/RequesterId" }]
+      responses:
+        "200": { $ref: "#/components/responses/TicketDetail" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/itsm/requests/tickets/{id}/comments:
+    parameters: [{ $ref: "#/components/parameters/TicketId" }]
+    post:
+      tags: [requests]
+      operationId: commentOnMyTicket
+      security: [{ serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [requesterId, requesterName, body]
+              properties:
+                requesterId: { type: string, maxLength: 64 }
+                requesterName: { type: string, maxLength: 200 }
+                body: { type: string, minLength: 1, maxLength: 10000 }
+      responses:
+        "201": { $ref: "#/components/responses/Comment" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/itsm/requests/tickets/{id}/transitions:
+    parameters: [{ $ref: "#/components/parameters/TicketId" }]
+    post:
+      tags: [requests]
+      operationId: transitionMyTicket
+      description: Only the catalogue's requester transitions (provide information, reopen, close, cancel).
+      security: [{ serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [requesterId, requesterName, transition]
+              properties:
+                requesterId: { type: string, maxLength: 64 }
+                requesterName: { type: string, maxLength: 200 }
+                transition: { type: string, maxLength: 40 }
+      responses:
+        "200":
+          description: The ticket after the transition
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ticket" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/itsm/desk/tickets:
+    get:
+      tags: [desk]
+      operationId: listQueue
+      description: Needs `tickets:read`.
+      security: [{ userToken: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/Status" }
+        - { name: assigneeId, in: query, schema: { type: string, maxLength: 64 } }
+        - { name: priority, in: query, schema: { type: string, maxLength: 20 } }
+        - { name: open, in: query, description: Only tickets that still need work, schema: { type: boolean } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses:
+        "200": { $ref: "#/components/responses/TicketPage" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/itsm/desk/tickets/{id}:
+    parameters: [{ $ref: "#/components/parameters/TicketId" }]
+    get:
+      tags: [desk]
+      operationId: getQueueTicket
+      description: Needs `tickets:read`. Includes internal notes.
+      security: [{ userToken: [] }]
+      responses:
+        "200": { $ref: "#/components/responses/TicketDetail" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/itsm/desk/tickets/{id}/transitions:
+    parameters: [{ $ref: "#/components/parameters/TicketId" }]
+    post:
+      tags: [desk]
+      operationId: transitionQueueTicket
+      description: Needs `tickets:edit`, or `tickets:assign` for the assign transition.
+      security: [{ userToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [transition]
+              properties:
+                transition: { type: string, maxLength: 40 }
+                assigneeId: { type: string, maxLength: 64 }
+                assigneeName: { type: string, maxLength: 200 }
+      responses:
+        "200":
+          description: The ticket after the transition
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ticket" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/itsm/desk/tickets/{id}/comments:
+    parameters: [{ $ref: "#/components/parameters/TicketId" }]
+    post:
+      tags: [desk]
+      operationId: commentOnQueueTicket
+      description: Needs `tickets:edit`. Internal notes are never shown to the requester.
+      security: [{ userToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [body]
+              properties:
+                body: { type: string, minLength: 1, maxLength: 10000 }
+                internal: { type: boolean }
+      responses:
+        "201": { $ref: "#/components/responses/Comment" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/itsm/desk/sla:
+    get:
+      tags: [desk]
+      operationId: listSLA
+      description: Needs `ticket_settings:read`.
+      security: [{ userToken: [] }]
+      responses:
+        "200":
+          description: SLA targets per priority
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/SLAPolicy" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/itsm/desk/sla/{priority}:
+    put:
+      tags: [desk]
+      operationId: updateSLA
+      description: Needs `ticket_settings:edit`. Existing tickets keep their deadlines.
+      security: [{ userToken: [] }]
+      parameters:
+        - { name: priority, in: path, required: true, schema: { type: string, maxLength: 20 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [responseMinutes, resolveMinutes]
+              properties:
+                responseMinutes: { type: integer, minimum: 1 }
+                resolveMinutes: { type: integer, minimum: 1 }
+      responses:
+        "204": { description: Updated }
+        default: { $ref: "#/components/responses/Problem" }
+components:
+  securitySchemes:
+    serviceToken: { type: http, scheme: bearer, bearerFormat: JWT }
+    userToken: { type: http, scheme: bearer, bearerFormat: JWT }
+  parameters:
+    TicketId:
+      { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    RequesterId:
+      { name: requesterId, in: query, required: true, schema: { type: string, minLength: 1, maxLength: 64 } }
+    Status: { name: status, in: query, schema: { type: string, maxLength: 40 } }
+    Cursor: { name: cursor, in: query, schema: { type: string, maxLength: 200 } }
+    Limit: { name: limit, in: query, schema: { type: integer, minimum: 1 } }
+  responses:
+    Problem:
+      description: |
+        An error (RFC 9457). Codes: `ticket_not_found`, `transition_not_allowed`, `validation_failed`,
+        `unauthenticated`, `forbidden`.
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    TicketPage:
+      description: One page of tickets
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [items]
+            properties:
+              items:
+                type: array
+                items: { $ref: "#/components/schemas/Ticket" }
+              nextCursor: { type: string }
+    TicketDetail:
+      description: A ticket with its history
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/TicketDetail" }
+    Comment:
+      description: The comment
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Comment" }
+  schemas:
+    NewTicket:
+      type: object
+      additionalProperties: false
+      required: [requesterId, requesterName, requesterEmail, category, subcategory, title, description]
+      properties:
+        requesterId: { type: string, maxLength: 64 }
+        requesterName: { type: string, maxLength: 200 }
+        requesterEmail: { type: string, maxLength: 254 }
+        category: { type: string, maxLength: 40 }
+        subcategory: { type: string, maxLength: 40 }
+        priority: { type: string, maxLength: 20, description: Catalogue default when omitted }
+        title: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string, minLength: 1, maxLength: 10000 }
+        assetRef: { type: string, maxLength: 100, description: Only for categories that link an asset }
+        attachments:
+          type: array
+          description: Files already claimed in the files service
+          items: { $ref: "#/components/schemas/Attachment" }
+    Ticket:
+      type: object
+      required: [id, number, requesterId, requesterName, category, subcategory, priority, status, title,
+        description, respondBy, resolveBy, breached, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        number: { type: integer }
+        requesterId: { type: string }
+        requesterName: { type: string }
+        requesterEmail: { type: string }
+        category: { type: string }
+        subcategory: { type: string }
+        priority: { type: string }
+        status: { type: string }
+        title: { type: string }
+        description: { type: string }
+        assetRef: { type: string }
+        assigneeId: { type: string }
+        assigneeName: { type: string }
+        respondBy: { type: string, format: date-time }
+        resolveBy: { type: string, format: date-time }
+        firstResponseAt: { type: string, format: date-time }
+        breached: { type: boolean }
+        resolvedAt: { type: string, format: date-time }
+        closedAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    TicketDetail:
+      type: object
+      required: [ticket, comments, events, attachments]
+      properties:
+        ticket: { $ref: "#/components/schemas/Ticket" }
+        comments: { type: array, items: { $ref: "#/components/schemas/Comment" } }
+        events:
+          type: array
+          items:
+            type: object
+            required: [kind, actorRealm, createdAt]
+            properties:
+              kind: { type: string }
+              actorRealm: { type: string }
+              actorId: { type: string, description: Only shown to IT }
+              fromStatus: { type: string }
+              toStatus: { type: string }
+              createdAt: { type: string, format: date-time }
+        attachments: { type: array, items: { $ref: "#/components/schemas/Attachment" } }
+    Comment:
+      type: object
+      required: [id, authorRealm, authorName, body, internal, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        authorRealm: { type: string }
+        authorName: { type: string }
+        body: { type: string }
+        internal: { type: boolean }
+        createdAt: { type: string, format: date-time }
+    Attachment:
+      type: object
+      additionalProperties: false
+      required: [fileUrl, fileName, mimeType, fileSize]
+      properties:
+        fileUrl: { type: string, maxLength: 300 }
+        fileName: { type: string, maxLength: 200 }
+        mimeType: { type: string, maxLength: 100 }
+        fileSize: { type: integer, minimum: 1 }
+    SLAPolicy:
+      type: object
+      required: [priority, responseMinutes, resolveMinutes, updatedAt]
+      properties:
+        priority: { type: string }
+        responseMinutes: { type: integer }
+        resolveMinutes: { type: integer }
+        updatedBy: { type: string }
+        updatedAt: { type: string, format: date-time }
+    Problem:
+      type: object
+      required: [type, title, status, code]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+        code: { type: string }
+        requestId: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            required: [field, code]
+            properties:
+              field: { type: string }
+              code: { type: string }

@@ -18,7 +18,7 @@ Each service has its own README with endpoints, events, tables, configuration an
 | inventory                                           | Products, stock ledger, serials, counts, transfers, procurement, company assets                                       | Phase 6              |
 | commerce                                            | Store, customers' orders, coupons, payment gateways, retail                                                           | Phase 6              |
 | delivery                                            | Delivery settings, shipments, courier adapters, fleet, cash on delivery                                               | Phase 6              |
-| itsm                                                | IT tickets, categories and SLAs, system-health view for the IT dashboard                                              | Phase 5              |
+| [itsm](../../backend/services/itsm/README.md)       | IT tickets, categories and SLAs, system-health view for the IT dashboard                                              | Phase 5              |
 
 Every service exposes the same admin endpoints on port 9090: `/livez`, `/readyz`, `/metrics`,
 `GET|PUT /runtime/log-level` and, when `ADMIN_ENABLE_PPROF=true`, `/debug/pprof/`.

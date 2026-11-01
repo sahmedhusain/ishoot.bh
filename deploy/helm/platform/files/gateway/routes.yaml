@@ -15,3 +15,11 @@ routes:
     realms: [service]
     rateLimit: services
     bodyLimit: 11M
+  # IT tickets raised by employees, through the admin app's back end (service tokens).
+  - name: itsm-requests
+    prefix: /v1/itsm/requests/
+    upstream: itsm
+    realms: [service]
+    rateLimit: services
+  # /v1/itsm/desk/ (IT-realm tokens) is added with the IT dashboard, once identity serves the IT realm: user routes
+  # need GATEWAY_IDENTITY_STATUS_URL.

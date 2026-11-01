@@ -38,6 +38,26 @@ x-files: &files
   volumes:
     - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/config/service-keys.json:ro
 
+x-itsm: &itsm
+  <<: *service
+  build:
+    context: backend
+    args: { SERVICE: itsm }
+  image: platform/itsm:dev
+  environment:
+    <<: *service-env
+    SERVICE_NAME: itsm
+    DATABASE_URL: postgres://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_LOG_QUERIES: ${DATABASE_LOG_QUERIES:-false}
+    AUTH_SERVICE_KEYS_FILE: /config/service-keys.json
+    # IT-realm tokens for the desk come from identity once it runs (empty: only service callers are accepted).
+    AUTH_ISSUER: ${AUTH_ISSUER:-}
+    AUTH_JWKS_URL: ${AUTH_JWKS_URL:-}
+    ITSM_REQUEST_CALLERS: ${ITSM_REQUEST_CALLERS:-admin}
+    ITSM_IT_DISPLAY_NAME: ${ITSM_IT_DISPLAY_NAME:-IT Support}
+  volumes:
+    - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/config/service-keys.json:ro
+
 x-identity: &identity
   <<: *service
   profiles: [identity]
@@ -183,6 +203,31 @@ services:
       files-migrate: { condition: service_completed_successfully }
       seaweedfs: { condition: service_healthy }
 
+  itsm-migrate:
+    <<: *itsm
+    restart: "no"
+    command: ["migrate"]
+    healthcheck:
+      disable: true
+    ports: []
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  itsm:
+    <<: *itsm
+    command: ["serve"]
+    ports:
+      - "127.0.0.1:${ITSM_ADMIN_PORT:-9083}:9090"
+    depends_on:
+      itsm-migrate: { condition: service_completed_successfully }
+
+  itsm-worker:
+    <<: *itsm
+    command: ["worker"]
+    ports: []
+    depends_on:
+      itsm-migrate: { condition: service_completed_successfully }
+
   gateway:
     <<: *service
     build:
@@ -194,7 +239,7 @@ services:
       SERVICE_NAME: gateway
       REDIS_URL: redis://:${VALKEY_PASSWORD}@valkey:6379/0
       GATEWAY_ROUTES_FILE: /config/routes.yaml
-      GATEWAY_UPSTREAMS: ${GATEWAY_UPSTREAMS:-files=http://files:8080}
+      GATEWAY_UPSTREAMS: ${GATEWAY_UPSTREAMS:-files=http://files:8080,itsm=http://itsm:8080}
       GATEWAY_IDENTITY_STATUS_URL: ${GATEWAY_IDENTITY_STATUS_URL:-}
       GATEWAY_IDENTITY_STATUS_TIMEOUT: ${GATEWAY_IDENTITY_STATUS_TIMEOUT:-3s}
       HTTP_CORS_ORIGINS: ${GATEWAY_CORS_ORIGINS:-}
@@ -212,6 +257,7 @@ services:
     depends_on:
       valkey: { condition: service_healthy }
       files: { condition: service_healthy }
+      itsm: { condition: service_healthy }
 
   identity-migrate:
     <<: *identity
