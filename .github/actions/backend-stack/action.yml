@@ -1,6 +1,6 @@
 name: Backend stack
 description: >
-  Starts the local stack from docker-compose.yml (Postgres, Valkey, SeaweedFS, the files service and the gateway)
+  Starts the local stack from docker-compose.yml (Postgres, Valkey, SeaweedFS, the files and itsm services and the gateway)
   with freshly generated keys in .env. Database settings come from the workflow's environment.
 runs:
   using: composite

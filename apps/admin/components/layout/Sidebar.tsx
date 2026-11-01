@@ -60,6 +60,7 @@ import {
   ShieldAlert,
   TrendingUp,
   HandCoins,
+  Headset,
   CalendarCheck,
   Settings2,
   BadgeDollarSign,
@@ -340,6 +341,12 @@ export function Sidebar() {
             label: t.claims.title,
             icon: HandCoins,
             resource: "self_service",
+          },
+          {
+            href: ROUTES.itSupport.list(),
+            label: t.itSupport.title,
+            icon: Headset,
+            resource: "it_support",
           },
           {
             href: ROUTES.assets.list(),
@@ -697,6 +704,7 @@ export function Sidebar() {
           ROUTES.hr.leave(),
           ROUTES.hr.documents(),
           ROUTES.claims.list(),
+          ROUTES.itSupport.list(),
         ]),
       },
       {

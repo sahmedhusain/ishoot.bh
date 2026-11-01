@@ -1,0 +1,33 @@
+import { listMyTickets } from "@platform/api-client";
+import { TICKET_STATUSES } from "@platform/contracts";
+import { hasPermission, requirePagePermission } from "../../../lib/auth";
+import { pageMetadata } from "../../../lib/company-metadata";
+import { ItSupportView } from "../../../components/it-support/ItSupportView";
+
+export const generateMetadata = () => pageMetadata("it-support");
+
+export const dynamic = "force-dynamic";
+
+export default async function ItSupportPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string; cursor?: string }>;
+}) {
+  const user = await requirePagePermission("it_support", "read");
+  const params = await searchParams;
+  const status = TICKET_STATUSES.includes(params.status ?? "")
+    ? params.status!
+    : "";
+  // The itsm service can be down while the rest of the dashboard works; the page says so instead of failing.
+  const page = await listMyTickets(user.id, {
+    status: status || undefined,
+    cursor: params.cursor || undefined,
+  }).catch(() => null);
+  return (
+    <ItSupportView
+      status={status}
+      page={page}
+      canCreate={await hasPermission("it_support", "create")}
+    />
+  );
+}

@@ -2608,6 +2608,7 @@
       "reports": "التقارير",
       "profile_changes": "تعديلات الملف الشخصي",
       "self_service": "خدماتي (الخدمة الذاتية)",
+      "it_support": "طلبات الدعم الفني",
       "social": "وسائل التواصل الاجتماعي",
       "assets": "أصول الشركة",
       "announcements": "الإعلانات",
@@ -4540,6 +4541,82 @@
         "title": "تم سداد المطالبة",
         "message": "تم سداد المطالبة {number} بمبلغ {amount} {currency}."
       }
+    }
+  },
+  "itSupport": {
+    "title": "الدعم الفني",
+    "subtitle": "اطلب من فريق تقنية المعلومات الأجهزة أو الصلاحيات أو البرامج أو المساعدة في الشبكة، وتابع طلباتك.",
+    "newTicket": "طلب جديد",
+    "empty": "لا توجد لديك طلبات دعم فني بعد.",
+    "loadMore": "عرض المزيد",
+    "unavailable": "تعذر الوصول إلى الدعم الفني حالياً. حاول مرة أخرى بعد قليل.",
+    "number": "الطلب رقم {number}",
+    "category": "الفئة",
+    "subcategory": "النوع",
+    "priority": "الأولوية",
+    "ticketTitle": "الموضوع",
+    "titlePlaceholder": "ملخص قصير لما تحتاجه",
+    "description": "التفاصيل",
+    "descriptionPlaceholder": "ما الذي حدث، وما الذي تحتاجه، وما الذي جربته حتى الآن.",
+    "assetRef": "رقم الأصل (اختياري)",
+    "assetRefHint": "الرقم الموجود على الجهاز أو الترخيص إن كنت تعرفه.",
+    "attachments": "المرفقات",
+    "addAttachment": "أضف لقطة شاشة أو ملفاً",
+    "attachmentsHint": "صور أو ملفات PDF.",
+    "uploading": "جارٍ الرفع…",
+    "removeAttachment": "إزالة المرفق",
+    "submit": "إرسال الطلب",
+    "submitting": "جارٍ الإرسال…",
+    "submitFailed": "تعذر إرسال الطلب.",
+    "uploadFailed": "تعذر رفع الملف.",
+    "actionFailed": "تعذر حفظ التغيير.",
+    "respondBy": "موعد الرد",
+    "resolveBy": "موعد الحل",
+    "overdue": "متأخر",
+    "assignee": "المسؤول",
+    "unassigned": "لم يُسند بعد",
+    "conversation": "المحادثة",
+    "noComments": "لا توجد رسائل بعد.",
+    "commentPlaceholder": "اكتب رسالة إلى فريق تقنية المعلومات",
+    "sendComment": "إرسال",
+    "commentSent": "تم إرسال الرسالة",
+    "closedNoComments": "هذا الطلب مغلق. أعد فتحه أو أنشئ طلباً جديداً.",
+    "history": "السجل",
+    "updated": "تم تحديث الطلب",
+    "statuses": {
+      "new": "جديد",
+      "triaged": "تمت المراجعة",
+      "assigned": "مُسند",
+      "in_progress": "قيد التنفيذ",
+      "waiting_on_requester": "بانتظارك",
+      "resolved": "تم الحل",
+      "closed": "مغلق",
+      "cancelled": "ملغى"
+    },
+    "priorities": {
+      "critical": "حرجة",
+      "high": "عالية",
+      "normal": "عادية",
+      "low": "منخفضة"
+    },
+    "transitions": {
+      "provide_info": "أرسلت المعلومات",
+      "reopen": "إعادة فتح",
+      "close": "تأكيد وإغلاق",
+      "cancel": "إلغاء الطلب"
+    },
+    "events": {
+      "created": "تم إنشاء الطلب",
+      "comment": "رسالة",
+      "triage": "راجعه فريق التقنية",
+      "assign": "تم الإسناد",
+      "start": "بدأ العمل",
+      "request_info": "طلب فريق التقنية معلومات",
+      "provide_info": "تم إرسال المعلومات",
+      "resolve": "تم الحل",
+      "reopen": "أعيد فتحه",
+      "close": "أغلق",
+      "cancel": "ألغي"
     }
   },
   "financialDetail": {
@@ -11846,6 +11923,18 @@
     "claims/new": {
       "title": "مطالبة جديدة",
       "description": "قدّم طلب استرداد مع إيصاله."
+    },
+    "it-support": {
+      "title": "الدعم الفني",
+      "description": "طلباتك إلى فريق تقنية المعلومات."
+    },
+    "it-support/new": {
+      "title": "طلب دعم فني جديد",
+      "description": "اطلب المساعدة من فريق تقنية المعلومات."
+    },
+    "it-support/[id]": {
+      "title": "طلب دعم فني",
+      "description": "تابع الطلب وتواصل مع فريق تقنية المعلومات."
     },
     "cms/articles": {
       "title": "المقالات",

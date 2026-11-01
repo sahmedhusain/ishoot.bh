@@ -31,6 +31,7 @@ export const ALL_RESOURCES = [
   "reports",
   "profile_changes",
   "self_service",
+  "it_support",
   "social",
   "assets",
   "announcements",
@@ -109,6 +110,8 @@ export const permissionKey = (
 
 /** Every staff member can view their own HR records and file their own requests. */
 const SELF_SERVICE: PermissionAction[] = ["read", "create"];
+/** Every employee can raise and follow their own IT tickets (the itsm service); IT works them in the IT dashboard. */
+const IT_SUPPORT: PermissionAction[] = ["read", "create", "edit"];
 const CRUD: PermissionAction[] = ["read", "write", "create", "edit", "delete"];
 
 export const DEFAULT_ROLE_RULES: Record<
@@ -164,6 +167,7 @@ export const DEFAULT_ROLE_RULES: Record<
     reports: ["read", "export"],
     profile_changes: ["read", "approve"],
     self_service: SELF_SERVICE,
+    it_support: IT_SUPPORT,
     social: [...CRUD, "export"],
     assets: [...CRUD, "export", "approve"],
     announcements: [...CRUD, "export", "approve"],
@@ -195,6 +199,7 @@ export const DEFAULT_ROLE_RULES: Record<
     payroll: ["read", "write", "create", "edit", "issue_send"],
     reports: ["read", "export"],
     self_service: SELF_SERVICE,
+    it_support: IT_SUPPORT,
     assets: ["read", "export", "approve"],
   },
   accountant: {
@@ -217,6 +222,7 @@ export const DEFAULT_ROLE_RULES: Record<
     payroll: ["read", "issue_send"],
     reports: ["read", "export"],
     self_service: SELF_SERVICE,
+    it_support: IT_SUPPORT,
     assets: ["read"],
   },
   operations_manager: {
@@ -240,6 +246,7 @@ export const DEFAULT_ROLE_RULES: Record<
     quotations: ["read"],
     employees: ["read"],
     self_service: SELF_SERVICE,
+    it_support: IT_SUPPORT,
     assets: ["read", "write", "create", "edit"],
   },
   project_lead: {
@@ -254,6 +261,7 @@ export const DEFAULT_ROLE_RULES: Record<
     portfolio: ["read"],
     requests: ["read", "write", "create", "edit"],
     self_service: SELF_SERVICE,
+    it_support: IT_SUPPORT,
   },
   sales: {
     tasks: ["read", "write", "create", "edit"],
@@ -270,6 +278,7 @@ export const DEFAULT_ROLE_RULES: Record<
     quotations: ["read", "write", "create", "edit", "export"],
     requests: ["read", "write", "create", "edit"],
     self_service: SELF_SERVICE,
+    it_support: IT_SUPPORT,
   },
   marketing: {
     marketing: [...CRUD, "export"],
@@ -287,6 +296,7 @@ export const DEFAULT_ROLE_RULES: Record<
     equipment: ["read"],
     requests: ["read", "write", "create", "edit"],
     self_service: SELF_SERVICE,
+    it_support: IT_SUPPORT,
     social: [...CRUD, "export"],
   },
   department_manager: {
@@ -309,6 +319,7 @@ export const DEFAULT_ROLE_RULES: Record<
     reports: ["read"],
     assets: ["read", "approve"],
     self_service: SELF_SERVICE,
+    it_support: IT_SUPPORT,
   },
   hr_manager: {
     tasks: [...CRUD, "export", "assign"],
@@ -330,6 +341,7 @@ export const DEFAULT_ROLE_RULES: Record<
     assets: ["read", "approve"],
     reports: ["read"],
     self_service: SELF_SERVICE,
+    it_support: IT_SUPPORT,
   },
   hr_officer: {
     tasks: ["read", "write", "create", "edit"],
@@ -340,6 +352,7 @@ export const DEFAULT_ROLE_RULES: Record<
     profile_changes: ["read"],
     calendar: ["read"],
     self_service: SELF_SERVICE,
+    it_support: IT_SUPPORT,
   },
   sales_manager: {
     marketing: ["read"],
@@ -360,6 +373,7 @@ export const DEFAULT_ROLE_RULES: Record<
     calendar: CRUD,
     reports: ["read", "export"],
     self_service: SELF_SERVICE,
+    it_support: IT_SUPPORT,
   },
   pr_officer: {
     press: [...CRUD, "export"],
@@ -376,6 +390,7 @@ export const DEFAULT_ROLE_RULES: Record<
     faqs: ["read"],
     calendar: ["read", "write", "create", "edit"],
     self_service: SELF_SERVICE,
+    it_support: IT_SUPPORT,
   },
   legal_counsel: {
     legal: [...CRUD, "export", "assign"],
@@ -388,6 +403,7 @@ export const DEFAULT_ROLE_RULES: Record<
     quotations: ["read"],
     settings: ["read"],
     self_service: SELF_SERVICE,
+    it_support: IT_SUPPORT,
   },
   procurement_officer: {
     tasks: ["read", "write", "create", "edit"],
@@ -401,6 +417,7 @@ export const DEFAULT_ROLE_RULES: Record<
     requests: ["read", "write", "create", "edit"],
     reports: ["read"],
     self_service: SELF_SERVICE,
+    it_support: IT_SUPPORT,
   },
   warehouse_keeper: {
     tasks: ["read", "write", "create", "edit"],
@@ -414,6 +431,7 @@ export const DEFAULT_ROLE_RULES: Record<
     equipment: ["read", "write", "create", "edit"],
     requests: ["read"],
     self_service: SELF_SERVICE,
+    it_support: IT_SUPPORT,
   },
   delivery_coordinator: {
     tasks: ["read", "write", "create", "edit"],
@@ -425,6 +443,7 @@ export const DEFAULT_ROLE_RULES: Record<
     contacts: ["read"],
     requests: ["read", "write", "create", "edit", "assign"],
     self_service: SELF_SERVICE,
+    it_support: IT_SUPPORT,
   },
   driver: {
     tasks: ["read", "write", "create", "edit"],
@@ -432,6 +451,7 @@ export const DEFAULT_ROLE_RULES: Record<
     announcements: ["read"],
     calendar: ["read"],
     self_service: SELF_SERVICE,
+    it_support: IT_SUPPORT,
   },
   customer_service: {
     tasks: ["read", "write", "create", "edit"],
@@ -448,6 +468,7 @@ export const DEFAULT_ROLE_RULES: Record<
     faqs: ["read"],
     calendar: ["read"],
     self_service: SELF_SERVICE,
+    it_support: IT_SUPPORT,
   },
   employee: {
     tasks: ["read", "write", "create", "edit"],
@@ -455,6 +476,7 @@ export const DEFAULT_ROLE_RULES: Record<
     announcements: ["read"],
     calendar: ["read"],
     self_service: SELF_SERVICE,
+    it_support: IT_SUPPORT,
   },
   editor: {
     press: ["read"],
@@ -472,6 +494,7 @@ export const DEFAULT_ROLE_RULES: Record<
     calendar: ["read"],
     requests: ["read"],
     self_service: SELF_SERVICE,
+    it_support: IT_SUPPORT,
   },
   viewer: {
     announcements: ["read"],
@@ -484,6 +507,7 @@ export const DEFAULT_ROLE_RULES: Record<
     calendar: ["read"],
     requests: ["read"],
     self_service: SELF_SERVICE,
+    it_support: IT_SUPPORT,
   },
 };
 
@@ -589,7 +613,7 @@ export const PERMISSION_GROUPS: ReadonlyArray<{
   { key: "work", resources: ["tasks"] },
   { key: "outreach", resources: ["marketing", "press"] },
   { key: "legal", resources: ["legal"] },
-  { key: "operations", resources: ["calendar", "assets"] },
+  { key: "operations", resources: ["calendar", "assets", "it_support"] },
   { key: "communications", resources: ["announcements", "letters"] },
   { key: "administration", resources: ["users", "settings", "audit_logs"] },
 ];

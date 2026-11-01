@@ -7345,6 +7345,74 @@
       }
     }
   },
+  "createItTicketAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "category": {
+            "kind": "string",
+            "optional": false
+          },
+          "subcategory": {
+            "kind": "string",
+            "optional": false
+          },
+          "priority": {
+            "kind": "string",
+            "optional": true
+          },
+          "title": {
+            "kind": "string",
+            "optional": false
+          },
+          "description": {
+            "kind": "string",
+            "optional": false
+          },
+          "assetRef": {
+            "kind": "string",
+            "optional": true
+          },
+          "attachmentUrls": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "commentOnItTicketAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "body": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "transitionItTicketAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "transition": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
   "createLeaveRequestAction": {
     "kind": "object",
     "fields": {

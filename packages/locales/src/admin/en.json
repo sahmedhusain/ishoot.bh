@@ -2608,6 +2608,7 @@
       "reports": "Reports",
       "profile_changes": "Profile changes",
       "self_service": "My HR (self-service)",
+      "it_support": "IT support requests",
       "social": "Social media",
       "assets": "Company assets",
       "announcements": "Announcements",
@@ -4540,6 +4541,82 @@
         "title": "Claim reimbursed",
         "message": "Claim {number} ({currency} {amount}) has been paid."
       }
+    }
+  },
+  "itSupport": {
+    "title": "IT support",
+    "subtitle": "Ask the IT team for devices, access, software or network help, and follow your requests.",
+    "newTicket": "New request",
+    "empty": "You have no IT requests yet.",
+    "loadMore": "Load more",
+    "unavailable": "IT support is not reachable right now. Try again shortly.",
+    "number": "Request #{number}",
+    "category": "Category",
+    "subcategory": "Type",
+    "priority": "Priority",
+    "ticketTitle": "Subject",
+    "titlePlaceholder": "A short summary of what you need",
+    "description": "Details",
+    "descriptionPlaceholder": "What happened, what you need, and anything you have already tried.",
+    "assetRef": "Asset tag (optional)",
+    "assetRefHint": "The tag on the device or licence, if you know it.",
+    "attachments": "Attachments",
+    "addAttachment": "Add a screenshot or file",
+    "attachmentsHint": "Images or PDF files.",
+    "uploading": "Uploading…",
+    "removeAttachment": "Remove attachment",
+    "submit": "Send request",
+    "submitting": "Sending…",
+    "submitFailed": "The request could not be sent.",
+    "uploadFailed": "The file could not be uploaded.",
+    "actionFailed": "The change could not be saved.",
+    "respondBy": "Response due",
+    "resolveBy": "Resolution due",
+    "overdue": "Past due",
+    "assignee": "Handled by",
+    "unassigned": "Not assigned yet",
+    "conversation": "Conversation",
+    "noComments": "No messages yet.",
+    "commentPlaceholder": "Write a message to the IT team",
+    "sendComment": "Send",
+    "commentSent": "Message sent",
+    "closedNoComments": "This request is closed. Reopen it or raise a new one.",
+    "history": "History",
+    "updated": "Request updated",
+    "statuses": {
+      "new": "New",
+      "triaged": "Triaged",
+      "assigned": "Assigned",
+      "in_progress": "In progress",
+      "waiting_on_requester": "Waiting for you",
+      "resolved": "Resolved",
+      "closed": "Closed",
+      "cancelled": "Cancelled"
+    },
+    "priorities": {
+      "critical": "Critical",
+      "high": "High",
+      "normal": "Normal",
+      "low": "Low"
+    },
+    "transitions": {
+      "provide_info": "I have sent the information",
+      "reopen": "Reopen",
+      "close": "Confirm and close",
+      "cancel": "Cancel request"
+    },
+    "events": {
+      "created": "Request raised",
+      "comment": "Message",
+      "triage": "Reviewed by IT",
+      "assign": "Assigned",
+      "start": "Work started",
+      "request_info": "IT asked for information",
+      "provide_info": "Information sent",
+      "resolve": "Resolved",
+      "reopen": "Reopened",
+      "close": "Closed",
+      "cancel": "Cancelled"
     }
   },
   "financialDetail": {
@@ -11846,6 +11923,18 @@
     "claims/new": {
       "title": "New claim",
       "description": "Submit a reimbursement with its receipt."
+    },
+    "it-support": {
+      "title": "IT support",
+      "description": "Your requests to the IT team."
+    },
+    "it-support/new": {
+      "title": "New IT request",
+      "description": "Ask the IT team for help."
+    },
+    "it-support/[id]": {
+      "title": "IT request",
+      "description": "Follow a request and talk to the IT team."
     },
     "cms/articles": {
       "title": "Articles",

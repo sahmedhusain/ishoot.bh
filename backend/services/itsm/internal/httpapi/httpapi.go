@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 
 	"platform.local/backend/pkg/authn"
@@ -51,19 +52,29 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	requests := e.Group("/v1/itsm/requests", authn.Require(opts.Verifier, authn.RealmService), h.allowedCaller)
 	requests.POST("/tickets", h.create)
 	requests.GET("/tickets", h.listMine)
-	requests.GET("/tickets/:id", h.getMine)
-	requests.POST("/tickets/:id/comments", h.commentMine)
-	requests.POST("/tickets/:id/transitions", h.transitionMine)
+	requests.GET("/tickets/:id", h.getMine, knownTicket)
+	requests.POST("/tickets/:id/comments", h.commentMine, knownTicket)
+	requests.POST("/tickets/:id/transitions", h.transitionMine, knownTicket)
 
 	desk := e.Group("/v1/itsm/desk", authn.Require(opts.Verifier, authn.RealmIT))
 	read := authz.Require(catalog.ITAccess, "tickets", "read")
 	edit := authz.Require(catalog.ITAccess, "tickets", "edit")
 	desk.GET("/tickets", h.queue, read)
-	desk.GET("/tickets/:id", h.detail, read)
-	desk.POST("/tickets/:id/transitions", h.transitionDesk, edit)
-	desk.POST("/tickets/:id/comments", h.commentDesk, edit)
+	desk.GET("/tickets/:id", h.detail, read, knownTicket)
+	desk.POST("/tickets/:id/transitions", h.transitionDesk, edit, knownTicket)
+	desk.POST("/tickets/:id/comments", h.commentDesk, edit, knownTicket)
 	desk.GET("/sla", h.listSLA, authz.Require(catalog.ITAccess, "ticket_settings", "read"))
 	desk.PUT("/sla/:priority", h.updateSLA, authz.Require(catalog.ITAccess, "ticket_settings", "edit"))
+}
+
+// knownTicket answers 404 for a ticket ID that cannot exist, before it reaches the database.
+func knownTicket(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		if _, err := uuid.Parse(c.Param("id")); err != nil {
+			return problem.New(http.StatusNotFound, CodeNotFound, "")
+		}
+		return next(c)
+	}
 }
 
 func (h *handler) allowedCaller(next echo.HandlerFunc) echo.HandlerFunc {

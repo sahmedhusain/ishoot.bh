@@ -3,7 +3,7 @@ import {
   ArrowRightLeft, BadgeDollarSign, BarChart, Boxes, Building2, Calendar, CalendarCheck, CarFront,
   ClipboardCheck, ClipboardList, Code2, Coins, Contact, CreditCard, FileBarChart, FileCheck2, FileQuestion,
   FileSignature, FileText, Film, FolderKanban, FolderOpen, FolderTree, Gauge, Globe, HandCoins, HandHeart,
-  HelpCircle, History, Kanban, Key, Landmark, Laptop, LayoutDashboard, ListTodo, MapPinned, Megaphone, Menu,
+  Headset, HelpCircle, History, Kanban, Key, Landmark, Laptop, LayoutDashboard, ListTodo, MapPinned, Megaphone, Menu,
   MessageSquareQuote, Navigation, Network, Newspaper, Package, PieChart, Receipt, Route, Scale, ScanLine,
   Settings, Settings2, ShieldAlert, ShieldCheck, ShoppingBag, ShoppingCart, SlidersHorizontal, Sparkles, Store,
   Timer, ToggleLeft, TrendingUp, Truck, UserCircle, Users, Users2, Warehouse, Bell, Mail,
@@ -102,6 +102,7 @@ const SECTIONS: Record<string, PageSection> = {
   "hr/settings": { icon: Settings2, group: "people" },
 
   claims: { icon: HandCoins, group: "personal" },
+  "it-support": { icon: Headset, group: "personal" },
   profile: { icon: UserCircle, group: "personal" },
 
   announcements: { icon: Megaphone, group: "communications" },
@@ -155,7 +156,8 @@ const PAGE_KEYS = [
   "hr/handovers", "hr/handovers/[id]", "hr/leave", "hr/payroll", "hr/payroll/items/[id]", "hr/pensions",
   "hr/requests", "hr/settings", "hr/settlements", "hr/settlements/[id]", "hr/settlements/new", "hr/supports",
   "inventory", "inventory/counts", "inventory/counts/[id]", "inventory/movements", "inventory/transfers",
-  "inventory/warehouses", "invoices", "invoices/[id]", "invoices/[id]/edit", "invoices/new", "legal", "legal/[id]",
+  "inventory/warehouses", "invoices", "invoices/[id]", "invoices/[id]/edit", "invoices/new", "it-support",
+  "it-support/[id]", "it-support/new", "legal", "legal/[id]",
   "letters", "letters/[id]", "letters/new", "letters/templates", "marketing", "marketing/audience", "moms",
   "moms/[id]", "moms/new", "notifications", "orders", "orders/[id]", "orders/new", "orders/settings", "payments",
   "payments/[id]", "payments/new", "press", "procurement/bills", "procurement/bills/[id]", "procurement/bills/new",

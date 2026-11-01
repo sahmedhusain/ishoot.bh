@@ -83,6 +83,14 @@ export const ROUTES = {
   orgChart: "/dashboard/directory/org",
   team: "/dashboard/team",
   profile: (query?: HighlightQuery) => withQuery("/dashboard/profile", query),
+  itSupport: {
+    list: (query?: { status?: string | null; cursor?: string | null }) =>
+      withQuery("/dashboard/it-support", query),
+    create: "/dashboard/it-support/new",
+    detail: (id: string) => `/dashboard/it-support/${encode(id)}`,
+    attachment: (id: string, fileUrl: string) =>
+      withQuery(`/api/it-support/${encode(id)}/attachment`, { fileUrl }),
+  },
   services: "/dashboard/services",
   products: {
     list: "/dashboard/products",

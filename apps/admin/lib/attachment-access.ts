@@ -83,6 +83,12 @@ export async function requireAttachmentAccess(
     if (claim?.claimantId === user.id) return user;
     return requirePermission("expenses", "read");
   }
+  if (entityType === "it_ticket") {
+    // Files for a new IT request; the server action claims them and they are served through the ticket only.
+    if (action === "read" || (entityId && entityId !== "pending"))
+      throw new Error(serverMessages.unsupportedAttachmentType);
+    return requirePermission("it_support", "create");
+  }
   if (entityType === "shipment") {
     // Proof of delivery: whoever may update the shipment (its driver, or people who assign deliveries).
     return (

@@ -217,6 +217,13 @@ func TestTickets(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, rec.Code)
 	assert.Equal(t, httpapi.CodeNotFound, code(t, rec))
 
+	// The service never queries an ID that cannot exist. (Bypasses the contract check: such a path is not a uuid.)
+	req := httptest.NewRequest(http.MethodGet, mine+"/not-a-uuid?requesterId=emp-1", nil)
+	req.Header.Set("Authorization", "Bearer "+e.admin)
+	bad404 := httptest.NewRecorder()
+	e.handler.ServeHTTP(bad404, req)
+	assert.Equal(t, http.StatusNotFound, bad404.Code)
+
 	// The desk: permissions per role.
 	desk := "/v1/itsm/desk/tickets"
 	assert.Equal(t, http.StatusUnauthorized, e.call(e.admin, http.MethodGet, desk, nil, nil).Code, "service tokens do not reach the desk")

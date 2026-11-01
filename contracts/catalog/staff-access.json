@@ -29,6 +29,7 @@
     "reports",
     "profile_changes",
     "self_service",
+    "it_support",
     "social",
     "assets",
     "announcements",
@@ -209,7 +210,8 @@
       "key": "operations",
       "resources": [
         "calendar",
-        "assets"
+        "assets",
+        "it_support"
       ]
     },
     {
@@ -595,6 +597,19 @@
         "reset_credentials"
       ],
       "self_service": [
+        "read",
+        "write",
+        "delete",
+        "export",
+        "approve",
+        "create",
+        "edit",
+        "assign",
+        "issue_send",
+        "manage_permissions",
+        "reset_credentials"
+      ],
+      "it_support": [
         "read",
         "write",
         "delete",
@@ -1084,6 +1099,11 @@
         "read",
         "create"
       ],
+      "it_support": [
+        "read",
+        "create",
+        "edit"
+      ],
       "social": [
         "read",
         "write",
@@ -1253,6 +1273,11 @@
         "read",
         "create"
       ],
+      "it_support": [
+        "read",
+        "create",
+        "edit"
+      ],
       "assets": [
         "read",
         "export",
@@ -1341,6 +1366,11 @@
       "self_service": [
         "read",
         "create"
+      ],
+      "it_support": [
+        "read",
+        "create",
+        "edit"
       ],
       "assets": [
         "read"
@@ -1459,6 +1489,11 @@
         "read",
         "create"
       ],
+      "it_support": [
+        "read",
+        "create",
+        "edit"
+      ],
       "assets": [
         "read",
         "write",
@@ -1524,6 +1559,11 @@
       "self_service": [
         "read",
         "create"
+      ],
+      "it_support": [
+        "read",
+        "create",
+        "edit"
       ]
     },
     "sales": {
@@ -1603,6 +1643,11 @@
       "self_service": [
         "read",
         "create"
+      ],
+      "it_support": [
+        "read",
+        "create",
+        "edit"
       ]
     },
     "marketing": {
@@ -1688,6 +1733,11 @@
       "self_service": [
         "read",
         "create"
+      ],
+      "it_support": [
+        "read",
+        "create",
+        "edit"
       ],
       "social": [
         "read",
@@ -1797,6 +1847,11 @@
       "self_service": [
         "read",
         "create"
+      ],
+      "it_support": [
+        "read",
+        "create",
+        "edit"
       ]
     },
     "hr_manager": {
@@ -1866,6 +1921,11 @@
       "self_service": [
         "read",
         "create"
+      ],
+      "it_support": [
+        "read",
+        "create",
+        "edit"
       ]
     },
     "hr_officer": {
@@ -1905,6 +1965,11 @@
       "self_service": [
         "read",
         "create"
+      ],
+      "it_support": [
+        "read",
+        "create",
+        "edit"
       ]
     },
     "sales_manager": {
@@ -2019,6 +2084,11 @@
       "self_service": [
         "read",
         "create"
+      ],
+      "it_support": [
+        "read",
+        "create",
+        "edit"
       ]
     },
     "pr_officer": {
@@ -2102,6 +2172,11 @@
       "self_service": [
         "read",
         "create"
+      ],
+      "it_support": [
+        "read",
+        "create",
+        "edit"
       ]
     },
     "legal_counsel": {
@@ -2156,6 +2231,11 @@
       "self_service": [
         "read",
         "create"
+      ],
+      "it_support": [
+        "read",
+        "create",
+        "edit"
       ]
     },
     "procurement_officer": {
@@ -2218,6 +2298,11 @@
       "self_service": [
         "read",
         "create"
+      ],
+      "it_support": [
+        "read",
+        "create",
+        "edit"
       ]
     },
     "warehouse_keeper": {
@@ -2271,6 +2356,11 @@
       "self_service": [
         "read",
         "create"
+      ],
+      "it_support": [
+        "read",
+        "create",
+        "edit"
       ]
     },
     "delivery_coordinator": {
@@ -2320,6 +2410,11 @@
       "self_service": [
         "read",
         "create"
+      ],
+      "it_support": [
+        "read",
+        "create",
+        "edit"
       ]
     },
     "driver": {
@@ -2342,6 +2437,11 @@
       "self_service": [
         "read",
         "create"
+      ],
+      "it_support": [
+        "read",
+        "create",
+        "edit"
       ]
     },
     "customer_service": {
@@ -2410,6 +2510,11 @@
       "self_service": [
         "read",
         "create"
+      ],
+      "it_support": [
+        "read",
+        "create",
+        "edit"
       ]
     },
     "employee": {
@@ -2431,6 +2536,11 @@
       "self_service": [
         "read",
         "create"
+      ],
+      "it_support": [
+        "read",
+        "create",
+        "edit"
       ]
     },
     "editor": {
@@ -2503,6 +2613,11 @@
       "self_service": [
         "read",
         "create"
+      ],
+      "it_support": [
+        "read",
+        "create",
+        "edit"
       ]
     },
     "viewer": {
@@ -2536,6 +2651,11 @@
       "self_service": [
         "read",
         "create"
+      ],
+      "it_support": [
+        "read",
+        "create",
+        "edit"
       ]
     }
   }
