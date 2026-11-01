@@ -40,3 +40,9 @@ routes:
     upstream: system
     realms: [service, it]
     rateLimit: services
+  # The audit trail: IT staff with their own tokens (audit:read).
+  - name: audit-desk
+    prefix: /v1/audit/desk/
+    upstream: audit
+    realms: [it]
+    rateLimit: default

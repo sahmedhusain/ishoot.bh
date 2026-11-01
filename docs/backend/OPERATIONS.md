@@ -29,6 +29,7 @@ Default ports (all can be changed in `.env`):
 | 9083 | itsm admin     |
 | 8333 | SeaweedFS S3   |
 | 6432 | PgBouncer      |
+| 9085 | audit admin    |
 | 4222 | NATS           |
 | 8222 | NATS monitor   |
 | 1025 | Mailpit SMTP   |
@@ -61,7 +62,8 @@ A service writes each event to its own `outbox` table in the transaction that ma
 `EVENTS` with the event ID as the message ID, so a re-sent event is stored once. When NATS is down, events wait in the
 outbox and go out once it is back; nothing is lost. Watch `outbox_pending` and `outbox_publish_failures_total` on each
 service's admin port, and the stream at `http://127.0.0.1:8222/jsz?streams=true`. Payload schemas are in
-`contracts/events/`. Today the system service publishes its events; the audit and notify services will consume them.
+`contracts/events/`. Today the system service publishes its events and the audit service records every event (IT dashboard → Audit
+trail); notify will consume them next.
 
 To read events locally: `docker run --rm --network platform_default natsio/nats-box nats -s nats://nats:4222 stream view EVENTS`.
 

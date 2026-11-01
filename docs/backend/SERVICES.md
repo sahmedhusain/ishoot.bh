@@ -9,7 +9,7 @@ Each service has its own README with endpoints, events, tables, configuration an
 | [system](../../backend/services/system/README.md)     | Company settings, modules, integrations (encrypted credentials), domains, runtime configuration                       | Modules, integrations, domains and site code live; Phase 4 |
 | [files](../../backend/services/files/README.md)       | Upload records, streamed S3 bytes, type and size checks, River cleanup                                                | Phase 2 verification   |
 | notify                                                | Email outbox and delivery webhooks, in-app notifications, broadcasts                                                  | Phase 4                |
-| audit                                                 | Activity log (from events), sessions and audit queries                                                                | Phase 4                |
+| [audit](../../backend/services/audit/README.md)       | The audit trail: every published event, append-only, searched from the IT dashboard                                  | Live (system events)   |
 | workflow                                              | Approval engine, signatures, documents, letters, minutes, tasks, calendar, legal, report schedules                    | Phase 6                |
 | cms                                                   | Website content, pages, articles, publication, website revalidation                                                   | Phase 6                |
 | sales                                                 | Inquiries and service desk, CRM, quotations, commissions, outreach, marketing                                         | Phase 6                |

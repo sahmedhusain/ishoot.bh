@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Blocks,
   Gauge,
+  History,
   Globe,
   Languages,
   ListChecks,
@@ -34,6 +35,7 @@ const NAV = [
     resource: "integrations",
   },
   { href: "/site", icon: Globe, label: "site", resource: "domains" },
+  { href: "/audit", icon: History, label: "audit", resource: "audit" },
 ] as const;
 
 export function Shell({

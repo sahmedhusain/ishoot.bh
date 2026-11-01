@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strings"
 
+	audit "platform.local/backend/services/audit/settings"
 	files "platform.local/backend/services/files/settings"
 	gateway "platform.local/backend/services/gateway/settings"
 	identity "platform.local/backend/services/identity/settings"
@@ -26,6 +27,7 @@ var services = map[string]any{
 	"identity": identity.Config{},
 	"itsm":     itsm.Config{},
 	"system":   system.Config{},
+	"audit":    audit.Config{},
 }
 
 type variable struct{ name, def, rules string }

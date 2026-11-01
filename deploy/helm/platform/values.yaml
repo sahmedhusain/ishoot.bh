@@ -36,7 +36,7 @@ ingress:
 dbRoles:
   enabled: true
   env:
-    DB_ROLES: files,identity,system,itsm
+    DB_ROLES: files,identity,system,itsm,audit
     DB_ROLE_STATEMENT_TIMEOUT: 15s
     DB_ROLE_IDLE_IN_TRANSACTION_TIMEOUT: 60s
   resources:
@@ -60,7 +60,7 @@ services:
       limits: { memory: 256Mi }
     env:
       GATEWAY_ROUTES_FILE: /config/routes.yaml
-      GATEWAY_UPSTREAMS: "files=http://files:8080,itsm=http://itsm:8080,identity=http://identity:8080,system=http://system:8080"
+      GATEWAY_UPSTREAMS: "files=http://files:8080,itsm=http://itsm:8080,identity=http://identity:8080,system=http://system:8080,audit=http://audit:8080"
       GATEWAY_IDENTITY_STATUS_URL: "http://identity:8080/v1/identity/session"
       HTTP_BODY_LIMIT: "11M"
       # Set AUTH_ISSUER to identity's public issuer (IDENTITY_ISSUER); keys are read inside the cluster.
@@ -111,6 +111,27 @@ services:
       AUTH_JWKS_URL: "http://identity:8080/.well-known/jwks.json"
       ITSM_REQUEST_CALLERS: admin
     # Secrets (itsm-secrets): DATABASE_URL (svc_<service> through PgBouncer), DATABASE_DIRECT_URL (the same login, direct).
+    configFiles: []
+    talksTo: [identity]
+
+  audit:
+    enabled: true
+    public: false
+    replicas: 2
+    autoscaling: { enabled: true, minReplicas: 2, maxReplicas: 4, targetCPU: 70 }
+    migrate: true
+    # Records every event from the EVENTS stream; the durable consumer shares the work between replicas.
+    worker: { enabled: true, replicas: 1 }
+    resources:
+      requests: { cpu: 50m, memory: 64Mi }
+      limits: { memory: 256Mi }
+    env:
+      AUTH_SERVICE_KEYS_FILE: /keys/service-keys.json
+      AUTH_ISSUER: ""
+      AUTH_JWKS_URL: "http://identity:8080/.well-known/jwks.json"
+      NATS_URL: nats://nats.nats:4222
+      NATS_REPLICAS: "3"
+    # Secrets (audit-secrets): DATABASE_URL (svc_<service> through PgBouncer), DATABASE_DIRECT_URL (the same login, direct).
     configFiles: []
     talksTo: [identity]
 

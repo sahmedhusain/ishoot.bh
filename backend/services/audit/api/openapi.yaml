@@ -1,0 +1,123 @@
+openapi: 3.1.0
+info:
+  title: Audit trail (audit)
+  version: 1.0.0
+  description: |
+    Every event the platform's services publish (ADR 0003), recorded once and never changed, for IT to search from
+    the IT dashboard. Each event names who made the change (`actor`) and carries the trace it happened in. Payloads
+    follow `contracts/events/<subject>.v<version>.json`. Needs an IT-realm token with `audit:read`.
+servers:
+  - url: /
+tags:
+  - name: desk
+paths:
+  /v1/audit/desk/events:
+    get:
+      tags: [desk]
+      operationId: listAuditEvents
+      description: Newest first. Filters combine; `from` is inclusive and `to` exclusive.
+      security: [{ userToken: [] }]
+      parameters:
+        - { name: subject, in: query, schema: { type: string, maxLength: 200 } }
+        - { name: service, in: query, schema: { type: string, maxLength: 64 } }
+        - { name: actor, in: query, schema: { type: string, maxLength: 200 } }
+        - { name: from, in: query, schema: { type: string, format: date-time } }
+        - { name: to, in: query, schema: { type: string, format: date-time } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 1000 } }
+        - { name: cursor, in: query, schema: { type: string, maxLength: 200 } }
+      responses:
+        "200":
+          description: One page of events
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/AuditEvent" }
+                  nextCursor: { type: string, description: Pass as `cursor` for the next page; absent on the last page }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/audit/desk/events/{id}:
+    get:
+      tags: [desk]
+      operationId: getAuditEvent
+      security: [{ userToken: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, maxLength: 64 } }
+      responses:
+        "200":
+          description: The event
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuditEvent" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/audit/desk/subjects:
+    get:
+      tags: [desk]
+      operationId: listAuditSubjects
+      description: Every subject recorded, with counts, for filtering.
+      security: [{ userToken: [] }]
+      responses:
+        "200":
+          description: Subjects
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required: [subject, events, lastAt]
+                      properties:
+                        subject: { type: string }
+                        events: { type: integer }
+                        lastAt: { type: string, format: date-time }
+        default: { $ref: "#/components/responses/Problem" }
+components:
+  securitySchemes:
+    userToken: { type: http, scheme: bearer, bearerFormat: JWT }
+  responses:
+    Problem:
+      description: An error (RFC 9457). Codes include `event_not_found`, `validation_failed`, `unauthenticated`, `forbidden`.
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+  schemas:
+    AuditEvent:
+      type: object
+      required: [id, subject, service, entity, verb, actor, occurredAt, receivedAt, payload, traceId]
+      properties:
+        id: { type: string, format: uuid, description: The event ID the publishing service gave it }
+        subject: { type: string, description: "<service>.<entity>.<verb>" }
+        service: { type: string }
+        entity: { type: string }
+        verb: { type: string }
+        actor: { type: [string, "null"], description: "Who made the change: <caller>:<person> or it:<IT account>" }
+        occurredAt: { type: string, format: date-time, description: When the broker stored the event }
+        receivedAt: { type: string, format: date-time }
+        payload: { type: object, additionalProperties: true }
+        traceId: { type: [string, "null"], description: The W3C trace the change happened in }
+    Problem:
+      type: object
+      required: [type, title, status, code]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+        code: { type: string }
+        requestId: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            required: [field, code]
+            properties:
+              field: { type: string }
+              code: { type: string }

@@ -13,7 +13,8 @@
     "sla": "أهداف مستوى الخدمة",
     "modules": "الوحدات",
     "integrations": "التكاملات",
-    "site": "الموقع"
+    "site": "الموقع",
+    "audit": "سجل التدقيق"
   },
   "login": {
     "title": "لوحة تقنية المعلومات",
@@ -716,6 +717,34 @@
       "bodyHtml": "كود نهاية الصفحة",
       "save": "حفظ التتبع والأكواد",
       "saving": "جارٍ الحفظ…"
+    }
+  },
+  "audit": {
+    "title": "سجل التدقيق",
+    "description": "كل تغيير أعلنته خدمات المنصة: من قام به ومتى وما الذي تغيّر. تُحفظ السجلات كما وردت ولا يمكن تعديلها.",
+    "subject": "الحدث",
+    "allSubjects": "كل الأحداث",
+    "subjectOption": "{name} ({count})",
+    "actor": "بواسطة",
+    "from": "من",
+    "to": "إلى",
+    "apply": "تصفية",
+    "reset": "مسح",
+    "utc": "تُحسب الأيام بتوقيت UTC.",
+    "unavailable": "تعذر الوصول إلى خدمة التدقيق حالياً.",
+    "empty": "لا توجد أحداث مطابقة.",
+    "unknownActor": "غير معروف",
+    "eventId": "الحدث",
+    "traceId": "التتبع",
+    "pages": "الصفحات",
+    "newest": "الأحدث",
+    "older": "أحداث أقدم",
+    "subjects": {
+      "system.module.changed": "تغيير وحدة",
+      "system.integration.changed": "حفظ تكامل",
+      "system.integration.unlinked": "فصل تكامل",
+      "system.site_domains.changed": "تغيير النطاقات",
+      "system.site_code.changed": "تغيير أكواد الموقع"
     }
   }
 }

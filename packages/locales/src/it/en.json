@@ -13,7 +13,8 @@
     "sla": "SLA targets",
     "modules": "Modules",
     "integrations": "Integrations",
-    "site": "Website"
+    "site": "Website",
+    "audit": "Audit trail"
   },
   "login": {
     "title": "IT dashboard",
@@ -716,6 +717,34 @@
       "bodyHtml": "Code for the end of the page",
       "save": "Save tracking and code",
       "saving": "Saving…"
+    }
+  },
+  "audit": {
+    "title": "Audit trail",
+    "description": "Every change the platform's services announced: who made it, when, and what changed. Entries are kept as recorded and cannot be edited.",
+    "subject": "Event",
+    "allSubjects": "All events",
+    "subjectOption": "{name} ({count})",
+    "actor": "Made by",
+    "from": "From",
+    "to": "To",
+    "apply": "Filter",
+    "reset": "Clear",
+    "utc": "Days are counted in UTC.",
+    "unavailable": "The audit service is not reachable right now.",
+    "empty": "No events match.",
+    "unknownActor": "unknown",
+    "eventId": "Event",
+    "traceId": "Trace",
+    "pages": "Pages",
+    "newest": "Newest",
+    "older": "Older events",
+    "subjects": {
+      "system.module.changed": "Module switched",
+      "system.integration.changed": "Integration saved",
+      "system.integration.unlinked": "Integration disconnected",
+      "system.site_domains.changed": "Domains changed",
+      "system.site_code.changed": "Site code changed"
     }
   }
 }

@@ -20,7 +20,7 @@ func TestOpenTransactionsAndTimeout(t *testing.T) {
 	ctx := context.Background()
 	cfg := db.Config{
 		URL: testkit.Postgres(t), MaxConns: 4, MaxConnLifetime: time.Minute, MaxConnIdleTime: time.Minute,
-		HealthCheckPeriod: time.Minute, StatementTimeout: 200 * time.Millisecond, LogQueries: true,
+		HealthCheckPeriod: time.Minute, StatementTimeout: 10 * time.Second, LogQueries: true,
 	}
 	pool, err := db.Open(ctx, cfg, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	require.NoError(t, err)
@@ -63,7 +63,12 @@ func TestOpenTransactionsAndTimeout(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, []string{"kept"}, names)
 
-	_, err = pool.Exec(ctx, `SELECT pg_sleep(1)`)
+	// The statement timeout reaches the server. A pool of its own, so a slow machine cannot trip the setup above.
+	cfg.StatementTimeout = 200 * time.Millisecond
+	short, err := db.Open(ctx, cfg, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	require.NoError(t, err)
+	defer short.Close()
+	_, err = short.Exec(ctx, `SELECT pg_sleep(1)`)
 	assert.ErrorContains(t, err, "statement timeout")
 }
 

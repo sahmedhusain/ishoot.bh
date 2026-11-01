@@ -60,6 +60,26 @@ x-itsm: &itsm
   volumes:
     - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/config/service-keys.json:ro
 
+x-audit: &audit
+  <<: *service
+  build:
+    context: backend
+    args: { SERVICE: audit }
+  image: platform/audit:dev
+  environment:
+    <<: *service-env
+    SERVICE_NAME: audit
+    DATABASE_URL: postgres://svc_audit:${AUDIT_DB_PASSWORD}@pgbouncer:6432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_DIRECT_URL: postgres://svc_audit:${AUDIT_DB_PASSWORD:?Set AUDIT_DB_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_LOG_QUERIES: ${DATABASE_LOG_QUERIES:-false}
+    AUTH_SERVICE_KEYS_FILE: /config/service-keys.json
+    # The trail is read by IT accounts, whose tokens identity issues.
+    AUTH_ISSUER: ${AUTH_ISSUER:-http://identity:8080}
+    AUTH_JWKS_URL: ${AUTH_JWKS_URL:-http://identity:8080/.well-known/jwks.json}
+    NATS_URL: ${NATS_URL:-nats://nats:4222}
+  volumes:
+    - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/config/service-keys.json:ro
+
 x-system: &system
   <<: *service
   build:
@@ -216,11 +236,12 @@ services:
       disable: true
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
-      DB_ROLES: files,identity,system,itsm
+      DB_ROLES: files,identity,system,itsm,audit
       DB_ROLE_PASSWORD_FILES: ${FILES_DB_PASSWORD:?Set FILES_DB_PASSWORD in .env}
       DB_ROLE_PASSWORD_IDENTITY: ${IDENTITY_DB_PASSWORD:?Set IDENTITY_DB_PASSWORD in .env}
       DB_ROLE_PASSWORD_SYSTEM: ${SYSTEM_DB_PASSWORD:?Set SYSTEM_DB_PASSWORD in .env}
       DB_ROLE_PASSWORD_ITSM: ${ITSM_DB_PASSWORD:?Set ITSM_DB_PASSWORD in .env}
+      DB_ROLE_PASSWORD_AUDIT: ${AUDIT_DB_PASSWORD:?Set AUDIT_DB_PASSWORD in .env}
       DB_ROLE_STATEMENT_TIMEOUT: ${DB_ROLE_STATEMENT_TIMEOUT:-15s}
     depends_on:
       postgres: { condition: service_healthy }
@@ -232,7 +253,7 @@ services:
     environment:
       AUTH_TYPE: scram-sha-256
       DATABASE_URLS: >-
-        postgres://svc_files:${FILES_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_identity:${IDENTITY_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_system:${SYSTEM_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_itsm:${ITSM_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db}
+        postgres://svc_files:${FILES_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_identity:${IDENTITY_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_system:${SYSTEM_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_itsm:${ITSM_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_audit:${AUDIT_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db}
     volumes:
       - ./deploy/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
     ports:
@@ -321,6 +342,35 @@ services:
     depends_on:
       itsm-migrate: { condition: service_completed_successfully }
 
+  audit-migrate:
+    <<: *audit
+    restart: "no"
+    command: ["migrate"]
+    healthcheck:
+      disable: true
+    ports: []
+    depends_on:
+      db-roles: { condition: service_completed_successfully }
+
+  audit:
+    <<: *audit
+    command: ["serve"]
+    ports:
+      - "127.0.0.1:${AUDIT_ADMIN_PORT:-9085}:9090"
+    depends_on:
+      audit-migrate: { condition: service_completed_successfully }
+      pgbouncer: { condition: service_healthy }
+      identity: { condition: service_healthy }
+
+  # Records every event from the EVENTS stream (its durable consumer resumes where it stopped).
+  audit-worker:
+    <<: *audit
+    command: ["worker"]
+    ports: []
+    depends_on:
+      audit-migrate: { condition: service_completed_successfully }
+      nats: { condition: service_healthy }
+
   gateway:
     <<: *service
     build:
@@ -332,7 +382,7 @@ services:
       SERVICE_NAME: gateway
       REDIS_URL: redis://:${VALKEY_PASSWORD}@valkey:6379/0
       GATEWAY_ROUTES_FILE: /config/routes.yaml
-      GATEWAY_UPSTREAMS: ${GATEWAY_UPSTREAMS:-files=http://files:8080,itsm=http://itsm:8080,identity=http://identity:8080,system=http://system:8080}
+      GATEWAY_UPSTREAMS: ${GATEWAY_UPSTREAMS:-files=http://files:8080,itsm=http://itsm:8080,identity=http://identity:8080,system=http://system:8080,audit=http://audit:8080}
       GATEWAY_IDENTITY_STATUS_URL: ${GATEWAY_IDENTITY_STATUS_URL:-http://identity:8080/v1/identity/session}
       GATEWAY_IDENTITY_STATUS_TIMEOUT: ${GATEWAY_IDENTITY_STATUS_TIMEOUT:-3s}
       HTTP_CORS_ORIGINS: ${GATEWAY_CORS_ORIGINS:-}
@@ -353,6 +403,7 @@ services:
       itsm: { condition: service_healthy }
       identity: { condition: service_healthy }
       system: { condition: service_healthy }
+      audit: { condition: service_healthy }
 
   identity-migrate:
     <<: *identity

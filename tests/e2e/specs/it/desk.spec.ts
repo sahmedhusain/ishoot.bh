@@ -61,7 +61,10 @@ test("IT works a ticket from the desk", async ({ page }) => {
 
   await page.getByRole("link", { name: t.nav.tickets }).click();
   await page.getByRole("link", { name: new RegExp(title) }).click();
-  await expect(page.getByRole("heading", { name: title })).toBeVisible();
+  // The first visit compiles the ticket page in development.
+  await expect(page.getByRole("heading", { name: title })).toBeVisible({
+    timeout: 45_000,
+  });
   await expect(page.getByText("e2e-employee@example.test")).toBeVisible();
 
   await page.getByRole("button", { name: t.tickets.assignToMe }).click();
@@ -166,6 +169,29 @@ test("IT works a ticket from the desk", async ({ page }) => {
   await adminDomain.fill("");
   await saveDomains.click();
   await expect(page.getByText(t.site.domains.saved).first()).toBeVisible();
+
+  // Audit trail: the changes just made arrive through the events stream, named after the person who made them.
+  await page.getByRole("link", { name: t.nav.audit }).click();
+  await expect(
+    page.getByRole("heading", { name: t.audit.title }),
+  ).toBeVisible();
+  const domainsChanged = t.audit.subjects["system.site_domains.changed"];
+  const events = page.getByRole("list", { name: t.audit.title });
+  await expect(async () => {
+    await page.reload();
+    await expect(events.getByText(domainsChanged).first()).toBeVisible({
+      timeout: 2_000,
+    });
+  }).toPass({ timeout: 30_000 });
+  await page
+    .getByLabel(t.audit.subject)
+    .selectOption("system.site_code.changed");
+  await page.getByRole("button", { name: t.audit.apply }).click();
+  await expect(page).toHaveURL(/subject=system\.site_code\.changed/);
+  const entry = events.getByRole("listitem").first();
+  await entry.getByText(t.audit.subjects["system.site_code.changed"]).click();
+  await expect(entry.getByText(/"changedBy": "it:/)).toBeVisible();
+  await expect(events.getByText(domainsChanged)).toHaveCount(0);
 
   await page.getByRole("button", { name: t.app.signOut }).click();
   await expect(page).toHaveURL(/\/login$/);
