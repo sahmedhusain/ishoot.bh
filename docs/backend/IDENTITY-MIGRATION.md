@@ -1,6 +1,19 @@
 # Phase 3: identity migration boundary
 
-Status: inventory started; authentication still runs in the Next.js apps. Phase 2 is committed at `47aae131`.
+Status: implementation started; authentication still runs in the Next.js apps. Phase 2 is committed at `47aae131`.
+
+## Implemented foundation
+
+`backend/pkg/password` creates salted Argon2id PHC hashes, verifies existing bcrypt 2a/2b/2y credentials,
+and reports when a successfully verified credential needs upgrading. Incorrect credentials never trigger rehashing.
+Hash parsing rejects unsupported algorithms/versions, malformed encodings and parameters outside configured resource
+limits before invoking the KDF. New-hash defaults use 19 MiB, two iterations and one lane, matching the
+[OWASP minimum](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html).
+
+Configuration has environment tags and validates at construction; it will be embedded in identity settings when
+that service is wired. The future login use case must also bound concurrent KDF operations and apply account/IP
+rate limits. Password-policy validation, dummy verification for nonexistent users and atomic replacement of a
+verified legacy hash belong in that use case. The package alone does not switch authentication or move tables.
 
 ## Existing contracts to preserve
 
