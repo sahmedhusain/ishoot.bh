@@ -1,0 +1,103 @@
+openapi: 3.1.0
+info:
+  title: Identity session lifecycle
+  version: 0.1.0
+  description: |
+    Phase 3 contract foundation; these endpoints are not deployed yet.
+    App servers authenticate with service tokens and pass opaque refresh credentials server-side.
+    A refresh credential is usable once, only in its issuing realm. Reuse revokes its session family.
+    Refreshing never extends the absolute session lifetime. Access-token issuance is added with login/JWKS.
+servers:
+  - url: /
+security:
+  - serviceToken: []
+paths:
+  /v1/identity/{realm}/sessions/refresh:
+    parameters:
+      - $ref: '#/components/parameters/Realm'
+    post:
+      operationId: refreshIdentitySession
+      summary: Consume and replace a refresh credential
+      requestBody:
+        $ref: '#/components/requestBodies/RefreshCredential'
+      responses:
+        '200':
+          description: Rotated credential; never cache or log this response
+          headers:
+            Cache-Control:
+              schema: {type: string, const: no-store}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionCredential'
+        '401':
+          description: Invalid, expired, revoked or replayed credential; no reason is disclosed
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+  /v1/identity/{realm}/sessions/logout:
+    parameters:
+      - $ref: '#/components/parameters/Realm'
+    post:
+      operationId: logoutIdentitySession
+      summary: Revoke a session family; validly formatted unknown credentials are an idempotent no-op
+      requestBody:
+        $ref: '#/components/requestBodies/RefreshCredential'
+      responses:
+        '204':
+          description: Logged out
+        default:
+          $ref: '#/components/responses/Problem'
+components:
+  securitySchemes:
+    serviceToken: {type: http, scheme: bearer, bearerFormat: JWT}
+  parameters:
+    Realm:
+      name: realm
+      in: path
+      required: true
+      schema: {type: string, enum: [staff, customer, it]}
+  requestBodies:
+    RefreshCredential:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required: [refreshToken]
+            properties:
+              refreshToken:
+                type: string
+                pattern: '^[A-Za-z0-9_-]{43}$'
+                description: Opaque credential; never log it
+  responses:
+    Problem:
+      description: RFC 9457 error; no credential or database detail is exposed
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  schemas:
+    SessionCredential:
+      type: object
+      additionalProperties: false
+      required: [sessionId, subjectId, realm, expiresAt, refreshToken]
+      properties:
+        sessionId: {type: string, format: uuid}
+        subjectId: {type: string, minLength: 1}
+        realm: {type: string, enum: [staff, customer, it]}
+        expiresAt: {type: string, format: date-time}
+        refreshToken: {type: string, pattern: '^[A-Za-z0-9_-]{43}$'}
+    Problem:
+      type: object
+      required: [type, title, status, code]
+      properties:
+        type: {type: string}
+        title: {type: string}
+        status: {type: integer}
+        code: {type: string}
+        instance: {type: string}

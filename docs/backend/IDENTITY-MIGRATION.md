@@ -15,6 +15,10 @@ that service is wired. The future login use case must also bound concurrent KDF 
 rate limits. Password-policy validation, dummy verification for nonexistent users and atomic replacement of a
 verified legacy hash belong in that use case. The package alone does not switch authentication or move tables.
 
+The identity session foundation now has an OpenAPI contract, schema migrations and sqlc-backed repositories.
+Real Postgres tests cover one-time rotation, concurrent reuse, durable family revocation, failed-write rollback,
+absolute expiry, idempotent logout and realm isolation. No API is deployed and apps still use existing authentication.
+
 ## Existing contracts to preserve
 
 Staff authentication enters through `apps/admin/app/api/auth/{login,mfa,logout,me,forgot-password,reset-password}`.

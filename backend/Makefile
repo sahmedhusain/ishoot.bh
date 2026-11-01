@@ -3,7 +3,7 @@
 GOLANGCI_LINT ?= github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0
 GOVULNCHECK   ?= golang.org/x/vuln/cmd/govulncheck@v1.9.0
 GOSEC         ?= github.com/securego/gosec/v2/cmd/gosec@v2.30.0
-SERVICES      ?= $(notdir $(wildcard services/*))
+SERVICES      ?= $(patsubst services/%/cmd/api/main.go,%,$(wildcard services/*/cmd/api/main.go))
 VERSION       ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 IMAGE_PREFIX  ?= platform
 
@@ -17,7 +17,7 @@ gen: ## Regenerate code and docs from contracts and config structs
 	go run ./tools/config-doc ../docs/backend/CONFIG.md
 
 gen-check: gen ## Fail when generated code or docs are out of date
-	git diff --exit-code -- pkg/catalog/data services/files/internal/postgres/sqlcdb ../docs/backend/CONFIG.md
+	git diff --exit-code -- pkg/catalog/data services/files/internal/postgres/sqlcdb services/identity/internal/postgres/sqlcdb ../docs/backend/CONFIG.md
 
 fmt: ## Format the code
 	gofmt -w .
