@@ -47,7 +47,7 @@ func TestLoginAtomicityAndMFA(t *testing.T) {
 	require.NoError(t, err)
 	otp, err := totp.New(totp.Config{Period: 30 * time.Second, Digits: 6, Window: 1})
 	require.NoError(t, err)
-	svc, err := accounts.New(repo, hasher, ring, otp, sessionService, 2, allowGuard{})
+	svc, err := accounts.New(repo, hasher, ring, otp, sessionService, 2, allowGuard{}, accounts.MFAConfig{EnrollmentTTL: 10 * time.Minute, RecoveryCount: 10, Digits: 6, Period: 30 * time.Second})
 	require.NoError(t, err)
 	now := time.Now().UTC().Truncate(time.Second)
 	legacy, err := bcrypt.GenerateFromPassword([]byte("correct-password"), bcrypt.MinCost)

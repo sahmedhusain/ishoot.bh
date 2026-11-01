@@ -13,7 +13,6 @@ import (
 
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/password"
-	"platform.local/backend/pkg/totp"
 	"platform.local/backend/services/identity/internal/guard"
 	"platform.local/backend/services/identity/internal/sessions"
 )
@@ -31,6 +30,8 @@ type Account struct {
 	Active, MFAEnabled bool
 	MFASecret          *string
 	LastStep           *int64
+	PendingSecret      *string
+	PendingExpires     *time.Time
 }
 type MFAResult struct {
 	Step         *int64
@@ -40,6 +41,8 @@ type MFAResult struct {
 // Repository completes credential rechecks, MFA updates and session creation in one transaction.
 type Repository interface {
 	ActiveSession(context.Context, authn.Realm, string, time.Time) (string, []string, error)
+	FindBySubject(context.Context, authn.Realm, string) (Account, error)
+	ChangeMFA(context.Context, Account, authn.Principal, time.Time, func(Account, time.Time) (MFAChange, error)) error
 	FindByEmail(context.Context, authn.Realm, string) (Account, error)
 	CompleteLogin(context.Context, Account, *string, sessions.Credential, time.Time, func(Account) (MFAResult, error)) (Account, error)
 	RotateAccount(context.Context, authn.Realm, string, string, time.Time) (sessions.Family, Account, error)
@@ -50,6 +53,7 @@ type Passwords interface {
 }
 type SecretReader interface {
 	Open(string, string) ([]byte, error)
+	Seal([]byte, string) (string, error)
 }
 type Guard interface {
 	Check(context.Context, authn.Realm, string, string) error
@@ -68,17 +72,18 @@ type Service struct {
 	permits   chan struct{}
 	dummyHash string
 	guard     Guard
+	mfa       MFAConfig
 }
 
-func New(repo Repository, passwords Passwords, secrets SecretReader, otp OTP, sessions *sessions.Service, maxConcurrent int, guard Guard) (*Service, error) {
-	if repo == nil || passwords == nil || secrets == nil || otp == nil || sessions == nil || (maxConcurrent < 1 || maxConcurrent > 64) || guard == nil {
+func New(repo Repository, passwords Passwords, secrets SecretReader, otp OTP, sessions *sessions.Service, maxConcurrent int, guard Guard, mfa MFAConfig) (*Service, error) {
+	if repo == nil || passwords == nil || secrets == nil || otp == nil || sessions == nil || (maxConcurrent < 1 || maxConcurrent > 64) || guard == nil || mfa.EnrollmentTTL <= 0 || mfa.RecoveryCount < 1 || mfa.RecoveryCount > 64 || (mfa.Digits != 6 && mfa.Digits != 8) || mfa.Period < time.Second || mfa.Period%time.Second != 0 {
 		return nil, errors.New("invalid identity account configuration")
 	}
 	dummy, err := passwords.Hash("identity-dummy-credential")
 	if err != nil {
 		return nil, err
 	}
-	return &Service{repo: repo, passwords: passwords, secrets: secrets, otp: otp, sessions: sessions, permits: make(chan struct{}, maxConcurrent), dummyHash: dummy, guard: guard}, nil
+	return &Service{repo: repo, passwords: passwords, secrets: secrets, otp: otp, sessions: sessions, permits: make(chan struct{}, maxConcurrent), dummyHash: dummy, guard: guard, mfa: mfa}, nil
 }
 
 type Input struct {
@@ -141,30 +146,7 @@ func (s *Service) Login(ctx context.Context, input Input, now time.Time) (Result
 		return Result{}, err
 	}
 	locked, err := s.repo.CompleteLogin(ctx, account, replacement, credential, now, func(current Account) (MFAResult, error) {
-		if current.Realm == authn.RealmIT && !current.MFAEnabled {
-			return MFAResult{}, ErrInvalid
-		}
-		if !current.MFAEnabled {
-			return MFAResult{}, nil
-		}
-		if input.OTP == "" {
-			return MFAResult{}, ErrMFARequired
-		}
-		if hash, ok := totp.RecoveryHash(input.OTP); ok {
-			return MFAResult{RecoveryHash: hash}, nil
-		}
-		if current.MFASecret == nil {
-			return MFAResult{}, ErrInvalid
-		}
-		secret, err := s.secrets.Open(*current.MFASecret, current.SubjectID)
-		if err != nil {
-			return MFAResult{}, err
-		}
-		step, ok := s.otp.Match(secret, input.OTP, current.LastStep, now)
-		if !ok {
-			return MFAResult{}, ErrInvalid
-		}
-		return MFAResult{Step: &step}, nil
+		return s.checkFactor(current, input.OTP, now)
 	})
 	if err != nil {
 		return Result{}, err

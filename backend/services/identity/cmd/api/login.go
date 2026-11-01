@@ -56,7 +56,7 @@ func newLogin(ctx context.Context, cfg settings.Login, pool *pgxpool.Pool, sessi
 		_ = redisClient.Close()
 		return nil, nil, err
 	}
-	svc, err := accounts.New(postgres.New(pool), hasher, ring, otp, sessionService, cfg.MaxConcurrentKDF, policy)
+	svc, err := accounts.New(postgres.New(pool), hasher, ring, otp, sessionService, cfg.MaxConcurrentKDF, policy, accounts.MFAConfig{EnrollmentTTL: cfg.MFAEnrollmentTTL, RecoveryCount: cfg.MFARecoveryCount, Digits: cfg.TOTP.Digits, Period: cfg.TOTP.Period})
 	if err != nil {
 		_ = redisClient.Close()
 		return nil, nil, err

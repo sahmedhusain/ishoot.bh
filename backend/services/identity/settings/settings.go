@@ -38,6 +38,8 @@ type Login struct {
 	AccountAttempts  int             `env:"ACCOUNT_ATTEMPTS" envDefault:"10" validate:"gt=0"`
 	IPAttempts       int             `env:"IP_ATTEMPTS" envDefault:"60" validate:"gt=0"`
 	RateWindow       time.Duration   `env:"RATE_WINDOW" envDefault:"1m" validate:"gt=0"`
+	MFAEnrollmentTTL time.Duration   `env:"MFA_ENROLLMENT_TTL" envDefault:"10m" validate:"gt=0"`
+	MFARecoveryCount int             `env:"MFA_RECOVERY_COUNT" envDefault:"10" validate:"gt=0,lte=64"`
 	MaxConcurrentKDF int             `env:"MAX_CONCURRENT_KDF" envDefault:"2" validate:"gt=0,lte=64"`
 	ITAllowedCIDRs   []string        `env:"IT_ALLOWED_CIDRS" envSeparator:"," validate:"dive,cidr"`
 	MFAKeys          []string        `env:"MFA_KEYS" envSeparator:","`

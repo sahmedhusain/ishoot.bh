@@ -37,9 +37,14 @@ func Register(e *echo.Echo, verifier *authn.Verifier, svc *sessions.Service, iss
 	}, authn.Require(verifier, authn.RealmService))
 	if login != nil {
 		g.POST("/login", h.loginPassword)
-		e.GET("/v1/identity/session", h.validateSession, func(next echo.HandlerFunc) echo.HandlerFunc {
+		user := e.Group("/v1/identity", func(next echo.HandlerFunc) echo.HandlerFunc {
 			return func(c echo.Context) error { c.Response().Header().Set("Cache-Control", "no-store"); return next(c) }
 		}, authn.Require(issuer.Verifier(), authn.UserRealms...))
+		user.GET("/session", h.validateSession)
+		user.POST("/mfa/enrollment", h.beginMFA)
+		user.DELETE("/mfa/enrollment", h.cancelMFA)
+		user.POST("/mfa/enrollment/confirm", h.confirmMFA)
+		user.POST("/mfa/disable", h.disableMFA)
 	}
 	g.POST("/refresh", h.refresh)
 	g.POST("/logout", h.logout)
@@ -188,6 +193,95 @@ func (h *Handler) validateSession(c echo.Context) error {
 			return problem.Unauthenticated("")
 		}
 		return err
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+type mfaPasswordRequest struct {
+	Password string `json:"password" validate:"required,max=1024"`
+}
+type mfaConfirmationRequest struct {
+	Password    string `json:"password" validate:"required,max=1024"`
+	Code        string `json:"code" validate:"required,max=64"`
+	CurrentCode string `json:"currentCode" validate:"max=64"`
+}
+
+func mfaError(c echo.Context, err error) error {
+	var limited *guard.Limited
+	switch {
+	case errors.As(err, &limited):
+		c.Response().Header().Set("Retry-After", strconv.Itoa(max(1, int(math.Ceil(limited.RetryAfter.Seconds())))))
+		return problem.New(http.StatusTooManyRequests, problem.CodeRateLimited, "")
+	case errors.Is(err, guard.ErrUnavailable):
+		return problem.New(http.StatusServiceUnavailable, problem.CodeUnavailable, "")
+	case errors.Is(err, accounts.ErrInvalid), errors.Is(err, accounts.ErrMFARequired):
+		return problem.Unauthenticated("")
+	default:
+		return err
+	}
+}
+func (h *Handler) beginMFA(c echo.Context) error {
+	p, ok := authn.PrincipalFrom(c.Request().Context())
+	if !ok {
+		return problem.Unauthenticated("")
+	}
+	var in mfaPasswordRequest
+	if err := httpx.BindJSON(c, &in, h.limit); err != nil {
+		return err
+	}
+	value, err := h.login.BeginMFA(c.Request().Context(), p, in.Password, c.RealIP(), time.Now())
+	if err != nil {
+		return mfaError(c, err)
+	}
+	return c.JSON(http.StatusOK, struct {
+		Secret        string    `json:"secret"`
+		Digits        int       `json:"digits"`
+		PeriodSeconds int64     `json:"periodSeconds"`
+		ExpiresAt     time.Time `json:"expiresAt"`
+	}{value.Secret, value.Digits, value.PeriodSeconds, value.ExpiresAt})
+}
+func (h *Handler) cancelMFA(c echo.Context) error {
+	p, ok := authn.PrincipalFrom(c.Request().Context())
+	if !ok {
+		return problem.Unauthenticated("")
+	}
+	var in mfaPasswordRequest
+	if err := httpx.BindJSON(c, &in, h.limit); err != nil {
+		return err
+	}
+	if err := h.login.CancelMFA(c.Request().Context(), p, in.Password, c.RealIP(), time.Now()); err != nil {
+		return mfaError(c, err)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+func (h *Handler) confirmMFA(c echo.Context) error {
+	p, ok := authn.PrincipalFrom(c.Request().Context())
+	if !ok {
+		return problem.Unauthenticated("")
+	}
+	var in mfaConfirmationRequest
+	if err := httpx.BindJSON(c, &in, h.limit); err != nil {
+		return err
+	}
+	codes, err := h.login.ConfirmMFA(c.Request().Context(), p, in.Password, in.Code, in.CurrentCode, c.RealIP(), time.Now())
+	if err != nil {
+		return mfaError(c, err)
+	}
+	return c.JSON(http.StatusOK, struct {
+		RecoveryCodes []string `json:"recoveryCodes"`
+	}{codes})
+}
+func (h *Handler) disableMFA(c echo.Context) error {
+	p, ok := authn.PrincipalFrom(c.Request().Context())
+	if !ok {
+		return problem.Unauthenticated("")
+	}
+	var in mfaConfirmationRequest
+	if err := httpx.BindJSON(c, &in, h.limit); err != nil {
+		return err
+	}
+	if err := h.login.DisableMFA(c.Request().Context(), p, in.Password, in.Code, c.RealIP(), time.Now()); err != nil {
+		return mfaError(c, err)
 	}
 	return c.NoContent(http.StatusNoContent)
 }

@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/ed25519"
 	"crypto/rand"
+	"encoding/base32"
 	"encoding/base64"
 	"encoding/json"
 	"io"
@@ -88,7 +89,7 @@ func TestSessionHTTP(t *testing.T) {
 	require.NoError(t, err)
 	otp, err := totp.New(totp.Config{Period: 30 * time.Second, Digits: 6, Window: 1})
 	require.NoError(t, err)
-	login, err := accounts.New(postgres.New(pool), hasher, ring, otp, svc, 2, testGuard{})
+	login, err := accounts.New(postgres.New(pool), hasher, ring, otp, svc, 2, testGuard{}, accounts.MFAConfig{EnrollmentTTL: 10 * time.Minute, RecoveryCount: 10, Digits: 6, Period: 30 * time.Second})
 	require.NoError(t, err)
 	httpapi.Register(app, verifier, svc, issuer, login, 4096, map[authn.Realm][]string{authn.RealmStaff: {"admin"}, authn.RealmCustomer: {"web"}, authn.RealmIT: {"it"}})
 	spec, err := openapi3.NewLoader().LoadFromData(api.OpenAPI)
@@ -228,4 +229,116 @@ func TestSessionHTTP(t *testing.T) {
 	require.Equal(t, 204, call(http.MethodPost, "/v1/identity/it/sessions/logout", itToken, logout).Code)
 	_, err = svc.Active(ctx, authn.RealmIT, fresh.Family.ID, time.Now())
 	require.ErrorIs(t, err, sessions.ErrInvalid)
+
+	// Enrollment, factor rotation and disable each recheck the session and password; confirmation revokes sessions.
+	_, err = pool.Exec(ctx, `INSERT INTO identity.account (realm,subject_id,email,password_hash,roles) VALUES ('staff','mfa-user','mfa@example.test',$1,ARRAY['admin'])`, string(legacy))
+	require.NoError(t, err)
+	mfaLoginBody, _ := json.Marshal(map[string]string{"email": "mfa@example.test", "password": "correct-password"})
+	mfaLogin := call(http.MethodPost, loginPath, serviceToken, mfaLoginBody)
+	require.Equal(t, 200, mfaLogin.Code)
+	var mfaSession struct {
+		AccessToken string `json:"accessToken"`
+	}
+	require.NoError(t, json.Unmarshal(mfaLogin.Body.Bytes(), &mfaSession))
+	mfaPath := "/v1/identity/mfa/enrollment"
+	wrongMFA, _ := json.Marshal(map[string]string{"password": "wrong"})
+	require.Equal(t, 401, call(http.MethodPost, mfaPath, mfaSession.AccessToken, wrongMFA).Code)
+	mfaPassword, _ := json.Marshal(map[string]string{"password": "correct-password"})
+	begin := call(http.MethodPost, mfaPath, mfaSession.AccessToken, mfaPassword)
+	require.Equal(t, 200, begin.Code)
+	require.Equal(t, "no-store", begin.Header().Get("Cache-Control"))
+	var setup struct {
+		Secret        string `json:"secret"`
+		Digits        int    `json:"digits"`
+		PeriodSeconds int64  `json:"periodSeconds"`
+	}
+	require.NoError(t, json.Unmarshal(begin.Body.Bytes(), &setup))
+	require.Equal(t, 6, setup.Digits)
+	require.EqualValues(t, 30, setup.PeriodSeconds)
+	var encrypted string
+	require.NoError(t, pool.QueryRow(ctx, `SELECT mfa_pending_secret_encrypted FROM identity.account WHERE subject_id='mfa-user'`).Scan(&encrypted))
+	require.NotContains(t, encrypted, setup.Secret)
+	initialSecret, err := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(setup.Secret)
+	require.NoError(t, err)
+	initialCode, err := otp.Code(initialSecret, time.Now().Unix()/30)
+	require.NoError(t, err)
+	initialConfirmation, _ := json.Marshal(map[string]string{"password": "correct-password", "code": initialCode})
+	tx, err := pool.Begin(ctx)
+	require.NoError(t, err)
+	_, err = tx.Exec(ctx, `UPDATE identity.account SET mfa_pending_expires_at=clock_timestamp()+interval '1 second' WHERE subject_id='mfa-user'`)
+	require.NoError(t, err)
+	blocked := make(chan *httptest.ResponseRecorder, 1)
+	go func() {
+		req := httptest.NewRequest(http.MethodPost, mfaPath+"/confirm", bytes.NewReader(initialConfirmation))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+mfaSession.AccessToken)
+		rec := httptest.NewRecorder()
+		app.ServeHTTP(rec, req)
+		blocked <- rec
+	}()
+	time.Sleep(1500 * time.Millisecond)
+	require.NoError(t, tx.Commit(ctx))
+	require.Equal(t, 401, (<-blocked).Code, "an enrollment that expires while waiting for the account lock is rejected")
+	require.Equal(t, 204, call(http.MethodDelete, mfaPath, mfaSession.AccessToken, mfaPassword).Code)
+	require.Equal(t, 401, call(http.MethodPost, mfaPath+"/confirm", mfaSession.AccessToken, initialConfirmation).Code)
+	begin = call(http.MethodPost, mfaPath, mfaSession.AccessToken, mfaPassword)
+	require.Equal(t, 200, begin.Code)
+	require.NoError(t, json.Unmarshal(begin.Body.Bytes(), &setup))
+	secret, err := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(setup.Secret)
+	require.NoError(t, err)
+	newCode, err := otp.Code(secret, time.Now().Unix()/30)
+	require.NoError(t, err)
+	confirmBody, _ := json.Marshal(map[string]string{"password": "correct-password", "code": newCode})
+	confirmed := call(http.MethodPost, mfaPath+"/confirm", mfaSession.AccessToken, confirmBody)
+	require.Equal(t, 200, confirmed.Code)
+	var recovery struct {
+		RecoveryCodes []string `json:"recoveryCodes"`
+	}
+	require.NoError(t, json.Unmarshal(confirmed.Body.Bytes(), &recovery))
+	require.Len(t, recovery.RecoveryCodes, 10)
+	require.Equal(t, 401, call(http.MethodGet, statusPath, mfaSession.AccessToken, nil).Code)
+	loginWithRecovery, _ := json.Marshal(map[string]string{"email": "mfa@example.test", "password": "correct-password", "otp": recovery.RecoveryCodes[0]})
+	relogged := call(http.MethodPost, loginPath, serviceToken, loginWithRecovery)
+	require.Equal(t, 200, relogged.Code)
+	require.Equal(t, 401, call(http.MethodPost, loginPath, serviceToken, loginWithRecovery).Code)
+	require.NoError(t, json.Unmarshal(relogged.Body.Bytes(), &mfaSession))
+	begin = call(http.MethodPost, mfaPath, mfaSession.AccessToken, mfaPassword)
+	require.Equal(t, 200, begin.Code)
+	require.NoError(t, json.Unmarshal(begin.Body.Bytes(), &setup))
+	secret, err = base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(setup.Secret)
+	require.NoError(t, err)
+	newCode, err = otp.Code(secret, time.Now().Unix()/30)
+	require.NoError(t, err)
+	confirmBody, _ = json.Marshal(map[string]string{"password": "correct-password", "code": newCode})
+	require.Equal(t, 401, call(http.MethodPost, mfaPath+"/confirm", mfaSession.AccessToken, confirmBody).Code)
+	confirmBody, _ = json.Marshal(map[string]string{"password": "correct-password", "code": newCode, "currentCode": recovery.RecoveryCodes[1]})
+	confirmed = call(http.MethodPost, mfaPath+"/confirm", mfaSession.AccessToken, confirmBody)
+	require.Equal(t, 200, confirmed.Code)
+	require.NoError(t, json.Unmarshal(confirmed.Body.Bytes(), &recovery))
+	require.Len(t, recovery.RecoveryCodes, 10)
+	loginWithRecovery, _ = json.Marshal(map[string]string{"email": "mfa@example.test", "password": "correct-password", "otp": recovery.RecoveryCodes[0]})
+	relogged = call(http.MethodPost, loginPath, serviceToken, loginWithRecovery)
+	require.Equal(t, 200, relogged.Code)
+	require.NoError(t, json.Unmarshal(relogged.Body.Bytes(), &mfaSession))
+	disableBody, _ := json.Marshal(map[string]string{"password": "correct-password", "code": recovery.RecoveryCodes[1]})
+	require.Equal(t, 204, call(http.MethodPost, "/v1/identity/mfa/disable", mfaSession.AccessToken, disableBody).Code)
+	require.Equal(t, 401, call(http.MethodGet, statusPath, mfaSession.AccessToken, nil).Code)
+	require.Equal(t, 200, call(http.MethodPost, loginPath, serviceToken, mfaLoginBody).Code)
+
+	itSecret := []byte("12345678901234567890")
+	itEncrypted, err := ring.Seal(itSecret, "it-mfa-user")
+	require.NoError(t, err)
+	_, err = pool.Exec(ctx, `INSERT INTO identity.account (realm,subject_id,email,password_hash,roles,mfa_enabled,mfa_secret_encrypted) VALUES ('it','it-mfa-user','it-mfa@example.test',$1,ARRAY['it_admin'],true,$2)`, string(legacy), itEncrypted)
+	require.NoError(t, err)
+	itCode, err := otp.Code(itSecret, time.Now().Unix()/30)
+	require.NoError(t, err)
+	itLoginBody, _ := json.Marshal(map[string]string{"email": "it-mfa@example.test", "password": "correct-password", "otp": itCode})
+	itLogin := call(http.MethodPost, "/v1/identity/it/sessions/login", itToken, itLoginBody)
+	require.Equal(t, 200, itLogin.Code)
+	var itSession struct {
+		AccessToken string `json:"accessToken"`
+	}
+	require.NoError(t, json.Unmarshal(itLogin.Body.Bytes(), &itSession))
+	itDisable, _ := json.Marshal(map[string]string{"password": "correct-password", "code": itCode})
+	require.Equal(t, 401, call(http.MethodPost, "/v1/identity/mfa/disable", itSession.AccessToken, itDisable).Code)
 }

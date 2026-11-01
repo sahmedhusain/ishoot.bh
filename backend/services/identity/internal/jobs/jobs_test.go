@@ -31,6 +31,8 @@ func TestRiverCleanupPreservesActiveSessions(t *testing.T) {
 		_, err = svc.Start(ctx, authn.RealmStaff, "expired", time.Now().Add(-2*time.Hour))
 		require.NoError(t, err)
 	}
+	_, err = pool.Exec(ctx, `INSERT INTO identity.account (realm,subject_id,email,mfa_pending_secret_encrypted,mfa_pending_expires_at) VALUES ('staff','expired-mfa','expired@example.test','encrypted',now()-interval '1 minute'),('staff','active-mfa','active@example.test','encrypted',now()+interval '1 hour')`)
+	require.NoError(t, err)
 	active, err := svc.Start(ctx, authn.RealmStaff, "active", time.Now())
 	require.NoError(t, err)
 	_, err = svc.Refresh(ctx, authn.RealmStaff, active.Token, time.Now())
@@ -48,6 +50,14 @@ func TestRiverCleanupPreservesActiveSessions(t *testing.T) {
 		err := pool.QueryRow(ctx, `SELECT count(*) FROM identity.session_family WHERE subject_id='expired'`).Scan(&count)
 		return err == nil && count == 0
 	}, 30*time.Second, 200*time.Millisecond)
+	require.Eventually(t, func() bool {
+		var count int
+		err := pool.QueryRow(ctx, `SELECT count(*) FROM identity.account WHERE subject_id='expired-mfa' AND mfa_pending_secret_encrypted IS NULL`).Scan(&count)
+		return err == nil && count == 1
+	}, 30*time.Second, 200*time.Millisecond)
+	var pending string
+	require.NoError(t, pool.QueryRow(ctx, `SELECT mfa_pending_secret_encrypted FROM identity.account WHERE subject_id='active-mfa'`).Scan(&pending))
+	require.Equal(t, "encrypted", pending)
 	var hashes int
 	require.NoError(t, pool.QueryRow(ctx, `SELECT count(*) FROM identity.refresh_token WHERE family_id=$1`, active.Family.ID).Scan(&hashes))
 	require.Equal(t, 2, hashes, "active token history remains for reuse detection")

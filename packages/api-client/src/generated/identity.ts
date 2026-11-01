@@ -38,6 +38,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/identity/mfa/enrollment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start MFA enrollment after rechecking the account password */
+        post: operations["beginMFAEnrollment"];
+        /** Cancel pending MFA enrollment after rechecking the password */
+        delete: operations["cancelMFAEnrollment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/mfa/enrollment/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm a new factor and revoke existing sessions */
+        post: operations["confirmMFAEnrollment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/mfa/disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Disable an existing factor and revoke sessions; IT accounts cannot disable MFA */
+        post: operations["disableMFA"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/identity/{realm}/sessions/login": {
         parameters: {
             query?: never;
@@ -148,6 +200,22 @@ export interface components {
         Realm: "staff" | "customer" | "it";
     };
     requestBodies: {
+        MFAPassword: {
+            content: {
+                "application/json": {
+                    password: string;
+                };
+            };
+        };
+        MFAConfirmation: {
+            content: {
+                "application/json": {
+                    password: string;
+                    code: string;
+                    currentCode?: string;
+                };
+            };
+        };
         RefreshCredential: {
             content: {
                 "application/json": {
@@ -208,6 +276,95 @@ export interface operations {
                 content: {
                     "application/problem+json": components["schemas"]["Problem"];
                 };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    beginMFAEnrollment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: components["requestBodies"]["MFAPassword"];
+        responses: {
+            /** @description Temporary authenticator secret; never cache or log */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        secret: string;
+                        /** @enum {integer} */
+                        digits: 6 | 8;
+                        periodSeconds: number;
+                        /** Format: date-time */
+                        expiresAt: string;
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    cancelMFAEnrollment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: components["requestBodies"]["MFAPassword"];
+        responses: {
+            /** @description Pending enrollment canceled */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    confirmMFAEnrollment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: components["requestBodies"]["MFAConfirmation"];
+        responses: {
+            /** @description One-time recovery codes; never cache or log */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        recoveryCodes: string[];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    disableMFA: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: components["requestBodies"]["MFAConfirmation"];
+        responses: {
+            /** @description MFA disabled */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             default: components["responses"]["Problem"];
         };

@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"errors"
+	"slices"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -15,7 +16,7 @@ import (
 )
 
 func toAccount(row sqlcdb.IdentityAccount) accounts.Account {
-	return accounts.Account{Realm: authn.Realm(row.Realm), SubjectID: row.SubjectID, Email: row.Email, PasswordHash: row.PasswordHash, Roles: row.Roles, Active: row.Active, MFAEnabled: row.MfaEnabled, MFASecret: row.MfaSecretEncrypted, LastStep: row.MfaLastStep}
+	return accounts.Account{Realm: authn.Realm(row.Realm), SubjectID: row.SubjectID, Email: row.Email, PasswordHash: row.PasswordHash, Roles: row.Roles, Active: row.Active, MFAEnabled: row.MfaEnabled, MFASecret: row.MfaSecretEncrypted, LastStep: row.MfaLastStep, PendingSecret: row.MfaPendingSecretEncrypted, PendingExpires: row.MfaPendingExpiresAt}
 }
 
 func (p *Repository) FindByEmail(ctx context.Context, realm authn.Realm, email string) (accounts.Account, error) {
@@ -87,4 +88,84 @@ func (p *Repository) ActiveSession(ctx context.Context, realm authn.Realm, id st
 		return "", nil, accounts.ErrInvalid
 	}
 	return row.SubjectID, row.Roles, err
+}
+
+func (p *Repository) FindBySubject(ctx context.Context, realm authn.Realm, subject string) (accounts.Account, error) {
+	row, err := p.q.FindAccountBySubject(ctx, sqlcdb.FindAccountBySubjectParams{Realm: string(realm), SubjectID: subject})
+	if errors.Is(err, pgx.ErrNoRows) {
+		return accounts.Account{}, accounts.ErrInvalid
+	}
+	return toAccount(row), err
+}
+
+func (p *Repository) ChangeMFA(ctx context.Context, snapshot accounts.Account, principal authn.Principal, now time.Time, change func(accounts.Account, time.Time) (accounts.MFAChange, error)) error {
+	return db.WithTx(ctx, p.pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		q := p.q.WithTx(tx)
+		row, err := q.LockAccount(ctx, sqlcdb.LockAccountParams{Realm: string(principal.Realm), SubjectID: principal.Subject})
+		if errors.Is(err, pgx.ErrNoRows) {
+			return accounts.ErrInvalid
+		}
+		if err != nil {
+			return err
+		}
+		if !row.Active || row.PasswordHash == nil || snapshot.PasswordHash == nil || *row.PasswordHash != *snapshot.PasswordHash || row.Email != snapshot.Email || !slices.Equal(row.Roles, principal.Roles) || (principal.Realm == authn.RealmIT && !row.MfaEnabled) {
+			return accounts.ErrInvalid
+		}
+		session, err := q.LockSessionFamily(ctx, principal.SessionID)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return accounts.ErrInvalid
+		}
+		if err != nil {
+			return err
+		}
+		if current := time.Now(); current.After(now) {
+			now = current
+		}
+		if session.Realm != row.Realm || session.SubjectID != row.SubjectID || session.RevokedAt != nil || !session.ExpiresAt.After(now) {
+			return accounts.ErrInvalid
+		}
+		update, err := change(toAccount(row), now)
+		if err != nil {
+			return err
+		}
+		if update.CurrentRecoveryHash != "" {
+			n, err := q.ConsumeAccountRecovery(ctx, sqlcdb.ConsumeAccountRecoveryParams{Realm: row.Realm, SubjectID: row.SubjectID, CodeHash: update.CurrentRecoveryHash, UsedAt: &now})
+			if err != nil {
+				return err
+			}
+			if n != 1 {
+				return accounts.ErrInvalid
+			}
+		}
+		switch update.Kind {
+		case "begin", "cancel":
+			return q.SetMFAPending(ctx, sqlcdb.SetMFAPendingParams{Realm: row.Realm, SubjectID: row.SubjectID, MfaPendingSecretEncrypted: update.Secret, MfaPendingExpiresAt: update.ExpiresAt, UpdatedAt: now})
+		case "confirm", "disable":
+			enabled := update.Kind == "confirm"
+			if enabled && (update.Secret == nil || update.Step == nil || len(update.RecoveryHashes) == 0) {
+				return accounts.ErrInvalid
+			}
+			if err := q.SetMFAState(ctx, sqlcdb.SetMFAStateParams{Realm: row.Realm, SubjectID: row.SubjectID, MfaEnabled: enabled, MfaSecretEncrypted: update.Secret, MfaLastStep: update.Step, UpdatedAt: now}); err != nil {
+				return err
+			}
+			if err := q.DeleteAccountRecovery(ctx, sqlcdb.DeleteAccountRecoveryParams{Realm: row.Realm, SubjectID: row.SubjectID}); err != nil {
+				return err
+			}
+			for _, hash := range update.RecoveryHashes {
+				if err := q.InsertAccountRecovery(ctx, sqlcdb.InsertAccountRecoveryParams{Realm: row.Realm, SubjectID: row.SubjectID, CodeHash: hash}); err != nil {
+					return err
+				}
+			}
+			return q.RevokeSubjectSessions(ctx, sqlcdb.RevokeSubjectSessionsParams{Realm: row.Realm, SubjectID: row.SubjectID, RevokedAt: &now})
+		default:
+			return accounts.ErrInvalid
+		}
+	})
+}
+
+func (p *Repository) ClearExpiredMFAEnrollments(ctx context.Context, now time.Time, batch int32) (int64, error) {
+	if batch <= 0 {
+		return 0, errors.New("cleanup batch must be positive")
+	}
+	return p.q.ClearExpiredMFAEnrollments(ctx, sqlcdb.ClearExpiredMFAEnrollmentsParams{Cutoff: &now, BatchSize: batch})
 }

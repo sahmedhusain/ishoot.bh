@@ -23,6 +23,7 @@ func (CleanupArgs) InsertOpts() river.InsertOpts {
 
 type Store interface {
 	DeleteExpired(context.Context, time.Time, int32) (int64, error)
+	ClearExpiredMFAEnrollments(context.Context, time.Time, int32) (int64, error)
 }
 type CleanupWorker struct {
 	river.WorkerDefaults[CleanupArgs]
@@ -32,19 +33,25 @@ type CleanupWorker struct {
 }
 
 func (w *CleanupWorker) Work(ctx context.Context, _ *river.Job[CleanupArgs]) error {
-	var total int64
+	var sessions, enrollments int64
 	for {
-		n, err := w.Store.DeleteExpired(ctx, time.Now(), w.Batch)
+		now := time.Now()
+		n, err := w.Store.DeleteExpired(ctx, now, w.Batch)
 		if err != nil {
 			return err
 		}
-		total += n
-		if n == 0 {
+		m, err := w.Store.ClearExpiredMFAEnrollments(ctx, now, w.Batch)
+		if err != nil {
+			return err
+		}
+		sessions += n
+		enrollments += m
+		if n == 0 && m == 0 {
 			break
 		}
 	}
-	if total > 0 {
-		w.Logger.InfoContext(ctx, "expired sessions removed", "count", total)
+	if sessions > 0 || enrollments > 0 {
+		w.Logger.InfoContext(ctx, "expired identity records removed", "sessions", sessions, "enrollments", enrollments)
 	}
 	return nil
 }

@@ -47,6 +47,62 @@ paths:
                 $ref: '#/components/schemas/Problem'
         default:
           $ref: '#/components/responses/Problem'
+  /v1/identity/mfa/enrollment:
+    post:
+      operationId: beginMFAEnrollment
+      summary: Start MFA enrollment after rechecking the account password
+      security: [{userToken: []}]
+      requestBody: {$ref: '#/components/requestBodies/MFAPassword'}
+      responses:
+        '200':
+          description: Temporary authenticator secret; never cache or log
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [secret, digits, periodSeconds, expiresAt]
+                properties:
+                  secret: {type: string}
+                  digits: {type: integer, enum: [6, 8]}
+                  periodSeconds: {type: integer, minimum: 1}
+                  expiresAt: {type: string, format: date-time}
+        default: {$ref: '#/components/responses/Problem'}
+    delete:
+      operationId: cancelMFAEnrollment
+      summary: Cancel pending MFA enrollment after rechecking the password
+      security: [{userToken: []}]
+      requestBody: {$ref: '#/components/requestBodies/MFAPassword'}
+      responses:
+        '204': {description: Pending enrollment canceled}
+        default: {$ref: '#/components/responses/Problem'}
+  /v1/identity/mfa/enrollment/confirm:
+    post:
+      operationId: confirmMFAEnrollment
+      summary: Confirm a new factor and revoke existing sessions
+      security: [{userToken: []}]
+      requestBody: {$ref: '#/components/requestBodies/MFAConfirmation'}
+      responses:
+        '200':
+          description: One-time recovery codes; never cache or log
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [recoveryCodes]
+                properties:
+                  recoveryCodes: {type: array, items: {type: string}}
+        default: {$ref: '#/components/responses/Problem'}
+  /v1/identity/mfa/disable:
+    post:
+      operationId: disableMFA
+      summary: Disable an existing factor and revoke sessions; IT accounts cannot disable MFA
+      security: [{userToken: []}]
+      requestBody: {$ref: '#/components/requestBodies/MFAConfirmation'}
+      responses:
+        '204': {description: MFA disabled}
+        default: {$ref: '#/components/responses/Problem'}
   /v1/identity/{realm}/sessions/login:
     parameters:
       - $ref: '#/components/parameters/Realm'
@@ -139,6 +195,28 @@ components:
       required: true
       schema: {type: string, enum: [staff, customer, it]}
   requestBodies:
+    MFAPassword:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required: [password]
+            properties:
+              password: {type: string, minLength: 1, maxLength: 1024}
+    MFAConfirmation:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required: [password, code]
+            properties:
+              password: {type: string, minLength: 1, maxLength: 1024}
+              code: {type: string, minLength: 1, maxLength: 64}
+              currentCode: {type: string, maxLength: 64}
     RefreshCredential:
       required: true
       content:

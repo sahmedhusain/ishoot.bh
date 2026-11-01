@@ -4,7 +4,7 @@ Status: in progress. The identity API, worker and account import are available a
 
 ## What is implemented
 
-The preview service issues realm-specific Ed25519 access tokens and publishes public signing keys. Service-authenticated endpoints support password login, refresh-token rotation and logout. Refresh tokens are stored as hashes; reuse revokes the session family. Login accepts existing bcrypt hashes and upgrades them to Argon2id after successful verification. It supports existing encrypted TOTP secrets and one-use recovery codes, requires MFA for IT accounts, bounds password-hashing concurrency, and uses Redis for account and IP limits. A River worker cleans expired session families. The session-status endpoint checks account, roles and session state, and the gateway requires it for user-authenticated routes. See the [service README](../../backend/services/identity/README.md) and [configuration reference](CONFIG.md).
+The preview service issues realm-specific Ed25519 access tokens and publishes public signing keys. Service-authenticated endpoints support password login, refresh-token rotation and logout. Refresh tokens are stored as hashes; reuse revokes the session family. Login accepts existing bcrypt hashes and upgrades them to Argon2id after successful verification. It supports existing encrypted TOTP secrets and one-use recovery codes, self-service enrollment and factor rotation, requires MFA for IT accounts, bounds password-hashing concurrency, and uses Redis for account and IP limits. A River worker cleans expired session families. The session-status endpoint checks account, roles and session state, and the gateway requires it for user-authenticated routes. See the [service README](../../backend/services/identity/README.md) and [configuration reference](CONFIG.md).
 
 `backend/tools/identity-import` reads legacy staff and customer authentication data into identity-owned account tables without deleting or changing the legacy tables. It preserves subject IDs, password hashes, existing MFA secrets and recovery-code use state. It validates email normalization, credentials and MFA decryption, rejects conflicting or extra target records, and runs the import in one transaction. Repeating an unchanged import is safe. This is a snapshot, not ongoing synchronization.
 
@@ -21,7 +21,7 @@ A successful rehearsal does not authorize a production cutover. Before an eventu
 
 ## Remaining before cutover
 
-- Implement and test OAuth, customer email codes and registration, password reset and invitations, MFA enrollment and administration, and IT account bootstrap.
+- Implement and test OAuth, customer email codes and registration, password reset and invitations, MFA administration and reset, and IT account bootstrap.
 - Preserve staff profile, role, permission, data-scope and override behavior. Define synchronization between identity and the remaining business-owned user and customer projections.
 - Ensure all user-token traffic reaches services through the gateway or an equivalent live session check, and configure the identity status URL and network policy.
 - Integrate the generated client, gateway, app cookies and existing auth DTOs; preserve existing auth exports and authorization behavior. Wire production deployment and key rotation.

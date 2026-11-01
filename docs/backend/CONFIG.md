@@ -159,6 +159,8 @@ the environment. A service refuses to start when a value is missing or fails its
 | `IDENTITY_LOGIN_ACCOUNT_ATTEMPTS` | `10` | `gt=0` |
 | `IDENTITY_LOGIN_IP_ATTEMPTS` | `60` | `gt=0` |
 | `IDENTITY_LOGIN_RATE_WINDOW` | `1m` | `gt=0` |
+| `IDENTITY_LOGIN_MFA_ENROLLMENT_TTL` | `10m` | `gt=0` |
+| `IDENTITY_LOGIN_MFA_RECOVERY_COUNT` | `10` | `gt=0,lte=64` |
 | `IDENTITY_LOGIN_MAX_CONCURRENT_KDF` | `2` | `gt=0,lte=64` |
 | `IDENTITY_LOGIN_IT_ALLOWED_CIDRS` |  | `dive,cidr` |
 | `IDENTITY_LOGIN_MFA_KEYS` |  |  |

@@ -17,6 +17,13 @@ import (
 
 type missingRepo struct{}
 
+func (missingRepo) FindBySubject(context.Context, authn.Realm, string) (accounts.Account, error) {
+	return accounts.Account{}, accounts.ErrInvalid
+}
+func (missingRepo) ChangeMFA(context.Context, accounts.Account, authn.Principal, time.Time, func(accounts.Account, time.Time) (accounts.MFAChange, error)) error {
+	return accounts.ErrInvalid
+}
+
 func (missingRepo) ActiveSession(context.Context, authn.Realm, string, time.Time) (string, []string, error) {
 	return "", nil, accounts.ErrInvalid
 }
@@ -63,6 +70,7 @@ func (p *blockingPasswords) Verify(_ string, hash string) (bool, error) {
 type noSecrets struct{}
 
 func (noSecrets) Open(string, string) ([]byte, error) { panic("unexpected MFA") }
+func (noSecrets) Seal([]byte, string) (string, error) { panic("unexpected MFA") }
 
 type noOTP struct{}
 
@@ -72,7 +80,7 @@ func TestMissingAccountsUseBoundedDummyVerification(t *testing.T) {
 	p := &blockingPasswords{started: make(chan struct{}, 2), release: make(chan struct{})}
 	sessionService, err := sessions.New(sessionRepo{}, time.Hour)
 	require.NoError(t, err)
-	svc, err := accounts.New(missingRepo{}, p, noSecrets{}, noOTP{}, sessionService, 1, allowGuard{})
+	svc, err := accounts.New(missingRepo{}, p, noSecrets{}, noOTP{}, sessionService, 1, allowGuard{}, accounts.MFAConfig{EnrollmentTTL: 10 * time.Minute, RecoveryCount: 10, Digits: 6, Period: 30 * time.Second})
 	require.NoError(t, err)
 	done := make(chan error, 1)
 	go func() {

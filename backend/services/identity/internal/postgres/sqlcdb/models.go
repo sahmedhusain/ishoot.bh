@@ -9,18 +9,20 @@ import (
 )
 
 type IdentityAccount struct {
-	Realm              string
-	SubjectID          string
-	Email              string
-	PasswordHash       *string
-	Roles              []string
-	Active             bool
-	MfaEnabled         bool
-	MfaSecretEncrypted *string
-	MfaLastStep        *int64
-	LastLoginAt        *time.Time
-	CreatedAt          time.Time
-	UpdatedAt          time.Time
+	Realm                     string
+	SubjectID                 string
+	Email                     string
+	PasswordHash              *string
+	Roles                     []string
+	Active                    bool
+	MfaEnabled                bool
+	MfaSecretEncrypted        *string
+	MfaLastStep               *int64
+	LastLoginAt               *time.Time
+	CreatedAt                 time.Time
+	UpdatedAt                 time.Time
+	MfaPendingSecretEncrypted *string
+	MfaPendingExpiresAt       *time.Time
 }
 
 type IdentityMfaRecoveryCode struct {
