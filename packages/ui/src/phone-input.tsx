@@ -35,7 +35,7 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(fu
     return COUNTRY_DIAL_CODES.map((country) => ({
       ...country,
       flag: country.flag || countryFlag(country.iso),
-      label: names.of(country.iso.startsWith("001-") ? "001" : country.iso) ?? country.iso,
+      label: names.of(country.iso) ?? country.iso,
     })).sort((a, b) => a.label.localeCompare(b.label, locale));
   }, [locale]);
   const options = React.useMemo(
