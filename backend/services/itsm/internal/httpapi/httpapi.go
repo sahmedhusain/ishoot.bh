@@ -60,6 +60,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	read := authz.Require(catalog.ITAccess, "tickets", "read")
 	edit := authz.Require(catalog.ITAccess, "tickets", "edit")
 	desk.GET("/tickets", h.queue, read)
+	desk.GET("/stats", h.stats, read)
 	desk.GET("/tickets/:id", h.detail, read, knownTicket)
 	desk.POST("/tickets/:id/transitions", h.transitionDesk, edit, knownTicket)
 	desk.POST("/tickets/:id/comments", h.commentDesk, edit, knownTicket)
@@ -333,6 +334,22 @@ func (h *handler) queue(c echo.Context) error {
 		return toProblem(err)
 	}
 	return c.JSON(http.StatusOK, pageJSON(rows, size, true))
+}
+
+type statsJSON struct {
+	Open       int64            `json:"open"`
+	Breached   int64            `json:"breached"`
+	Unassigned int64            `json:"unassigned"`
+	ByStatus   map[string]int64 `json:"byStatus"`
+	ByPriority map[string]int64 `json:"byPriority"`
+}
+
+func (h *handler) stats(c echo.Context) error {
+	st, err := h.svc.Stats(c.Request().Context())
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, statsJSON{Open: st.Open, Breached: st.Breached, Unassigned: st.Unassigned, ByStatus: st.ByStatus, ByPriority: st.ByPriority})
 }
 
 func (h *handler) detail(c echo.Context) error {

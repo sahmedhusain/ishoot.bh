@@ -565,6 +565,49 @@ func (q *Queries) MarkBreached(ctx context.Context, arg MarkBreachedParams) ([]s
 	return items, nil
 }
 
+const queueStats = `-- name: QueueStats :many
+SELECT status, priority, count(*)::bigint AS tickets,
+       count(*) FILTER (WHERE breached_at IS NOT NULL)::bigint AS breached,
+       count(*) FILTER (WHERE assignee_id IS NULL)::bigint AS unassigned
+FROM itsm.ticket
+WHERE status = ANY($1::text[])
+GROUP BY status, priority
+`
+
+type QueueStatsRow struct {
+	Status     string
+	Priority   string
+	Tickets    int64
+	Breached   int64
+	Unassigned int64
+}
+
+func (q *Queries) QueueStats(ctx context.Context, openStatuses []string) ([]QueueStatsRow, error) {
+	rows, err := q.db.Query(ctx, queueStats, openStatuses)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []QueueStatsRow
+	for rows.Next() {
+		var i QueueStatsRow
+		if err := rows.Scan(
+			&i.Status,
+			&i.Priority,
+			&i.Tickets,
+			&i.Breached,
+			&i.Unassigned,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const sLAPolicy = `-- name: SLAPolicy :one
 SELECT priority, response_minutes, resolve_minutes, updated_by, updated_at FROM itsm.sla_policy WHERE priority = $1
 `

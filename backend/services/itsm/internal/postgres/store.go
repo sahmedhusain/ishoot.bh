@@ -154,6 +154,29 @@ func (s *Store) ListQueue(ctx context.Context, f Filter, c *Cursor, size int32) 
 	})
 }
 
+// Stats are the open tickets counted per status and priority.
+type Stats struct {
+	Open, Breached, Unassigned int64
+	ByStatus, ByPriority       map[string]int64
+}
+
+// QueueStats counts open tickets.
+func (s *Store) QueueStats(ctx context.Context, openStatuses []string) (Stats, error) {
+	rows, err := s.q.QueueStats(ctx, openStatuses)
+	if err != nil {
+		return Stats{}, err
+	}
+	out := Stats{ByStatus: map[string]int64{}, ByPriority: map[string]int64{}}
+	for _, r := range rows {
+		out.Open += r.Tickets
+		out.Breached += r.Breached
+		out.Unassigned += r.Unassigned
+		out.ByStatus[r.Status] += r.Tickets
+		out.ByPriority[r.Priority] += r.Tickets
+	}
+	return out, nil
+}
+
 // Transition locks the ticket, asks change for the new state and stores it with an event.
 func (s *Store) Transition(ctx context.Context, id string, actor Actor, name string, now time.Time, change func(Ticket) (domain.State, error)) (Ticket, error) {
 	if _, err := uuid.Parse(id); err != nil {

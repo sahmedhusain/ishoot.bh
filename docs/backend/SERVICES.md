@@ -20,5 +20,7 @@ Each service has its own README with endpoints, events, tables, configuration an
 | delivery                                              | Delivery settings, shipments, courier adapters, fleet, cash on delivery                                               | Phase 6                |
 | [itsm](../../backend/services/itsm/README.md)         | IT tickets, categories and SLAs, system-health view for the IT dashboard                                              | Phase 5                |
 
+The IT dashboard ([apps/it](../../apps/it/README.md)) is the IT team's front end for these services.
+
 Every service exposes the same admin endpoints on port 9090: `/livez`, `/readyz`, `/metrics`,
 `GET|PUT /runtime/log-level` and, when `ADMIN_ENABLE_PPROF=true`, `/debug/pprof/`.

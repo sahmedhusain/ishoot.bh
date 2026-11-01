@@ -232,6 +232,13 @@ func TestTickets(t *testing.T) {
 	assert.Equal(t, "emp-1@example.test", queue.Items[3].RequesterEmail)
 	assert.Equal(t, http.StatusForbidden, e.call(e.it("it_auditor"), http.MethodPost, desk+"/"+created.ID+"/transitions", nil, map[string]any{"transition": "triage"}).Code)
 	assert.Equal(t, http.StatusForbidden, e.call(e.it(), http.MethodGet, desk, nil, nil).Code)
+	stats := decode[struct {
+		Open, Unassigned int64
+		ByPriority       map[string]int64
+	}](t, e.call(e.it("it_auditor"), http.MethodGet, "/v1/itsm/desk/stats", nil, nil))
+	assert.Equal(t, int64(4), stats.Open)
+	assert.Equal(t, int64(4), stats.Unassigned)
+	assert.Equal(t, int64(4), stats.ByPriority[catalog.Tickets.DefaultPriority])
 
 	// Workflow: IT assigns, asks for information, the requester answers, IT resolves, the requester closes.
 	it := e.it("it_support")

@@ -137,7 +137,7 @@ jobs:
           if-no-files-found: ignore
 
   e2e:
-    name: End-to-end (admin, setup wizard, website)
+    name: End-to-end (admin, setup wizard, website, IT dashboard)
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -156,14 +156,16 @@ jobs:
       - uses: ./.github/actions/backend-stack
       - name: Prepare seeded and blank databases
         run: pnpm test:e2e:prepare
-      - name: Production builds of both apps
+      - name: Create the IT account (identity bootstrap-it)
+        run: node tests/e2e/it-account.cjs
+      - name: Production builds of the apps
         env:
           DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_e2e_test?schema=public
           DIRECT_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_e2e_test?schema=public
           NEXT_DIST_DIR: .next-e2e
           NEXT_PUBLIC_WEB_URL: http://localhost:3013
           NEXT_PUBLIC_ADMIN_URL: http://localhost:3012
-        run: pnpm --filter @platform/admin build && pnpm --filter @platform/web build
+        run: pnpm --filter @platform/admin build && pnpm --filter @platform/web build && pnpm --filter @platform/it build
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Playwright

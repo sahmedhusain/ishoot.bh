@@ -2,7 +2,7 @@
 // employee in; the service trusts it to say who the requester is and shows them only their own tickets.
 import type { components, paths } from "./generated/itsm";
 import { apiError } from "./errors";
-import { serviceClient } from "./http";
+import { serviceClient, unwrap } from "./http";
 
 export type Ticket = components["schemas"]["Ticket"];
 export type TicketDetail = components["schemas"]["TicketDetail"];
@@ -13,13 +13,6 @@ export type Requester = { id: string; name: string };
 
 let client: ReturnType<typeof serviceClient<paths>> | undefined;
 const itsm = () => (client ??= serviceClient<paths>());
-
-type Data<T> = { data?: T; error?: unknown; response: Response };
-async function unwrap<T>(result: Promise<Data<T>>): Promise<T> {
-  const { data, error, response } = await result;
-  if (!response.ok || data === undefined) throw await apiError(response, error);
-  return data;
-}
 
 /** Raises a ticket for an employee. Attachments must already be claimed in the files service. */
 export const createTicket = (body: NewTicket) =>

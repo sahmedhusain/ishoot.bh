@@ -10,13 +10,23 @@ process.env.ENCRYPTION_KEY ||= "0123456789abcdef0123456789abcdef";
 // `pnpm exec playwright test` reuses them. E2E_SERVER_MODE=start serves production builds.
 const seeded = process.env.E2E_SEEDED_DATABASE || "platform_e2e_test";
 const blank = process.env.E2E_BLANK_DATABASE || "platform_e2e_blank_test";
-export const ports = { admin: 3012, web: 3013, setup: 3014, stripe: 3199 };
+export const ports = {
+  admin: 3012,
+  web: 3013,
+  setup: 3014,
+  it: 3015,
+  stripe: 3199,
+};
 const session = "tests/.results/admin-session.json";
 /** The test servers' own secret for the scheduled-jobs endpoint, so specs can run the jobs. */
 export const cronSecret = "e2e-cron-secret";
-const server = (app: "admin" | "web", port: number, database: string) => ({
+const server = (
+  app: "admin" | "web" | "it",
+  port: number,
+  database: string,
+) => ({
   command: `node tests/e2e/serve.cjs ${app} ${port} ${database}`,
-  url: `http://localhost:${port}${app === "admin" ? "/login" : "/en"}`,
+  url: `http://localhost:${port}${app === "web" ? "/en" : "/login"}`,
   reuseExistingServer: !process.env.CI,
   timeout: 240_000,
   stdout: "ignore" as const,
@@ -109,6 +119,14 @@ export default defineConfig({
       },
     },
     {
+      name: "it",
+      testDir: "tests/e2e/specs/it",
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: `http://localhost:${ports.it}`,
+      },
+    },
+    {
       name: "web",
       testDir: "tests/e2e/specs/web",
       use: {
@@ -127,5 +145,7 @@ export default defineConfig({
     server("admin", ports.admin, seeded),
     server("web", ports.web, seeded),
     server("admin", ports.setup, blank),
+    // The IT dashboard signs in through identity; tests/e2e/it-account.cjs creates its account.
+    server("it", ports.it, seeded),
   ],
 });

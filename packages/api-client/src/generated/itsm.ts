@@ -92,6 +92,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/itsm/desk/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Needs `tickets:read`. Open tickets counted per status and per priority. */
+        get: operations["queueStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/itsm/desk/tickets/{id}": {
         parameters: {
             query?: never;
@@ -476,6 +493,37 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: components["responses"]["TicketPage"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    queueStats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Open-ticket counts */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        open: number;
+                        breached: number;
+                        unassigned: number;
+                        byStatus: {
+                            [key: string]: number;
+                        };
+                        byPriority: {
+                            [key: string]: number;
+                        };
+                    };
+                };
+            };
             default: components["responses"]["Problem"];
         };
     };

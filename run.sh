@@ -116,9 +116,9 @@ ${BOLD}Database${RESET}
   db test-drop [name|--all] [--yes]   Drop disposable *_test databases
 
 ${BOLD}Development${RESET}
-  dev [all|admin|web]              Development servers (admin 3001, website 3000)
+  dev [all|admin|web|it]           Development servers (admin 3001, website 3000, IT 3002)
   build [--clean]                  Production build of both apps
-  start [all|admin|web]            Serve the production build
+  start [all|admin|web|it]         Serve the production build
   kill-ports                       Free ports 3000-3003
   clean                            Remove build output and caches
   format                           Prettier over the repository
@@ -410,7 +410,8 @@ cmd_dev() {
     all) run pnpm dev ;;
     admin) run pnpm dev:admin ;;
     web | website) run pnpm dev:web ;;
-    *) die "dev [all|admin|web]" ;;
+    it) run pnpm dev:it ;;
+    *) die "dev [all|admin|web|it]" ;;
   esac
 }
 cmd_build() {
@@ -421,13 +422,15 @@ cmd_start() {
   case "$app" in
     admin) run pnpm --filter @platform/admin start ;;
     web | website) run pnpm --filter @platform/web start ;;
+    it) run pnpm --filter @platform/it start ;;
     all)
       trap 'kill 0' INT TERM EXIT
       pnpm --filter @platform/web start &
       pnpm --filter @platform/admin start &
+      pnpm --filter @platform/it start &
       wait
       ;;
-    *) die "start [all|admin|web]" ;;
+    *) die "start [all|admin|web|it]" ;;
   esac
 }
 

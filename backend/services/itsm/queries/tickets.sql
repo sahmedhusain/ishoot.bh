@@ -79,3 +79,11 @@ WHERE id IN (
     ORDER BY t.resolve_by LIMIT @batch_size::int FOR UPDATE SKIP LOCKED
 )
 RETURNING id;
+
+-- name: QueueStats :many
+SELECT status, priority, count(*)::bigint AS tickets,
+       count(*) FILTER (WHERE breached_at IS NOT NULL)::bigint AS breached,
+       count(*) FILTER (WHERE assignee_id IS NULL)::bigint AS unassigned
+FROM itsm.ticket
+WHERE status = ANY(@open_statuses::text[])
+GROUP BY status, priority;

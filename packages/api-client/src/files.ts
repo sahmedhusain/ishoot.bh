@@ -1,19 +1,12 @@
 // The files service (backend/services/files): stored files and the upload protocol.
 import type { components, paths } from "./generated/files";
 import { apiError } from "./errors";
-import { serviceClient } from "./http";
+import { serviceClient, unwrap } from "./http";
 
 export type FileRecord = components["schemas"]["File"];
 
 let client: ReturnType<typeof serviceClient<paths>> | undefined;
 const files = () => (client ??= serviceClient<paths>());
-
-type Data<T> = { data?: T; error?: unknown; response: Response };
-async function unwrap<T>(result: Promise<Data<T>>): Promise<T> {
-  const { data, error, response } = await result;
-  if (!response.ok || data === undefined) throw await apiError(response, error);
-  return data;
-}
 
 /** Reserves an address for a user's upload; the bytes follow with writeUpload. */
 export const registerUpload = (body: components["schemas"]["RegisterUpload"]) =>

@@ -15,6 +15,8 @@
     "./admin/en": "./src/admin/en.ts",
     "./admin/ar": "./src/admin/ar.ts",
     "./admin-activity": "./src/admin-activity.ts",
+    "./it/en": "./src/it/en.ts",
+    "./it/ar": "./src/it/ar.ts",
     "./ui/en": "./src/ui/en.ts",
     "./ui/ar": "./src/ui/ar.ts",
     "./registry": "./src/registry.ts",

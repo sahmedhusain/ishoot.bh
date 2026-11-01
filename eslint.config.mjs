@@ -8,5 +8,5 @@ const compat = new FlatCompat({ baseDirectory: root, resolvePluginsRelativeTo: p
 export default [
   { ignores: ['**/.next*/**', '**/node_modules/**', 'packages/database/prisma/generated/**', 'graphify-out/**', 'ishoot/**', '.agents/**'] },
   ...compat.extends('next/core-web-vitals'),
-  { settings: { next: { rootDir: [path.join(root, 'apps/admin'), path.join(root, 'apps/web')] } } },
+  { settings: { next: { rootDir: [path.join(root, 'apps/admin'), path.join(root, 'apps/web'), path.join(root, 'apps/it')] } } },
 ];

@@ -19,3 +19,9 @@ export const requesterTransitions = (status: string): TicketTransition[] =>
   (itsm.requesterTransitions as TicketTransition[]).filter((name) =>
     itsm.transitions[name].from.includes(status),
   );
+
+/** Every transition that starts from this status (what IT may apply), in catalogue order. */
+export const transitionsFrom = (status: string): TicketTransition[] =>
+  (Object.keys(itsm.transitions) as TicketTransition[]).filter((name) =>
+    itsm.transitions[name].from.includes(status),
+  );

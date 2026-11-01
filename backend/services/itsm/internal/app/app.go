@@ -166,6 +166,11 @@ func (s *Service) CommentAsIT(ctx context.Context, id string, p authn.Principal,
 	return s.store.AddComment(ctx, id, itActor(p, s.opts.ITDisplayName), body, internal, true, s.now(), func(postgres.Ticket) error { return nil })
 }
 
+// Stats counts the open tickets for the IT overview.
+func (s *Service) Stats(ctx context.Context) (postgres.Stats, error) {
+	return s.store.QueueStats(ctx, catalog.Tickets.OpenStatuses)
+}
+
 // SLA returns the SLA policies.
 func (s *Service) SLA(ctx context.Context) ([]postgres.SLAPolicy, error) { return s.store.ListSLA(ctx) }
 

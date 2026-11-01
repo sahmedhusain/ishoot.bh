@@ -121,6 +121,27 @@ paths:
       responses:
         "200": { $ref: "#/components/responses/TicketPage" }
         default: { $ref: "#/components/responses/Problem" }
+  /v1/itsm/desk/stats:
+    get:
+      tags: [desk]
+      operationId: queueStats
+      description: Needs `tickets:read`. Open tickets counted per status and per priority.
+      security: [{ userToken: [] }]
+      responses:
+        "200":
+          description: Open-ticket counts
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [open, breached, unassigned, byStatus, byPriority]
+                properties:
+                  open: { type: integer }
+                  breached: { type: integer }
+                  unassigned: { type: integer }
+                  byStatus: { type: object, additionalProperties: { type: integer } }
+                  byPriority: { type: object, additionalProperties: { type: integer } }
+        default: { $ref: "#/components/responses/Problem" }
   /v1/itsm/desk/tickets/{id}:
     parameters: [{ $ref: "#/components/parameters/TicketId" }]
     get:

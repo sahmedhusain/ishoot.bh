@@ -1,4 +1,4 @@
-// Run: node tests/e2e/serve.cjs <admin|web> <port> [database]
+// Run: node tests/e2e/serve.cjs <admin|web|it> <port> [database]
 // Starts one app against a disposable database (default: E2E_DATABASE or platform_e2e_test) so local test
 // runs never touch the development database. Values come from .env; only the database name is swapped.
 // E2E_SERVER_MODE=start serves a production build made with `next build` (NEXT_DIST_DIR=.next-e2e) instead
@@ -9,11 +9,12 @@ const path = require("node:path");
 require("dotenv").config({ path: path.resolve(__dirname, "../../.env"), quiet: true });
 
 const [app, port, database = process.env.E2E_DATABASE || "platform_e2e_test"] = process.argv.slice(2);
-if (!["admin", "web"].includes(app) || !/^\d+$/.test(port ?? "")) {
-  console.error("Usage: node tests/e2e/serve.cjs <admin|web> <port> [database]");
+if (!["admin", "web", "it"].includes(app) || !/^\d+$/.test(port ?? "")) {
+  console.error("Usage: node tests/e2e/serve.cjs <admin|web|it> <port> [database]");
   process.exit(1);
 }
-if (!/_test$/.test(database)) {
+// The IT dashboard has no database of its own: it reads everything through the backend.
+if (app !== "it" && !/_test$/.test(database)) {
   console.error("End-to-end servers only run against a database whose name ends in _test.");
   process.exit(1);
 }
