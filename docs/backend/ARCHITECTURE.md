@@ -29,7 +29,7 @@ Browser ─▶ apps/web · apps/admin · apps/it   (Next.js: UI, cookies, server
 
 | Phase | Scope                                                                                 | Status       |
 | ----- | ------------------------------------------------------------------------------------- | ------------ |
-| 1     | Shared kit, catalogue, gateway, local stack, CI, Helm, docs                           | **Done**     |
+| 1     | Shared kit, catalogue, gateway, local stack, CI, Helm, docs                           | **Done**; chart validation below |
 | 2     | `files` on S3-compatible storage; Supabase removed                                    | Verification |
 | 3     | `identity` (staff, customer and IT realms)                                            | In progress  |
 | 4     | `system`, `audit`, `notify` and the IT dashboard (`apps/it`)                          | In progress  |
@@ -43,6 +43,17 @@ from the IT dashboard, and publishes its changes as events (transactional outbox
 as its own database login behind PgBouncer. The audit service records every event for the IT dashboard's audit
 trail, and notify delivers every e-mail and WhatsApp message. In-app notifications, broadcasts and the remaining IT
 pages are not built yet, and no business domain has moved.
+
+### Verification follow-up (2026-11-02)
+
+- Removed the legacy email worker's Resend credential gate: notify owns delivery, including local SMTP.
+  `tests/unit/email-integration.test.ts` passes (5 tests); `node --check scripts/email-worker.cjs` passes.
+- Helm 3.17.1 strict lint and template rendering pass for default, staging and production values.
+  kubeconform 0.6.7 validates 49 resources in each render, with zero errors; seven ServiceMonitor custom
+  resources are skipped because their schemas are not bundled. This is schema validation, not a cluster smoke test.
+- Removed the empty admin integrations settings directory (empty directories are not tracked by Git).
+- The cold-compile IT e2e fix, disposable-stack milestone suite and subsequent migration waves remain pending.
+  No development database, Compose project or environment values were changed for these checks.
 
 Until a domain moves, the Next.js apps keep using `packages/database` (Prisma) for it, as described in
 [../ARCHITECTURE.md](../ARCHITECTURE.md).
