@@ -16,7 +16,42 @@
     "site": "Website",
     "audit": "Audit trail",
     "notifications": "Notifications",
-    "itAccounts": "IT accounts"
+    "itAccounts": "IT accounts",
+    "sessions": "Sessions"
+  },
+  "sessions": {
+    "title": "Sessions",
+    "description": "Review and end sessions issued by the identity service.",
+    "coverage": "Staff and customer sign-in are still being migrated; their existing app sessions are not listed here.",
+    "realm": "Account type",
+    "realms": {
+      "all": "All accounts",
+      "staff": "Staff",
+      "customer": "Customers",
+      "it": "IT"
+    },
+    "accountId": "Account ID",
+    "filter": "Filter",
+    "clear": "Clear",
+    "account": "Account",
+    "created": "Signed in",
+    "expires": "Expires",
+    "status": "Status",
+    "sessionId": "Session ID",
+    "actions": "Actions",
+    "active": "Active",
+    "revoked": "Ended",
+    "expired": "Expired",
+    "revoke": "End session",
+    "current": "This session",
+    "confirmTitle": "End this session?",
+    "confirmBody": "This signs the account out of this session. They can sign in again.",
+    "cancel": "Keep session",
+    "ended": "Session ended.",
+    "failed": "Could not end the session. Try again.",
+    "empty": "No sessions match these filters.",
+    "first": "First page",
+    "next": "Next page"
   },
   "login": {
     "title": "IT dashboard",

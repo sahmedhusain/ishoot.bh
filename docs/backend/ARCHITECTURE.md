@@ -31,7 +31,7 @@ Browser ─▶ apps/web · apps/admin · apps/it   (Next.js: UI, cookies, server
 | ----- | ------------------------------------------------------------------------------------- | ------------ |
 | 1     | Shared kit, catalogue, gateway, local stack, CI, Helm, docs                           | **Done**; chart validation below |
 | 2     | `files` on S3-compatible storage; Supabase removed                                    | Verification |
-| 3     | `identity` (staff, customer and IT realms)                                            | In progress; IT auth/recovery/management and account/access snapshot restore verified below |
+| 3     | `identity` (staff, customer and IT realms)                                            | In progress; IT auth/recovery/management, session controls and account/access snapshot restore verified below |
 | 4     | `system`, `audit`, `notify` and the IT dashboard (`apps/it`)                          | In progress  |
 | 5     | `itsm` and IT support in the admin app                                                | In progress  |
 | 6     | Domain waves: cms → sales → finance → workflow → hr → inventory → commerce → delivery | Planned      |
@@ -152,6 +152,23 @@ the WhatsApp sandbox. Both language layout sweeps cover all 156 routes and local
 Their fixtures use typed inputs and explicit customer/deal/invoice records rather than stale cached links. A fresh
 combined browser run remains pending; the earlier combined run had 189 passes, 12 failures and one blocked test.
 These checks preserve the existing UI and business behavior; the remaining business backend is still TypeScript.
+
+### IT session controls (2026-11-02)
+
+The IT dashboard lists identity-issued sessions with realm/account filters and cursor paging, and permits audited
+revocation according to `sessions:read/delete`. Identity rechecks the live operator's account, roles, MFA and session
+inside the transaction. Revocation ends both access and refresh credentials, is idempotent, and rolls back if its
+audit event cannot be written. Serialized desk changes prevent opposing revocations from deadlocking. Revoking the
+operator's own session also clears all three browser credential cookies. These tables were already identity-owned;
+legacy staff/customer app sessions remain outside this page until their authentication cutover.
+
+Evidence: Go vet, lint, security analysis and the full race suite pass. Real-Postgres/OpenAPI tests cover paging,
+orphan sessions, credential exclusion, realm/permission refusals, stale actors, audit rollback, refresh rejection
+and concurrent revocation. Frontend unit/static checks pass 332 tests; workspace types, lint and action schemas
+pass. Both production IT browser journeys pass without retries (46.3 seconds including startup), covering Arabic
+phone/English desktop filters, read-only access, cancel, injected failure/retry, live gateway invalidation, audit
+delivery and own-session cookie removal. The broad admin regression suite remains under investigation separately.
+Phase 3 remains in progress; staff/customer cutover and later migration waves are unfinished.
 
 ## Request path
 

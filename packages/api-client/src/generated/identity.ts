@@ -4,6 +4,48 @@
  */
 
 export interface paths {
+    "/v1/identity/desk/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List identity-issued sessions (sessions:read; live MFA-enrolled IT session required)
+         * @description Lists session families, including revoked and expired sessions awaiting cleanup. Legacy app sessions are not included. Never returns access or refresh credentials.
+         */
+        get: operations["listIdentitySessionsForIT"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/desk/sessions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Revoke an identity session family (sessions:delete)
+         * @description Invalidates access and refresh credentials for this family. Already revoked sessions are unchanged; missing sessions return 404. Revoking the current session signs the operator out.
+         */
+        delete: operations["revokeIdentitySessionForIT"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/identity/desk/it-accounts": {
         parameters: {
             query?: never;
@@ -198,6 +240,21 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        DeskSession: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            realm: "staff" | "customer" | "it";
+            subjectId: string;
+            /** Format: email */
+            email: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: date-time */
+            revokedAt: string | null;
+        };
         /** @enum {string} */
         ITRole: "it_admin" | "it_engineer" | "it_support" | "it_auditor";
         ITAccount: {
@@ -294,6 +351,56 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    listIdentitySessionsForIT: {
+        parameters: {
+            query?: {
+                realm?: "staff" | "customer" | "it";
+                subjectId?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sessions ordered by ID; pass nextCursor back as cursor */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["DeskSession"][];
+                        nextCursor: string;
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    revokeIdentitySessionForIT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Session revoked or already revoked */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
     listITAccounts: {
         parameters: {
             query?: {

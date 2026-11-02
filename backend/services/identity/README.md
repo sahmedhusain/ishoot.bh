@@ -48,6 +48,24 @@ account in `identity.user.created` / `identity.user.changed`. An audit failure r
 session revocation. IT accounts already belong to identity, so this page needs no legacy table handoff. Staff and
 customer account migration remains separate work.
 
+## Session administration
+
+The IT dashboard's `/sessions` page lists identity-issued session families, with realm/account filters and cursor
+paging. It shows IDs, account email when available, sign-in/expiry times and active/revoked/expired state; credentials
+and factor data never leave the service. Staff and customer legacy app sessions remain outside this page until
+their authentication cutover. Identity already owns these session tables, so this page moves no legacy data.
+
+| Endpoint | Permission | Result |
+| --- | --- | --- |
+| `GET /v1/identity/desk/sessions` | `sessions:read` | Lists session families ordered by ID, including revoked/expired records awaiting cleanup |
+| `DELETE /v1/identity/desk/sessions/{id}` | `sessions:delete` | Revokes the family and records the acting IT account in `identity.session.revoked` |
+
+Both endpoints require a live, active, MFA-enrolled IT account with unchanged roles and an unexpired, unrevoked
+session. Engineers/auditors can read; IT administrators/support can revoke, as defined by the catalogue. Revocation
+invalidates both access and refresh credentials. Repeating it writes no extra event; missing IDs return 404. Audit
+failure rolls back revocation. Desk revocations serialize with account administration so two operators revoking
+one another cannot deadlock or act with already revoked access. Revoking the current session signs its operator out.
+
 ## Events
 
 The preview [snapshot importer](../../../docs/backend/IDENTITY-MIGRATION.md) also preserves staff roles, grants,

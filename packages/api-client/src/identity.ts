@@ -11,9 +11,29 @@ export type ITProvisioning = components["schemas"]["ITProvisioning"];
 export type ITAccountPage = NonNullable<
   paths["/v1/identity/desk/it-accounts"]["get"]["responses"][200]["content"]["application/json"]
 >;
+export type IdentitySessionPage = NonNullable<
+  paths["/v1/identity/desk/sessions"]["get"]["responses"][200]["content"]["application/json"]
+>;
 
 let client: ReturnType<typeof serviceClient<paths>> | undefined;
 const identity = () => (client ??= serviceClient<paths>());
+
+export const listIdentitySessionsForIT = (
+  token: string,
+  query: { realm?: Realm; subjectId?: string; cursor?: string } = {},
+) =>
+  unwrap(
+    userClient<paths>(token).GET("/v1/identity/desk/sessions", {
+      params: { query },
+    }),
+  );
+
+export const revokeIdentitySessionForIT = (token: string, id: string) =>
+  unwrapEmpty(
+    userClient<paths>(token).DELETE("/v1/identity/desk/sessions/{id}", {
+      params: { path: { id } },
+    }),
+  );
 
 /**
  * Checks a password and, when the account has one, an authenticator or recovery code. Fails with the problem code

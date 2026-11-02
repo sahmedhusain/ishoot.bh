@@ -5,7 +5,7 @@ import {
   normalizeTheme,
   themeStylesheet,
 } from "@platform/database/constants/theme";
-import { ConfirmationProvider } from "@platform/ui";
+import { ConfirmationProvider, CurrencyLocaleProvider } from "@platform/ui";
 // The IT dashboard shares the admin's design system so both dashboards look and behave the same.
 import "../../admin/app/globals.css";
 import "../../admin/app/admin-design.css";
@@ -47,8 +47,10 @@ export default async function RootLayout({
       </head>
       <body className="min-h-screen bg-surface text-ink antialiased font-sans">
         <CopyProvider copy={copyFor(locale)} locale={locale}>
-          <ConfirmationProvider>{children}</ConfirmationProvider>
-          <Toaster richColors closeButton position="top-right" />
+          <CurrencyLocaleProvider value={locale}>
+            <ConfirmationProvider>{children}</ConfirmationProvider>
+            <Toaster richColors closeButton position="top-right" />
+          </CurrencyLocaleProvider>
         </CopyProvider>
       </body>
     </html>
