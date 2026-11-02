@@ -37,9 +37,6 @@ const nextConfig = {
   env: { SERVICE_CALLER: 'web' },
   experimental: {
     optimizePackageImports: ['lucide-react', '@platform/ui'],
-    // The development-only Segment Explorer wraps pages in a node the server and the browser disagree on, which
-    // logs hydration mismatches; production is unaffected.
-    devtoolSegmentExplorer: false,
   },
   images: {
     remotePatterns: [

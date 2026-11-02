@@ -108,7 +108,8 @@ export function UserAvatar({
           "flex h-full w-full items-center justify-center overflow-hidden font-semibold text-white",
           rounded === "full" ? "rounded-full" : "rounded-xl",
         )}
-        style={showImage ? undefined : { background: `hsl(${hue} 52% 42%)`, fontSize: Math.max(10, size * 0.38) }}
+        // 30% lightness keeps white initials at 4.5:1 or more for every hue (yellow is the closest, about 4.9:1).
+        style={showImage ? undefined : { background: `hsl(${hue} 52% 30%)`, fontSize: Math.max(10, size * 0.38) }}
         aria-hidden
       >
         {showImage ? (
@@ -125,7 +126,9 @@ export function UserAvatar({
             className="h-full w-full object-cover"
           />
         ) : (
-          <span dir="auto">{initialsOf(name)}</span>
+          // Generated content, not text: the initials are decoration (the name is read out below), so a labelled
+          // button holding the avatar keeps its own accessible name.
+          <span dir="auto" data-initials={initialsOf(name)} className="before:content-[attr(data-initials)]" />
         )}
       </span>
       <span className="sr-only">{name}</span>

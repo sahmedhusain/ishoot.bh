@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { LANGUAGES } from "@platform/locales/registry";
 const locales = LANGUAGES.map((language) => language.code);
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (

@@ -154,13 +154,16 @@ export function NotificationCenter() {
     if (menu.open) void refresh();
   }, [menu.open, refresh]);
 
-  const run = async (key: string, action: () => Promise<unknown>) => {
+  /** Runs a change. A confirmed change rethrows its failure, so the confirmation stays open and shows it. */
+  const run = async (key: string, action: () => Promise<unknown>, { confirmed = false } = {}) => {
     setBusy(key);
     try {
-      await action();
+      const result = await action();
+      if (result && typeof result === "object" && "success" in result && result.success === false) throw Error();
       window.dispatchEvent(new Event("platform:notifications-changed"));
     } catch (err) {
       toast.error(errorMessage(err, t, p.failed));
+      if (confirmed) throw err;
     } finally {
       setBusy(null);
     }
@@ -321,7 +324,7 @@ export function NotificationCenter() {
                   confirmAction({
                     description: formatMessage(p.markAllReadConfirm, { count: unreadCount }),
                     variant: "warning",
-                    onConfirm: () => run("all", () => markAllNotificationsReadAction()),
+                    onConfirm: () => run("all", () => markAllNotificationsReadAction(), { confirmed: true }),
                   });
                 }}
                 title={t.notificationsCenter.markAllRead}
@@ -455,7 +458,7 @@ export function NotificationCenter() {
                               confirmAction({
                                 description: l.deleteConfirm,
                                 variant: "danger",
-                                onConfirm: () => run(item.id, () => updateNotificationAction(item.id, "delete")),
+                                onConfirm: () => run(item.id, () => updateNotificationAction(item.id, "delete"), { confirmed: true }),
                               })
                             }
                             className="flex items-center gap-1 text-[11px] text-ink-muted hover:text-rose-600 disabled:opacity-40"

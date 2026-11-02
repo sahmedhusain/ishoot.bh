@@ -39,7 +39,7 @@ function server(app: string, mode?: string) {
 
 test("IT compiles before listening; a failed build never starts a stale server", () => {
   const it = server("it");
-  expect(it.spawn.mock.calls[0][1]).toEqual(["build"]);
+  expect(it.spawn.mock.calls[0][1]).toEqual(["build", "--webpack"]);
   expect(it.spawn.mock.calls[0][2].env).toMatchObject({
     NODE_ENV: "production",
     NEXT_DIST_DIR: ".next-e2e",

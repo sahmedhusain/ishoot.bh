@@ -2,7 +2,6 @@
 import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import { Mail, Plus, Send, Users2 } from "lucide-react";
 import { Button, Card, Input, Select } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
@@ -19,7 +18,6 @@ export function AudienceView({ segments, broadcasts, campaigns, currency, langua
   const confirmAction = useConfirmation();
   const { t } = useAdminLocale();
   const copy = t.marketing.audience;
-  const router = useRouter();
   const [segment, setSegment] = React.useState<SegmentInput | null>(null);
   const [broadcast, setBroadcast] = React.useState<BroadcastInput | null>(null);
   const [busy, setBusy] = React.useState(false);
@@ -30,7 +28,6 @@ export function AudienceView({ segments, broadcasts, campaigns, currency, langua
     try {
       const result = await task();
       setMessage({ tone: "ok", text: typeof done === "string" ? done : done(result) });
-      router.refresh();
       return true;
     } catch (err) {
       setMessage({ tone: "error", text: errorMessage(err, t) });

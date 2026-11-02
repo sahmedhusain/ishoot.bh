@@ -14,8 +14,8 @@ import { setModule } from "../../modules";
 const db = testDatabase();
 const web = `http://localhost:${ports.web}`;
 const admin = `http://localhost:${ports.admin}`;
-const UTM = "e2e-eid";
-const BUYER = "e2e-marketing-buyer@example.test";
+const UTM = `e2e-eid-${crypto.randomUUID()}`;
+const BUYER = `e2e-marketing-${crypto.randomUUID()}@example.test`;
 let productId = "";
 
 test.describe.configure({ mode: "serial" });

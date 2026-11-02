@@ -10,7 +10,6 @@ import {
 } from "@platform/ui";
 import { presenceSilences, presenceTone } from "@platform/contracts";
 import type { MyStatus, NotificationPreferences, Presence } from "@platform/api-client";
-import { getMyStatusAction } from "../../app/actions/presence";
 
 type MutedRecord = { entityType: string; entityId: string; until: string | null; createdAt: string };
 type Settings = {
@@ -105,7 +104,8 @@ function PresenceProvider({ selfId, children }: { selfId: string; children: Reac
   );
   const refreshMine = React.useCallback(async () => {
     try {
-      setMine(await getMyStatusAction());
+      const response = await fetch("/api/presence/me", { cache: "no-store" });
+      if (response.ok) setMine((await response.json()) as MyStatus);
     } catch {
       // Shown as automatic until the next refresh.
     }

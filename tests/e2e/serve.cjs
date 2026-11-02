@@ -76,7 +76,7 @@ const launch = (args) =>
     env,
     stdio: "inherit",
   });
-let child = launch(build ? ["build"] : args);
+let child = launch(build ? ["build", "--webpack"] : args);
 // Next writes them while it boots; Playwright may kill the server without an exit event, so restore early too.
 const early = setInterval(restore, 5000);
 early.unref();

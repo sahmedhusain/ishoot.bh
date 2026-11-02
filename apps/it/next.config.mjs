@@ -57,7 +57,6 @@ const nextConfig = {
     optimizePackageImports: ["lucide-react", "@platform/ui"],
     // forbidden(): pages an IT role may not open render app/forbidden.tsx with HTTP 403.
     authInterrupts: true,
-    devtoolSegmentExplorer: false,
   },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

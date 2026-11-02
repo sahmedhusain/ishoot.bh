@@ -9231,10 +9231,6 @@
     "kind": "object",
     "fields": {}
   },
-  "getMyStatusAction": {
-    "kind": "object",
-    "fields": {}
-  },
   "setMyStatusAction": {
     "kind": "object",
     "fields": {

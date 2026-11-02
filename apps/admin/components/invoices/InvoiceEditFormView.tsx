@@ -9,6 +9,7 @@ import { getCurrencyLabel } from "@platform/config/currency";
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type {
   Invoice,
   CRMContact,
@@ -61,6 +62,7 @@ export function InvoiceEditFormView({
   company,
   services = [],
 }: InvoiceEditFormViewProps) {
+  const router = useRouter();
   const { isArabic, t, locale } = useAdminLocale();
   const bhd = getCurrencyLabel(useCompanyCurrency(), locale === "ar");
 
@@ -283,8 +285,7 @@ export function InvoiceEditFormView({
 
       if (!markSaved()) return;
 
-      // shortcut: document navigation avoids save-transition stalls on pinned Next, revisit after upgrading Next.
-      window.location.assign(ROUTES.invoices.detail(invoice.id));
+      router.push(ROUTES.invoices.detail(invoice.id));
     } catch (err) {
       setActionError(errorMessage(err, t));
       throw err;
@@ -299,7 +300,7 @@ export function InvoiceEditFormView({
     try {
       await voidInvoiceAction(invoice.id);
       if (!markSaved()) return;
-      window.location.assign(ROUTES.invoices.detail(invoice.id));
+      router.push(ROUTES.invoices.detail(invoice.id));
     } catch (err) {
       setActionError(errorMessage(err, t));
       throw err;

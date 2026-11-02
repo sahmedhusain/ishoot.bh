@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack -p 3001",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start -p 3001",
     "lint": "eslint .",
     "type-check": "tsc --noEmit"
@@ -33,7 +33,7 @@
     "jose": "^6.2.12",
     "libphonenumber-js": "^1.13.14",
     "lucide-react": "^0.475.0",
-    "next": "15.5.28",
+    "next": "16.4.4",
     "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -47,13 +47,13 @@ export async function POST(req: NextRequest) {
           { error: serverMessages.runtimeInvalidInvalidationRequest },
           { status: 400 },
         );
-      revalidateTag("website");
-      revalidateTag("company");
+      revalidateTag("website", { expire: 0 });
+      revalidateTag("company", { expire: 0 });
 
       if (Array.isArray(tags)) {
         for (const tag of tags) {
           if (typeof tag === "string") {
-            revalidateTag(tag);
+            revalidateTag(tag, { expire: 0 });
           }
         }
       }

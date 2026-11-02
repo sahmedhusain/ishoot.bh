@@ -10,7 +10,7 @@ import { config as settings } from "./lib/config";
 
 // Keeps the IT session alive: an access token about to expire is renewed with the refresh credential before the
 // page renders, and a session that cannot be renewed goes back to the sign-in page.
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const access = request.cookies.get(settings.accessCookie())?.value;
   if (!needsRenewal(access)) return NextResponse.next();
 
@@ -38,7 +38,6 @@ function withCookies(response: NextResponse, cookies: CookieSpec[]) {
 }
 
 export const config = {
-  runtime: "nodejs",
   // Everything except the sign-in page and static files.
   matcher: ["/((?!login|_next/static|_next/image|favicon.ico).*)"],
 };
