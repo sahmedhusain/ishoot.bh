@@ -20,7 +20,7 @@ test("dashboard reset uses the shared action confirmation and cancel preserves t
     update: { widgets: [{ id: "quick_actions", size: "m" }] },
   });
   await page.goto("/dashboard");
-  await page.getByTestId("dashboard-customize").click();
+  await page.getByRole("main").getByTestId("dashboard-customize").click();
   const reset = page.getByRole("button", {
     name: t.dashboardBoard.reset,
     exact: true,

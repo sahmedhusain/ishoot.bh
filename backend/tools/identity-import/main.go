@@ -1,4 +1,4 @@
-// Command identity-import copies legacy authentication records into identity during a quiesced cutover.
+// Command identity-import copies legacy authentication and access records into identity during a quiesced cutover.
 // It defaults to validation-only; -apply writes to identity tables without deleting legacy records.
 package main
 
@@ -16,6 +16,7 @@ import (
 
 	"platform.local/backend/pkg/config"
 	"platform.local/backend/pkg/db"
+	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/pkg/password"
 	"platform.local/backend/pkg/secrets"
 )
@@ -29,10 +30,14 @@ type settings struct {
 }
 type options struct {
 	Apply         bool
+	Actor         string
 	Keyring       *secrets.Keyring
 	MaxBcryptCost int
 }
-type summary struct{ Staff, Customers, RecoveryCodes, AccountsInserted, RecoveryInserted int64 }
+type summary struct {
+	Staff, Customers, RecoveryCodes, Roles, Permissions, Scopes                                            int64
+	AccountsInserted, RecoveryInserted, RolesInserted, PermissionsInserted, ScopesInserted, AccessInserted int64
+}
 
 // sourceAccounts never reads profile or business records into application memory.
 const sourceAccounts = `WITH source_accounts AS (
@@ -49,7 +54,8 @@ const sourceAccounts = `WITH source_accounts AS (
 ) `
 
 func main() {
-	apply := flag.Bool("apply", false, "copy accounts after validation (default: validation only)")
+	apply := flag.Bool("apply", false, "copy accounts and access after validation (default: validation only)")
+	actor := flag.String("actor", "", "operator ID recorded in audit; required with -apply")
 	flag.Parse()
 	var cfg settings
 	if err := config.Load(&cfg); err != nil {
@@ -74,10 +80,10 @@ func main() {
 	pool, err := db.Open(ctx, cfg.Database, logger)
 	if err == nil {
 		var report summary
-		report, err = run(ctx, pool, options{Apply: *apply, Keyring: ring, MaxBcryptCost: cfg.Password.MaxBcryptCost})
+		report, err = run(ctx, pool, options{Apply: *apply, Actor: *actor, Keyring: ring, MaxBcryptCost: cfg.Password.MaxBcryptCost})
 		pool.Close()
 		if err == nil {
-			logger.Info("identity import complete", "apply", *apply, "staff", report.Staff, "customers", report.Customers, "recovery_codes", report.RecoveryCodes, "accounts_inserted", report.AccountsInserted, "recovery_inserted", report.RecoveryInserted)
+			logger.Info("identity import complete", "apply", *apply, "staff", report.Staff, "customers", report.Customers, "recovery_codes", report.RecoveryCodes, "roles", report.Roles, "permissions", report.Permissions, "scopes", report.Scopes, "accounts_inserted", report.AccountsInserted, "recovery_inserted", report.RecoveryInserted, "roles_inserted", report.RolesInserted, "permissions_inserted", report.PermissionsInserted, "scopes_inserted", report.ScopesInserted, "access_inserted", report.AccessInserted)
 		}
 	}
 	if err != nil {
@@ -88,12 +94,16 @@ func main() {
 
 func run(ctx context.Context, pool *pgxpool.Pool, opts options) (summary, error) {
 	var report summary
+	if opts.Apply && (opts.Actor == "" || len(opts.Actor) > 191 || strings.IndexFunc(opts.Actor, func(r rune) bool { return r < 33 || r > 126 }) >= 0) {
+		return report, fmt.Errorf("apply requires an ASCII operator ID of 1–191 characters without spaces")
+	}
 	if opts.MaxBcryptCost == 0 {
 		opts.MaxBcryptCost = 16
 	}
 	err := db.WithTx(ctx, pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		// A consistent snapshot is essential. Operators must keep app writes paused through the final cutover.
-		if _, err := tx.Exec(ctx, `LOCK TABLE public."User", public."Customer", public."MfaRecoveryCode" IN SHARE MODE`); err != nil {
+		if _, err := tx.Exec(ctx, `LOCK TABLE public."User", public."Customer", public."MfaRecoveryCode", public."Role", public."Permission", public."RoleDataScope" IN SHARE MODE;
+LOCK TABLE identity.account, identity.mfa_recovery_code, identity.staff_role, identity.staff_permission, identity.staff_role_scope, identity.staff_access IN SHARE ROW EXCLUSIVE MODE`); err != nil {
 			return fmt.Errorf("lock legacy tables: %w", err)
 		}
 		if err := tx.QueryRow(ctx, `SELECT (SELECT count(*) FROM public."User"),(SELECT count(*) FROM public."Customer"),(SELECT count(*) FROM public."MfaRecoveryCode")`).Scan(&report.Staff, &report.Customers, &report.RecoveryCodes); err != nil {
@@ -112,7 +122,7 @@ func run(ctx context.Context, pool *pgxpool.Pool, opts options) (summary, error)
 		if bad > 0 {
 			return fmt.Errorf("%d invalid legacy account(s); reconcile before import", bad)
 		}
-		if err := tx.QueryRow(ctx, `SELECT count(*) FROM public."MfaRecoveryCode" r JOIN public."User" u ON u.id=r."userId" WHERE r."codeHash" !~ '^[a-f0-9]{64}$' OR NOT u."mfaEnabled"`).Scan(&bad); err != nil {
+		if err := tx.QueryRow(ctx, `SELECT count(*) FROM public."MfaRecoveryCode" r LEFT JOIN public."User" u ON u.id=r."userId" WHERE u.id IS NULL OR r."codeHash" !~ '^[a-f0-9]{64}$' OR NOT u."mfaEnabled"`).Scan(&bad); err != nil {
 			return err
 		}
 		if bad > 0 {
@@ -127,7 +137,8 @@ func run(ctx context.Context, pool *pgxpool.Pool, opts options) (summary, error)
 		if err := tx.QueryRow(ctx, sourceAccounts+`SELECT count(*) FROM source_accounts s JOIN identity.account a ON a.realm=s.realm AND (a.subject_id=s.subject_id OR a.email=s.email)
    WHERE a.subject_id<>s.subject_id OR a.email<>s.email OR a.password_hash IS DISTINCT FROM s.password_hash OR a.roles IS DISTINCT FROM s.roles
    OR a.active IS DISTINCT FROM s.active OR a.mfa_enabled IS DISTINCT FROM s.mfa_enabled OR a.mfa_secret_encrypted IS DISTINCT FROM s.mfa_secret_encrypted
-   OR a.mfa_last_step IS DISTINCT FROM s.mfa_last_step`).Scan(&bad); err != nil {
+		   OR a.mfa_last_step IS DISTINCT FROM s.mfa_last_step OR a.last_login_at IS DISTINCT FROM s.last_login_at
+   OR a.created_at IS DISTINCT FROM s.created_at OR a.updated_at IS DISTINCT FROM s.updated_at`).Scan(&bad); err != nil {
 			return err
 		}
 		if bad > 0 {
@@ -157,6 +168,9 @@ func run(ctx context.Context, pool *pgxpool.Pool, opts options) (summary, error)
 		if bad > 0 {
 			return fmt.Errorf("%d target recovery-code conflict(s); no recovery state was overwritten", bad)
 		}
+		if err := validateStaffAccess(ctx, tx, &report); err != nil {
+			return err
+		}
 		if !opts.Apply {
 			return nil
 		}
@@ -173,7 +187,18 @@ func run(ctx context.Context, pool *pgxpool.Pool, opts options) (summary, error)
 			return fmt.Errorf("copy recovery codes: %w", err)
 		}
 		report.RecoveryInserted = tag.RowsAffected()
-		return nil
+		if err := copyStaffAccess(ctx, tx, &report); err != nil {
+			return err
+		}
+		if report.AccountsInserted+report.RecoveryInserted+report.RolesInserted+report.PermissionsInserted+report.ScopesInserted+report.AccessInserted == 0 {
+			return nil
+		}
+		return outbox.Enqueue(ctx, tx, "identity", outbox.Event{Subject: "identity.snapshot.imported", Payload: map[string]any{
+			"changedBy":        "operator:" + opts.Actor,
+			"accountsInserted": report.AccountsInserted, "recoveryInserted": report.RecoveryInserted,
+			"rolesInserted": report.RolesInserted, "permissionsInserted": report.PermissionsInserted,
+			"scopesInserted": report.ScopesInserted, "accessInserted": report.AccessInserted,
+		}})
 	})
 	return report, err
 }

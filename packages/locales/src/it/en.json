@@ -750,6 +750,7 @@
       "notify.message.failed": "Message failed",
       "notify.message.retried": "Message sent again",
       "identity.user.created": "IT account created",
+      "identity.snapshot.imported": "Identity snapshot imported",
       "identity.user.recovered": "IT administrator recovered",
       "identity.session.started": "Session started",
       "identity.session.rotated": "Session refreshed",

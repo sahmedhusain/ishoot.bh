@@ -43,9 +43,7 @@ test.afterAll(async () => {
   await db.$disconnect();
 });
 
-test("a payment gateway is chosen in store settings", async ({
-  page,
-}) => {
+test("a payment gateway is chosen in store settings", async ({ page }) => {
   const errors = watchErrors(page);
   await updateIntegrationStatus("stripe", { healthStatus: "healthy" });
 
@@ -103,9 +101,9 @@ test("a phone order is paid from a payment link and refunded through the gateway
     .toBe("paid");
 
   await page.goto(`/dashboard/orders/${id}`);
-  await expect(page.getByTestId("order-attempts")).toContainText(
-    copy.detail.attemptStatuses.paid,
-  );
+  await expect(
+    page.getByRole("main").getByTestId("order-attempts"),
+  ).toContainText(copy.detail.attemptStatuses.paid);
   await expect(page.getByTestId("order-payment-link")).toHaveCount(0);
   await page.locator('input[name="refundAmount"]').fill("1");
   await page.getByTestId("order-refund").click();

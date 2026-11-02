@@ -165,6 +165,9 @@ jobs:
           NEXT_DIST_DIR: .next-e2e
           NEXT_PUBLIC_WEB_URL: http://localhost:3013
           NEXT_PUBLIC_ADMIN_URL: http://localhost:3012
+          WEB_URL: http://localhost:3013
+          ADMIN_URL: http://localhost:3012
+          ADMIN_PREVIEW_ORIGINS: http://localhost:3014
         run: pnpm --filter @platform/admin build && pnpm --filter @platform/web build && pnpm --filter @platform/it build
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { serverMessages } from "@platform/locales";
 import { db } from "../db";
+import { publicError } from "../errors";
 import {
   MAX_VARIANTS,
   SKU_PATTERN,
@@ -311,7 +312,7 @@ export async function saveProduct(input: ProductInput, userId: string | null) {
     new Set(skus).size !== skus.length ||
     new Set(barcodes).size !== barcodes.length
   )
-    throw new Error(serverMessages.productCodeTaken);
+    throw publicError("productCodeTaken");
   const ownVariantIds = input.id
     ? (
         await db.productVariant.findMany({
@@ -352,7 +353,7 @@ export async function saveProduct(input: ProductInput, userId: string | null) {
       select: { id: true },
     }),
   ]);
-  if (clash.some(Boolean)) throw new Error(serverMessages.productCodeTaken);
+  if (clash.some(Boolean)) throw publicError("productCodeTaken");
   if (
     input.categoryId &&
     !(await db.productCategory.findUnique({

@@ -51,13 +51,14 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
     try {
       await task();
       setMessage({ tone: "ok", text: copy.saved });
-      router.refresh();
       return true;
     } catch (err) {
       setMessage({ tone: "error", text: errorMessage(err, t) });
+      // A failed carrier call may still have recorded an uncertain booking.
+      router.refresh();
       return false;
     } finally {
-      pending.current = false; setBusy(false); router.refresh();
+      pending.current = false; setBusy(false);
     }
   };
   const handoverToAgency = (retry = false) => {

@@ -160,21 +160,20 @@ for (const locale of ["en", "ar"] as const)
       await expect(items.last()).toBeFocused();
       await page.keyboard.press("ControlOrMeta+k");
       await expect(palette).toBeVisible();
+      await expect(search).toBeFocused();
+      await search.fill("q");
+      await expect(palette).toContainText(t.quickJump.helper);
       await page.keyboard.press("Escape");
       await expect(palette).toHaveCount(0);
       await expect(drawer).toBeVisible();
       await page.keyboard.press("Escape");
       await expect(drawer).toHaveCount(0);
       await expect(menu).toBeFocused();
-      expect(await page.evaluate(() => document.body.style.overflow)).toBe(
-        overflow,
-      );
+      await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe(overflow);
       await menu.click();
       await page.setViewportSize({ width: 1440, height: 900 });
       await expect(drawer).toHaveCount(0);
-      expect(await page.evaluate(() => document.body.style.overflow)).toBe(
-        overflow,
-      );
+      await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe(overflow);
 
       await page.setViewportSize({
         width: locale === "ar" ? 390 : 1440,
@@ -303,9 +302,11 @@ for (const locale of ["en", "ar"] as const) {
         : route.continue(),
     );
     await input.fill(`failure-${randomUUID()}`);
-    await expect(page.getByRole("alert")).toHaveText(
-      locale === "ar" ? t.quickJump.searchFailed : "Test search failure",
-    );
+    const failure =
+      locale === "ar" ? t.quickJump.searchFailed : "Test search failure";
+    await expect(
+      page.getByRole("alert").filter({ hasText: failure }),
+    ).toHaveText(failure);
     await expect(palette.getByRole("option")).toHaveCount(0);
   });
 

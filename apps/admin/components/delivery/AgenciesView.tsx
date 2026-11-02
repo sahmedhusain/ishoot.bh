@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import { Package, Plus, Receipt } from "lucide-react";
 import { Button, Card, Input, PhoneInput, Select, formatCurrencyValue, formatDate } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
@@ -21,7 +20,6 @@ type Invoice = Awaited<ReturnType<typeof listAgencyInvoices>>[number];
 export function AgenciesView({ agencies, unbilled, invoices, currency, canInvoice }: { agencies: CourierAgencyRecord[]; unbilled: Record<string, Unbilled>; invoices: Invoice[]; currency: string; canInvoice: boolean }) {
   const { t, locale } = useAdminLocale();
   const copy = t.delivery.agencies;
-  const router = useRouter();
   const [draft, setDraft] = React.useState<CourierAgencyInput | null>(null);
   const [billing, setBilling] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
@@ -33,7 +31,6 @@ export function AgenciesView({ agencies, unbilled, invoices, currency, canInvoic
     try {
       await task();
       setMessage({ tone: "ok", text: copy.saved });
-      router.refresh();
       return true;
     } catch (err) {
       setMessage({ tone: "error", text: errorMessage(err, t) });

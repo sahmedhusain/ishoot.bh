@@ -314,7 +314,7 @@ test("the sheet is closed and the driver's cash is handed over, paying the order
   const expected = Number(totals._sum.codCollected);
   await card.locator('input[name="cashReceived"]').fill(String(expected - 1));
   await card.getByTestId("cash-settle").click();
-  await expect(page.getByTestId("cash-history").first()).toContainText(
+  await expect(page.getByRole("main").getByTestId("cash-history")).toContainText(
     copy.cash.difference,
   );
   const settlement = await db.codSettlement.findFirstOrThrow({

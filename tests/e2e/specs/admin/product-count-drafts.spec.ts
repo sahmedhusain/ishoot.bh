@@ -34,7 +34,14 @@ test.beforeEach(async () => {
     );
   warehouseId = (
     await db.warehouse.create({
-      data: { code: marker, nameEn: marker, nameAr: "مستودع الاختبار" },
+      data: {
+        code: marker,
+        nameEn: marker,
+        nameAr: "مستودع الاختبار",
+        branchId: (
+          await db.branch.findFirstOrThrow({ where: { isActive: true } })
+        ).id,
+      },
     })
   ).id;
   const location = await db.stockLocation.create({

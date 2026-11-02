@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Mail, MessageCircle, ShoppingBag } from "lucide-react";
 import { Button, Card, Select, Textarea, formatDate } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
@@ -24,7 +23,6 @@ interface Reply {
 export function ServiceReplyPanel({ requestId, customerLocale, hasEmail, hasPhone, order, replies, cannedReplies, canReply }: { requestId: string; customerLocale: string; hasEmail: boolean; hasPhone: boolean; order: { id: string; number: string } | null; replies: Reply[]; cannedReplies: CannedReplyRecord[]; canReply: boolean }) {
   const { t, locale } = useAdminLocale();
   const copy = t.serviceDesk.reply;
-  const router = useRouter();
   const [body, setBody] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   const [message, setMessage] = React.useState<{ tone: "ok" | "error"; text: string } | null>(null);
@@ -36,7 +34,6 @@ export function ServiceReplyPanel({ requestId, customerLocale, hasEmail, hasPhon
       if (result.whatsappLink) window.open(result.whatsappLink, "_blank", "noopener");
       setMessage({ tone: "ok", text: result.whatsappLink ? copy.openWhatsapp : copy.sent });
       setBody("");
-      router.refresh();
     } catch (err) {
       setMessage({ tone: "error", text: errorMessage(err, t) });
     } finally {

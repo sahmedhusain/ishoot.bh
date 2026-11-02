@@ -574,35 +574,37 @@ export function CustomFoldersWidget({
 
                 <div data-dialog-body className="p-6 space-y-4">
                   {activeFolder.items.length > 0 ? (
-                    <ul className="divide-y divide-outline-variant/50 max-h-56 overflow-y-auto">
-                      {activeFolder.items.map((item) => (
-                        <li
-                          key={item.id}
-                          className="py-2 flex items-center justify-between gap-2 text-xs"
-                        >
-                          <Link
-                            href={item.url}
-                            className="min-w-0 flex items-center gap-1.5 text-ink hover:text-accent truncate font-medium"
+                    <div className="max-h-56 overflow-y-auto">
+                      <ul className="divide-y divide-outline-variant/50">
+                        {activeFolder.items.map((item) => (
+                          <li
+                            key={item.id}
+                            className="py-2 flex items-center justify-between gap-2 text-xs"
                           >
-                            <ExternalLink
-                              className="w-3.5 h-3.5 text-accent shrink-0"
-                              aria-hidden="true"
-                            />
-                            <span className="truncate">
-                              <bdi dir="auto">{item.title}</bdi>
-                            </span>
-                          </Link>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveItem(item.id)}
-                            className="text-ink-muted hover:text-rose-500 p-1"
-                            aria-label={b.folderRemoveItem}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
+                            <Link
+                              href={item.url}
+                              className="min-w-0 flex items-center gap-1.5 text-ink hover:text-accent truncate font-medium"
+                            >
+                              <ExternalLink
+                                className="w-3.5 h-3.5 text-accent shrink-0"
+                                aria-hidden="true"
+                              />
+                              <span className="truncate">
+                                <bdi dir="auto">{item.title}</bdi>
+                              </span>
+                            </Link>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveItem(item.id)}
+                              className="text-ink-muted hover:text-rose-500 p-1"
+                              aria-label={b.folderRemoveItem}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   ) : (
                     <p className="text-xs text-ink-muted py-4 text-center">
                       {b.folderItemsEmpty}

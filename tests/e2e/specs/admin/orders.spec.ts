@@ -61,13 +61,14 @@ test("a counter sale paid in cash is handed over at once and takes the stock", a
     timeout: 60_000,
   });
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    copy.statuses.delivered,
+    copy.pickupStatuses.delivered,
   );
   const order = await db.salesOrder.findFirstOrThrow({
     where: { lines: { some: { productId } } },
     orderBy: { placedAt: "desc" },
   });
   expect(order.channel).toBe("pos");
+  expect(order.fulfilment).toBe("pickup");
   expect(order.paymentStatus).toBe("paid");
   expect(await stockOf(db, productId)).toEqual({ onHand: 8, reserved: 0 });
   const sale = await db.stockMovement.findFirstOrThrow({
@@ -77,7 +78,7 @@ test("a counter sale paid in cash is handed over at once and takes the stock", a
   errors.assertClean();
 });
 
-test("a phone order is paid later (which invoices it), packed and shipped, and partly refunded", async ({
+test("a phone order is paid later (which invoices it), packed and made ready for collection, and partly refunded", async ({
   page,
 }) => {
   const errors = watchErrors(page);
@@ -107,7 +108,7 @@ test("a phone order is paid later (which invoices it), packed and shipped, and p
   );
   await page.getByTestId("order-move-shipped").click();
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    copy.statuses.shipped,
+    copy.pickupStatuses.shipped,
   );
   expect(await stockOf(db, productId)).toEqual({ onHand: 7, reserved: 0 });
 
@@ -115,6 +116,7 @@ test("a phone order is paid later (which invoices it), packed and shipped, and p
   await expect(page.getByTestId("order-invoice")).toBeVisible();
   await page.locator('input[name="refundAmount"]').fill("1.5");
   await page.getByTestId("order-refund").click();
+  await expect(page.locator("[data-confirm-dialog]")).toHaveCount(0);
   await expect
     .poll(async () =>
       Number(
@@ -124,7 +126,7 @@ test("a phone order is paid later (which invoices it), packed and shipped, and p
     )
     .toBe(1.5);
   await expect(page.getByTestId("order-history")).toContainText(
-    copy.statuses.shipped,
+    copy.pickupStatuses.shipped,
   );
   errors.assertClean();
 });

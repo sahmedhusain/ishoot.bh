@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { t } from "../../locale";
 import { STYLE_PRESETS } from "../../../../packages/database/src/constants/theme";
+import { acceptConfirmations } from "../../helpers";
 
 for (const mode of ["light", "dark"] as const) {
   test.describe(`Material 3 / ${mode}`, () => {
@@ -76,6 +77,7 @@ for (const mode of ["light", "dark"] as const) {
 test("appearance segments support keyboard input, persistence and OS changes", async ({
   page,
 }) => {
+  await acceptConfirmations(page);
   await page.goto("/dashboard/settings/preferences");
   const light = page.getByRole("radio", {
     name: t.preferences.lightTitle,
@@ -89,12 +91,14 @@ test("appearance segments support keyboard input, persistence and OS changes", a
   await light.focus();
   await page.keyboard.press("ArrowDown");
   await expect(dark).toBeChecked();
+  await page.getByTestId("appearance-save").first().click();
   await expect(page.locator("html")).toHaveClass("dark");
   await page.reload();
   await expect(dark).toBeChecked();
   await page
     .getByRole("radio", { name: t.preferences.systemTitle, exact: true })
     .check();
+  await page.getByTestId("appearance-save").first().click();
   await page.emulateMedia({ colorScheme: "light" });
   await expect(page.locator("html")).toHaveClass("light");
   await page.emulateMedia({ colorScheme: "dark" });

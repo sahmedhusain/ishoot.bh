@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import { Coins } from "lucide-react";
 import { Button, Card, Input, formatCurrencyValue, formatDate } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
@@ -18,7 +17,6 @@ type Settlement = Awaited<ReturnType<typeof listCodSettlements>>[number];
 export function CashSettlementView({ pending, history, currency, canSettle }: { pending: CashToSettle[]; history: Settlement[]; currency: string; canSettle: boolean }) {
   const { t, locale } = useAdminLocale();
   const copy = t.delivery.cash;
-  const router = useRouter();
   const money = (value: number) => formatCurrencyValue(value, currency, locale === "ar");
   const [message, setMessage] = React.useState<{ tone: "ok" | "error"; text: string } | null>(null);
 
@@ -31,7 +29,7 @@ export function CashSettlementView({ pending, history, currency, canSettle }: { 
         {pending.length === 0 ? (
           <Card className="p-6 text-center text-sm text-ink-muted">{copy.nothing}</Card>
         ) : (
-          pending.map((p) => <DriverCash key={p.source} entry={p} money={money} currency={currency} canSettle={canSettle} onDone={(text) => { setMessage({ tone: "ok", text }); router.refresh(); }} onError={(text) => setMessage({ tone: "error", text })} />)
+          pending.map((p) => <DriverCash key={p.source} entry={p} money={money} currency={currency} canSettle={canSettle} onDone={(text) => setMessage({ tone: "ok", text })} onError={(text) => setMessage({ tone: "error", text })} />)
         )}
       </section>
       <Card className="p-5 space-y-3" data-page-section>

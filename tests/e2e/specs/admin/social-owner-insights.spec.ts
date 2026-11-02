@@ -101,7 +101,7 @@ for (const locale of ["en", "ar"] as const)
         { locale, theme },
       );
       await page.goto("/dashboard/analytics?platform=youtube");
-      const panel = page.getByTestId("social-owner-youtube");
+      const panel = page.getByRole("main").getByTestId("social-owner-youtube");
       await expect(panel).toContainText(copy.owner.scope);
       await expect(
         panel.getByTestId("owner-metric-likes").locator("dd"),
@@ -176,7 +176,7 @@ for (const locale of ["en", "ar"] as const) {
         },
       });
       await page.goto("/dashboard/analytics?platform=youtube");
-      const panel = page.getByTestId("social-owner-youtube");
+      const panel = page.getByRole("main").getByTestId("social-owner-youtube");
       await expect(panel.getByRole("status")).toHaveText(
         copy.owner.statuses[status],
       );
@@ -189,6 +189,6 @@ for (const locale of ["en", "ar"] as const) {
     }
     await setIntegration("youtube", false);
     await page.reload();
-    await expect(page.getByTestId("social-owner-youtube")).toHaveCount(0);
+    await expect(page.getByRole("main").getByTestId("social-owner-youtube")).toHaveCount(0);
   });
 }

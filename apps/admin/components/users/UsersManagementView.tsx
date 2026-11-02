@@ -207,7 +207,7 @@ export function UsersManagementView({
         </p>
       )}
       <PageHeader
-        actions={<div className="flex items-center gap-3">
+        actions={<div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center bg-surface p-1 rounded-xl border border-outline-variant text-xs font-semibold" role="tablist">
             <button
               onClick={() => setActiveTab("users")}

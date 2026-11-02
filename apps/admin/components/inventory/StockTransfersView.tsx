@@ -1,6 +1,5 @@
 "use client";
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import { Button, Card, Select } from "@platform/ui";
 import type { getTransferWorkspace } from "@platform/database/queries/transfer-workspace";
 import {
@@ -21,7 +20,6 @@ type Preview = Awaited<ReturnType<typeof previewStockHandoverAction>>;
 export function StockTransfersView({ data }: { data: Data }) {
   const { t, locale } = useAdminLocale();
   const c = t.stockTransfers;
-  const router = useRouter();
   const [busy, setBusy] = React.useState(false),
     [error, setError] = React.useState("");
   const [source, setSource] = React.useState(""),
@@ -47,7 +45,6 @@ export function StockTransfersView({ data }: { data: Data }) {
     setError("");
     try {
       await action();
-      router.refresh();
     } catch (e) {
       setError(errorMessage(e, t));
     } finally {
@@ -240,16 +237,16 @@ export function StockTransfersView({ data }: { data: Data }) {
                 <summary className="cursor-pointer text-sm">
                   {c.manifest}
                 </summary>
-                <ul className="max-h-64 overflow-auto font-mono text-xs">
-                  {line.serials.map((s) => (
-                    <li key={s.code} className="py-1">
-                      <bdi>{s.code}</bdi> ·{" "}
-                      {c.serialStates[
-                        s.status as keyof typeof c.serialStates
-                      ] ?? s.status}
-                    </li>
-                  ))}
-                </ul>
+                <div className="max-h-64 overflow-auto">
+                  <ul className="font-mono text-xs">
+                    {line.serials.map((s) => (
+                      <li key={s.code} className="py-1">
+                        <bdi>{s.code}</bdi> ·{" "}
+                        {c.serialStates[s.status as keyof typeof c.serialStates] ?? s.status}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </details>
             </div>
           ))}
@@ -386,11 +383,13 @@ export function StockTransfersView({ data }: { data: Data }) {
                 {c.dispatched}: {line.dispatched} · {c.accepted}:{" "}
                 {line.received} · {c.outstanding}: {line.outstanding}
               </p>
-              <ul className="max-h-48 overflow-auto font-mono text-xs">
-                {line.serials.map((s) => (
-                  <li key={s.id}>{s.code}</li>
-                ))}
-              </ul>
+              <div className="max-h-48 overflow-auto">
+                <ul className="font-mono text-xs">
+                  {line.serials.map((s) => (
+                    <li key={s.id}>{s.code}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
           ))}
           <SignatureCanvas

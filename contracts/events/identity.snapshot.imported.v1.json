@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/identity.snapshot.imported.v1.json",
+  "title": "identity.snapshot.imported",
+  "description": "A quiesced legacy identity snapshot was copied. Counts and operator ID only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "changedBy",
+    "accountsInserted",
+    "recoveryInserted",
+    "rolesInserted",
+    "permissionsInserted",
+    "scopesInserted",
+    "accessInserted"
+  ],
+  "properties": {
+    "changedBy": { "type": "string", "minLength": 1 },
+    "accountsInserted": { "type": "integer", "minimum": 0 },
+    "recoveryInserted": { "type": "integer", "minimum": 0 },
+    "rolesInserted": { "type": "integer", "minimum": 0 },
+    "permissionsInserted": { "type": "integer", "minimum": 0 },
+    "scopesInserted": { "type": "integer", "minimum": 0 },
+    "accessInserted": { "type": "integer", "minimum": 0 }
+  }
+}

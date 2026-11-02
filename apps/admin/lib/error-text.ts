@@ -47,6 +47,13 @@ export function errorMessage(
         ? error
         : "";
   const errors = t.serverErrors;
+  const digest =
+    error instanceof Error && "digest" in error ? error.digest : undefined;
+  if (typeof digest === "string" && digest.startsWith("platform:")) {
+    const key = digest.slice("platform:".length);
+    if (Object.hasOwn(errors.messages, key))
+      return (errors.messages as Record<string, string>)[key];
+  }
   index ??= buildIndex();
   const exactKey = index.exact.get(message.trim());
   if (exactKey)

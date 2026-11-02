@@ -87,6 +87,10 @@ test("checkout prices delivery by zone, refuses areas not served, and books a de
   await expect(slots).toBeVisible();
   await slots.click();
   await page.getByRole("option").nth(2).click();
+  const choice = await page
+    .getByTestId("checkout-slots")
+    .locator("select")
+    .inputValue();
   await form.getByRole("radio", { name: copy.paymentMethods.cod }).check();
   await page.getByTestId("checkout-place").click();
   await expect(page.getByTestId("order-placed")).toContainText(
@@ -105,10 +109,10 @@ test("checkout prices delivery by zone, refuses areas not served, and books a de
   expect(shipment).toMatchObject({
     zoneId,
     status: "pending",
-    slotId: choice!.split("|")[1],
+    slotId: choice.split("|")[1],
   });
   expect(shipment.slotDate?.toISOString().slice(0, 10)).toBe(
-    choice!.split("|")[0],
+    choice.split("|")[0],
   );
   expect(Number(shipment.codAmount)).toBe(Number(order.total));
 

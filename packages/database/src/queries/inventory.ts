@@ -13,6 +13,7 @@ import {
 import { listAccessibleBranches, requireStockCountAccess } from "./branches";
 import { getNextSequenceNumber } from "./sequence";
 import { normalizeProductOptions, variantLabel } from "../constants/products";
+import { publicError } from "../errors";
 
 type Tx = Prisma.TransactionClient;
 const num = (value: { toString(): string } | null | undefined) =>
@@ -292,7 +293,7 @@ async function resolveBatch(
     },
   });
   if (existing) return existing.id;
-  if (input.quantity < 0) throw new Error(serverMessages.stockInsufficient);
+  if (input.quantity < 0) throw publicError("stockInsufficient");
   const expiry = input.expiryDate ? new Date(input.expiryDate) : null;
   if (expiry && !Number.isFinite(expiry.getTime()))
     throw new Error(serverMessages.stockBatchRequired);
@@ -381,7 +382,7 @@ export async function postMovements(
         await tx.$executeRaw`UPDATE "StockLevel" SET "onHand" = "onHand" + ${quantity}, "updatedAt" = now()
         WHERE "productId" = ${product.id} AND "variantKey" = ${variantKey} AND "locationId" = ${input.locationId} AND "batchKey" = ${batchKey}
           AND "onHand" - "reserved" + ${quantity} >= 0`;
-      if (changed === 0) throw new Error(serverMessages.stockInsufficient);
+      if (changed === 0) throw publicError("stockInsufficient");
     }
     await tx.stockMovement.create({
       data: {
@@ -465,7 +466,7 @@ export async function reserveStock(
     await tx.$executeRaw`UPDATE "StockLevel" SET "reserved" = "reserved" + ${quantity}, "updatedAt" = now()
     WHERE "productId" = ${input.productId} AND "variantKey" = ${variantKey} AND "locationId" = ${input.locationId} AND "batchKey" = ${batchKey}
       AND "reserved" + ${quantity} >= 0 AND "onHand" - "reserved" - ${quantity} >= 0`;
-  if (changed === 0) throw new Error(serverMessages.stockInsufficient);
+  if (changed === 0) throw publicError("stockInsufficient");
 }
 
 // ─── What people do on the stock screen ──────────────────────────────────────────────────────────────────────────

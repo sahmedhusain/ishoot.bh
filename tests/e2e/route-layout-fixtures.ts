@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
-import type { PrismaClient } from "@prisma/client";
+import type { Prisma, db as client } from "../../packages/database/src";
 import { admin } from "./helpers";
 
 /** Draft records let the layout audit render detail screens without changing existing records. */
-export async function prepareLayoutFixtures(db: PrismaClient) {
+export async function prepareLayoutFixtures(db: typeof client) {
   const prefix = `UI-${randomUUID()}`;
   const today = new Date();
   const cleanup: Array<() => PromiseLike<unknown>> = [];
@@ -11,12 +11,16 @@ export async function prepareLayoutFixtures(db: PrismaClient) {
   const remove = async () => {
     for (const operation of cleanup.reverse()) await operation();
   };
-  async function add(
-    model: {
+  async function add<
+    Model extends {
       create(args: { data: any }): PromiseLike<{ id: string }>;
       delete(args: { where: { id: string } }): PromiseLike<unknown>;
     },
-    data: Record<string, unknown>,
+  >(
+    model: Model,
+    data: Prisma.Args<Model, "create"> extends { data: infer Data }
+      ? Data
+      : never,
     route?: string,
   ) {
     const row = await model.create({ data });
@@ -29,7 +33,30 @@ export async function prepareLayoutFixtures(db: PrismaClient) {
       where: { email: admin.email },
     });
     const employee = await db.employee.findFirstOrThrow();
-    const warehouse = await db.warehouse.findFirstOrThrow();
+    const warehouse = await db.warehouse.findFirstOrThrow({
+      where: { isActive: true, branchId: { not: null } },
+    });
+    const { defaultCurrency: currency } =
+      await db.companySetting.findFirstOrThrow();
+    const client = await add(
+      db.crmContact,
+      {
+        firstName: "Layout customer عميل",
+      },
+      "/dashboard/crm/customers",
+    );
+    routes.push(`/dashboard/crm/customers/${client}/edit`);
+    const deal = await add(
+      db.crmDeal,
+      {
+        title: "Layout deal صفقة",
+        contactId: client,
+        dealStage: "closed_won",
+        currency,
+      },
+      "/dashboard/crm/deals",
+    );
+    routes.push(`/dashboard/crm/deals/${deal}/edit`);
     const supplier = await add(db.crmContact, {
       firstName: "Layout supplier مورد",
       contactType: "vendor",
@@ -41,7 +68,12 @@ export async function prepareLayoutFixtures(db: PrismaClient) {
     });
     const asset = await add(
       db.asset,
-      { assetTag: prefix, categoryId: category, name: "Camera كاميرا" },
+      {
+        assetTag: prefix,
+        categoryId: category,
+        name: "Camera كاميرا",
+        currency,
+      },
       "/dashboard/assets",
     );
     await add(
@@ -76,6 +108,7 @@ export async function prepareLayoutFixtures(db: PrismaClient) {
         reason: "resignation",
         lastWorkingDay: today,
         createdById: actor.id,
+        currency,
       },
       "/dashboard/hr/settlements",
     );
@@ -163,7 +196,7 @@ export async function prepareLayoutFixtures(db: PrismaClient) {
         paymentMethod: "cash",
         subtotal: 1,
         total: 1,
-        currency: "BHD",
+        currency,
       },
       "/dashboard/orders",
     );
@@ -188,7 +221,10 @@ export async function prepareLayoutFixtures(db: PrismaClient) {
     const invoice = await add(db.invoice, {
       invoiceNumber: prefix,
       dueDate: today,
+      currency,
+      clientId: client,
     });
+    routes.push(`/dashboard/invoices/${invoice}`);
     routes.push(`/dashboard/invoices/${invoice}/edit`);
     const project = await add(
       db.project,

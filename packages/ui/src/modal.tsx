@@ -85,7 +85,7 @@ export function useDialog(isOpen: boolean, onClose: () => void) {
         card.focus();
     };
     const onKeyDown = (event: KeyboardEvent) => {
-      if (!isTop()) return;
+      if (!isTop() || event.defaultPrevented) return;
       if (event.key === "Escape") {
         event.preventDefault();
         event.stopPropagation();

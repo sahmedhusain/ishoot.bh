@@ -3,7 +3,6 @@ import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import { CheckCircle2, Loader2, ScanLine } from "lucide-react";
 import { Button, Card, Input, Select } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
@@ -39,7 +38,6 @@ export function StockCountView({ count, locations, canEdit, canApprove }: StockC
   const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const copy = t.inventory.counts;
-  const router = useRouter();
   const [counted, setCounted] = React.useState<Record<string, string>>(() => Object.fromEntries(count.lines.map((l) => [l.id, l.counted == null ? "" : String(l.counted)])));
   const [dirty, setDirty] = React.useState(false);
   const [code, setCode] = React.useState("");
@@ -67,7 +65,6 @@ export function StockCountView({ count, locations, canEdit, canApprove }: StockC
     try {
       await task();
       if (done) setMessage({ tone: "ok", text: done });
-      router.refresh();
     } catch (err) {
       setMessage({ tone: "error", text: errorMessage(err, t) });
       if (rethrow) throw err;
@@ -115,7 +112,6 @@ export function StockCountView({ count, locations, canEdit, canApprove }: StockC
       setCode("");
       const first = result.lineIds[0];
       setFocusTarget({ lineId: first });
-      if (!inputs.current[first]) router.refresh();
     } catch (err) {
       setMessage({ tone: "error", text: errorMessage(err, t) });
     } finally {

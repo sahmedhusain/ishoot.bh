@@ -24,8 +24,11 @@ export function OverlayScrollbarsProvider() {
       if (
         !ready ||
         instances.has(element) ||
-        element.closest(".os-scrollbar, [data-print-target]") ||
-        ["SELECT", "TEXTAREA", "TABLE", "TBODY", "THEAD"].includes(
+        element.closest(
+          ".os-scrollbar, [data-print-target], [hidden], template",
+        ) ||
+        !element.getClientRects().length ||
+        ["SELECT", "TEXTAREA", "TABLE", "TBODY", "THEAD", "UL", "OL"].includes(
           element.tagName,
         )
       )
@@ -98,7 +101,7 @@ export function OverlayScrollbarsProvider() {
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ["class", "data-overlay-scroll-ready"],
+      attributeFilter: ["class", "hidden", "data-overlay-scroll-ready"],
     });
     const direction = new MutationObserver(() =>
       instances.forEach((instance) => instance.update(true)),
