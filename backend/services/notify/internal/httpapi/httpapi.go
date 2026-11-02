@@ -147,11 +147,11 @@ func (h *handler) list(c echo.Context) error {
 		errs = append(errs, problem.FieldError{Field: "channel", Code: "oneof"})
 	}
 	if raw := c.QueryParam("limit"); raw != "" {
-		n, err := strconv.Atoi(raw)
-		if err != nil || n < 1 || n > int(h.opts.MaxPageSize) {
+		n, err := strconv.ParseInt(raw, 10, 32)
+		if err != nil || n < 1 || n > int64(h.opts.MaxPageSize) {
 			errs = append(errs, problem.FieldError{Field: "limit", Code: "range"})
 		}
-		q.Limit = int32(n) //nolint:gosec // checked against MaxPageSize above
+		q.Limit = int32(n)
 	}
 	if raw := c.QueryParam("cursor"); raw != "" {
 		b, err := base64.RawURLEncoding.DecodeString(raw)
@@ -170,7 +170,7 @@ func (h *handler) list(c echo.Context) error {
 		return err
 	}
 	out := map[string]any{"items": items}
-	if int32(len(items)) == q.Limit { //nolint:gosec // a page is never larger than MaxPageSize
+	if len(items) == int(q.Limit) {
 		last := items[len(items)-1]
 		out["nextCursor"] = base64.RawURLEncoding.EncodeToString([]byte(last.CreatedAt.Format(time.RFC3339Nano) + "|" + last.ID))
 	}

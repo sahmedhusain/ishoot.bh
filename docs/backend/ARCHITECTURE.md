@@ -102,8 +102,21 @@ Seven new catalogue sync copies were reviewed as identical and removed after the
 
 Phase 3 is still in progress: staff/customer auth and access handoff are not cut over. IT integration helpers still
 load Prisma. Company settings, operations pages, audit/notify completion, business services and legacy retirement
-remain open. Security scanning currently reports six pre-existing checked integer conversions in audit/notify;
-these do not come from the new account paths and are being addressed separately.
+remain open.
+
+### Security follow-up (2026-11-02)
+
+Audit/notify paging now parses bounded 32-bit input before conversion and compares page lengths without narrowing.
+HTTP tests cover zero, oversized and out-of-range limits. Go vet, lint, the full race suite and `make sec` pass;
+the six checked-conversion findings are resolved. `golang.org/x/net` is updated to 0.62.0. `make vuln` reports zero
+vulnerabilities in called code or imported packages; one advisory remains in the unused OpenPGP module package.
+
+Next.js is patched to 15.5.28, sanitize-html to 2.18.1 and Vitest to 4.1.12, with compatible transitive updates.
+All 327 frontend unit/static tests, lint and app/package type-checks pass. The expanded IT browser journey passes
+on the rebuilt isolated stack (16.7 s). The broader browser run exposed separate calendar and test defects under
+investigation; it is not yet green. `pnpm audit` now reports one moderate minimatch advisory in lint tooling,
+with no high/critical findings. A breaking minimatch override has not been applied. Image scans, k6 load baselines
+and a Kubernetes smoke deployment remain pending.
 
 ## Request path
 

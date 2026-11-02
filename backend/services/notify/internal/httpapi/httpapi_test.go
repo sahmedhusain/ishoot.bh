@@ -165,6 +165,9 @@ func TestAPI(t *testing.T) {
 	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &page))
 	assert.Len(t, page.Items, 1)
 	assert.Equal(t, http.StatusUnprocessableEntity, call(it("it_admin"), http.MethodGet, "/v1/notify/desk/messages?status=lost", nil).Code)
+	for _, limit := range []string{"0", "6", "2147483648", "-2147483649", "9999999999999999999999"} {
+		assert.Equal(t, http.StatusUnprocessableEntity, call(it("it_admin"), http.MethodGet, "/v1/notify/desk/messages?limit="+limit, nil).Code)
+	}
 	rec = call(it("it_support"), http.MethodGet, "/v1/notify/desk/summary", nil)
 	require.Equal(t, http.StatusOK, rec.Code)
 	assert.Contains(t, rec.Body.String(), `"channel":"whatsapp"`)

@@ -134,7 +134,7 @@ func TestDesk(t *testing.T) {
 	rec = call(it("it_admin"), "/v1/audit/desk/subjects")
 	require.Equal(t, http.StatusOK, rec.Code)
 	assert.Contains(t, rec.Body.String(), `"subject":"system.module.changed","events":4`)
-	for _, bad := range []string{"limit=6", "limit=0", "cursor=bogus", "from=yesterday"} {
+	for _, bad := range []string{"limit=6", "limit=0", "limit=2147483648", "limit=-2147483649", "limit=9999999999999999999999", "cursor=bogus", "from=yesterday"} {
 		assert.Equal(t, http.StatusUnprocessableEntity, call(it("it_admin"), "/v1/audit/desk/events?"+bad).Code, bad)
 	}
 }
