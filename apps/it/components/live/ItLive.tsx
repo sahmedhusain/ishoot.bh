@@ -14,11 +14,12 @@ import {
   useRealtimeClient,
 } from "@platform/ui";
 import { notificationCategory, presenceSilences } from "@platform/contracts";
-import type { InboxItem, MyStatus, NotificationPreferences } from "@platform/api-client";
+import type { InboxItem, MutedRecord, MyStatus, NotificationPreferences } from "@platform/api-client";
 import { useCopy } from "../CopyProvider";
 
 type Live = {
   preferences: NotificationPreferences | null;
+  mutes: MutedRecord[];
   status: MyStatus | null;
   reload: () => Promise<void>;
   setPreferences: (p: NotificationPreferences) => void;
@@ -26,6 +27,7 @@ type Live = {
 };
 const LiveContext = React.createContext<Live>({
   preferences: null,
+  mutes: [],
   status: null,
   reload: async () => {},
   setPreferences: () => {},
@@ -35,13 +37,15 @@ export const useItLive = () => React.useContext(LiveContext);
 
 function Settings({ children }: { children: React.ReactNode }) {
   const [preferences, setPreferences] = React.useState<NotificationPreferences | null>(null);
+  const [mutes, setMutes] = React.useState<MutedRecord[]>([]);
   const [status, setStatus] = React.useState<MyStatus | null>(null);
   const reload = React.useCallback(async () => {
     try {
       const response = await fetch("/api/notifications?view=settings", { cache: "no-store" });
       if (!response.ok) return;
-      const body = (await response.json()) as { preferences: NotificationPreferences; status: MyStatus | null };
+      const body = (await response.json()) as { preferences: NotificationPreferences; mutes?: MutedRecord[]; status: MyStatus | null };
       setPreferences(body.preferences);
+      setMutes(body.mutes ?? []);
       setStatus(body.status);
     } catch {
       // The next resync tries again.
@@ -52,7 +56,7 @@ function Settings({ children }: { children: React.ReactNode }) {
     return installSoundUnlock();
   }, [reload]);
   useRealtime(() => void reload(), ["notification.preferences", "presence.changed"]);
-  const value = React.useMemo(() => ({ preferences, status, reload, setPreferences, setStatus }), [preferences, status, reload]);
+  const value = React.useMemo(() => ({ preferences, mutes, status, reload, setPreferences, setStatus }), [preferences, mutes, status, reload]);
   return <LiveContext.Provider value={value}>{children}</LiveContext.Provider>;
 }
 

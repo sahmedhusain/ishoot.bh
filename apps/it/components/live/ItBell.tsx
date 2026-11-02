@@ -2,7 +2,7 @@
 // The IT dashboard's notification menu (docs/adr/0012): latest notifications, live, with mute and sound controls.
 import * as React from "react";
 import Link from "next/link";
-import { Bell, BellOff, BellRing, Check, CheckCheck, Trash2, Volume2, VolumeX } from "lucide-react";
+import { Bell, BellOff, BellRing, Check, CheckCheck, Settings, Trash2, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { useRealtime, useRealtimeStatus } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
@@ -111,6 +111,9 @@ export function ItBell() {
               <button type="button" disabled={busy || !unread} onClick={() => run(() => inboxAction({ action: "read", all: true, filter: "unread" }))} title={c.markAllRead} aria-label={c.markAllRead} className="rounded-lg p-2 text-ink-muted hover:bg-surface-container disabled:opacity-30">
                 <CheckCheck aria-hidden className="size-4" />
               </button>
+              <Link href="/settings" onClick={() => setOpen(false)} title={copy.nav.settings} aria-label={copy.nav.settings} className="rounded-lg p-2 text-ink-muted hover:bg-surface-container">
+                <Settings aria-hidden className="size-4" />
+              </Link>
             </div>
           </div>
           {!items.length ? (

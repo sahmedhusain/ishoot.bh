@@ -36,7 +36,7 @@ export default async function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var d=${JSON.stringify(theme.defaultMode)}==="dark"||(${JSON.stringify(theme.defaultMode)}==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.classList.toggle("light",!d)}catch{}`,
+            __html: `try{var m=localStorage.getItem("platform_it_theme");if(!["light","dark","system"].includes(m))m=${JSON.stringify(theme.defaultMode)};var d=m==="dark"||(m==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.classList.toggle("light",!d)}catch{}`,
           }}
         />
         {fontsHref ? <link rel="stylesheet" href={fontsHref} /> : null}

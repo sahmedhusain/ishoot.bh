@@ -11,6 +11,7 @@ import {
   Languages,
   ListChecks,
   LogOut,
+  Settings,
   ShieldCheck,
   Timer,
   ToggleRight,
@@ -53,6 +54,11 @@ const NAV = [
     label: "itAccounts",
     resource: "it_accounts",
   },
+  {
+    href: "/settings",
+    icon: Settings,
+    label: "settings",
+  },
 ] as const;
 
 export function Shell({
@@ -87,7 +93,7 @@ export function Shell({
           aria-label={copy.app.name}
           className="flex lg:flex-col gap-1 overflow-x-auto"
         >
-          {NAV.filter((item) => itAllowed(roles, item.resource, "read")).map(
+          {NAV.filter((item) => !("resource" in item) || itAllowed(roles, item.resource, "read")).map(
             (item) => (
               <Link
                 key={item.href}

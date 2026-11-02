@@ -16,7 +16,8 @@
     "site": "Website",
     "audit": "Audit trail",
     "notifications": "Notifications",
-    "itAccounts": "IT accounts"
+    "itAccounts": "IT accounts",
+    "settings": "Settings"
   },
   "login": {
     "title": "IT dashboard",
@@ -864,6 +865,81 @@
       "today": "Today",
       "this_week": "This week",
       "never": "Don't clear"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Manage your notification preferences, sound, alerts, and appearance.",
+    "saved": "Settings saved successfully.",
+    "failed": "Could not save settings. Please try again.",
+    "save": "Save changes",
+    "saving": "Saving…",
+    "tabs": {
+      "notifications": "Notifications & sound",
+      "appearance": "Appearance & display",
+      "account": "Account info"
+    },
+    "notifications": {
+      "pauseTitle": "Pause notifications",
+      "pauseHint": "Mutes all non-emergency notifications and silences sounds on all your devices.",
+      "pauseActive": "Notifications are paused until {time}.",
+      "pauseForever": "Notifications are paused until you turn them back on.",
+      "unmute": "Turn notifications back on",
+      "muteFor": "Pause notifications for…",
+      "muteOptions": {
+        "1h": "1 hour",
+        "8h": "8 hours",
+        "tomorrow": "Until tomorrow",
+        "forever": "Until turned back on"
+      },
+      "soundTitle": "Notification sound & volume",
+      "soundHint": "Plays an audio chime when new tickets or updates arrive.",
+      "soundEnabled": "Play sounds for notifications",
+      "soundChoice": "Sound effect",
+      "sounds": {
+        "chime": "Chime",
+        "ping": "Ping",
+        "pop": "Pop",
+        "bell": "Bell",
+        "alert": "Alert"
+      },
+      "volume": "Volume ({volume}%)",
+      "testSound": "Play sample",
+      "alertsTitle": "Banners & desktop notifications",
+      "alertsHint": "Choose how you want to be alerted while using the desk or in the background.",
+      "popupsEnabled": "Show in-app toast banners",
+      "desktopEnabled": "Send desktop browser notifications",
+      "desktopEnableBtn": "Enable browser notifications",
+      "desktopDenied": "Desktop notifications were blocked in your browser settings.",
+      "desktopGranted": "Desktop notifications are enabled.",
+      "categoriesTitle": "Category preferences",
+      "categoriesHint": "Customize alerts and sound for each notification category.",
+      "mandatoryHint": "Security notifications always arrive quietly even when muted.",
+      "muted": "Muted",
+      "active": "Active",
+      "soundOn": "Sound on",
+      "soundOff": "Silent",
+      "mutedItemsTitle": "Muted items",
+      "mutedItemsHint": "Individual tickets and records you chose to mute updates for.",
+      "noMutedItems": "No individual items are currently muted.",
+      "unmuteItem": "Unmute updates"
+    },
+    "appearance": {
+      "themeTitle": "Interface theme",
+      "themeHint": "Choose light, dark, or system mode for the IT dashboard.",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System default",
+      "languageTitle": "Language",
+      "languageHint": "Change the interface language between English and Arabic.",
+      "statusTitle": "Presence & Availability",
+      "statusHint": "Your current live presence status visible to colleagues."
+    },
+    "account": {
+      "title": "Account & Session",
+      "email": "Signed in as",
+      "roles": "Assigned roles",
+      "signOut": "Sign out"
     }
   }
 }
