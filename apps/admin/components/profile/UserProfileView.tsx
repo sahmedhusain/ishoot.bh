@@ -45,7 +45,7 @@ interface UserProfileViewProps {
 }
 
 /** What a confirmed change replaces: one row per field, current value then new value. */
-export function ChangeSummary({ rows }: { rows: { label: string; from: string; to: string; ltr?: boolean }[] }) {
+function ChangeSummary({ rows }: { rows: { label: string; from: string; to: string; ltr?: boolean }[] }) {
   const { t } = useAdminLocale();
   return (
     <dl className="divide-y divide-outline-variant overflow-hidden rounded-xl border border-outline-variant text-sm">

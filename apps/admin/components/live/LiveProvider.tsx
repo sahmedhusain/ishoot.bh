@@ -12,7 +12,7 @@ import { presenceSilences, presenceTone } from "@platform/contracts";
 import type { MyStatus, NotificationPreferences, Presence } from "@platform/api-client";
 import { getMyStatusAction } from "../../app/actions/presence";
 
-export type MutedRecord = { entityType: string; entityId: string; until: string | null; createdAt: string };
+type MutedRecord = { entityType: string; entityId: string; until: string | null; createdAt: string };
 type Settings = {
   preferences: NotificationPreferences | null;
   mutes: MutedRecord[];

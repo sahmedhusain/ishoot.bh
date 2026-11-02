@@ -8,7 +8,7 @@ import { useRealtime, useRealtimeStatus } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import type { InboxItem } from "@platform/api-client";
 import { useCopy } from "../CopyProvider";
-import { inboxAction, savePreferencesAction } from "../../app/live-actions";
+import { inboxAction, muteRecordAction, savePreferencesAction, unmuteRecordAction } from "../../app/live-actions";
 import { useItLive } from "./ItLive";
 
 const FOREVER = "9999-12-31T00:00:00Z";
@@ -133,6 +133,25 @@ export function ItBell() {
                       <Check aria-hidden className="size-3" />
                       {item.read ? c.markUnread : c.markRead}
                     </button>
+                    {item.entityType && item.entityId && (
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => {
+                          const { entityType, entityId } = item as { entityType: string; entityId: string };
+                          void run(async () => {
+                            await muteRecordAction(entityType, entityId);
+                            toast.success(c.recordMuted, {
+                              action: { label: c.undo, onClick: () => void run(() => unmuteRecordAction(entityType, entityId)) },
+                            });
+                          });
+                        }}
+                        className="inline-flex items-center gap-1 hover:text-accent"
+                      >
+                        <BellOff aria-hidden className="size-3" />
+                        {c.muteRecord}
+                      </button>
+                    )}
                     <button type="button" disabled={busy} onClick={() => run(() => inboxAction({ action: "delete", ids: [item.id] }))} className="inline-flex items-center gap-1 hover:text-rose-600">
                       <Trash2 aria-hidden className="size-3" />
                       {c.delete}

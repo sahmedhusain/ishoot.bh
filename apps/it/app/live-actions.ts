@@ -6,6 +6,7 @@ import {
   muteMyRecord,
   saveMyNotificationPreferences,
   setITStatus,
+  unmuteMyRecord,
   type InboxAction,
   type NotificationPreferences,
   type StatusChoice,
@@ -25,6 +26,11 @@ export async function savePreferencesAction(preferences: NotificationPreferences
 export async function muteRecordAction(entityType: string, entityId: string) {
   const user = await requireUser();
   await asUser(() => muteMyRecord(user.token, entityType, entityId));
+}
+
+export async function unmuteRecordAction(entityType: string, entityId: string) {
+  const user = await requireUser();
+  await asUser(() => unmuteMyRecord(user.token, entityType, entityId));
 }
 
 export async function setStatusAction(choice: StatusChoice) {

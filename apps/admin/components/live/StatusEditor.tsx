@@ -46,7 +46,7 @@ export function StatusSummary({ className }: { className?: string }) {
   );
 }
 
-export function StatusEditor({ onDone }: { onDone?: () => void }) {
+function StatusEditor({ onDone }: { onDone?: () => void }) {
   const { t, locale } = useAdminLocale();
   const s = t.presence;
   const { mine, setMine } = useMyStatus();
