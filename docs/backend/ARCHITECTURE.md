@@ -52,7 +52,13 @@ pages are not built yet, and no business domain has moved.
   kubeconform 0.6.7 validates 49 resources in each render, with zero errors; seven ServiceMonitor custom
   resources are skipped because their schemas are not bundled. This is schema validation, not a cluster smoke test.
 - Removed the empty admin integrations settings directory (empty directories are not tracked by Git).
-- The cold-compile IT e2e fix, disposable-stack milestone suite and subsequent migration waves remain pending.
+- The IT e2e server now builds before listening (CI uses its prebuilt production output), with startup regression
+  tests covering failed builds. The desk journey passes against `platform-verify` (23.5 s; 2 min including startup).
+  `go vet ./...`, `make lint`, `make gen-check` and `go test -race ./...` pass. The IT build still loads Prisma through
+  integration helpers; removing those calls requires their service replacements, and remains open.
+- Frontend unit/static checks (327 tests), lint, every app/package type-check and action-schema checks pass.
+  Removed 924 ignored sync copies and 16 `.DS_Store` files, preserving `.agents` and `graphify-out`.
+- The full disposable-stack milestone suite and subsequent migration waves remain pending.
   No development database, Compose project or environment values were changed for these checks.
 
 Until a domain moves, the Next.js apps keep using `packages/database` (Prisma) for it, as described in

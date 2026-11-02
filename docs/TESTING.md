@@ -37,13 +37,14 @@ pnpm exec playwright install chromium
 pnpm test:e2e
 ```
 
-`test:e2e` rebuilds `platform_e2e_test` (seeded, demo profile) and `platform_e2e_blank_test` (blank install), then starts three servers through `tests/e2e/serve.cjs`, each on its own database and build folder:
+`test:e2e` rebuilds `platform_e2e_test` (seeded, demo profile) and `platform_e2e_blank_test` (blank install), then starts four servers through `tests/e2e/serve.cjs`, each on its own database and build folder:
 
 | Port | Server                                                | Projects                                                                              |
 | ---- | ----------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| 3101 | Admin on the seeded database                          | `admin-login`, `admin`, `admin-mobile`                                                |
-| 3102 | Website on the seeded database                        | `web`, `web-mobile`                                                                   |
-| 3103 | Admin on the blank database                           | `setup-wizard`                                                                        |
+| 3012 | Admin on the seeded database                          | `admin-login`, `admin`, `admin-mobile`                                                |
+| 3013 | Website on the seeded database                        | `web`, `web-mobile`                                                                   |
+| 3014 | Admin on the blank database                           | `setup-wizard`                                                                        |
+| 3015 | IT dashboard through identity and the gateway         | `it`                                                                                  |
 | 3199 | A local Stripe stand-in, started by the payment specs | (the servers get `PAYMENT_GATEWAY_BASE_URL_STRIPE` and `CRON_SECRET=e2e-cron-secret`) |
 
 Disposable accounts for these runs (administrator, viewer, driver) are in `tests/e2e/fixtures/users.json`; they exist only in the test databases.
@@ -58,7 +59,7 @@ pnpm exec playwright test --project=web
 pnpm exec playwright test --ui
 ```
 
-`pnpm exec playwright test` reuses the prepared databases (`E2E_SEEDED_DATABASE` and `E2E_BLANK_DATABASE` choose other `_test` databases). Run `pnpm test:e2e:prepare` again after the setup-wizard test, because that test completes the blank company's setup. `E2E_SERVER_MODE=start` serves production builds, as CI does; build them first with `NEXT_DIST_DIR=.next-e2e`. Reports, traces, videos and screenshots go to `tests/.results/`.
+`pnpm exec playwright test` reuses the prepared databases (`E2E_SEEDED_DATABASE` and `E2E_BLANK_DATABASE` choose other `_test` databases). Run `pnpm test:e2e:prepare` again after the setup-wizard test, because that test completes the blank company's setup. The IT server builds into `.next-e2e` before listening, so the desk journey never waits for page compilation; a failed build stops startup. `E2E_SERVER_MODE=start` serves prebuilt production builds of all apps, as CI does; build them first with `NEXT_DIST_DIR=.next-e2e`. Before the IT suite, run `node tests/e2e/it-account.cjs` against the disposable stack; `COMPOSE_ARGS` selects its project/env file and `E2E_IT_ACCOUNT_FILE` selects the credential file. Reports, traces, videos and screenshots go to `tests/.results/`.
 
 `specs/admin/links.spec.ts` and `specs/web/links.spec.ts` crawl every page (`tests/e2e/crawl.ts`): error statuses,
 broken images and downloads, new-tab links without `rel="noreferrer"`, links into the other language, and who may
