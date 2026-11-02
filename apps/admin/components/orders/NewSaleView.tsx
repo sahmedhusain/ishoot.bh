@@ -133,7 +133,14 @@ export function NewSaleView({
     });
     setQuery("");
   };
-  const total = roundMoney(lines.reduce((sum, line) => sum + roundMoney(line.price * (Number(line.quantity) || 0), currency), 0), currency);
+  const total = roundMoney(
+    lines.reduce(
+      (sum, line) =>
+        sum + roundMoney(line.price * (Number(line.quantity) || 0), currency),
+      0,
+    ),
+    currency,
+  );
 
   const create = async () => {
     if (!lines.length) return setError(copy.noLines);
@@ -245,41 +252,43 @@ export function NewSaleView({
                     ×
                   </button>
                 </header>
-                <ul
+                <div
                   className="m3-surface-body"
                   data-popup-body
                   data-overlay-scroll
                 >
-                  {matches.map((item) => (
-                    <li key={`${item.productId}-${item.variantId}`}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          add(item);
-                          searchInput.current?.focus();
-                        }}
-                        className="flex w-full items-center justify-between gap-3 px-3 py-3 text-sm hover:bg-ink/5 text-start"
-                      >
-                        <span className="min-w-0">
-                          <bdi dir="auto">{item.label}</bdi>{" "}
-                          <bdi
-                            className="font-mono text-xs text-ink-muted"
-                            dir="ltr"
-                          >
-                            {item.sku}
-                          </bdi>
-                        </span>
-                        <span className="flex items-center gap-2">
-                          <CurrencyDisplay
-                            amount={item.price}
-                            currency={currency}
-                          />
-                          <Plus className="w-3.5 h-3.5" aria-hidden="true" />
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                  <ul>
+                    {matches.map((item) => (
+                      <li key={`${item.productId}-${item.variantId}`}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            add(item);
+                            searchInput.current?.focus();
+                          }}
+                          className="flex w-full items-center justify-between gap-3 px-3 py-3 text-sm hover:bg-ink/5 text-start"
+                        >
+                          <span className="min-w-0">
+                            <bdi dir="auto">{item.label}</bdi>{" "}
+                            <bdi
+                              className="font-mono text-xs text-ink-muted"
+                              dir="ltr"
+                            >
+                              {item.sku}
+                            </bdi>
+                          </span>
+                          <span className="flex items-center gap-2">
+                            <CurrencyDisplay
+                              amount={item.price}
+                              currency={currency}
+                            />
+                            <Plus className="w-3.5 h-3.5" aria-hidden="true" />
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
                 <footer className="m3-surface-footer">
                   <button
                     type="button"

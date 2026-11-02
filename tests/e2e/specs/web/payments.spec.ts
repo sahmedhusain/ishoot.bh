@@ -151,12 +151,13 @@ test("leaving the gateway without paying keeps the order, and the customer can t
   const errors = watchErrors(page);
   await checkoutOnline(page);
   await page.getByRole("link", { name: "Back" }).click();
+  // The stand-in still reports an open session; a browser return cannot confirm a failed payment.
   await expect(page.getByTestId("pay-state")).toContainText(
-    copy.payFailedTitle,
+    copy.payPendingTitle,
     { timeout: 60_000 },
   );
   let order = await orderFor();
-  expect(order.paymentAttempts.map((a) => a.status)).toEqual(["failed"]);
+  expect(order.paymentAttempts.map((a) => a.status)).toEqual(["pending"]);
   expect(order.status).toBe("placed");
 
   // The page arrived by redirect from the gateway; let it finish loading before using its button.
@@ -170,8 +171,8 @@ test("leaving the gateway without paying keeps the order, and the customer can t
   order = await orderFor();
   expect(order.paymentStatus).toBe("paid");
   expect(order.paymentAttempts.map((a) => a.status).sort()).toEqual([
-    "failed",
     "paid",
+    "pending",
   ]);
   errors.assertClean();
 });

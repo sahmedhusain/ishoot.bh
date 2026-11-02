@@ -2,12 +2,14 @@ import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import en from "../../../../packages/locales/src/admin/en";
 import ar from "../../../../packages/locales/src/admin/ar";
+import { acceptConfirmations } from "../../helpers";
 
 for (const locale of ["en", "ar"] as const) {
   const t = locale === "en" ? en : ar;
   test(`workspace customization and dialog regions (${locale})`, async ({
     page,
   }) => {
+    await acceptConfirmations(page);
     await page.setViewportSize({
       width: locale === "ar" ? 390 : 1440,
       height: 900,
@@ -77,6 +79,8 @@ for (const locale of ["en", "ar"] as const) {
         })
         .check();
     }
+    await page.getByTestId("appearance-save").first().click();
+    await expect(page.getByTestId("appearance-save").first()).toBeDisabled();
     await page.reload();
     await expect(page.locator("html")).toHaveAttribute(
       "data-dialog-placement",
@@ -177,6 +181,8 @@ for (const locale of ["en", "ar"] as const) {
         exact: true,
       })
       .check();
+    await page.getByTestId("appearance-save").first().click();
+    await expect(page.getByTestId("appearance-save").first()).toBeDisabled();
     await page.goto("/dashboard/cms/stats");
     await page
       .getByRole("main")

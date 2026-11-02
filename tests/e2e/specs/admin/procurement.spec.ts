@@ -61,6 +61,48 @@ test.afterAll(async () => {
   await db.$disconnect();
 });
 
+test("requisition retries reuse the saved draft after submission fails", async ({
+  page,
+}) => {
+  const description = `E2E retry requisition ${Date.now()}`;
+  const path = "/dashboard/procurement/requisitions/new";
+  await page.goto(path);
+  await page
+    .getByRole("textbox", { name: copy.lines.description })
+    .fill(description);
+  await page
+    .getByRole("spinbutton", { name: `${copy.lines.quantity} 1` })
+    .fill("1");
+  await page
+    .getByRole("spinbutton", { name: `${copy.lines.estimatedCost} 1` })
+    .fill("20");
+  await page.route(`**${path}`, (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    const first = JSON.parse(route.request().postData() || "[]")[0];
+    return typeof first === "string"
+      ? route.fulfill({
+          status: 500,
+          contentType: "text/plain",
+          body: "Test submission failure",
+        })
+      : route.continue();
+  });
+  await page.getByTestId("requisition-submit").click();
+  await expect(page.getByRole("main").getByRole("alert")).toBeVisible();
+  await expect(page).toHaveURL(/\/requisitions\/new$/);
+  const where = { lines: { some: { description } } };
+  const drafts = await db.purchaseRequisition.findMany({ where });
+  expect(drafts).toHaveLength(1);
+  expect(drafts[0].status).toBe("draft");
+  await page.unroute(`**${path}`);
+  await page.getByTestId("requisition-submit").click();
+  await expect(page).toHaveURL(new RegExp(`/requisitions/${drafts[0].id}$`));
+  await expect(page.getByRole("main").getByTestId("status")).toHaveText(
+    copy.statuses.approved,
+  );
+  expect(await db.purchaseRequisition.count({ where })).toBe(1);
+});
+
 test("a requisition is approved, priced by two suppliers, ordered from the cheaper one and emailed", async ({
   page,
 }) => {
@@ -74,7 +116,10 @@ test("a requisition is approved, priced by two suppliers, ordered from the cheap
     await page.getByRole("button", { name: copy.suppliers.add }).click();
     await page.locator('input[name="supplier-companyName"]').fill(name);
     await page.locator('input[name="supplier-email"]').fill(email);
-    await page.locator('input[name="supplier-phone"]').fill("+973 3600 0001");
+    await page
+      .getByTestId("supplier-editor")
+      .getByLabel(copy.suppliers.phone, { exact: true })
+      .fill("+973 3600 0001");
     await page.getByTestId("supplier-save").click();
     await expect(page.getByText(name)).toBeVisible();
   }
@@ -95,7 +140,9 @@ test("a requisition is approved, priced by two suppliers, ordered from the cheap
     { timeout: 60_000 },
   );
   // The administrator's own requisition needs nobody else's approval.
-  await expect(page.getByTestId("status")).toHaveText(copy.statuses.approved);
+  await expect(page.getByRole("main").getByTestId("status")).toHaveText(
+    copy.statuses.approved,
+  );
 
   await page.getByTestId("requisition-rfq").click();
   await expect(page).toHaveURL(
@@ -131,12 +178,16 @@ test("a requisition is approved, priced by two suppliers, ordered from the cheap
   expect(Number(order.lines[0].unitPrice)).toBe(17.25);
   await page.goto(`/dashboard/procurement/orders/${order.id}`);
   await page.getByTestId("order-submit").click();
-  await expect(page.getByTestId("status")).toHaveText(copy.statuses.approved);
+  await expect(page.getByRole("main").getByTestId("status")).toHaveText(
+    copy.statuses.approved,
+  );
   await page.getByTestId("order-email").click();
   await expect(page.getByRole("status")).toHaveText(
     copy.orders.emailQueued.replace("{email}", "beta@supplier.example"),
   );
-  await expect(page.getByTestId("status")).toHaveText(copy.statuses.sent);
+  await expect(page.getByRole("main").getByTestId("status")).toHaveText(
+    copy.statuses.sent,
+  );
   const job = await db.emailJob.findFirst({
     where: { eventKey: { startsWith: `purchase_order:${order.id}` } },
   });
@@ -174,7 +225,9 @@ test("goods are received into stock, a bill that differs is approved with a reas
     /\/dashboard\/procurement\/orders\/[0-9a-f-]{36}$/,
     { timeout: 60_000 },
   );
-  await expect(page.getByTestId("status")).toHaveText(copy.statuses.approved);
+  await expect(page.getByRole("main").getByTestId("status")).toHaveText(
+    copy.statuses.approved,
+  );
 
   // 6 arrive in good order and 1 damaged; 3 are still to come.
   const receive = page.getByTestId("receive-goods");
@@ -185,7 +238,7 @@ test("goods are received into stock, a bill that differs is approved with a reas
     .getByRole("spinbutton", { name: new RegExp(`^${copy.receive.rejected}`) })
     .fill("1");
   await page.getByTestId("receive-save").click();
-  await expect(page.getByTestId("status")).toHaveText(
+  await expect(page.getByRole("main").getByTestId("status")).toHaveText(
     copy.statuses.partially_received,
   );
   const level = await db.stockLevel.aggregate({
@@ -222,7 +275,9 @@ test("goods are received into stock, a bill that differs is approved with a reas
     .locator('input[name="overrideReason"]')
     .fill("Supplier price rise agreed by phone");
   await page.getByTestId("bill-approve").click();
-  await expect(page.getByTestId("status")).toHaveText(copy.statuses.approved);
+  await expect(page.getByRole("main").getByTestId("status")).toHaveText(
+    copy.statuses.approved,
+  );
   const bill = await db.supplierBill.findFirstOrThrow({
     where: { supplierRef: "INV-E2E-77" },
   });
@@ -263,12 +318,14 @@ test("goods are received into stock, a bill that differs is approved with a reas
   const pay = page.getByTestId("bill-payment");
   await pay.locator('input[name="paymentAmount"]').fill("5");
   await page.getByTestId("bill-pay").click();
-  await expect(page.getByTestId("status")).toHaveText(
+  await expect(page.getByRole("main").getByTestId("status")).toHaveText(
     copy.statuses.partially_paid,
   );
   await pay.locator('input[name="paymentAmount"]').fill("10");
   await page.getByTestId("bill-pay").click();
-  await expect(page.getByTestId("status")).toHaveText(copy.statuses.paid);
+  await expect(page.getByRole("main").getByTestId("status")).toHaveText(
+    copy.statuses.paid,
+  );
 
   await page.goto("/dashboard/procurement/suppliers");
   await expect(page.getByTestId("supplier-performance").first()).toBeVisible();

@@ -84,7 +84,7 @@ export function DealDossierView({
         description={<>{t.copy.idLabel}{deal.id} •{" "}
             <DateDisplay date={deal.created_at} locale={locale} /></>}
         back={{ href: ROUTES.crm.deals }}
-        actions={<div className="flex items-center gap-3">
+        actions={<div className="flex flex-wrap items-center gap-3">
           {actions.editRecord && (
             <Link href={ROUTES.crm.dealEdit(deal.id)}>
               <Button

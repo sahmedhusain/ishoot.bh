@@ -34,6 +34,7 @@ for (const locale of ["en", "ar"] as const) {
     await dialog
       .getByLabel(t.servicesView.codeLabel, { exact: true })
       .fill("E2E-DIALOG");
+    await dialog.getByLabel(t.servicesView.categoryLabel).fill("E2E category");
     const names = dialog.locator('[name="nameEn"], [name="nameAr"]');
     for (const name of await names.all())
       await name.fill("E2E retained service");
@@ -89,8 +90,10 @@ for (const locale of ["en", "ar"] as const) {
     await expect(dialog).toHaveAccessibleName(
       t.payrollManagement.generateMonthlyPayrollCycle,
     );
-    await selectOption(dialog
-      .getByLabel(t.payrollManagement.month, { exact: true }), "3");
+    await selectOption(
+      dialog.getByLabel(t.payrollManagement.month, { exact: true }),
+      "3",
+    );
     const year = dialog.getByLabel(t.payrollManagement.year, { exact: true });
     await year.fill("2019");
     await dialog
@@ -121,7 +124,10 @@ for (const locale of ["en", "ar"] as const) {
     await expect(dialog.getByRole("alert")).toBeVisible();
     await expect(year).toHaveValue("2026");
     await expect(
-      dialog.getByLabel(t.payrollManagement.month, { exact: true }).locator("..").locator("select"),
+      dialog
+        .getByLabel(t.payrollManagement.month, { exact: true })
+        .locator("..")
+        .locator("select"),
     ).toHaveValue("3");
     await dialog
       .getByRole("button", { name: t.shared.cancel, exact: true })

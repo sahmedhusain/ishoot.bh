@@ -138,6 +138,21 @@ confirmed storage parity. Unchanged reruns write nothing, and changed imports re
 audit event. Go fixtures cover nonempty scopes/overrides, malformed access, target conflicts and audit rollback.
 Runtime permission evaluation and staff/customer app integration remain pending.
 
+### Production frontend regression checks (2026-11-02)
+
+Production builds exposed competing client refreshes after server actions, a requisition submission that navigated
+before completion, masked stock/product validation messages, and mobile header overflow. The affected views now
+use the server action's revalidation, retain a saved requisition ID for retry, and translate allowlisted public
+error digests. Calendar/overlay initialization waits for visible committed content; nested search keeps dialog
+focus and Escape behavior. Setup builds include the preview origin and use the website for sample artwork.
+
+The unit/static suite passes 332 tests; lint, workspace types, 363 generated action schemas and unused-code checks
+pass. Without retries, 77 focused production browser tests pass, including actual notify delivery to Mailpit and
+the WhatsApp sandbox. Both language layout sweeps cover all 156 routes and local tabs at 1440, 768 and 390 pixels.
+Their fixtures use typed inputs and explicit customer/deal/invoice records rather than stale cached links. A fresh
+combined browser run remains pending; the earlier combined run had 189 passes, 12 failures and one blocked test.
+These checks preserve the existing UI and business behavior; the remaining business backend is still TypeScript.
+
 ## Request path
 
 1. A server component or server action calls the API client with the user's access token.

@@ -69,9 +69,12 @@ for (const locale of ["en", "ar"] as const)
       );
       await page.goto("/dashboard/analytics");
       await expect(page.locator("html")).toHaveAttribute("lang", locale);
-      await expect(page.getByTestId("social-empty")).toContainText(copy.empty);
+      await expect(
+        page.getByRole("main").getByTestId("social-empty"),
+      ).toContainText(copy.empty);
       await expect(
         page
+          .getByRole("main")
           .getByTestId("social-empty")
           .getByRole("link", { name: copy.connect }),
       ).toHaveAttribute("href", "/dashboard/it-support");
@@ -98,9 +101,9 @@ test("connected account without readings stays empty; verified zero is real data
     {},
   );
   await page.goto("/dashboard/analytics?platform=facebook");
-  await expect(page.getByTestId("social-empty")).toContainText(
-    ar.socialAnalytics.noData,
-  );
+  await expect(
+    page.getByRole("main").getByTestId("social-empty"),
+  ).toContainText(ar.socialAnalytics.noData);
   await expect(page.getByTestId("social-kpis")).toHaveCount(0);
   await updateIntegrationStatus("meta", {
     config: {
@@ -120,7 +123,9 @@ test("connected account without readings stays empty; verified zero is real data
     },
   });
   await page.reload();
-  await expect(page.getByTestId("social-empty")).toHaveCount(0);
+  await expect(page.getByRole("main").getByTestId("social-empty")).toHaveCount(
+    0,
+  );
   await expect(page.getByTestId("social-kpis")).toBeVisible();
   await expect(page.getByTestId("social-account-facebook")).not.toContainText(
     ar.socialAnalytics.noData,

@@ -98,8 +98,9 @@ test("a shipment handed to a courier agency is tracked at the agency and invoice
 
   await page.goto(`/dashboard/delivery/${shipmentId}`);
   const panel = page.getByTestId("shipment-agency").first();
-  await selectOption(panel
-    .locator('select[name="agencyId"]'), { label: AGENCY });
+  await selectOption(panel.locator('select[name="agencyId"]'), {
+    label: AGENCY,
+  });
   await panel.locator('input[name="trackingNumber"]').fill("TRK-778899");
   await page.getByTestId("shipment-handover").first().click();
   await expect(page.getByTestId("shipment-tracking-number").first()).toHaveText(
@@ -151,9 +152,9 @@ test("a shipment handed to a courier agency is tracked at the agency and invoice
   await form.locator('input[name="invoiceReference"]').fill("INV-E2E-1");
   await form.locator('input[name="invoiceAmount"]').fill("1.5");
   await form.getByTestId("agency-invoice-save").click();
-  await expect(page.getByTestId("agency-invoices").first()).toContainText(
-    "INV-E2E-1",
-  );
+  await expect(
+    page.getByRole("main").getByTestId("agency-invoices"),
+  ).toContainText("INV-E2E-1");
   const invoice = await db.agencyInvoice.findFirstOrThrow({
     where: { reference: "INV-E2E-1" },
     include: { shipments: true },
@@ -165,9 +166,9 @@ test("a shipment handed to a courier agency is tracked at the agency and invoice
   });
   expect(Number(expense.amount)).toBe(1.5);
   expect(expense.category.slug).toBe("delivery");
-  await expect(page.getByTestId("agency-invoices").first()).toContainText(
-    copy.agencies.difference,
-  );
+  await expect(
+    page.getByRole("main").getByTestId("agency-invoices"),
+  ).toContainText(copy.agencies.difference);
   errors.assertClean();
 });
 

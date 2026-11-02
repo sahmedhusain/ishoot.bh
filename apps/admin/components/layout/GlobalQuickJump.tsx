@@ -44,6 +44,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const resultsId = React.useId();
   const panelRef = React.useRef<HTMLElement | null>(null);
+  const shortcutOpener = React.useRef<HTMLElement | null>(null);
   const [error, setError] = React.useState("");
 
   // Keyboard shortcut listener (Cmd+K / Ctrl+K)
@@ -51,6 +52,14 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
     function handleKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
+        const opener = document.activeElement as HTMLElement | null;
+        const scope = opener
+          ?.closest("[data-dialog-scope]")
+          ?.getAttribute("data-dialog-scope");
+        if (scope) {
+          containerRef.current?.setAttribute("data-dialog-scope-owner", scope);
+          shortcutOpener.current = opener;
+        }
         inputRef.current?.focus();
         setIsOpen(true);
       }
@@ -62,6 +71,8 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
 
   React.useEffect(() => {
     if (!isOpen) {
+      containerRef.current?.removeAttribute("data-dialog-scope-owner");
+      shortcutOpener.current = null;
       setQuery("");
       setResults([]);
       setSelectedIndex(0);
@@ -84,7 +95,8 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
         const res = await globalSearchAction(query);
         if (active && res.success) setResults(res.results);
       } catch (failure) {
-        if (active) setError(errorMessage(failure, t, t.quickJump.searchFailed));
+        if (active)
+          setError(errorMessage(failure, t, t.quickJump.searchFailed));
       } finally {
         if (active) setLoading(false);
       }
@@ -172,6 +184,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
       e.preventDefault();
       setIsOpen(false);
       inputRef.current?.blur();
+      shortcutOpener.current?.focus();
       return;
     }
     if (e.nativeEvent.isComposing) return;
@@ -273,9 +286,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
           aria-expanded={isOpen}
           aria-controls={isOpen ? resultsId : undefined}
           aria-activedescendant={
-            isOpen
-              ? `${resultsId}-${selectedIndex}`
-              : undefined
+            isOpen ? `${resultsId}-${selectedIndex}` : undefined
           }
           value={query}
           placeholder={t.quickJump.universalSearch}
@@ -390,7 +401,10 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
               <div className="space-y-2">
                 <div className="px-2.5 pt-1.5 flex items-center justify-between gap-2">
                   <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-muted">
-                    <Sparkles className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
+                    <Sparkles
+                      className="w-3.5 h-3.5 text-primary"
+                      aria-hidden="true"
+                    />
                     {t.quickJump.quickLinksTitle}
                   </span>
                 </div>
@@ -505,7 +519,11 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
             <span>{t.quickJump.footerHint}</span>
             {loading ? (
               <span className="inline-flex items-center gap-1.5 text-primary font-medium">
-                <Loader2 role="status" aria-label={t.quickJump.searching} className="w-3 h-3 animate-spin" />
+                <Loader2
+                  role="status"
+                  aria-label={t.quickJump.searching}
+                  className="w-3 h-3 animate-spin"
+                />
                 {t.quickJump.searching}
               </span>
             ) : null}

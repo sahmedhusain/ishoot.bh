@@ -46,6 +46,7 @@ export function RequisitionView({ requisition, products, currency, canEdit, canP
   const [note, setNote] = React.useState(requisition?.note ?? "");
   const [busy, setBusy] = React.useState(false);
   const [message, setMessage] = React.useState<{ tone: "ok" | "error"; text: string } | null>(null);
+  const savedId = React.useRef(requisition?.id);
 
   const run = async (task: () => Promise<unknown>, done?: string) => {
     setBusy(true);
@@ -53,7 +54,8 @@ export function RequisitionView({ requisition, products, currency, canEdit, canP
     try {
       await task();
       if (done) setMessage({ tone: "ok", text: done });
-      router.refresh();
+      if (!requisition && savedId.current) router.replace(ROUTES.procurement.requisition(savedId.current));
+      else router.refresh();
     } catch (err) {
       setMessage({ tone: "error", text: errorMessage(err, t) });
     } finally {
@@ -61,8 +63,8 @@ export function RequisitionView({ requisition, products, currency, canEdit, canP
     }
   };
   const save = async () => {
-    const result = await saveRequisitionAction({ id: requisition?.id, neededBy, note, lines: linesInput(lines) });
-    if (!requisition) router.replace(ROUTES.procurement.requisition(result.id));
+    const result = await saveRequisitionAction({ id: savedId.current, neededBy, note, lines: linesInput(lines) });
+    savedId.current = result.id;
     return result.id;
   };
 

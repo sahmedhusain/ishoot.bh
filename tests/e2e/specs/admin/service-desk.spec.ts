@@ -117,7 +117,7 @@ test("a customer reports a problem with an order from their account; it reaches 
   await context.close();
 });
 
-test("staff save a reply, answer by WhatsApp from the request, and an e-mail that cannot go out is not recorded", async ({
+test("staff save a reply and send email and WhatsApp through notify from the request", async ({
   page,
   context,
 }) => {
@@ -147,20 +147,51 @@ test("staff save a reply, answer by WhatsApp from the request, and an e-mail tha
   );
 
   errors.assertClean();
-  // No mail service in the test servers: the e-mail fails (the refused action is the one expected error) and nothing is saved.
-  await panel.getByTestId("reply-email").click();
-  await expect(panel.getByRole("alert")).toHaveText(
-    t.serverErrors.messages.serviceReplyNotSent,
+  // Notify owns delivery; the isolated stack sends this reply to Mailpit.
+  const inboxUrl = `http://127.0.0.1:${process.env.MAILPIT_UI_PORT || 8025}/api/v1/messages?limit=200`;
+  const inbox = await page.request.get(inboxUrl);
+  expect(inbox.ok()).toBe(true);
+  const deliveredBefore = new Set(
+    (await inbox.json()).messages.map((mail: { ID: string }) => mail.ID),
   );
-  expect(
-    await db.requestComment.count({
-      where: { inquiryId: requestId, isClientVisible: true },
-    }),
-  ).toBe(0);
+  await panel.getByTestId("reply-email").click();
+  await expect(panel.getByRole("status")).toHaveText(copy.reply.sent);
+  await expect
+    .poll(() =>
+      db.requestComment.count({
+        where: {
+          inquiryId: requestId,
+          isClientVisible: true,
+          channel: "email",
+        },
+      }),
+    )
+    .toBe(1);
+  const { reference } = await db.inquiry.findUniqueOrThrow({
+    where: { id: requestId },
+  });
+  await expect
+    .poll(async () => {
+      const response = await page.request.get(inboxUrl);
+      expect(response.ok()).toBe(true);
+      const { messages } = await response.json();
+      return messages.some(
+        (mail: {
+          ID: string;
+          Subject: string;
+          To: Array<{ Address: string }>;
+        }) =>
+          !deliveredBefore.has(mail.ID) &&
+          mail.Subject.includes(reference) &&
+          mail.To.some((to) => to.Address === EMAIL),
+      );
+    })
+    .toBe(true);
+  errors.assertClean();
 
   const later = watchErrors(page);
-  // WhatsApp is not connected: the reply is kept and a chat opens for the agent to send it.
-  // The chat link is answered locally, so the test never reaches WhatsApp.
+  await selectOption(panel.getByTestId("canned-pick"), { label: "E2E thanks" });
+  // The isolated stack sends WhatsApp through its sandbox. Unexpected chat links stay local too.
   await context.route("https://wa.me/**", (route) =>
     route.fulfill({
       status: 200,
@@ -168,17 +199,31 @@ test("staff save a reply, answer by WhatsApp from the request, and an e-mail tha
       body: "<title>chat</title>",
     }),
   );
-  const popup = context.waitForEvent("page");
+  const sandboxUrl = `http://127.0.0.1:${process.env.WHATSAPP_SANDBOX_PORT || 8095}/sandbox/messages?to=97336000010`;
+  const sandbox = await page.request.get(sandboxUrl);
+  expect(sandbox.ok()).toBe(true);
+  const sentBefore = new Set(
+    (await sandbox.json()).items.map((item: { id: string }) => item.id),
+  );
   await panel.getByTestId("reply-whatsapp").click();
-  const chat = await popup;
-  await chat.waitForLoadState();
-  expect(chat.url()).toContain("https://wa.me/97336000010?text=");
-  await chat.close();
+  await expect(panel.getByRole("status")).toHaveText(copy.reply.sent);
+  await expect
+    .poll(async () => {
+      const response = await page.request.get(sandboxUrl);
+      expect(response.ok()).toBe(true);
+      const { items } = await response.json();
+      return items.some(
+        (item: { id: string; to: string }) =>
+          !sentBefore.has(item.id) && item.to === "97336000010",
+      );
+    })
+    .toBe(true);
+  expect(context.pages()).toHaveLength(1);
   await expect(panel.getByTestId("service-replies")).toContainText(
     "a replacement is on its way",
   );
   const reply = await db.requestComment.findFirstOrThrow({
-    where: { inquiryId: requestId, isClientVisible: true },
+    where: { inquiryId: requestId, isClientVisible: true, channel: "whatsapp" },
   });
   expect(reply.channel).toBe("whatsapp");
   expect(

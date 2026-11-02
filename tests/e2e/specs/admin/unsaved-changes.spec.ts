@@ -316,6 +316,7 @@ for (const locale of ["en", "ar"] as const) {
       .getByRole("button", { name: t.unsavedChanges.stay, exact: true })
       .click();
     await color.fill(original);
+    await expect(main.getByTestId("theme-save")).toBeDisabled();
     await main
       .locator('a[href="/dashboard/settings/preferences"]')
       .first()

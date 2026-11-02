@@ -790,7 +790,9 @@ test("pickup staff actions preserve the branch after it is disabled", async ({
     page.locator("#admin-main").getByText(branch.nameEn, { exact: true }),
   ).toBeVisible();
   for (const status of ["packing", "shipped", "delivered"]) {
-    const button = page.getByTestId(`order-move-${status}`);
+    const button = page
+      .getByTestId(`order-move-${status}`)
+      .filter({ visible: true });
     if (status === "shipped")
       await expect(button).toHaveText("Ready for collection");
     if (status === "delivered")

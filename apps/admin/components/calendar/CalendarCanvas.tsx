@@ -68,6 +68,11 @@ export function CalendarCanvas({
   const { t, locale, isRTL } = useAdminLocale();
   const c = t.calendarSharing;
   const panelId = React.useId();
+  const workbench = React.useRef<HTMLElement>(null);
+  React.useEffect(() => {
+    // This page has its own header, so signal its commit before scrollbars alter the streamed markup.
+    workbench.current?.setAttribute("data-overlay-scroll-ready", "");
+  }, []);
   const [filters, setFilters] = React.useState(false);
   const [direction, setDirection] = React.useState(1);
   const [focusedDay, setFocusedDay] = React.useState(
@@ -197,7 +202,11 @@ export function CalendarCanvas({
         );
 
   return (
-    <section className="calendar-workbench" aria-label={t.calendar.title}>
+    <section
+      ref={workbench}
+      className="calendar-workbench"
+      aria-label={t.calendar.title}
+    >
       <header className="calendar-toolbar">
         <div className="calendar-toolbar-title">
           <CalendarDays aria-hidden />

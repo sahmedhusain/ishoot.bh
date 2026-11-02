@@ -6,6 +6,33 @@ import uiEn from "../../../../packages/locales/src/ui/en";
 import uiAr from "../../../../packages/locales/src/ui/ar";
 import { selectOption } from "../../select-option";
 
+test("deferred scroll content is enhanced only after it becomes visible", async ({
+  page,
+}) => {
+  await page.goto("/dashboard/calendar");
+  await expect(
+    page.locator(".calendar-workbench[data-overlay-scroll-ready]"),
+  ).toBeVisible();
+  await page.evaluate(async () => {
+    const pending = document.createElement("div");
+    pending.id = "e2e-deferred-scroll";
+    pending.hidden = true;
+    pending.innerHTML =
+      '<section data-overlay-scroll style="height:40px;overflow:auto"><div style="height:200px">Deferred content</div></section>';
+    document.body.append(pending);
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+    );
+  });
+  const pending = page.locator("#e2e-deferred-scroll");
+  await expect(pending.locator(".os-scrollbar")).toHaveCount(0);
+  await pending.evaluate((element) => {
+    (element as HTMLElement).hidden = false;
+  });
+  await expect(pending.locator(".os-scrollbar-vertical")).toHaveCount(1);
+  await pending.evaluate((element) => element.remove());
+});
+
 async function insideViewport(page: Page, locator: Locator) {
   const box = await locator.boundingBox();
   expect(box).not.toBeNull();
@@ -50,20 +77,24 @@ for (const locale of ["en", "ar"] as const)
       }, locale);
       await page.goto("/dashboard/calendar");
       await expect(page.locator("html")).toHaveAttribute("lang", locale);
-      await expect(page.locator(".calendar-toolbar h1")).toBeVisible();
-      const heading = await page
+      const calendar = page
+        .locator(".calendar-workbench[data-overlay-scroll-ready]")
+        .filter({ visible: true });
+      await expect(calendar).toBeVisible();
+      await expect(calendar.locator(".calendar-toolbar h1")).toBeVisible();
+      const heading = await calendar
         .locator(".calendar-period-controls h2")
         .innerText();
       await page
         .getByRole("button", { name: t.actions.previous, exact: true })
         .click();
-      await expect(page.locator(".calendar-period-controls h2")).not.toHaveText(
-        heading,
-      );
+      await expect(
+        calendar.locator(".calendar-period-controls h2"),
+      ).not.toHaveText(heading);
       await page
         .getByRole("button", { name: t.actions.next, exact: true })
         .click();
-      await expect(page.locator(".calendar-period-controls h2")).toHaveText(
+      await expect(calendar.locator(".calendar-period-controls h2")).toHaveText(
         heading,
       );
       const previous = await page
@@ -75,7 +106,7 @@ for (const locale of ["en", "ar"] as const)
       expect(
         locale === "ar" ? previous!.x > next!.x : previous!.x < next!.x,
       ).toBe(true);
-      const view = page.locator(".calendar-toolbar").getByRole("combobox");
+      const view = calendar.locator(".calendar-toolbar").getByRole("combobox");
       const before = await page
         .locator(".admin-main")
         .evaluate((element) => element.clientWidth);
@@ -87,9 +118,9 @@ for (const locale of ["en", "ar"] as const)
       await insideViewport(page, page.locator("[data-select-popup]"));
       await view.press("Escape");
       await selectOption(view, "week");
-      await expect(page.locator(".calendar-time-column")).toHaveCount(7);
+      await expect(calendar.locator(".calendar-time-column")).toHaveCount(7);
       await selectOption(view, "day");
-      await expect(page.locator(".calendar-time-column")).toHaveCount(1);
+      await expect(calendar.locator(".calendar-time-column")).toHaveCount(1);
       await selectOption(view, "month");
       await page.locator(".admin-main").hover();
       expect(

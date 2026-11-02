@@ -108,7 +108,7 @@ test("a report scheduled by e-mail is run by the scheduled job", async ({
     "e2e-reports@example.test",
     "e2e-owner@example.test",
   ]);
-  // Make it due now; with no mail service in the test servers it is attempted and noted as not sent.
+  // Make it due now; notify queues the report for the isolated stack's Mailpit delivery.
   await db.reportSchedule.update({
     where: { id: schedule.id },
     data: { nextRunAt: new Date(Date.now() - 60_000) },
@@ -124,7 +124,8 @@ test("a report scheduled by e-mail is run by the scheduled job", async ({
     where: { id: schedule.id },
   });
   expect(after.nextRunAt.getTime()).toBeGreaterThan(Date.now());
-  expect(after.lastError).toBe("not_sent");
+  expect(after.lastError).toBeNull();
+  expect(after.lastSentAt).not.toBeNull();
   errors.assertClean();
 });
 

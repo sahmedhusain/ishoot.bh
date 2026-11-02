@@ -175,25 +175,38 @@ export function DashboardWidget({
       return (
         <Panel title={title} icon={<Briefcase className="w-3.5 h-3.5" />} href={ROUTES.crm.deals}>
           {entries.length ? (
-            <ul className="space-y-3 max-h-64 overflow-y-auto py-1">
-              {entries.map(([key, stat]) => {
-                const stage = stages.find((s) => s.id === key);
-                const share = total > 0 ? ((data.showMoney ? stat.value : stat.count) / total) * 100 : 0;
-                return (
-                  <li key={key} className="space-y-1 text-xs">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-ink-muted font-medium truncate">
-                        {stage ? dealStageLabel(stage, t, locale) : ((t.stages as Record<string, string>)[key] ?? key)} ({stat.count})
-                      </span>
-                      {data.showMoney ? <span className="font-bold text-ink">{money(stat.value)}</span> : null}
-                    </div>
-                    <div className="w-full h-1.5 bg-surface-sunken dark:bg-white/5 rounded-full overflow-hidden">
-                      <div className="h-full bg-accent rounded-full motion-safe:transition-[width] motion-safe:duration-700" style={{ width: `${Math.min(100, Math.max(0, share))}%` }} />
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
+            <div className="max-h-64 overflow-y-auto py-1">
+              <ul className="space-y-3">
+                {entries.map(([key, stat]) => {
+                  const stage = stages.find((s) => s.id === key);
+                  const share =
+                    total > 0
+                      ? ((data.showMoney ? stat.value : stat.count) / total) * 100
+                      : 0;
+                  return (
+                    <li key={key} className="space-y-1 text-xs">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-ink-muted font-medium truncate">
+                          {stage
+                            ? dealStageLabel(stage, t, locale)
+                            : ((t.stages as Record<string, string>)[key] ?? key)}{" "}
+                          ({stat.count})
+                        </span>
+                        {data.showMoney ? (
+                          <span className="font-bold text-ink">{money(stat.value)}</span>
+                        ) : null}
+                      </div>
+                      <div className="w-full h-1.5 bg-surface-sunken dark:bg-white/5 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-accent rounded-full motion-safe:transition-[width] motion-safe:duration-700"
+                          style={{ width: `${Math.min(100, Math.max(0, share))}%` }}
+                        />
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           ) : (
             <Empty />
           )}

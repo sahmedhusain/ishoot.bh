@@ -81,8 +81,12 @@ export const FloatingSurface = React.forwardRef<
       dir={getComputedStyle(anchor).direction === "rtl" ? "rtl" : "ltr"}
       data-dialog-scope-owner={
         anchor
-          .closest("[data-dialog-scope]")
-          ?.getAttribute("data-dialog-scope") ?? undefined
+          .closest("[data-dialog-scope], [data-dialog-scope-owner]")
+          ?.getAttribute("data-dialog-scope") ??
+        anchor
+          .closest("[data-dialog-scope-owner]")
+          ?.getAttribute("data-dialog-scope-owner") ??
+        undefined
       }
       className={cn("m3-floating-surface", className)}
       onMouseDown={(event) => {
@@ -132,7 +136,8 @@ export const FloatingSurface = React.forwardRef<
           ).filter(
             (item) =>
               item.getClientRects().length &&
-              item.tabIndex >= 0 && !item.matches(":disabled") &&
+              item.tabIndex >= 0 &&
+              !item.matches(":disabled") &&
               !item.closest("[hidden], [inert], .m3-floating-surface"),
           );
           (

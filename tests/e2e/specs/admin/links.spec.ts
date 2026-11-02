@@ -2,6 +2,7 @@ import { expect, request as apiRequest, test } from "@playwright/test";
 import users from "../../fixtures/users.json";
 import { checkDownload, crawl } from "../../crawl";
 import { t } from "../../locale";
+import { login } from "../../helpers";
 
 // Pages that end the session or belong to people outside the company.
 const SKIP = /\/logout|\/sign\/|\/acknowledge\/|\/login/;
@@ -81,10 +82,7 @@ test("attachments open for people allowed to see them and are refused to everyon
     storageState: { cookies: [], origins: [] },
   });
   const viewer = await context.newPage();
-  await viewer.goto("/login");
-  await viewer.locator('input[type="email"]').fill(users.viewer.email);
-  await viewer.locator('input[type="password"]').fill(users.viewer.password);
-  await viewer.locator('button[type="submit"]').click();
+  await login(viewer, users.viewer.email, users.viewer.password);
   await expect(viewer).toHaveURL(/\/dashboard$/);
   const viewerFiles = await archiveFiles(viewer);
   for (const file of viewerFiles) {

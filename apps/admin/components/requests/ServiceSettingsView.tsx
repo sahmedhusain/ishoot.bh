@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import { MessageSquareText, Plus, Timer } from "lucide-react";
 import { Button, Card, Input } from "@platform/ui";
 import type { ContentLanguage } from "@platform/database/constants/languages";
@@ -16,7 +15,6 @@ import { PageHeader } from "../layout/PageHeader";
 export function ServiceSettingsView({ settings, replies, languages, canEditTimes }: { settings: ServiceSettingsRecord; replies: CannedReplyRecord[]; languages: readonly ContentLanguage[]; canEditTimes: boolean }) {
   const { t } = useAdminLocale();
   const copy = t.serviceDesk.settings;
-  const router = useRouter();
   const [times, setTimes] = React.useState({ urgent: String(settings.sla_urgent_hours), high: String(settings.sla_high_hours), normal: String(settings.sla_normal_hours) });
   const [draft, setDraft] = React.useState<CannedReplyInput | null>(null);
   const [busy, setBusy] = React.useState(false);
@@ -27,7 +25,6 @@ export function ServiceSettingsView({ settings, replies, languages, canEditTimes
     try {
       await task();
       setMessage({ tone: "ok", text: copy.saved });
-      router.refresh();
       return true;
     } catch (err) {
       setMessage({ tone: "error", text: errorMessage(err, t) });
