@@ -17,6 +17,7 @@ and an authenticator is always required.
 | `/notifications` | `notifications:read` (`execute` to act)      | notify `/v1/notify/desk/...`                                                 |
 | `/audit`         | `audit:read`                                 | audit `/v1/audit/desk/...`                                                   |
 | `/it-accounts`   | `it_accounts:read` (`create`, `edit` to act) | identity `/v1/identity/desk/it-accounts`                                     |
+| `/sessions`      | `sessions:read` (`delete` to revoke)        | identity `/v1/identity/desk/sessions`                                        |
 
 Company settings, staff accounts and the remaining operations pages listed in the ADR are still to move here.
 
@@ -40,6 +41,11 @@ Further IT accounts are created from **IT accounts**, which shows fresh provisio
 and deactivation end existing sessions; the service refuses removing the last active administrator. See the
 [offline administrator recovery runbook](../../docs/backend/OPERATIONS.md#it-administrator-recovery) if all factors are lost.
 
+**Sessions** filters identity-issued sessions by account type and account ID. Ending one requires confirmation
+and immediately invalidates its access and refresh credentials; ending the current session returns to sign-in.
+Engineers and auditors can read; IT administrators and support can revoke. The page explicitly excludes the
+existing staff/customer app sessions, whose sign-in migration is still pending.
+
 ## Running
 
 ```bash
@@ -56,4 +62,7 @@ The app runs on port 3002 and reads the root `.env` (`API_URL`, `IT_SERVICE_KEY`
 `tests/e2e/specs/it` signs in with a password and an authenticator, works tickets, settings, notifications and audit,
 then creates an IT account, changes its role, verifies its MFA and permission boundary, deactivates it and checks
 session revocation. It also verifies that the last administrator cannot be deactivated.
+The sessions journey checks Arabic/English confirmation, canceled/failed revocation, read-only engineer access,
+gateway and refresh rejection after revocation, and ending the current session. It waits for a fresh authenticator
+step before signing in because the preceding serial IT journey may have consumed the current code.
 `node tests/e2e/it-account.cjs` creates the account it uses (once per database) with `bootstrap-it`.

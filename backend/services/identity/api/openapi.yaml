@@ -13,6 +13,77 @@ servers:
 security:
   - serviceToken: []
 paths:
+  /v1/identity/staff/access:
+    get:
+      operationId: getStaffAccess
+      summary: Read the current staff account's effective permissions and scope policy
+      description: |
+        Requires a live staff session and a migrated staff access record. Stored grants, user overrides and
+        current system module availability are evaluated in identity. Missing grants are denied; Super Admin
+        retains access regardless of stored denials or module switches. This does not resolve department members.
+        Staff app cutover is still pending; this endpoint reads identity's snapshot, not the legacy account tables.
+      security: [{userToken: []}]
+      responses:
+        '200':
+          description: Effective access, without credentials or personal profile data
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [subjectId, role, permissions, dataScopes]
+                properties:
+                  subjectId: {type: string}
+                  role: {type: string}
+                  permissions:
+                    type: object
+                    additionalProperties: {type: boolean}
+                  dataScopes:
+                    type: object
+                    additionalProperties: false
+                    required: [deals, requests, expenses, claims, leave]
+                    properties:
+                      deals: {type: string, enum: [own, department, all]}
+                      requests: {type: string, enum: [own, department, all]}
+                      expenses: {type: string, enum: [own, department, all]}
+                      claims: {type: string, enum: [own, department, all]}
+                      leave: {type: string, enum: [own, department, all]}
+        default: {$ref: '#/components/responses/Problem'}
+  /v1/identity/desk/sessions:
+    get:
+      operationId: listIdentitySessionsForIT
+      summary: List identity-issued sessions (sessions:read; live MFA-enrolled IT session required)
+      description: Lists session families, including revoked and expired sessions awaiting cleanup. Legacy app sessions are not included. Never returns access or refresh credentials.
+      security: [{userToken: []}]
+      parameters:
+        - {name: realm, in: query, schema: {type: string, enum: [staff, customer, it]}}
+        - {name: subjectId, in: query, schema: {type: string, maxLength: 200}}
+        - {name: cursor, in: query, schema: {type: string, format: uuid}}
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 200, default: 50}}
+      responses:
+        '200':
+          description: Sessions ordered by ID; pass nextCursor back as cursor
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [items, nextCursor]
+                properties:
+                  items: {type: array, items: {$ref: '#/components/schemas/DeskSession'}}
+                  nextCursor: {type: string}
+        default: {$ref: '#/components/responses/Problem'}
+  /v1/identity/desk/sessions/{id}:
+    parameters:
+      - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+    delete:
+      operationId: revokeIdentitySessionForIT
+      summary: Revoke an identity session family (sessions:delete)
+      description: Invalidates access and refresh credentials for this family. Already revoked sessions are unchanged; missing sessions return 404. Revoking the current session signs the operator out.
+      security: [{userToken: []}]
+      responses:
+        '204': {description: Session revoked or already revoked}
+        default: {$ref: '#/components/responses/Problem'}
   /v1/identity/desk/it-accounts:
     get:
       operationId: listITAccounts
@@ -306,6 +377,18 @@ components:
           schema:
             $ref: '#/components/schemas/Problem'
   schemas:
+    DeskSession:
+      type: object
+      additionalProperties: false
+      required: [id, realm, subjectId, email, createdAt, expiresAt, revokedAt]
+      properties:
+        id: {type: string, format: uuid}
+        realm: {type: string, enum: [staff, customer, it]}
+        subjectId: {type: string, minLength: 1}
+        email: {type: [string, 'null'], format: email}
+        createdAt: {type: string, format: date-time}
+        expiresAt: {type: string, format: date-time}
+        revokedAt: {type: [string, 'null'], format: date-time}
     ITRole:
       type: string
       enum: [it_admin, it_engineer, it_support, it_auditor]

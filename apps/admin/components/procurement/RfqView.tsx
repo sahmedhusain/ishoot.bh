@@ -3,7 +3,6 @@ import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Loader2, Plus } from "lucide-react";
 import { Button, Card, Input, Select, formatCurrencyValue } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
@@ -32,7 +31,6 @@ export function RfqView({ rfq, suppliers, currency, canEdit, canOrder }: { rfq: 
   const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const copy = t.procurement.rfqs;
-  const router = useRouter();
   const open = rfq.status === "open";
   const quote = (lineId: string, supplierId: string) => rfq.quotes.find((q) => q.line_id === lineId && q.supplier_id === supplierId);
   const best = (lineId: string) => {
@@ -57,7 +55,6 @@ export function RfqView({ rfq, suppliers, currency, canEdit, canOrder }: { rfq: 
     try {
       await task();
       if (done) setMessage({ tone: "ok", text: done });
-      router.refresh();
     } catch (err) {
       setMessage({ tone: "error", text: errorMessage(err, t) });
     } finally {

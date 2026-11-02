@@ -54,7 +54,7 @@ tools until the full migration and restore rehearsal succeeds.
 - Implement and test OAuth, customer email codes and registration, password reset and invitations, MFA administration
   and reset, and the staff/customer access handoff. IT account management, first-account bootstrap and offline administrator recovery are implemented;
   recovery is documented in the [operations runbook](OPERATIONS.md#it-administrator-recovery).
-- Implement runtime staff role, permission, data-scope and override evaluation against the preserved snapshot and verify effective-access parity. Define synchronization between identity and the remaining business-owned user and customer projections.
+- Integrate the preview `GET /v1/identity/staff/access` policy API after the final access handoff. Go/TypeScript fixtures now verify stored-grant, override, module-gating and scope-policy parity; effective access on real migrated data and app integration remain unverified. Define synchronization between identity and the remaining business-owned user and customer projections.
 - Ensure all user-token traffic reaches services through the gateway or an equivalent live session check, and configure the identity status URL and network policy.
 - Integrate the generated client, gateway, app cookies and existing auth DTOs; preserve existing auth exports and authorization behavior. Wire production deployment and key rotation.
 - Rehearse migration and restore with real customer, MFA and recovery-code data; verify permission parity and run the staff, customer, setup, OAuth, MFA, reset and logout regression and browser suites.

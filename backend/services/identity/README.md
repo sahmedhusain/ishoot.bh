@@ -48,12 +48,49 @@ account in `identity.user.created` / `identity.user.changed`. An audit failure r
 session revocation. IT accounts already belong to identity, so this page needs no legacy table handoff. Staff and
 customer account migration remains separate work.
 
+## Session administration
+
+The IT dashboard's `/sessions` page lists identity-issued session families, with realm/account filters and cursor
+paging. It shows IDs, account email when available, sign-in/expiry times and active/revoked/expired state; credentials
+and factor data never leave the service. Staff and customer legacy app sessions remain outside this page until
+their authentication cutover. Identity already owns these session tables, so this page moves no legacy data.
+
+| Endpoint | Permission | Result |
+| --- | --- | --- |
+| `GET /v1/identity/desk/sessions` | `sessions:read` | Lists session families ordered by ID, including revoked/expired records awaiting cleanup |
+| `DELETE /v1/identity/desk/sessions/{id}` | `sessions:delete` | Revokes the family and records the acting IT account in `identity.session.revoked` |
+
+Both endpoints require a live, active, MFA-enrolled IT account with unchanged roles and an unexpired, unrevoked
+session. Engineers/auditors can read; IT administrators/support can revoke, as defined by the catalogue. Revocation
+invalidates both access and refresh credentials. Repeating it writes no extra event; missing IDs return 404. Audit
+failure rolls back revocation. Desk revocations serialize with account administration so two operators revoking
+one another cannot deadlock or act with already revoked access. Revoking the current session signs its operator out.
+
+## Staff access policy (preview)
+
+`GET /v1/identity/staff/access` returns the signed-in staff account's effective permission map and role data-scope
+policy. It requires a live session, unchanged account roles and an imported staff-access record. Staff currently
+have one role, matching the legacy model; ambiguous assignments are refused. Missing grants are denied. Stored
+create/edit values take precedence over legacy write grants, then user overrides apply, then disabled modules
+restrict ordinary roles. Super Admin retains every permission and all-record scopes. The response contains no
+credentials or personal profile data and is `no-store`.
+
+Identity reads current module availability over HTTP using `IDENTITY_SERVICE_KEY` and `IDENTITY_SYSTEM_URL`.
+System's `SYSTEM_MODULE_READ_CALLERS` permits this caller to read modules without integration credentials or site
+settings. Missing keys, failed or incomplete dependency responses fail closed with 503 for ordinary roles; IT
+sign-in remains available. Run environment secret/public-key generation when upgrading, then restart identity,
+system and gateway to load the new key and route. Never replace existing encryption/signing keys unnecessarily.
+
+The API evaluates identity's snapshot. Staff/customer apps, role administration and the final data handoff are
+still pending; it does not synchronize legacy edits. Department-member resolution remains with the directory
+owner. Shared fixtures verify Go/TypeScript parity, with separate live-session and HTTP dependency tests.
+
 ## Events
 
 The preview [snapshot importer](../../../docs/backend/IDENTITY-MIGRATION.md) also preserves staff roles, grants,
 overrides and role data scopes. Its apply command requires an operator ID and writes `identity.snapshot.imported`
 in the same transaction, carrying only that ID and insertion counts. Dry runs and unchanged reruns emit nothing.
-Runtime staff authorization and the staff/customer app cutover remain pending.
+Staff app authorization integration and the staff/customer app cutover remain pending.
 
 `identity.user.created`, `identity.user.changed`, `identity.user.recovered`, `identity.session.started`, `identity.session.rotated`,
 `identity.session.revoked` and `identity.mfa.changed` are written to `identity.outbox` with their changes. They carry

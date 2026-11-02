@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import { Loader2, PackageCheck } from "lucide-react";
 import { Button, Card, Input, Select } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
@@ -18,7 +17,6 @@ const round3 = (value: number) => Math.round(value * 1000) / 1000;
 export function ReceiveGoodsPanel({ order, locations, batchProducts }: { order: PurchaseOrderRecord; locations: { id: string; label: string }[]; batchProducts: string[] }) {
   const { t } = useAdminLocale();
   const copy = t.procurement.receive;
-  const router = useRouter();
   const open = order.lines.map((l) => ({ ...l, remaining: round3(l.quantity - l.received - l.rejected) })).filter((l) => l.remaining > 0);
   const [locationId, setLocationId] = React.useState(locations[0]?.id ?? "");
   const [note, setNote] = React.useState("");
@@ -33,7 +31,6 @@ export function ReceiveGoodsPanel({ order, locations, batchProducts }: { order: 
     try {
       const result = await receiveGoodsAction(order.id, { locationId, note, lines: open.map((l) => ({ orderLineId: l.id, ...entries[l.id] })) });
       setMessage({ tone: "ok", text: formatMessage(copy.saved, { number: result.number }) });
-      router.refresh();
     } catch (err) {
       setMessage({ tone: "error", text: errorMessage(err, t) });
     } finally {

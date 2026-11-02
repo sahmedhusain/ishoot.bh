@@ -52,6 +52,7 @@ export function PurchaseOrderView({ order, fromRequisition, suppliers, warehouse
     terms: order?.terms ?? "",
   });
   const [lines, setLines] = React.useState<LineDraft[]>(() => (order ? order.lines.map(lineDraft) : fromRequisition ? fromRequisition.lines.map(lineDraft) : [emptyLine()]));
+  const savedId = React.useRef(order?.id);
   const [busy, setBusy] = React.useState(false);
   const [message, setMessage] = React.useState<{ tone: "ok" | "error"; text: string } | null>(null);
   const set = (patch: Partial<typeof form>) => setForm((current) => ({ ...current, ...patch }));
@@ -63,7 +64,7 @@ export function PurchaseOrderView({ order, fromRequisition, suppliers, warehouse
     try {
       await task();
       if (done) setMessage({ tone: "ok", text: done });
-      router.refresh();
+      if (!order && savedId.current) router.replace(ROUTES.procurement.order(savedId.current));
     } catch (err) {
       setMessage({ tone: "error", text: errorMessage(err, t) });
     } finally {
@@ -71,8 +72,8 @@ export function PurchaseOrderView({ order, fromRequisition, suppliers, warehouse
     }
   };
   const save = async () => {
-    const result = await savePurchaseOrderAction({ id: order?.id, ...form, warehouseId: form.warehouseId || undefined, requisitionId: order ? undefined : fromRequisition?.id, lines: linesInput(lines) });
-    if (!order) router.replace(ROUTES.procurement.order(result.id));
+    const result = await savePurchaseOrderAction({ id: savedId.current, ...form, warehouseId: form.warehouseId || undefined, requisitionId: order ? undefined : fromRequisition?.id, lines: linesInput(lines) });
+    savedId.current = result.id;
     return result.id;
   };
   const whatsapp = () => {

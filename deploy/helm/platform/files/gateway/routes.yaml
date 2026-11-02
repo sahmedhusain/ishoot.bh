@@ -27,12 +27,12 @@ routes:
     upstream: itsm
     realms: [it]
     rateLimit: default
-  # Identity: apps sign people in with their service tokens; IT staff manage their own authenticator with their
+  # Identity: apps sign people in with their service tokens; staff and IT manage their own access/factors with their
   # access tokens. Identity itself decides which credential each endpoint takes and limits attempts per account.
   - name: identity
     prefix: /v1/identity/
     upstream: identity
-    realms: [service, it]
+    realms: [service, staff, it]
     rateLimit: services
   # System settings: the apps' back ends read them; IT staff manage them with their own tokens.
   - name: system

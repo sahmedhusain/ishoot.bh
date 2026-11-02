@@ -31,7 +31,7 @@ Browser ─▶ apps/web · apps/admin · apps/it   (Next.js: UI, cookies, server
 | ----- | ------------------------------------------------------------------------------------- | ------------ |
 | 1     | Shared kit, catalogue, gateway, local stack, CI, Helm, docs                           | **Done**; chart validation below |
 | 2     | `files` on S3-compatible storage; Supabase removed                                    | Verification |
-| 3     | `identity` (staff, customer and IT realms)                                            | In progress; IT auth/recovery/management and account/access snapshot restore verified below |
+| 3     | `identity` (staff, customer and IT realms)                                            | In progress; IT controls, staff policy preview and account/access snapshot restore verified below |
 | 4     | `system`, `audit`, `notify` and the IT dashboard (`apps/it`)                          | In progress  |
 | 5     | `itsm` and IT support in the admin app                                                | In progress  |
 | 6     | Domain waves: cms → sales → finance → workflow → hr → inventory → commerce → delivery | Planned      |
@@ -138,7 +138,7 @@ The extended snapshot now preserves roles, grants/denials, overrides and role da
 copy, it imported 22 roles, 11,132 grants and 23 staff access records; SQL comparisons and a second restore/rerun
 confirmed storage parity. Unchanged reruns write nothing, and changed imports require an operator ID and an atomic
 audit event. Go fixtures cover nonempty scopes/overrides, malformed access, target conflicts and audit rollback.
-Runtime permission evaluation and staff/customer app integration remain pending.
+Staff authorization integration and the staff/customer app cutover remain pending.
 
 ### Production frontend regression checks (2026-11-02)
 
@@ -154,6 +154,61 @@ the WhatsApp sandbox. Both language layout sweeps cover all 156 routes and local
 Their fixtures use typed inputs and explicit customer/deal/invoice records rather than stale cached links. A fresh
 combined browser run remains pending; the earlier combined run had 189 passes, 12 failures and one blocked test.
 These checks preserve the existing UI and business behavior; the remaining business backend is still TypeScript.
+
+The next combined run reached 196 passes, three failures and three blocked cases. Follow-up fixes remove competing
+refreshes from order/procurement/store views and invalidate saved requisition details. Purchase-order submission
+retains its saved draft ID for retry and navigates after submission completes. Invoice/deal saves use document
+navigation to avoid the reproduced Next transition stall; this workaround remains until an upgrade is verified.
+Eight controlled save runs pass. All 38 focused admin cases pass across the follow-up and final order runs,
+including failed submission/retry and leaving an editor while its successful response is pending. Fixtures use a
+unique buyer and committed-page selectors. Unit/static checks (332), lint, production builds and action schemas
+pass. The fresh combined suite finished with 200 passes, four failures and two blocked cases (23.5 minutes).
+Remaining failures concern broadcasts, count drafts, transfers and opening an Arabic article editor; it is not green.
+
+### IT session controls (2026-11-02)
+
+The IT dashboard lists identity-issued sessions with realm/account filters and cursor paging, and permits audited
+revocation according to `sessions:read/delete`. Identity rechecks the live operator's account, roles, MFA and session
+inside the transaction. Revocation ends both access and refresh credentials, is idempotent, and rolls back if its
+audit event cannot be written. Serialized desk changes prevent opposing revocations from deadlocking. Revoking the
+operator's own session also clears all three browser credential cookies. These tables were already identity-owned;
+legacy staff/customer app sessions remain outside this page until their authentication cutover.
+
+Evidence: Go vet, lint, security analysis and the full race suite pass. Real-Postgres/OpenAPI tests cover paging,
+orphan sessions, credential exclusion, realm/permission refusals, stale actors, audit rollback, refresh rejection
+and concurrent revocation. Frontend unit/static checks pass 332 tests; workspace types, lint and action schemas
+pass. Both production IT browser journeys pass without retries (46.3 seconds including startup), covering Arabic
+phone/English desktop filters, read-only access, cancel, injected failure/retry, live gateway invalidation, audit
+delivery and own-session cookie removal. The broad admin regression suite remains under investigation separately.
+Phase 3 remains in progress; staff/customer cutover and later migration waves are unfinished.
+
+A follow-up browser check reproduced a timestamp hydration error with an operator in a different timezone. The
+shared IT formatter now matches the server's first render before switching to the operator's local time. Both IT
+journeys pass with a Honolulu browser context (43.6 seconds), including local-time output, repeated session-filter
+parameters and no browser page errors. Session filters consistently use the first value of repeated parameters.
+
+### Staff policy preview (2026-11-02)
+
+`GET /v1/identity/staff/access` evaluates identity-owned grants, explicit overrides, current module availability and
+role data scopes for a live staff session. It preserves the legacy single-role rules, including explicit denial,
+older write grants and Super Admin access. Account/session locks and a repeatable-read snapshot protect the policy
+read; dependency I/O happens before those locks. The module client rejects redirects, oversized/malformed bodies
+and incomplete catalogues. Missing credentials or dependency failures cannot restore default permissions.
+
+Identity's separate service key is restricted by `SYSTEM_MODULE_READ_CALLERS` to module availability. Existing
+general settings readers retain their access. No new tables or legacy writes are introduced: this reads the
+previous snapshot. Department-member resolution, synchronization with business-owned profiles, final handoff and
+staff/customer app integration remain pending. Phase 3 stays **In progress**.
+
+Evidence: 12 shared edge cases and all 22 role templates pass against the actual TypeScript evaluators and Go.
+Real-Postgres/OpenAPI tests cover live account/role/session checks, missing snapshots, malformed overrides,
+module failures, consistent scope policies and credential exclusion. Go vet, lint, security analysis and the full
+race suite pass. Frontend unit/static checks pass 366 tests; lint and workspace types pass. A synthetic fixture on
+the rebuilt `platform-verify` stack verified bcrypt-to-Argon2id login, policy changes after module switches, 403
+for identity's integration/site reads, and immediate gateway rejection after logout; its fixture records were
+deleted and the module choice restored. Both IT browser journeys pass after the backend rebuild (58.9 seconds).
+Helm strict lint/render/schema checks pass for default/staging/production (49 valid resources, seven ServiceMonitor
+schemas skipped each). The broad browser suite's four remaining failures above are separate and unresolved.
 
 ## Request path
 

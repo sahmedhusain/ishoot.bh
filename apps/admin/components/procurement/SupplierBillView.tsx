@@ -70,7 +70,6 @@ export function SupplierBillView({ bill, fromOrder, suppliers, currency, rights 
     try {
       await task();
       if (done) setMessage({ tone: "ok", text: done });
-      router.refresh();
     } catch (err) {
       setMessage({ tone: "error", text: errorMessage(err, t) });
     } finally {

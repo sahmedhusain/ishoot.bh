@@ -16,12 +16,19 @@ test.beforeEach(async () => {
   contactId = (await db.crmContact.create({ data: { firstName: marker } })).id;
   dealId = (
     await db.crmDeal.create({
-      data: { currency: "BHD", title: marker, contactId, probability: 0, dealValue: 100 },
+      data: {
+        currency: "BHD",
+        title: marker,
+        contactId,
+        probability: 0,
+        dealValue: 100,
+      },
     })
   ).id;
   invoiceId = (
     await db.invoice.create({
-      data: { currency: "BHD",
+      data: {
+        currency: "BHD",
         invoiceNumber: marker,
         clientId: contactId,
         dueDate: new Date("2050-12-31"),
@@ -41,7 +48,8 @@ test.beforeEach(async () => {
   ).id;
   quotationId = (
     await db.quotation.create({
-      data: { currency: "BHD",
+      data: {
+        currency: "BHD",
         quotationNumber: marker,
         clientId: contactId,
         status: "accepted",
@@ -311,6 +319,91 @@ for (const locale of ["en", "ar"] as const) {
       }),
     ).toHaveCount(0);
     await expect(description).toHaveValue(marker + " edited");
+  });
+}
+
+for (const type of ["invoice", "deal"] as const) {
+  test(`a pending ${type} save cannot redirect after leaving its editor`, async ({
+    page,
+  }) => {
+    await page.addInitScript(() =>
+      localStorage.setItem("platform_admin_locale", "en"),
+    );
+    const detail =
+      type === "invoice"
+        ? `/dashboard/invoices/${invoiceId}`
+        : `/dashboard/crm/deals/${dealId}`;
+    const path = `${detail}/edit`;
+    await page.goto(detail);
+    await page.getByRole("main").locator(`a[href="${path}"]`).first().click();
+    await expect(page).toHaveURL(new RegExp(`${path}$`));
+    const main = page.getByRole("main");
+    const field =
+      type === "invoice"
+        ? main.locator("textarea").first()
+        : main.getByPlaceholder(en.dealEdit.titlePlaceholder, { exact: true });
+    await field.fill(marker + " late save");
+    let release!: () => void;
+    const blocked = new Promise<void>((done) => {
+      release = done;
+    });
+    let sent!: () => void;
+    const responseSent = new Promise<void>((done) => {
+      sent = done;
+    });
+    await page.route(`**${path}`, async (route) => {
+      if (route.request().method() !== "POST") return route.continue();
+      const response = await route.fetch();
+      await blocked;
+      await route.fulfill({ response });
+      sent();
+    });
+    try {
+      await main.locator('button[type="submit"]').click();
+      await page
+        .getByRole("dialog")
+        .getByRole("button", {
+          name: en.editConfirmModal.confirmAndSaveChanges,
+          exact: true,
+        })
+        .click();
+      await expect(main.locator('[inert][aria-busy="true"]')).toBeVisible();
+      await expect
+        .poll(async () =>
+          type === "invoice"
+            ? (await db.invoice.findUniqueOrThrow({ where: { id: invoiceId } }))
+                .notesEn
+            : (await db.crmDeal.findUniqueOrThrow({ where: { id: dealId } }))
+                .title,
+        )
+        .toBe(marker + " late save");
+      await page.evaluate(() => history.back());
+      await page
+        .getByRole("dialog", { name: en.unsavedChanges.title, exact: true })
+        .getByRole("button", { name: en.unsavedChanges.discard, exact: true })
+        .click();
+      await expect(page).toHaveURL(new RegExp(`${detail}$`));
+      await page
+        .getByRole("banner")
+        .locator('a[href="/dashboard"]')
+        .first()
+        .click();
+      await expect(page).toHaveURL(/\/dashboard$/);
+    } finally {
+      release();
+    }
+    await responseSent;
+    await expect
+      .poll(async () =>
+        type === "invoice"
+          ? (await db.invoice.findUniqueOrThrow({ where: { id: invoiceId } }))
+              .notesEn
+          : (await db.crmDeal.findUniqueOrThrow({ where: { id: dealId } }))
+              .title,
+      )
+      .toBe(marker + " late save");
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 }
 

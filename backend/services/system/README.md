@@ -16,7 +16,7 @@ module added in a later version appears with its default without any data change
 
 | Path                           | Caller                                 | Allowed                                   |
 | ------------------------------ | -------------------------------------- | ----------------------------------------- |
-| `GET /v1/system/modules`       | Apps' back ends (service tokens)       | `SYSTEM_READ_CALLERS`                     |
+| `GET /v1/system/modules`       | Apps' back ends and identity (service tokens) | `SYSTEM_READ_CALLERS` or `SYSTEM_MODULE_READ_CALLERS` |
 | `PUT /v1/system/modules/{key}` | The admin's setup wizard, for a person | `SYSTEM_MODULE_WRITERS`                   |
 | `/v1/system/desk/modules`      | IT staff (IT-realm tokens)             | `modules:read`, `modules:edit` (IT roles) |
 

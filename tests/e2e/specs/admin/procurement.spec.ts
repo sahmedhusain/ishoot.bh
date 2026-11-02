@@ -177,7 +177,7 @@ test("a requisition is approved, priced by two suppliers, ordered from the cheap
   });
   expect(Number(order.lines[0].unitPrice)).toBe(17.25);
   await page.goto(`/dashboard/procurement/orders/${order.id}`);
-  await page.getByTestId("order-submit").click();
+  await page.getByRole("main").getByTestId("order-submit").click();
   await expect(page.getByRole("main").getByTestId("status")).toHaveText(
     copy.statuses.approved,
   );
@@ -200,6 +200,51 @@ test("a requisition is approved, priced by two suppliers, ordered from the cheap
   errors.assertClean();
 });
 
+test("purchase order retries reuse the saved draft after submission fails", async ({
+  page,
+}) => {
+  const description = `E2E retry order ${Date.now()}`;
+  const path = "/dashboard/procurement/orders/new";
+  await page.goto(path);
+  await selectOption(page.getByLabel(copy.orders.supplier), {
+    label: "E2E Supplier Alpha",
+  });
+  await page
+    .getByRole("textbox", { name: copy.lines.description })
+    .fill(description);
+  await page
+    .getByRole("spinbutton", { name: `${copy.lines.quantity} 1` })
+    .fill("1");
+  await page
+    .getByRole("spinbutton", { name: `${copy.lines.unitPrice} 1` })
+    .fill("20");
+  await page.route(`**${path}`, (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    const first = JSON.parse(route.request().postData() || "[]")[0];
+    return typeof first === "string"
+      ? route.fulfill({
+          status: 500,
+          contentType: "text/plain",
+          body: "Test submission failure",
+        })
+      : route.continue();
+  });
+  await page.getByRole("main").getByTestId("order-submit").click();
+  await expect(page.getByRole("main").getByRole("alert")).toBeVisible();
+  await expect(page).toHaveURL(/\/orders\/new$/);
+  const where = { lines: { some: { description } } };
+  const drafts = await db.purchaseOrder.findMany({ where });
+  expect(drafts).toHaveLength(1);
+  expect(drafts[0].status).toBe("draft");
+  await page.unroute(`**${path}`);
+  await page.getByRole("main").getByTestId("order-submit").click();
+  await expect(page).toHaveURL(new RegExp(`/orders/${drafts[0].id}$`));
+  await expect(page.getByRole("main").getByTestId("status")).toHaveText(
+    copy.statuses.approved,
+  );
+  expect(await db.purchaseOrder.count({ where })).toBe(1);
+});
+
 test("goods are received into stock, a bill that differs is approved with a reason, then paid", async ({
   page,
 }) => {
@@ -220,7 +265,7 @@ test("goods are received into stock, a bill that differs is approved with a reas
   await page
     .getByRole("spinbutton", { name: `${copy.lines.unitPrice} 1` })
     .fill("2");
-  await page.getByTestId("order-submit").click();
+  await page.getByRole("main").getByTestId("order-submit").click();
   await expect(page).toHaveURL(
     /\/dashboard\/procurement\/orders\/[0-9a-f-]{36}$/,
     { timeout: 60_000 },

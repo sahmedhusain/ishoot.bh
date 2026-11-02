@@ -23,6 +23,14 @@ func CheckITAccess(ctx context.Context, q *sqlcdb.Queries, p authn.Principal, re
 	if p.Realm != authn.RealmIT || !authz.Allowed(catalog.ITAccess, p, resource, action) {
 		return ErrForbidden
 	}
+	return CheckUserSession(ctx, q, p, now)
+}
+
+// CheckUserSession locks the live account and its session inside the transaction using the policy.
+func CheckUserSession(ctx context.Context, q *sqlcdb.Queries, p authn.Principal, now time.Time) error {
+	if !slices.Contains(authn.UserRealms, p.Realm) {
+		return ErrInvalid
+	}
 	if _, err := uuid.Parse(p.SessionID); err != nil {
 		return ErrInvalid
 	}
@@ -33,7 +41,7 @@ func CheckITAccess(ctx context.Context, q *sqlcdb.Queries, p authn.Principal, re
 	if err != nil {
 		return err
 	}
-	if !account.Active || !account.MfaEnabled || !slices.Equal(account.Roles, p.Roles) {
+	if !account.Active || (p.Realm == authn.RealmIT && !account.MfaEnabled) || !slices.Equal(account.Roles, p.Roles) {
 		return ErrInvalid
 	}
 	session, err := q.LockSessionFamily(ctx, p.SessionID)

@@ -32,6 +32,7 @@ type Options struct {
 	// ReadCallers may read settings; ModuleWriters may switch modules; IntegrationWriters may modify integrations;
 	// DomainWriters may set the domains for a person they name (the admin's setup wizard).
 	ReadCallers, ModuleWriters, IntegrationWriters, DomainWriters []string
+	ModuleReadCallers                                             []string
 	JSONBodyLimit                                                 int64
 	// SiteCodeBodyLimit caps the site code request, which carries up to two 50,000-character documents.
 	SiteCodeBodyLimit int64
@@ -48,7 +49,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	e.GET("/v1/system/openapi.yaml", func(c echo.Context) error { return c.Blob(http.StatusOK, "application/yaml", api.OpenAPI) })
 
 	services := e.Group("/v1/system", authn.Require(opts.Verifier, authn.RealmService))
-	services.GET("/modules", h.modules, caller(opts.ReadCallers))
+	services.GET("/modules", h.modules, caller(slices.Concat(opts.ReadCallers, opts.ModuleReadCallers)))
 	services.PUT("/modules/:key", h.setModuleForService, caller(opts.ModuleWriters))
 
 	services.GET("/integrations", h.listIntegrations, caller(opts.ReadCallers))

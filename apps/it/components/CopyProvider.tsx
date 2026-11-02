@@ -7,6 +7,7 @@ import type { Copy, ItLocale } from "../lib/i18n";
 const Context = React.createContext<{ copy: Copy; locale: ItLocale } | null>(
   null,
 );
+const subscribe = () => () => undefined;
 
 export function CopyProvider({
   copy,
@@ -24,6 +25,11 @@ export function CopyProvider({
 /** The interface copy and helpers for catalogue keys (a key without copy is shown as it is). */
 export function useCopy() {
   const value = React.useContext(Context);
+  const hydrated = React.useSyncExternalStore(
+    subscribe,
+    () => true,
+    () => false,
+  );
   if (!value) throw new Error("useCopy must be used inside CopyProvider");
   const { copy, locale } = value;
   const pick = (labels: Record<string, string>, key: string) =>
@@ -33,6 +39,8 @@ export function useCopy() {
     {
       dateStyle: "medium",
       timeStyle: "short",
+      // Match server and first client render, then show the operator's local time.
+      timeZone: hydrated ? undefined : "UTC",
     },
   );
   return {

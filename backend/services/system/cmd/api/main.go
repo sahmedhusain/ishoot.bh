@@ -121,6 +121,7 @@ func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, pool *
 	e.Use(telemetry.EchoMiddleware())
 	httpapi.Register(e, svc, httpapi.Options{
 		Verifier: verifier, ReadCallers: cfg.System.ReadCallers, ModuleWriters: cfg.System.ModuleWriters,
+		ModuleReadCallers:  cfg.System.ModuleReadCallers,
 		IntegrationWriters: cfg.System.IntegrationWriters, DomainWriters: cfg.System.DomainWriters,
 		JSONBodyLimit: cfg.System.JSONBodyLimit, SiteCodeBodyLimit: cfg.System.SiteCodeBodyLimit,
 	})

@@ -7,7 +7,6 @@ import { ROUTES } from "../../constants/routes";
 import { EntityLookup } from "../shared/EntityLookup";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { CRMDeal, CRMContact, DealStage } from "@platform/database/types";
 import type { DealPipelineStage } from "@platform/database";
@@ -27,7 +26,6 @@ interface DealEditFormViewProps {
 }
 
 export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFormViewProps) {
-  const router = useRouter();
   const { t, locale } = useAdminLocale();
   const currencyLabel = getCurrencyLabel(useCompanyCurrency(), locale === "ar");
 
@@ -125,7 +123,8 @@ export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFor
 
       if (!markSaved()) return;
 
-      router.push(ROUTES.crm.deal(deal.id));
+      // shortcut: document navigation avoids save-transition stalls on pinned Next, revisit after upgrading Next.
+      window.location.assign(ROUTES.crm.deal(deal.id));
     } catch (err) {
       setError(errorMessage(err, t, t.dealEditForm.couldNotSaveTheDeal));
       throw err;

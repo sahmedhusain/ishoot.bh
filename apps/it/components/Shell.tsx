@@ -11,6 +11,7 @@ import {
   Languages,
   ListChecks,
   LogOut,
+  Monitor,
   Settings,
   ShieldCheck,
   Timer,
@@ -48,6 +49,7 @@ const NAV = [
     resource: "notifications",
   },
   { href: "/audit", icon: History, label: "audit", resource: "audit" },
+  { href: "/sessions", icon: Monitor, label: "sessions", resource: "sessions" },
   {
     href: "/it-accounts",
     icon: Users,

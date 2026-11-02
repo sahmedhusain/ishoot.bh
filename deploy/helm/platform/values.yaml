@@ -207,12 +207,13 @@ services:
       IDENTITY_CALLERS_STAFF: admin
       IDENTITY_CALLERS_CUSTOMER: web
       IDENTITY_CALLERS_IT: it
+      IDENTITY_SYSTEM_URL: http://system:8080
       NATS_URL: nats://nats.nats:4222
       NATS_REPLICAS: "3"
     # Secrets (identity-secrets): DATABASE_URL (svc_<service> through PgBouncer), DATABASE_DIRECT_URL (the same login, direct), IDENTITY_SIGNING_JWK, IDENTITY_LOGIN_REDIS_URL,
-    # IDENTITY_LOGIN_RATE_KEY, IDENTITY_LOGIN_MFA_KEYS, IDENTITY_LOGIN_MFA_LEGACY_KEY.
+    # IDENTITY_LOGIN_RATE_KEY, IDENTITY_LOGIN_MFA_KEYS, IDENTITY_LOGIN_MFA_LEGACY_KEY, IDENTITY_SERVICE_KEY (module-read caller).
     configFiles: []
-    talksTo: []
+    talksTo: [system]
 
   system:
     enabled: true
@@ -229,6 +230,7 @@ services:
       AUTH_ISSUER: ""
       AUTH_JWKS_URL: "http://identity:8080/.well-known/jwks.json"
       SYSTEM_READ_CALLERS: admin,web,it,notify
+      SYSTEM_MODULE_READ_CALLERS: identity
       SYSTEM_MODULE_WRITERS: admin
       SYSTEM_INTEGRATION_WRITERS: admin
       SYSTEM_DOMAIN_WRITERS: admin

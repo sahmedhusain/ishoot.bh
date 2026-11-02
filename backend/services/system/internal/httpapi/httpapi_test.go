@@ -58,6 +58,10 @@ func TestModules(t *testing.T) {
 	webKey, ok := web.Public.Key(0)
 	require.True(t, ok)
 	require.NoError(t, admin.Public.AddKey(webKey))
+	moduleReader := authntest.NewServiceSigner(t, "identity")
+	moduleKey, ok := moduleReader.Public.Key(0)
+	require.True(t, ok)
+	require.NoError(t, admin.Public.AddKey(moduleKey))
 	ring, err := secrets.NewKeyring(secrets.Config{
 		Keys:         []string{"primary:MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE="},
 		PrimaryKeyID: "primary",
@@ -66,6 +70,7 @@ func TestModules(t *testing.T) {
 	httpapi.Register(e, app.New(postgres.New(pool), ring), httpapi.Options{
 		Verifier:           authn.NewVerifier(time.Second, services, identity.Trust()),
 		ReadCallers:        []string{"admin", "web"},
+		ModuleReadCallers:  []string{"identity"},
 		ModuleWriters:      []string{"admin"},
 		IntegrationWriters: []string{"admin"},
 		DomainWriters:      []string{"admin"},
@@ -113,6 +118,12 @@ func TestModules(t *testing.T) {
 	}
 	adminToken := admin.Sign(t, authntest.Token{Subject: "admin"})
 	webToken := web.Sign(t, authntest.Token{Subject: "web"})
+	moduleToken := moduleReader.Sign(t, authntest.Token{Subject: "identity"})
+	require.Equal(t, http.StatusOK, call(moduleToken, http.MethodGet, "/v1/system/modules", nil).Code)
+	for _, path := range []string{"/v1/system/integrations", "/v1/system/integrations/resend", "/v1/system/site"} {
+		require.Equal(t, http.StatusForbidden, call(moduleToken, http.MethodGet, path, nil).Code)
+	}
+	require.Equal(t, http.StatusForbidden, call(moduleToken, http.MethodPut, "/v1/system/modules/store", map[string]any{"enabled": true, "actorId": "u"}).Code)
 	it := func(roles ...string) string {
 		return identity.Sign(t, authntest.Token{Subject: "it-1", Realm: authn.RealmIT, Roles: roles})
 	}
