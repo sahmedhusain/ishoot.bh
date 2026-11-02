@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/hr.employee.created.v1.json",
+  "title": "hr.employee.created",
+  "description": "An employee record was created.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "employeeId",
+    "email"
+  ],
+  "properties": {
+    "employeeId": { "type": "string" },
+    "email": { "type": "string" }
+  }
+}

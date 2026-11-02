@@ -3,20 +3,28 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Activity,
+  Archive,
   Bell,
   Blocks,
+  Building2,
+  Cpu,
+  Database,
   Gauge,
   History,
   Globe,
+  Key,
   Languages,
   ListChecks,
   LogOut,
   Monitor,
   Settings,
   ShieldCheck,
+  Terminal,
   Timer,
   ToggleRight,
   Users,
+  Wrench,
 } from "lucide-react";
 import { itAllowed } from "@platform/contracts";
 import { setLocaleAction, signOutAction } from "../app/actions";
@@ -42,6 +50,8 @@ const NAV = [
     resource: "integrations",
   },
   { href: "/site", icon: Globe, label: "site", resource: "domains" },
+  { href: "/company", icon: Building2, label: "company", resource: "setup" },
+  { href: "/setup", icon: Wrench, label: "setup", resource: "setup" },
   {
     href: "/notifications",
     icon: Bell,
@@ -49,6 +59,18 @@ const NAV = [
     resource: "notifications",
   },
   { href: "/audit", icon: History, label: "audit", resource: "audit" },
+  {
+    href: "/staff-accounts",
+    icon: Users,
+    label: "staffAccounts",
+    resource: "staff_accounts",
+  },
+  {
+    href: "/staff-roles",
+    icon: ShieldCheck,
+    label: "staffRoles",
+    resource: "staff_roles",
+  },
   { href: "/sessions", icon: Monitor, label: "sessions", resource: "sessions" },
   {
     href: "/it-accounts",
@@ -56,6 +78,22 @@ const NAV = [
     label: "itAccounts",
     resource: "it_accounts",
   },
+  {
+    href: "/system-health",
+    icon: Activity,
+    label: "systemHealth",
+    resource: "system_health",
+  },
+  { href: "/logs", icon: Terminal, label: "logs", resource: "logs" },
+  {
+    href: "/database",
+    icon: Database,
+    label: "database",
+    resource: "database",
+  },
+  { href: "/jobs", icon: Cpu, label: "jobs", resource: "jobs" },
+  { href: "/backups", icon: Archive, label: "backups", resource: "backups" },
+  { href: "/api-keys", icon: Key, label: "apiKeys", resource: "api_keys" },
   {
     href: "/settings",
     icon: Settings,
@@ -79,24 +117,27 @@ export function Shell({
 
   return (
     <ItLive>
-    <div className="min-h-screen lg:grid lg:grid-cols-[260px_1fr]">
-      <a
-        href="#content"
-        className="sr-only focus:not-sr-only focus:absolute focus:m-2 focus:p-2 focus:bg-surface"
-      >
-        {copy.app.skipToContent}
-      </a>
-      <aside className="border-b lg:border-b-0 lg:border-e border-outline-variant bg-surface-container-low p-4 lg:min-h-screen flex lg:flex-col gap-4">
-        <div className="flex items-center gap-2 px-2 py-1">
-          <ShieldCheck className="size-6 text-accent" aria-hidden />
-          <span className="font-bold text-ink">{copy.app.name}</span>
-        </div>
-        <nav
-          aria-label={copy.app.name}
-          className="flex lg:flex-col gap-1 overflow-x-auto"
+      <div className="min-h-screen lg:grid lg:grid-cols-[260px_1fr]">
+        <a
+          href="#content"
+          className="sr-only focus:not-sr-only focus:absolute focus:m-2 focus:p-2 focus:bg-surface"
         >
-          {NAV.filter((item) => !("resource" in item) || itAllowed(roles, item.resource, "read")).map(
-            (item) => (
+          {copy.app.skipToContent}
+        </a>
+        <aside className="border-b lg:border-b-0 lg:border-e border-outline-variant bg-surface-container-low p-4 lg:min-h-screen flex lg:flex-col gap-4">
+          <div className="flex items-center gap-2 px-2 py-1">
+            <ShieldCheck className="size-6 text-accent" aria-hidden />
+            <span className="font-bold text-ink">{copy.app.name}</span>
+          </div>
+          <nav
+            aria-label={copy.app.name}
+            className="flex lg:flex-col gap-1 overflow-x-auto"
+          >
+            {NAV.filter(
+              (item) =>
+                !("resource" in item) ||
+                itAllowed(roles, item.resource, "read"),
+            ).map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -106,47 +147,48 @@ export function Shell({
                 <item.icon className="size-4" aria-hidden />
                 {copy.nav[item.label]}
               </Link>
-            ),
-          )}
-        </nav>
-      </aside>
-      <div className="min-w-0">
-        <header className="flex items-center justify-end gap-3 px-6 py-4 border-b border-outline-variant">
-          <ItStatus email={email} />
-          <ItBell />
-          <div className="text-end me-auto lg:me-0">
-            <div className="text-xs text-ink-muted">{copy.app.signedInAs}</div>
-            <div className="text-sm font-semibold text-ink" dir="ltr">
-              {email}
+            ))}
+          </nav>
+        </aside>
+        <div className="min-w-0">
+          <header className="flex items-center justify-end gap-3 px-6 py-4 border-b border-outline-variant">
+            <ItStatus email={email} />
+            <ItBell />
+            <div className="text-end me-auto lg:me-0">
+              <div className="text-xs text-ink-muted">
+                {copy.app.signedInAs}
+              </div>
+              <div className="text-sm font-semibold text-ink" dir="ltr">
+                {email}
+              </div>
+              <div className="text-[11px] text-ink-muted">
+                {roles.map(role).join(" · ")}
+              </div>
             </div>
-            <div className="text-[11px] text-ink-muted">
-              {roles.map(role).join(" · ")}
-            </div>
-          </div>
-          <form action={setLocaleAction.bind(null, copy.app.languageCode)}>
-            <button
-              type="submit"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-full border border-outline-variant text-xs text-ink hover:bg-surface-container"
-            >
-              <Languages className="size-4" aria-hidden />
-              {copy.app.language}
-            </button>
-          </form>
-          <form action={signOutAction}>
-            <button
-              type="submit"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-full border border-outline-variant text-xs text-ink hover:bg-surface-container"
-            >
-              <LogOut className="size-4" aria-hidden />
-              {copy.app.signOut}
-            </button>
-          </form>
-        </header>
-        <main id="content" className="p-6 max-w-6xl mx-auto">
-          {children}
-        </main>
+            <form action={setLocaleAction.bind(null, copy.app.languageCode)}>
+              <button
+                type="submit"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-full border border-outline-variant text-xs text-ink hover:bg-surface-container"
+              >
+                <Languages className="size-4" aria-hidden />
+                {copy.app.language}
+              </button>
+            </form>
+            <form action={signOutAction}>
+              <button
+                type="submit"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-full border border-outline-variant text-xs text-ink hover:bg-surface-container"
+              >
+                <LogOut className="size-4" aria-hidden />
+                {copy.app.signOut}
+              </button>
+            </form>
+          </header>
+          <main id="content" className="p-6 max-w-6xl mx-auto">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
     </ItLive>
   );
 }

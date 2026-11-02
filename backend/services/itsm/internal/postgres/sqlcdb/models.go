@@ -9,6 +9,24 @@ import (
 	"time"
 )
 
+type ItsmInbox struct {
+	Consumer  string
+	EventID   string
+	HandledAt time.Time
+}
+
+type ItsmOutbox struct {
+	ID          string
+	Subject     string
+	Payload     json.RawMessage
+	Headers     json.RawMessage
+	CreatedAt   time.Time
+	PublishedAt *time.Time
+	Attempts    int32
+	NextTryAt   time.Time
+	LastError   *string
+}
+
 type ItsmSlaPolicy struct {
 	Priority        string
 	ResponseMinutes int32
@@ -40,6 +58,7 @@ type ItsmTicket struct {
 	ClosedAt        *time.Time
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
+	RemindedAt      *time.Time
 }
 
 type ItsmTicketAttachment struct {
@@ -50,6 +69,7 @@ type ItsmTicketAttachment struct {
 	FileSize  int64
 	AddedBy   string
 	CreatedAt time.Time
+	CommentID *string
 }
 
 type ItsmTicketComment struct {

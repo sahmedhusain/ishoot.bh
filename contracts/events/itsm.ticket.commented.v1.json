@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/itsm.ticket.commented.v1.json",
+  "title": "itsm.ticket.commented",
+  "description": "A comment was added to an IT ticket. Comment body and attachments omitted.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "ticketId",
+    "number",
+    "commentId",
+    "internal",
+    "changedBy"
+  ],
+  "properties": {
+    "ticketId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "number": {
+      "type": "integer"
+    },
+    "commentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "internal": {
+      "type": "boolean"
+    },
+    "attachmentCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "changedBy": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

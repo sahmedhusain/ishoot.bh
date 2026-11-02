@@ -87,8 +87,8 @@ func New(repo Repository, passwords Passwords, secrets SecretReader, otp OTP, se
 }
 
 type Input struct {
-	Realm                          authn.Realm
-	Email, Password, OTP, ClientIP string
+	Realm                                     authn.Realm
+	Email, Password, OTP, ClientIP, UserAgent string
 }
 type Result struct {
 	Account    Account
@@ -145,8 +145,9 @@ func (s *Service) Login(ctx context.Context, input Input, now time.Time) (Result
 	if err != nil {
 		return Result{}, err
 	}
+	credential.Family.UserAgent, credential.Family.ClientIP = input.UserAgent, input.ClientIP
 	locked, err := s.repo.CompleteLogin(ctx, account, replacement, credential, now, func(current Account) (MFAResult, error) {
-		return s.checkFactor(current, input.OTP, now)
+		return s.CheckFactor(current, input.OTP, now)
 	})
 	if err != nil {
 		return Result{}, err

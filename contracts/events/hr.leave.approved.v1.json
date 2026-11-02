@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/hr.leave.approved.v1.json",
+  "title": "hr.leave.approved",
+  "description": "An employee leave request was approved.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "leaveRequestId",
+    "approvedBy"
+  ],
+  "properties": {
+    "leaveRequestId": { "type": "string" },
+    "approvedBy": { "type": "string" }
+  }
+}

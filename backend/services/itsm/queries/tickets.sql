@@ -43,6 +43,7 @@ SELECT * FROM itsm.ticket
 WHERE (@status::text = '' OR status = @status)
   AND (@assignee_id::text = '' OR assignee_id = @assignee_id)
   AND (@priority::text = '' OR priority = @priority)
+  AND (@category::text = '' OR category = @category)
   AND (NOT @open_only::boolean OR status = ANY(@open_statuses::text[]))
   AND (NOT @has_cursor::boolean OR (created_at, id) < (@before_created::timestamptz, @before_id::uuid))
 ORDER BY created_at DESC, id DESC
@@ -65,20 +66,59 @@ SELECT * FROM itsm.ticket_comment WHERE ticket_id = @ticket_id AND (@include_int
 ORDER BY created_at, id;
 
 -- name: InsertAttachment :exec
-INSERT INTO itsm.ticket_attachment (ticket_id, file_url, file_name, mime_type, file_size, added_by, created_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING;
+INSERT INTO itsm.ticket_attachment (ticket_id, file_url, file_name, mime_type, file_size, added_by, comment_id, created_at)
+VALUES (@ticket_id, @file_url, @file_name, @mime_type, @file_size, @added_by, @comment_id, @created_at)
+ON CONFLICT (ticket_id, file_url) DO UPDATE SET
+    comment_id = COALESCE(EXCLUDED.comment_id, itsm.ticket_attachment.comment_id);
 
 -- name: ListAttachments :many
-SELECT * FROM itsm.ticket_attachment WHERE ticket_id = $1 ORDER BY created_at, file_url;
+SELECT a.* FROM itsm.ticket_attachment a
+WHERE a.ticket_id = @ticket_id
+  AND (
+    @include_internal::boolean
+    OR a.comment_id IS NULL
+    OR EXISTS (
+        SELECT 1 FROM itsm.ticket_comment c
+        WHERE c.id = a.comment_id AND NOT c.internal
+    )
+  )
+ORDER BY a.created_at, a.file_url;
+
+-- name: ListCommentAttachments :many
+SELECT * FROM itsm.ticket_attachment
+WHERE comment_id = $1
+ORDER BY created_at, file_url;
 
 -- name: MarkBreached :many
 UPDATE itsm.ticket SET breached_at = @now, updated_at = @now
 WHERE id IN (
     SELECT t.id FROM itsm.ticket AS t
-    WHERE t.breached_at IS NULL AND t.resolved_at IS NULL AND t.closed_at IS NULL AND t.resolve_by <= @now
-    ORDER BY t.resolve_by LIMIT @batch_size::int FOR UPDATE SKIP LOCKED
+    WHERE t.breached_at IS NULL AND t.closed_at IS NULL AND (
+        (t.resolved_at IS NULL AND t.resolve_by <= @now)
+        OR (t.first_response_at IS NULL AND t.respond_by <= @now)
+    )
+    ORDER BY LEAST(t.resolve_by, t.respond_by) LIMIT @batch_size::int FOR UPDATE SKIP LOCKED
 )
-RETURNING id;
+RETURNING id, number, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, assignee_id, respond_by, resolve_by, first_response_at, resolved_at;
+
+-- name: FindSLAReminders :many
+SELECT t.id, t.number, t.requester_id, t.requester_name, t.requester_email, t.category, t.subcategory, t.priority, t.status, t.title, t.assignee_id, t.respond_by, t.resolve_by, t.first_response_at
+FROM itsm.ticket AS t
+WHERE t.reminded_at IS NULL
+  AND t.breached_at IS NULL
+  AND t.closed_at IS NULL
+  AND t.resolved_at IS NULL
+  AND (
+    (t.first_response_at IS NULL AND t.respond_by <= @threshold::timestamptz)
+    OR (t.resolve_by <= @threshold::timestamptz)
+  )
+ORDER BY LEAST(t.resolve_by, t.respond_by)
+LIMIT @batch_size::int
+FOR UPDATE SKIP LOCKED;
+
+-- name: MarkReminded :exec
+UPDATE itsm.ticket SET reminded_at = @now, updated_at = @now
+WHERE id = ANY(@ids::uuid[]);
 
 -- name: QueueStats :many
 SELECT status, priority, count(*)::bigint AS tickets,

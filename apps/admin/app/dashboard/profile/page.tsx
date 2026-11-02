@@ -1,6 +1,5 @@
-import { cookies } from "next/headers";
-import { createHash } from "node:crypto";
-import { SESSION_COOKIE_NAME } from "../../../lib/auth";
+import { getOwnAccount, listOwnSessions } from "@platform/api-client";
+import { getStaffToken } from "../../../lib/auth";
 import { ProfileSecurityView } from "../../../components/profile/ProfileSecurityView";
 import { ProfileWorkspace } from "../../../components/profile/ProfileWorkspace";
 import { requireAuth } from "../../../lib/auth";
@@ -50,48 +49,18 @@ export default async function ProfilePage() {
     getProfileChangeRequestsForUser(user.id).catch(() => []),
   ]);
 
-  const token = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
-  const hash = token ? createHash("sha256").update(token).digest("hex") : null;
-  const [security, activeSessions, recoveryCount] = await Promise.all([
-    db.user.findUniqueOrThrow({
-      where: { id: user.id },
-      select: { mfaEnabled: true },
-    }),
-    db.session.findMany({
-      where: { userId: user.id, expiresAt: { gt: new Date() } },
-      select: {
-        id: true,
-        token: true,
-        createdAt: true,
-        expiresAt: true,
-        userAgent: true,
-        ipAddress: true,
-      },
-      orderBy: { createdAt: "desc" },
-      take: 20,
-    }),
-    db.mfaRecoveryCode.count({ where: { userId: user.id, usedAt: null } }),
-  ]);
-  // Always include the current device, even if there are many newer sessions.
-  if (hash && !activeSessions.some((session) => session.token === hash)) {
-    const current = await db.session.findFirst({
-      where: { userId: user.id, token: hash, expiresAt: { gt: new Date() } },
-      select: {
-        id: true,
-        token: true,
-        createdAt: true,
-        expiresAt: true,
-        userAgent: true,
-        ipAddress: true,
-      },
-    });
-    if (current) activeSessions.unshift(current);
-  }
-  const sessions = activeSessions.map(({ token, ...session }) => ({
-    ...session,
-    current: token === hash,
-    createdAt: session.createdAt.toISOString(),
-    expiresAt: session.expiresAt.toISOString(),
+  // Sign-in security (two-step status, recovery codes and sessions) lives in identity.
+  const staff = await getStaffToken();
+  const [security, ownSessions] = staff
+    ? await Promise.all([getOwnAccount(staff.token), listOwnSessions(staff.token)])
+    : [{ mfaEnabled: false, recoveryCodesLeft: 0 }, []];
+  const sessions = ownSessions.map((session) => ({
+    id: session.id,
+    current: session.current,
+    createdAt: session.createdAt,
+    expiresAt: session.expiresAt,
+    userAgent: session.userAgent ?? null,
+    ipAddress: session.clientIp ?? null,
   }));
   return (
     <ProfileWorkspace hasEmployee={!!employeeRecord}>
@@ -119,7 +88,7 @@ export default async function ProfilePage() {
       <ProfileSecurityView
         mfaEnabled={security.mfaEnabled}
         sessions={sessions}
-        recoveryCount={recoveryCount}
+        recoveryCount={security.recoveryCodesLeft}
       />
     </ProfileWorkspace>
   );

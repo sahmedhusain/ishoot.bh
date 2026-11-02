@@ -31,6 +31,13 @@ type Secrets struct {
 
 // System holds the service's own settings.
 type System struct {
+	// ServiceKey proves system's identity when checking uploaded company files.
+	ServiceKey       string   `env:"SERVICE_KEY"`
+	FilesURL         string   `env:"FILES_URL" envDefault:"http://files:8080" validate:"http_url"`
+	CompanyBodyLimit int64    `env:"COMPANY_BODY_LIMIT" envDefault:"1048576" validate:"gt=0"`
+	CompanyReaders   []string `env:"COMPANY_READERS" envDefault:"admin,web,it,sales,finance,hr,workflow,inventory,commerce,delivery,cms" envSeparator:"," validate:"min=1,dive,required"`
+	CurrencyCallers  []string `env:"CURRENCY_CALLERS" envDefault:"admin,web,sales,finance,workflow,hr,inventory,commerce,delivery" envSeparator:"," validate:"min=1,dive,required"`
+	SequenceCallers  []string `env:"SEQUENCE_CALLERS" envDefault:"admin,finance" envSeparator:"," validate:"min=1,dive,required"`
 	// ReadCallers are the service identities that may read settings.
 	ReadCallers []string `env:"READ_CALLERS" envDefault:"admin,web,it,notify" envSeparator:"," validate:"min=1,dive,required"`
 	// ModuleReadCallers may read module availability only, without integration credentials or site settings.

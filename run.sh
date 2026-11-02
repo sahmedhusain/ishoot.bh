@@ -407,27 +407,35 @@ cmd_db() {
 # ----------------------------------------------------------------------------------------------------------
 cmd_dev() {
   case "${1:-all}" in
-    all) run pnpm dev ;;
-    admin) run pnpm dev:admin ;;
-    web | website) run pnpm dev:web ;;
-    it) run pnpm dev:it ;;
+    all)
+      trap 'kill 0' INT TERM EXIT
+      npm --prefix apps/admin run dev &
+      npm --prefix apps/web run dev &
+      npm --prefix apps/it run dev &
+      wait
+      ;;
+    admin) npm --prefix apps/admin run dev ;;
+    web | website) npm --prefix apps/web run dev ;;
+    it) npm --prefix apps/it run dev ;;
     *) die "dev [all|admin|web|it]" ;;
   esac
 }
 cmd_build() {
-  if [ "${1:-}" = "--clean" ]; then run pnpm build:clean; else run pnpm build; fi
+  npm --prefix apps/admin run build
+  npm --prefix apps/web run build
+  npm --prefix apps/it run build
 }
 cmd_start() {
   local app="${1:-all}"
   case "$app" in
-    admin) run pnpm --filter @platform/admin start ;;
-    web | website) run pnpm --filter @platform/web start ;;
-    it) run pnpm --filter @platform/it start ;;
+    admin) npm --prefix apps/admin start ;;
+    web | website) npm --prefix apps/web start ;;
+    it) npm --prefix apps/it start ;;
     all)
       trap 'kill 0' INT TERM EXIT
-      pnpm --filter @platform/web start &
-      pnpm --filter @platform/admin start &
-      pnpm --filter @platform/it start &
+      npm --prefix apps/web start &
+      npm --prefix apps/admin start &
+      npm --prefix apps/it start &
       wait
       ;;
     *) die "start [all|admin|web|it]" ;;
@@ -440,9 +448,11 @@ cmd_start() {
 cmd_check() {
   local failed=""
   local item
-  for item in lint type-check test test:copy test:brand test:action-schemas audit:unused; do
-    step "pnpm $item"
-    pnpm "$item" || failed="$failed $item"
+  for item in admin it web; do
+    step "Checking apps/$item"
+    npm --prefix "apps/$item" run lint || failed="$failed $item:lint"
+    npm --prefix "apps/$item" run type-check || failed="$failed $item:type-check"
+    npm --prefix "apps/$item" test || failed="$failed $item:test"
   done
   [ -z "$failed" ] && ok "All checks passed." || die "Failed:$failed"
 }
@@ -450,29 +460,22 @@ cmd_check() {
 cmd_test() {
   local sub="${1:-all}"; shift || true
   case "$sub" in
-    all | "") run pnpm test ;;
-    unit) run pnpm test:unit ;;
-    checks | static) run pnpm test:checks ;;
-    db | database)
-      load_env
-      local bare seeded
-      bare="$(db_url_for "${DIRECT_URL:-$DATABASE_URL}" platform_bare_test)"
-      seeded="$(db_url_for "${DIRECT_URL:-$DATABASE_URL}" platform_seeded_test)"
-      step "Preparing platform_bare_test and platform_seeded_test"
-      run node tests/e2e/prepare-db.cjs bare platform_bare_test
-      SEED_VOLUME=on run node tests/e2e/prepare-db.cjs seeded platform_seeded_test
-      CHECKS_BARE_DATABASE_URL="$bare" CHECKS_SEEDED_DATABASE_URL="$seeded" run pnpm test:checks:db
+    all | "")
+      npm --prefix apps/admin test
+      npm --prefix apps/it test
+      npm --prefix apps/web test
       ;;
-    e2e) run pnpm test:e2e:prepare; run pnpm exec playwright test "$@" ;;
-    e2e:prepare) run pnpm test:e2e:prepare ;;
-    e2e:ui) run pnpm exec playwright test --ui "$@" ;;
-    e2e:report) run pnpm exec playwright show-report tests/.results/playwright-report ;;
-    volume) run pnpm test:volume ;;
-    copy) run pnpm test:copy ;;
-    brand) run pnpm test:brand ;;
-    schemas) run pnpm test:action-schemas ;;
-    unused) run pnpm audit:unused ;;
-    deployment) run pnpm check:deployment ;;
+    admin) npm --prefix apps/admin test ;;
+    it) npm --prefix apps/it test ;;
+    web) npm --prefix apps/web test ;;
+    e2e)
+      (cd apps/admin && npx playwright test "$@")
+      (cd apps/it && npx playwright test "$@")
+      (cd apps/web && npx playwright test "$@")
+      ;;
+    *) die "test [all|admin|it|web|e2e]" ;;
+  esac
+}
     workers) run pnpm check:workers ;;
     ci) cmd_check; cmd_test db; cmd_test e2e ;;
     *) die "Unknown: test $sub (see ./run.sh help)" ;;

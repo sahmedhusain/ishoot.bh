@@ -1,0 +1,757 @@
+openapi: 3.1.0
+info:
+  title: CMS Service (cms)
+  version: 1.0.0
+  description: |
+    Content management service managing pages, articles, reviews, FAQs, statistics, and content snapshots.
+servers:
+  - url: /
+tags:
+  - name: pages
+  - name: articles
+  - name: reviews
+  - name: faqs
+  - name: statistics
+  - name: snapshots
+paths:
+  /v1/cms/pages:
+    get:
+      tags: [pages]
+      operationId: listPages
+      summary: List pages
+      parameters:
+        - name: all
+          in: query
+          required: false
+          schema: { type: boolean }
+      responses:
+        "200":
+          description: List of pages
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Page" }
+    post:
+      tags: [pages]
+      operationId: createPage
+      summary: Create page
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreatePageRequest" }
+      responses:
+        "201":
+          description: Created page
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Page" }
+        default: { $ref: "#/components/responses/Problem" }
+
+  /v1/cms/pages/{slug}:
+    get:
+      tags: [pages]
+      operationId: getPageBySlug
+      summary: Get page by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Page details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Page" }
+        default: { $ref: "#/components/responses/Problem" }
+
+  /v1/cms/pages/id/{id}:
+    get:
+      tags: [pages]
+      operationId: getPageByID
+      summary: Get page by ID
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Page details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Page" }
+        default: { $ref: "#/components/responses/Problem" }
+    put:
+      tags: [pages]
+      operationId: updatePage
+      summary: Update page
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdatePageRequest" }
+      responses:
+        "200":
+          description: Updated page
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Page" }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [pages]
+      operationId: deletePage
+      summary: Delete page
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Deleted }
+        default: { $ref: "#/components/responses/Problem" }
+
+  /v1/cms/articles:
+    get:
+      tags: [articles]
+      operationId: listArticles
+      summary: List articles
+      parameters:
+        - name: all
+          in: query
+          required: false
+          schema: { type: boolean }
+      responses:
+        "200":
+          description: List of articles
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Article" }
+    post:
+      tags: [articles]
+      operationId: createArticle
+      summary: Create article
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateArticleRequest" }
+      responses:
+        "201":
+          description: Created article
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Article" }
+        default: { $ref: "#/components/responses/Problem" }
+
+  /v1/cms/articles/{slug}:
+    get:
+      tags: [articles]
+      operationId: getArticleBySlug
+      summary: Get article by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Article details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Article" }
+        default: { $ref: "#/components/responses/Problem" }
+
+  /v1/cms/articles/id/{id}:
+    get:
+      tags: [articles]
+      operationId: getArticleByID
+      summary: Get article by ID
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Article details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Article" }
+        default: { $ref: "#/components/responses/Problem" }
+    put:
+      tags: [articles]
+      operationId: updateArticle
+      summary: Update article
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateArticleRequest" }
+      responses:
+        "200":
+          description: Updated article
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Article" }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [articles]
+      operationId: deleteArticle
+      summary: Delete article
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Deleted }
+        default: { $ref: "#/components/responses/Problem" }
+
+  /v1/cms/reviews:
+    get:
+      tags: [reviews]
+      operationId: listReviews
+      summary: List reviews
+      parameters:
+        - name: all
+          in: query
+          required: false
+          schema: { type: boolean }
+      responses:
+        "200":
+          description: List of reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Review" }
+    post:
+      tags: [reviews]
+      operationId: createReview
+      summary: Create review
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateReviewRequest" }
+      responses:
+        "201":
+          description: Created review
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Review" }
+        default: { $ref: "#/components/responses/Problem" }
+
+  /v1/cms/reviews/{id}:
+    put:
+      tags: [reviews]
+      operationId: updateReview
+      summary: Update review
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateReviewRequest" }
+      responses:
+        "200":
+          description: Updated review
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Review" }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [reviews]
+      operationId: deleteReview
+      summary: Delete review
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Deleted }
+        default: { $ref: "#/components/responses/Problem" }
+
+  /v1/cms/faqs:
+    get:
+      tags: [faqs]
+      operationId: listFAQs
+      summary: List FAQs
+      parameters:
+        - name: all
+          in: query
+          required: false
+          schema: { type: boolean }
+      responses:
+        "200":
+          description: List of FAQs
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/FAQ" }
+    post:
+      tags: [faqs]
+      operationId: createFAQ
+      summary: Create FAQ
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateFAQRequest" }
+      responses:
+        "201":
+          description: Created FAQ
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FAQ" }
+        default: { $ref: "#/components/responses/Problem" }
+
+  /v1/cms/faqs/{id}:
+    put:
+      tags: [faqs]
+      operationId: updateFAQ
+      summary: Update FAQ
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateFAQRequest" }
+      responses:
+        "200":
+          description: Updated FAQ
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FAQ" }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [faqs]
+      operationId: deleteFAQ
+      summary: Delete FAQ
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Deleted }
+        default: { $ref: "#/components/responses/Problem" }
+
+  /v1/cms/statistics:
+    get:
+      tags: [statistics]
+      operationId: listStatistics
+      summary: List statistics
+      responses:
+        "200":
+          description: List of statistics
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Statistic" }
+    post:
+      tags: [statistics]
+      operationId: upsertStatistic
+      summary: Upsert statistic
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Statistic" }
+      responses:
+        "200":
+          description: Saved statistic
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Statistic" }
+        default: { $ref: "#/components/responses/Problem" }
+
+  /v1/cms/statistics/{id}:
+    delete:
+      tags: [statistics]
+      operationId: deleteStatistic
+      summary: Delete statistic
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Deleted }
+        default: { $ref: "#/components/responses/Problem" }
+
+  /v1/cms/snapshots/{id}:
+    get:
+      tags: [snapshots]
+      operationId: getContentSnapshot
+      summary: Get content snapshot
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Content snapshot
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ContentSnapshot" }
+        default: { $ref: "#/components/responses/Problem" }
+
+  /v1/cms/snapshots/{id}/draft:
+    put:
+      tags: [snapshots]
+      operationId: saveContentDraft
+      summary: Save content draft
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: Saved content snapshot
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ContentSnapshot" }
+        default: { $ref: "#/components/responses/Problem" }
+
+  /v1/cms/snapshots/{id}/publish:
+    post:
+      tags: [snapshots]
+      operationId: publishContentSnapshot
+      summary: Publish content snapshot
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Published content snapshot
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ContentSnapshot" }
+        default: { $ref: "#/components/responses/Problem" }
+
+components:
+  securitySchemes:
+    staffToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    serviceToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    Problem:
+      description: Error returned in RFC 9457 format
+      content:
+        application/problem+json:
+          schema:
+            type: object
+            required: [type, title, status]
+            properties:
+              type: { type: string }
+              title: { type: string }
+              status: { type: integer }
+              detail: { type: string }
+              code: { type: string }
+
+  schemas:
+    Page:
+      type: object
+      required: [id, slug, pageType, titleEn, titleAr, blocks, isVisible, inHeader, inFooter, sortOrder, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        slug: { type: string }
+        pageType: { type: string }
+        titleEn: { type: string }
+        titleAr: { type: string }
+        seoTitleEn: { type: string, nullable: true }
+        seoTitleAr: { type: string, nullable: true }
+        seoDescriptionEn: { type: string, nullable: true }
+        seoDescriptionAr: { type: string, nullable: true }
+        blocks: { type: array, items: { type: object, additionalProperties: true } }
+        isVisible: { type: boolean }
+        inHeader: { type: boolean }
+        inFooter: { type: boolean }
+        sortOrder: { type: integer }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    CreatePageRequest:
+      type: object
+      required: [slug, pageType, titleEn, titleAr]
+      properties:
+        slug: { type: string }
+        pageType: { type: string, default: "custom" }
+        titleEn: { type: string }
+        titleAr: { type: string }
+        seoTitleEn: { type: string }
+        seoTitleAr: { type: string }
+        seoDescriptionEn: { type: string }
+        seoDescriptionAr: { type: string }
+        blocks: { type: array, items: { type: object, additionalProperties: true } }
+        isVisible: { type: boolean, default: true }
+        inHeader: { type: boolean, default: false }
+        inFooter: { type: boolean, default: false }
+        sortOrder: { type: integer, default: 0 }
+
+    UpdatePageRequest:
+      type: object
+      required: [slug, pageType, titleEn, titleAr]
+      properties:
+        slug: { type: string }
+        pageType: { type: string }
+        titleEn: { type: string }
+        titleAr: { type: string }
+        seoTitleEn: { type: string }
+        seoTitleAr: { type: string }
+        seoDescriptionEn: { type: string }
+        seoDescriptionAr: { type: string }
+        blocks: { type: array, items: { type: object, additionalProperties: true } }
+        isVisible: { type: boolean }
+        inHeader: { type: boolean }
+        inFooter: { type: boolean }
+        sortOrder: { type: integer }
+
+    Article:
+      type: object
+      required: [id, slug, titleEn, titleAr, category, tags, status, featured, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        slug: { type: string }
+        titleEn: { type: string }
+        titleAr: { type: string }
+        excerptEn: { type: string, nullable: true }
+        excerptAr: { type: string, nullable: true }
+        bodyEn: { type: object, additionalProperties: true, nullable: true }
+        bodyAr: { type: object, additionalProperties: true, nullable: true }
+        bodyHtmlEn: { type: string, nullable: true }
+        bodyHtmlAr: { type: string, nullable: true }
+        coverUrl: { type: string, nullable: true }
+        category: { type: string }
+        tags: { type: array, items: { type: string } }
+        authorName: { type: string, nullable: true }
+        status: { type: string }
+        publishAt: { type: string, format: date-time, nullable: true }
+        featured: { type: boolean }
+        seoTitleEn: { type: string, nullable: true }
+        seoTitleAr: { type: string, nullable: true }
+        seoDescriptionEn: { type: string, nullable: true }
+        seoDescriptionAr: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    CreateArticleRequest:
+      type: object
+      required: [slug, titleEn, titleAr]
+      properties:
+        slug: { type: string }
+        titleEn: { type: string }
+        titleAr: { type: string }
+        excerptEn: { type: string }
+        excerptAr: { type: string }
+        bodyEn: { type: object, additionalProperties: true }
+        bodyAr: { type: object, additionalProperties: true }
+        bodyHtmlEn: { type: string }
+        bodyHtmlAr: { type: string }
+        coverUrl: { type: string }
+        category: { type: string, default: "news" }
+        tags: { type: array, items: { type: string } }
+        authorName: { type: string }
+        status: { type: string, default: "draft" }
+        publishAt: { type: string, format: date-time }
+        featured: { type: boolean, default: false }
+        seoTitleEn: { type: string }
+        seoTitleAr: { type: string }
+        seoDescriptionEn: { type: string }
+        seoDescriptionAr: { type: string }
+
+    UpdateArticleRequest:
+      type: object
+      required: [slug, titleEn, titleAr]
+      properties:
+        slug: { type: string }
+        titleEn: { type: string }
+        titleAr: { type: string }
+        excerptEn: { type: string }
+        excerptAr: { type: string }
+        bodyEn: { type: object, additionalProperties: true }
+        bodyAr: { type: object, additionalProperties: true }
+        bodyHtmlEn: { type: string }
+        bodyHtmlAr: { type: string }
+        coverUrl: { type: string }
+        category: { type: string }
+        tags: { type: array, items: { type: string } }
+        authorName: { type: string }
+        status: { type: string }
+        publishAt: { type: string, format: date-time }
+        featured: { type: boolean }
+        seoTitleEn: { type: string }
+        seoTitleAr: { type: string }
+        seoDescriptionEn: { type: string }
+        seoDescriptionAr: { type: string }
+
+    Review:
+      type: object
+      required: [id, authorEn, authorAr, quoteEn, quoteAr, rating, isApproved, sortOrder, year, createdAt]
+      properties:
+        id: { type: string }
+        authorEn: { type: string }
+        authorAr: { type: string }
+        companyEn: { type: string, nullable: true }
+        companyAr: { type: string, nullable: true }
+        quoteEn: { type: string }
+        quoteAr: { type: string }
+        rating: { type: integer }
+        isApproved: { type: boolean }
+        sortOrder: { type: integer }
+        year: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    CreateReviewRequest:
+      type: object
+      required: [authorEn, authorAr, quoteEn, quoteAr]
+      properties:
+        authorEn: { type: string }
+        authorAr: { type: string }
+        companyEn: { type: string }
+        companyAr: { type: string }
+        quoteEn: { type: string }
+        quoteAr: { type: string }
+        rating: { type: integer, default: 5 }
+        isApproved: { type: boolean, default: false }
+        sortOrder: { type: integer, default: 0 }
+        year: { type: string, default: "2026" }
+
+    UpdateReviewRequest:
+      type: object
+      required: [authorEn, authorAr, quoteEn, quoteAr]
+      properties:
+        authorEn: { type: string }
+        authorAr: { type: string }
+        companyEn: { type: string }
+        companyAr: { type: string }
+        quoteEn: { type: string }
+        quoteAr: { type: string }
+        rating: { type: integer }
+        isApproved: { type: boolean }
+        sortOrder: { type: integer }
+        year: { type: string }
+
+    FAQ:
+      type: object
+      required: [id, questionEn, questionAr, answerEn, answerAr, category, isPublished, sortOrder, createdAt]
+      properties:
+        id: { type: string }
+        questionEn: { type: string }
+        questionAr: { type: string }
+        answerEn: { type: string }
+        answerAr: { type: string }
+        category: { type: string }
+        isPublished: { type: boolean }
+        sortOrder: { type: integer }
+        createdAt: { type: string, format: date-time }
+
+    CreateFAQRequest:
+      type: object
+      required: [questionEn, questionAr, answerEn, answerAr]
+      properties:
+        questionEn: { type: string }
+        questionAr: { type: string }
+        answerEn: { type: string }
+        answerAr: { type: string }
+        category: { type: string, default: "general" }
+        isPublished: { type: boolean, default: true }
+        sortOrder: { type: integer, default: 0 }
+
+    UpdateFAQRequest:
+      type: object
+      required: [questionEn, questionAr, answerEn, answerAr]
+      properties:
+        questionEn: { type: string }
+        questionAr: { type: string }
+        answerEn: { type: string }
+        answerAr: { type: string }
+        category: { type: string }
+        isPublished: { type: boolean }
+        sortOrder: { type: integer }
+
+    Statistic:
+      type: object
+      required: [id, metricValue, labelEn, labelAr, sortOrder]
+      properties:
+        id: { type: string }
+        metricValue: { type: string }
+        labelEn: { type: string }
+        labelAr: { type: string }
+        subLabelEn: { type: string, nullable: true }
+        subLabelAr: { type: string, nullable: true }
+        icon: { type: string, nullable: true }
+        sortOrder: { type: integer }
+
+    ContentSnapshot:
+      type: object
+      required: [id, draft, revision, updatedAt]
+      properties:
+        id: { type: string }
+        draft: { type: object, additionalProperties: true }
+        published: { type: object, additionalProperties: true, nullable: true }
+        revision: { type: integer }
+        publishedAt: { type: string, format: date-time, nullable: true }
+        updatedAt: { type: string, format: date-time }

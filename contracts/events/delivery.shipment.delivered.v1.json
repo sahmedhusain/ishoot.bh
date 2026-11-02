@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "delivery.shipment.delivered.v1",
+  "type": "object",
+  "required": ["shipment_id", "delivered_at"],
+  "properties": {
+    "shipment_id": { "type": "string" },
+    "cod_collected": { "type": "string" },
+    "delivered_at": { "type": "string", "format": "date-time" }
+  }
+}

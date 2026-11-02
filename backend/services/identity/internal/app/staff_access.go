@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"slices"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -57,36 +58,94 @@ func (s *StaffAccess) Read(ctx context.Context, actor authn.Principal) (StaffAcc
 		if err := accounts.CheckUserSession(ctx, q, actor, time.Now()); err != nil {
 			return err
 		}
-		raw, err := q.StaffPermissionOverrides(ctx, actor.Subject)
-		if errors.Is(err, pgx.ErrNoRows) {
-			return accounts.ErrInvalid
-		}
-		if err != nil {
-			return err
-		}
-		var overrides map[string]bool
-		if err := json.Unmarshal(raw, &overrides); err != nil {
-			return ErrPolicyUnavailable
-		}
-		grants, err := q.StaffPermissionGrants(ctx, role)
-		if err != nil {
-			return err
-		}
-		stored := make(map[string]bool, len(grants))
-		for _, grant := range grants {
-			stored[grant.Resource+":"+grant.Action] = grant.Allowed
-		}
-		scopes, err := q.StaffRoleScopes(ctx, role)
-		if err != nil {
-			return err
-		}
-		storedScopes := make(map[string]string, len(scopes))
-		for _, scope := range scopes {
-			storedScopes[scope.Area] = scope.Scope
-		}
-		policy = StaffAccessPolicy{SubjectID: actor.Subject, Role: role,
-			Permissions: StaffPermissions(role, stored, overrides, modules), DataScopes: StaffScopes(role, storedScopes)}
-		return nil
+		var err error
+		policy, err = evaluateStaffPolicy(ctx, q, actor.Subject, role, modules)
+		return err
 	})
 	return policy, err
+}
+
+func evaluateStaffPolicy(ctx context.Context, q *sqlcdb.Queries, subject, role string, modules map[string]bool) (StaffAccessPolicy, error) {
+	raw, err := q.StaffPermissionOverrides(ctx, subject)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return StaffAccessPolicy{}, accounts.ErrInvalid
+	}
+	if err != nil {
+		return StaffAccessPolicy{}, err
+	}
+	var overrides map[string]bool
+	if err := json.Unmarshal(raw, &overrides); err != nil {
+		return StaffAccessPolicy{}, ErrPolicyUnavailable
+	}
+	grants, err := q.StaffPermissionGrants(ctx, role)
+	if err != nil {
+		return StaffAccessPolicy{}, err
+	}
+	stored := make(map[string]bool, len(grants))
+	for _, grant := range grants {
+		stored[grant.Resource+":"+grant.Action] = grant.Allowed
+	}
+	scopes, err := q.StaffRoleScopes(ctx, role)
+	if err != nil {
+		return StaffAccessPolicy{}, err
+	}
+	storedScopes := make(map[string]string, len(scopes))
+	for _, scope := range scopes {
+		storedScopes[scope.Area] = scope.Scope
+	}
+	scopeOverrides, err := q.StaffScopeOverrides(ctx, subject)
+	if err != nil {
+		return StaffAccessPolicy{}, err
+	}
+	var individualScopes map[string]string
+	if err := json.Unmarshal(scopeOverrides, &individualScopes); err != nil {
+		return StaffAccessPolicy{}, ErrPolicyUnavailable
+	}
+	for area, scope := range individualScopes {
+		storedScopes[area] = scope
+	}
+	policy := StaffAccessPolicy{SubjectID: subject, Role: role,
+		Permissions: StaffPermissions(role, stored, overrides, modules), DataScopes: StaffScopes(role, storedScopes)}
+	return policy, nil
+}
+
+// ReadSubject serves the authenticated legacy business backend while domain queries are being replaced.
+func (s *StaffAccess) ReadSubject(ctx context.Context, id string) (StaffAccessPolicy, error) {
+	var out StaffAccessPolicy
+	if !validID(id) {
+		return out, ErrValidation
+	}
+	snapshot, err := sqlcdb.New(s.pool).StaffAccountAuthorization(ctx, id)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return out, ErrNotFound
+	}
+	if err != nil {
+		return out, err
+	}
+	if !snapshot.Active || len(snapshot.Roles) != 1 {
+		return out, accounts.ErrInvalid
+	}
+	var modules map[string]bool
+	if snapshot.Roles[0] != catalog.SuperAdminRole {
+		if s.modules == nil {
+			return out, ErrPolicyUnavailable
+		}
+		modules, err = s.modules(ctx)
+		if err != nil || modules == nil {
+			return out, ErrPolicyUnavailable
+		}
+	}
+	err = db.WithTx(ctx, s.pool, pgx.TxOptions{IsoLevel: pgx.RepeatableRead}, func(tx pgx.Tx) error {
+		q := sqlcdb.New(tx)
+		live, err := q.LockAccount(ctx, sqlcdb.LockAccountParams{Realm: "staff", SubjectID: id})
+		if err != nil {
+			return err
+		}
+		if !live.Active || !slices.Equal(live.Roles, snapshot.Roles) {
+			return accounts.ErrInvalid
+		}
+		out, err = evaluateStaffPolicy(ctx, q, id, live.Roles[0], modules)
+		return err
+	})
+	return out, err
 }

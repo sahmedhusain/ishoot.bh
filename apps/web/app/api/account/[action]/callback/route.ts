@@ -1,41 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  createCustomerSession,
-  customerFromProvider,
-  measureOperation,
-} from "@platform/database";
-import {
-  exchangeSignInCode,
-  openSignInState,
-} from "@platform/database/services/oauth-signin";
+import { ensureCustomerProfile, measureOperation } from "@platform/database";
+import { completeCustomerOAuth, isApiError } from "@platform/api-client";
+import { accountsEnabled } from "../../../../../lib/customer";
 import {
   SIGNIN_STATE_COOKIE,
-  errorKey,
-  setCustomerCookie,
-  signInCredentials,
-  signInSecret,
-  accountsEnabled,
-} from "../../../../../lib/customer";
-import { publicSiteUrl } from "../../../../../lib/site-url";
+  readSignInState,
+  clearSignInState,
+  setCustomerCredentials,
+} from "../../../../../lib/customer-credentials";
+import { trustedClientIp } from "@platform/database/services/abuse-limits";
 
-/**
- * Where Google (GET) and Apple (form POST) send the person back: the state must match the signed cookie, the code
- * is exchanged with the provider, and the account is found, linked or created.
- */
+/** Provider proofs and credentials are processed by identity; the website keeps only its callback cookie. */
 async function complete(
   req: NextRequest,
   provider: string,
   params: URLSearchParams,
 ) {
-  const state = openSignInState(
-    req.cookies.get(SIGNIN_STATE_COOKIE)?.value,
-    signInSecret(),
-  );
+  const state = readSignInState(req.cookies.get(SIGNIN_STATE_COOKIE)?.value);
   const fallback = new URL(`/${state?.locale ?? "ar"}/account`, req.url);
-  const fail = (reason: string) => {
+  const fail = (reason: string, keep = false) => {
     fallback.searchParams.set("signin", reason);
+    if (state) fallback.searchParams.set("next", state.next);
     const response = NextResponse.redirect(fallback, 303);
-    response.cookies.delete(SIGNIN_STATE_COOKIE);
+    if (!keep) clearSignInState(response);
     return response;
   };
   if (
@@ -46,56 +33,46 @@ async function complete(
   if (
     !state ||
     state.provider !== provider ||
-    params.get("state") !== state.state
+    state.state !== params.get("state")
   )
     return fail("expired");
   if (params.get("error")) return fail("cancelled");
-  const credentials = await signInCredentials(provider);
   const code = params.get("code");
-  if (!credentials || !code) return fail("generic");
+  if (!code) return fail("generic");
+  let name = "";
+  if (provider === "apple" && params.get("user")) {
+    try {
+      const user = JSON.parse(params.get("user")!) as {
+        name?: { firstName?: unknown; lastName?: unknown };
+      };
+      name = [user.name?.firstName, user.name?.lastName]
+        .filter((part): part is string => typeof part === "string")
+        .join(" ")
+        .slice(0, 120);
+    } catch {}
+  }
   try {
-    const redirectUri = new URL(
-      `/api/account/${provider}/callback`,
-      await publicSiteUrl(),
-    ).toString();
-    const who = await exchangeSignInCode(provider, {
+    const out = await completeCustomerOAuth(provider, {
+      state: state.state,
+      browserState: state.state,
       code,
-      verifier: state.verifier,
-      redirectUri,
-      nonce: state.nonce,
-      credentials,
+      name: name || undefined,
+      clientIp: trustedClientIp(req.headers) || undefined,
+      userAgent: req.headers.get("user-agent")?.slice(0, 512),
     });
-    // Apple sends the name only the first time, alongside the code.
-    let name = who.name;
-    if (provider === "apple" && params.get("user")) {
-      try {
-        const user = JSON.parse(params.get("user")!) as {
-          name?: { firstName?: string; lastName?: string };
-        };
-        name =
-          [user.name?.firstName, user.name?.lastName]
-            .filter(Boolean)
-            .join(" ") || name;
-      } catch {}
-    }
-    const customer = await customerFromProvider(provider, {
-      ...who,
-      name,
-      locale: state.locale,
-    });
-    const token = await createCustomerSession(
-      customer.id,
-      req.headers.get("user-agent"),
+    await ensureCustomerProfile(
+      out.credential.subjectId,
+      out.email,
+      { name: out.name, locale: out.locale },
+      true,
     );
-    const response = NextResponse.redirect(new URL(state.next, req.url), 303);
-    setCustomerCookie(response, token);
-    response.cookies.delete(SIGNIN_STATE_COOKIE);
+    const response = NextResponse.redirect(new URL(out.next, req.url), 303);
+    setCustomerCredentials(response, out.credential);
     return response;
   } catch (error) {
+    if (isApiError(error, "mfa_required")) return fail("mfa", true);
     return fail(
-      errorKey(error) === "customerProviderEmailMissing"
-        ? "noEmail"
-        : "generic",
+      isApiError(error, "provider_email_missing") ? "noEmail" : "generic",
     );
   }
 }
@@ -116,9 +93,9 @@ export async function POST(
   return measureOperation("web:account:callback:POST", async () => {
     const form = await req.formData().catch(() => null);
     const params = new URLSearchParams();
-    form?.forEach(
-      (value, key) => typeof value === "string" && params.set(key, value),
-    );
+    form?.forEach((value, key) => {
+      if (typeof value === "string") params.set(key, value);
+    });
     return complete(req, (await context.params).action, params);
   });
 }

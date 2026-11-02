@@ -75,6 +75,12 @@ func (p *Repository) CompleteLogin(ctx context.Context, snapshot accounts.Accoun
 		if err := q.CreateSessionFamily(ctx, sqlcdb.CreateSessionFamilyParams{ID: credential.Family.ID, SubjectID: row.SubjectID, Realm: row.Realm, ExpiresAt: credential.Family.ExpiresAt}); err != nil {
 			return err
 		}
+		if credential.Family.UserAgent != "" || credential.Family.ClientIP != "" {
+			if err := q.SetSessionDevice(ctx, sqlcdb.SetSessionDeviceParams{ID: credential.Family.ID,
+				UserAgent: optional(credential.Family.UserAgent), ClientIp: optional(credential.Family.ClientIP)}); err != nil {
+				return err
+			}
+		}
 		if err := q.InsertRefreshRecord(ctx, sqlcdb.InsertRefreshRecordParams{TokenHash: credential.Digest(), FamilyID: credential.Family.ID}); err != nil {
 			return err
 		}
@@ -165,6 +171,37 @@ func (p *Repository) ChangeMFA(ctx context.Context, snapshot accounts.Account, p
 			if err := q.RevokeSubjectSessions(ctx, sqlcdb.RevokeSubjectSessionsParams{Realm: row.Realm, SubjectID: row.SubjectID, RevokedAt: &now}); err != nil {
 				return err
 			}
+		case "password":
+			if update.PasswordHash == nil {
+				return accounts.ErrInvalid
+			}
+			if err := q.UpdateAccountHash(ctx, sqlcdb.UpdateAccountHashParams{Realm: row.Realm, SubjectID: row.SubjectID, PasswordHash: update.PasswordHash, UpdatedAt: now}); err != nil {
+				return err
+			}
+			if update.Step != nil {
+				if err := q.SetAccountMFAStep(ctx, sqlcdb.SetAccountMFAStepParams{Realm: row.Realm, SubjectID: row.SubjectID, MfaLastStep: update.Step, UpdatedAt: now}); err != nil {
+					return err
+				}
+			}
+			if err := q.RevokeSubjectSessions(ctx, sqlcdb.RevokeSubjectSessionsParams{Realm: row.Realm, SubjectID: row.SubjectID, RevokedAt: &now}); err != nil {
+				return err
+			}
+			if err := q.SetMFAPending(ctx, sqlcdb.SetMFAPendingParams{Realm: row.Realm, SubjectID: row.SubjectID, UpdatedAt: now}); err != nil {
+				return err
+			}
+			if err := q.DeleteOpenPasswordResets(ctx, sqlcdb.DeleteOpenPasswordResetsParams{Realm: row.Realm, SubjectID: row.SubjectID}); err != nil {
+				return err
+			}
+			return outbox.Enqueue(ctx, tx, "identity", outbox.Event{Subject: "identity.user.changed", Payload: map[string]any{
+				"subjectId": row.SubjectID, "realm": row.Realm, "changedBy": row.Realm + ":" + row.SubjectID,
+			}})
+			if err := q.DeleteOpenPasswordResets(ctx, sqlcdb.DeleteOpenPasswordResetsParams{Realm: row.Realm, SubjectID: row.SubjectID}); err != nil {
+				return err
+			}
+			if err := q.CancelLegacyResetChallenges(ctx, sqlcdb.CancelLegacyResetChallengesParams{Realm: row.Realm, SubjectID: row.SubjectID}); err != nil {
+				return err
+			}
+
 		default:
 			return accounts.ErrInvalid
 		}
@@ -179,4 +216,32 @@ func (p *Repository) ClearExpiredMFAEnrollments(ctx context.Context, now time.Ti
 		return 0, errors.New("cleanup batch must be positive")
 	}
 	return p.q.ClearExpiredMFAEnrollments(ctx, sqlcdb.ClearExpiredMFAEnrollmentsParams{Cutoff: &now, BatchSize: batch})
+}
+
+func optional(v string) *string {
+	if v == "" {
+		return nil
+	}
+	return &v
+}
+
+// ClearExpiredCredentials removes bounded batches of expired password reset links and email codes.
+func (p *Repository) ClearExpiredCredentials(ctx context.Context, now time.Time, batch int32) (int64, error) {
+	if batch <= 0 {
+		return 0, errors.New("cleanup batch must be positive")
+	}
+	n, err := p.q.DeleteExpiredPasswordResets(ctx, sqlcdb.DeleteExpiredPasswordResetsParams{Cutoff: now, BatchSize: batch})
+	if err != nil {
+		return 0, err
+	}
+	m, err := p.q.DeleteExpiredCustomerCodes(ctx, sqlcdb.DeleteExpiredCustomerCodesParams{Cutoff: now, BatchSize: batch})
+	if err != nil {
+		return n, err
+	}
+	o, err := p.q.DeleteExpiredOAuthStates(ctx, sqlcdb.DeleteExpiredOAuthStatesParams{Cutoff: now, BatchSize: batch})
+	if err != nil {
+		return n + m + o, err
+	}
+	l, err := p.q.DeleteExpiredLegacyResetChallenges(ctx, sqlcdb.DeleteExpiredLegacyResetChallengesParams{Cutoff: now, BatchSize: batch})
+	return n + m + o + l, err
 }

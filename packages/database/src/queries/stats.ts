@@ -1,3 +1,4 @@
+import { listStatistics } from "@platform/api-client";
 import {
   serverTemplates,
   formatMessage,
@@ -139,6 +140,26 @@ export async function computeStatisticValue(
 
 /** Statistics with each value resolved; `storedValue` is what the editor typed. */
 export async function getStatistics() {
+  try {
+    const items = await listStatistics();
+    if (items && items.length > 0) {
+      return items.map((row) => ({
+        id: row.id,
+        value: row.metricValue,
+        storedValue: row.metricValue,
+        labelEn: row.labelEn,
+        labelAr: row.labelAr,
+        subLabelEn: row.subLabelEn ?? null,
+        subLabelAr: row.subLabelAr ?? null,
+        icon: row.icon ?? null,
+        sortOrder: row.sortOrder,
+        source: "manual",
+        preset: null,
+      }));
+    }
+  } catch {
+    // Fall back to direct database
+  }
   try {
     const rows = await db.statistic.findMany({
       orderBy: { sortOrder: "asc" },

@@ -137,6 +137,8 @@ type loginRequest struct {
 	Password string `json:"password" validate:"required,max=1024"`
 	OTP      string `json:"otp" validate:"max=64"`
 	ClientIP string `json:"clientIp" validate:"max=45"`
+	// UserAgent is shown to the person in their list of sessions.
+	UserAgent string `json:"userAgent" validate:"max=512"`
 }
 type loginResponse struct {
 	refreshResponse
@@ -154,7 +156,7 @@ func (h *Handler) loginPassword(c echo.Context) error {
 		return err
 	}
 	now := time.Now().UTC()
-	result, err := h.login.Login(c.Request().Context(), accounts.Input{Realm: r, Email: in.Email, Password: in.Password, OTP: in.OTP, ClientIP: in.ClientIP}, now)
+	result, err := h.login.Login(c.Request().Context(), accounts.Input{Realm: r, Email: in.Email, Password: in.Password, OTP: in.OTP, ClientIP: in.ClientIP, UserAgent: in.UserAgent}, now)
 	if err != nil {
 		var limited *guard.Limited
 		switch {
@@ -214,7 +216,7 @@ func mfaError(c echo.Context, err error) error {
 		return problem.New(http.StatusTooManyRequests, problem.CodeRateLimited, "")
 	case errors.Is(err, guard.ErrUnavailable):
 		return problem.New(http.StatusServiceUnavailable, problem.CodeUnavailable, "")
-	case errors.Is(err, accounts.ErrInvalid), errors.Is(err, accounts.ErrMFARequired):
+	case errors.Is(err, accounts.ErrInvalid), errors.Is(err, accounts.ErrMFARequired), errors.Is(err, guard.ErrDenied):
 		return problem.Unauthenticated("")
 	default:
 		return err

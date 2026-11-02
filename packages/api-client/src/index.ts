@@ -10,3 +10,16 @@ export * from "./audit";
 export * from "./notify";
 export * from "./inbox";
 export * from "./realtime";
+
+export * from "./staff-administration";
+export { verifyIdentityCaller } from "./identity-caller";
+export * from "./company";
+export * from "./operations";
+export * from "./cms";
+export * from "./sales";
+export * from "./finance";
+export * from "./workflow";
+export * from "./hr";
+export * from "./inventory";
+export * from "./commerce";
+export * from "./delivery";

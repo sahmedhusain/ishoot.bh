@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/sales.deal.won.v1.json",
+  "title": "sales.deal.won",
+  "description": "A CRM deal reached the won stage.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "dealId",
+    "stage"
+  ],
+  "properties": {
+    "dealId": { "type": "string" },
+    "stage": { "type": "string" }
+  }
+}

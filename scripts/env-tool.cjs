@@ -2,7 +2,7 @@
 // Manages the root .env against .env.example. Never prints secret values.
 //   init     copy .env.example to .env (refuses to overwrite), then fill in empty secrets
 //   sync     add the variables .env.example defines and .env lacks (existing values are never changed)
-//   secrets  generate every empty secret (JWT, revalidation, MFA, encryption, customer auth, cron, docker,
+//   secrets  generate every empty secret (revalidation, MFA, encryption, customer auth, cron, docker,
 //            the backend services' database logins)
 //   check    validate the values the apps need; --production adds the live-installation rules
 //   keys     list each variable as set / empty / missing, and the ones the code no longer reads
@@ -20,7 +20,6 @@ const exampleFile = path.join(root, ".env.example");
 const production = args.includes("--production");
 
 const SECRETS = {
-  JWT_SECRET: () => crypto.randomBytes(48).toString("base64"),
   REVALIDATION_SECRET: () => crypto.randomBytes(32).toString("base64url"),
   MFA_ENCRYPTION_KEY: () => crypto.randomBytes(32).toString("base64"),
   ENCRYPTION_KEY: () => crypto.randomBytes(16).toString("hex"),
@@ -52,6 +51,7 @@ const SECRETS = {
 };
 // Variables older versions of .env.example listed that no code reads any more.
 const RETIRED = {
+  JWT_SECRET: "staff access tokens are signed by identity (IDENTITY_SIGNING_JWK) and verified using IDENTITY_JWKS_URL",
   NEXT_PUBLIC_DEFAULT_LOCALE: "the main language is set in the setup wizard (Settings → Company)",
   WHATSAPP_API_TOKEN: "set in Settings → Integrations → WhatsApp",
   WHATSAPP_PHONE_ID: "set in Settings → Integrations → WhatsApp",
@@ -64,12 +64,29 @@ const RETIRED = {
   UPLOAD_ROOT: "files are kept by the files service in S3-compatible storage",
   RESEND_API_KEY: "the notify service sends e-mail with the Resend integration (IT dashboard → Integrations)",
   FROM_EMAIL: "the sender is part of the Resend integration (IT dashboard → Integrations)",
+  CRON_SECRET: "scheduled maintenance and background tasks run via River jobs in Go services",
 };
 
 // Service keys (docs/adr/0011): each app signs its calls to the backend with its own Ed25519 key, stored in .env as
 // a base64url private JWK whose key ID starts with the caller's name. The services trust the public halves, written
 // to SERVICE_KEYS_FILE as a JWKS document. During a rotation, <APP>_SERVICE_KEY_PREVIOUS stays trusted.
-const SERVICE_CALLERS = ["admin", "web", "it", "notify", "identity"];
+const SERVICE_CALLERS = [
+  "admin",
+  "web",
+  "it",
+  "notify",
+  "identity",
+  "system",
+  "itsm",
+  "cms",
+  "sales",
+  "finance",
+  "workflow",
+  "hr",
+  "inventory",
+  "commerce",
+  "delivery",
+];
 function serviceKey(caller) {
   const { privateKey } = crypto.generateKeyPairSync("ed25519");
   const jwk = privateKey.export({ format: "jwk" });
@@ -199,7 +216,8 @@ function check() {
       problems.push(`${key} is not a valid URL`);
     }
   }
-  need(Buffer.byteLength(env.JWT_SECRET || "") >= 32, "JWT_SECRET needs at least 32 bytes");
+  for (const key of ["IDENTITY_ISSUER", "IDENTITY_JWKS_URL"])
+    need(/^https?:\/\//.test(env[key] || ""), `${key} must be an HTTP(S) URL for staff token verification`);
   need(!!env.REVALIDATION_SECRET, "REVALIDATION_SECRET is empty");
   need(Buffer.from(env.MFA_ENCRYPTION_KEY || "", "base64").length === 32, "MFA_ENCRYPTION_KEY must be 32 bytes, base64 encoded");
   need(Buffer.byteLength(env.ENCRYPTION_KEY || "", "utf8") === 32, "ENCRYPTION_KEY must be exactly 32 characters");

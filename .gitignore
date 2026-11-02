@@ -62,3 +62,9 @@ backups/
 # Retained local Supabase runtime data after removing its tracked configuration.
 supabase/.temp/
 supabase/.branches/
+
+# Agent task and handoff tracking files
+CLAUDE_*.md
+GEMINI_*.md
+GEMINI_*.json
+

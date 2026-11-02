@@ -94,9 +94,10 @@ type UpdateIntegrationStatusInput struct {
 
 // Service implements the use cases.
 type Service struct {
-	store   *postgres.Store
-	keyring *secrets.Keyring
-	now     func() time.Time
+	fileLookup func(context.Context, string) (CompanyFile, error)
+	store      *postgres.Store
+	keyring    *secrets.Keyring
+	now        func() time.Time
 }
 
 // New returns the service.

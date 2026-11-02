@@ -8,6 +8,7 @@ export type Ticket = components["schemas"]["Ticket"];
 export type TicketDetail = components["schemas"]["TicketDetail"];
 export type TicketComment = components["schemas"]["Comment"];
 export type NewTicket = components["schemas"]["NewTicket"];
+export type Attachment = components["schemas"]["Attachment"];
 export type TicketPage = { items: Ticket[]; nextCursor?: string };
 export type Requester = { id: string; name: string };
 
@@ -43,16 +44,17 @@ export async function getMyTicket(
   return data;
 }
 
-/** Adds an employee's comment to their open ticket. */
+/** Adds an employee's comment to their open ticket, with optional attachments. */
 export const commentOnMyTicket = (
   id: string,
   requester: Requester,
   body: string,
+  attachments?: Attachment[],
 ) =>
   unwrap(
     itsm().POST("/v1/itsm/requests/tickets/{id}/comments", {
       params: { path: { id } },
-      body: { requesterId: requester.id, requesterName: requester.name, body },
+      body: { requesterId: requester.id, requesterName: requester.name, body, attachments },
     }),
   );
 

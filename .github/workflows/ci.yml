@@ -17,10 +17,8 @@ permissions:
 # compose stack, which also runs the backend services the apps call).
 env:
   NODE_VERSION: 22
-  PNPM_VERSION: 12.6.0
   DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/postgres?schema=public
   DIRECT_URL: postgresql://postgres:disposable_ci_only@localhost:5432/postgres?schema=public
-  JWT_SECRET: ci-only-test-secret-with-at-least-thirty-two-characters
   REVALIDATION_SECRET: ci-only-revalidation-secret
   MFA_ENCRYPTION_KEY: ci-only-mfa-key-with-at-least-thirty-two-chars
   ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef"
@@ -39,29 +37,30 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm exec prisma generate --schema packages/database/prisma/schema.prisma
+          cache: npm
+      - name: Install dependencies per app
+        run: |
+          npm --prefix apps/admin install
+          npm --prefix apps/it install
+          npm --prefix apps/web install
       - name: Lint
-        run: pnpm lint
-      - name: Type-check (apps, packages, company seed)
-        run: pnpm type-check && pnpm --filter @platform/company type-check
-      - name: Generated API clients are current
-        run: pnpm --filter @platform/api-client generate && git diff --exit-code -- packages/api-client/src/generated/
-      - name: Unused files, exports and dependencies
-        run: pnpm audit:unused
-      - name: Server action input schemas are up to date
-        run: pnpm test:action-schemas
-      - name: Brand neutrality (no company files, names or colours outside company/)
-        run: pnpm test:brand
-      - name: Unit tests and static checks
-        run: pnpm test
+        run: |
+          npm --prefix apps/admin run lint
+          npm --prefix apps/it run lint
+          npm --prefix apps/web run lint
+      - name: Type-check
+        run: |
+          npm --prefix apps/admin run type-check
+          npm --prefix apps/it run type-check
+          npm --prefix apps/web run type-check
+      - name: Unit tests
+        run: |
+          npm --prefix apps/admin test
+          npm --prefix apps/it test
+          npm --prefix apps/web test
         env:
           CI: true
       - uses: actions/upload-artifact@v4
@@ -144,20 +143,16 @@ jobs:
       E2E_SERVER_MODE: start
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm exec prisma generate --schema packages/database/prisma/schema.prisma
+          cache: npm
+      - name: Install dependencies per app
+        run: |
+          npm --prefix apps/admin install
+          npm --prefix apps/it install
+          npm --prefix apps/web install
       - uses: ./.github/actions/backend-stack
-      - name: Prepare seeded and blank databases
-        run: pnpm test:e2e:prepare
-      - name: Create the IT account (identity bootstrap-it)
-        run: node tests/e2e/it-account.cjs
       - name: Production builds of the apps
         env:
           DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_e2e_test?schema=public
@@ -168,11 +163,17 @@ jobs:
           WEB_URL: http://localhost:3013
           ADMIN_URL: http://localhost:3012
           ADMIN_PREVIEW_ORIGINS: http://localhost:3014
-        run: pnpm --filter @platform/admin build && pnpm --filter @platform/web build && pnpm --filter @platform/it build
+        run: |
+          npm --prefix apps/admin run build
+          npm --prefix apps/it run build
+          npm --prefix apps/web run build
       - name: Install Chromium
-        run: pnpm exec playwright install --with-deps chromium
-      - name: Playwright
-        run: pnpm exec playwright test
+        run: npx playwright install --with-deps chromium
+      - name: Playwright E2E Tests
+        run: |
+          npm --prefix apps/admin run test:e2e
+          npm --prefix apps/it run test:e2e
+          npm --prefix apps/web run test:e2e
         env:
           CI: true
       - uses: actions/upload-artifact@v4

@@ -1,4 +1,5 @@
 "use client";
+import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 import type { AuthBrandingProps } from "../../types/auth";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -8,7 +9,9 @@ import { Input, Button, Card } from "@platform/ui";
 import { Lock, ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react";
 import { AuthBrandMark } from "./AuthBrandMark";
 
-export function ResetPasswordForm(brand: AuthBrandingProps) {
+export function ResetPasswordForm(
+  brand: AuthBrandingProps & { minLength: number },
+) {
   const { t } = useAdminLocale();
   const router = useRouter();
   const fieldId = React.useId();
@@ -30,8 +33,12 @@ export function ResetPasswordForm(brand: AuthBrandingProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token || !email) return;
-    if (password.length < 8) {
-      setError(t.resetPasswordForm.passwordMustBeAtLeast);
+    if (Array.from(password).length < brand.minLength) {
+      setError(
+        formatMessage(t.resetPasswordForm.passwordMustBeAtLeast, {
+          count: brand.minLength,
+        }),
+      );
       return;
     }
 
@@ -104,8 +111,11 @@ export function ResetPasswordForm(brand: AuthBrandingProps) {
                   id={fieldId}
                   type="password"
                   required
-                  placeholder={t.resetPasswordForm.min8Characters}
-                  minLength={8}
+                  placeholder={formatMessage(
+                    t.resetPasswordForm.minCharacters,
+                    { count: brand.minLength },
+                  )}
+                  minLength={brand.minLength}
                   className="ps-10"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

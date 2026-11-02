@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/workflow.document.signed.v1.json",
+  "title": "workflow.document.signed",
+  "description": "A document was digitally signed.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "signatureRequestId"
+  ],
+  "properties": {
+    "signatureRequestId": { "type": "string" }
+  }
+}

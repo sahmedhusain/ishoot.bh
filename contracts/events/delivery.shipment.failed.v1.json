@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "delivery.shipment.failed.v1",
+  "type": "object",
+  "required": ["shipment_id", "reason"],
+  "properties": {
+    "shipment_id": { "type": "string" },
+    "reason": { "type": "string" },
+    "failed_at": { "type": "string", "format": "date-time" }
+  }
+}

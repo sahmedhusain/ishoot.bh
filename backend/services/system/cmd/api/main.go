@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/prometheus/client_golang/prometheus"
@@ -29,6 +30,7 @@ import (
 	"platform.local/backend/pkg/secrets"
 	"platform.local/backend/pkg/telemetry"
 	"platform.local/backend/services/system/internal/app"
+	"platform.local/backend/services/system/internal/filesclient"
 	"platform.local/backend/services/system/internal/httpapi"
 	"platform.local/backend/services/system/internal/postgres"
 	"platform.local/backend/services/system/migrations"
@@ -93,6 +95,13 @@ func run(command string) error {
 	}
 
 	svc := app.New(postgres.New(pool), ring)
+	if cfg.System.ServiceKey != "" {
+		signer, err := authn.NewServiceSigner("system", cfg.System.ServiceKey, 5*time.Minute)
+		if err != nil {
+			return err
+		}
+		svc.SetFileLookup(filesclient.New(cfg.System.FilesURL, signer.Transport(nil)).Lookup)
+	}
 
 	checker := health.NewChecker(cfg.ServiceName, cfg.Version, cfg.Admin.ReadinessTimeout)
 	checker.Register("postgres", db.Check(pool))
@@ -120,10 +129,12 @@ func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, pool *
 	}
 	e.Use(telemetry.EchoMiddleware())
 	httpapi.Register(e, svc, httpapi.Options{
+		CurrencyCallers: cfg.System.CurrencyCallers, CompanyReaders: cfg.System.CompanyReaders, SequenceCallers: cfg.System.SequenceCallers, CompanyBodyLimit: cfg.System.CompanyBodyLimit,
 		Verifier: verifier, ReadCallers: cfg.System.ReadCallers, ModuleWriters: cfg.System.ModuleWriters,
 		ModuleReadCallers:  cfg.System.ModuleReadCallers,
 		IntegrationWriters: cfg.System.IntegrationWriters, DomainWriters: cfg.System.DomainWriters,
 		JSONBodyLimit: cfg.System.JSONBodyLimit, SiteCodeBodyLimit: cfg.System.SiteCodeBodyLimit,
+		FilesURL: cfg.System.FilesURL,
 	})
 
 	relayDone, err := startRelay(ctx, cfg, logger, pool, metrics.Registry)

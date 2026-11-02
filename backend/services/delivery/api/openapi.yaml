@@ -1,0 +1,336 @@
+openapi: 3.1.0
+info:
+  title: Delivery Service (delivery)
+  version: 1.0.0
+  description: |
+    Delivery service managing zones, delivery slots, shipments, vehicles, route sheets, and proof of delivery.
+servers:
+  - url: /
+tags:
+  - name: settings
+  - name: zones
+  - name: vehicles
+  - name: routes
+  - name: shipments
+paths:
+  /v1/delivery/settings:
+    get:
+      tags: [settings]
+      operationId: getDeliverySettings
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: Delivery settings
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeliverySettings" }
+
+  /v1/delivery/zones:
+    get:
+      tags: [zones]
+      operationId: listDeliveryZones
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of delivery zones
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/DeliveryZone" }
+    post:
+      tags: [zones]
+      operationId: createDeliveryZone
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateDeliveryZoneRequest" }
+      responses:
+        "201":
+          description: Created delivery zone
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeliveryZone" }
+
+  /v1/delivery/vehicles:
+    get:
+      tags: [vehicles]
+      operationId: listVehicles
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of vehicles
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Vehicle" }
+    post:
+      tags: [vehicles]
+      operationId: createVehicle
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateVehicleRequest" }
+      responses:
+        "201":
+          description: Created vehicle
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Vehicle" }
+
+  /v1/delivery/routes:
+    get:
+      tags: [routes]
+      operationId: listRouteSheets
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of route sheets
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/RouteSheet" }
+    post:
+      tags: [routes]
+      operationId: createRouteSheet
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateRouteSheetRequest" }
+      responses:
+        "201":
+          description: Created route sheet
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RouteSheet" }
+
+  /v1/delivery/shipments:
+    get:
+      tags: [shipments]
+      operationId: listShipments
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of shipments
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Shipment" }
+    post:
+      tags: [shipments]
+      operationId: createShipment
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateShipmentRequest" }
+      responses:
+        "201":
+          description: Created shipment
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Shipment" }
+
+  /v1/delivery/shipments/{id}:
+    get:
+      tags: [shipments]
+      operationId: getShipment
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Shipment details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Shipment" }
+
+  /v1/delivery/shipments/{id}/assign:
+    post:
+      tags: [shipments]
+      operationId: assignShipmentDriver
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AssignDriverRequest" }
+      responses:
+        "200":
+          description: Driver assigned
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Shipment" }
+
+  /v1/delivery/shipments/{id}/proof:
+    post:
+      tags: [shipments]
+      operationId: recordProofOfDelivery
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RecordProofRequest" }
+      responses:
+        "200":
+          description: Proof of delivery recorded
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Shipment" }
+
+components:
+  securitySchemes:
+    staffToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    serviceToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    DeliverySettings:
+      type: object
+      required: [id, mode, slaHours, slotDays, leadMinutes, requireSlot]
+      properties:
+        id: { type: string }
+        mode: { type: string }
+        slaHours: { type: integer }
+        slotDays: { type: integer }
+        leadMinutes: { type: integer }
+        requireSlot: { type: boolean }
+
+    DeliveryZone:
+      type: object
+      required: [id, nameEn, nameAr, fee, isActive]
+      properties:
+        id: { type: string }
+        nameEn: { type: string }
+        nameAr: { type: string }
+        areas:
+          type: array
+          items: { type: string }
+        fee: { type: string }
+        isActive: { type: boolean }
+
+    CreateDeliveryZoneRequest:
+      type: object
+      required: [nameEn, nameAr, fee]
+      properties:
+        nameEn: { type: string }
+        nameAr: { type: string }
+        areas:
+          type: array
+          items: { type: string }
+        fee: { type: string }
+
+    Vehicle:
+      type: object
+      required: [id, plate, name, kind, isActive]
+      properties:
+        id: { type: string }
+        plate: { type: string }
+        name: { type: string }
+        kind: { type: string }
+        notes: { type: string }
+        isActive: { type: boolean }
+
+    CreateVehicleRequest:
+      type: object
+      required: [plate, name]
+      properties:
+        plate: { type: string }
+        name: { type: string }
+        kind: { type: string, default: "van" }
+        notes: { type: string }
+
+    RouteSheet:
+      type: object
+      required: [id, number, status, runDate]
+      properties:
+        id: { type: string }
+        number: { type: string }
+        driverId: { type: string }
+        vehicleId: { type: string }
+        status: { type: string }
+        runDate: { type: string, format: date }
+
+    CreateRouteSheetRequest:
+      type: object
+      required: [number]
+      properties:
+        number: { type: string }
+        driverId: { type: string }
+        vehicleId: { type: string }
+
+    Shipment:
+      type: object
+      required: [id, number, orderId, status, method, recipientName, recipientPhone, promisedBy]
+      properties:
+        id: { type: string }
+        number: { type: string }
+        orderId: { type: string }
+        status: { type: string }
+        method: { type: string }
+        recipientName: { type: string }
+        recipientPhone: { type: string }
+        codAmount: { type: string }
+        codCollected: { type: string }
+        trackingToken: { type: string }
+        driverId: { type: string }
+        vehicleId: { type: string }
+        promisedBy: { type: string, format: date-time }
+        deliveredAt: { type: string, format: date-time }
+
+    CreateShipmentRequest:
+      type: object
+      required: [number, orderId, recipientName, recipientPhone, promisedBy, address]
+      properties:
+        number: { type: string }
+        orderId: { type: string }
+        recipientName: { type: string }
+        recipientPhone: { type: string }
+        promisedBy: { type: string, format: date-time }
+        codAmount: { type: string, default: "0.000" }
+        address: { type: object }
+
+    AssignDriverRequest:
+      type: object
+      required: [driverId]
+      properties:
+        driverId: { type: string }
+        vehicleId: { type: string }
+        routeSheetId: { type: string }
+        routeStop: { type: integer }
+
+    RecordProofRequest:
+      type: object
+      properties:
+        proofPhotoUrl: { type: string }
+        proofSignature: { type: string }
+        codCollected: { type: string, default: "0.000" }

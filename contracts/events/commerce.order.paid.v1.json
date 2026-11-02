@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "commerce.order.paid.v1",
+  "type": "object",
+  "required": ["order_id", "payment_status", "amount_paid", "paid_at"],
+  "properties": {
+    "order_id": { "type": "string" },
+    "payment_status": { "type": "string" },
+    "amount_paid": { "type": "string" },
+    "paid_at": { "type": "string", "format": "date-time" }
+  }
+}

@@ -1,0 +1,365 @@
+openapi: 3.1.0
+info:
+  title: Workflow Service (workflow)
+  version: 1.0.0
+  description: |
+    Workflow service managing approvals, digital signature requests, official letters, meeting minutes, tasks, and calendar events.
+servers:
+  - url: /
+tags:
+  - name: approvals
+  - name: signatures
+  - name: letters
+  - name: moms
+  - name: tasks
+  - name: calendar
+paths:
+  /v1/workflow/approvals:
+    get:
+      tags: [approvals]
+      operationId: listApprovals
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of approval requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ApprovalRequest" }
+    post:
+      tags: [approvals]
+      operationId: createApprovalRequest
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateApprovalRequest" }
+      responses:
+        "201":
+          description: Created approval request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ApprovalRequest" }
+
+  /v1/workflow/approvals/{id}:
+    get:
+      tags: [approvals]
+      operationId: getApprovalRequest
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Approval request details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ApprovalRequestWithDecisions" }
+
+  /v1/workflow/approvals/{id}/decide:
+    post:
+      tags: [approvals]
+      operationId: decideApproval
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: string, enum: [approve, reject] }
+                comments: { type: string }
+      responses:
+        "200":
+          description: Decision recorded
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ApprovalDecision" }
+
+  /v1/workflow/signatures:
+    get:
+      tags: [signatures]
+      operationId: listSignatures
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of signature requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/SignatureRequest" }
+    post:
+      tags: [signatures]
+      operationId: createSignatureRequest
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateSignatureRequest" }
+      responses:
+        "201":
+          description: Created signature request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SignatureRequest" }
+
+  /v1/workflow/signatures/{id}/sign:
+    post:
+      tags: [signatures]
+      operationId: recordSignature
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [signatureUrl]
+              properties:
+                signatureUrl: { type: string }
+      responses:
+        "200":
+          description: Recorded signature
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SignatureRequest" }
+
+  /v1/workflow/tasks:
+    get:
+      tags: [tasks]
+      operationId: listTasks
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Task" }
+    post:
+      tags: [tasks]
+      operationId: createTask
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateTaskRequest" }
+      responses:
+        "201":
+          description: Created task
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Task" }
+
+  /v1/workflow/tasks/{id}/status:
+    put:
+      tags: [tasks]
+      operationId: updateTaskStatus
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string }
+      responses:
+        "200":
+          description: Updated task
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Task" }
+
+  /v1/workflow/calendar:
+    get:
+      tags: [calendar]
+      operationId: listCalendarEvents
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of calendar events
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/CalendarEvent" }
+    post:
+      tags: [calendar]
+      operationId: createCalendarEvent
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateCalendarEventRequest" }
+      responses:
+        "201":
+          description: Created calendar event
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CalendarEvent" }
+
+components:
+  securitySchemes:
+    staffToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    serviceToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApprovalRequest:
+      type: object
+      required: [id, kind, entityId, requesterId, status, priority, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        kind: { type: string }
+        entityId: { type: string }
+        requesterId: { type: string }
+        status: { type: string }
+        priority: { type: string }
+        reason: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    ApprovalDecision:
+      type: object
+      required: [id, requestId, approverId, decision, decidedAt]
+      properties:
+        id: { type: string }
+        requestId: { type: string }
+        approverId: { type: string }
+        decision: { type: string }
+        comments: { type: string, nullable: true }
+        decidedAt: { type: string, format: date-time }
+
+    ApprovalRequestWithDecisions:
+      allOf:
+        - { $ref: "#/components/schemas/ApprovalRequest" }
+        - type: object
+          properties:
+            decisions:
+              type: array
+              items: { $ref: "#/components/schemas/ApprovalDecision" }
+
+    CreateApprovalRequest:
+      type: object
+      required: [kind, entityId, requesterId]
+      properties:
+        kind: { type: string }
+        entityId: { type: string }
+        requesterId: { type: string }
+        priority: { type: string, default: "normal" }
+        reason: { type: string }
+
+    SignatureRequest:
+      type: object
+      required: [id, title, documentType, documentId, requestedFrom, status, createdAt]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        documentType: { type: string }
+        documentId: { type: string }
+        requestedFrom: { type: string }
+        status: { type: string }
+        signatureUrl: { type: string, nullable: true }
+        signedAt: { type: string, format: date-time, nullable: true }
+        expiresAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+
+    CreateSignatureRequest:
+      type: object
+      required: [title, documentType, documentId, requestedFrom]
+      properties:
+        title: { type: string }
+        documentType: { type: string }
+        documentId: { type: string }
+        requestedFrom: { type: string }
+        expiresAt: { type: string, format: date-time }
+
+    Task:
+      type: object
+      required: [id, title, status, priority, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        description: { type: string, nullable: true }
+        assignedTo: { type: string, nullable: true }
+        dueDate: { type: string, format: date, nullable: true }
+        status: { type: string }
+        priority: { type: string }
+        relatedEntityType: { type: string, nullable: true }
+        relatedEntityId: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    CreateTaskRequest:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string }
+        description: { type: string }
+        assignedTo: { type: string }
+        dueDate: { type: string, format: date }
+        status: { type: string, default: "todo" }
+        priority: { type: string, default: "normal" }
+        relatedEntityType: { type: string }
+        relatedEntityId: { type: string }
+
+    CalendarEvent:
+      type: object
+      required: [id, title, startTime, endTime, isAllDay, organizerId, eventType, createdAt]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        description: { type: string, nullable: true }
+        startTime: { type: string, format: date-time }
+        endTime: { type: string, format: date-time }
+        isAllDay: { type: boolean }
+        location: { type: string, nullable: true }
+        organizerId: { type: string }
+        eventType: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    CreateCalendarEventRequest:
+      type: object
+      required: [title, startTime, endTime, organizerId]
+      properties:
+        title: { type: string }
+        description: { type: string }
+        startTime: { type: string, format: date-time }
+        endTime: { type: string, format: date-time }
+        isAllDay: { type: boolean, default: false }
+        location: { type: string }
+        organizerId: { type: string }
+        eventType: { type: string, default: "general" }

@@ -1,0 +1,388 @@
+openapi: 3.1.0
+info:
+  title: Finance Service (finance)
+  version: 1.0.0
+  description: |
+    Finance service managing invoices, payments, expenses, expense categories, and bank settlements.
+servers:
+  - url: /
+tags:
+  - name: invoices
+  - name: payments
+  - name: expenses
+  - name: settlements
+paths:
+  /v1/finance/invoices:
+    get:
+      tags: [invoices]
+      operationId: listInvoices
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of invoices
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Invoice" }
+    post:
+      tags: [invoices]
+      operationId: createInvoice
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateInvoiceRequest" }
+      responses:
+        "201":
+          description: Created invoice
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InvoiceWithItems" }
+
+  /v1/finance/invoices/{id}:
+    get:
+      tags: [invoices]
+      operationId: getInvoice
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Invoice detail
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InvoiceWithItems" }
+    delete:
+      tags: [invoices]
+      operationId: deleteInvoice
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Deleted }
+
+  /v1/finance/invoices/{id}/status:
+    put:
+      tags: [invoices]
+      operationId: updateInvoiceStatus
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string }
+      responses:
+        "200":
+          description: Updated invoice
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Invoice" }
+
+  /v1/finance/payments:
+    get:
+      tags: [payments]
+      operationId: listPayments
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: invoiceId
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        "200":
+          description: List of payments
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Payment" }
+    post:
+      tags: [payments]
+      operationId: recordPayment
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RecordPaymentRequest" }
+      responses:
+        "201":
+          description: Recorded payment
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Payment" }
+
+  /v1/finance/expenses:
+    get:
+      tags: [expenses]
+      operationId: listExpenses
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of expenses
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Expense" }
+    post:
+      tags: [expenses]
+      operationId: createExpense
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateExpenseRequest" }
+      responses:
+        "201":
+          description: Created expense
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Expense" }
+
+  /v1/finance/expenses/{id}/approve:
+    put:
+      tags: [expenses]
+      operationId: approveExpense
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [approvedBy]
+              properties:
+                approvedBy: { type: string }
+      responses:
+        "200":
+          description: Approved expense
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Expense" }
+
+  /v1/finance/expense-categories:
+    get:
+      tags: [expenses]
+      operationId: listExpenseCategories
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ExpenseCategory" }
+
+  /v1/finance/settlements:
+    get:
+      tags: [settlements]
+      operationId: listSettlements
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of settlements
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/BankSettlement" }
+
+components:
+  securitySchemes:
+    staffToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    serviceToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Invoice:
+      type: object
+      required: [id, invoiceNumber, status, issueDate, dueDate, subtotal, discount, vatRate, vatAmount, total, amountPaid, balanceDue, currency, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        invoiceNumber: { type: string }
+        quotationId: { type: string, nullable: true }
+        contactId: { type: string, nullable: true }
+        dealId: { type: string, nullable: true }
+        status: { type: string }
+        issueDate: { type: string, format: date }
+        dueDate: { type: string, format: date }
+        subtotal: { type: string }
+        discount: { type: string }
+        vatRate: { type: string }
+        vatAmount: { type: string }
+        total: { type: string }
+        amountPaid: { type: string }
+        balanceDue: { type: string }
+        currency: { type: string }
+        notes: { type: string, nullable: true }
+        terms: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    InvoiceItem:
+      type: object
+      required: [id, invoiceId, description, quantity, unitPrice, amount, sortOrder]
+      properties:
+        id: { type: string }
+        invoiceId: { type: string }
+        description: { type: string }
+        quantity: { type: string }
+        unitPrice: { type: string }
+        amount: { type: string }
+        sortOrder: { type: integer }
+
+    InvoiceWithItems:
+      allOf:
+        - { $ref: "#/components/schemas/Invoice" }
+        - type: object
+          properties:
+            items:
+              type: array
+              items: { $ref: "#/components/schemas/InvoiceItem" }
+
+    CreateInvoiceRequest:
+      type: object
+      required: [invoiceNumber]
+      properties:
+        invoiceNumber: { type: string }
+        quotationId: { type: string }
+        contactId: { type: string }
+        dealId: { type: string }
+        issueDate: { type: string, format: date }
+        dueDate: { type: string, format: date }
+        subtotal: { type: string, default: "0.000" }
+        discount: { type: string, default: "0.000" }
+        vatRate: { type: string, default: "10.00" }
+        vatAmount: { type: string, default: "0.000" }
+        total: { type: string, default: "0.000" }
+        currency: { type: string, default: "BHD" }
+        notes: { type: string }
+        terms: { type: string }
+        items:
+          type: array
+          items:
+            type: object
+            required: [description, quantity, unitPrice, amount]
+            properties:
+              description: { type: string }
+              quantity: { type: string }
+              unitPrice: { type: string }
+              amount: { type: string }
+              sortOrder: { type: integer }
+
+    Payment:
+      type: object
+      required: [id, paymentNumber, amount, currency, paymentMethod, paymentDate, status, createdAt]
+      properties:
+        id: { type: string }
+        paymentNumber: { type: string }
+        invoiceId: { type: string, nullable: true }
+        contactId: { type: string, nullable: true }
+        amount: { type: string }
+        currency: { type: string }
+        paymentMethod: { type: string }
+        paymentDate: { type: string, format: date }
+        reference: { type: string, nullable: true }
+        status: { type: string }
+        notes: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+
+    RecordPaymentRequest:
+      type: object
+      required: [paymentNumber, amount]
+      properties:
+        paymentNumber: { type: string }
+        invoiceId: { type: string }
+        contactId: { type: string }
+        amount: { type: string }
+        currency: { type: string, default: "BHD" }
+        paymentMethod: { type: string, default: "bank_transfer" }
+        paymentDate: { type: string, format: date }
+        reference: { type: string }
+        notes: { type: string }
+
+    ExpenseCategory:
+      type: object
+      required: [id, nameEn, nameAr, code, sortOrder]
+      properties:
+        id: { type: string }
+        nameEn: { type: string }
+        nameAr: { type: string }
+        code: { type: string }
+        sortOrder: { type: integer }
+
+    Expense:
+      type: object
+      required: [id, title, amount, currency, expenseDate, status, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        categoryId: { type: string, nullable: true }
+        amount: { type: string }
+        currency: { type: string }
+        expenseDate: { type: string, format: date }
+        status: { type: string }
+        notes: { type: string, nullable: true }
+        vendor: { type: string, nullable: true }
+        receiptUrl: { type: string, nullable: true }
+        createdBy: { type: string, nullable: true }
+        approvedBy: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    CreateExpenseRequest:
+      type: object
+      required: [title, amount]
+      properties:
+        title: { type: string }
+        categoryId: { type: string }
+        amount: { type: string }
+        currency: { type: string, default: "BHD" }
+        expenseDate: { type: string, format: date }
+        notes: { type: string }
+        vendor: { type: string }
+        receiptUrl: { type: string }
+
+    BankSettlement:
+      type: object
+      required: [id, settlementNumber, bankAccount, amount, currency, settledAt, status, createdAt]
+      properties:
+        id: { type: string }
+        settlementNumber: { type: string }
+        bankAccount: { type: string }
+        amount: { type: string }
+        currency: { type: string }
+        settledAt: { type: string, format: date-time }
+        status: { type: string }
+        notes: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }

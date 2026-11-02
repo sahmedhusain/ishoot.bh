@@ -5,12 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button, Card } from "@platform/ui";
-import { ArrowLeft, ArrowRight, Lock, Paperclip, Send } from "lucide-react";
+import { ArrowLeft, ArrowRight, Lock, Paperclip, Send, UserPlus, X } from "lucide-react";
 import type { TicketDetail } from "@platform/api-client";
 import { ticketCategory, transitionsFrom } from "@platform/contracts";
-import { commentAction, transitionAction, type Outcome } from "../app/actions";
+import { commentAction, transitionAction, uploadAttachmentAction, type AttachmentInput, type Outcome } from "../app/actions";
 import { useCopy } from "./CopyProvider";
-import { OverdueBadge, StatusBadge } from "./ticket-ui";
+import { OverdueBadge, RemindedBadge, StatusBadge } from "./ticket-ui";
 
 interface TicketViewProps {
   detail: TicketDetail;
@@ -37,6 +37,12 @@ export function TicketView({
   const [busy, setBusy] = React.useState(false);
   const [message, setMessage] = React.useState("");
   const [internal, setInternal] = React.useState(false);
+  const [attachedFiles, setAttachedFiles] = React.useState<AttachmentInput[]>([]);
+  const [uploadingFile, setUploadingFile] = React.useState(false);
+  const [showAssignInput, setShowAssignInput] = React.useState(false);
+  const [targetAssigneeId, setTargetAssigneeId] = React.useState("");
+  const [targetAssigneeName, setTargetAssigneeName] = React.useState("");
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const Back = locale === "ar" ? ArrowRight : ArrowLeft;
 
   const run = async (fn: () => Promise<Outcome>, done: string) => {
@@ -55,16 +61,58 @@ export function TicketView({
     }
   };
 
-  // Assigning always assigns to the person acting; it is offered unless they already hold the ticket.
   const actions = transitionsFrom(ticket.status).filter((name) =>
     name === "assign" ? canAssign && !isAssignee : canEdit,
   );
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (attachedFiles.length >= 10) {
+      toast.error(locale === "ar" ? "الحد الأقصى 10 مرفقات" : "Maximum 10 attachments");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error(locale === "ar" ? "حجم الملف يتجاوز 10 ميجابايت" : "File exceeds 10MB limit");
+      return;
+    }
+    setUploadingFile(true);
+    try {
+      const form = new FormData();
+      form.set("file", file);
+      const res = await uploadAttachmentAction(form);
+      if (res.ok && res.attachment) {
+        setAttachedFiles((prev) => [...prev, res.attachment!]);
+        toast.success(locale === "ar" ? "تم رفع المرفق" : "Attachment uploaded");
+      } else {
+        toast.error(locale === "ar" ? "فشل رفع الملف" : "Failed to upload file");
+      }
+    } catch {
+      toast.error(locale === "ar" ? "فشل رفع الملف" : "Failed to upload file");
+    } finally {
+      setUploadingFile(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const send = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (await run(() => commentAction(ticket.id, message, internal), t.sent))
+    if (
+      await run(
+        () => commentAction(ticket.id, message, internal, attachedFiles),
+        t.sent,
+      )
+    ) {
       setMessage("");
+      setAttachedFiles([]);
+    }
   };
+
+  const ticketAttachments = attachments.filter((a) => !a.commentId);
 
   const facts: [string, React.ReactNode][] = [
     [
@@ -102,13 +150,20 @@ export function TicketView({
       date(ticket.resolvedAt ?? ticket.resolveBy),
     ],
   ];
-  if (ticket.assetRef)
+  if (ticket.remindedAt) {
+    facts.push([
+      locale === "ar" ? "تنبيه مستوى الخدمة" : "SLA Reminder",
+      date(ticket.remindedAt),
+    ]);
+  }
+  if (ticket.assetRef) {
     facts.push([
       t.assetRef,
       <bdi key="asset" dir="ltr">
         {ticket.assetRef}
       </bdi>,
     ]);
+  }
 
   return (
     <div inert={busy} aria-busy={busy} className="space-y-6">
@@ -127,12 +182,28 @@ export function TicketView({
             </span>
             <StatusBadge status={ticket.status} />
             {ticket.breached && <OverdueBadge />}
+            {ticket.remindedAt && !ticket.breached && <RemindedBadge />}
           </div>
           <h1 className="text-2xl font-bold text-ink mt-1">
             <bdi dir="auto">{ticket.title}</bdi>
           </h1>
         </div>
         <div className="flex flex-wrap gap-2">
+          {canAssign && (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={busy}
+              onClick={() => setShowAssignInput((prev) => !prev)}
+              className="gap-1.5"
+            >
+              <UserPlus className="size-3.5" aria-hidden />
+              {ticket.assigneeId
+                ? (locale === "ar" ? "إعادة التعيين" : "Reassign")
+                : (locale === "ar" ? "تعيين لموظف" : "Assign to staff")}
+            </Button>
+          )}
           {actions.map((name) => (
             <Button
               key={name}
@@ -154,19 +225,87 @@ export function TicketView({
       </div>
       {!canEdit && <p className="text-xs text-ink-muted">{t.readOnly}</p>}
 
+      {showAssignInput && canAssign && (
+        <Card className="p-4 rounded-2xl bg-surface border border-outline-variant space-y-3">
+          <h3 className="text-xs font-bold text-ink flex items-center gap-1.5">
+            <UserPlus className="size-3.5" aria-hidden />
+            {ticket.assigneeId
+              ? (locale === "ar" ? "إعادة تعيين التذكرة لموظف آخر" : "Reassign Ticket to Staff")
+              : (locale === "ar" ? "تعيين التذكرة لموظف آخر" : "Assign Ticket to Staff")}
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-[11px] text-ink-muted block mb-1">
+                {locale === "ar" ? "معرّف الموظف (Subject / Email)" : "Staff ID or Email"}
+              </label>
+              <input
+                type="text"
+                required
+                value={targetAssigneeId}
+                onChange={(e) => setTargetAssigneeId(e.target.value)}
+                placeholder="it-user-1"
+                className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-1.5 text-xs text-ink focus:outline-none focus:ring-2 focus:ring-accent/30"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] text-ink-muted block mb-1">
+                {locale === "ar" ? "اسم الموظف" : "Staff Name"}
+              </label>
+              <input
+                type="text"
+                value={targetAssigneeName}
+                onChange={(e) => setTargetAssigneeName(e.target.value)}
+                placeholder="Alex"
+                className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-1.5 text-xs text-ink focus:outline-none focus:ring-2 focus:ring-accent/30"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setShowAssignInput(false)}
+            >
+              {locale === "ar" ? "إلغاء" : "Cancel"}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="primary"
+              disabled={busy || !targetAssigneeId.trim()}
+              onClick={() =>
+                run(
+                  () => transitionAction(ticket.id, ticket.status, "assign", targetAssigneeId, targetAssigneeName),
+                  t.updated,
+                ).then((ok) => {
+                  if (ok) {
+                    setShowAssignInput(false);
+                    setTargetAssigneeId("");
+                    setTargetAssigneeName("");
+                  }
+                })
+              }
+            >
+              {locale === "ar" ? "تأكيد التعيين" : "Confirm Assignment"}
+            </Button>
+          </div>
+        </Card>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <Card className="p-6 rounded-3xl bg-surface border border-outline-variant space-y-3">
             <p className="text-sm text-ink whitespace-pre-wrap">
               <bdi dir="auto">{ticket.description}</bdi>
             </p>
-            {attachments.length > 0 && (
+            {ticketAttachments.length > 0 && (
               <div className="pt-2">
                 <h2 className="text-xs font-semibold text-ink-muted mb-2">
                   {t.attachments}
                 </h2>
                 <ul className="flex flex-wrap gap-2">
-                  {attachments.map((a) => (
+                  {ticketAttachments.map((a) => (
                     <li key={a.fileUrl}>
                       <a
                         href={`/tickets/${ticket.id}/attachment?${new URLSearchParams({ fileUrl: a.fileUrl })}`}
@@ -190,29 +329,58 @@ export function TicketView({
               <p className="text-xs text-ink-muted">{t.noComments}</p>
             ) : (
               <ul className="space-y-3">
-                {comments.map((c) => (
-                  <li
-                    key={c.id}
-                    className={`p-3 rounded-2xl text-sm ${c.internal ? "bg-amber-500/10 border border-amber-500/30" : c.authorRealm === "it" ? "bg-accent/5 border border-accent/20" : "bg-surface-sunken"}`}
-                  >
-                    <div className="flex items-center justify-between gap-2 text-[11px] text-ink-muted mb-1">
-                      <span className="flex items-center gap-1.5 font-semibold text-ink">
-                        {c.internal && (
-                          <Lock className="size-3" aria-label={t.internal} />
-                        )}
-                        <bdi dir="auto">{c.authorName}</bdi>
-                      </span>
-                      <span>{date(c.createdAt)}</span>
-                    </div>
-                    <p className="whitespace-pre-wrap text-ink">
-                      <bdi dir="auto">{c.body}</bdi>
-                    </p>
-                  </li>
-                ))}
+                {comments.map((c) => {
+                  const commentAtts = c.attachments?.length
+                    ? c.attachments
+                    : attachments.filter((a) => a.commentId === c.id);
+                  return (
+                    <li
+                      key={c.id}
+                      className={`p-3 rounded-2xl text-sm ${c.internal ? "bg-amber-500/10 border border-amber-500/30" : c.authorRealm === "it" ? "bg-accent/5 border border-accent/20" : "bg-surface-sunken"}`}
+                    >
+                      <div className="flex items-center justify-between gap-2 text-[11px] text-ink-muted mb-1">
+                        <span className="flex items-center gap-1.5 font-semibold text-ink">
+                          {c.internal && (
+                            <Lock className="size-3" aria-label={t.internal} />
+                          )}
+                          <bdi dir="auto">{c.authorName}</bdi>
+                        </span>
+                        <span>{date(c.createdAt)}</span>
+                      </div>
+                      <p className="whitespace-pre-wrap text-ink">
+                        <bdi dir="auto">{c.body}</bdi>
+                      </p>
+                      {commentAtts.length > 0 && (
+                        <ul className="flex flex-wrap gap-2 mt-2 pt-2 border-t border-ink/10">
+                          {commentAtts.map((a) => (
+                            <li key={a.fileUrl}>
+                              <a
+                                href={`/tickets/${ticket.id}/attachment?${new URLSearchParams({ fileUrl: a.fileUrl })}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-outline-variant bg-surface text-xs text-ink hover:border-accent"
+                              >
+                                <Paperclip className="size-3" aria-hidden />
+                                <bdi dir="auto">{a.fileName}</bdi>
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             )}
             {canEdit && (
               <form onSubmit={send} className="space-y-3">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  onChange={handleFileChange}
+                  accept="image/*,application/pdf,text/plain,text/csv,.docx,.xlsx"
+                />
                 <div
                   role="radiogroup"
                   className="inline-flex p-1 rounded-full bg-surface-sunken border border-outline-variant"
@@ -242,12 +410,46 @@ export function TicketView({
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                 />
-                <div className="flex justify-end">
+                {attachedFiles.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {attachedFiles.map((f, idx) => (
+                      <span
+                        key={f.fileUrl || idx}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-outline-variant bg-surface text-ink"
+                      >
+                        <Paperclip className="size-3 text-ink-muted" aria-hidden />
+                        <span className="max-w-[150px] truncate">{f.fileName}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeAttachment(idx)}
+                          className="p-0.5 rounded-full hover:bg-surface-container text-ink-muted hover:text-ink"
+                          aria-label={locale === "ar" ? "إزالة المرفق" : "Remove attachment"}
+                        >
+                          <X className="size-3" aria-hidden />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div className="flex items-center justify-between gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={busy || uploadingFile || attachedFiles.length >= 10}
+                    onClick={() => fileInputRef.current?.click()}
+                    className="gap-1.5"
+                  >
+                    <Paperclip className="size-3.5" aria-hidden />
+                    {uploadingFile
+                      ? (locale === "ar" ? "جارٍ الرفع..." : "Uploading...")
+                      : (locale === "ar" ? "إرفاق ملف" : "Attach file")}
+                  </Button>
                   <Button
                     type="submit"
                     size="sm"
                     variant="primary"
-                    disabled={busy || !message.trim()}
+                    disabled={busy || uploadingFile || !message.trim()}
                     className="gap-2"
                   >
                     <Send className="size-4" aria-hidden />

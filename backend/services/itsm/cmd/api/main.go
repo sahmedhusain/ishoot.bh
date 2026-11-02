@@ -14,6 +14,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
@@ -24,11 +25,14 @@ import (
 	"platform.local/backend/pkg/httpx"
 	"platform.local/backend/pkg/logx"
 	"platform.local/backend/pkg/migrate"
+	"platform.local/backend/pkg/natsx"
+	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/pkg/telemetry"
 	"platform.local/backend/services/itsm/internal/app"
 	"platform.local/backend/services/itsm/internal/domain"
 	"platform.local/backend/services/itsm/internal/httpapi"
 	"platform.local/backend/services/itsm/internal/jobs"
+	"platform.local/backend/services/itsm/internal/notifyclient"
 	"platform.local/backend/services/itsm/internal/postgres"
 	"platform.local/backend/services/itsm/migrations"
 	"platform.local/backend/services/itsm/settings"
@@ -83,7 +87,14 @@ func run(command string) error {
 	}
 
 	svc := app.New(postgres.New(pool), app.Options{
-		Limits: domain.Limits{MaxAttachments: cfg.ITSM.MaxAttachments}, ITDisplayName: cfg.ITSM.ITDisplayName, BreachBatch: cfg.ITSM.BreachBatch,
+		Limits: domain.Limits{
+			MaxAttachments:    cfg.ITSM.MaxAttachments,
+			MaxAttachmentSize: cfg.ITSM.MaxAttachmentSize,
+		},
+		ITDisplayName:  cfg.ITSM.ITDisplayName,
+		BreachBatch:    cfg.ITSM.BreachBatch,
+		ReminderWindow: cfg.ITSM.ReminderWindow,
+		ReminderBatch:  cfg.ITSM.ReminderBatch,
 	})
 
 	checker := health.NewChecker(cfg.ServiceName, cfg.Version, cfg.Admin.ReadinessTimeout)
@@ -93,14 +104,14 @@ func run(command string) error {
 
 	switch command {
 	case "serve":
-		return serve(ctx, cfg, logger, svc, metrics, admin)
+		return serve(ctx, cfg, logger, pool, svc, metrics, admin)
 	case "worker":
-		return work(ctx, cfg, logger, pool, svc, admin)
+		return work(ctx, cfg, logger, pool, svc, admin, checker, metrics)
 	}
 	return fmt.Errorf("unknown command %q (serve, worker, migrate, healthcheck)", command)
 }
 
-func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, svc *app.Service, metrics *httpx.Metrics, admin http.Handler) error {
+func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, pool *pgxpool.Pool, svc *app.Service, metrics *httpx.Metrics, admin http.Handler) error {
 	if !cfg.Auth.Configured() {
 		return errors.New("set AUTH_SERVICE_KEYS_FILE (and AUTH_ISSUER/AUTH_JWKS_URL once identity runs)")
 	}
@@ -108,6 +119,13 @@ func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, svc *a
 	if err != nil {
 		return err
 	}
+
+	inserter, err := jobs.NewClient(pool, nil, jobs.Options{Schema: Schema, Logger: logger.Logger})
+	if err != nil {
+		return err
+	}
+	svc.SetJobInserter(inserter)
+
 	// Middleware uses each incoming request's context, not the process shutdown context.
 	e, err := httpx.New(cfg.Common, logger, metrics) //nolint:contextcheck // Request contexts are supplied by Echo at request time.
 	if err != nil {
@@ -124,21 +142,69 @@ func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, svc *a
 	return httpx.Run(ctx, cfg.Common, logger, public, adminServer)
 }
 
-func work(ctx context.Context, cfg settings.Config, logger *logx.Logger, pool *pgxpool.Pool, svc *app.Service, admin http.Handler) error {
+func work(ctx context.Context, cfg settings.Config, logger *logx.Logger, pool *pgxpool.Pool, svc *app.Service, admin http.Handler, checker *health.Checker, metrics *httpx.Metrics) error {
+	var transport http.RoundTripper
+	if cfg.ITSM.ServiceKey != "" {
+		signer, err := authn.NewServiceSigner("itsm", cfg.ITSM.ServiceKey, 5*time.Minute)
+		if err != nil {
+			return err
+		}
+		transport = signer.Transport(nil)
+	}
+	notifier := notifyclient.New(cfg.ITSM.NotifyURL, transport)
+
 	client, err := jobs.NewClient(pool, svc, jobs.Options{
-		Schema: Schema, BreachInterval: cfg.ITSM.BreachInterval, Workers: cfg.ITSM.Workers, Logger: logger.Logger,
+		Schema:           Schema,
+		BreachInterval:   cfg.ITSM.BreachInterval,
+		ReminderInterval: cfg.ITSM.ReminderInterval,
+		Workers:          cfg.ITSM.Workers,
+		Logger:           logger.Logger,
+		Notifier:         notifier,
 	})
 	if err != nil {
 		return err
 	}
+	svc.SetJobInserter(client)
 	if err := client.Start(ctx); err != nil {
 		return err
 	}
+
+	relayDone := make(chan struct{})
+	if cfg.NATS.Configured() {
+		broker, err := natsx.Connect(ctx, cfg.NATS, cfg.ServiceName, logger.Logger)
+		if err != nil {
+			return err
+		}
+		checker.Register("nats", broker.Check())
+		relay, err := outbox.NewRelay(pool, outbox.RelayOptions{
+			Schema:    Schema,
+			Publisher: broker,
+			Logger:    logger.Logger,
+			Interval:  cfg.Outbox.Interval,
+			Batch:     cfg.Outbox.Batch,
+			Retention: cfg.Outbox.Retention,
+			Metrics:   metrics.Registry,
+		})
+		if err != nil {
+			broker.Close()
+			return err
+		}
+		go func() {
+			defer close(relayDone)
+			defer broker.Close()
+			_ = relay.Run(ctx)
+		}()
+	} else {
+		logger.Warn("NATS_URL is not set: events stay in itsm.outbox until a relay publishes them")
+		close(relayDone)
+	}
+
 	logger.Info("itsm worker started")
 	// The worker serves only the admin listener (probes, metrics, log level).
 	_, adminServer := httpx.Servers(cfg.Common, nil, admin)
 	runErr := httpx.Run(ctx, cfg.Common, logger, adminServer)
 	stopCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), cfg.HTTP.ShutdownTimeout)
 	defer cancel()
+	<-relayDone
 	return errors.Join(runErr, client.Stop(stopCtx))
 }

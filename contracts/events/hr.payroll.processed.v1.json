@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/hr.payroll.processed.v1.json",
+  "title": "hr.payroll.processed",
+  "description": "A payroll run was processed and approved.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "payrollRunId",
+    "approvedBy"
+  ],
+  "properties": {
+    "payrollRunId": { "type": "string" },
+    "approvedBy": { "type": "string" }
+  }
+}

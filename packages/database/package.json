@@ -17,6 +17,7 @@
     "./finance/*": "./src/finance/*.ts",
     "./hr/*": "./src/hr/*.ts",
     "./cms/*": "./src/cms/*.ts",
+    "./integrations/*": "./src/integrations/*.ts",
     "./samples/*": "./src/samples/*.ts"
   },
   "scripts": {
@@ -26,9 +27,9 @@
   },
   "dependencies": {
     "@material/material-color-utilities": "0.3.0",
-    "@platform/api-client": "workspace:*",
-    "@platform/config": "workspace:*",
-    "@platform/locales": "workspace:*",
+    "@platform/api-client": "file:../api-client",
+    "@platform/config": "file:../config",
+    "@platform/locales": "file:../locales",
     "@prisma/client": "5.22.0",
     "bcryptjs": "^3.0.3",
     "libphonenumber-js": "^1.13.14"

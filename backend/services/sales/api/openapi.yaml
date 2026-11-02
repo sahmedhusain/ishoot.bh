@@ -1,0 +1,575 @@
+openapi: 3.1.0
+info:
+  title: Sales Service (sales)
+  version: 1.0.0
+  description: |
+    Sales service managing CRM contacts, deal pipeline, inquiries, quotations, and campaigns.
+servers:
+  - url: /
+tags:
+  - name: contacts
+  - name: deals
+  - name: inquiries
+  - name: quotations
+  - name: campaigns
+paths:
+  /v1/sales/contacts:
+    get:
+      tags: [contacts]
+      operationId: listContacts
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of contacts
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Contact" }
+    post:
+      tags: [contacts]
+      operationId: createContact
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateContactRequest" }
+      responses:
+        "201":
+          description: Created contact
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Contact" }
+
+  /v1/sales/contacts/{id}:
+    get:
+      tags: [contacts]
+      operationId: getContact
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Contact
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Contact" }
+    put:
+      tags: [contacts]
+      operationId: updateContact
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateContactRequest" }
+      responses:
+        "200":
+          description: Updated contact
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Contact" }
+    delete:
+      tags: [contacts]
+      operationId: deleteContact
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Deleted }
+
+  /v1/sales/deals:
+    get:
+      tags: [deals]
+      operationId: listDeals
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: contactId
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        "200":
+          description: List of deals
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Deal" }
+    post:
+      tags: [deals]
+      operationId: createDeal
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateDealRequest" }
+      responses:
+        "201":
+          description: Created deal
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Deal" }
+
+  /v1/sales/deals/{id}:
+    get:
+      tags: [deals]
+      operationId: getDeal
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Deal
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Deal" }
+    put:
+      tags: [deals]
+      operationId: updateDeal
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateDealRequest" }
+      responses:
+        "200":
+          description: Updated deal
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Deal" }
+    delete:
+      tags: [deals]
+      operationId: deleteDeal
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Deleted }
+
+  /v1/sales/deals/{id}/stage:
+    put:
+      tags: [deals]
+      operationId: updateDealStage
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [stage, status]
+              properties:
+                stage: { type: string }
+                status: { type: string }
+      responses:
+        "200":
+          description: Updated deal
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Deal" }
+
+  /v1/sales/inquiries:
+    get:
+      tags: [inquiries]
+      operationId: listInquiries
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of inquiries
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Inquiry" }
+    post:
+      tags: [inquiries]
+      operationId: createInquiry
+      summary: Submit inquiry (open or authenticated)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateInquiryRequest" }
+      responses:
+        "201":
+          description: Created inquiry
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Inquiry" }
+
+  /v1/sales/inquiries/{id}:
+    get:
+      tags: [inquiries]
+      operationId: getInquiry
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Inquiry
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Inquiry" }
+    delete:
+      tags: [inquiries]
+      operationId: deleteInquiry
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Deleted }
+
+  /v1/sales/inquiries/{id}/status:
+    put:
+      tags: [inquiries]
+      operationId: updateInquiryStatus
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string }
+      responses:
+        "200":
+          description: Updated inquiry
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Inquiry" }
+
+  /v1/sales/quotations:
+    get:
+      tags: [quotations]
+      operationId: listQuotations
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of quotations
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Quotation" }
+    post:
+      tags: [quotations]
+      operationId: createQuotation
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateQuotationRequest" }
+      responses:
+        "201":
+          description: Created quotation
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/QuotationWithItems" }
+
+  /v1/sales/quotations/{id}:
+    get:
+      tags: [quotations]
+      operationId: getQuotation
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Quotation detail
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/QuotationWithItems" }
+    delete:
+      tags: [quotations]
+      operationId: deleteQuotation
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Deleted }
+
+  /v1/sales/quotations/{id}/status:
+    put:
+      tags: [quotations]
+      operationId: updateQuotationStatus
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string }
+      responses:
+        "200":
+          description: Updated quotation
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Quotation" }
+
+components:
+  securitySchemes:
+    staffToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    serviceToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Contact:
+      type: object
+      required: [id, firstName, contactType, status, tags, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        firstName: { type: string }
+        lastName: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        phone: { type: string, nullable: true }
+        company: { type: string, nullable: true }
+        contactType: { type: string }
+        status: { type: string }
+        notes: { type: string, nullable: true }
+        tags: { type: array, items: { type: string } }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    CreateContactRequest:
+      type: object
+      required: [firstName]
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        company: { type: string }
+        contactType: { type: string, default: "lead" }
+        status: { type: string, default: "active" }
+        notes: { type: string }
+        tags: { type: array, items: { type: string } }
+
+    UpdateContactRequest:
+      type: object
+      required: [firstName]
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        company: { type: string }
+        contactType: { type: string }
+        status: { type: string }
+        notes: { type: string }
+        tags: { type: array, items: { type: string } }
+
+    Deal:
+      type: object
+      required: [id, title, stage, value, currency, probability, status, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        contactId: { type: string, nullable: true }
+        stage: { type: string }
+        value: { type: string }
+        currency: { type: string }
+        probability: { type: integer }
+        expectedCloseDate: { type: string, format: date, nullable: true }
+        status: { type: string }
+        assignedTo: { type: string, nullable: true }
+        notes: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    CreateDealRequest:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string }
+        contactId: { type: string }
+        stage: { type: string, default: "lead" }
+        value: { type: string, default: "0.000" }
+        currency: { type: string, default: "BHD" }
+        probability: { type: integer, default: 20 }
+        expectedCloseDate: { type: string, format: date }
+        status: { type: string, default: "open" }
+        assignedTo: { type: string }
+        notes: { type: string }
+
+    UpdateDealRequest:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string }
+        contactId: { type: string }
+        stage: { type: string }
+        value: { type: string }
+        currency: { type: string }
+        probability: { type: integer }
+        expectedCloseDate: { type: string, format: date }
+        status: { type: string }
+        assignedTo: { type: string }
+        notes: { type: string }
+
+    Inquiry:
+      type: object
+      required: [id, inquiryType, subject, message, status, priority, requesterName, requesterEmail, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        inquiryType: { type: string }
+        subject: { type: string }
+        message: { type: string }
+        status: { type: string }
+        priority: { type: string }
+        requesterName: { type: string }
+        requesterEmail: { type: string }
+        requesterPhone: { type: string, nullable: true }
+        assigneeId: { type: string, nullable: true }
+        dealId: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    CreateInquiryRequest:
+      type: object
+      required: [subject, message, requesterName, requesterEmail]
+      properties:
+        inquiryType: { type: string, default: "general" }
+        subject: { type: string }
+        message: { type: string }
+        priority: { type: string, default: "normal" }
+        requesterName: { type: string }
+        requesterEmail: { type: string }
+        requesterPhone: { type: string }
+        dealId: { type: string }
+
+    Quotation:
+      type: object
+      required: [id, quotationNumber, status, subtotal, discount, vatRate, vatAmount, total, currency, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        quotationNumber: { type: string }
+        dealId: { type: string, nullable: true }
+        contactId: { type: string, nullable: true }
+        status: { type: string }
+        subtotal: { type: string }
+        discount: { type: string }
+        vatRate: { type: string }
+        vatAmount: { type: string }
+        total: { type: string }
+        currency: { type: string }
+        validUntil: { type: string, format: date, nullable: true }
+        terms: { type: string, nullable: true }
+        notes: { type: string, nullable: true }
+        issuedAt: { type: string, format: date-time, nullable: true }
+        acceptedAt: { type: string, format: date-time, nullable: true }
+        rejectedAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    QuotationItem:
+      type: object
+      required: [id, quotationId, description, quantity, unitPrice, amount, sortOrder]
+      properties:
+        id: { type: string }
+        quotationId: { type: string }
+        description: { type: string }
+        quantity: { type: string }
+        unitPrice: { type: string }
+        amount: { type: string }
+        sortOrder: { type: integer }
+
+    QuotationWithItems:
+      allOf:
+        - { $ref: "#/components/schemas/Quotation" }
+        - type: object
+          properties:
+            items:
+              type: array
+              items: { $ref: "#/components/schemas/QuotationItem" }
+
+    CreateQuotationRequest:
+      type: object
+      required: [quotationNumber]
+      properties:
+        quotationNumber: { type: string }
+        dealId: { type: string }
+        contactId: { type: string }
+        subtotal: { type: string, default: "0.000" }
+        discount: { type: string, default: "0.000" }
+        vatRate: { type: string, default: "10.00" }
+        vatAmount: { type: string, default: "0.000" }
+        total: { type: string, default: "0.000" }
+        currency: { type: string, default: "BHD" }
+        validUntil: { type: string, format: date }
+        terms: { type: string }
+        notes: { type: string }
+        items:
+          type: array
+          items:
+            type: object
+            required: [description, quantity, unitPrice, amount]
+            properties:
+              description: { type: string }
+              quantity: { type: string }
+              unitPrice: { type: string }
+              amount: { type: string }
+              sortOrder: { type: integer }

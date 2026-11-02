@@ -4610,3 +4610,9 @@ model StoreRegion {
 
   @@index([branchId])
 }
+
+// Receipts reject reordered and retried transitional identity profile deliveries.
+model IdentityProjectionReceipt {
+ id String @id
+ version BigInt
+}

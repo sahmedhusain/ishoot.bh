@@ -76,6 +76,9 @@ paths:
                 requesterId: { type: string, maxLength: 64 }
                 requesterName: { type: string, maxLength: 200 }
                 body: { type: string, minLength: 1, maxLength: 10000 }
+                attachments:
+                  type: array
+                  items: { $ref: "#/components/schemas/Attachment" }
       responses:
         "201": { $ref: "#/components/responses/Comment" }
         default: { $ref: "#/components/responses/Problem" }
@@ -115,6 +118,7 @@ paths:
         - { $ref: "#/components/parameters/Status" }
         - { name: assigneeId, in: query, schema: { type: string, maxLength: 64 } }
         - { name: priority, in: query, schema: { type: string, maxLength: 20 } }
+        - { name: category, in: query, schema: { type: string, maxLength: 40 } }
         - { name: open, in: query, description: Only tickets that still need work, schema: { type: boolean } }
         - { $ref: "#/components/parameters/Cursor" }
         - { $ref: "#/components/parameters/Limit" }
@@ -196,6 +200,9 @@ paths:
               properties:
                 body: { type: string, minLength: 1, maxLength: 10000 }
                 internal: { type: boolean }
+                attachments:
+                  type: array
+                  items: { $ref: "#/components/schemas/Attachment" }
       responses:
         "201": { $ref: "#/components/responses/Comment" }
         default: { $ref: "#/components/responses/Problem" }
@@ -326,6 +333,7 @@ components:
         breached: { type: boolean }
         resolvedAt: { type: string, format: date-time }
         closedAt: { type: string, format: date-time }
+        remindedAt: { type: string, format: date-time }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
     TicketDetail:
@@ -357,6 +365,7 @@ components:
         body: { type: string }
         internal: { type: boolean }
         createdAt: { type: string, format: date-time }
+        attachments: { type: array, items: { $ref: "#/components/schemas/Attachment" } }
     Attachment:
       type: object
       additionalProperties: false
@@ -366,6 +375,7 @@ components:
         fileName: { type: string, maxLength: 200 }
         mimeType: { type: string, maxLength: 100 }
         fileSize: { type: integer, minimum: 1 }
+        commentId: { type: string, format: uuid }
     SLAPolicy:
       type: object
       required: [priority, responseMinutes, resolveMinutes, updatedAt]

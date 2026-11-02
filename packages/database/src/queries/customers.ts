@@ -1,25 +1,10 @@
 import { isLocale } from "@platform/locales/registry";
-import {
-  createHash,
-  randomBytes,
-  randomInt,
-  timingSafeEqual,
-} from "node:crypto";
-import bcrypt from "bcryptjs";
 import { serverMessages } from "@platform/locales";
-import { db } from "../db";
+import { db, runAtomicMutation } from "../db";
 import { isValidEmail, normalizeEmail } from "../constants/validation";
 import { isValidPhone, formatPhoneE164 } from "../constants/phone";
 
-/** How long a sign-in lasts on one device. */
-export const CUSTOMER_SESSION_DAYS = 30;
-const CODE_MINUTES = 10;
-const CODE_ATTEMPTS = 5;
-
-export const normalizeCustomerEmail = (email: string) =>
-  normalizeEmail(email);
-const sha256 = (text: string) =>
-  createHash("sha256").update(text).digest("hex");
+export const normalizeCustomerEmail = (email: string) => normalizeEmail(email);
 
 export interface CustomerProfile {
   id: string;
@@ -78,211 +63,29 @@ function checkName(name: string) {
   return clean;
 }
 
-function checkPassword(password: string) {
-  if (password.length < 8 || password.length > 200)
-    throw new Error(serverMessages.customerPasswordWeak);
+/** The commerce profile for an already authenticated identity subject. Credentials stay in identity. */
+export async function getCustomerProfile(id: string) {
+ const customer=await db.customer.findUnique({where:{id}});
+ return customer ? profile(customer) : null;
 }
 
-/** Creates an account with a password. The e-mail is confirmed later (an e-mailed code). */
-export async function signUpCustomer(input: {
-  name: string;
-  email: string;
-  password: string;
-  locale: string;
-  marketingOptIn?: boolean;
-}) {
-  const email = normalizeCustomerEmail(input.email);
-  if (!isValidEmail(email)) throw new Error(serverMessages.customerEmailInvalid);
-  const name = checkName(input.name);
-  checkPassword(input.password);
-  if (await db.customer.findUnique({ where: { email }, select: { id: true } }))
-    throw new Error(serverMessages.customerEmailTaken);
-  const crmContactId = await linkContact(email, name, null);
-  const customer = await db.customer.create({
-    data: {
-      email,
-      name,
-      passwordHash: await bcrypt.hash(input.password, 12),
-      locale: isLocale(input.locale) ? input.locale : "en",
-      marketingOptIn: !!input.marketingOptIn,
-      crmContactId,
-    },
-  });
-  return profile(customer);
-}
-
-/** The customer for an e-mail and password, or null (the same answer whether the e-mail exists or not). */
-export async function verifyCustomerPassword(
-  emailInput: string,
-  password: string,
-) {
-  const email = normalizeCustomerEmail(emailInput);
-  const customer = await db.customer.findUnique({ where: { email } });
-  // Compare against a fixed hash when there is no account, so timing does not reveal which e-mails exist.
-  const ok = await bcrypt.compare(
-    password,
-    customer?.passwordHash ??
-      "$2b$12$bMbBLobTQUgV/TXZtbr/D.u6ldkQ/P2F7MCV9D/knCgPL1ZtjszdC",
-  );
-  return ok && customer?.passwordHash ? profile(customer) : null;
-}
-
-/** Starts a session: returns the cookie token (stored only as a hash). */
-export async function createCustomerSession(
-  customerId: string,
-  userAgent: string | null,
-) {
-  const token = randomBytes(32).toString("base64url");
-  await db.customerSession.create({
-    data: {
-      customerId,
-      tokenHash: sha256(token),
-      userAgent: userAgent?.slice(0, 300) ?? null,
-      expiresAt: new Date(Date.now() + CUSTOMER_SESSION_DAYS * 86_400_000),
-    },
-  });
-  return token;
-}
-
-export async function customerFromSession(token: string | undefined | null) {
-  if (!token || token.length > 100) return null;
-  const session = await db.customerSession.findUnique({
-    where: { tokenHash: sha256(token) },
-    include: { customer: true },
-  });
-  if (!session || session.expiresAt < new Date()) return null;
-  return profile(session.customer);
-}
-
-export async function endCustomerSession(token: string | undefined | null) {
-  if (token)
-    await db.customerSession.deleteMany({
-      where: { tokenHash: sha256(token) },
-    });
-}
-
-/** A six-digit sign-in code for this e-mail (stored hashed); the caller e-mails it. */
-export async function issueCustomerCode(emailInput: string) {
-  const email = normalizeCustomerEmail(emailInput);
-  if (!isValidEmail(email)) throw new Error(serverMessages.customerEmailInvalid);
-  const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
-  await db.customerAuthCode.updateMany({
-    where: { email, usedAt: null },
-    data: { usedAt: new Date() },
-  });
-  await db.customerAuthCode.create({
-    data: {
-      email,
-      codeHash: customerCodeHash(email, code),
-      expiresAt: new Date(Date.now() + CODE_MINUTES * 60_000),
-    },
-  });
-  return code;
-}
-
-export const customerCodeHash = (email: string, code: string) =>
-  sha256(`customer-code:${email}:${code}`);
-
-/**
- * Signs in with an e-mailed code: the newest unused code, before it expires, within a few attempts. A first sign-in
- * creates the account (the code proves the e-mail). Returns the customer, or null when the code is wrong.
- */
-export async function verifyCustomerCode(
-  emailInput: string,
-  code: string,
-  name: string,
-  locale: string,
-) {
-  const email = normalizeCustomerEmail(emailInput);
-  const row = await db.customerAuthCode.findFirst({
-    where: { email, usedAt: null },
-    orderBy: { createdAt: "desc" },
-  });
-  if (!row || row.expiresAt < new Date() || row.attempts >= CODE_ATTEMPTS)
-    return null;
-  const given = Buffer.from(customerCodeHash(email, code.trim()));
-  if (
-    given.length !== row.codeHash.length ||
-    !timingSafeEqual(given, Buffer.from(row.codeHash))
-  ) {
-    await db.customerAuthCode.update({
-      where: { id: row.id },
-      data: { attempts: { increment: 1 } },
-    });
-    return null;
+/** Creates or repairs only the business projection of an identity-owned customer, preserving its account ID. */
+export async function ensureCustomerProfile(id: string, emailInput: string, input: {name?: string;locale: string;marketingOptIn?: boolean}, emailVerified=false) {
+ const email=normalizeCustomerEmail(emailInput);
+ if(!isValidEmail(email))throw new Error(serverMessages.customerEmailInvalid);
+ return runAtomicMutation(async()=>{
+  await db.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${"customer-projection:"+id},0))::text`;
+  const existing=await db.customer.findUnique({where:{id}});
+  if(existing){
+   if(existing.email!==email)throw new Error(serverMessages.customerEmailInvalid);
+   if(emailVerified && !existing.emailVerifiedAt)
+    return profile(await db.customer.update({where:{id},data:{emailVerifiedAt:new Date()}}));
+   return profile(existing);
   }
-  await db.customerAuthCode.update({
-    where: { id: row.id },
-    data: { usedAt: new Date() },
-  });
-  const existing = await db.customer.findUnique({ where: { email } });
-  if (existing)
-    return profile(
-      await db.customer.update({
-        where: { id: existing.id },
-        data: { emailVerifiedAt: existing.emailVerifiedAt ?? new Date() },
-      }),
-    );
-  const clean = checkName(name || email.split("@")[0]);
-  const crmContactId = await linkContact(email, clean, null);
-  return profile(
-    await db.customer.create({
-      data: {
-        email,
-        name: clean,
-        emailVerifiedAt: new Date(),
-        locale: isLocale(locale) ? locale : "en",
-        crmContactId,
-      },
-    }),
-  );
-}
-
-/**
- * Signs in with Google or Apple: the account already linked to that identity, else the account with that e-mail
- * (only when the provider confirmed the e-mail), else a new account.
- */
-export async function customerFromProvider(
-  provider: "google" | "apple",
-  input: {
-    sub: string;
-    email: string | null;
-    emailVerified: boolean;
-    name: string | null;
-    locale: string;
-  },
-) {
-  const key = provider === "google" ? "googleSub" : "appleSub";
-  const linked = await db.customer.findFirst({ where: { [key]: input.sub } });
-  if (linked) return profile(linked);
-  const email = input.email ? normalizeCustomerEmail(input.email) : null;
-  if (!email || !input.emailVerified)
-    throw new Error(serverMessages.customerProviderEmailMissing);
-  const byEmail = await db.customer.findUnique({ where: { email } });
-  if (byEmail)
-    return profile(
-      await db.customer.update({
-        where: { id: byEmail.id },
-        data: {
-          [key]: input.sub,
-          emailVerifiedAt: byEmail.emailVerifiedAt ?? new Date(),
-        },
-      }),
-    );
-  const name = checkName(input.name || email.split("@")[0]);
-  const crmContactId = await linkContact(email, name, null);
-  return profile(
-    await db.customer.create({
-      data: {
-        email,
-        name,
-        [key]: input.sub,
-        emailVerifiedAt: new Date(),
-        locale: isLocale(input.locale) ? input.locale : "en",
-        crmContactId,
-      },
-    }),
-  );
+  const name=checkName(input.name || email.split("@")[0]);
+  const crmContactId=await linkContact(email,name,null);
+  return profile(await db.customer.create({data:{id,email,name,locale:isLocale(input.locale)?input.locale:"en",marketingOptIn:!!input.marketingOptIn,emailVerifiedAt:emailVerified?new Date():null,crmContactId}}));
+ });
 }
 
 export async function updateCustomerProfile(
@@ -292,7 +95,6 @@ export async function updateCustomerProfile(
     phone: string;
     locale: string;
     marketingOptIn: boolean;
-    password?: string;
   },
 ) {
   const name = checkName(input.name);
@@ -301,7 +103,6 @@ export async function updateCustomerProfile(
     if (!isValidPhone(phone)) throw new Error(serverMessages.invalidInput);
     phone = formatPhoneE164(phone);
   }
-  if (input.password) checkPassword(input.password);
   const customer = await db.customer.update({
     where: { id: customerId },
     data: {
@@ -309,9 +110,6 @@ export async function updateCustomerProfile(
       phone,
       locale: isLocale(input.locale) ? input.locale : "en",
       marketingOptIn: input.marketingOptIn,
-      ...(input.password
-        ? { passwordHash: await bcrypt.hash(input.password, 12) }
-        : {}),
     },
   });
   if (customer.crmContactId)
@@ -470,7 +268,6 @@ export async function listWishlist(customerId: string) {
  */
 export async function deleteCustomerAccount(customerId: string) {
   await db.$transaction([
-    db.customerSession.deleteMany({ where: { customerId } }),
     db.customerAddress.deleteMany({ where: { customerId } }),
     db.wishlistItem.deleteMany({ where: { customerId } }),
     db.customer.update({

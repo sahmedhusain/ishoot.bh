@@ -1,0 +1,290 @@
+openapi: 3.1.0
+info:
+  title: Commerce Service (commerce)
+  version: 1.0.0
+  description: |
+    Commerce service managing sales orders, order items, coupons, customers, customer addresses, and retail POS shifts.
+servers:
+  - url: /
+tags:
+  - name: orders
+  - name: customers
+  - name: coupons
+  - name: retail
+paths:
+  /v1/commerce/customers:
+    get:
+      tags: [customers]
+      operationId: listCustomers
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of customers
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Customer" }
+    post:
+      tags: [customers]
+      operationId: createCustomer
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateCustomerRequest" }
+      responses:
+        "201":
+          description: Created customer
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Customer" }
+
+  /v1/commerce/customers/{id}:
+    get:
+      tags: [customers]
+      operationId: getCustomer
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Customer details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Customer" }
+
+  /v1/commerce/coupons:
+    get:
+      tags: [coupons]
+      operationId: listCoupons
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of coupons
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Coupon" }
+    post:
+      tags: [coupons]
+      operationId: createCoupon
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateCouponRequest" }
+      responses:
+        "201":
+          description: Created coupon
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Coupon" }
+
+  /v1/commerce/orders:
+    get:
+      tags: [orders]
+      operationId: listOrders
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/SalesOrder" }
+    post:
+      tags: [orders]
+      operationId: placeOrder
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PlaceOrderRequest" }
+      responses:
+        "201":
+          description: Placed order
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SalesOrder" }
+
+  /v1/commerce/orders/{id}:
+    get:
+      tags: [orders]
+      operationId: getOrder
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Order details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SalesOrder" }
+
+  /v1/commerce/orders/{id}/pay:
+    post:
+      tags: [orders]
+      operationId: recordOrderPayment
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RecordPaymentRequest" }
+      responses:
+        "200":
+          description: Payment recorded
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SalesOrder" }
+
+  /v1/commerce/orders/{id}/status:
+    put:
+      tags: [orders]
+      operationId: updateOrderStatus
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateStatusRequest" }
+      responses:
+        "200":
+          description: Status updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SalesOrder" }
+
+components:
+  securitySchemes:
+    staffToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    serviceToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Customer:
+      type: object
+      required: [id, firstName, lastName, status]
+      properties:
+        id: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        status: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    CreateCustomerRequest:
+      type: object
+      required: [firstName, lastName]
+      properties:
+        email: { type: string }
+        phone: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+
+    Coupon:
+      type: object
+      required: [id, code, discountType, discountValue, isActive]
+      properties:
+        id: { type: string }
+        code: { type: string }
+        discountType: { type: string }
+        discountValue: { type: string }
+        isActive: { type: boolean }
+
+    CreateCouponRequest:
+      type: object
+      required: [code, discountType, discountValue]
+      properties:
+        code: { type: string }
+        discountType: { type: string }
+        discountValue: { type: string }
+
+    SalesOrder:
+      type: object
+      required: [id, number, name, channel, status, paymentStatus, total, currency]
+      properties:
+        id: { type: string }
+        number: { type: string }
+        customerId: { type: string }
+        name: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        channel: { type: string }
+        status: { type: string }
+        paymentStatus: { type: string }
+        paymentMethod: { type: string }
+        total: { type: string }
+        amountPaid: { type: string }
+        currency: { type: string }
+        placedAt: { type: string, format: date-time }
+
+    PlaceOrderRequest:
+      type: object
+      required: [number, name, paymentMethod, total, currency, lines]
+      properties:
+        number: { type: string }
+        customerId: { type: string }
+        name: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        channel: { type: string, default: "website" }
+        paymentMethod: { type: string }
+        subtotal: { type: string }
+        total: { type: string }
+        currency: { type: string, default: "BHD" }
+        lines:
+          type: array
+          items: { $ref: "#/components/schemas/SalesOrderLineInput" }
+
+    SalesOrderLineInput:
+      type: object
+      required: [productId, sku, description, quantity, unitPrice, lineTotal]
+      properties:
+        productId: { type: string }
+        sku: { type: string }
+        description: { type: string }
+        quantity: { type: string }
+        unitPrice: { type: string }
+        lineTotal: { type: string }
+
+    RecordPaymentRequest:
+      type: object
+      required: [paymentStatus, amountPaid]
+      properties:
+        paymentStatus: { type: string }
+        amountPaid: { type: string }
+
+    UpdateStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string }

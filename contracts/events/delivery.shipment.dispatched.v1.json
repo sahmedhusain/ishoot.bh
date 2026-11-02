@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "delivery.shipment.dispatched.v1",
+  "type": "object",
+  "required": ["shipment_id", "status"],
+  "properties": {
+    "shipment_id": { "type": "string" },
+    "number": { "type": "string" },
+    "order_id": { "type": "string" },
+    "driver_id": { "type": "string" },
+    "status": { "type": "string" },
+    "promised_by": { "type": "string", "format": "date-time" }
+  }
+}

@@ -1,34 +1,24 @@
 import { serverMessages, getTranslations } from "@platform/locales";
 import { NextRequest, NextResponse, after } from "next/server";
-import {
-  db,
-  outsideTransaction,
-  runAtomicMutation,
-} from "@platform/database/db";
+import { isApiError, signIn, type LoginCredential } from "@platform/api-client";
+import { outsideTransaction } from "@platform/database/db";
 import { measureOperation } from "@platform/database/observability";
-import { verifyUserCredentials } from "@platform/database/queries/users";
-import { createSession } from "@platform/database/queries/sessions";
+import { getSessionUser } from "@platform/database/queries/sessions";
 import { createActivityLog } from "@platform/database/queries/activity";
-import {
-  consumeAbuseLimit,
-  trustedClientIp,
-} from "@platform/database/services/abuse-limits";
-import { verifyMfa } from "@platform/database/services/mfa";
+import { trustedClientIp } from "@platform/database/services/abuse-limits";
 import { readLoginInput } from "../../../../lib/login-input";
+import { REALM, sessionCookies } from "../../../../lib/identity-session";
 
-import { signSessionToken } from "../../../../lib/jwt";
-import {
-  SESSION_COOKIE_NAME,
-  SESSION_COOKIE_OPTIONS,
-} from "../../../../lib/auth";
-
+/**
+ * Staff sign-in through identity, which checks the password and, when two-step sign-in is on, the authenticator or
+ * recovery code, and limits attempts per account and address. The session lives in httpOnly cookies.
+ */
 export async function POST(req: NextRequest) {
   return measureOperation("admin:auth/login:POST", async () => {
     const trans = getTranslations("en");
     try {
       const body = await readLoginInput(req);
       const { email, password } = body;
-
       if (
         typeof email !== "string" ||
         typeof password !== "string" ||
@@ -37,119 +27,70 @@ export async function POST(req: NextRequest) {
         email.length > 254 ||
         password.length > 1024
       ) {
-        return NextResponse.json(
-          { error: trans.api.auth.requiredFields },
-          { status: 400 },
-        );
+        return NextResponse.json({ error: trans.api.auth.requiredFields }, { status: 400 });
       }
-
-      await consumeAbuseLimit("login-account", email.trim().toLowerCase(), 10);
-      const user = await verifyUserCredentials(email, password);
-      if (!user) {
-        return NextResponse.json(
-          { error: trans.api.auth.invalidCredentials },
-          { status: 401 },
-        );
-      }
-
-      return await runAtomicMutation(async () => {
-        const [security] = await db.$queryRaw<
-          Array<{ mfaEnabled: boolean; isActive: boolean }>
-        >`SELECT "mfaEnabled", "isActive" FROM "User" WHERE id=${user.id} FOR UPDATE`;
-        if (!security?.isActive)
-          return NextResponse.json(
-            { error: trans.api.auth.invalidCredentials },
-            { status: 401 },
-          );
-        if (
-          security.mfaEnabled &&
-          (typeof body.otp !== "string" ||
-            !(await verifyMfa(user.id, body.otp)))
-        ) {
-          return NextResponse.json(
-            {
-              error: serverMessages.runtimeEnterAnAuthenticationOrRecoveryCode,
-              mfaRequired: true,
-            },
-            { status: 401, headers: { "Cache-Control": "no-store" } },
-          );
-        }
-
-        const token = await signSessionToken({
-          userId: user.id,
-          email: user.email,
-          role: user.role,
-          fullName: user.full_name,
-        });
-
-        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-        const ipAddress = trustedClientIp(req.headers);
-        const userAgent = req.headers.get("user-agent") || undefined;
-
-        await createSession({
-          userId: user.id,
-          token,
-          expiresAt,
-          ipAddress,
+      const ipAddress = trustedClientIp(req.headers);
+      const userAgent = req.headers.get("user-agent")?.slice(0, 512) || undefined;
+      let credential: LoginCredential;
+      try {
+        credential = await signIn(REALM, {
+          email: email.trim().toLowerCase(),
+          password,
+          otp: typeof body.otp === "string" && body.otp ? body.otp.replace(/\s+/g, "").slice(0, 64) : undefined,
+          clientIp: ipAddress?.slice(0, 45),
           userAgent,
         });
+      } catch (error) {
+        if (isApiError(error, "mfa_required"))
+          return NextResponse.json(
+            { error: serverMessages.runtimeEnterAnAuthenticationOrRecoveryCode, mfaRequired: true },
+            { status: 401, headers: { "Cache-Control": "no-store" } },
+          );
+        if (isApiError(error) && error.status === 429)
+          return NextResponse.json(
+            { error: serverMessages.runtimeTooManyLoginAttemptsTryAgainInAMinute },
+            { status: 429, headers: { "Retry-After": "60" } },
+          );
+        if (isApiError(error) && (error.status === 401 || error.status === 422))
+          return NextResponse.json({ error: trans.api.auth.invalidCredentials }, { status: 401 });
+        throw error;
+      }
+      const user = await getSessionUser(credential.subjectId);
+      if (!user) return NextResponse.json({ error: trans.api.auth.invalidCredentials }, { status: 401 });
 
-        // Audit write is not needed to answer the login; run it after the response is sent, outside the login
-        // transaction (which has committed by then).
-        after(() =>
-          outsideTransaction(() =>
-            createActivityLog({
-              user_id: user.id,
-              action: "login",
-              entity_type: "auth",
-              entity_id: user.id,
-              details: { role: user.role, department: user.department },
-              ip_address: ipAddress,
-              user_agent: userAgent,
-            }),
-          ).catch((error) =>
-            console.error("Login activity log failed:", error),
-          ),
-        );
-
-        const response = NextResponse.json({
-          success: true,
-          user: {
-            id: user.id,
-            fullName: user.full_name,
-            email: user.email,
-            role: user.role,
-            department: user.department,
-            avatarUrl: user.avatar_url,
-          },
-        });
-
-        response.cookies.set(
-          SESSION_COOKIE_NAME,
-          token,
-          SESSION_COOKIE_OPTIONS,
-        );
-
-        return response;
-      });
-    } catch (err: any) {
-      if (err instanceof Error && err.message === "RATE_LIMIT")
-        return NextResponse.json(
-          {
-            error: serverMessages.runtimeTooManyLoginAttemptsTryAgainInAMinute,
-          },
-          { status: 429, headers: { "Retry-After": "60" } },
-        );
-      if (err instanceof Error && err.message === "INVALID_INPUT")
-        return NextResponse.json(
-          { error: trans.api.auth.requiredFields },
-          { status: 400 },
-        );
-      console.error("Login error:", err);
-      return NextResponse.json(
-        { error: trans.api.auth.serverError },
-        { status: 500 },
+      // The audit write is not needed to answer the login; run it after the response is sent.
+      after(() =>
+        outsideTransaction(() =>
+          createActivityLog({
+            user_id: user.id,
+            action: "login",
+            entity_type: "auth",
+            entity_id: user.id,
+            details: { role: user.role, department: user.department },
+            ip_address: ipAddress,
+            user_agent: userAgent,
+          }),
+        ).catch((error) => console.error("Login activity log failed:", error)),
       );
+
+      const response = NextResponse.json({
+        success: true,
+        user: {
+          id: user.id,
+          fullName: user.full_name,
+          email: user.email,
+          role: user.role,
+          department: user.department,
+          avatarUrl: user.avatar_url,
+        },
+      });
+      for (const c of sessionCookies(credential)) response.cookies.set(c.name, c.value, c.options);
+      return response;
+    } catch (err) {
+      if (err instanceof Error && err.message === "INVALID_INPUT")
+        return NextResponse.json({ error: trans.api.auth.requiredFields }, { status: 400 });
+      console.error("Login error:", err);
+      return NextResponse.json({ error: trans.api.auth.serverError }, { status: 500 });
     }
   });
 }

@@ -1,3 +1,4 @@
+import { trustedClientIp } from "@platform/database/services/abuse-limits";
 import { isLocale } from "@platform/locales/registry";
 import { isWebsitePreview } from "../../../../lib/website";
 import { getSite } from "../../../../lib/site";
@@ -6,54 +7,61 @@ import { cookies } from "next/headers";
 import { getWebsiteTranslations, formatMessage } from "@platform/locales";
 import {
   consumeAbuseLimit,
+  ensureCustomerProfile,
   createOrderHelpRequest,
-  createCustomerSession,
-  customerFromSession,
   deleteCustomerAccount,
   deleteCustomerAddress,
-  endCustomerSession,
-  issueCustomerCode,
   measureOperation,
   normalizeCustomerEmail,
   saveCustomerAddress,
-  signUpCustomer,
   toggleWishlist,
   updateCustomerProfile,
-  verifyCustomerCode,
-  verifyCustomerPassword,
 } from "@platform/database";
 import {
-  appleAuthUrl,
-  googleAuthUrl,
-  randomToken,
-  safeNextPath,
-  sealSignInState,
-} from "@platform/database/services/oauth-signin";
-import { escapeEmailHtml, sendEmail } from "@platform/email";
+  signIn,
+  signOut,
+  issueCustomerSignInCode,
+  signInCustomerWithCode,
+  registerCustomerAccount,
+  setAccountPassword,
+  deleteOwnCustomerAccount,
+  beginCustomerOAuth,
+  completeCustomerOAuth,
+  queueMessage,
+  isApiError,
+  type LoginCredential,
+} from "@platform/api-client";
 import {
-  CUSTOMER_COOKIE,
+  REALM,
+  ACCESS_COOKIE,
+  REFRESH_COOKIE,
+  clearedCookies,
+  verifyAccessToken,
+} from "../../../../lib/identity-session";
+import {
   SIGNIN_STATE_COOKIE,
+  safeNextPath,
+  readSignInState,
+  setSignInState,
+  clearSignInState,
+  setCustomerCredentials,
+} from "../../../../lib/customer-credentials";
+import { escapeEmailHtml } from "@platform/email";
+import {
   jsonError,
+  currentCustomer,
   sameOrigin,
-  setCustomerCookie,
-  signInCredentials,
-  signInSecret,
   accountsEnabled,
 } from "../../../../lib/customer";
 import { publicSiteUrl } from "../../../../lib/site-url";
 
 const str = (value: unknown, max = 500) =>
   typeof value === "string" ? value.slice(0, max) : "";
-const ip = (req: NextRequest) =>
-  req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
+const ip = (req: NextRequest) => trustedClientIp(req.headers) ?? "";
 
-async function signedIn(req: NextRequest, customerId: string) {
-  const token = await createCustomerSession(
-    customerId,
-    req.headers.get("user-agent"),
-  );
+function signedIn(credential: LoginCredential) {
   const response = NextResponse.json({ success: true });
-  setCustomerCookie(response, token);
+  setCustomerCredentials(response, credential);
   return response;
 }
 
@@ -66,7 +74,10 @@ export async function POST(
     const { action } = await context.params;
     if ((await isWebsitePreview()) || !(await accountsEnabled()))
       return NextResponse.json({ error: "unavailable" }, { status: 404 });
-    if (action === "wishlist" && !(await getSite()).config.commerce.capabilities.wishlist)
+    if (
+      action === "wishlist" &&
+      !(await getSite()).config.commerce.capabilities.wishlist
+    )
       return NextResponse.json({ error: "unavailable" }, { status: 404 });
     if (!sameOrigin(req))
       return NextResponse.json({ error: "generic" }, { status: 403 });
@@ -76,90 +87,156 @@ export async function POST(
     } catch {
       return NextResponse.json({ error: "generic" }, { status: 400 });
     }
+    if (!body || typeof body !== "object" || Array.isArray(body))
+      return NextResponse.json({ error: "generic" }, { status: 400 });
     const locale = isLocale(body.locale) ? body.locale : "en";
     try {
       switch (action) {
         case "sign-up": {
           await consumeAbuseLimit("customer-signup-ip", ip(req), 10, 3600);
-          const customer = await signUpCustomer({
-            name: str(body.name, 120),
-            email: str(body.email, 254),
-            password: str(body.password, 200),
+          const email = normalizeCustomerEmail(str(body.email, 254));
+          const name = str(body.name, 120).trim();
+          if (!name)
+            return NextResponse.json(
+              { error: "customerNameRequired" },
+              { status: 400 },
+            );
+          const password = str(body.password, 200);
+          const account = await registerCustomerAccount(
+            email,
+            password,
+            ip(req),
+          );
+          await ensureCustomerProfile(account.subjectId, email, {
+            name,
             locale,
             marketingOptIn: body.marketingOptIn === true,
           });
-          return signedIn(req, customer.id);
+          return signedIn(
+            await signIn(REALM, {
+              email,
+              password,
+              clientIp: ip(req),
+              userAgent: req.headers.get("user-agent")?.slice(0, 512),
+            }),
+          );
         }
         case "sign-in": {
           const email = normalizeCustomerEmail(str(body.email, 254));
           await consumeAbuseLimit("customer-signin-ip", ip(req), 20, 900);
           await consumeAbuseLimit("customer-signin-email", email, 8, 900);
-          const customer = await verifyCustomerPassword(
+          const credential = await signIn(REALM, {
             email,
-            str(body.password, 200),
-          );
-          if (!customer)
-            return NextResponse.json(
-              { error: "wrong_password" },
-              { status: 401 },
-            );
-          return signedIn(req, customer.id);
+            password: str(body.password, 200),
+            otp: str(body.otp, 64) || undefined,
+            clientIp: ip(req),
+            userAgent: req.headers.get("user-agent")?.slice(0, 512),
+          });
+          await ensureCustomerProfile(credential.subjectId, email, { locale });
+          return signedIn(credential);
         }
         case "code": {
           const email = normalizeCustomerEmail(str(body.email, 254));
           await consumeAbuseLimit("customer-code-ip", ip(req), 10, 600);
           await consumeAbuseLimit("customer-code-email", email, 3, 600);
-          const code = await issueCustomerCode(email);
+          const { code } = await issueCustomerSignInCode(email, ip(req));
           const t = getWebsiteTranslations(locale).account.codeEmail;
-          const sent = await sendEmail({
-            to: email,
-            subject: t.subject,
-            html: `<p>${escapeEmailHtml(formatMessage(t.body, { code }))}</p><p style="font-size:24px;letter-spacing:4px"><strong>${code}</strong></p><p>${escapeEmailHtml(t.ignore)}</p>`,
-          });
-          if (!sent.success && process.env.NODE_ENV === "production")
-            return NextResponse.json(
-              { error: "email_unavailable" },
-              { status: 503 },
-            );
+          try {
+            await queueMessage({
+              channel: "email",
+              to: email,
+              subject: t.subject,
+              text: `${formatMessage(t.body, { code })}\n\n${code}\n\n${t.ignore}`,
+              html: `<p>${escapeEmailHtml(formatMessage(t.body, { code }))}</p><p style="font-size:24px;letter-spacing:4px"><strong>${code}</strong></p><p>${escapeEmailHtml(t.ignore)}</p>`,
+              actorId: "identity:customer",
+              idempotencyKey: `customer-code:${email}:${code}`,
+            });
+          } catch {
+            if (process.env.NODE_ENV === "production")
+              return NextResponse.json(
+                { error: "email_unavailable" },
+                { status: 503 },
+              );
+          }
           return NextResponse.json({ success: true });
         }
         case "code-verify": {
           await consumeAbuseLimit("customer-verify-ip", ip(req), 20, 600);
-          const customer = await verifyCustomerCode(
-            str(body.email, 254),
-            str(body.code, 10),
-            str(body.name, 120),
-            locale,
+          const out = await signInCustomerWithCode({
+            email: str(body.email, 254),
+            code: str(body.code, 10).trim(),
+            otp: str(body.otp, 64) || undefined,
+            clientIp: ip(req),
+            userAgent: req.headers.get("user-agent")?.slice(0, 512),
+          });
+          await ensureCustomerProfile(
+            out.credential.subjectId,
+            out.email,
+            { name: str(body.name, 120), locale },
+            true,
           );
-          if (!customer)
-            return NextResponse.json({ error: "wrong_code" }, { status: 401 });
-          return signedIn(req, customer.id);
+          return signedIn(out.credential);
+        }
+        case "oauth-mfa": {
+          const state = readSignInState(
+            (await cookies()).get(SIGNIN_STATE_COOKIE)?.value,
+          );
+          if (!state)
+            return NextResponse.json({ error: "expired" }, { status: 401 });
+          const out = await completeCustomerOAuth(state.provider, {
+            state: state.state,
+            browserState: state.state,
+            otp: str(body.otp, 64),
+            clientIp: ip(req),
+            userAgent: req.headers.get("user-agent")?.slice(0, 512),
+          });
+          await ensureCustomerProfile(
+            out.credential.subjectId,
+            out.email,
+            { name: out.name, locale: out.locale },
+            true,
+          );
+          return signedIn(out.credential);
         }
         case "sign-out": {
-          await endCustomerSession(
-            (await cookies()).get(CUSTOMER_COOKIE)?.value,
-          );
+          const refresh = (await cookies()).get(REFRESH_COOKIE)?.value;
+          try {
+            if (refresh) await signOut(REALM, refresh);
+          } catch {}
           const response = NextResponse.json({ success: true });
-          response.cookies.delete(CUSTOMER_COOKIE);
+          for (const c of clearedCookies())
+            response.cookies.set(c.name, c.value, c.options);
+          clearSignInState(response);
           return response;
         }
       }
-      // Everything else needs a signed-in customer.
-      const customer = await customerFromSession(
-        (await cookies()).get(CUSTOMER_COOKIE)?.value,
-      );
+      const customer = await currentCustomer();
       if (!customer)
         return NextResponse.json({ error: "signed_out" }, { status: 401 });
       switch (action) {
-        case "profile":
+        case "profile": {
+          if (str(body.password, 200)) {
+            const staff = await verifyAccessToken(
+              (await cookies()).get(ACCESS_COOKIE)?.value,
+            );
+            if (!staff)
+              return NextResponse.json(
+                { error: "signed_out" },
+                { status: 401 },
+              );
+            await setAccountPassword(REALM, customer.id, {
+              password: str(body.password, 200),
+              keepSessionId: staff.sessionId,
+            });
+          }
           await updateCustomerProfile(customer.id, {
             name: str(body.name, 120),
             phone: str(body.phone, 40),
             locale: str(body.preferredLocale, 2),
             marketingOptIn: body.marketingOptIn === true,
-            password: str(body.password, 200) || undefined,
           });
           return NextResponse.json({ success: true });
+        }
         case "address":
           return NextResponse.json({
             success: true,
@@ -216,81 +293,85 @@ export async function POST(
               { error: "confirm_email" },
               { status: 400 },
             );
+          const identity = await verifyAccessToken(
+            (await cookies()).get(ACCESS_COOKIE)?.value,
+          );
+          if (!identity)
+            return NextResponse.json({ error: "signed_out" }, { status: 401 });
+          await deleteOwnCustomerAccount(identity.token);
           await deleteCustomerAccount(customer.id);
           const response = NextResponse.json({ success: true });
-          response.cookies.delete(CUSTOMER_COOKIE);
+          for (const c of clearedCookies())
+            response.cookies.set(c.name, c.value, c.options);
+          clearSignInState(response);
           return response;
         }
       }
       return NextResponse.json({ error: "generic" }, { status: 404 });
     } catch (error) {
+      if (isApiError(error)) {
+        if (error.code === "mfa_required")
+          return NextResponse.json({ error: "mfa_required" }, { status: 401 });
+        if (error.status === 429)
+          return NextResponse.json({ error: "rateLimit" }, { status: 429 });
+        if (error.code === "email_taken")
+          return NextResponse.json(
+            { error: "customerEmailTaken" },
+            { status: 409 },
+          );
+        if (error.status === 401)
+          return NextResponse.json(
+            {
+              error: action === "code-verify" ? "wrong_code" : "wrong_password",
+            },
+            { status: 401 },
+          );
+      }
       return jsonError(error);
     }
   });
 }
 
-/** Starts signing in with Google or Apple: a signed state cookie, then off to the provider. */
+/** Starts a provider flow; identity owns nonce, PKCE and provider credentials. */
 export async function GET(
   req: NextRequest,
   context: { params: Promise<{ action: string }> },
 ) {
   return measureOperation("web:account:GET", async () => {
     const { action } = await context.params;
-    const requestedLocale = req.nextUrl.searchParams.get("locale");
-    const locale = isLocale(requestedLocale) ? requestedLocale : "en";
+    const locale =
+      req.nextUrl.searchParams.get("locale") === "ar" ? "ar" : "en";
     const back = new URL(`/${locale}/account`, req.url);
-    if ((action !== "google" && action !== "apple") || !(await accountsEnabled()))
+    if (
+      (action !== "google" && action !== "apple") ||
+      !(await accountsEnabled())
+    )
       return NextResponse.redirect(back);
-    const credentials = await signInCredentials(action);
-    if (!credentials) return NextResponse.redirect(back);
-    const site = await publicSiteUrl();
-    const redirectUri = new URL(
-      `/api/account/${action}/callback`,
-      site,
-    ).toString();
-    const state = {
-      provider: action,
-      state: randomToken(16),
-      nonce: randomToken(16),
-      verifier: randomToken(48),
-      next: safeNextPath(
-        req.nextUrl.searchParams.get("next"),
-        `/${locale}/account`,
-      ),
-      locale,
-      expires: Date.now() + 10 * 60_000,
-    } as const;
-    const target =
-      action === "google"
-        ? googleAuthUrl({
-            clientId: credentials.clientId,
-            redirectUri,
-            state: state.state,
-            nonce: state.nonce,
-            verifier: state.verifier,
-            locale,
-          })
-        : appleAuthUrl({
-            serviceId: credentials.serviceId,
-            redirectUri,
-            state: state.state,
-            nonce: state.nonce,
-            verifier: state.verifier,
-          });
-    const response = NextResponse.redirect(target);
-    // Apple returns with a cross-site form post, so its state cookie must be sent on that POST.
-    response.cookies.set(
-      SIGNIN_STATE_COOKIE,
-      sealSignInState(state, signInSecret()),
-      {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production" || action === "apple",
-        sameSite: action === "apple" ? "none" : "lax",
-        path: "/api/account",
-        maxAge: 600,
-      },
+    const next = safeNextPath(
+      req.nextUrl.searchParams.get("next"),
+      `/${locale}/account`,
     );
-    return response;
+    try {
+      const out = await beginCustomerOAuth(action, {
+        redirectUri: new URL(
+          `/api/account/${action}/callback`,
+          await publicSiteUrl(),
+        ).toString(),
+        next,
+        locale,
+        clientIp: ip(req),
+      });
+      const response = NextResponse.redirect(out.authorizationUrl);
+      setSignInState(
+        response,
+        { state: out.state, provider: action, locale, next },
+        out.expiresAt,
+      );
+      return response;
+    } catch {
+      back.searchParams.set("signin", "generic");
+      return NextResponse.redirect(back);
+    }
   });
 }
 

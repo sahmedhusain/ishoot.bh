@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/itsm.access_request.fulfilled.v1.json",
+  "title": "itsm.access_request.fulfilled",
+  "description": "Triggered when an access request ticket is fulfilled with granted role or overrides.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "ticketId",
+    "subjectId",
+    "role",
+    "actor"
+  ],
+  "properties": {
+    "ticketId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "subjectId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "role": {
+      "type": "string",
+      "minLength": 1
+    },
+    "actor": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

@@ -27,5 +27,7 @@ export const config = {
   webUrl: () => process.env.WEB_URL || "",
   /** The admin, whose health route tells the domain check which installation to expect (optional). */
   adminUrl: () => process.env.ADMIN_URL || "",
+  adminPublicUrl: () =>
+    process.env.ADMIN_APP_URL || process.env.ADMIN_URL || "",
   revalidationSecret: () => process.env.REVALIDATION_SECRET || "",
 };

@@ -1,9 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { LANGUAGES } from "@platform/locales/registry";
+import {
+  ACCESS_COOKIE,
+  REFRESH_COOKIE,
+  needsRenewal,
+  renew,
+  sessionCookies,
+  clearedCookies,
+} from "./lib/identity-session";
 const locales = LANGUAGES.map((language) => language.code);
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
+  const refresh = request.cookies.get(REFRESH_COOKIE)?.value;
+  const cookies = [] as ReturnType<typeof sessionCookies>;
+  if (refresh && needsRenewal(request.cookies.get(ACCESS_COOKIE)?.value)) {
+    const credential = await renew(refresh);
+    cookies.push(
+      ...(credential ? sessionCookies(credential) : clearedCookies()),
+    );
+    for (const cookie of cookies)
+      request.cookies.set(cookie.name, cookie.value);
+  }
+  const response = localized(request);
+  for (const cookie of cookies)
+    response.cookies.set(cookie.name, cookie.value, cookie.options);
+  return response;
+}
+
+function localized(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (
@@ -14,7 +39,7 @@ export function proxy(request: NextRequest) {
     pathname === "/opengraph-image" ||
     pathname.includes(".")
   ) {
-    return NextResponse.next();
+    return NextResponse.next({ request: { headers: request.headers } });
   }
 
   const pathnameHasLocale = locales.some(
@@ -23,8 +48,11 @@ export function proxy(request: NextRequest) {
 
   if (!pathnameHasLocale) {
     const acceptLang = request.headers.get("accept-language") || "";
-    const preferred = acceptLang.split(",").map((entry) => entry.trim().split(/[;-]/)[0].toLowerCase());
-    const detectedLocale = preferred.find((language) => locales.includes(language as never)) ?? "en";
+    const preferred = acceptLang
+      .split(",")
+      .map((entry) => entry.trim().split(/[;-]/)[0].toLowerCase());
+    const detectedLocale =
+      preferred.find((language) => locales.includes(language as never)) ?? "en";
 
     return NextResponse.redirect(
       new URL(
@@ -41,5 +69,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

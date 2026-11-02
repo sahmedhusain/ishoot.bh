@@ -19,7 +19,10 @@ type MFAConfig struct {
 	RecoveryCount, Digits int
 }
 type MFAChange struct {
-	Kind                string
+	// Kind is begin, cancel, confirm, disable, or password (a person changing their own password).
+	Kind string
+	// PasswordHash is the new hash for Kind password.
+	PasswordHash        *string
 	Secret              *string
 	ExpiresAt           *time.Time
 	Step                *int64
@@ -33,7 +36,8 @@ type Enrollment struct {
 	ExpiresAt     time.Time
 }
 
-func (s *Service) checkFactor(account Account, code string, now time.Time) (MFAResult, error) {
+// CheckFactor verifies a factor for a locked account; the caller must atomically consume recovery codes and persist the step.
+func (s *Service) CheckFactor(account Account, code string, now time.Time) (MFAResult, error) {
 	if account.Realm == authn.RealmIT && !account.MFAEnabled {
 		return MFAResult{}, ErrInvalid
 	}
@@ -146,7 +150,7 @@ func (s *Service) ConfirmMFA(ctx context.Context, p authn.Principal, plain, code
 		if current.PendingSecret == nil || current.PendingExpires == nil || !current.PendingExpires.After(lockedAt) {
 			return MFAChange{}, ErrInvalid
 		}
-		factor, err := s.checkFactor(current, currentCode, lockedAt)
+		factor, err := s.CheckFactor(current, currentCode, lockedAt)
 		if err != nil {
 			return MFAChange{}, err
 		}
@@ -178,10 +182,39 @@ func (s *Service) DisableMFA(ctx context.Context, p authn.Principal, plain, code
 		if !current.MFAEnabled {
 			return MFAChange{}, ErrInvalid
 		}
-		factor, err := s.checkFactor(current, code, lockedAt)
+		factor, err := s.CheckFactor(current, code, lockedAt)
 		if err != nil {
 			return MFAChange{}, err
 		}
 		return MFAChange{Kind: "disable", CurrentRecoveryHash: factor.RecoveryHash}, nil
+	})
+}
+
+// ChangePassword sets a person's own password after checking the current one, their second factor when it is on,
+// and their live session. Every session ends, including the current one.
+func (s *Service) ChangePassword(ctx context.Context, p authn.Principal, current, next, code, ip string, minLength int, now time.Time) error {
+	if p.Realm == authn.RealmIT || len([]rune(next)) < minLength || len(next) > 1024 || len(code) > 64 {
+		return ErrInvalid
+	}
+	account, err := s.mfaSnapshot(ctx, p, current, ip, now)
+	if err != nil {
+		return err
+	}
+	select {
+	case s.permits <- struct{}{}:
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+	hash, err := s.passwords.Hash(next)
+	<-s.permits
+	if err != nil {
+		return err
+	}
+	return s.repo.ChangeMFA(ctx, account, p, now, func(locked Account, lockedAt time.Time) (MFAChange, error) {
+		factor, err := s.CheckFactor(locked, code, lockedAt)
+		if err != nil {
+			return MFAChange{}, err
+		}
+		return MFAChange{Kind: "password", PasswordHash: &hash, Step: factor.Step, CurrentRecoveryHash: factor.RecoveryHash}, nil
 	})
 }

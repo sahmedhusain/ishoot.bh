@@ -2,7 +2,12 @@ import { isCountryCode } from "../constants/clients";
 import { normalizeContactInput } from "./contact-validation";
 import { formatPhoneE164, countryIso } from "../constants/phone";
 import { serverMessages } from "@platform/locales";
-import { lookupFile, lookupFiles } from "@platform/api-client";
+import {
+  getCompanyConfiguration,
+  getCompanySetupStatus,
+  lookupFile,
+  lookupFiles,
+} from "@platform/api-client";
 import { assertSupportedCurrency } from "../constants/finance";
 import {
   isFontMimeType,
@@ -116,14 +121,8 @@ async function mapSettings(s: any): Promise<CompanySettings> {
 }
 
 export async function getCompanySettings(): Promise<CompanySettings> {
-  const settings = await db.companySetting.findUnique({
-    where: { singleton: 1 },
-  });
-  if (!settings)
-    throw new Error(
-      "Company settings are missing. Run the production-safe database bootstrap before using the application.",
-    );
-  return mapSettings(settings);
+  const settings = await getCompanyConfiguration();
+  return mapSettings({ ...settings, updatedAt: new Date(settings.updatedAt) });
 }
 
 async function updateCompanySettingsInTransaction(
@@ -383,31 +382,8 @@ async function updateCompanySettingsInTransaction(
 }
 
 export async function getSetupCompleteness() {
-  const settings = await db.companySetting.findUnique({
-    where: { singleton: 1 },
-  });
-  if (!settings)
-    return { complete: false, missing: ["company_settings_record"] };
-  const missing: string[] = [];
-  if (!settings.companyNameEn) missing.push("company_name_en");
-  if (!settings.companyNameAr) missing.push("company_name_ar");
-  if (!settings.addressEn) missing.push("address_en");
-  if (!settings.phone && !settings.email) missing.push("contact_info");
-
-  if (settings.vatEnabled && !settings.vatId) missing.push("vat_id");
-  if (!settings.crNumber) missing.push("cr_number");
-
-  if (!settings.logoUrl) missing.push("logo_url");
-  if (!settings.iconUrl) missing.push("icon_url");
-
-  // Publication check - let's see if website config exists and is published
-  const website = await db.websiteContent.findUnique({ where: { id: "main" } });
-  if (!website || !website.publishedAt) missing.push("website_publication");
-
-  return {
-    complete: missing.length === 0,
-    missing,
-  };
+  const { complete, missing } = await getCompanySetupStatus();
+  return { complete, missing };
 }
 
 /** Saves the company theme. Uploaded fonts must be public brand font uploads so both apps can serve them. */

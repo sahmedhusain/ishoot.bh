@@ -1,3 +1,4 @@
+import activityCatalog from "@platform/contracts/catalog/business-activities.json";
 // What the company does decides how its website reads and is laid out: the name and route of its catalogue
 // ("Works", "Products", "Menu"…), the item details it shows, the hero, the homepage sections, the enquiry form
 // and the modules worth switching on. The setup wizard applies a preset; everything stays editable afterwards.
@@ -28,31 +29,8 @@ export type BusinessActivity =
   | "manufacturing"
   | "it_software"
   | "other";
-export const BUSINESS_ACTIVITIES: readonly BusinessActivity[] = [
-  "media",
-  "agency",
-  "products",
-  "food",
-  "services",
-  "real_estate",
-  "construction",
-  "education",
-  "healthcare",
-  "events",
-  "online_store",
-  "beauty",
-  "fitness",
-  "automotive",
-  "logistics",
-  "travel",
-  "hotel",
-  "law_firm",
-  "nonprofit",
-  "pharmacy",
-  "manufacturing",
-  "it_software",
-  "other",
-];
+export const BUSINESS_ACTIVITIES: readonly BusinessActivity[] =
+  activityCatalog as BusinessActivity[];
 
 export function isBusinessActivity(value: unknown): value is BusinessActivity {
   return (

@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CURRENCY_SYMBOLS = void 0;
 // ISO 4217 active currencies and funds; source: SIX list-one.xml, 2026-10-28.
-const currencyReference = require("./currencies.json");
+const currencyReference = require("@platform/contracts/catalog/currencies.json");
 exports.CURRENCY_CODES = currencyReference.map(({ code }) => code).filter((code) => !["XTS", "XXX"].includes(code));
 exports.isCurrencyCode = (code) => typeof code === "string" && exports.CURRENCY_CODES.includes(code);
 exports.getCurrencySymbol = getCurrencySymbol;

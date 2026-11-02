@@ -10,6 +10,8 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/riverqueue/river"
+
 	"platform.local/backend/pkg/catalog"
 )
 
@@ -29,13 +31,35 @@ func invalid(field, code string) error { return &ValidationError{Field: field, C
 
 // Limits are configured per installation.
 type Limits struct {
-	MaxAttachments int
+	MaxAttachments    int
+	MaxAttachmentSize int64
 }
 
 // Attachment is a file already claimed in the files service.
 type Attachment struct {
 	FileURL, FileName, MIMEType string
 	Size                        int64
+	CommentID                   *string
+}
+
+// ValidateAttachment enforces prefix, file name, size bounds, and catalogue MIME type.
+func ValidateAttachment(a Attachment, limits Limits) error {
+	maxSize := limits.MaxAttachmentSize
+	if maxSize <= 0 {
+		maxSize = 10 << 20 // 10MB default
+	}
+	if !strings.HasPrefix(a.FileURL, catalog.Files.URLPrefix) || a.FileName == "" || len(a.FileName) > 200 {
+		return invalid("attachments", "invalid")
+	}
+	if a.Size <= 0 || a.Size > maxSize {
+		return invalid("attachments", "size")
+	}
+	if a.MIMEType != "" {
+		if _, ok := catalog.Files.Type(a.MIMEType); !ok {
+			return invalid("attachments", "type")
+		}
+	}
+	return nil
 }
 
 // NewTicket is what an employee submits.
@@ -76,8 +100,32 @@ func (n *NewTicket) Normalize(limits Limits) error {
 		return invalid("assetRef", "not_allowed")
 	}
 	for _, a := range n.Attachments {
-		if !strings.HasPrefix(a.FileURL, catalog.Files.URLPrefix) || a.FileName == "" || a.Size <= 0 {
-			return invalid("attachments", "invalid")
+		if err := ValidateAttachment(a, limits); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// NewComment is a reply or internal note with optional attachments.
+type NewComment struct {
+	Body        string
+	Internal    bool
+	Attachments []Attachment
+}
+
+// Normalize validates comment body and attachments.
+func (c *NewComment) Normalize(limits Limits) error {
+	c.Body = strings.TrimSpace(c.Body)
+	if !textLength(c.Body, 1, 10000) {
+		return invalid("body", "length")
+	}
+	if len(c.Attachments) > limits.MaxAttachments:
+		return invalid("attachments", "max")
+	}
+	for _, a := range c.Attachments {
+		if err := ValidateAttachment(a, limits); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -162,3 +210,30 @@ func Apply(s State, transition string, byRequester bool, assigneeID, assigneeNam
 	}
 	return out, nil
 }
+
+// Queue is the River queue name for itsm jobs.
+const Queue = "itsm"
+
+// NotificationArgs delivers email and in-app notifications for ticket events.
+type NotificationArgs struct {
+	TicketID       string `json:"ticketId"`
+	EventID        string `json:"eventId"`
+	Kind           string `json:"kind"` // "created", "transition", "comment", "breached", "reminder"
+	Detail         string `json:"detail,omitempty"`
+	ActorID        string `json:"actorId,omitempty"`
+	ActorRealm     string `json:"actorRealm,omitempty"`
+	RequesterID    string `json:"requesterId"`
+	RequesterEmail string `json:"requesterEmail"`
+	AssigneeID     string `json:"assigneeId,omitempty"`
+	TicketNumber   int64  `json:"ticketNumber"`
+	TicketTitle    string `json:"ticketTitle"`
+}
+
+// Kind names the job in River.
+func (NotificationArgs) Kind() string { return "itsm.send_ticket_notification" }
+
+// InsertOpts configures River options.
+func (NotificationArgs) InsertOpts() river.InsertOpts {
+	return river.InsertOpts{Queue: Queue}
+}
+

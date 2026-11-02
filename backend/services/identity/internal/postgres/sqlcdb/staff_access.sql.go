@@ -9,8 +9,24 @@ import (
 	"context"
 )
 
+const staffAccountAuthorization = `-- name: StaffAccountAuthorization :one
+SELECT roles,active FROM identity.account WHERE realm='staff' AND subject_id=$1
+`
+
+type StaffAccountAuthorizationRow struct {
+	Roles  []string
+	Active bool
+}
+
+func (q *Queries) StaffAccountAuthorization(ctx context.Context, subjectID string) (StaffAccountAuthorizationRow, error) {
+	row := q.db.QueryRow(ctx, staffAccountAuthorization, subjectID)
+	var i StaffAccountAuthorizationRow
+	err := row.Scan(&i.Roles, &i.Active)
+	return i, err
+}
+
 const staffPermissionGrants = `-- name: StaffPermissionGrants :many
-SELECT resource, action, allowed FROM identity.staff_permission WHERE role_id=$1
+SELECT resource,action,allowed FROM identity.staff_permission WHERE role_id=$1
 `
 
 type StaffPermissionGrantsRow struct {
@@ -51,7 +67,7 @@ func (q *Queries) StaffPermissionOverrides(ctx context.Context, subjectID string
 }
 
 const staffRoleScopes = `-- name: StaffRoleScopes :many
-SELECT area, scope FROM identity.staff_role_scope WHERE role_id=$1
+SELECT area,scope FROM identity.staff_role_scope WHERE role_id=$1
 `
 
 type StaffRoleScopesRow struct {

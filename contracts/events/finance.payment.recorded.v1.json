@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/finance.payment.recorded.v1.json",
+  "title": "finance.payment.recorded",
+  "description": "A payment was recorded.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "paymentId",
+    "paymentNumber"
+  ],
+  "properties": {
+    "paymentId": { "type": "string" },
+    "paymentNumber": { "type": "string" },
+    "invoiceId": { "type": ["string", "null"] }
+  }
+}

@@ -25,10 +25,40 @@ type IdentityAccount struct {
 	MfaPendingExpiresAt       *time.Time
 }
 
+type IdentityCustomerCode struct {
+	Email     string
+	ID        string
+	HashKind  string
+	CodeHash  string
+	Attempts  int32
+	ExpiresAt time.Time
+	UsedAt    *time.Time
+}
+
+type IdentityCustomerProvider struct {
+	Provider        string
+	ProviderSubject string
+	Realm           string
+	SubjectID       string
+	CreatedAt       time.Time
+}
+
 type IdentityInbox struct {
 	Consumer  string
 	EventID   string
 	HandledAt time.Time
+}
+
+type IdentityLegacyResetChallenge struct {
+	ID        string
+	Realm     string
+	SubjectID string
+	CodeHash  string
+	Kind      string
+	UsedAt    *time.Time
+	Attempts  int32
+	ExpiresAt time.Time
+	CreatedAt time.Time
 }
 
 type IdentityMfaRecoveryCode struct {
@@ -36,6 +66,20 @@ type IdentityMfaRecoveryCode struct {
 	SubjectID string
 	CodeHash  string
 	UsedAt    *time.Time
+}
+
+type IdentityOauthState struct {
+	StateHash       string
+	Provider        string
+	RedirectUri     string
+	NextPath        string
+	Locale          string
+	SecretEncrypted string
+	ClaimsEncrypted *string
+	ExchangingAt    *time.Time
+	ConsumedAt      *time.Time
+	ExpiresAt       time.Time
+	CreatedAt       time.Time
 }
 
 type IdentityOutbox struct {
@@ -48,6 +92,24 @@ type IdentityOutbox struct {
 	Attempts    int32
 	NextTryAt   time.Time
 	LastError   *string
+}
+
+type IdentityPasswordReset struct {
+	TokenHash string
+	Realm     string
+	SubjectID string
+	ExpiresAt time.Time
+	UsedAt    *time.Time
+	CreatedAt time.Time
+}
+
+type IdentityProfileProjection struct {
+	Realm            string
+	SubjectID        string
+	Version          int64
+	DeliveredVersion int64
+	Deleted          bool
+	UpdatedAt        time.Time
 }
 
 type IdentityRefreshToken struct {
@@ -64,6 +126,8 @@ type IdentitySessionFamily struct {
 	ExpiresAt time.Time
 	RevokedAt *time.Time
 	CreatedAt time.Time
+	UserAgent *string
+	ClientIp  *string
 }
 
 type IdentityStaffAccess struct {
@@ -71,6 +135,8 @@ type IdentityStaffAccess struct {
 	SubjectID           string
 	PermissionOverrides []byte
 	UpdatedAt           time.Time
+	DisplayName         string
+	DataScopes          []byte
 }
 
 type IdentityStaffPermission struct {
@@ -88,6 +154,7 @@ type IdentityStaffRole struct {
 	NameAr    string
 	IsSystem  bool
 	CreatedAt time.Time
+	Revision  int64
 }
 
 type IdentityStaffRoleScope struct {

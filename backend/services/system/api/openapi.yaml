@@ -50,6 +50,32 @@ paths:
       responses:
         "200": { $ref: "#/components/responses/Integrations" }
         default: { $ref: "#/components/responses/Problem" }
+  /v1/system/sign-in/{provider}:
+    get:
+      tags: [services]
+      operationId: getSignInConfiguration
+      summary: Identity-only OAuth credentials and the approved website domain
+      security: [{ serviceToken: [] }]
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema: { type: string, enum: [google, apple] }
+      responses:
+        "200":
+          description: Configuration for identity; never forward credentials to the browser
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [active, values, websiteDomain]
+                properties:
+                  active: { type: boolean }
+                  values:
+                    { type: object, additionalProperties: { type: string } }
+                  websiteDomain: { type: string }
+        default: { $ref: "#/components/responses/Problem" }
   /v1/system/integrations/{provider}:
     parameters: [{ $ref: "#/components/parameters/ProviderId" }]
     get:
@@ -88,7 +114,8 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/UpdateIntegrationStatusInput" }
+            schema:
+              { $ref: "#/components/schemas/UpdateIntegrationStatusInput" }
       responses:
         "204": { description: Updated }
         default: { $ref: "#/components/responses/Problem" }
@@ -230,13 +257,325 @@ paths:
       responses:
         "200": { $ref: "#/components/responses/SiteCode" }
         default: { $ref: "#/components/responses/Problem" }
+  /v1/system/company:
+    {
+      "get":
+        {
+          "operationId": "getCompanyConfiguration",
+          "summary": "Read company configuration (configured service readers)",
+          "security": [{ "serviceToken": [] }],
+          "responses":
+            {
+              "200":
+                {
+                  "description": "Success",
+                  "content":
+                    {
+                      "application/json":
+                        {
+                          "schema":
+                            { "$ref": "#/components/schemas/CompanyRecord" },
+                        },
+                    },
+                },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+        },
+    }
+  /v1/system/company/currency-use:
+    {
+      "post":
+        {
+          "operationId": "markCompanyCurrencyUsed",
+          "summary": "Lock base currency after monetary use (configured monetary callers)",
+          "security": [{ "serviceToken": [] }],
+          "responses":
+            {
+              "204": { "description": "Success" },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+        },
+    }
+  /v1/system/sequences/{kind}/reservations:
+    {
+      "post":
+        {
+          "operationId": "reserveDocumentNumber",
+          "summary": "Idempotently reserve an invoice or receipt number",
+          "security": [{ "serviceToken": [] }],
+          "responses":
+            {
+              "200":
+                {
+                  "description": "Success",
+                  "content":
+                    {
+                      "application/json":
+                        {
+                          "schema":
+                            {
+                              "$ref": "#/components/schemas/NumberReservation",
+                            },
+                        },
+                    },
+                },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+          "requestBody":
+            {
+              "required": true,
+              "content":
+                {
+                  "application/json":
+                    {
+                      "schema":
+                        {
+                          "$ref": "#/components/schemas/NumberReservationInput",
+                        },
+                    },
+                },
+            },
+          "parameters":
+            [
+              {
+                "name": "kind",
+                "in": "path",
+                "required": true,
+                "schema": { "type": "string", "enum": ["invoice", "receipt"] },
+              },
+            ],
+        },
+    }
+  /v1/system/desk/company:
+    {
+      "get":
+        {
+          "operationId": "getCompanyConfigurationForIT",
+          "summary": "Read company configuration (setup:read)",
+          "security": [{ "userToken": [] }],
+          "responses":
+            {
+              "200":
+                {
+                  "description": "Success",
+                  "content":
+                    {
+                      "application/json":
+                        {
+                          "schema":
+                            { "$ref": "#/components/schemas/CompanyRecord" },
+                        },
+                    },
+                },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+        },
+      "put":
+        {
+          "operationId": "updateCompanyConfigurationForIT",
+          "summary": "Update company configuration (setup:edit)",
+          "security": [{ "userToken": [] }],
+          "responses":
+            {
+              "200":
+                {
+                  "description": "Success",
+                  "content":
+                    {
+                      "application/json":
+                        {
+                          "schema":
+                            { "$ref": "#/components/schemas/CompanyRecord" },
+                        },
+                    },
+                },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+          "requestBody":
+            {
+              "required": true,
+              "content":
+                {
+                  "application/json":
+                    {
+                      "schema":
+                        { "$ref": "#/components/schemas/CompanyPatchBody" },
+                    },
+                },
+            },
+        },
+    }
+  /v1/system/desk/setup/complete:
+    {
+      "post":
+        {
+          "operationId": "completeCompanySetupForIT",
+          "summary": "Finish setup (setup:execute)",
+          "security": [{ "userToken": [] }],
+          "responses":
+            {
+              "200":
+                {
+                  "description": "Success",
+                  "content":
+                    {
+                      "application/json":
+                        {
+                          "schema":
+                            { "$ref": "#/components/schemas/CompanyRecord" },
+                        },
+                    },
+                },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+        },
+    }
+  /v1/system/desk/company/assets:
+    {
+      "get":
+        {
+          "operationId": "listCompanyAssetsForIT",
+          "summary": "List registered artwork (setup:read)",
+          "security": [{ "userToken": [] }],
+          "responses":
+            {
+              "200":
+                {
+                  "description": "Success",
+                  "content":
+                    {
+                      "application/json":
+                        {
+                          "schema":
+                            { "$ref": "#/components/schemas/CompanyAssetPage" },
+                        },
+                    },
+                },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+        },
+    }
+  /v1/system/desk/company/assets/{key}:
+    {
+      "put":
+        {
+          "operationId": "saveCompanyAssetForIT",
+          "summary": "Register permanent artwork (setup:edit)",
+          "security": [{ "userToken": [] }],
+          "responses":
+            {
+              "204": { "description": "Success" },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+          "requestBody":
+            {
+              "required": true,
+              "content":
+                {
+                  "application/json":
+                    {
+                      "schema":
+                        { "$ref": "#/components/schemas/CompanyAssetInput" },
+                    },
+                },
+            },
+        },
+      "delete":
+        {
+          "operationId": "deleteCompanyAssetForIT",
+          "summary": "Remove an artwork registration (setup:edit)",
+          "security": [{ "userToken": [] }],
+          "responses":
+            {
+              "204": { "description": "Success" },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+        },
+      "parameters":
+        [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "pattern": "^[a-zA-Z0-9_-]{1,100}$" },
+          },
+        ],
+    }
+
+  /v1/system/setup/status:
+    {
+      "get":
+        {
+          "operationId": "getCompanySetupStatus",
+          "summary": "Read setup completeness and missing fields",
+          "security": [{ "serviceToken": [] }],
+          "responses":
+            {
+              "200":
+                {
+                  "description": "Setup status",
+                  "content":
+                    {
+                      "application/json":
+                        {
+                          "schema":
+                            {
+                              "$ref": "#/components/schemas/CompanySetupStatus",
+                            },
+                        },
+                    },
+                },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+        },
+    }
+  /v1/system/desk/setup/status:
+    {
+      "get":
+        {
+          "operationId": "getCompanySetupStatusForIT",
+          "summary": "Read setup completeness and missing fields",
+          "security": [{ "userToken": [] }],
+          "responses":
+            {
+              "200":
+                {
+                  "description": "Setup status",
+                  "content":
+                    {
+                      "application/json":
+                        {
+                          "schema":
+                            {
+                              "$ref": "#/components/schemas/CompanySetupStatus",
+                            },
+                        },
+                    },
+                },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+        },
+    }
+
 components:
   securitySchemes:
     serviceToken: { type: http, scheme: bearer, bearerFormat: JWT }
     userToken: { type: http, scheme: bearer, bearerFormat: JWT }
   parameters:
-    ModuleKey: { name: key, in: path, required: true, schema: { type: string, minLength: 1, maxLength: 64 } }
-    ProviderId: { name: provider, in: path, required: true, schema: { type: string, minLength: 1, maxLength: 64 } }
+    ModuleKey:
+      {
+        name: key,
+        in: path,
+        required: true,
+        schema: { type: string, minLength: 1, maxLength: 64 },
+      }
+    ProviderId:
+      {
+        name: provider,
+        in: path,
+        required: true,
+        schema: { type: string, minLength: 1, maxLength: 64 },
+      }
   responses:
     Modules:
       description: Every module in the catalogue with its current state, in catalogue order
@@ -309,7 +648,11 @@ components:
         nameAr: { type: string }
         enabledByDefault: { type: boolean }
         enabled: { type: boolean }
-        updatedBy: { type: string, description: "Who switched it last: <caller>:<person> or it:<IT account>" }
+        updatedBy:
+          {
+            type: string,
+            description: "Who switched it last: <caller>:<person> or it:<IT account>",
+          }
         updatedAt: { type: string, format: date-time }
     SecretHint:
       type: object
@@ -400,29 +743,50 @@ components:
     Changed:
       type: object
       properties:
-        updatedBy: { type: string, description: "Who changed it last: <caller>:<person> or it:<IT account>" }
+        updatedBy:
+          {
+            type: string,
+            description: "Who changed it last: <caller>:<person> or it:<IT account>",
+          }
         updatedAt: { type: string, format: date-time }
     SiteDomainsInput:
       type: object
       required: [websiteDomain, adminDomain]
       properties:
-        websiteDomain: { type: string, maxLength: 300, description: "A public host name, or empty to clear" }
-        adminDomain: { type: string, maxLength: 300, description: "A public host name, or empty to clear" }
+        websiteDomain:
+          {
+            type: string,
+            maxLength: 300,
+            description: "A public host name, or empty to clear",
+          }
+        adminDomain:
+          {
+            type: string,
+            maxLength: 300,
+            description: "A public host name, or empty to clear",
+          }
     SiteDomains:
       allOf:
         - { $ref: "#/components/schemas/Changed" }
         - type: object
           required: [websiteDomain, adminDomain]
           properties:
-            websiteDomain: { type: string, description: "Normalised host name, or empty" }
-            adminDomain: { type: string, description: "Normalised host name, or empty" }
+            websiteDomain:
+              { type: string, description: "Normalised host name, or empty" }
+            adminDomain:
+              { type: string, description: "Normalised host name, or empty" }
     SiteCode:
       type: object
-      required: [googleAnalyticsId, metaPixelId, tiktokPixelId, headHtml, bodyHtml]
+      required:
+        [googleAnalyticsId, metaPixelId, tiktokPixelId, headHtml, bodyHtml]
       properties:
         googleAnalyticsId: { type: string, description: "G-XXXX, or empty" }
         metaPixelId: { type: string, description: "Digits, or empty" }
-        tiktokPixelId: { type: string, description: "Upper-case letters and digits, or empty" }
+        tiktokPixelId:
+          {
+            type: string,
+            description: "Upper-case letters and digits, or empty",
+          }
         headHtml: { type: string, maxLength: 50000 }
         bodyHtml: { type: string, maxLength: 50000 }
     Site:
@@ -453,3 +817,451 @@ components:
             properties:
               field: { type: string }
               code: { type: string }
+    CompanyFontFile:
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["weight", "url"],
+        "properties":
+          {
+            "weight": { "type": "integer", "minimum": 100, "maximum": 900 },
+            "url":
+              {
+                "type": "string",
+                "pattern": "^/api/files/brand/[a-zA-Z0-9_-]+\\.(woff2?|ttf|otf)$",
+              },
+          },
+      }
+    CompanyFont:
+      {
+        "oneOf":
+          [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["kind"],
+              "properties": { "kind": { "const": "system", "type": "string" } },
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["kind", "family"],
+              "properties":
+                {
+                  "kind": { "const": "google", "type": "string" },
+                  "family":
+                    { "type": "string", "pattern": "^[A-Za-z0-9 ]{1,60}$" },
+                },
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["kind", "family", "files"],
+              "properties":
+                {
+                  "kind": { "const": "upload", "type": "string" },
+                  "family":
+                    { "type": "string", "pattern": "^[A-Za-z0-9 ]{1,60}$" },
+                  "files":
+                    {
+                      "type": "array",
+                      "minItems": 1,
+                      "maxItems": 9,
+                      "items":
+                        { "$ref": "#/components/schemas/CompanyFontFile" },
+                    },
+                },
+            },
+          ],
+      }
+    CompanyTheme:
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "required":
+          [
+            "primary",
+            "accent",
+            "fonts",
+            "radius",
+            "defaultMode",
+            "buttonShape",
+            "fontScale",
+            "headingWeight",
+            "headingCase",
+            "surface",
+            "websiteMode",
+          ],
+        "properties":
+          {
+            "primary": { "type": "string", "pattern": "^#[A-F0-9]{6}$" },
+            "accent": { "type": "string", "pattern": "^#[A-F0-9]{6}$" },
+            "fonts":
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["body", "heading"],
+                "properties":
+                  {
+                    "body": { "$ref": "#/components/schemas/CompanyFont" },
+                    "heading": { "$ref": "#/components/schemas/CompanyFont" },
+                  },
+              },
+            "radius":
+              { "type": "string", "enum": ["none", "sm", "md", "lg", "xl"] },
+            "defaultMode":
+              { "type": "string", "enum": ["light", "dark", "system"] },
+            "buttonShape":
+              { "type": "string", "enum": ["square", "rounded", "pill"] },
+            "fontScale": { "type": "string", "enum": ["sm", "md", "lg"] },
+            "headingWeight":
+              { "type": "integer", "enum": [400, 500, 600, 700, 800] },
+            "headingCase":
+              { "type": "string", "enum": ["normal", "uppercase"] },
+            "surface": { "type": "string", "enum": ["tinted", "neutral"] },
+            "websiteMode": { "type": "string", "enum": ["dark", "light"] },
+          },
+      }
+    CompanyRecord:
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "required":
+          [
+            "websitePublished",
+            "id",
+            "companyNameEn",
+            "companyNameAr",
+            "crNumber",
+            "vatId",
+            "vatEnabled",
+            "vatPercentage",
+            "vatCertificateUrl",
+            "defaultCurrency",
+            "currencyDecimals",
+            "addressEn",
+            "addressAr",
+            "phone",
+            "whatsappPhone",
+            "email",
+            "website",
+            "instagramUrl",
+            "linkedinUrl",
+            "youtubeUrl",
+            "bankName",
+            "bankIban",
+            "bankAccountNumber",
+            "bankSwift",
+            "timeZone",
+            "logoUrl",
+            "darkLogoUrl",
+            "fullLogoUrl",
+            "darkFullLogoUrl",
+            "iconUrl",
+            "darkIconUrl",
+            "documentHeaderUrl",
+            "documentFooterUrl",
+            "stampUrl",
+            "signatureUrl",
+            "paymentTermsDays",
+            "invoicePrefix",
+            "invoiceNextNumber",
+            "receiptPrefix",
+            "receiptNextNumber",
+            "ceoNameEn",
+            "ceoNameAr",
+            "ceoTitleEn",
+            "ceoTitleAr",
+            "ceoQuoteEn",
+            "ceoQuoteAr",
+            "missionEn",
+            "missionAr",
+            "visionEn",
+            "visionAr",
+            "aboutTextEn",
+            "aboutTextAr",
+            "termsEn",
+            "termsAr",
+            "rulesEn",
+            "rulesAr",
+            "updatedAt",
+            "defaultDiscountLimitPercent",
+            "quotationsAlwaysNeedApproval",
+            "theme",
+            "setupCompletedAt",
+            "contentLanguages",
+            "primaryLanguage",
+            "businessActivity",
+            "taglineEn",
+            "taglineAr",
+            "foundedYear",
+            "city",
+            "country",
+            "mapUrl",
+            "currencyLocked",
+            "revision",
+          ],
+        "properties":
+          {
+            "websitePublished": { "type": "boolean" },
+            "id": { "type": "string" },
+            "companyNameEn": { "type": "string" },
+            "companyNameAr": { "type": "string" },
+            "crNumber": { "type": ["string", "null"] },
+            "vatId": { "type": ["string", "null"] },
+            "vatEnabled": { "type": "boolean" },
+            "vatPercentage": { "type": ["string", "number"] },
+            "vatCertificateUrl": { "type": ["string", "null"] },
+            "defaultCurrency": { "type": "string" },
+            "currencyDecimals": { "type": "integer" },
+            "addressEn": { "type": ["string", "null"] },
+            "addressAr": { "type": ["string", "null"] },
+            "phone": { "type": ["string", "null"] },
+            "whatsappPhone": { "type": ["string", "null"] },
+            "email": { "type": ["string", "null"] },
+            "website": { "type": ["string", "null"] },
+            "instagramUrl": { "type": ["string", "null"] },
+            "linkedinUrl": { "type": ["string", "null"] },
+            "youtubeUrl": { "type": ["string", "null"] },
+            "bankName": { "type": ["string", "null"] },
+            "bankIban": { "type": ["string", "null"] },
+            "bankAccountNumber": { "type": ["string", "null"] },
+            "bankSwift": { "type": ["string", "null"] },
+            "timeZone": { "type": ["string", "null"] },
+            "logoUrl": { "type": ["string", "null"] },
+            "darkLogoUrl": { "type": ["string", "null"] },
+            "fullLogoUrl": { "type": ["string", "null"] },
+            "darkFullLogoUrl": { "type": ["string", "null"] },
+            "iconUrl": { "type": ["string", "null"] },
+            "darkIconUrl": { "type": ["string", "null"] },
+            "documentHeaderUrl": { "type": ["string", "null"] },
+            "documentFooterUrl": { "type": ["string", "null"] },
+            "stampUrl": { "type": ["string", "null"] },
+            "signatureUrl": { "type": ["string", "null"] },
+            "paymentTermsDays": { "type": "integer" },
+            "invoicePrefix": { "type": "string" },
+            "invoiceNextNumber": { "type": "integer" },
+            "receiptPrefix": { "type": "string" },
+            "receiptNextNumber": { "type": "integer" },
+            "ceoNameEn": { "type": ["string", "null"] },
+            "ceoNameAr": { "type": ["string", "null"] },
+            "ceoTitleEn": { "type": ["string", "null"] },
+            "ceoTitleAr": { "type": ["string", "null"] },
+            "ceoQuoteEn": { "type": ["string", "null"] },
+            "ceoQuoteAr": { "type": ["string", "null"] },
+            "missionEn": { "type": ["string", "null"] },
+            "missionAr": { "type": ["string", "null"] },
+            "visionEn": { "type": ["string", "null"] },
+            "visionAr": { "type": ["string", "null"] },
+            "aboutTextEn": { "type": ["string", "null"] },
+            "aboutTextAr": { "type": ["string", "null"] },
+            "termsEn": { "type": ["string", "null"] },
+            "termsAr": { "type": ["string", "null"] },
+            "rulesEn": { "type": ["string", "null"] },
+            "rulesAr": { "type": ["string", "null"] },
+            "updatedAt": { "type": "string", "format": "date-time" },
+            "defaultDiscountLimitPercent": { "type": ["string", "number"] },
+            "quotationsAlwaysNeedApproval": { "type": "boolean" },
+            "theme":
+              {
+                "anyOf":
+                  [
+                    { "$ref": "#/components/schemas/CompanyTheme" },
+                    { "type": "null" },
+                  ],
+              },
+            "setupCompletedAt":
+              { "type": ["string", "null"], "format": "date-time" },
+            "contentLanguages":
+              {
+                "type": "array",
+                "items": { "type": "string", "enum": ["ar", "en"] },
+              },
+            "primaryLanguage": { "type": "string" },
+            "businessActivity": { "type": ["string", "null"] },
+            "taglineEn": { "type": ["string", "null"] },
+            "taglineAr": { "type": ["string", "null"] },
+            "foundedYear": { "type": ["integer", "null"] },
+            "city": { "type": ["string", "null"] },
+            "country": { "type": ["string", "null"] },
+            "mapUrl": { "type": ["string", "null"] },
+            "currencyLocked": { "type": "boolean" },
+            "revision": { "type": "integer", "minimum": 1 },
+          },
+      }
+    CompanyPatch:
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [],
+        "properties":
+          {
+            "companyNameEn": { "type": "string" },
+            "companyNameAr": { "type": "string" },
+            "crNumber": { "type": ["string", "null"] },
+            "vatId": { "type": ["string", "null"] },
+            "vatEnabled": { "type": "boolean" },
+            "vatPercentage": { "type": ["string", "number"] },
+            "vatCertificateUrl": { "type": ["string", "null"] },
+            "defaultCurrency": { "type": "string" },
+            "addressEn": { "type": ["string", "null"] },
+            "addressAr": { "type": ["string", "null"] },
+            "phone": { "type": ["string", "null"] },
+            "whatsappPhone": { "type": ["string", "null"] },
+            "email": { "type": ["string", "null"] },
+            "website": { "type": ["string", "null"] },
+            "instagramUrl": { "type": ["string", "null"] },
+            "linkedinUrl": { "type": ["string", "null"] },
+            "youtubeUrl": { "type": ["string", "null"] },
+            "bankName": { "type": ["string", "null"] },
+            "bankIban": { "type": ["string", "null"] },
+            "bankAccountNumber": { "type": ["string", "null"] },
+            "bankSwift": { "type": ["string", "null"] },
+            "timeZone": { "type": ["string", "null"] },
+            "logoUrl": { "type": ["string", "null"] },
+            "darkLogoUrl": { "type": ["string", "null"] },
+            "fullLogoUrl": { "type": ["string", "null"] },
+            "darkFullLogoUrl": { "type": ["string", "null"] },
+            "iconUrl": { "type": ["string", "null"] },
+            "darkIconUrl": { "type": ["string", "null"] },
+            "documentHeaderUrl": { "type": ["string", "null"] },
+            "documentFooterUrl": { "type": ["string", "null"] },
+            "stampUrl": { "type": ["string", "null"] },
+            "signatureUrl": { "type": ["string", "null"] },
+            "paymentTermsDays": { "type": "integer" },
+            "invoicePrefix": { "type": "string" },
+            "invoiceNextNumber": { "type": "integer" },
+            "receiptPrefix": { "type": "string" },
+            "receiptNextNumber": { "type": "integer" },
+            "ceoNameEn": { "type": ["string", "null"] },
+            "ceoNameAr": { "type": ["string", "null"] },
+            "ceoTitleEn": { "type": ["string", "null"] },
+            "ceoTitleAr": { "type": ["string", "null"] },
+            "ceoQuoteEn": { "type": ["string", "null"] },
+            "ceoQuoteAr": { "type": ["string", "null"] },
+            "missionEn": { "type": ["string", "null"] },
+            "missionAr": { "type": ["string", "null"] },
+            "visionEn": { "type": ["string", "null"] },
+            "visionAr": { "type": ["string", "null"] },
+            "aboutTextEn": { "type": ["string", "null"] },
+            "aboutTextAr": { "type": ["string", "null"] },
+            "termsEn": { "type": ["string", "null"] },
+            "termsAr": { "type": ["string", "null"] },
+            "rulesEn": { "type": ["string", "null"] },
+            "rulesAr": { "type": ["string", "null"] },
+            "defaultDiscountLimitPercent": { "type": ["string", "number"] },
+            "quotationsAlwaysNeedApproval": { "type": "boolean" },
+            "theme":
+              {
+                "anyOf":
+                  [
+                    { "$ref": "#/components/schemas/CompanyTheme" },
+                    { "type": "null" },
+                  ],
+              },
+            "contentLanguages":
+              {
+                "type": "array",
+                "items": { "type": "string", "enum": ["ar", "en"] },
+              },
+            "primaryLanguage": { "type": "string" },
+            "businessActivity": { "type": ["string", "null"] },
+            "taglineEn": { "type": ["string", "null"] },
+            "taglineAr": { "type": ["string", "null"] },
+            "foundedYear": { "type": ["integer", "null"] },
+            "city": { "type": ["string", "null"] },
+            "country": { "type": ["string", "null"] },
+            "mapUrl": { "type": ["string", "null"] },
+          },
+      }
+    CompanyPatchBody:
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["values"],
+        "properties":
+          { "values": { "$ref": "#/components/schemas/CompanyPatch" } },
+      }
+    CompanyAsset:
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "required":
+          [
+            "id",
+            "assetKey",
+            "title",
+            "fileUrl",
+            "mimeType",
+            "fileSize",
+            "createdAt",
+            "updatedAt",
+          ],
+        "properties":
+          {
+            "id": { "type": "string" },
+            "assetKey": { "type": "string" },
+            "title": { "type": "string" },
+            "fileUrl": { "type": "string" },
+            "mimeType": { "type": ["string", "null"] },
+            "fileSize": { "type": ["integer", "null"] },
+            "createdAt": { "type": "string", "format": "date-time" },
+            "updatedAt": { "type": "string", "format": "date-time" },
+          },
+      }
+    CompanyAssetPage:
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["items"],
+        "properties":
+          {
+            "items":
+              {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/CompanyAsset" },
+              },
+          },
+      }
+    CompanyAssetInput:
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["title", "fileUrl"],
+        "properties":
+          {
+            "title": { "type": "string", "minLength": 1, "maxLength": 500 },
+            "fileUrl": { "type": "string", "maxLength": 2048 },
+          },
+      }
+    NumberReservationInput:
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["idempotencyKey", "documentDate"],
+        "properties":
+          {
+            "idempotencyKey":
+              { "type": "string", "minLength": 1, "maxLength": 200 },
+            "documentDate": { "type": "string", "format": "date" },
+          },
+      }
+    NumberReservation:
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["number"],
+        "properties": { "number": { "type": "string" } },
+      }
+    CompanySetupStatus:
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["complete", "missing", "finished"],
+        "properties":
+          {
+            "complete": { "type": "boolean" },
+            "missing": { "type": "array", "items": { "type": "string" } },
+            "finished": { "type": "boolean" },
+          },
+      }

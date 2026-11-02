@@ -2,6 +2,7 @@ import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { getContentSnapshot } from "@platform/api-client";
 import { exampleSnapshot, getWebsiteSnapshot } from "@platform/database";
 import {
   isBusinessActivity,
@@ -39,10 +40,21 @@ export const websiteExample = cache(
   async () => (await previewCookie())?.example ?? null,
 );
 const getPublishedWebsite = unstable_cache(
-  () => getWebsiteSnapshot(false),
+  async () => {
+    try {
+      const snap = await getContentSnapshot("main");
+      if (snap?.published && typeof snap.published === "object" && Object.keys(snap.published).length > 0) {
+        return snap.published as any;
+      }
+    } catch {
+      // Fallback to database
+    }
+    return getWebsiteSnapshot(false);
+  },
   ["published-website"],
   { revalidate: 60, tags: ["website"] },
 );
+
 export const getWebsite = cache(async () => {
   const preview = await previewCookie();
   if (preview?.example) return exampleSnapshot(preview.example);

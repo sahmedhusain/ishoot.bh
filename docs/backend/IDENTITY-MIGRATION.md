@@ -60,3 +60,40 @@ tools until the full migration and restore rehearsal succeeds.
 - Rehearse migration and restore with real customer, MFA and recovery-code data; verify permission parity and run the staff, customer, setup, OAuth, MFA, reset and logout regression and browser suites.
 
 `User` and `Customer` also contain business relationships used by Prisma. Do not move or delete those tables until their remaining readers and projections have replacements. No cross-service foreign keys are added by the identity snapshot. See [ADR 0005](../adr/0005-identity-realms.md) and the original architecture plan for the intended boundaries.
+
+## Pending staff/frontend cutover
+
+Do not switch a running installation from legacy staff cookies until its identity account/access snapshot has
+been applied. Pause legacy authentication, account and access writers; back up the database and keys; migrate
+identity and run `identity-import` validation/apply/rerun against the disposable copy first. Preserve
+`IDENTITY_LOGIN_MFA_LEGACY_KEY`. Only then switch the apps, using a server-reachable `IDENTITY_JWKS_URL` and the
+exact token issuer in `IDENTITY_ISSUER`. Existing legacy staff sessions must sign in again. Old reset/invitation
+challenges still need their handoff before this cutover can be considered complete.
+
+The temporary staff profile bridge pushes committed status/role/email changes and reports synchronization
+failures to the caller. It is not a distributed transaction or a substitute for the eventual service-owned
+profile/projection implementation. The admin rejects mismatched profile/token roles and inactive profiles.
+Do not treat a failed save as proof that a remote credential update was rolled back; these cross-service flows
+still need their completion/recovery implementation and final verification.
+
+At the user's request, testing and deployment/migration rehearsals are deferred until all implementation phases
+are complete. This runbook describes required future steps; no developer database or `.env` was changed.
+
+### Unverified profile delivery implementation
+
+Identity migration 00013 records pending profile revisions in the same transaction as staff account/access changes
+and customer deletion. The identity River worker signs deliveries to `/api/internal/identity-projection` in admin
+or web. The receiving app trusts only identity's public service keys from `SERVICE_KEYS_FILE`, updates business
+profiles and version receipts atomically, and rejects reordered deliveries. Role metadata has its own revision.
+Credentials and MFA material are never projected. Customer deletion can therefore finish anonymization after an
+interrupted browser request. The Prisma receipt migration must precede enabling the delivery worker.
+
+Configure `IDENTITY_PROJECTION_ADMIN_URL` / `_WEB_URL` for worker-reachable app origins and keep
+`IDENTITY_SERVICE_KEY` configured. Compose defaults use host.docker.internal because the apps run on the host;
+Kubernetes deployments must supply their internal app origins. `SERVICE_KEYS_FILE` must be readable by each app.
+No delivery or recovery rehearsal has run yet, per the implementation-first instruction.
+
+Admin permission reads now call the current user's live identity policy. Transitional scoped business queries use
+an admin-service-only identity target-policy endpoint, including user-specific scope overrides. They fail closed
+on an unavailable policy. The old Prisma account synchronization still needs retirement as HR/setup/user callers
+move; do not deploy the partial cutover as a finished ownership migration.

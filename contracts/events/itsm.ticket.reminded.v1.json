@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/itsm.ticket.reminded.v1.json",
+  "title": "itsm.ticket.reminded",
+  "description": "An SLA reminder was issued for an IT ticket.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "ticketId",
+    "number",
+    "reminderType",
+    "priority",
+    "remindedAt"
+  ],
+  "properties": {
+    "ticketId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "number": {
+      "type": "integer"
+    },
+    "reminderType": {
+      "type": "string",
+      "enum": [
+        "response",
+        "resolve",
+        "requester"
+      ]
+    },
+    "priority": {
+      "type": "string",
+      "minLength": 1
+    },
+    "remindedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

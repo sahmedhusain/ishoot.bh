@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/hr.offboarding.completed.v1.json",
+  "title": "hr.offboarding.completed",
+  "description": "Triggered when an employee is offboarded and their access revoked.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "employeeId",
+    "subjectId",
+    "actor"
+  ],
+  "properties": {
+    "employeeId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "subjectId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "actor": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

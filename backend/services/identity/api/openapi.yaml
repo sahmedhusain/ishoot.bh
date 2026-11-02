@@ -22,9 +22,9 @@ paths:
         current system module availability are evaluated in identity. Missing grants are denied; Super Admin
         retains access regardless of stored denials or module switches. This does not resolve department members.
         Staff app cutover is still pending; this endpoint reads identity's snapshot, not the legacy account tables.
-      security: [{userToken: []}]
+      security: [{ userToken: [] }]
       responses:
-        '200':
+        "200":
           description: Effective access, without credentials or personal profile data
           content:
             application/json:
@@ -33,35 +33,47 @@ paths:
                 additionalProperties: false
                 required: [subjectId, role, permissions, dataScopes]
                 properties:
-                  subjectId: {type: string}
-                  role: {type: string}
+                  subjectId: { type: string }
+                  role: { type: string }
                   permissions:
                     type: object
-                    additionalProperties: {type: boolean}
+                    additionalProperties: { type: boolean }
                   dataScopes:
                     type: object
                     additionalProperties: false
                     required: [deals, requests, expenses, claims, leave]
                     properties:
-                      deals: {type: string, enum: [own, department, all]}
-                      requests: {type: string, enum: [own, department, all]}
-                      expenses: {type: string, enum: [own, department, all]}
-                      claims: {type: string, enum: [own, department, all]}
-                      leave: {type: string, enum: [own, department, all]}
-        default: {$ref: '#/components/responses/Problem'}
+                      deals: { type: string, enum: [own, department, all] }
+                      requests: { type: string, enum: [own, department, all] }
+                      expenses: { type: string, enum: [own, department, all] }
+                      claims: { type: string, enum: [own, department, all] }
+                      leave: { type: string, enum: [own, department, all] }
+        default: { $ref: "#/components/responses/Problem" }
   /v1/identity/desk/sessions:
     get:
       operationId: listIdentitySessionsForIT
       summary: List identity-issued sessions (sessions:read; live MFA-enrolled IT session required)
       description: Lists session families, including revoked and expired sessions awaiting cleanup. Legacy app sessions are not included. Never returns access or refresh credentials.
-      security: [{userToken: []}]
+      security: [{ userToken: [] }]
       parameters:
-        - {name: realm, in: query, schema: {type: string, enum: [staff, customer, it]}}
-        - {name: subjectId, in: query, schema: {type: string, maxLength: 200}}
-        - {name: cursor, in: query, schema: {type: string, format: uuid}}
-        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 200, default: 50}}
+        - {
+            name: realm,
+            in: query,
+            schema: { type: string, enum: [staff, customer, it] },
+          }
+        - {
+            name: subjectId,
+            in: query,
+            schema: { type: string, maxLength: 200 },
+          }
+        - { name: cursor, in: query, schema: { type: string, format: uuid } }
+        - {
+            name: limit,
+            in: query,
+            schema: { type: integer, minimum: 1, maximum: 200, default: 50 },
+          }
       responses:
-        '200':
+        "200":
           description: Sessions ordered by ID; pass nextCursor back as cursor
           content:
             application/json:
@@ -70,30 +82,43 @@ paths:
                 additionalProperties: false
                 required: [items, nextCursor]
                 properties:
-                  items: {type: array, items: {$ref: '#/components/schemas/DeskSession'}}
-                  nextCursor: {type: string}
-        default: {$ref: '#/components/responses/Problem'}
+                  items:
+                    {
+                      type: array,
+                      items: { $ref: "#/components/schemas/DeskSession" },
+                    }
+                  nextCursor: { type: string }
+        default: { $ref: "#/components/responses/Problem" }
   /v1/identity/desk/sessions/{id}:
     parameters:
-      - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {
+          name: id,
+          in: path,
+          required: true,
+          schema: { type: string, format: uuid },
+        }
     delete:
       operationId: revokeIdentitySessionForIT
       summary: Revoke an identity session family (sessions:delete)
       description: Invalidates access and refresh credentials for this family. Already revoked sessions are unchanged; missing sessions return 404. Revoking the current session signs the operator out.
-      security: [{userToken: []}]
+      security: [{ userToken: [] }]
       responses:
-        '204': {description: Session revoked or already revoked}
-        default: {$ref: '#/components/responses/Problem'}
+        "204": { description: Session revoked or already revoked }
+        default: { $ref: "#/components/responses/Problem" }
   /v1/identity/desk/it-accounts:
     get:
       operationId: listITAccounts
       summary: List IT accounts without credentials (it_accounts:read; live IT session required)
-      security: [{userToken: []}]
+      security: [{ userToken: [] }]
       parameters:
-        - {name: cursor, in: query, schema: {type: string, maxLength: 200}}
-        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 200, default: 50}}
+        - { name: cursor, in: query, schema: { type: string, maxLength: 200 } }
+        - {
+            name: limit,
+            in: query,
+            schema: { type: integer, minimum: 1, maximum: 200, default: 50 },
+          }
       responses:
-        '200':
+        "200":
           description: Accounts ordered by ID; pass nextCursor back as cursor
           content:
             application/json:
@@ -102,15 +127,20 @@ paths:
                 additionalProperties: false
                 required: [items, nextCursor, passwordMinLength]
                 properties:
-                  items: {type: array, items: {$ref: '#/components/schemas/ITAccount'}}
-                  nextCursor: {type: string}
-                  passwordMinLength: {type: integer, minimum: 12, maximum: 128}
-        default: {$ref: '#/components/responses/Problem'}
+                  items:
+                    {
+                      type: array,
+                      items: { $ref: "#/components/schemas/ITAccount" },
+                    }
+                  nextCursor: { type: string }
+                  passwordMinLength:
+                    { type: integer, minimum: 12, maximum: 128 }
+        default: { $ref: "#/components/responses/Problem" }
     post:
       operationId: createITAccount
       summary: Create an IT account with an enrolled factor (it_accounts:create)
       description: Returns provisioning material once. Never cache or log it; deliver it securely to the new account holder.
-      security: [{userToken: []}]
+      security: [{ userToken: [] }]
       requestBody:
         required: true
         content:
@@ -120,24 +150,35 @@ paths:
               additionalProperties: false
               required: [email, password, role]
               properties:
-                email: {type: string, format: email, maxLength: 254}
-                password: {type: string, minLength: 12, maxLength: 1024, writeOnly: true}
-                role: {$ref: '#/components/schemas/ITRole'}
+                email: { type: string, format: email, maxLength: 254 }
+                password:
+                  {
+                    type: string,
+                    minLength: 12,
+                    maxLength: 1024,
+                    writeOnly: true,
+                  }
+                role: { $ref: "#/components/schemas/ITRole" }
       responses:
-        '201':
+        "201":
           description: Account created; provisioning secrets are returned only in this response
           content:
             application/json:
-              schema: {$ref: '#/components/schemas/ITProvisioning'}
-        default: {$ref: '#/components/responses/Problem'}
+              schema: { $ref: "#/components/schemas/ITProvisioning" }
+        default: { $ref: "#/components/responses/Problem" }
   /v1/identity/desk/it-accounts/{id}:
     parameters:
-      - {name: id, in: path, required: true, schema: {type: string, minLength: 1, maxLength: 200}}
+      - {
+          name: id,
+          in: path,
+          required: true,
+          schema: { type: string, minLength: 1, maxLength: 200 },
+        }
     put:
       operationId: updateITAccount
       summary: Change role or active status and revoke sessions (it_accounts:edit)
       description: Refuses disabling or demoting the last active MFA-enrolled IT administrator. Accounts and audit references are retained.
-      security: [{userToken: []}]
+      security: [{ userToken: [] }]
       requestBody:
         required: true
         content:
@@ -147,18 +188,18 @@ paths:
               additionalProperties: false
               required: [role, active]
               properties:
-                role: {$ref: '#/components/schemas/ITRole'}
-                active: {type: boolean}
+                role: { $ref: "#/components/schemas/ITRole" }
+                active: { type: boolean }
       responses:
-        '204': {description: Access updated; existing sessions revoked}
-        default: {$ref: '#/components/responses/Problem'}
+        "204": { description: Access updated; existing sessions revoked }
+        default: { $ref: "#/components/responses/Problem" }
   /.well-known/jwks.json:
     get:
       operationId: identityJWKS
       summary: Publish public signing keys
       security: []
       responses:
-        '200':
+        "200":
           description: Public JSON Web Key Set
           content:
             application/json:
@@ -168,7 +209,7 @@ paths:
                 properties:
                   keys:
                     type: array
-                    items: {type: object}
+                    items: { type: object }
   /v1/identity/session:
     get:
       operationId: validateIdentitySession
@@ -176,24 +217,24 @@ paths:
       security:
         - userToken: []
       responses:
-        '204':
+        "204":
           description: The token and its session are currently valid
-        '401':
+        "401":
           description: Invalid token, expired or revoked session, disabled account or changed roles
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
         default:
-          $ref: '#/components/responses/Problem'
+          $ref: "#/components/responses/Problem"
   /v1/identity/mfa/enrollment:
     post:
       operationId: beginMFAEnrollment
       summary: Start MFA enrollment after rechecking the account password
-      security: [{userToken: []}]
-      requestBody: {$ref: '#/components/requestBodies/MFAPassword'}
+      security: [{ userToken: [] }]
+      requestBody: { $ref: "#/components/requestBodies/MFAPassword" }
       responses:
-        '200':
+        "200":
           description: Temporary authenticator secret; never cache or log
           content:
             application/json:
@@ -202,27 +243,27 @@ paths:
                 additionalProperties: false
                 required: [secret, digits, periodSeconds, expiresAt]
                 properties:
-                  secret: {type: string}
-                  digits: {type: integer, enum: [6, 8]}
-                  periodSeconds: {type: integer, minimum: 1}
-                  expiresAt: {type: string, format: date-time}
-        default: {$ref: '#/components/responses/Problem'}
+                  secret: { type: string }
+                  digits: { type: integer, enum: [6, 8] }
+                  periodSeconds: { type: integer, minimum: 1 }
+                  expiresAt: { type: string, format: date-time }
+        default: { $ref: "#/components/responses/Problem" }
     delete:
       operationId: cancelMFAEnrollment
       summary: Cancel pending MFA enrollment after rechecking the password
-      security: [{userToken: []}]
-      requestBody: {$ref: '#/components/requestBodies/MFAPassword'}
+      security: [{ userToken: [] }]
+      requestBody: { $ref: "#/components/requestBodies/MFAPassword" }
       responses:
-        '204': {description: Pending enrollment canceled}
-        default: {$ref: '#/components/responses/Problem'}
+        "204": { description: Pending enrollment canceled }
+        default: { $ref: "#/components/responses/Problem" }
   /v1/identity/mfa/enrollment/confirm:
     post:
       operationId: confirmMFAEnrollment
       summary: Confirm a new factor and revoke existing sessions
-      security: [{userToken: []}]
-      requestBody: {$ref: '#/components/requestBodies/MFAConfirmation'}
+      security: [{ userToken: [] }]
+      requestBody: { $ref: "#/components/requestBodies/MFAConfirmation" }
       responses:
-        '200':
+        "200":
           description: One-time recovery codes; never cache or log
           content:
             application/json:
@@ -231,20 +272,20 @@ paths:
                 additionalProperties: false
                 required: [recoveryCodes]
                 properties:
-                  recoveryCodes: {type: array, items: {type: string}}
-        default: {$ref: '#/components/responses/Problem'}
+                  recoveryCodes: { type: array, items: { type: string } }
+        default: { $ref: "#/components/responses/Problem" }
   /v1/identity/mfa/disable:
     post:
       operationId: disableMFA
       summary: Disable an existing factor and revoke sessions; IT accounts cannot disable MFA
-      security: [{userToken: []}]
-      requestBody: {$ref: '#/components/requestBodies/MFAConfirmation'}
+      security: [{ userToken: [] }]
+      requestBody: { $ref: "#/components/requestBodies/MFAConfirmation" }
       responses:
-        '204': {description: MFA disabled}
-        default: {$ref: '#/components/responses/Problem'}
+        "204": { description: MFA disabled }
+        default: { $ref: "#/components/responses/Problem" }
   /v1/identity/{realm}/sessions/login:
     parameters:
-      - $ref: '#/components/parameters/Realm'
+      - $ref: "#/components/parameters/Realm"
     post:
       operationId: loginIdentitySession
       summary: Authenticate a password and, where required, an MFA or recovery code
@@ -260,79 +301,1060 @@ paths:
               additionalProperties: false
               required: [email, password]
               properties:
-                email: {type: string, minLength: 1, maxLength: 254}
-                password: {type: string, minLength: 1, maxLength: 1024}
-                otp: {type: string, maxLength: 64}
-                clientIp: {type: string, maxLength: 45}
+                email: { type: string, minLength: 1, maxLength: 254 }
+                password: { type: string, minLength: 1, maxLength: 1024 }
+                otp: { type: string, maxLength: 64 }
+                clientIp: { type: string, maxLength: 45 }
+                userAgent:
+                  {
+                    type: string,
+                    maxLength: 512,
+                    description: Shown to the person in their list of sessions,
+                  }
       responses:
-        '200':
+        "200":
           description: Authenticated session credentials; never cache or log
           headers:
             Cache-Control:
-              schema: {type: string, const: no-store}
+              schema: { type: string, const: no-store }
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LoginCredential'
-        '401':
+                $ref: "#/components/schemas/LoginCredential"
+        "401":
           description: Invalid credentials or MFA required after password verification
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
         default:
-          $ref: '#/components/responses/Problem'
+          $ref: "#/components/responses/Problem"
   /v1/identity/{realm}/sessions/refresh:
     parameters:
-      - $ref: '#/components/parameters/Realm'
+      - $ref: "#/components/parameters/Realm"
     post:
       operationId: refreshIdentitySession
       summary: Consume and replace a refresh credential
       requestBody:
-        $ref: '#/components/requestBodies/RefreshCredential'
+        $ref: "#/components/requestBodies/RefreshCredential"
       responses:
-        '200':
+        "200":
           description: Rotated credential; never cache or log this response
           headers:
             Cache-Control:
-              schema: {type: string, const: no-store}
+              schema: { type: string, const: no-store }
           content:
             application/json:
               schema:
                 oneOf:
-                  - $ref: '#/components/schemas/SessionCredential'
-                  - $ref: '#/components/schemas/LoginCredential'
-        '401':
+                  - $ref: "#/components/schemas/SessionCredential"
+                  - $ref: "#/components/schemas/LoginCredential"
+        "401":
           description: Invalid, expired, revoked or replayed credential; no reason is disclosed
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
         default:
-          $ref: '#/components/responses/Problem'
+          $ref: "#/components/responses/Problem"
   /v1/identity/{realm}/sessions/logout:
     parameters:
-      - $ref: '#/components/parameters/Realm'
+      - $ref: "#/components/parameters/Realm"
     post:
       operationId: logoutIdentitySession
       summary: Revoke a session family; validly formatted unknown credentials are an idempotent no-op
       requestBody:
-        $ref: '#/components/requestBodies/RefreshCredential'
+        $ref: "#/components/requestBodies/RefreshCredential"
       responses:
-        '204':
+        "204":
           description: Logged out
         default:
-          $ref: '#/components/responses/Problem'
+          $ref: "#/components/responses/Problem"
+  /v1/identity/{realm}/accounts/{id}:
+    parameters:
+      - $ref: "#/components/parameters/ManagedRealm"
+      - {
+          name: id,
+          in: path,
+          required: true,
+          schema: { type: string, minLength: 1, maxLength: 200 },
+        }
+    put:
+      operationId: syncManagedAccount
+      summary: Create or update an account as the owning app describes it
+      description: |
+        Staff and customer accounts only; the caller must be the realm's app. Identity keeps the address, roles and
+        active state the app sends and owns the credentials. Turning an account off or changing its roles revokes its
+        sessions. Records identity.user.created or identity.user.changed.
+      security: [{ serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [email, active]
+              properties:
+                email: { type: string, minLength: 1, maxLength: 254 }
+                roles:
+                  {
+                    type: array,
+                    maxItems: 20,
+                    items: { type: string, minLength: 1, maxLength: 100 },
+                  }
+                active: { type: boolean }
+                actorId:
+                  {
+                    type: string,
+                    maxLength: 64,
+                    description: The person the app acts for,
+                  }
+      responses:
+        "200":
+          description: Stored
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [created]
+                properties:
+                  created: { type: boolean }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/identity/{realm}/accounts/{id}/password:
+    parameters:
+      - $ref: "#/components/parameters/ManagedRealm"
+      - {
+          name: id,
+          in: path,
+          required: true,
+          schema: { type: string, minLength: 1, maxLength: 200 },
+        }
+    put:
+      operationId: setManagedAccountPassword
+      summary: Set an account's password
+      description: |
+        Ends every session except keepSessionId (a person changing their own password stays signed in) and cancels
+        open reset links. Passwords shorter than IDENTITY_LOGIN_PASSWORD_MIN_LENGTH are refused.
+      security: [{ serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [password]
+              properties:
+                password: { type: string, minLength: 1, maxLength: 1024 }
+                keepSessionId: { type: string, maxLength: 64 }
+                actorId: { type: string, maxLength: 64 }
+      responses:
+        "204": { description: Password set }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/identity/{realm}/accounts/{id}/mfa:
+    parameters:
+      - $ref: "#/components/parameters/ManagedRealm"
+      - {
+          name: id,
+          in: path,
+          required: true,
+          schema: { type: string, minLength: 1, maxLength: 200 },
+        }
+      - { name: actorId, in: query, schema: { type: string, maxLength: 64 } }
+    delete:
+      operationId: resetManagedAccountMFA
+      summary: Turn two-step sign-in off for an account and sign it out everywhere
+      security: [{ serviceToken: [] }]
+      responses:
+        "204": { description: Two-step sign-in is off }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/identity/{realm}/password-resets:
+    parameters:
+      - $ref: "#/components/parameters/ManagedRealm"
+    post:
+      operationId: requestPasswordReset
+      summary: Issue a one-use reset token for an active account with the address
+      description: |
+        Returns the token once for the app to e-mail; identity keeps only its hash. Unknown or inactive addresses
+        answer 404 account_not_found: the app must answer the person the same way in both cases.
+      security: [{ serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [email]
+              properties:
+                clientIp: { type: string, maxLength: 45 }
+                email: { type: string, minLength: 1, maxLength: 254 }
+      responses:
+        "201":
+          description: Token issued; never log it
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [subjectId, email, token, expiresAt]
+                properties:
+                  email: { type: string, format: email }
+                  subjectId: { type: string }
+                  token: { type: string }
+                  expiresAt: { type: string, format: date-time }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/identity/{realm}/password-resets/confirm:
+    parameters:
+      - $ref: "#/components/parameters/ManagedRealm"
+    post:
+      operationId: confirmPasswordReset
+      summary: Use a reset token once to set a new password
+      security: [{ serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [token, password]
+              properties:
+                clientIp: { type: string, maxLength: 45 }
+                email:
+                  {
+                    type: string,
+                    maxLength: 254,
+                    description: Required only for a legacy reset or invitation link,
+                  }
+                token: { type: string, minLength: 1, maxLength: 64 }
+                password: { type: string, minLength: 1, maxLength: 1024 }
+      responses:
+        "200":
+          description: Password set; every session ended
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [subjectId]
+                properties:
+                  subjectId: { type: string }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/identity/me:
+    get:
+      operationId: getOwnAccountSecurity
+      summary: The person's own sign-in settings
+      security: [{ userToken: [] }]
+      responses:
+        "200":
+          description: Settings
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  [
+                    email,
+                    mfaEnabled,
+                    recoveryCodesLeft,
+                    hasPassword,
+                    google,
+                    apple,
+                  ]
+                properties:
+                  email: { type: string }
+                  mfaEnabled: { type: boolean }
+                  recoveryCodesLeft: { type: integer }
+                  hasPassword: { type: boolean }
+                  google: { type: boolean }
+                  apple: { type: boolean }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      operationId: deleteOwnCustomerAccount
+      summary: Erase the authenticated customer's credentials and end every session
+      description: Staff accounts cannot be erased through this endpoint.
+      security: [{ userToken: [] }]
+      responses:
+        "204": { description: Customer credentials erased }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/identity/me/sessions:
+    get:
+      operationId: listOwnSessions
+      summary: The signed-in staff member's or customer's active sessions, newest first
+      security: [{ userToken: [] }]
+      responses:
+        "200":
+          description: Sessions
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/OwnSession" }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      operationId: revokeOtherOwnSessions
+      summary: End every session of the person except this one
+      security: [{ userToken: [] }]
+      responses:
+        "204": { description: Other sessions ended }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/identity/me/sessions/{id}:
+    parameters:
+      - {
+          name: id,
+          in: path,
+          required: true,
+          schema: { type: string, maxLength: 64 },
+        }
+    delete:
+      operationId: revokeOwnSession
+      summary: End one of the person's sessions (the current one signs them out)
+      security: [{ userToken: [] }]
+      responses:
+        "204": { description: Session ended }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/identity/me/password:
+    put:
+      operationId: changeOwnPassword
+      summary: Change the person's own password
+      description: |
+        Checks the current password and, when two-step sign-in is on, an authenticator or recovery code (401
+        mfa_required without one; 422 password_rejected when either is wrong or the new password is too short).
+        Every session ends, including the current one; the person signs in with the new password.
+      security: [{ userToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [currentPassword, newPassword]
+              properties:
+                currentPassword: { type: string, minLength: 1, maxLength: 1024 }
+                newPassword: { type: string, minLength: 1, maxLength: 1024 }
+                code: { type: string, maxLength: 64 }
+                clientIp: { type: string, maxLength: 45 }
+      responses:
+        "204": { description: Password changed }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/identity/customer/oauth/providers:
+    get:
+      operationId: customerSignInProviders
+      summary: Enabled provider names without exposing their credentials
+      security: [{ serviceToken: [] }]
+      responses:
+        "200":
+          description: Available sign-in providers
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [google, apple]
+                properties:
+                  google: { type: boolean }
+                  apple: { type: boolean }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/identity/customer/oauth/{provider}:
+    parameters:
+      - name: provider
+        in: path
+        required: true
+        schema: { type: string, enum: [google, apple] }
+    post:
+      operationId: beginCustomerOAuth
+      summary: Create a one-use provider flow with server-owned nonce and PKCE
+      security: [{ serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [redirectUri, next, locale]
+              properties:
+                redirectUri: { type: string, maxLength: 2048 }
+                next: { type: string, maxLength: 2000 }
+                locale: { type: string, enum: [en, ar] }
+                clientIp: { type: string, maxLength: 45 }
+      responses:
+        "201":
+          description: Store state in the server's httpOnly callback cookie before following authorizationUrl
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [state, authorizationUrl, expiresAt]
+                properties:
+                  state: { type: string }
+                  authorizationUrl: { type: string }
+                  expiresAt: { type: string, format: date-time }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/identity/customer/oauth/{provider}/complete:
+    parameters:
+      - name: provider
+        in: path
+        required: true
+        schema: { type: string, enum: [google, apple] }
+    post:
+      operationId: completeCustomerOAuth
+      summary: Exchange the provider proof and issue a customer session once
+      security: [{ serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [state, browserState]
+              properties:
+                state: { type: string, minLength: 43, maxLength: 43 }
+                browserState: { type: string, minLength: 43, maxLength: 43 }
+                code: { type: string, maxLength: 8192 }
+                otp: { type: string, maxLength: 64 }
+                name: { type: string, maxLength: 120 }
+                clientIp: { type: string, maxLength: 45 }
+                userAgent: { type: string, maxLength: 512 }
+      responses:
+        "200":
+          description: Provider linked and session issued; an MFA-required response can be retried using state and otp
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [email, name, next, locale, credential]
+                properties:
+                  email: { type: string }
+                  name: { type: string }
+                  next: { type: string }
+                  locale: { type: string }
+                  credential: { $ref: "#/components/schemas/LoginCredential" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/identity/customer/accounts:
+    post:
+      operationId: registerCustomerAccount
+      summary: Register a customer credential without creating a staff or IT account
+      security: [{ serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [email, password]
+              properties:
+                clientIp: { type: string, maxLength: 45 }
+                email: { type: string, minLength: 1, maxLength: 254 }
+                password: { type: string, minLength: 8, maxLength: 1024 }
+      responses:
+        "201":
+          description: Customer registered
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [subjectId]
+                properties:
+                  subjectId: { type: string }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/identity/customer/sign-in-codes:
+    post:
+      operationId: issueCustomerSignInCode
+      summary: Issue a one-use email sign-in code for the trusted website to deliver
+      security: [{ serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [email]
+              properties:
+                email: { type: string, minLength: 1, maxLength: 254 }
+                clientIp: { type: string, maxLength: 45 }
+      responses:
+        "201":
+          description: Code returned once; never log it or expose it to the browser
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [code, expiresAt]
+                properties:
+                  code: { type: string, pattern: "^[0-9]{6}$" }
+                  expiresAt: { type: string, format: date-time }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/identity/customer/sessions/code:
+    post:
+      operationId: signInCustomerWithCode
+      summary: Verify an email code once and issue customer credentials atomically
+      security: [{ serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [email, code]
+              properties:
+                email: { type: string, minLength: 1, maxLength: 254 }
+                code: { type: string, pattern: "^[0-9]{6}$" }
+                otp: { type: string, maxLength: 64 }
+                clientIp: { type: string, maxLength: 45 }
+                userAgent: { type: string, maxLength: 512 }
+      responses:
+        "200":
+          description: Email confirmed; a new account is created if needed
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [email, credential]
+                properties:
+                  email: { type: string }
+                  credential: { $ref: "#/components/schemas/LoginCredential" }
+        default: { $ref: "#/components/responses/Problem" }
+
+  /v1/identity/desk/staff-accounts:
+    {
+      "get":
+        {
+          "operationId": "listStaffAccountsForIT",
+          "summary": "List staff accounts (staff_accounts:read)",
+          "security": [{ "userToken": [] }],
+          "responses":
+            {
+              "200":
+                {
+                  "description": "Success",
+                  "content":
+                    {
+                      "application/json":
+                        {
+                          "schema":
+                            { "$ref": "#/components/schemas/StaffDeskPage" },
+                        },
+                    },
+                },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+          "parameters":
+            [
+              {
+                "name": "cursor",
+                "in": "query",
+                "schema": { "type": "string", "maxLength": 200 },
+              },
+              {
+                "name": "limit",
+                "in": "query",
+                "schema":
+                  {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 200,
+                    "default": 50,
+                  },
+              },
+            ],
+        },
+      "post":
+        {
+          "operationId": "createStaffAccountForIT",
+          "summary": "Create an account, optionally copying access only (staff_accounts:create)",
+          "security": [{ "userToken": [] }],
+          "responses":
+            {
+              "201":
+                {
+                  "description": "Success",
+                  "content":
+                    {
+                      "application/json":
+                        {
+                          "schema":
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": ["subjectId"],
+                              "properties":
+                                {
+                                  "subjectId":
+                                    {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 200,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+          "requestBody":
+            {
+              "required": true,
+              "content":
+                {
+                  "application/json":
+                    { "schema": { "$ref": "#/components/schemas/StaffDraft" } },
+                },
+            },
+        },
+    }
+  /v1/identity/desk/staff-accounts/{id}:
+    {
+      "get":
+        {
+          "operationId": "getStaffAccountForIT",
+          "summary": "Read account (staff_accounts:read)",
+          "security": [{ "userToken": [] }],
+          "responses":
+            {
+              "200":
+                {
+                  "description": "Success",
+                  "content":
+                    {
+                      "application/json":
+                        {
+                          "schema":
+                            { "$ref": "#/components/schemas/StaffDraft" },
+                        },
+                    },
+                },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+          "parameters":
+            [
+              {
+                "name": "id",
+                "in": "path",
+                "required": true,
+                "schema":
+                  { "type": "string", "minLength": 1, "maxLength": 200 },
+              },
+            ],
+        },
+      "put":
+        {
+          "operationId": "updateStaffAccountForIT",
+          "summary": "Replace access and end sessions (staff_accounts:edit)",
+          "security": [{ "userToken": [] }],
+          "responses":
+            {
+              "200":
+                {
+                  "description": "Success",
+                  "content":
+                    {
+                      "application/json":
+                        {
+                          "schema":
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": ["subjectId"],
+                              "properties":
+                                {
+                                  "subjectId":
+                                    {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 200,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+          "requestBody":
+            {
+              "required": true,
+              "content":
+                {
+                  "application/json":
+                    { "schema": { "$ref": "#/components/schemas/StaffDraft" } },
+                },
+            },
+          "parameters":
+            [
+              {
+                "name": "id",
+                "in": "path",
+                "required": true,
+                "schema":
+                  { "type": "string", "minLength": 1, "maxLength": 200 },
+              },
+            ],
+        },
+    }
+  /v1/identity/desk/staff-accounts/{id}/access:
+    {
+      "get":
+        {
+          "operationId": "copyStaffAccessForIT",
+          "summary": "Copy role, overrides and scopes only (staff_accounts:read)",
+          "security": [{ "userToken": [] }],
+          "responses":
+            {
+              "200":
+                {
+                  "description": "Success",
+                  "content":
+                    {
+                      "application/json":
+                        {
+                          "schema":
+                            {
+                              "$ref": "#/components/schemas/StaffAccessTemplate",
+                            },
+                        },
+                    },
+                },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+          "parameters":
+            [
+              {
+                "name": "id",
+                "in": "path",
+                "required": true,
+                "schema":
+                  { "type": "string", "minLength": 1, "maxLength": 200 },
+              },
+            ],
+        },
+    }
+  /v1/identity/desk/staff-accounts/{id}/invitations:
+    {
+      "post":
+        {
+          "operationId": "inviteStaffAccountForIT",
+          "summary": "Issue invitation for server-side notify delivery (staff_accounts:execute)",
+          "security": [{ "userToken": [] }],
+          "responses":
+            {
+              "201":
+                {
+                  "description": "Success",
+                  "content":
+                    {
+                      "application/json":
+                        {
+                          "schema":
+                            { "$ref": "#/components/schemas/StaffInvitation" },
+                        },
+                    },
+                },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+          "parameters":
+            [
+              {
+                "name": "id",
+                "in": "path",
+                "required": true,
+                "schema":
+                  { "type": "string", "minLength": 1, "maxLength": 200 },
+              },
+            ],
+        },
+    }
+  /v1/identity/desk/staff-accounts/{id}/mfa:
+    {
+      "delete":
+        {
+          "operationId": "resetStaffMFAForIT",
+          "summary": "Reset factor and end sessions (staff_accounts:execute)",
+          "security": [{ "userToken": [] }],
+          "responses":
+            {
+              "204": { "description": "Success" },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+          "parameters":
+            [
+              {
+                "name": "id",
+                "in": "path",
+                "required": true,
+                "schema":
+                  { "type": "string", "minLength": 1, "maxLength": 200 },
+              },
+            ],
+        },
+    }
+  /v1/identity/desk/staff-access/preview:
+    {
+      "post":
+        {
+          "operationId": "previewStaffAccessForIT",
+          "summary": "Preview effective access before saving (staff_accounts:read)",
+          "security": [{ "userToken": [] }],
+          "responses":
+            {
+              "200":
+                {
+                  "description": "Success",
+                  "content":
+                    {
+                      "application/json":
+                        {
+                          "schema":
+                            {
+                              "$ref": "#/components/schemas/StaffAccessPreview",
+                            },
+                        },
+                    },
+                },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+          "requestBody":
+            {
+              "required": true,
+              "content":
+                {
+                  "application/json":
+                    {
+                      "schema":
+                        { "$ref": "#/components/schemas/StaffAccessTemplate" },
+                    },
+                },
+            },
+        },
+    }
+  /v1/identity/desk/staff-roles:
+    {
+      "get":
+        {
+          "operationId": "listStaffRolesForIT",
+          "summary": "List roles and policies (staff_roles:read)",
+          "security": [{ "userToken": [] }],
+          "responses":
+            {
+              "200":
+                {
+                  "description": "Success",
+                  "content":
+                    {
+                      "application/json":
+                        {
+                          "schema":
+                            { "$ref": "#/components/schemas/StaffRolePage" },
+                        },
+                    },
+                },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+          "parameters":
+            [
+              {
+                "name": "cursor",
+                "in": "query",
+                "schema": { "type": "string", "maxLength": 200 },
+              },
+              {
+                "name": "limit",
+                "in": "query",
+                "schema":
+                  {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 200,
+                    "default": 50,
+                  },
+              },
+            ],
+        },
+      "post":
+        {
+          "operationId": "createStaffRoleForIT",
+          "summary": "Create role (staff_roles:create)",
+          "security": [{ "userToken": [] }],
+          "responses":
+            {
+              "204": { "description": "Success" },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+          "requestBody":
+            {
+              "required": true,
+              "content":
+                {
+                  "application/json":
+                    {
+                      "schema":
+                        { "$ref": "#/components/schemas/StaffRoleDraft" },
+                    },
+                },
+            },
+        },
+    }
+  /v1/identity/desk/staff-roles/{id}:
+    {
+      "put":
+        {
+          "operationId": "updateStaffRoleForIT",
+          "summary": "Replace role policy (staff_roles:edit)",
+          "security": [{ "userToken": [] }],
+          "responses":
+            {
+              "204": { "description": "Success" },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+          "requestBody":
+            {
+              "required": true,
+              "content":
+                {
+                  "application/json":
+                    {
+                      "schema":
+                        { "$ref": "#/components/schemas/StaffRoleDraft" },
+                    },
+                },
+            },
+          "parameters":
+            [
+              {
+                "name": "id",
+                "in": "path",
+                "required": true,
+                "schema":
+                  { "type": "string", "minLength": 1, "maxLength": 200 },
+              },
+            ],
+        },
+      "delete":
+        {
+          "operationId": "deleteStaffRoleForIT",
+          "summary": "Delete unassigned custom role (staff_roles:delete)",
+          "security": [{ "userToken": [] }],
+          "responses":
+            {
+              "204": { "description": "Success" },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+          "parameters":
+            [
+              {
+                "name": "id",
+                "in": "path",
+                "required": true,
+                "schema":
+                  { "type": "string", "minLength": 1, "maxLength": 200 },
+              },
+            ],
+        },
+    }
+
+  /v1/identity/staff/accounts/{id}/access:
+    {
+      "get":
+        {
+          "operationId": "getStaffAccessForAccount",
+          "summary": "Live target policy for transitional business scope readers (admin service only)",
+          "security": [{ "serviceToken": [] }],
+          "parameters":
+            [
+              {
+                "name": "id",
+                "in": "path",
+                "required": true,
+                "schema":
+                  { "type": "string", "minLength": 1, "maxLength": 200 },
+              },
+            ],
+          "responses":
+            {
+              "200":
+                {
+                  "description": "Effective identity policy",
+                  "content":
+                    {
+                      "application/json":
+                        {
+                          "schema":
+                            {
+                              "$ref": "#/components/schemas/StaffAccessPreview",
+                            },
+                        },
+                    },
+                },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+        },
+    }
+  /v1/identity/{realm}/password-policy:
+    {
+      "parameters": [{ "$ref": "#/components/parameters/ManagedRealm" }],
+      "get":
+        {
+          "operationId": "getPasswordPolicy",
+          "summary": "Read the configured minimum length for a managed realm",
+          "security": [{ "serviceToken": [] }],
+          "responses":
+            {
+              "200":
+                {
+                  "description": "Password policy",
+                  "content":
+                    {
+                      "application/json":
+                        {
+                          "schema":
+                            {
+                              "type": "object",
+                              "required": ["minLength"],
+                              "properties":
+                                {
+                                  "minLength":
+                                    {
+                                      "type": "integer",
+                                      "minimum": 8,
+                                      "maximum": 128,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+        },
+    }
 components:
   securitySchemes:
-    serviceToken: {type: http, scheme: bearer, bearerFormat: JWT}
-    userToken: {type: http, scheme: bearer, bearerFormat: JWT}
+    serviceToken: { type: http, scheme: bearer, bearerFormat: JWT }
+    userToken: { type: http, scheme: bearer, bearerFormat: JWT }
   parameters:
     Realm:
       name: realm
       in: path
       required: true
-      schema: {type: string, enum: [staff, customer, it]}
+      schema: { type: string, enum: [staff, customer, it] }
+    ManagedRealm:
+      name: realm
+      in: path
+      required: true
+      schema: { type: string, enum: [staff, customer] }
   requestBodies:
     MFAPassword:
       required: true
@@ -343,7 +1365,7 @@ components:
             additionalProperties: false
             required: [password]
             properties:
-              password: {type: string, minLength: 1, maxLength: 1024}
+              password: { type: string, minLength: 1, maxLength: 1024 }
     MFAConfirmation:
       required: true
       content:
@@ -353,9 +1375,9 @@ components:
             additionalProperties: false
             required: [password, code]
             properties:
-              password: {type: string, minLength: 1, maxLength: 1024}
-              code: {type: string, minLength: 1, maxLength: 64}
-              currentCode: {type: string, maxLength: 64}
+              password: { type: string, minLength: 1, maxLength: 1024 }
+              code: { type: string, minLength: 1, maxLength: 64 }
+              currentCode: { type: string, maxLength: 64 }
     RefreshCredential:
       required: true
       content:
@@ -367,7 +1389,7 @@ components:
             properties:
               refreshToken:
                 type: string
-                pattern: '^[A-Za-z0-9_-]{43}$'
+                pattern: "^[A-Za-z0-9_-]{43}$"
                 description: Opaque credential; never log it
   responses:
     Problem:
@@ -375,20 +1397,30 @@ components:
       content:
         application/problem+json:
           schema:
-            $ref: '#/components/schemas/Problem'
+            $ref: "#/components/schemas/Problem"
   schemas:
+    OwnSession:
+      type: object
+      required: [id, createdAt, expiresAt, userAgent, clientIp, current]
+      properties:
+        id: { type: string, format: uuid }
+        createdAt: { type: string, format: date-time }
+        expiresAt: { type: string, format: date-time }
+        userAgent: { type: [string, "null"] }
+        clientIp: { type: [string, "null"] }
+        current: { type: boolean }
     DeskSession:
       type: object
       additionalProperties: false
       required: [id, realm, subjectId, email, createdAt, expiresAt, revokedAt]
       properties:
-        id: {type: string, format: uuid}
-        realm: {type: string, enum: [staff, customer, it]}
-        subjectId: {type: string, minLength: 1}
-        email: {type: [string, 'null'], format: email}
-        createdAt: {type: string, format: date-time}
-        expiresAt: {type: string, format: date-time}
-        revokedAt: {type: [string, 'null'], format: date-time}
+        id: { type: string, format: uuid }
+        realm: { type: string, enum: [staff, customer, it] }
+        subjectId: { type: string, minLength: 1 }
+        email: { type: [string, "null"], format: email }
+        createdAt: { type: string, format: date-time }
+        expiresAt: { type: string, format: date-time }
+        revokedAt: { type: [string, "null"], format: date-time }
     ITRole:
       type: string
       enum: [it_admin, it_engineer, it_support, it_auditor]
@@ -397,50 +1429,223 @@ components:
       additionalProperties: false
       required: [id, email, roles, active, mfaEnabled, createdAt, lastLoginAt]
       properties:
-        id: {type: string}
-        email: {type: string, format: email}
-        roles: {type: array, items: {$ref: '#/components/schemas/ITRole'}}
-        active: {type: boolean}
-        mfaEnabled: {type: boolean}
-        createdAt: {type: string, format: date-time}
-        lastLoginAt: {type: [string, 'null'], format: date-time}
+        id: { type: string }
+        email: { type: string, format: email }
+        roles: { type: array, items: { $ref: "#/components/schemas/ITRole" } }
+        active: { type: boolean }
+        mfaEnabled: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        lastLoginAt: { type: [string, "null"], format: date-time }
     ITProvisioning:
       type: object
       additionalProperties: false
       required: [subjectId, secret, otpAuthUrl, recoveryCodes]
       properties:
-        subjectId: {type: string}
-        secret: {type: string, minLength: 1}
-        otpAuthUrl: {type: string, format: uri}
-        recoveryCodes: {type: array, minItems: 1, items: {type: string}}
+        subjectId: { type: string }
+        secret: { type: string, minLength: 1 }
+        otpAuthUrl: { type: string, format: uri }
+        recoveryCodes: { type: array, minItems: 1, items: { type: string } }
     SessionCredential:
       type: object
       additionalProperties: false
       required: [sessionId, subjectId, realm, expiresAt, refreshToken]
       properties:
-        sessionId: {type: string, format: uuid}
-        subjectId: {type: string, minLength: 1}
-        realm: {type: string, enum: [staff, customer, it]}
-        expiresAt: {type: string, format: date-time}
-        refreshToken: {type: string, pattern: '^[A-Za-z0-9_-]{43}$'}
+        sessionId: { type: string, format: uuid }
+        subjectId: { type: string, minLength: 1 }
+        realm: { type: string, enum: [staff, customer, it] }
+        expiresAt: { type: string, format: date-time }
+        refreshToken: { type: string, pattern: "^[A-Za-z0-9_-]{43}$" }
     LoginCredential:
       type: object
       additionalProperties: false
-      required: [sessionId, subjectId, realm, expiresAt, refreshToken, accessToken, roles]
+      required:
+        [
+          sessionId,
+          subjectId,
+          realm,
+          expiresAt,
+          refreshToken,
+          accessToken,
+          roles,
+        ]
       properties:
-        sessionId: {type: string, format: uuid}
-        subjectId: {type: string, minLength: 1}
-        realm: {type: string, enum: [staff, customer, it]}
-        expiresAt: {type: string, format: date-time}
-        refreshToken: {type: string, pattern: '^[A-Za-z0-9_-]{43}$'}
-        accessToken: {type: string}
-        roles: {type: array, items: {type: string}}
+        sessionId: { type: string, format: uuid }
+        subjectId: { type: string, minLength: 1 }
+        realm: { type: string, enum: [staff, customer, it] }
+        expiresAt: { type: string, format: date-time }
+        refreshToken: { type: string, pattern: "^[A-Za-z0-9_-]{43}$" }
+        accessToken: { type: string }
+        roles: { type: array, items: { type: string } }
     Problem:
       type: object
       required: [type, title, status, code]
       properties:
-        type: {type: string}
-        title: {type: string}
-        status: {type: integer}
-        code: {type: string}
-        instance: {type: string}
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        code: { type: string }
+        instance: { type: string }
+    StaffDraft:
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["email", "displayName", "role", "active"],
+        "properties":
+          {
+            "email": { "type": "string", "format": "email", "maxLength": 254 },
+            "displayName":
+              { "type": "string", "minLength": 1, "maxLength": 120 },
+            "role": { "type": "string" },
+            "active": { "type": "boolean" },
+            "overrides":
+              {
+                "type": "object",
+                "additionalProperties": { "type": "boolean" },
+              },
+            "dataScopes":
+              {
+                "type": "object",
+                "additionalProperties":
+                  { "type": "string", "enum": ["own", "department", "all"] },
+              },
+            "copiedFrom": { "type": "string", "maxLength": 200 },
+          },
+      }
+    StaffAccessTemplate:
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["role", "overrides", "dataScopes"],
+        "properties":
+          {
+            "role": { "type": "string", "minLength": 1, "maxLength": 200 },
+            "overrides":
+              {
+                "type": "object",
+                "additionalProperties": { "type": "boolean" },
+              },
+            "dataScopes":
+              {
+                "type": "object",
+                "additionalProperties":
+                  { "type": "string", "enum": ["own", "department", "all"] },
+              },
+          },
+      }
+    StaffRoleDraft:
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "nameEn", "nameAr", "grants", "dataScopes"],
+        "properties":
+          {
+            "id": { "type": "string", "minLength": 1, "maxLength": 200 },
+            "nameEn": { "type": "string", "minLength": 1, "maxLength": 120 },
+            "nameAr": { "type": "string", "minLength": 1, "maxLength": 120 },
+            "system": { "type": "boolean" },
+            "grants":
+              {
+                "type": "object",
+                "additionalProperties": { "type": "boolean" },
+              },
+            "dataScopes":
+              {
+                "type": "object",
+                "additionalProperties":
+                  { "type": "string", "enum": ["own", "department", "all"] },
+              },
+          },
+      }
+    StaffDeskAccount:
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "required":
+          [
+            "id",
+            "email",
+            "roles",
+            "active",
+            "mfaEnabled",
+            "createdAt",
+            "lastLoginAt",
+            "displayName",
+          ],
+        "properties":
+          {
+            "id": { "type": "string", "minLength": 1, "maxLength": 200 },
+            "email": { "type": "string" },
+            "roles": { "type": "array", "items": { "type": "string" } },
+            "active": { "type": "boolean" },
+            "mfaEnabled": { "type": "boolean" },
+            "createdAt": { "type": "string", "format": "date-time" },
+            "lastLoginAt":
+              { "type": ["string", "null"], "format": "date-time" },
+            "displayName": { "type": "string" },
+          },
+      }
+    StaffAccessPreview:
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["subjectId", "role", "permissions", "dataScopes"],
+        "properties":
+          {
+            "subjectId": { "type": "string" },
+            "role": { "type": "string" },
+            "permissions":
+              {
+                "type": "object",
+                "additionalProperties": { "type": "boolean" },
+              },
+            "dataScopes":
+              {
+                "type": "object",
+                "additionalProperties":
+                  { "type": "string", "enum": ["own", "department", "all"] },
+              },
+          },
+      }
+    StaffInvitation:
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["subjectId", "email", "token", "expiresAt"],
+        "properties":
+          {
+            "email": { "type": "string", "format": "email" },
+            "subjectId": { "type": "string", "minLength": 1, "maxLength": 200 },
+            "token": { "type": "string", "minLength": 43, "maxLength": 43 },
+            "expiresAt": { "type": "string", "format": "date-time" },
+          },
+      }
+    StaffDeskPage:
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["items", "nextCursor"],
+        "properties":
+          {
+            "items":
+              {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/StaffDeskAccount" },
+              },
+            "nextCursor": { "type": "string" },
+          },
+      }
+    StaffRolePage:
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["items", "nextCursor"],
+        "properties":
+          {
+            "items":
+              {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/StaffRoleDraft" },
+              },
+            "nextCursor": { "type": "string" },
+          },
+      }

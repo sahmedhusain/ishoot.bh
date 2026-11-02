@@ -15,12 +15,45 @@
     "accessInserted"
   ],
   "properties": {
-    "changedBy": { "type": "string", "minLength": 1 },
-    "accountsInserted": { "type": "integer", "minimum": 0 },
-    "recoveryInserted": { "type": "integer", "minimum": 0 },
-    "rolesInserted": { "type": "integer", "minimum": 0 },
-    "permissionsInserted": { "type": "integer", "minimum": 0 },
-    "scopesInserted": { "type": "integer", "minimum": 0 },
-    "accessInserted": { "type": "integer", "minimum": 0 }
+    "changedBy": {
+      "type": "string",
+      "minLength": 1
+    },
+    "accountsInserted": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "recoveryInserted": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "rolesInserted": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "permissionsInserted": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "scopesInserted": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "accessInserted": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "providersInserted": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "resetChallengesInserted": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "customerCodesInserted": {
+      "type": "integer",
+      "minimum": 0
+    }
   }
 }

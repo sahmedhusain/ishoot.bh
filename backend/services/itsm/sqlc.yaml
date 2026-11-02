@@ -19,5 +19,10 @@ sql:
               pointer: true
           - db_type: uuid
             go_type: string
+          - db_type: uuid
+            nullable: true
+            go_type:
+              type: string
+              pointer: true
           - db_type: jsonb
             go_type: encoding/json.RawMessage

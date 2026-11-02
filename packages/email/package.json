@@ -5,9 +5,9 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "dependencies": {
-    "@platform/api-client": "workspace:*",
-    "@platform/database": "workspace:*",
-    "@platform/locales": "workspace:*"
+    "@platform/api-client": "file:../api-client",
+    "@platform/database": "file:../database",
+    "@platform/locales": "file:../locales"
   },
   "devDependencies": {
     "@types/node": "^22.20.4",

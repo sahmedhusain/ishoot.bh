@@ -4126,14 +4126,14 @@
   },
   "resetPasswordForm": {
     "invalidOrMissingPasswordReset": "Invalid or missing password reset token.",
-    "passwordMustBeAtLeast": "Password must be at least 8 characters",
+    "passwordMustBeAtLeast": "Password must be at least {count} characters",
     "passwordSuccessfullyResetYouCan": "Password successfully reset. You can now login.",
     "failedToResetPassword": "Failed to reset password.",
     "createNewPassword": "Create New Password",
     "setAStrongPasswordFor": "Set a strong password for your account",
     "newPassword": "New Password",
-    "min8Characters": "Min 8 characters",
-    "resetPassword": "Reset Password"
+    "resetPassword": "Reset Password",
+    "minCharacters": "Min {count} characters"
   },
   "reviewsManagement": {
     "noReviewsInThisView": "No reviews in this view.",
@@ -5716,7 +5716,6 @@
       "invoiceNotFound": "Invoice not found",
       "invoiceUpdateFailed": "Invoice update failed",
       "invoiceVoidFailed": "Invoice void failed",
-      "jwtSecretMustContainAtLeast32": "JWT_SECRET must contain at least 32 UTF-8 bytes",
       "keepAtLeastOneActiveSuperAdministrator": "Keep at least one active super administrator",
       "leaveCannotBeRequestedForAFormer": "Leave cannot be requested for a former employee",
       "leaveRequestNotFound": "Leave request not found",

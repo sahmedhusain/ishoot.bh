@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/itsm.ticket.changed.v1.json",
+  "title": "itsm.ticket.changed",
+  "description": "An IT ticket changed status or assignment. IDs only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "ticketId",
+    "number",
+    "transition",
+    "fromStatus",
+    "toStatus",
+    "changedBy"
+  ],
+  "properties": {
+    "ticketId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "number": {
+      "type": "integer"
+    },
+    "transition": {
+      "type": "string",
+      "minLength": 1
+    },
+    "fromStatus": {
+      "type": "string",
+      "minLength": 1
+    },
+    "toStatus": {
+      "type": "string",
+      "minLength": 1
+    },
+    "assigneeId": {
+      "type": ["string", "null"]
+    },
+    "changedBy": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

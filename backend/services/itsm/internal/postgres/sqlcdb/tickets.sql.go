@@ -11,8 +11,81 @@ import (
 	"time"
 )
 
+const findSLAReminders = `-- name: FindSLAReminders :many
+SELECT t.id, t.number, t.requester_id, t.requester_name, t.requester_email, t.category, t.subcategory, t.priority, t.status, t.title, t.assignee_id, t.respond_by, t.resolve_by, t.first_response_at
+FROM itsm.ticket AS t
+WHERE t.reminded_at IS NULL
+  AND t.breached_at IS NULL
+  AND t.closed_at IS NULL
+  AND t.resolved_at IS NULL
+  AND (
+    (t.first_response_at IS NULL AND t.respond_by <= $1::timestamptz)
+    OR (t.resolve_by <= $1::timestamptz)
+  )
+ORDER BY LEAST(t.resolve_by, t.respond_by)
+LIMIT $2::int
+FOR UPDATE SKIP LOCKED
+`
+
+type FindSLARemindersParams struct {
+	Threshold time.Time
+	BatchSize int32
+}
+
+type FindSLARemindersRow struct {
+	ID              string
+	Number          int64
+	RequesterID     string
+	RequesterName   string
+	RequesterEmail  string
+	Category        string
+	Subcategory     string
+	Priority        string
+	Status          string
+	Title           string
+	AssigneeID      *string
+	RespondBy       time.Time
+	ResolveBy       time.Time
+	FirstResponseAt *time.Time
+}
+
+func (q *Queries) FindSLAReminders(ctx context.Context, arg FindSLARemindersParams) ([]FindSLARemindersRow, error) {
+	rows, err := q.db.Query(ctx, findSLAReminders, arg.Threshold, arg.BatchSize)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindSLARemindersRow
+	for rows.Next() {
+		var i FindSLARemindersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Number,
+			&i.RequesterID,
+			&i.RequesterName,
+			&i.RequesterEmail,
+			&i.Category,
+			&i.Subcategory,
+			&i.Priority,
+			&i.Status,
+			&i.Title,
+			&i.AssigneeID,
+			&i.RespondBy,
+			&i.ResolveBy,
+			&i.FirstResponseAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getTicket = `-- name: GetTicket :one
-SELECT id, number, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, description, asset_ref, assignee_id, assignee_name, respond_by, resolve_by, first_response_at, breached_at, resolved_at, closed_at, created_at, updated_at FROM itsm.ticket WHERE id = $1
+SELECT id, number, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, description, asset_ref, assignee_id, assignee_name, respond_by, resolve_by, first_response_at, breached_at, resolved_at, closed_at, created_at, updated_at, reminded_at FROM itsm.ticket WHERE id = $1
 `
 
 func (q *Queries) GetTicket(ctx context.Context, id string) (ItsmTicket, error) {
@@ -41,13 +114,16 @@ func (q *Queries) GetTicket(ctx context.Context, id string) (ItsmTicket, error) 
 		&i.ClosedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.RemindedAt,
 	)
 	return i, err
 }
 
 const insertAttachment = `-- name: InsertAttachment :exec
-INSERT INTO itsm.ticket_attachment (ticket_id, file_url, file_name, mime_type, file_size, added_by, created_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING
+INSERT INTO itsm.ticket_attachment (ticket_id, file_url, file_name, mime_type, file_size, added_by, comment_id, created_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+ON CONFLICT (ticket_id, file_url) DO UPDATE SET
+    comment_id = COALESCE(EXCLUDED.comment_id, itsm.ticket_attachment.comment_id)
 `
 
 type InsertAttachmentParams struct {
@@ -57,6 +133,7 @@ type InsertAttachmentParams struct {
 	MimeType  string
 	FileSize  int64
 	AddedBy   string
+	CommentID *string
 	CreatedAt time.Time
 }
 
@@ -68,6 +145,7 @@ func (q *Queries) InsertAttachment(ctx context.Context, arg InsertAttachmentPara
 		arg.MimeType,
 		arg.FileSize,
 		arg.AddedBy,
+		arg.CommentID,
 		arg.CreatedAt,
 	)
 	return err
@@ -152,7 +230,7 @@ INSERT INTO itsm.ticket (id, requester_id, requester_name, requester_email, cate
     title, description, asset_ref, respond_by, resolve_by, created_at, updated_at)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8,
     $9, $10, $11, $12, $13, $14, $14)
-RETURNING id, number, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, description, asset_ref, assignee_id, assignee_name, respond_by, resolve_by, first_response_at, breached_at, resolved_at, closed_at, created_at, updated_at
+RETURNING id, number, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, description, asset_ref, assignee_id, assignee_name, respond_by, resolve_by, first_response_at, breached_at, resolved_at, closed_at, created_at, updated_at, reminded_at
 `
 
 type InsertTicketParams struct {
@@ -213,16 +291,32 @@ func (q *Queries) InsertTicket(ctx context.Context, arg InsertTicketParams) (Its
 		&i.ClosedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.RemindedAt,
 	)
 	return i, err
 }
 
 const listAttachments = `-- name: ListAttachments :many
-SELECT ticket_id, file_url, file_name, mime_type, file_size, added_by, created_at FROM itsm.ticket_attachment WHERE ticket_id = $1 ORDER BY created_at, file_url
+SELECT a.ticket_id, a.file_url, a.file_name, a.mime_type, a.file_size, a.added_by, a.created_at, a.comment_id FROM itsm.ticket_attachment a
+WHERE a.ticket_id = $1
+  AND (
+    $2::boolean
+    OR a.comment_id IS NULL
+    OR EXISTS (
+        SELECT 1 FROM itsm.ticket_comment c
+        WHERE c.id = a.comment_id AND NOT c.internal
+    )
+  )
+ORDER BY a.created_at, a.file_url
 `
 
-func (q *Queries) ListAttachments(ctx context.Context, ticketID string) ([]ItsmTicketAttachment, error) {
-	rows, err := q.db.Query(ctx, listAttachments, ticketID)
+type ListAttachmentsParams struct {
+	TicketID        string
+	IncludeInternal bool
+}
+
+func (q *Queries) ListAttachments(ctx context.Context, arg ListAttachmentsParams) ([]ItsmTicketAttachment, error) {
+	rows, err := q.db.Query(ctx, listAttachments, arg.TicketID, arg.IncludeInternal)
 	if err != nil {
 		return nil, err
 	}
@@ -238,6 +332,42 @@ func (q *Queries) ListAttachments(ctx context.Context, ticketID string) ([]ItsmT
 			&i.FileSize,
 			&i.AddedBy,
 			&i.CreatedAt,
+			&i.CommentID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listCommentAttachments = `-- name: ListCommentAttachments :many
+SELECT ticket_id, file_url, file_name, mime_type, file_size, added_by, created_at, comment_id FROM itsm.ticket_attachment
+WHERE comment_id = $1
+ORDER BY created_at, file_url
+`
+
+func (q *Queries) ListCommentAttachments(ctx context.Context, commentID *string) ([]ItsmTicketAttachment, error) {
+	rows, err := q.db.Query(ctx, listCommentAttachments, commentID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ItsmTicketAttachment
+	for rows.Next() {
+		var i ItsmTicketAttachment
+		if err := rows.Scan(
+			&i.TicketID,
+			&i.FileUrl,
+			&i.FileName,
+			&i.MimeType,
+			&i.FileSize,
+			&i.AddedBy,
+			&i.CreatedAt,
+			&i.CommentID,
 		); err != nil {
 			return nil, err
 		}
@@ -323,20 +453,22 @@ func (q *Queries) ListEvents(ctx context.Context, ticketID string) ([]ItsmTicket
 }
 
 const listQueue = `-- name: ListQueue :many
-SELECT id, number, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, description, asset_ref, assignee_id, assignee_name, respond_by, resolve_by, first_response_at, breached_at, resolved_at, closed_at, created_at, updated_at FROM itsm.ticket
+SELECT id, number, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, description, asset_ref, assignee_id, assignee_name, respond_by, resolve_by, first_response_at, breached_at, resolved_at, closed_at, created_at, updated_at, reminded_at FROM itsm.ticket
 WHERE ($1::text = '' OR status = $1)
   AND ($2::text = '' OR assignee_id = $2)
   AND ($3::text = '' OR priority = $3)
-  AND (NOT $4::boolean OR status = ANY($5::text[]))
-  AND (NOT $6::boolean OR (created_at, id) < ($7::timestamptz, $8::uuid))
+  AND ($4::text = '' OR category = $4)
+  AND (NOT $5::boolean OR status = ANY($6::text[]))
+  AND (NOT $7::boolean OR (created_at, id) < ($8::timestamptz, $9::uuid))
 ORDER BY created_at DESC, id DESC
-LIMIT $9
+LIMIT $10
 `
 
 type ListQueueParams struct {
 	Status        string
 	AssigneeID    string
 	Priority      string
+	Category      string
 	OpenOnly      bool
 	OpenStatuses  []string
 	HasCursor     bool
@@ -350,6 +482,7 @@ func (q *Queries) ListQueue(ctx context.Context, arg ListQueueParams) ([]ItsmTic
 		arg.Status,
 		arg.AssigneeID,
 		arg.Priority,
+		arg.Category,
 		arg.OpenOnly,
 		arg.OpenStatuses,
 		arg.HasCursor,
@@ -387,6 +520,7 @@ func (q *Queries) ListQueue(ctx context.Context, arg ListQueueParams) ([]ItsmTic
 			&i.ClosedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.RemindedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -399,7 +533,7 @@ func (q *Queries) ListQueue(ctx context.Context, arg ListQueueParams) ([]ItsmTic
 }
 
 const listRequesterTickets = `-- name: ListRequesterTickets :many
-SELECT id, number, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, description, asset_ref, assignee_id, assignee_name, respond_by, resolve_by, first_response_at, breached_at, resolved_at, closed_at, created_at, updated_at FROM itsm.ticket
+SELECT id, number, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, description, asset_ref, assignee_id, assignee_name, respond_by, resolve_by, first_response_at, breached_at, resolved_at, closed_at, created_at, updated_at, reminded_at FROM itsm.ticket
 WHERE requester_id = $1
   AND ($2::text = '' OR status = $2)
   AND (NOT $3::boolean OR (created_at, id) < ($4::timestamptz, $5::uuid))
@@ -455,6 +589,7 @@ func (q *Queries) ListRequesterTickets(ctx context.Context, arg ListRequesterTic
 			&i.ClosedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.RemindedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -497,7 +632,7 @@ func (q *Queries) ListSLAPolicies(ctx context.Context) ([]ItsmSlaPolicy, error) 
 }
 
 const lockTicket = `-- name: LockTicket :one
-SELECT id, number, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, description, asset_ref, assignee_id, assignee_name, respond_by, resolve_by, first_response_at, breached_at, resolved_at, closed_at, created_at, updated_at FROM itsm.ticket WHERE id = $1 FOR UPDATE
+SELECT id, number, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, description, asset_ref, assignee_id, assignee_name, respond_by, resolve_by, first_response_at, breached_at, resolved_at, closed_at, created_at, updated_at, reminded_at FROM itsm.ticket WHERE id = $1 FOR UPDATE
 `
 
 func (q *Queries) LockTicket(ctx context.Context, id string) (ItsmTicket, error) {
@@ -526,6 +661,7 @@ func (q *Queries) LockTicket(ctx context.Context, id string) (ItsmTicket, error)
 		&i.ClosedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.RemindedAt,
 	)
 	return i, err
 }
@@ -534,10 +670,13 @@ const markBreached = `-- name: MarkBreached :many
 UPDATE itsm.ticket SET breached_at = $1, updated_at = $1
 WHERE id IN (
     SELECT t.id FROM itsm.ticket AS t
-    WHERE t.breached_at IS NULL AND t.resolved_at IS NULL AND t.closed_at IS NULL AND t.resolve_by <= $1
-    ORDER BY t.resolve_by LIMIT $2::int FOR UPDATE SKIP LOCKED
+    WHERE t.breached_at IS NULL AND t.closed_at IS NULL AND (
+        (t.resolved_at IS NULL AND t.resolve_by <= $1)
+        OR (t.first_response_at IS NULL AND t.respond_by <= $1)
+    )
+    ORDER BY LEAST(t.resolve_by, t.respond_by) LIMIT $2::int FOR UPDATE SKIP LOCKED
 )
-RETURNING id
+RETURNING id, number, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, assignee_id, respond_by, resolve_by, first_response_at, resolved_at
 `
 
 type MarkBreachedParams struct {
@@ -545,24 +684,73 @@ type MarkBreachedParams struct {
 	BatchSize int32
 }
 
-func (q *Queries) MarkBreached(ctx context.Context, arg MarkBreachedParams) ([]string, error) {
+type MarkBreachedRow struct {
+	ID              string
+	Number          int64
+	RequesterID     string
+	RequesterName   string
+	RequesterEmail  string
+	Category        string
+	Subcategory     string
+	Priority        string
+	Status          string
+	Title           string
+	AssigneeID      *string
+	RespondBy       time.Time
+	ResolveBy       time.Time
+	FirstResponseAt *time.Time
+	ResolvedAt      *time.Time
+}
+
+func (q *Queries) MarkBreached(ctx context.Context, arg MarkBreachedParams) ([]MarkBreachedRow, error) {
 	rows, err := q.db.Query(ctx, markBreached, arg.Now, arg.BatchSize)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []string
+	var items []MarkBreachedRow
 	for rows.Next() {
-		var id string
-		if err := rows.Scan(&id); err != nil {
+		var i MarkBreachedRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Number,
+			&i.RequesterID,
+			&i.RequesterName,
+			&i.RequesterEmail,
+			&i.Category,
+			&i.Subcategory,
+			&i.Priority,
+			&i.Status,
+			&i.Title,
+			&i.AssigneeID,
+			&i.RespondBy,
+			&i.ResolveBy,
+			&i.FirstResponseAt,
+			&i.ResolvedAt,
+		); err != nil {
 			return nil, err
 		}
-		items = append(items, id)
+		items = append(items, i)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 	return items, nil
+}
+
+const markReminded = `-- name: MarkReminded :exec
+UPDATE itsm.ticket SET reminded_at = $1, updated_at = $1
+WHERE id = ANY($2::uuid[])
+`
+
+type MarkRemindedParams struct {
+	Now *time.Time
+	Ids []string
+}
+
+func (q *Queries) MarkReminded(ctx context.Context, arg MarkRemindedParams) error {
+	_, err := q.db.Exec(ctx, markReminded, arg.Now, arg.Ids)
+	return err
 }
 
 const queueStats = `-- name: QueueStats :many
@@ -671,7 +859,7 @@ const updateTicketState = `-- name: UpdateTicketState :one
 UPDATE itsm.ticket SET status = $1, assignee_id = $2, assignee_name = $3,
     first_response_at = $4, resolved_at = $5, closed_at = $6, updated_at = $7
 WHERE id = $8
-RETURNING id, number, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, description, asset_ref, assignee_id, assignee_name, respond_by, resolve_by, first_response_at, breached_at, resolved_at, closed_at, created_at, updated_at
+RETURNING id, number, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, description, asset_ref, assignee_id, assignee_name, respond_by, resolve_by, first_response_at, breached_at, resolved_at, closed_at, created_at, updated_at, reminded_at
 `
 
 type UpdateTicketStateParams struct {
@@ -720,6 +908,7 @@ func (q *Queries) UpdateTicketState(ctx context.Context, arg UpdateTicketStatePa
 		&i.ClosedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.RemindedAt,
 	)
 	return i, err
 }

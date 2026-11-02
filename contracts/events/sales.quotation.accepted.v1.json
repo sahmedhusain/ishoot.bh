@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/sales.quotation.accepted.v1.json",
+  "title": "sales.quotation.accepted",
+  "description": "A quotation was accepted by a customer.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "quotationId",
+    "status"
+  ],
+  "properties": {
+    "quotationId": { "type": "string" },
+    "status": { "type": "string" }
+  }
+}

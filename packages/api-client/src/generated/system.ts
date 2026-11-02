@@ -55,6 +55,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/system/sign-in/{provider}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Identity-only OAuth credentials and the approved website domain */
+        get: operations["getSignInConfiguration"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/system/integrations/{provider}": {
         parameters: {
             query?: never;
@@ -234,6 +251,163 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/system/company": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read company configuration (configured service readers) */
+        get: operations["getCompanyConfiguration"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/system/company/currency-use": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Lock base currency after monetary use (configured monetary callers) */
+        post: operations["markCompanyCurrencyUsed"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/system/sequences/{kind}/reservations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Idempotently reserve an invoice or receipt number */
+        post: operations["reserveDocumentNumber"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/system/desk/company": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read company configuration (setup:read) */
+        get: operations["getCompanyConfigurationForIT"];
+        /** Update company configuration (setup:edit) */
+        put: operations["updateCompanyConfigurationForIT"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/system/desk/setup/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Finish setup (setup:execute) */
+        post: operations["completeCompanySetupForIT"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/system/desk/company/assets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List registered artwork (setup:read) */
+        get: operations["listCompanyAssetsForIT"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/system/desk/company/assets/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Register permanent artwork (setup:edit) */
+        put: operations["saveCompanyAssetForIT"];
+        post?: never;
+        /** Remove an artwork registration (setup:edit) */
+        delete: operations["deleteCompanyAssetForIT"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/system/setup/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read setup completeness and missing fields */
+        get: operations["getCompanySetupStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/system/desk/setup/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read setup completeness and missing fields */
+        get: operations["getCompanySetupStatusForIT"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -379,6 +553,225 @@ export interface components {
                 code: string;
             }[];
         };
+        CompanyFontFile: {
+            weight: number;
+            url: string;
+        };
+        CompanyFont: {
+            /** @constant */
+            kind: "system";
+        } | {
+            /** @constant */
+            kind: "google";
+            family: string;
+        } | {
+            /** @constant */
+            kind: "upload";
+            family: string;
+            files: components["schemas"]["CompanyFontFile"][];
+        };
+        CompanyTheme: {
+            primary: string;
+            accent: string;
+            fonts: {
+                body: components["schemas"]["CompanyFont"];
+                heading: components["schemas"]["CompanyFont"];
+            };
+            /** @enum {string} */
+            radius: "none" | "sm" | "md" | "lg" | "xl";
+            /** @enum {string} */
+            defaultMode: "light" | "dark" | "system";
+            /** @enum {string} */
+            buttonShape: "square" | "rounded" | "pill";
+            /** @enum {string} */
+            fontScale: "sm" | "md" | "lg";
+            /** @enum {integer} */
+            headingWeight: 400 | 500 | 600 | 700 | 800;
+            /** @enum {string} */
+            headingCase: "normal" | "uppercase";
+            /** @enum {string} */
+            surface: "tinted" | "neutral";
+            /** @enum {string} */
+            websiteMode: "dark" | "light";
+        };
+        CompanyRecord: {
+            websitePublished: boolean;
+            id: string;
+            companyNameEn: string;
+            companyNameAr: string;
+            crNumber: string | null;
+            vatId: string | null;
+            vatEnabled: boolean;
+            vatPercentage: string | number;
+            vatCertificateUrl: string | null;
+            defaultCurrency: string;
+            currencyDecimals: number;
+            addressEn: string | null;
+            addressAr: string | null;
+            phone: string | null;
+            whatsappPhone: string | null;
+            email: string | null;
+            website: string | null;
+            instagramUrl: string | null;
+            linkedinUrl: string | null;
+            youtubeUrl: string | null;
+            bankName: string | null;
+            bankIban: string | null;
+            bankAccountNumber: string | null;
+            bankSwift: string | null;
+            timeZone: string | null;
+            logoUrl: string | null;
+            darkLogoUrl: string | null;
+            fullLogoUrl: string | null;
+            darkFullLogoUrl: string | null;
+            iconUrl: string | null;
+            darkIconUrl: string | null;
+            documentHeaderUrl: string | null;
+            documentFooterUrl: string | null;
+            stampUrl: string | null;
+            signatureUrl: string | null;
+            paymentTermsDays: number;
+            invoicePrefix: string;
+            invoiceNextNumber: number;
+            receiptPrefix: string;
+            receiptNextNumber: number;
+            ceoNameEn: string | null;
+            ceoNameAr: string | null;
+            ceoTitleEn: string | null;
+            ceoTitleAr: string | null;
+            ceoQuoteEn: string | null;
+            ceoQuoteAr: string | null;
+            missionEn: string | null;
+            missionAr: string | null;
+            visionEn: string | null;
+            visionAr: string | null;
+            aboutTextEn: string | null;
+            aboutTextAr: string | null;
+            termsEn: string | null;
+            termsAr: string | null;
+            rulesEn: string | null;
+            rulesAr: string | null;
+            /** Format: date-time */
+            updatedAt: string;
+            defaultDiscountLimitPercent: string | number;
+            quotationsAlwaysNeedApproval: boolean;
+            theme: components["schemas"]["CompanyTheme"] | null;
+            /** Format: date-time */
+            setupCompletedAt: string | null;
+            contentLanguages: ("ar" | "en")[];
+            primaryLanguage: string;
+            businessActivity: string | null;
+            taglineEn: string | null;
+            taglineAr: string | null;
+            foundedYear: number | null;
+            city: string | null;
+            country: string | null;
+            mapUrl: string | null;
+            currencyLocked: boolean;
+            revision: number;
+        };
+        CompanyPatch: {
+            companyNameEn?: string;
+            companyNameAr?: string;
+            crNumber?: string | null;
+            vatId?: string | null;
+            vatEnabled?: boolean;
+            vatPercentage?: string | number;
+            vatCertificateUrl?: string | null;
+            defaultCurrency?: string;
+            addressEn?: string | null;
+            addressAr?: string | null;
+            phone?: string | null;
+            whatsappPhone?: string | null;
+            email?: string | null;
+            website?: string | null;
+            instagramUrl?: string | null;
+            linkedinUrl?: string | null;
+            youtubeUrl?: string | null;
+            bankName?: string | null;
+            bankIban?: string | null;
+            bankAccountNumber?: string | null;
+            bankSwift?: string | null;
+            timeZone?: string | null;
+            logoUrl?: string | null;
+            darkLogoUrl?: string | null;
+            fullLogoUrl?: string | null;
+            darkFullLogoUrl?: string | null;
+            iconUrl?: string | null;
+            darkIconUrl?: string | null;
+            documentHeaderUrl?: string | null;
+            documentFooterUrl?: string | null;
+            stampUrl?: string | null;
+            signatureUrl?: string | null;
+            paymentTermsDays?: number;
+            invoicePrefix?: string;
+            invoiceNextNumber?: number;
+            receiptPrefix?: string;
+            receiptNextNumber?: number;
+            ceoNameEn?: string | null;
+            ceoNameAr?: string | null;
+            ceoTitleEn?: string | null;
+            ceoTitleAr?: string | null;
+            ceoQuoteEn?: string | null;
+            ceoQuoteAr?: string | null;
+            missionEn?: string | null;
+            missionAr?: string | null;
+            visionEn?: string | null;
+            visionAr?: string | null;
+            aboutTextEn?: string | null;
+            aboutTextAr?: string | null;
+            termsEn?: string | null;
+            termsAr?: string | null;
+            rulesEn?: string | null;
+            rulesAr?: string | null;
+            defaultDiscountLimitPercent?: string | number;
+            quotationsAlwaysNeedApproval?: boolean;
+            theme?: components["schemas"]["CompanyTheme"] | null;
+            contentLanguages?: ("ar" | "en")[];
+            primaryLanguage?: string;
+            businessActivity?: string | null;
+            taglineEn?: string | null;
+            taglineAr?: string | null;
+            foundedYear?: number | null;
+            city?: string | null;
+            country?: string | null;
+            mapUrl?: string | null;
+        };
+        CompanyPatchBody: {
+            values: components["schemas"]["CompanyPatch"];
+        };
+        CompanyAsset: {
+            id: string;
+            assetKey: string;
+            title: string;
+            fileUrl: string;
+            mimeType: string | null;
+            fileSize: number | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CompanyAssetPage: {
+            items: components["schemas"]["CompanyAsset"][];
+        };
+        CompanyAssetInput: {
+            title: string;
+            fileUrl: string;
+        };
+        NumberReservationInput: {
+            idempotencyKey: string;
+            /** Format: date */
+            documentDate: string;
+        };
+        NumberReservation: {
+            number: string;
+        };
+        CompanySetupStatus: {
+            complete: boolean;
+            missing: string[];
+            finished: boolean;
+        };
     };
     responses: {
         /** @description Every module in the catalogue with its current state, in catalogue order */
@@ -521,6 +914,35 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: components["responses"]["Integrations"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    getSignInConfiguration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: "google" | "apple";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Configuration for identity; never forward credentials to the browser */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        active: boolean;
+                        values: {
+                            [key: string]: string;
+                        };
+                        websiteDomain: string;
+                    };
+                };
+            };
             default: components["responses"]["Problem"];
         };
     };
@@ -794,6 +1216,249 @@ export interface operations {
         };
         responses: {
             200: components["responses"]["SiteCode"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    getCompanyConfiguration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyRecord"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    markCompanyCurrencyUsed: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    reserveDocumentNumber: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: "invoice" | "receipt";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NumberReservationInput"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NumberReservation"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getCompanyConfigurationForIT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyRecord"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    updateCompanyConfigurationForIT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanyPatchBody"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyRecord"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    completeCompanySetupForIT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyRecord"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listCompanyAssetsForIT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyAssetPage"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    saveCompanyAssetForIT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanyAssetInput"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteCompanyAssetForIT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getCompanySetupStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Setup status */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanySetupStatus"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getCompanySetupStatusForIT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Setup status */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanySetupStatus"];
+                };
+            };
             default: components["responses"]["Problem"];
         };
     };

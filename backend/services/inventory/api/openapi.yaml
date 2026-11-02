@@ -1,0 +1,337 @@
+openapi: 3.1.0
+info:
+  title: Inventory Service (inventory)
+  version: 1.0.0
+  description: |
+    Inventory service managing warehouses, locations, categories, products, variants, stock levels, movements, and counts.
+servers:
+  - url: /
+tags:
+  - name: warehouses
+  - name: categories
+  - name: products
+  - name: stock
+  - name: counts
+paths:
+  /v1/inventory/warehouses:
+    get:
+      tags: [warehouses]
+      operationId: listWarehouses
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of warehouses
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Warehouse" }
+    post:
+      tags: [warehouses]
+      operationId: createWarehouse
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateWarehouseRequest" }
+      responses:
+        "201":
+          description: Created warehouse
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Warehouse" }
+
+  /v1/inventory/warehouses/{id}:
+    get:
+      tags: [warehouses]
+      operationId: getWarehouse
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Warehouse details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Warehouse" }
+
+  /v1/inventory/categories:
+    get:
+      tags: [categories]
+      operationId: listCategories
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Category" }
+    post:
+      tags: [categories]
+      operationId: createCategory
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateCategoryRequest" }
+      responses:
+        "201":
+          description: Created category
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Category" }
+
+  /v1/inventory/products:
+    get:
+      tags: [products]
+      operationId: listProducts
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Product" }
+    post:
+      tags: [products]
+      operationId: createProduct
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateProductRequest" }
+      responses:
+        "201":
+          description: Created product
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Product" }
+
+  /v1/inventory/products/{id}:
+    get:
+      tags: [products]
+      operationId: getProduct
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Product details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Product" }
+
+  /v1/inventory/stock/adjust:
+    post:
+      tags: [stock]
+      operationId: adjustStock
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdjustStockRequest" }
+      responses:
+        "200":
+          description: Movement created and stock adjusted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StockMovement" }
+
+  /v1/inventory/stock/movements:
+    get:
+      tags: [stock]
+      operationId: listMovements
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: productId
+          in: query
+          required: true
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+      responses:
+        "200":
+          description: List of movements
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/StockMovement" }
+
+  /v1/inventory/counts:
+    get:
+      tags: [counts]
+      operationId: listStockCounts
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of stock counts
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/StockCount" }
+    post:
+      tags: [counts]
+      operationId: createStockCount
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateStockCountRequest" }
+      responses:
+        "201":
+          description: Created stock count
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StockCount" }
+
+components:
+  securitySchemes:
+    staffToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    serviceToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Warehouse:
+      type: object
+      required: [id, code, nameEn, nameAr, isActive, isDefault]
+      properties:
+        id: { type: string }
+        code: { type: string }
+        nameEn: { type: string }
+        nameAr: { type: string }
+        address: { type: string }
+        isActive: { type: boolean }
+        isDefault: { type: boolean }
+
+    CreateWarehouseRequest:
+      type: object
+      required: [code, nameEn, nameAr]
+      properties:
+        code: { type: string }
+        nameEn: { type: string }
+        nameAr: { type: string }
+        address: { type: string }
+        isDefault: { type: boolean, default: false }
+
+    Category:
+      type: object
+      required: [id, slug, nameEn, nameAr]
+      properties:
+        id: { type: string }
+        slug: { type: string }
+        nameEn: { type: string }
+        nameAr: { type: string }
+        descriptionEn: { type: string }
+        descriptionAr: { type: string }
+
+    CreateCategoryRequest:
+      type: object
+      required: [slug, nameEn, nameAr]
+      properties:
+        slug: { type: string }
+        nameEn: { type: string }
+        nameAr: { type: string }
+
+    Product:
+      type: object
+      required: [id, sku, nameEn, nameAr, costPrice, sellingPrice, currency, isActive]
+      properties:
+        id: { type: string }
+        sku: { type: string }
+        nameEn: { type: string }
+        nameAr: { type: string }
+        descriptionEn: { type: string }
+        descriptionAr: { type: string }
+        categoryId: { type: string }
+        costPrice: { type: string }
+        sellingPrice: { type: string }
+        currency: { type: string }
+        barcode: { type: string }
+        isActive: { type: boolean }
+        trackInventory: { type: boolean }
+        reorderPoint: { type: string }
+
+    CreateProductRequest:
+      type: object
+      required: [sku, nameEn, nameAr, costPrice, sellingPrice]
+      properties:
+        sku: { type: string }
+        nameEn: { type: string }
+        nameAr: { type: string }
+        descriptionEn: { type: string }
+        descriptionAr: { type: string }
+        categoryId: { type: string }
+        costPrice: { type: string }
+        sellingPrice: { type: string }
+        currency: { type: string, default: "BHD" }
+        barcode: { type: string }
+
+    StockMovement:
+      type: object
+      required: [id, movementType, productId, locationId, quantity]
+      properties:
+        id: { type: string }
+        movementType: { type: string }
+        productId: { type: string }
+        variantId: { type: string }
+        locationId: { type: string }
+        quantity: { type: string }
+        unitCost: { type: string }
+        reason: { type: string }
+        note: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    AdjustStockRequest:
+      type: object
+      required: [productId, locationId, quantity, movementType]
+      properties:
+        productId: { type: string }
+        variantId: { type: string }
+        locationId: { type: string }
+        quantity: { type: string }
+        movementType: { type: string }
+        unitCost: { type: string }
+        reason: { type: string }
+        note: { type: string }
+
+    StockCount:
+      type: object
+      required: [id, countNumber, warehouseId, status]
+      properties:
+        id: { type: string }
+        countNumber: { type: string }
+        warehouseId: { type: string }
+        status: { type: string }
+        notes: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    CreateStockCountRequest:
+      type: object
+      required: [countNumber, warehouseId]
+      properties:
+        countNumber: { type: string }
+        warehouseId: { type: string }
+        notes: { type: string }

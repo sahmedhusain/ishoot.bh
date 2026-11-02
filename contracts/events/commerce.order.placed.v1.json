@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "commerce.order.placed.v1",
+  "type": "object",
+  "required": ["order_id", "order_number", "total", "currency", "placed_at"],
+  "properties": {
+    "order_id": { "type": "string" },
+    "order_number": { "type": "string" },
+    "total": { "type": "string" },
+    "currency": { "type": "string" },
+    "placed_at": { "type": "string", "format": "date-time" }
+  }
+}

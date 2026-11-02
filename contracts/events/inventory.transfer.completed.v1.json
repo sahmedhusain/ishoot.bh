@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "inventory.transfer.completed.v1",
+  "type": "object",
+  "required": ["transfer_id", "product_id", "from_location_id", "to_location_id", "quantity", "completed_at"],
+  "properties": {
+    "transfer_id": { "type": "string" },
+    "product_id": { "type": "string" },
+    "from_location_id": { "type": "string" },
+    "to_location_id": { "type": "string" },
+    "quantity": { "type": "string" },
+    "completed_at": { "type": "string", "format": "date-time" }
+  }
+}

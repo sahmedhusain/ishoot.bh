@@ -33,6 +33,18 @@ export function OverdueBadge() {
   );
 }
 
+export function RemindedBadge() {
+  const { copy, locale } = useCopy();
+  const label =
+    (copy.tickets as Record<string, string> | undefined)?.reminded ??
+    (locale === "ar" ? "تنبيه مستوى الخدمة" : "SLA Warning");
+  return (
+    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-800 dark:text-amber-200 border border-amber-500/30">
+      {label}
+    </span>
+  );
+}
+
 export function PageTitle({
   title,
   description,

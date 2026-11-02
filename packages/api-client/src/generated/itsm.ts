@@ -247,6 +247,8 @@ export interface components {
             /** Format: date-time */
             closedAt?: string;
             /** Format: date-time */
+            remindedAt?: string;
+            /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
@@ -275,12 +277,15 @@ export interface components {
             internal: boolean;
             /** Format: date-time */
             createdAt: string;
+            attachments?: components["schemas"]["Attachment"][];
         };
         Attachment: {
             fileUrl: string;
             fileName: string;
             mimeType: string;
             fileSize: number;
+            /** Format: uuid */
+            commentId?: string;
         };
         SLAPolicy: {
             priority: string;
@@ -436,6 +441,7 @@ export interface operations {
                     requesterId: string;
                     requesterName: string;
                     body: string;
+                    attachments?: components["schemas"]["Attachment"][];
                 };
             };
         };
@@ -481,6 +487,7 @@ export interface operations {
                 status?: components["parameters"]["Status"];
                 assigneeId?: string;
                 priority?: string;
+                category?: string;
                 /** @description Only tickets that still need work */
                 open?: boolean;
                 cursor?: components["parameters"]["Cursor"];
@@ -587,6 +594,7 @@ export interface operations {
                 "application/json": {
                     body: string;
                     internal?: boolean;
+                    attachments?: components["schemas"]["Attachment"][];
                 };
             };
         };

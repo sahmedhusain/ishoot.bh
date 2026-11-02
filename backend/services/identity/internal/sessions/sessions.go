@@ -26,6 +26,8 @@ type Family struct {
 	SubjectID string
 	Realm     authn.Realm
 	ExpiresAt time.Time
+	// UserAgent and ClientIP describe where a new session signed in from, when the app passed them.
+	UserAgent, ClientIP string
 }
 
 // Repository must rotate atomically and commit family revocation on reuse, even though it returns ErrReuse.
@@ -68,7 +70,11 @@ func (s *Service) Prepare(realm authn.Realm, subject string, now time.Time) (Cre
 	if err != nil {
 		return Credential{}, err
 	}
-	return Credential{Family: Family{ID: uuid.NewString(), SubjectID: subject, Realm: realm, ExpiresAt: now.Add(s.ttl)}, Token: token}, nil
+	ttl := s.ttl
+	if realm == authn.RealmCustomer {
+		ttl = 30 * 24 * time.Hour
+	}
+	return Credential{Family: Family{ID: uuid.NewString(), SubjectID: subject, Realm: realm, ExpiresAt: now.Add(ttl)}, Token: token}, nil
 }
 
 // Digest is the only representation of the credential that may be persisted.

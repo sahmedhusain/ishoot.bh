@@ -5,7 +5,11 @@
   "description": "Identity lifecycle change. IDs only; no credentials, factors, addresses or recovery codes.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["subjectId", "realm", "changedBy"],
+  "required": [
+    "subjectId",
+    "realm",
+    "changedBy"
+  ],
   "properties": {
     "subjectId": {
       "type": "string",
@@ -14,11 +18,20 @@
     "realm": {
       "type": "string",
       "minLength": 1,
-      "enum": ["staff", "customer", "it"]
+      "enum": [
+        "staff",
+        "customer",
+        "it"
+      ]
     },
     "changedBy": {
       "type": "string",
       "minLength": 1
+    },
+    "copiedFrom": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
     }
   }
 }

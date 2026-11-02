@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "inventory.stock.adjusted.v1",
+  "type": "object",
+  "required": ["movement_id", "product_id", "location_id", "quantity", "movement_type", "adjusted_at"],
+  "properties": {
+    "movement_id": { "type": "string" },
+    "product_id": { "type": "string" },
+    "location_id": { "type": "string" },
+    "quantity": { "type": "string" },
+    "movement_type": { "type": "string" },
+    "adjusted_at": { "type": "string", "format": "date-time" }
+  }
+}

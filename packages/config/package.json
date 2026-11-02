@@ -15,7 +15,8 @@
   },
   "dependencies": {
     "libphonenumber-js": "^1.13.14",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "@platform/contracts": "file:../../contracts"
   },
   "devDependencies": {
     "tailwindcss": "^3.4.17",

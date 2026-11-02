@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/identity.role.changed.v1.json",
+  "title": "identity.role.changed",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "roleId",
+    "changedBy",
+    "operation"
+  ],
+  "properties": {
+    "roleId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "changedBy": {
+      "type": "string",
+      "minLength": 1
+    },
+    "operation": {
+      "type": "string",
+      "enum": [
+        "create",
+        "edit",
+        "delete"
+      ]
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/workflow.approval.decided.v1.json",
+  "title": "workflow.approval.decided",
+  "description": "An approval request was approved or rejected.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "requestId",
+    "approverId",
+    "decision"
+  ],
+  "properties": {
+    "requestId": { "type": "string" },
+    "approverId": { "type": "string" },
+    "decision": { "type": "string", "enum": ["approve", "reject"] }
+  }
+}

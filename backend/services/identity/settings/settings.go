@@ -16,19 +16,20 @@ import (
 
 type Config struct {
 	config.Common
-	Database db.Config     `envPrefix:"DATABASE_"`
-	Auth     authn.Config  `envPrefix:"AUTH_"`
-	Signing  tokens.Config `envPrefix:"IDENTITY_"`
-	Session  Session       `envPrefix:"IDENTITY_"`
-	Login    Login         `envPrefix:"IDENTITY_LOGIN_"`
-	Access   StaffAccess   `envPrefix:"IDENTITY_"`
-	Callers  Callers       `envPrefix:"IDENTITY_CALLERS_"`
-	NATS     natsx.Config  `envPrefix:"NATS_"`
-	Outbox   outbox.Config `envPrefix:"OUTBOX_"`
+	Database   db.Config         `envPrefix:"DATABASE_"`
+	Auth       authn.Config      `envPrefix:"AUTH_"`
+	Signing    tokens.Config     `envPrefix:"IDENTITY_"`
+	Session    Session           `envPrefix:"IDENTITY_"`
+	Login      Login             `envPrefix:"IDENTITY_LOGIN_"`
+	Projection ProfileProjection `envPrefix:"IDENTITY_PROJECTION_"`
+	Access     StaffAccess       `envPrefix:"IDENTITY_"`
+	Callers    Callers           `envPrefix:"IDENTITY_CALLERS_"`
+	NATS       natsx.Config      `envPrefix:"NATS_"`
+	Outbox     outbox.Config     `envPrefix:"OUTBOX_"`
 }
 
 type StaffAccess struct {
-	// ServiceKey signs module-availability reads; it cannot read integration credentials.
+	// ServiceKey signs module reads and narrowly scoped Google/Apple sign-in configuration reads.
 	ServiceKey string `env:"SERVICE_KEY"`
 	SystemURL  string `env:"SYSTEM_URL" envDefault:"http://system:8080" validate:"url"`
 }
@@ -43,6 +44,8 @@ type Session struct {
 
 // Login is opt-in until account migration and frontend parity are ready.
 type Login struct {
+	// CustomerWebURL is the callback origin before a company website domain is configured in system.
+	CustomerWebURL   string          `env:"CUSTOMER_WEB_URL" envDefault:"http://localhost:3000" validate:"http_url"`
 	Enabled          bool            `env:"ENABLED" envDefault:"false"`
 	RedisURL         string          `env:"REDIS_URL" validate:"omitempty,url"`
 	RateKey          string          `env:"RATE_KEY"`
@@ -62,11 +65,22 @@ type Login struct {
 	MFAIssuer string `env:"MFA_ISSUER" envDefault:"Platform IT" validate:"required,max=100"`
 	// ITPasswordMinLength applies when provisioning or recovering an IT account.
 	ITPasswordMinLength int `env:"IT_PASSWORD_MIN_LENGTH" envDefault:"14" validate:"gte=12,lte=128"`
+	// PasswordMinLength applies to staff passwords; customer passwords preserve the eight-character minimum.
+	PasswordMinLength int `env:"PASSWORD_MIN_LENGTH" envDefault:"12" validate:"gte=8,lte=128"`
+	// PasswordResetTTL is how long a password reset link works.
+	PasswordResetTTL time.Duration `env:"PASSWORD_RESET_TTL" envDefault:"15m" validate:"gte=1m,lte=24h"`
 }
 
 // Callers lists the service identities allowed to authenticate each realm.
 type Callers struct {
-	Staff    []string `env:"STAFF" envDefault:"admin" envSeparator:"," validate:"min=1,dive,required"`
+	Staff    []string `env:"STAFF" envDefault:"admin,it" envSeparator:"," validate:"min=1,dive,required"`
 	Customer []string `env:"CUSTOMER" envDefault:"web" envSeparator:"," validate:"min=1,dive,required"`
 	IT       []string `env:"IT" envDefault:"it" envSeparator:"," validate:"min=1,dive,required"`
+}
+
+// ProfileProjection delivers identity-owned fields to transitional business profile owners.
+type ProfileProjection struct {
+	AdminURL string        `env:"ADMIN_URL" envDefault:"http://host.docker.internal:3001" validate:"http_url"`
+	WebURL   string        `env:"WEB_URL" envDefault:"http://host.docker.internal:3000" validate:"http_url"`
+	Interval time.Duration `env:"INTERVAL" envDefault:"5s" validate:"gte=1s"`
 }

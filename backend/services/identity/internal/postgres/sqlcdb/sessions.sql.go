@@ -11,7 +11,7 @@ import (
 )
 
 const activeSessionFamily = `-- name: ActiveSessionFamily :one
-SELECT id, subject_id, realm, expires_at, revoked_at, created_at FROM identity.session_family WHERE id=$1 AND realm=$2 AND revoked_at IS NULL AND expires_at>$3
+SELECT id, subject_id, realm, expires_at, revoked_at, created_at, user_agent, client_ip FROM identity.session_family WHERE id=$1 AND realm=$2 AND revoked_at IS NULL AND expires_at>$3
 `
 
 type ActiveSessionFamilyParams struct {
@@ -30,6 +30,8 @@ func (q *Queries) ActiveSessionFamily(ctx context.Context, arg ActiveSessionFami
 		&i.ExpiresAt,
 		&i.RevokedAt,
 		&i.CreatedAt,
+		&i.UserAgent,
+		&i.ClientIp,
 	)
 	return i, err
 }
@@ -108,7 +110,7 @@ func (q *Queries) InsertRefreshRecord(ctx context.Context, arg InsertRefreshReco
 }
 
 const lockSessionFamily = `-- name: LockSessionFamily :one
-SELECT id, subject_id, realm, expires_at, revoked_at, created_at FROM identity.session_family WHERE id=$1 FOR UPDATE
+SELECT id, subject_id, realm, expires_at, revoked_at, created_at, user_agent, client_ip FROM identity.session_family WHERE id=$1 FOR UPDATE
 `
 
 func (q *Queries) LockSessionFamily(ctx context.Context, id string) (IdentitySessionFamily, error) {
@@ -121,6 +123,8 @@ func (q *Queries) LockSessionFamily(ctx context.Context, id string) (IdentitySes
 		&i.ExpiresAt,
 		&i.RevokedAt,
 		&i.CreatedAt,
+		&i.UserAgent,
+		&i.ClientIp,
 	)
 	return i, err
 }
@@ -140,7 +144,7 @@ func (q *Queries) MarkRefreshConsumed(ctx context.Context, arg MarkRefreshConsum
 }
 
 const readSessionFamily = `-- name: ReadSessionFamily :one
-SELECT id, subject_id, realm, expires_at, revoked_at, created_at FROM identity.session_family WHERE id=$1
+SELECT id, subject_id, realm, expires_at, revoked_at, created_at, user_agent, client_ip FROM identity.session_family WHERE id=$1
 `
 
 func (q *Queries) ReadSessionFamily(ctx context.Context, id string) (IdentitySessionFamily, error) {
@@ -153,6 +157,8 @@ func (q *Queries) ReadSessionFamily(ctx context.Context, id string) (IdentitySes
 		&i.ExpiresAt,
 		&i.RevokedAt,
 		&i.CreatedAt,
+		&i.UserAgent,
+		&i.ClientIp,
 	)
 	return i, err
 }

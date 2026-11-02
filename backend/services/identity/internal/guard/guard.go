@@ -113,3 +113,54 @@ func (g *Guard) Check(ctx context.Context, realm authn.Realm, email, clientIP st
 	}
 	return g.allowRequest(ctx, g.digest("account", realm, email), g.account)
 }
+
+// CheckAction preserves command-specific limits across every website and identity replica.
+func (g *Guard) CheckAction(ctx context.Context, realm authn.Realm, action, email, ip string) error {
+	if err := g.Check(ctx, realm, email, ip); err != nil {
+		return err
+	}
+	var account, network int
+	var window time.Duration
+	switch action {
+	case "signup":
+		account, network, window = 10, 10, time.Hour
+	case "signin":
+		if realm != authn.RealmCustomer {
+			return nil
+		}
+		account, network, window = 8, 20, 15*time.Minute
+	case "code":
+		account, network, window = 3, 10, 10*time.Minute
+	case "code-verify":
+		account, network, window = 20, 20, 10*time.Minute
+	case "reset":
+		account, network, window = 3, 20, time.Minute
+	case "reset-confirm":
+		account, network, window = 5, 20, time.Minute
+	case "oauth":
+		account, network, window = 20, 20, 15*time.Minute
+	default:
+		return ErrDenied
+	}
+	if ip != "" {
+		parsed, err := netip.ParseAddr(ip)
+		if err != nil {
+			return ErrDenied
+		}
+		ip = parsed.WithZone("").Unmap().String()
+	}
+	if err := g.allowRequest(ctx, g.digest("command-ip", realm, ip), ratelimit.Rule{Name: action + "-ip", Requests: network, Window: window}); err != nil {
+		return err
+	}
+	return g.allowRequest(ctx, g.digest("command-account", realm, strings.ToLower(strings.TrimSpace(email))), ratelimit.Rule{Name: action + "-account", Requests: account, Window: window})
+}
+
+type actionGuard struct {
+	guard  *Guard
+	action string
+}
+
+func (g *Guard) ForAction(action string) *actionGuard { return &actionGuard{guard: g, action: action} }
+func (g *actionGuard) Check(ctx context.Context, realm authn.Realm, email, ip string) error {
+	return g.guard.CheckAction(ctx, realm, g.action, email, ip)
+}

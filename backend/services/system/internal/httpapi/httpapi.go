@@ -28,6 +28,9 @@ const (
 
 // Options configures the handlers.
 type Options struct {
+	CompanyReaders, SequenceCallers, CurrencyCallers []string
+	CompanyBodyLimit                                 int64
+
 	Verifier *authn.Verifier
 	// ReadCallers may read settings; ModuleWriters may switch modules; IntegrationWriters may modify integrations;
 	// DomainWriters may set the domains for a person they name (the admin's setup wizard).
@@ -36,6 +39,7 @@ type Options struct {
 	JSONBodyLimit                                                 int64
 	// SiteCodeBodyLimit caps the site code request, which carries up to two 50,000-character documents.
 	SiteCodeBodyLimit int64
+	FilesURL          string
 }
 
 type handler struct {
@@ -46,11 +50,37 @@ type handler struct {
 // Register adds the routes.
 func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	h := &handler{svc: svc, opts: opts}
+	h.companyRoutes(e)
+	h.operationsRoutes(e)
 	e.GET("/v1/system/openapi.yaml", func(c echo.Context) error { return c.Blob(http.StatusOK, "application/yaml", api.OpenAPI) })
 
 	services := e.Group("/v1/system", authn.Require(opts.Verifier, authn.RealmService))
 	services.GET("/modules", h.modules, caller(slices.Concat(opts.ReadCallers, opts.ModuleReadCallers)))
 	services.PUT("/modules/:key", h.setModuleForService, caller(opts.ModuleWriters))
+
+	services.GET("/sign-in/:provider", func(c echo.Context) error {
+		provider := c.Param("provider")
+		if provider != "google" && provider != "apple" {
+			return problem.NotFound("")
+		}
+		item, err := h.svc.ServiceIntegration(c.Request().Context(), provider+"_signin")
+		if err != nil {
+			return err
+		}
+		site, err := h.svc.Site(c.Request().Context())
+		if err != nil {
+			return err
+		}
+		values := map[string]string{}
+		if item.IsActive {
+			values = item.Credentials
+		}
+		return c.JSON(http.StatusOK, struct {
+			Active        bool              `json:"active"`
+			Values        map[string]string `json:"values"`
+			WebsiteDomain string            `json:"websiteDomain"`
+		}{Active: item.IsActive, Values: values, WebsiteDomain: site.WebsiteDomain})
+	}, caller([]string{"identity"}))
 
 	services.GET("/integrations", h.listIntegrations, caller(opts.ReadCallers))
 	services.GET("/integrations/:provider", h.getIntegration, caller(opts.ReadCallers))

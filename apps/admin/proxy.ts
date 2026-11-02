@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifySessionToken, SESSION_COOKIE_NAME } from "./lib/jwt";
+import {
+  ACCESS_COOKIE,
+  REFRESH_COOKIE,
+  clearedCookies,
+  needsRenewal,
+  renew,
+  sessionCookies,
+  type CookieSpec,
+} from "./lib/identity-session";
 
+// Keeps the staff session alive: an access token about to expire is renewed with the refresh credential before the
+// page renders, and a session that cannot be renewed goes back to the sign-in page. Pages still verify the token and
+// ask identity whether the session is live (lib/auth.ts).
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -10,49 +21,59 @@ export async function proxy(request: NextRequest) {
     return NextResponse.rewrite(target);
   }
 
-  if (
-    pathname.startsWith("/api") ||
-    pathname.startsWith("/_next") ||
-    pathname.includes(".")
-  ) {
+  if (pathname.startsWith("/_next") || pathname.includes(".")) {
     return NextResponse.next();
   }
 
-  const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-  const session = token ? await verifySessionToken(token) : null;
+  const api = pathname.startsWith("/api/");
+  const protectedPage =
+    pathname === "/" ||
+    pathname.startsWith("/dashboard") ||
+    pathname === "/setup";
+  const refresh = request.cookies.get(REFRESH_COOKIE)?.value;
+  // Public API requests stay public; an existing browser session is renewed for authenticated API calls too.
+  if (
+    !protectedPage &&
+    !(
+      api &&
+      refresh &&
+      ![
+        "/api/auth/login",
+        "/api/auth/logout",
+        "/api/auth/forgot-password",
+        "/api/auth/reset-password",
+      ].includes(pathname)
+    )
+  )
+    return NextResponse.next();
 
-  if (pathname === "/") {
-    if (session) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+  const access = request.cookies.get(ACCESS_COOKIE)?.value;
+  let renewed: CookieSpec[] | null = null;
+  if (needsRenewal(access)) {
+    const credential = refresh ? await renew(refresh) : null;
+    if (!credential) {
+      if (api) return withCookies(NextResponse.next(), clearedCookies());
+      const login = new URL("/login", request.url);
+      if (pathname !== "/") login.searchParams.set("callbackUrl", pathname);
+      return withCookies(NextResponse.redirect(login), clearedCookies());
     }
-    return NextResponse.redirect(new URL("/login", request.url));
+    renewed = sessionCookies(credential);
+    // The page rendering this request reads the new cookies too.
+    for (const c of renewed) request.cookies.set(c.name, c.value);
   }
 
-  if (pathname === "/login") return NextResponse.next();
+  const response =
+    pathname === "/"
+      ? NextResponse.redirect(new URL("/dashboard", request.url))
+      : NextResponse.next({ request: { headers: request.headers } });
+  return renewed ? withCookies(response, renewed) : response;
+}
 
-  if (pathname.startsWith("/dashboard") || pathname === "/setup") {
-    if (!session) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("callbackUrl", pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    const requestHeaders = new Headers(request.headers);
-    requestHeaders.set("x-user-id", session.userId);
-    requestHeaders.set("x-user-email", session.email);
-    requestHeaders.set("x-user-role", session.role);
-    requestHeaders.set("x-user-name", encodeURIComponent(session.fullName));
-
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    });
-  }
-
-  return NextResponse.next();
+function withCookies(response: NextResponse, cookies: CookieSpec[]) {
+  for (const c of cookies) response.cookies.set(c.name, c.value, c.options);
+  return response;
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

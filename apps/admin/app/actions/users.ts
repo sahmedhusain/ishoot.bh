@@ -265,8 +265,7 @@ export async function suspendUserAction(id: string, reason: string) {
         },
       });
 
-      // Revoke all active sessions immediately
-      await db.session.deleteMany({ where: { userId: id } });
+      // Identity ends every session of the account once the change is synced (services/identity-sync).
 
       await createActivityLog({
         user_id: actor.id,
@@ -376,8 +375,7 @@ export async function archiveUserAction(id: string) {
         },
       });
 
-      // Revoke all active sessions immediately
-      await db.session.deleteMany({ where: { userId: id } });
+      // Identity ends every session of the account once the change is synced (services/identity-sync).
 
       await createActivityLog({
         user_id: actor.id,

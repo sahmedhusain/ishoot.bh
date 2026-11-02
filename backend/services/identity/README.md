@@ -98,3 +98,26 @@ only account/session IDs, realm, operation/reason and actor; never an address, p
 code. Schemas live in [contracts/events](../../../contracts/events). The worker publishes the outbox to NATS and
 exposes its lag metrics. Without `NATS_URL`, events wait durably for the relay. Failed authentication emits no
 state-change event; refresh reuse commits revocation and its event even though the request is refused.
+
+## Staff and customer implementation in progress
+
+Staff app integration now uses identity access/refresh cookies and `IDENTITY_JWKS_URL`/`IDENTITY_ISSUER`; the
+source changes are not yet cutover-verified. Per-realm service callers (`IDENTITY_CALLERS_STAFF=admin,it`,
+`IDENTITY_CALLERS_CUSTOMER=web`) manage profile state, password resets and credentials. The setup wizard uses
+the admin caller. Service callers do not receive IT-realm account administration privileges.
+
+- `PUT /v1/identity/{realm}/accounts/{id}` synchronizes email, role and active state, invalidating access on role
+  change or deactivation; changing email invalidates outstanding password resets.
+- `PUT .../accounts/{id}/password` and `DELETE .../accounts/{id}/mfa` manage credentials and factors.
+- `POST .../password-resets` and `POST .../password-resets/confirm` issue hashed one-use links and replace passwords.
+- `GET /v1/identity/me`, `GET/DELETE .../me/sessions`, `DELETE .../me/sessions/{id}`, and `PUT .../me/password`
+  use a live user token. Changing one's password ends all sessions, matching the existing admin UI.
+- Customer registration, emailed-code sessions and Google/Apple OAuth APIs are defined in OpenAPI. The website
+  integration and migration of existing provider links/challenges remain in progress. Customer sessions preserve
+  the 30-day lifetime and eight-character password minimum.
+
+OAuth credentials are read through system's identity-only `/v1/system/sign-in/{provider}` route. Callback origins
+match system's configured website domain; `IDENTITY_LOGIN_CUSTOMER_WEB_URL` supplies the origin before that domain
+exists. State, PKCE and nonce ownership stays in identity. Provider tokens are never returned to the website.
+
+Tests and verification for this continuation are deferred by user instruction until implementation is complete.

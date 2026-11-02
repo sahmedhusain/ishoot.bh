@@ -259,10 +259,496 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/identity/{realm}/accounts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                realm: components["parameters"]["ManagedRealm"];
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Create or update an account as the owning app describes it
+         * @description Staff and customer accounts only; the caller must be the realm's app. Identity keeps the address, roles and
+         *     active state the app sends and owns the credentials. Turning an account off or changing its roles revokes its
+         *     sessions. Records identity.user.created or identity.user.changed.
+         */
+        put: operations["syncManagedAccount"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/{realm}/accounts/{id}/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                realm: components["parameters"]["ManagedRealm"];
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set an account's password
+         * @description Ends every session except keepSessionId (a person changing their own password stays signed in) and cancels
+         *     open reset links. Passwords shorter than IDENTITY_LOGIN_PASSWORD_MIN_LENGTH are refused.
+         */
+        put: operations["setManagedAccountPassword"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/{realm}/accounts/{id}/mfa": {
+        parameters: {
+            query?: {
+                actorId?: string;
+            };
+            header?: never;
+            path: {
+                realm: components["parameters"]["ManagedRealm"];
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Turn two-step sign-in off for an account and sign it out everywhere */
+        delete: operations["resetManagedAccountMFA"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/{realm}/password-resets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                realm: components["parameters"]["ManagedRealm"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Issue a one-use reset token for an active account with the address
+         * @description Returns the token once for the app to e-mail; identity keeps only its hash. Unknown or inactive addresses
+         *     answer 404 account_not_found: the app must answer the person the same way in both cases.
+         */
+        post: operations["requestPasswordReset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/{realm}/password-resets/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                realm: components["parameters"]["ManagedRealm"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Use a reset token once to set a new password */
+        post: operations["confirmPasswordReset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The person's own sign-in settings */
+        get: operations["getOwnAccountSecurity"];
+        put?: never;
+        post?: never;
+        /**
+         * Erase the authenticated customer's credentials and end every session
+         * @description Staff accounts cannot be erased through this endpoint.
+         */
+        delete: operations["deleteOwnCustomerAccount"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/me/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The signed-in staff member's or customer's active sessions, newest first */
+        get: operations["listOwnSessions"];
+        put?: never;
+        post?: never;
+        /** End every session of the person except this one */
+        delete: operations["revokeOtherOwnSessions"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/me/sessions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** End one of the person's sessions (the current one signs them out) */
+        delete: operations["revokeOwnSession"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/me/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Change the person's own password
+         * @description Checks the current password and, when two-step sign-in is on, an authenticator or recovery code (401
+         *     mfa_required without one; 422 password_rejected when either is wrong or the new password is too short).
+         *     Every session ends, including the current one; the person signs in with the new password.
+         */
+        put: operations["changeOwnPassword"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/customer/oauth/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Enabled provider names without exposing their credentials */
+        get: operations["customerSignInProviders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/customer/oauth/{provider}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: "google" | "apple";
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a one-use provider flow with server-owned nonce and PKCE */
+        post: operations["beginCustomerOAuth"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/customer/oauth/{provider}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: "google" | "apple";
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Exchange the provider proof and issue a customer session once */
+        post: operations["completeCustomerOAuth"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/customer/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Register a customer credential without creating a staff or IT account */
+        post: operations["registerCustomerAccount"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/customer/sign-in-codes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Issue a one-use email sign-in code for the trusted website to deliver */
+        post: operations["issueCustomerSignInCode"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/customer/sessions/code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify an email code once and issue customer credentials atomically */
+        post: operations["signInCustomerWithCode"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/desk/staff-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List staff accounts (staff_accounts:read) */
+        get: operations["listStaffAccountsForIT"];
+        put?: never;
+        /** Create an account, optionally copying access only (staff_accounts:create) */
+        post: operations["createStaffAccountForIT"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/desk/staff-accounts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read account (staff_accounts:read) */
+        get: operations["getStaffAccountForIT"];
+        /** Replace access and end sessions (staff_accounts:edit) */
+        put: operations["updateStaffAccountForIT"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/desk/staff-accounts/{id}/access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Copy role, overrides and scopes only (staff_accounts:read) */
+        get: operations["copyStaffAccessForIT"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/desk/staff-accounts/{id}/invitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Issue invitation for server-side notify delivery (staff_accounts:execute) */
+        post: operations["inviteStaffAccountForIT"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/desk/staff-accounts/{id}/mfa": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Reset factor and end sessions (staff_accounts:execute) */
+        delete: operations["resetStaffMFAForIT"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/desk/staff-access/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Preview effective access before saving (staff_accounts:read) */
+        post: operations["previewStaffAccessForIT"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/desk/staff-roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List roles and policies (staff_roles:read) */
+        get: operations["listStaffRolesForIT"];
+        put?: never;
+        /** Create role (staff_roles:create) */
+        post: operations["createStaffRoleForIT"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/desk/staff-roles/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Replace role policy (staff_roles:edit) */
+        put: operations["updateStaffRoleForIT"];
+        post?: never;
+        /** Delete unassigned custom role (staff_roles:delete) */
+        delete: operations["deleteStaffRoleForIT"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/staff/accounts/{id}/access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Live target policy for transitional business scope readers (admin service only) */
+        get: operations["getStaffAccessForAccount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/identity/{realm}/password-policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                realm: components["parameters"]["ManagedRealm"];
+            };
+            cookie?: never;
+        };
+        /** Read the configured minimum length for a managed realm */
+        get: operations["getPasswordPolicy"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        OwnSession: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            expiresAt: string;
+            userAgent: string | null;
+            clientIp: string | null;
+            current: boolean;
+        };
         DeskSession: {
             /** Format: uuid */
             id: string;
@@ -328,6 +814,79 @@ export interface components {
             code: string;
             instance?: string;
         };
+        StaffDraft: {
+            /** Format: email */
+            email: string;
+            displayName: string;
+            role: string;
+            active: boolean;
+            overrides?: {
+                [key: string]: boolean;
+            };
+            dataScopes?: {
+                [key: string]: "own" | "department" | "all";
+            };
+            copiedFrom?: string;
+        };
+        StaffAccessTemplate: {
+            role: string;
+            overrides: {
+                [key: string]: boolean;
+            };
+            dataScopes: {
+                [key: string]: "own" | "department" | "all";
+            };
+        };
+        StaffRoleDraft: {
+            id: string;
+            nameEn: string;
+            nameAr: string;
+            system?: boolean;
+            grants: {
+                [key: string]: boolean;
+            };
+            dataScopes: {
+                [key: string]: "own" | "department" | "all";
+            };
+        };
+        StaffDeskAccount: {
+            id: string;
+            email: string;
+            roles: string[];
+            active: boolean;
+            mfaEnabled: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            lastLoginAt: string | null;
+            displayName: string;
+        };
+        StaffAccessPreview: {
+            subjectId: string;
+            role: string;
+            permissions: {
+                [key: string]: boolean;
+            };
+            dataScopes: {
+                [key: string]: "own" | "department" | "all";
+            };
+        };
+        StaffInvitation: {
+            /** Format: email */
+            email: string;
+            subjectId: string;
+            token: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        StaffDeskPage: {
+            items: components["schemas"]["StaffDeskAccount"][];
+            nextCursor: string;
+        };
+        StaffRolePage: {
+            items: components["schemas"]["StaffRoleDraft"][];
+            nextCursor: string;
+        };
     };
     responses: {
         /** @description RFC 9457 error; no credential or database detail is exposed */
@@ -342,6 +901,7 @@ export interface components {
     };
     parameters: {
         Realm: "staff" | "customer" | "it";
+        ManagedRealm: "staff" | "customer";
     };
     requestBodies: {
         MFAPassword: {
@@ -704,6 +1264,8 @@ export interface operations {
                     password: string;
                     otp?: string;
                     clientIp?: string;
+                    /** @description Shown to the person in their list of sessions */
+                    userAgent?: string;
                 };
             };
         };
@@ -780,6 +1342,842 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    syncManagedAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                realm: components["parameters"]["ManagedRealm"];
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    email: string;
+                    roles?: string[];
+                    active: boolean;
+                    /** @description The person the app acts for */
+                    actorId?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Stored */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        created: boolean;
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    setManagedAccountPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                realm: components["parameters"]["ManagedRealm"];
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    password: string;
+                    keepSessionId?: string;
+                    actorId?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Password set */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    resetManagedAccountMFA: {
+        parameters: {
+            query?: {
+                actorId?: string;
+            };
+            header?: never;
+            path: {
+                realm: components["parameters"]["ManagedRealm"];
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Two-step sign-in is off */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    requestPasswordReset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                realm: components["parameters"]["ManagedRealm"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    clientIp?: string;
+                    email: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Token issued; never log it */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: email */
+                        email: string;
+                        subjectId: string;
+                        token: string;
+                        /** Format: date-time */
+                        expiresAt: string;
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    confirmPasswordReset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                realm: components["parameters"]["ManagedRealm"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    clientIp?: string;
+                    /** @description Required only for a legacy reset or invitation link */
+                    email?: string;
+                    token: string;
+                    password: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Password set; every session ended */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        subjectId: string;
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getOwnAccountSecurity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Settings */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        email: string;
+                        mfaEnabled: boolean;
+                        recoveryCodesLeft: number;
+                        hasPassword: boolean;
+                        google: boolean;
+                        apple: boolean;
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteOwnCustomerAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Customer credentials erased */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listOwnSessions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sessions */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["OwnSession"][];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    revokeOtherOwnSessions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Other sessions ended */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    revokeOwnSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Session ended */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    changeOwnPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    currentPassword: string;
+                    newPassword: string;
+                    code?: string;
+                    clientIp?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Password changed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    customerSignInProviders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Available sign-in providers */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        google: boolean;
+                        apple: boolean;
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    beginCustomerOAuth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: "google" | "apple";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    redirectUri: string;
+                    next: string;
+                    /** @enum {string} */
+                    locale: "en" | "ar";
+                    clientIp?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Store state in the server's httpOnly callback cookie before following authorizationUrl */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        state: string;
+                        authorizationUrl: string;
+                        /** Format: date-time */
+                        expiresAt: string;
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    completeCustomerOAuth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: "google" | "apple";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    state: string;
+                    browserState: string;
+                    code?: string;
+                    otp?: string;
+                    name?: string;
+                    clientIp?: string;
+                    userAgent?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Provider linked and session issued; an MFA-required response can be retried using state and otp */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        email: string;
+                        name: string;
+                        next: string;
+                        locale: string;
+                        credential: components["schemas"]["LoginCredential"];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    registerCustomerAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    clientIp?: string;
+                    email: string;
+                    password: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Customer registered */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        subjectId: string;
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    issueCustomerSignInCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    email: string;
+                    clientIp?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Code returned once; never log it or expose it to the browser */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        /** Format: date-time */
+                        expiresAt: string;
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    signInCustomerWithCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    email: string;
+                    code: string;
+                    otp?: string;
+                    clientIp?: string;
+                    userAgent?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Email confirmed; a new account is created if needed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        email: string;
+                        credential: components["schemas"]["LoginCredential"];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listStaffAccountsForIT: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffDeskPage"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    createStaffAccountForIT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffDraft"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        subjectId: string;
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getStaffAccountForIT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffDraft"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    updateStaffAccountForIT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffDraft"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        subjectId: string;
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    copyStaffAccessForIT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffAccessTemplate"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    inviteStaffAccountForIT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffInvitation"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    resetStaffMFAForIT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    previewStaffAccessForIT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffAccessTemplate"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffAccessPreview"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listStaffRolesForIT: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffRolePage"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    createStaffRoleForIT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffRoleDraft"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    updateStaffRoleForIT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffRoleDraft"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteStaffRoleForIT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getStaffAccessForAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Effective identity policy */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffAccessPreview"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getPasswordPolicy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                realm: components["parameters"]["ManagedRealm"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Password policy */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        minLength: number;
+                    };
+                };
             };
             default: components["responses"]["Problem"];
         };

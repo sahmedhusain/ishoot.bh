@@ -1,6 +1,28 @@
+import { listReviews } from "@platform/api-client";
 import { db } from "../db";
 
 export async function getReviews(adminOnly = true) {
+  try {
+    const items = await listReviews(adminOnly);
+    if (items && items.length > 0) {
+      return items.map((r) => ({
+        id: r.id,
+        authorEn: r.authorEn,
+        authorAr: r.authorAr,
+        companyEn: r.companyEn ?? null,
+        companyAr: r.companyAr ?? null,
+        quoteEn: r.quoteEn,
+        quoteAr: r.quoteAr,
+        rating: r.rating,
+        year: r.year,
+        isApproved: r.isApproved,
+        sortOrder: r.sortOrder,
+        originalLocale: null,
+      }));
+    }
+  } catch {
+    // Fall back to direct database
+  }
   try {
     return await db.review.findMany({
       where: adminOnly ? undefined : { isApproved: true },

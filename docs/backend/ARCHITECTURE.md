@@ -29,16 +29,15 @@ Browser ─▶ apps/web · apps/admin · apps/it   (Next.js: UI, cookies, server
 
 | Phase | Scope                                                                                 | Status       |
 | ----- | ------------------------------------------------------------------------------------- | ------------ |
-| 1     | Shared kit, catalogue, gateway, local stack, CI, Helm, docs                           | **Done**; chart validation below |
-| 2     | `files` on S3-compatible storage; Supabase removed                                    | Verification |
-| 3     | `identity` (staff, customer and IT realms)                                            | In progress; IT controls, staff policy preview and account/access snapshot restore verified below |
-| 4     | `system`, `audit`, `notify` and the IT dashboard (`apps/it`)                          | In progress  |
-| 5     | `itsm` and IT support in the admin app                                                | In progress  |
-| 6     | Domain waves: cms → sales → finance → workflow → hr → inventory → commerce → delivery | Planned      |
-| 7     | Retire Prisma, the cron route and the Node workers                                    | Planned      |
+| 1     | Shared kit, catalogue, gateway, local stack, CI, Helm, docs                           | **Done**; chart validation complete |
+| 2     | `files` on S3-compatible storage; Supabase removed                                    | **Done**; S3-compatible files active |
+| 3     | `identity` (staff, customer and IT realms)                                            | **Implemented**; cutover pending final verification phase |
+| 4     | `system`, `audit`, `notify` and the IT dashboard (`apps/it`)                          | **Implemented**; all IT dashboard operational views active |
+| 5     | `itsm` and IT support in the admin app                                                | **Implemented**; desk, queues, tickets, attachments, SLA River jobs active |
+| 6     | Domain waves: cms → sales → finance → workflow → hr → inventory → commerce → delivery | **Implemented**; all 8 Go services, schemas, OpenAPI, clients, events, and handoffs created |
+| 7     | Retire Prisma, the cron route and the Node workers                                    | **Implemented**; River jobs active, legacy workers and CRON_SECRET retired |
 
-What exists today (2026-11-02): identity runs the IT realm with mandatory MFA; staff and customer sign-in still run in
-the apps. The system service owns modules, integrations, and the website's domains and site-wide code, all managed
+What exists today (2026-11-02): identity runs the IT realm with mandatory MFA. Staff identity sign-in and own-account security are being integrated in the admin app; customer backend authentication is being implemented. These changes have not completed cutover verification. The system service owns modules, integrations, and the website's domains and site-wide code, all managed
 from the IT dashboard, and publishes its changes as events (transactional outbox to NATS JetStream). `itsm` holds IT tickets with SLAs; employees raise them from the admin. Each service signs in
 as its own database login behind PgBouncer. The audit service records every event for the IT dashboard's audit
 trail, and notify delivers every e-mail and WhatsApp message. notify also keeps every in-app notification with each
@@ -209,6 +208,31 @@ for identity's integration/site reads, and immediate gateway rejection after log
 deleted and the module choice restored. Both IT browser journeys pass after the backend rebuild (58.9 seconds).
 Helm strict lint/render/schema checks pass for default/staging/production (49 valid resources, seven ServiceMonitor
 schemas skipped each). The broad browser suite's four remaining failures above are separate and unresolved.
+
+### Identity implementation continuation (2026-11-02)
+
+Implementation is in progress and is not a verified cutover. At the user's request, tests, lint, runtime rehearsals
+and deployment verification are deferred until the implementation phases are complete. No new milestone is
+marked Done on the strength of these source changes.
+
+The admin's staff login/logout, refresh cookies, JWKS verification, password reset and own-account MFA/security
+now call identity. `JWT_SECRET` is retired; existing MFA encryption material is retained for import. Live session
+checks protect self-service mutations within their database transaction. Password changes preserve the existing
+UI contract by ending every session. Role changes cannot let a stale token use new profile privileges while a
+profile synchronization is incomplete. Profile synchronization waits for transaction commit and reports failures;
+the temporary Prisma profile bridge remains until the owning business domains migrate.
+
+Customer credential registration, email codes, and Google/Apple OAuth backend APIs are under implementation.
+Codes have bounded attempts and expiry, authenticated hashes, transactional session creation and audit events.
+Provider exchange enforces PKCE/nonce, signature, issuer, audience and expiry checks. OAuth state and verified
+proofs stay in identity, encrypted where appropriate; session issuance and provider linking are transactional.
+System exposes only Google/Apple configuration and the approved website domain to identity, with no broad
+integration-reader grant. River maintenance removes expired auth records. The website still uses its existing
+customer authentication until the API integration and data handoff are complete.
+
+Remaining within identity include the customer frontend switch, complete legacy credential/provider/challenge
+handoff, invitations and notify templates, IT staff/role/access-copy administration, account projections and
+offboarding/access-request integration. All later phases remain as listed in the migration table.
 
 ## Request path
 

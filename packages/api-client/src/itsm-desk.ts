@@ -5,9 +5,11 @@ import { apiError } from "./errors";
 import { unwrap, unwrapEmpty, userClient } from "./http";
 
 export type SLAPolicy = components["schemas"]["SLAPolicy"];
+export type Attachment = components["schemas"]["Attachment"];
 export type QueueFilter = {
   status?: string;
   priority?: string;
+  category?: string;
   assigneeId?: string;
   open?: boolean;
   cursor?: string;
@@ -48,17 +50,18 @@ export const transitionQueueTicket = (
     }),
   );
 
-/** Adds a reply to the requester, or an internal note they never see. */
+/** Adds a reply to the requester, or an internal note they never see, with optional attachments. */
 export const commentOnQueueTicket = (
   token: string,
   id: string,
   body: string,
   internal: boolean,
+  attachments?: Attachment[],
 ) =>
   unwrap(
     desk(token).POST("/v1/itsm/desk/tickets/{id}/comments", {
       params: { path: { id } },
-      body: { body, internal },
+      body: { body, internal, attachments },
     }),
   );
 

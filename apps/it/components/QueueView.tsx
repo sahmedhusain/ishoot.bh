@@ -5,16 +5,18 @@ import { Card } from "@platform/ui";
 import { ChevronRight } from "lucide-react";
 import type { TicketPage } from "@platform/api-client";
 import {
+  TICKET_CATEGORIES,
   TICKET_PRIORITIES,
   TICKET_STATUSES,
   ticketCategory,
 } from "@platform/contracts";
 import { useCopy } from "./CopyProvider";
-import { OverdueBadge, PageTitle, StatusBadge } from "./ticket-ui";
+import { OverdueBadge, PageTitle, RemindedBadge, StatusBadge } from "./ticket-ui";
 
 export type QueueQuery = {
   status: string;
   priority: string;
+  category: string;
   open: boolean;
   mine: boolean;
   cursor: string;
@@ -25,6 +27,7 @@ const href = (query: QueueQuery, change: Partial<QueueQuery>) => {
   const params = new URLSearchParams();
   if (next.status) params.set("status", next.status);
   if (next.priority) params.set("priority", next.priority);
+  if (next.category) params.set("category", next.category);
   if (!next.open) params.set("open", "false");
   if (next.mine) params.set("mine", "true");
   if (next.cursor) params.set("cursor", next.cursor);
@@ -42,16 +45,19 @@ export function QueueView({
   query: QueueQuery;
   page: TicketPage | null;
 }) {
-  const { copy, status, priority, number, name, date } = useCopy();
+  const { copy, locale, status, priority, number, name, date } = useCopy();
   const t = copy.tickets;
+  const categoryLabel =
+    (t as Record<string, string> | undefined)?.category ??
+    (locale === "ar" ? "الفئة" : "Category");
   return (
     <>
       <PageTitle title={t.title} description={t.description} />
       <div className="space-y-3 mb-6">
         <div className="flex flex-wrap gap-2">
           <Link
-            href={href(query, { open: true, mine: false, status: "" })}
-            className={chip(query.open && !query.mine && !query.status)}
+            href={href(query, { open: true, mine: false, status: "", category: "" })}
+            className={chip(query.open && !query.mine && !query.status && !query.category)}
           >
             {t.openOnly}
           </Link>
@@ -62,11 +68,22 @@ export function QueueView({
             {t.mine}
           </Link>
           <Link
-            href={href(query, { open: false, status: "" })}
-            className={chip(!query.open && !query.status)}
+            href={href(query, { open: false, status: "", category: "" })}
+            className={chip(!query.open && !query.status && !query.category)}
           >
             {t.everything}
           </Link>
+        </div>
+        <div className="flex flex-wrap gap-2" aria-label={categoryLabel}>
+          {TICKET_CATEGORIES.map((cat) => (
+            <Link
+              key={cat.key}
+              href={href(query, { category: query.category === cat.key ? "" : cat.key })}
+              className={chip(query.category === cat.key)}
+            >
+              {name(cat)}
+            </Link>
+          ))}
         </div>
         <div className="flex flex-wrap gap-2" aria-label={t.status}>
           {TICKET_STATUSES.map((s) => (
@@ -120,6 +137,7 @@ export function QueueView({
                       </span>
                       <StatusBadge status={ticket.status} />
                       {ticket.breached && <OverdueBadge />}
+                      {ticket.remindedAt && !ticket.breached && <RemindedBadge />}
                       <span className="text-[11px] font-semibold text-ink-muted">
                         {priority(ticket.priority)}
                       </span>

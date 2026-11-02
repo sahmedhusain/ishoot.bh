@@ -1,3 +1,4 @@
+import { getStaffAccessForAccount } from "@platform/api-client";
 import { serverMessages } from "@platform/locales";
 import { db } from "../db";
 import {
@@ -60,7 +61,14 @@ export async function scopedUserIds(
   user: { id: string; role: string },
   area: DataScopeArea,
 ): Promise<string[] | null> {
-  const scope = (await getRoleDataScopes(user.role))[area];
+  const policy = await getStaffAccessForAccount(user.id);
+  if (
+    policy.subjectId !== user.id ||
+    policy.role !== user.role ||
+    !isDataScope(policy.dataScopes[area])
+  )
+    throw new Error(serverMessages.outsideDataScope);
+  const scope = policy.dataScopes[area];
   if (scope === "all") return null;
   if (scope === "own") return [user.id];
   const own = await userDepartmentId(user.id);

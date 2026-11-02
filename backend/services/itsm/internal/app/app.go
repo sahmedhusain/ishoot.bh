@@ -7,7 +7,6 @@ import (
 	"slices"
 	"strings"
 	"time"
-	"unicode/utf8"
 
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/catalog"
@@ -17,9 +16,11 @@ import (
 
 // Options are the service's settings.
 type Options struct {
-	Limits        domain.Limits
-	ITDisplayName string // shown to requesters as the author of IT comments
-	BreachBatch   int32  // tickets marked per SLA sweep round
+	Limits         domain.Limits
+	ITDisplayName  string        // shown to requesters as the author of IT comments
+	BreachBatch    int32         // tickets marked per SLA sweep round
+	ReminderWindow time.Duration // lookahead window for upcoming SLA breach reminders
+	ReminderBatch  int32         // tickets reminded per SLA reminder round
 }
 
 // Service implements the use cases.
@@ -32,6 +33,11 @@ type Service struct {
 // New returns the service.
 func New(store *postgres.Store, opts Options) *Service {
 	return &Service{store: store, opts: opts, now: func() time.Time { return time.Now().UTC() }}
+}
+
+// SetJobInserter configures River job enqueuing for background notifications.
+func (s *Service) SetJobInserter(jobs postgres.JobInserter) {
+	s.store.SetJobInserter(jobs)
 }
 
 // Requester identifies the employee a request is made for. The calling app has already authenticated them.
@@ -53,14 +59,6 @@ type Detail struct {
 	Attachments []postgres.Attachment
 }
 
-func validBody(body string) (string, error) {
-	body = strings.TrimSpace(body)
-	if n := utf8.RuneCountInString(body); n < 1 || n > 10000 || !utf8.ValidString(body) {
-		return "", &domain.ValidationError{Field: "body", Code: "length"}
-	}
-	return body, nil
-}
-
 // Create opens a ticket for an employee.
 func (s *Service) Create(ctx context.Context, n domain.NewTicket) (postgres.Ticket, error) {
 	if err := n.Normalize(s.opts.Limits); err != nil {
@@ -77,7 +75,7 @@ func (s *Service) ListMine(ctx context.Context, requester, status string, c *pos
 	return s.store.ListForRequester(ctx, requester, status, c, size)
 }
 
-// GetMine returns a ticket only to its requester, without internal comments.
+// GetMine returns a ticket only to its requester, without internal comments or attachments.
 func (s *Service) GetMine(ctx context.Context, id, requester string) (Detail, error) {
 	t, comments, events, attachments, err := s.store.Detail(ctx, id, false)
 	if err != nil {
@@ -98,13 +96,13 @@ func ownedBy(requester string) func(postgres.Ticket) error {
 	}
 }
 
-// CommentAsRequester adds the requester's reply while the ticket is not closed.
-func (s *Service) CommentAsRequester(ctx context.Context, id string, r Requester, body string) (postgres.Comment, error) {
-	body, err := validBody(body)
-	if err != nil {
+// CommentAsRequester adds the requester's reply and optional attachments while the ticket is not closed.
+func (s *Service) CommentAsRequester(ctx context.Context, id string, r Requester, c domain.NewComment) (postgres.Comment, error) {
+	c.Internal = false
+	if err := c.Normalize(s.opts.Limits); err != nil {
 		return postgres.Comment{}, err
 	}
-	return s.store.AddComment(ctx, id, r.actor(), body, false, false, s.now(), func(t postgres.Ticket) error {
+	return s.store.AddComment(ctx, id, r.actor(), c.Body, false, false, c.Attachments, s.now(), func(t postgres.Ticket) error {
 		if err := ownedBy(r.ID)(t); err != nil {
 			return err
 		}
@@ -131,7 +129,7 @@ func state(t postgres.Ticket) domain.State {
 		FirstResponseAt: t.FirstResponseAt, ResolvedAt: t.ResolvedAt, ClosedAt: t.ClosedAt}
 }
 
-// Queue returns a page of the IT queue.
+// Queue returns a page of the IT queue with optional status, priority, and category filters.
 func (s *Service) Queue(ctx context.Context, f postgres.Filter, c *postgres.Cursor, size int32) ([]postgres.Ticket, error) {
 	if f.Status != "" && !slices.Contains(catalog.Tickets.Statuses, f.Status) {
 		return nil, &domain.ValidationError{Field: "status", Code: "oneof"}
@@ -139,11 +137,16 @@ func (s *Service) Queue(ctx context.Context, f postgres.Filter, c *postgres.Curs
 	if f.Priority != "" && !slices.Contains(catalog.Tickets.Priorities, f.Priority) {
 		return nil, &domain.ValidationError{Field: "priority", Code: "oneof"}
 	}
+	if f.Category != "" {
+		if _, ok := catalog.Tickets.Category(f.Category); !ok {
+			return nil, &domain.ValidationError{Field: "category", Code: "oneof"}
+		}
+	}
 	f.OpenStatuses = catalog.Tickets.OpenStatuses
 	return s.store.ListQueue(ctx, f, c, size)
 }
 
-// Detail returns a ticket with internal comments, for IT.
+// Detail returns a ticket with internal comments and attachments, for IT.
 func (s *Service) Detail(ctx context.Context, id string) (Detail, error) {
 	t, comments, events, attachments, err := s.store.Detail(ctx, id, true)
 	return Detail{Ticket: t, Comments: comments, Events: events, Attachments: attachments}, err
@@ -157,13 +160,12 @@ func (s *Service) TransitionAsIT(ctx context.Context, id string, p authn.Princip
 	})
 }
 
-// CommentAsIT adds a reply visible to the requester, or an internal note.
-func (s *Service) CommentAsIT(ctx context.Context, id string, p authn.Principal, body string, internal bool) (postgres.Comment, error) {
-	body, err := validBody(body)
-	if err != nil {
+// CommentAsIT adds a reply visible to the requester or an internal note, with optional attachments.
+func (s *Service) CommentAsIT(ctx context.Context, id string, p authn.Principal, c domain.NewComment) (postgres.Comment, error) {
+	if err := c.Normalize(s.opts.Limits); err != nil {
 		return postgres.Comment{}, err
 	}
-	return s.store.AddComment(ctx, id, itActor(p, s.opts.ITDisplayName), body, internal, true, s.now(), func(postgres.Ticket) error { return nil })
+	return s.store.AddComment(ctx, id, itActor(p, s.opts.ITDisplayName), c.Body, c.Internal, true, c.Attachments, s.now(), func(postgres.Ticket) error { return nil })
 }
 
 // Stats counts the open tickets for the IT overview.
@@ -182,17 +184,34 @@ func (s *Service) UpdateSLA(ctx context.Context, p authn.Principal, policy domai
 	return s.store.UpdateSLA(ctx, policy, p.Subject, s.now())
 }
 
-// MarkBreached flags open tickets past their resolve deadline, in batches until none are left, and returns how many.
+// MarkBreached flags open tickets past their resolve or response deadline, in batches until none are left, and returns count.
 func (s *Service) MarkBreached(ctx context.Context) (int, error) {
 	total := 0
+	batch := s.opts.BreachBatch
+	if batch <= 0 {
+		batch = 200
+	}
 	for {
-		n, err := s.store.MarkBreached(ctx, s.now(), s.opts.BreachBatch)
+		n, err := s.store.MarkBreached(ctx, s.now(), batch)
 		if err != nil {
 			return total, err
 		}
 		total += n
-		if n < int(s.opts.BreachBatch) {
+		if n < int(batch) {
 			return total, nil
 		}
 	}
+}
+
+// CheckSLAReminders sweeps open tickets approaching their deadline, marks them reminded, and returns count.
+func (s *Service) CheckSLAReminders(ctx context.Context) (int, error) {
+	window := s.opts.ReminderWindow
+	if window <= 0 {
+		window = time.Hour
+	}
+	batch := s.opts.ReminderBatch
+	if batch <= 0 {
+		batch = 200
+	}
+	return s.store.CheckSLAReminders(ctx, s.now(), window, batch)
 }

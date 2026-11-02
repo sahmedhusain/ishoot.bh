@@ -26,3 +26,20 @@ func RegisterStaffAccess(e *echo.Echo, verifier *authn.Verifier, svc *app.StaffA
 		return func(c echo.Context) error { c.Response().Header().Set("Cache-Control", "no-store"); return next(c) }
 	}, authn.Require(verifier, authn.RealmStaff))
 }
+
+func RegisterStaffAccessService(e *echo.Echo, verifier *authn.Verifier, svc *app.StaffAccess) {
+
+	e.GET("/v1/identity/staff/accounts/:id/access", func(c echo.Context) error {
+		p, _ := authn.PrincipalFrom(c.Request().Context())
+		if p.Subject != "admin" {
+			return problem.Forbidden("")
+		}
+		c.Response().Header().Set("Cache-Control", "no-store")
+		policy, err := svc.ReadSubject(c.Request().Context(), c.Param("id"))
+		if err != nil {
+			return staffDeskError(c, err)
+		}
+		return c.JSON(http.StatusOK, policy)
+	}, authn.Require(verifier, authn.RealmService))
+
+}

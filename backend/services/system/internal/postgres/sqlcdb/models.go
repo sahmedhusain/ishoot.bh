@@ -7,7 +7,36 @@ package sqlcdb
 import (
 	"encoding/json"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type SystemCompany struct {
+	ID             string
+	Singleton      bool
+	Data           json.RawMessage
+	CurrencyLocked bool
+	Revision       int64
+	UpdatedBy      string
+	UpdatedAt      time.Time
+}
+
+type SystemCompanyAsset struct {
+	ID        string
+	AssetKey  string
+	Title     string
+	FileUrl   string
+	MimeType  *string
+	FileSize  *int64
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type SystemDocumentSequence struct {
+	Kind       string
+	Prefix     string
+	NextNumber int64
+}
 
 type SystemInbox struct {
 	Consumer  string
@@ -38,6 +67,15 @@ type SystemModuleSetting struct {
 	UpdatedAt time.Time
 }
 
+type SystemNumberReservation struct {
+	Caller         string
+	IdempotencyKey string
+	Kind           string
+	DocumentDate   pgtype.Date
+	DocumentNumber string
+	CreatedAt      time.Time
+}
+
 type SystemOutbox struct {
 	ID          string
 	Subject     string
@@ -57,4 +95,41 @@ type SystemSiteSetting struct {
 	Code          json.RawMessage
 	UpdatedAt     time.Time
 	UpdatedBy     *string
+}
+
+type SystemApiKey struct {
+	ID         string
+	Name       string
+	KeyPrefix  string
+	KeyHash    string
+	Scopes     []string
+	RateLimit  int32
+	LastUsedAt *time.Time
+	ExpiresAt  *time.Time
+	CreatedBy  string
+	CreatedAt  time.Time
+	RevokedAt  *time.Time
+}
+
+type SystemBackupRecord struct {
+	ID           string
+	Kind         string
+	FileName     string
+	FileSize     int64
+	Checksum     string
+	Status       string
+	ErrorMessage *string
+	CreatedBy    string
+	CreatedAt    time.Time
+	VerifiedAt   *time.Time
+	Details      json.RawMessage
+}
+
+type SystemDebugToggle struct {
+	ID        string
+	Service   string
+	LogLevel  string
+	EnabledBy string
+	EnabledAt time.Time
+	ExpiresAt time.Time
 }

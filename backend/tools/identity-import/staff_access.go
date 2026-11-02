@@ -54,7 +54,7 @@ func copyStaffAccess(ctx context.Context, tx pgx.Tx, report *summary) error {
 		{"roles", `INSERT INTO identity.staff_role(id,name_en,name_ar,is_system,created_at) SELECT id,"nameEn","nameAr","isSystem","createdAt" AT TIME ZONE 'UTC' FROM public."Role" ON CONFLICT(id) DO NOTHING`, &report.RolesInserted},
 		{"permissions", `INSERT INTO identity.staff_permission(id,role_id,resource,action,allowed,created_at) SELECT id,role,resource,action,allowed,"createdAt" AT TIME ZONE 'UTC' FROM public."Permission" ON CONFLICT(id) DO NOTHING`, &report.PermissionsInserted},
 		{"scopes", `INSERT INTO identity.staff_role_scope(role_id,area,scope) SELECT role,area,scope FROM public."RoleDataScope" ON CONFLICT(role_id,area) DO NOTHING`, &report.ScopesInserted},
-		{"overrides", `INSERT INTO identity.staff_access(realm,subject_id,permission_overrides,updated_at) SELECT 'staff',id,COALESCE(permissions,'{}'::jsonb),"updatedAt" AT TIME ZONE 'UTC' FROM public."User" ON CONFLICT(realm,subject_id) DO NOTHING`, &report.AccessInserted},
+		{"overrides", `INSERT INTO identity.staff_access(realm,subject_id,display_name,permission_overrides,updated_at) SELECT 'staff',id,"fullName",COALESCE(permissions,'{}'::jsonb),"updatedAt" AT TIME ZONE 'UTC' FROM public."User" ON CONFLICT(realm,subject_id) DO NOTHING`, &report.AccessInserted},
 	}
 	for _, copy := range copies {
 		tag, err := tx.Exec(ctx, copy.query)

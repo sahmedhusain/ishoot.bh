@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/finance.invoice.issued.v1.json",
+  "title": "finance.invoice.issued",
+  "description": "An invoice was issued.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "invoiceId",
+    "status"
+  ],
+  "properties": {
+    "invoiceId": { "type": "string" },
+    "status": { "type": "string" }
+  }
+}

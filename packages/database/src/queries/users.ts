@@ -5,6 +5,8 @@ import { phoneSearchVariants } from "../constants/phone";
 import { db } from "../db";
 import { Profile, UserRole } from "../types";
 import bcrypt from "bcryptjs";
+import { randomUUID } from "node:crypto";
+import { withAccountSync, setStaffPassword } from "../services/identity-sync";
 
 export const PASSWORD_HASH_ROUNDS = 10;
 
@@ -84,29 +86,35 @@ export async function createUser(data: {
   signature_url?: string;
   manager_id?: string;
 }): Promise<Profile> {
-  data = await normalizeContactInput(data);
-  if (!isValidEmail(data.email))
-    throw new Error(serverMessages.invalidUserEmail);
-  if (data.manager_id) await validateManager(data.manager_id);
-  const passwordHash = await bcrypt.hash(data.password, PASSWORD_HASH_ROUNDS);
-  const created = await db.user.create({
-    data: {
-      fullName: data.full_name,
-      email: data.email.trim().toLowerCase(),
-      passwordHash,
-      role: data.role,
-      phone: data.phone || null,
-      department: data.department || null,
-      departmentId: data.department_id || null,
-      signatureUrl: data.signature_url || null,
-      managerId: data.manager_id || null,
-      isActive: true,
-    },
-    include: {
-      manager: { select: { fullName: true } },
-    },
+  return withAccountSync(db, async () => {
+    data = await normalizeContactInput(data);
+    if (!isValidEmail(data.email))
+      throw new Error(serverMessages.invalidUserEmail);
+    if (data.manager_id) await validateManager(data.manager_id);
+    const passwordHash = await bcrypt.hash(data.password, PASSWORD_HASH_ROUNDS);
+    const id = randomUUID();
+    const email = data.email.trim().toLowerCase();
+    await setStaffPassword(id, data.password, { email, role: data.role });
+    const created = await db.user.create({
+      data: {
+        id,
+        fullName: data.full_name,
+        email,
+        passwordHash,
+        role: data.role,
+        phone: data.phone || null,
+        department: data.department || null,
+        departmentId: data.department_id || null,
+        signatureUrl: data.signature_url || null,
+        managerId: data.manager_id || null,
+        isActive: true,
+      },
+      include: {
+        manager: { select: { fullName: true } },
+      },
+    });
+    return mapUser(created);
   });
-  return mapUser(created);
 }
 
 export async function updateUser(
@@ -159,6 +167,7 @@ export async function updateUser(
       );
     }
 
+    if (data.password) await setStaffPassword(id, data.password);
     const updated = await db.user.update({
       where: { id },
       data: updateData,

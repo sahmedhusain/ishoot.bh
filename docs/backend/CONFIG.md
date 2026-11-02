@@ -55,6 +55,171 @@ the environment. A service refuses to start when a value is missing or fails its
 | `AUDIT_DEFAULT_PAGE_SIZE` | `50` | `gt=0,ltefield=MaxPageSize` |
 | `AUDIT_MAX_PAGE_SIZE` | `200` | `gt=0,lte=1000` |
 
+## cms
+
+| Variable | Default | Rules |
+| --- | --- | --- |
+| `APP_ENV` | `development` | `oneof=development test staging production` |
+| `SERVICE_NAME` |  | `required` |
+| `SERVICE_VERSION` | `dev` |  |
+| `LOG_LEVEL` | `info` | `oneof=debug info warn error` |
+| `LOG_FORMAT` | `json` | `oneof=json text` |
+| `HTTP_ADDR` | `:8080` | `required` |
+| `HTTP_READ_HEADER_TIMEOUT` | `5s` | `gt=0` |
+| `HTTP_READ_TIMEOUT` | `30s` | `gt=0` |
+| `HTTP_WRITE_TIMEOUT` | `30s` | `gt=0` |
+| `HTTP_IDLE_TIMEOUT` | `120s` | `gt=0` |
+| `HTTP_SHUTDOWN_TIMEOUT` | `20s` | `gt=0` |
+| `HTTP_REQUEST_TIMEOUT` | `25s` | `gt=0` |
+| `HTTP_BODY_LIMIT` | `1M` | `required` |
+| `HTTP_CORS_ORIGINS` |  |  |
+| `HTTP_TRUSTED_PROXIES` |  | `dive,cidr` |
+| `ADMIN_ADDR` | `:9090` | `required` |
+| `ADMIN_ENABLE_PPROF` | `false` |  |
+| `ADMIN_READINESS_TIMEOUT` | `2s` | `gt=0` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` |  |  |
+| `OTEL_EXPORTER_OTLP_INSECURE` | `false` |  |
+| `OTEL_TRACES_SAMPLER_RATIO` | `1` | `gte=0,lte=1` |
+| `DATABASE_URL` |  | `required` |
+| `DATABASE_DIRECT_URL` |  |  |
+| `DATABASE_MAX_CONNS` | `10` | `gt=0` |
+| `DATABASE_MIN_CONNS` | `0` | `gte=0` |
+| `DATABASE_MAX_CONN_LIFETIME` | `30m` | `gt=0` |
+| `DATABASE_MAX_CONN_IDLE_TIME` | `5m` | `gt=0` |
+| `DATABASE_HEALTH_CHECK_PERIOD` | `30s` | `gt=0` |
+| `DATABASE_STATEMENT_TIMEOUT` | `15s` | `gt=0` |
+| `DATABASE_LOG_QUERIES` | `false` |  |
+| `AUTH_ISSUER` |  |  |
+| `AUTH_JWKS_URL` |  | `omitempty,url` |
+| `AUTH_JWKS_TTL` | `10m` | `gt=0` |
+| `AUTH_JWKS_MIN_REFRESH` | `30s` | `gt=0` |
+| `AUTH_JWKS_FETCH_TIMEOUT` | `5s` | `gt=0` |
+| `AUTH_CLOCK_SKEW` | `30s` | `gte=0` |
+| `AUTH_SERVICE_KEYS_FILE` |  | `omitempty,file` |
+| `CMS_READERS` | `admin,web,it` | `min=1,dive,required` |
+| `CMS_WRITERS` | `admin` | `min=1,dive,required` |
+| `NATS_URL` |  |  |
+| `NATS_STREAM` | `EVENTS` | `required` |
+| `NATS_SUBJECTS` | `files.>,identity.>,system.>,audit.>,notify.>,itsm.>,cms.>,sales.>,finance.>,workflow.>,hr.>,inventory.>,commerce.>,delivery.>` | `min=1,dive,required` |
+| `NATS_REPLICAS` | `1` | `gte=1,lte=5` |
+| `NATS_MAX_AGE` | `168h` | `gt=0` |
+| `NATS_DUPLICATE_WINDOW` | `2h` | `gt=0` |
+| `NATS_PUBLISH_TIMEOUT` | `5s` | `gt=0` |
+| `NATS_CREDENTIALS_FILE` |  |  |
+| `OUTBOX_INTERVAL` | `1s` | `gt=0` |
+| `OUTBOX_BATCH` | `100` | `gt=0,lte=1000` |
+| `OUTBOX_RETENTION` | `168h` | `gte=0` |
+
+## commerce
+
+| Variable | Default | Rules |
+| --- | --- | --- |
+| `APP_ENV` | `development` | `oneof=development test staging production` |
+| `SERVICE_NAME` |  | `required` |
+| `SERVICE_VERSION` | `dev` |  |
+| `LOG_LEVEL` | `info` | `oneof=debug info warn error` |
+| `LOG_FORMAT` | `json` | `oneof=json text` |
+| `HTTP_ADDR` | `:8080` | `required` |
+| `HTTP_READ_HEADER_TIMEOUT` | `5s` | `gt=0` |
+| `HTTP_READ_TIMEOUT` | `30s` | `gt=0` |
+| `HTTP_WRITE_TIMEOUT` | `30s` | `gt=0` |
+| `HTTP_IDLE_TIMEOUT` | `120s` | `gt=0` |
+| `HTTP_SHUTDOWN_TIMEOUT` | `20s` | `gt=0` |
+| `HTTP_REQUEST_TIMEOUT` | `25s` | `gt=0` |
+| `HTTP_BODY_LIMIT` | `1M` | `required` |
+| `HTTP_CORS_ORIGINS` |  |  |
+| `HTTP_TRUSTED_PROXIES` |  | `dive,cidr` |
+| `ADMIN_ADDR` | `:9090` | `required` |
+| `ADMIN_ENABLE_PPROF` | `false` |  |
+| `ADMIN_READINESS_TIMEOUT` | `2s` | `gt=0` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` |  |  |
+| `OTEL_EXPORTER_OTLP_INSECURE` | `false` |  |
+| `OTEL_TRACES_SAMPLER_RATIO` | `1` | `gte=0,lte=1` |
+| `DATABASE_URL` |  | `required` |
+| `DATABASE_DIRECT_URL` |  |  |
+| `DATABASE_MAX_CONNS` | `10` | `gt=0` |
+| `DATABASE_MIN_CONNS` | `0` | `gte=0` |
+| `DATABASE_MAX_CONN_LIFETIME` | `30m` | `gt=0` |
+| `DATABASE_MAX_CONN_IDLE_TIME` | `5m` | `gt=0` |
+| `DATABASE_HEALTH_CHECK_PERIOD` | `30s` | `gt=0` |
+| `DATABASE_STATEMENT_TIMEOUT` | `15s` | `gt=0` |
+| `DATABASE_LOG_QUERIES` | `false` |  |
+| `AUTH_ISSUER` |  |  |
+| `AUTH_JWKS_URL` |  | `omitempty,url` |
+| `AUTH_JWKS_TTL` | `10m` | `gt=0` |
+| `AUTH_JWKS_MIN_REFRESH` | `30s` | `gt=0` |
+| `AUTH_JWKS_FETCH_TIMEOUT` | `5s` | `gt=0` |
+| `AUTH_CLOCK_SKEW` | `30s` | `gte=0` |
+| `AUTH_SERVICE_KEYS_FILE` |  | `omitempty,file` |
+| `COMMERCE_READERS` | `admin,it,web,delivery,finance` | `min=1,dive,required` |
+| `COMMERCE_WRITERS` | `admin,web` | `min=1,dive,required` |
+| `NATS_URL` |  |  |
+| `NATS_STREAM` | `EVENTS` | `required` |
+| `NATS_SUBJECTS` | `files.>,identity.>,system.>,audit.>,notify.>,itsm.>,cms.>,sales.>,finance.>,workflow.>,hr.>,inventory.>,commerce.>,delivery.>` | `min=1,dive,required` |
+| `NATS_REPLICAS` | `1` | `gte=1,lte=5` |
+| `NATS_MAX_AGE` | `168h` | `gt=0` |
+| `NATS_DUPLICATE_WINDOW` | `2h` | `gt=0` |
+| `NATS_PUBLISH_TIMEOUT` | `5s` | `gt=0` |
+| `NATS_CREDENTIALS_FILE` |  |  |
+| `OUTBOX_INTERVAL` | `1s` | `gt=0` |
+| `OUTBOX_BATCH` | `100` | `gt=0,lte=1000` |
+| `OUTBOX_RETENTION` | `168h` | `gte=0` |
+
+## delivery
+
+| Variable | Default | Rules |
+| --- | --- | --- |
+| `APP_ENV` | `development` | `oneof=development test staging production` |
+| `SERVICE_NAME` |  | `required` |
+| `SERVICE_VERSION` | `dev` |  |
+| `LOG_LEVEL` | `info` | `oneof=debug info warn error` |
+| `LOG_FORMAT` | `json` | `oneof=json text` |
+| `HTTP_ADDR` | `:8080` | `required` |
+| `HTTP_READ_HEADER_TIMEOUT` | `5s` | `gt=0` |
+| `HTTP_READ_TIMEOUT` | `30s` | `gt=0` |
+| `HTTP_WRITE_TIMEOUT` | `30s` | `gt=0` |
+| `HTTP_IDLE_TIMEOUT` | `120s` | `gt=0` |
+| `HTTP_SHUTDOWN_TIMEOUT` | `20s` | `gt=0` |
+| `HTTP_REQUEST_TIMEOUT` | `25s` | `gt=0` |
+| `HTTP_BODY_LIMIT` | `1M` | `required` |
+| `HTTP_CORS_ORIGINS` |  |  |
+| `HTTP_TRUSTED_PROXIES` |  | `dive,cidr` |
+| `ADMIN_ADDR` | `:9090` | `required` |
+| `ADMIN_ENABLE_PPROF` | `false` |  |
+| `ADMIN_READINESS_TIMEOUT` | `2s` | `gt=0` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` |  |  |
+| `OTEL_EXPORTER_OTLP_INSECURE` | `false` |  |
+| `OTEL_TRACES_SAMPLER_RATIO` | `1` | `gte=0,lte=1` |
+| `DATABASE_URL` |  | `required` |
+| `DATABASE_DIRECT_URL` |  |  |
+| `DATABASE_MAX_CONNS` | `10` | `gt=0` |
+| `DATABASE_MIN_CONNS` | `0` | `gte=0` |
+| `DATABASE_MAX_CONN_LIFETIME` | `30m` | `gt=0` |
+| `DATABASE_MAX_CONN_IDLE_TIME` | `5m` | `gt=0` |
+| `DATABASE_HEALTH_CHECK_PERIOD` | `30s` | `gt=0` |
+| `DATABASE_STATEMENT_TIMEOUT` | `15s` | `gt=0` |
+| `DATABASE_LOG_QUERIES` | `false` |  |
+| `AUTH_ISSUER` |  |  |
+| `AUTH_JWKS_URL` |  | `omitempty,url` |
+| `AUTH_JWKS_TTL` | `10m` | `gt=0` |
+| `AUTH_JWKS_MIN_REFRESH` | `30s` | `gt=0` |
+| `AUTH_JWKS_FETCH_TIMEOUT` | `5s` | `gt=0` |
+| `AUTH_CLOCK_SKEW` | `30s` | `gte=0` |
+| `AUTH_SERVICE_KEYS_FILE` |  | `omitempty,file` |
+| `DELIVERY_READERS` | `admin,it,web,commerce` | `min=1,dive,required` |
+| `DELIVERY_WRITERS` | `admin,commerce` | `min=1,dive,required` |
+| `NATS_URL` |  |  |
+| `NATS_STREAM` | `EVENTS` | `required` |
+| `NATS_SUBJECTS` | `files.>,identity.>,system.>,audit.>,notify.>,itsm.>,cms.>,sales.>,finance.>,workflow.>,hr.>,inventory.>,commerce.>,delivery.>` | `min=1,dive,required` |
+| `NATS_REPLICAS` | `1` | `gte=1,lte=5` |
+| `NATS_MAX_AGE` | `168h` | `gt=0` |
+| `NATS_DUPLICATE_WINDOW` | `2h` | `gt=0` |
+| `NATS_PUBLISH_TIMEOUT` | `5s` | `gt=0` |
+| `NATS_CREDENTIALS_FILE` |  |  |
+| `OUTBOX_INTERVAL` | `1s` | `gt=0` |
+| `OUTBOX_BATCH` | `100` | `gt=0,lte=1000` |
+| `OUTBOX_RETENTION` | `168h` | `gte=0` |
+
 ## files
 
 | Variable | Default | Rules |
@@ -116,6 +281,61 @@ the environment. A service refuses to start when a value is missing or fails its
 | `FILES_IMPORT_MAX_SIZE` | `5242880` | `gt=0` |
 | `FILES_IMPORT_ALLOW_PRIVATE` | `false` |  |
 
+## finance
+
+| Variable | Default | Rules |
+| --- | --- | --- |
+| `APP_ENV` | `development` | `oneof=development test staging production` |
+| `SERVICE_NAME` |  | `required` |
+| `SERVICE_VERSION` | `dev` |  |
+| `LOG_LEVEL` | `info` | `oneof=debug info warn error` |
+| `LOG_FORMAT` | `json` | `oneof=json text` |
+| `HTTP_ADDR` | `:8080` | `required` |
+| `HTTP_READ_HEADER_TIMEOUT` | `5s` | `gt=0` |
+| `HTTP_READ_TIMEOUT` | `30s` | `gt=0` |
+| `HTTP_WRITE_TIMEOUT` | `30s` | `gt=0` |
+| `HTTP_IDLE_TIMEOUT` | `120s` | `gt=0` |
+| `HTTP_SHUTDOWN_TIMEOUT` | `20s` | `gt=0` |
+| `HTTP_REQUEST_TIMEOUT` | `25s` | `gt=0` |
+| `HTTP_BODY_LIMIT` | `1M` | `required` |
+| `HTTP_CORS_ORIGINS` |  |  |
+| `HTTP_TRUSTED_PROXIES` |  | `dive,cidr` |
+| `ADMIN_ADDR` | `:9090` | `required` |
+| `ADMIN_ENABLE_PPROF` | `false` |  |
+| `ADMIN_READINESS_TIMEOUT` | `2s` | `gt=0` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` |  |  |
+| `OTEL_EXPORTER_OTLP_INSECURE` | `false` |  |
+| `OTEL_TRACES_SAMPLER_RATIO` | `1` | `gte=0,lte=1` |
+| `DATABASE_URL` |  | `required` |
+| `DATABASE_DIRECT_URL` |  |  |
+| `DATABASE_MAX_CONNS` | `10` | `gt=0` |
+| `DATABASE_MIN_CONNS` | `0` | `gte=0` |
+| `DATABASE_MAX_CONN_LIFETIME` | `30m` | `gt=0` |
+| `DATABASE_MAX_CONN_IDLE_TIME` | `5m` | `gt=0` |
+| `DATABASE_HEALTH_CHECK_PERIOD` | `30s` | `gt=0` |
+| `DATABASE_STATEMENT_TIMEOUT` | `15s` | `gt=0` |
+| `DATABASE_LOG_QUERIES` | `false` |  |
+| `AUTH_ISSUER` |  |  |
+| `AUTH_JWKS_URL` |  | `omitempty,url` |
+| `AUTH_JWKS_TTL` | `10m` | `gt=0` |
+| `AUTH_JWKS_MIN_REFRESH` | `30s` | `gt=0` |
+| `AUTH_JWKS_FETCH_TIMEOUT` | `5s` | `gt=0` |
+| `AUTH_CLOCK_SKEW` | `30s` | `gte=0` |
+| `AUTH_SERVICE_KEYS_FILE` |  | `omitempty,file` |
+| `FINANCE_READERS` | `admin,it,sales,workflow,commerce` | `min=1,dive,required` |
+| `FINANCE_WRITERS` | `admin,commerce` | `min=1,dive,required` |
+| `NATS_URL` |  |  |
+| `NATS_STREAM` | `EVENTS` | `required` |
+| `NATS_SUBJECTS` | `files.>,identity.>,system.>,audit.>,notify.>,itsm.>,cms.>,sales.>,finance.>,workflow.>,hr.>,inventory.>,commerce.>,delivery.>` | `min=1,dive,required` |
+| `NATS_REPLICAS` | `1` | `gte=1,lte=5` |
+| `NATS_MAX_AGE` | `168h` | `gt=0` |
+| `NATS_DUPLICATE_WINDOW` | `2h` | `gt=0` |
+| `NATS_PUBLISH_TIMEOUT` | `5s` | `gt=0` |
+| `NATS_CREDENTIALS_FILE` |  |  |
+| `OUTBOX_INTERVAL` | `1s` | `gt=0` |
+| `OUTBOX_BATCH` | `100` | `gt=0,lte=1000` |
+| `OUTBOX_RETENTION` | `168h` | `gte=0` |
+
 ## gateway
 
 | Variable | Default | Rules |
@@ -159,6 +379,61 @@ the environment. A service refuses to start when a value is missing or fails its
 | `AUTH_JWKS_FETCH_TIMEOUT` | `5s` | `gt=0` |
 | `AUTH_CLOCK_SKEW` | `30s` | `gte=0` |
 | `AUTH_SERVICE_KEYS_FILE` |  | `omitempty,file` |
+
+## hr
+
+| Variable | Default | Rules |
+| --- | --- | --- |
+| `APP_ENV` | `development` | `oneof=development test staging production` |
+| `SERVICE_NAME` |  | `required` |
+| `SERVICE_VERSION` | `dev` |  |
+| `LOG_LEVEL` | `info` | `oneof=debug info warn error` |
+| `LOG_FORMAT` | `json` | `oneof=json text` |
+| `HTTP_ADDR` | `:8080` | `required` |
+| `HTTP_READ_HEADER_TIMEOUT` | `5s` | `gt=0` |
+| `HTTP_READ_TIMEOUT` | `30s` | `gt=0` |
+| `HTTP_WRITE_TIMEOUT` | `30s` | `gt=0` |
+| `HTTP_IDLE_TIMEOUT` | `120s` | `gt=0` |
+| `HTTP_SHUTDOWN_TIMEOUT` | `20s` | `gt=0` |
+| `HTTP_REQUEST_TIMEOUT` | `25s` | `gt=0` |
+| `HTTP_BODY_LIMIT` | `1M` | `required` |
+| `HTTP_CORS_ORIGINS` |  |  |
+| `HTTP_TRUSTED_PROXIES` |  | `dive,cidr` |
+| `ADMIN_ADDR` | `:9090` | `required` |
+| `ADMIN_ENABLE_PPROF` | `false` |  |
+| `ADMIN_READINESS_TIMEOUT` | `2s` | `gt=0` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` |  |  |
+| `OTEL_EXPORTER_OTLP_INSECURE` | `false` |  |
+| `OTEL_TRACES_SAMPLER_RATIO` | `1` | `gte=0,lte=1` |
+| `DATABASE_URL` |  | `required` |
+| `DATABASE_DIRECT_URL` |  |  |
+| `DATABASE_MAX_CONNS` | `10` | `gt=0` |
+| `DATABASE_MIN_CONNS` | `0` | `gte=0` |
+| `DATABASE_MAX_CONN_LIFETIME` | `30m` | `gt=0` |
+| `DATABASE_MAX_CONN_IDLE_TIME` | `5m` | `gt=0` |
+| `DATABASE_HEALTH_CHECK_PERIOD` | `30s` | `gt=0` |
+| `DATABASE_STATEMENT_TIMEOUT` | `15s` | `gt=0` |
+| `DATABASE_LOG_QUERIES` | `false` |  |
+| `AUTH_ISSUER` |  |  |
+| `AUTH_JWKS_URL` |  | `omitempty,url` |
+| `AUTH_JWKS_TTL` | `10m` | `gt=0` |
+| `AUTH_JWKS_MIN_REFRESH` | `30s` | `gt=0` |
+| `AUTH_JWKS_FETCH_TIMEOUT` | `5s` | `gt=0` |
+| `AUTH_CLOCK_SKEW` | `30s` | `gte=0` |
+| `AUTH_SERVICE_KEYS_FILE` |  | `omitempty,file` |
+| `HR_READERS` | `admin,it,finance,workflow` | `min=1,dive,required` |
+| `HR_WRITERS` | `admin` | `min=1,dive,required` |
+| `NATS_URL` |  |  |
+| `NATS_STREAM` | `EVENTS` | `required` |
+| `NATS_SUBJECTS` | `files.>,identity.>,system.>,audit.>,notify.>,itsm.>,cms.>,sales.>,finance.>,workflow.>,hr.>,inventory.>,commerce.>,delivery.>` | `min=1,dive,required` |
+| `NATS_REPLICAS` | `1` | `gte=1,lte=5` |
+| `NATS_MAX_AGE` | `168h` | `gt=0` |
+| `NATS_DUPLICATE_WINDOW` | `2h` | `gt=0` |
+| `NATS_PUBLISH_TIMEOUT` | `5s` | `gt=0` |
+| `NATS_CREDENTIALS_FILE` |  |  |
+| `OUTBOX_INTERVAL` | `1s` | `gt=0` |
+| `OUTBOX_BATCH` | `100` | `gt=0,lte=1000` |
+| `OUTBOX_RETENTION` | `168h` | `gte=0` |
 
 ## identity
 
@@ -210,6 +485,7 @@ the environment. A service refuses to start when a value is missing or fails its
 | `IDENTITY_CLEANUP_BATCH` | `100` | `gt=0` |
 | `IDENTITY_CLEANUP_WORKERS` | `1` | `gt=0` |
 | `IDENTITY_JSON_BODY_LIMIT` | `65536` | `gt=0` |
+| `IDENTITY_LOGIN_CUSTOMER_WEB_URL` | `http://localhost:3000` | `http_url` |
 | `IDENTITY_LOGIN_ENABLED` | `false` |  |
 | `IDENTITY_LOGIN_REDIS_URL` |  | `omitempty,url` |
 | `IDENTITY_LOGIN_RATE_KEY` |  |  |
@@ -235,11 +511,71 @@ the environment. A service refuses to start when a value is missing or fails its
 | `IDENTITY_LOGIN_TOTP_WINDOW` | `1` |  |
 | `IDENTITY_LOGIN_MFA_ISSUER` | `Platform IT` | `required,max=100` |
 | `IDENTITY_LOGIN_IT_PASSWORD_MIN_LENGTH` | `14` | `gte=12,lte=128` |
+| `IDENTITY_LOGIN_PASSWORD_MIN_LENGTH` | `12` | `gte=8,lte=128` |
+| `IDENTITY_LOGIN_PASSWORD_RESET_TTL` | `15m` | `gte=1m,lte=24h` |
+| `IDENTITY_PROJECTION_ADMIN_URL` | `http://host.docker.internal:3001` | `http_url` |
+| `IDENTITY_PROJECTION_WEB_URL` | `http://host.docker.internal:3000` | `http_url` |
+| `IDENTITY_PROJECTION_INTERVAL` | `5s` | `gte=1s` |
 | `IDENTITY_SERVICE_KEY` |  |  |
 | `IDENTITY_SYSTEM_URL` | `http://system:8080` | `url` |
-| `IDENTITY_CALLERS_STAFF` | `admin` | `min=1,dive,required` |
+| `IDENTITY_CALLERS_STAFF` | `admin,it` | `min=1,dive,required` |
 | `IDENTITY_CALLERS_CUSTOMER` | `web` | `min=1,dive,required` |
 | `IDENTITY_CALLERS_IT` | `it` | `min=1,dive,required` |
+| `NATS_URL` |  |  |
+| `NATS_STREAM` | `EVENTS` | `required` |
+| `NATS_SUBJECTS` | `files.>,identity.>,system.>,audit.>,notify.>,itsm.>,cms.>,sales.>,finance.>,workflow.>,hr.>,inventory.>,commerce.>,delivery.>` | `min=1,dive,required` |
+| `NATS_REPLICAS` | `1` | `gte=1,lte=5` |
+| `NATS_MAX_AGE` | `168h` | `gt=0` |
+| `NATS_DUPLICATE_WINDOW` | `2h` | `gt=0` |
+| `NATS_PUBLISH_TIMEOUT` | `5s` | `gt=0` |
+| `NATS_CREDENTIALS_FILE` |  |  |
+| `OUTBOX_INTERVAL` | `1s` | `gt=0` |
+| `OUTBOX_BATCH` | `100` | `gt=0,lte=1000` |
+| `OUTBOX_RETENTION` | `168h` | `gte=0` |
+
+## inventory
+
+| Variable | Default | Rules |
+| --- | --- | --- |
+| `APP_ENV` | `development` | `oneof=development test staging production` |
+| `SERVICE_NAME` |  | `required` |
+| `SERVICE_VERSION` | `dev` |  |
+| `LOG_LEVEL` | `info` | `oneof=debug info warn error` |
+| `LOG_FORMAT` | `json` | `oneof=json text` |
+| `HTTP_ADDR` | `:8080` | `required` |
+| `HTTP_READ_HEADER_TIMEOUT` | `5s` | `gt=0` |
+| `HTTP_READ_TIMEOUT` | `30s` | `gt=0` |
+| `HTTP_WRITE_TIMEOUT` | `30s` | `gt=0` |
+| `HTTP_IDLE_TIMEOUT` | `120s` | `gt=0` |
+| `HTTP_SHUTDOWN_TIMEOUT` | `20s` | `gt=0` |
+| `HTTP_REQUEST_TIMEOUT` | `25s` | `gt=0` |
+| `HTTP_BODY_LIMIT` | `1M` | `required` |
+| `HTTP_CORS_ORIGINS` |  |  |
+| `HTTP_TRUSTED_PROXIES` |  | `dive,cidr` |
+| `ADMIN_ADDR` | `:9090` | `required` |
+| `ADMIN_ENABLE_PPROF` | `false` |  |
+| `ADMIN_READINESS_TIMEOUT` | `2s` | `gt=0` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` |  |  |
+| `OTEL_EXPORTER_OTLP_INSECURE` | `false` |  |
+| `OTEL_TRACES_SAMPLER_RATIO` | `1` | `gte=0,lte=1` |
+| `DATABASE_URL` |  | `required` |
+| `DATABASE_DIRECT_URL` |  |  |
+| `DATABASE_MAX_CONNS` | `10` | `gt=0` |
+| `DATABASE_MIN_CONNS` | `0` | `gte=0` |
+| `DATABASE_MAX_CONN_LIFETIME` | `30m` | `gt=0` |
+| `DATABASE_MAX_CONN_IDLE_TIME` | `5m` | `gt=0` |
+| `DATABASE_HEALTH_CHECK_PERIOD` | `30s` | `gt=0` |
+| `DATABASE_STATEMENT_TIMEOUT` | `15s` | `gt=0` |
+| `DATABASE_LOG_QUERIES` | `false` |  |
+| `AUTH_ISSUER` |  |  |
+| `AUTH_JWKS_URL` |  | `omitempty,url` |
+| `AUTH_JWKS_TTL` | `10m` | `gt=0` |
+| `AUTH_JWKS_MIN_REFRESH` | `30s` | `gt=0` |
+| `AUTH_JWKS_FETCH_TIMEOUT` | `5s` | `gt=0` |
+| `AUTH_CLOCK_SKEW` | `30s` | `gte=0` |
+| `AUTH_SERVICE_KEYS_FILE` |  | `omitempty,file` |
+| `INVENTORY_READERS` | `admin,it,commerce,delivery` | `min=1,dive,required` |
+| `INVENTORY_WRITERS` | `admin,commerce` | `min=1,dive,required` |
 | `NATS_URL` |  |  |
 | `NATS_STREAM` | `EVENTS` | `required` |
 | `NATS_SUBJECTS` | `files.>,identity.>,system.>,audit.>,notify.>,itsm.>,cms.>,sales.>,finance.>,workflow.>,hr.>,inventory.>,commerce.>,delivery.>` | `min=1,dive,required` |
@@ -293,15 +629,32 @@ the environment. A service refuses to start when a value is missing or fails its
 | `AUTH_JWKS_FETCH_TIMEOUT` | `5s` | `gt=0` |
 | `AUTH_CLOCK_SKEW` | `30s` | `gte=0` |
 | `AUTH_SERVICE_KEYS_FILE` |  | `omitempty,file` |
+| `NATS_URL` |  |  |
+| `NATS_STREAM` | `EVENTS` | `required` |
+| `NATS_SUBJECTS` | `files.>,identity.>,system.>,audit.>,notify.>,itsm.>,cms.>,sales.>,finance.>,workflow.>,hr.>,inventory.>,commerce.>,delivery.>` | `min=1,dive,required` |
+| `NATS_REPLICAS` | `1` | `gte=1,lte=5` |
+| `NATS_MAX_AGE` | `168h` | `gt=0` |
+| `NATS_DUPLICATE_WINDOW` | `2h` | `gt=0` |
+| `NATS_PUBLISH_TIMEOUT` | `5s` | `gt=0` |
+| `NATS_CREDENTIALS_FILE` |  |  |
+| `OUTBOX_INTERVAL` | `1s` | `gt=0` |
+| `OUTBOX_BATCH` | `100` | `gt=0,lte=1000` |
+| `OUTBOX_RETENTION` | `168h` | `gte=0` |
 | `ITSM_REQUEST_CALLERS` | `admin` | `min=1,dive,required` |
 | `ITSM_IT_DISPLAY_NAME` | `IT Support` | `required,max=200` |
 | `ITSM_MAX_ATTACHMENTS` | `10` | `gte=0,lte=50` |
+| `ITSM_MAX_ATTACHMENT_SIZE` | `10485760` | `gt=0` |
 | `ITSM_DEFAULT_PAGE_SIZE` | `25` | `gt=0,ltefield=MaxPageSize` |
 | `ITSM_MAX_PAGE_SIZE` | `100` | `gt=0,lte=500` |
 | `ITSM_JSON_BODY_LIMIT` | `65536` | `gt=0` |
 | `ITSM_BREACH_INTERVAL` | `1m` | `gt=0` |
 | `ITSM_BREACH_BATCH` | `200` | `gt=0` |
+| `ITSM_REMINDER_INTERVAL` | `5m` | `gt=0` |
+| `ITSM_REMINDER_WINDOW` | `1h` | `gt=0` |
+| `ITSM_REMINDER_BATCH` | `200` | `gt=0` |
 | `ITSM_WORKERS` | `1` | `gt=0` |
+| `ITSM_NOTIFY_URL` | `http://notify:8080` |  |
+| `ITSM_SERVICE_KEY` |  |  |
 
 ## notify
 
@@ -447,6 +800,61 @@ the environment. A service refuses to start when a value is missing or fails its
 | `REALTIME_MAX_PRESENCE_IDS` | `200` | `gt=0,lte=1000` |
 | `REALTIME_MAX_SYNC_WINDOWS` | `5000` | `gt=0` |
 
+## sales
+
+| Variable | Default | Rules |
+| --- | --- | --- |
+| `APP_ENV` | `development` | `oneof=development test staging production` |
+| `SERVICE_NAME` |  | `required` |
+| `SERVICE_VERSION` | `dev` |  |
+| `LOG_LEVEL` | `info` | `oneof=debug info warn error` |
+| `LOG_FORMAT` | `json` | `oneof=json text` |
+| `HTTP_ADDR` | `:8080` | `required` |
+| `HTTP_READ_HEADER_TIMEOUT` | `5s` | `gt=0` |
+| `HTTP_READ_TIMEOUT` | `30s` | `gt=0` |
+| `HTTP_WRITE_TIMEOUT` | `30s` | `gt=0` |
+| `HTTP_IDLE_TIMEOUT` | `120s` | `gt=0` |
+| `HTTP_SHUTDOWN_TIMEOUT` | `20s` | `gt=0` |
+| `HTTP_REQUEST_TIMEOUT` | `25s` | `gt=0` |
+| `HTTP_BODY_LIMIT` | `1M` | `required` |
+| `HTTP_CORS_ORIGINS` |  |  |
+| `HTTP_TRUSTED_PROXIES` |  | `dive,cidr` |
+| `ADMIN_ADDR` | `:9090` | `required` |
+| `ADMIN_ENABLE_PPROF` | `false` |  |
+| `ADMIN_READINESS_TIMEOUT` | `2s` | `gt=0` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` |  |  |
+| `OTEL_EXPORTER_OTLP_INSECURE` | `false` |  |
+| `OTEL_TRACES_SAMPLER_RATIO` | `1` | `gte=0,lte=1` |
+| `DATABASE_URL` |  | `required` |
+| `DATABASE_DIRECT_URL` |  |  |
+| `DATABASE_MAX_CONNS` | `10` | `gt=0` |
+| `DATABASE_MIN_CONNS` | `0` | `gte=0` |
+| `DATABASE_MAX_CONN_LIFETIME` | `30m` | `gt=0` |
+| `DATABASE_MAX_CONN_IDLE_TIME` | `5m` | `gt=0` |
+| `DATABASE_HEALTH_CHECK_PERIOD` | `30s` | `gt=0` |
+| `DATABASE_STATEMENT_TIMEOUT` | `15s` | `gt=0` |
+| `DATABASE_LOG_QUERIES` | `false` |  |
+| `AUTH_ISSUER` |  |  |
+| `AUTH_JWKS_URL` |  | `omitempty,url` |
+| `AUTH_JWKS_TTL` | `10m` | `gt=0` |
+| `AUTH_JWKS_MIN_REFRESH` | `30s` | `gt=0` |
+| `AUTH_JWKS_FETCH_TIMEOUT` | `5s` | `gt=0` |
+| `AUTH_CLOCK_SKEW` | `30s` | `gte=0` |
+| `AUTH_SERVICE_KEYS_FILE` |  | `omitempty,file` |
+| `SALES_READERS` | `admin,web,it,finance,workflow` | `min=1,dive,required` |
+| `SALES_WRITERS` | `admin` | `min=1,dive,required` |
+| `NATS_URL` |  |  |
+| `NATS_STREAM` | `EVENTS` | `required` |
+| `NATS_SUBJECTS` | `files.>,identity.>,system.>,audit.>,notify.>,itsm.>,cms.>,sales.>,finance.>,workflow.>,hr.>,inventory.>,commerce.>,delivery.>` | `min=1,dive,required` |
+| `NATS_REPLICAS` | `1` | `gte=1,lte=5` |
+| `NATS_MAX_AGE` | `168h` | `gt=0` |
+| `NATS_DUPLICATE_WINDOW` | `2h` | `gt=0` |
+| `NATS_PUBLISH_TIMEOUT` | `5s` | `gt=0` |
+| `NATS_CREDENTIALS_FILE` |  |  |
+| `OUTBOX_INTERVAL` | `1s` | `gt=0` |
+| `OUTBOX_BATCH` | `100` | `gt=0,lte=1000` |
+| `OUTBOX_RETENTION` | `168h` | `gte=0` |
+
 ## system
 
 | Variable | Default | Rules |
@@ -491,6 +899,12 @@ the environment. A service refuses to start when a value is missing or fails its
 | `SECRETS_KEYS` | `primary:MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=` | `min=1,dive,required` |
 | `SECRETS_PRIMARY_KEY_ID` | `primary` | `required` |
 | `SECRETS_LEGACY_INTEGRATION_KEY` |  |  |
+| `SYSTEM_SERVICE_KEY` |  |  |
+| `SYSTEM_FILES_URL` | `http://files:8080` | `http_url` |
+| `SYSTEM_COMPANY_BODY_LIMIT` | `1048576` | `gt=0` |
+| `SYSTEM_COMPANY_READERS` | `admin,web,it,sales,finance,hr,workflow,inventory,commerce,delivery,cms` | `min=1,dive,required` |
+| `SYSTEM_CURRENCY_CALLERS` | `admin,web,sales,finance,workflow,hr,inventory,commerce,delivery` | `min=1,dive,required` |
+| `SYSTEM_SEQUENCE_CALLERS` | `admin,finance` | `min=1,dive,required` |
 | `SYSTEM_READ_CALLERS` | `admin,web,it,notify` | `min=1,dive,required` |
 | `SYSTEM_MODULE_READ_CALLERS` | `identity` | `dive,required` |
 | `SYSTEM_MODULE_WRITERS` | `admin` | `dive,required` |
@@ -498,6 +912,61 @@ the environment. A service refuses to start when a value is missing or fails its
 | `SYSTEM_DOMAIN_WRITERS` | `admin` | `dive,required` |
 | `SYSTEM_JSON_BODY_LIMIT` | `16384` | `gt=0` |
 | `SYSTEM_SITE_CODE_BODY_LIMIT` | `524288` | `gt=0` |
+| `NATS_URL` |  |  |
+| `NATS_STREAM` | `EVENTS` | `required` |
+| `NATS_SUBJECTS` | `files.>,identity.>,system.>,audit.>,notify.>,itsm.>,cms.>,sales.>,finance.>,workflow.>,hr.>,inventory.>,commerce.>,delivery.>` | `min=1,dive,required` |
+| `NATS_REPLICAS` | `1` | `gte=1,lte=5` |
+| `NATS_MAX_AGE` | `168h` | `gt=0` |
+| `NATS_DUPLICATE_WINDOW` | `2h` | `gt=0` |
+| `NATS_PUBLISH_TIMEOUT` | `5s` | `gt=0` |
+| `NATS_CREDENTIALS_FILE` |  |  |
+| `OUTBOX_INTERVAL` | `1s` | `gt=0` |
+| `OUTBOX_BATCH` | `100` | `gt=0,lte=1000` |
+| `OUTBOX_RETENTION` | `168h` | `gte=0` |
+
+## workflow
+
+| Variable | Default | Rules |
+| --- | --- | --- |
+| `APP_ENV` | `development` | `oneof=development test staging production` |
+| `SERVICE_NAME` |  | `required` |
+| `SERVICE_VERSION` | `dev` |  |
+| `LOG_LEVEL` | `info` | `oneof=debug info warn error` |
+| `LOG_FORMAT` | `json` | `oneof=json text` |
+| `HTTP_ADDR` | `:8080` | `required` |
+| `HTTP_READ_HEADER_TIMEOUT` | `5s` | `gt=0` |
+| `HTTP_READ_TIMEOUT` | `30s` | `gt=0` |
+| `HTTP_WRITE_TIMEOUT` | `30s` | `gt=0` |
+| `HTTP_IDLE_TIMEOUT` | `120s` | `gt=0` |
+| `HTTP_SHUTDOWN_TIMEOUT` | `20s` | `gt=0` |
+| `HTTP_REQUEST_TIMEOUT` | `25s` | `gt=0` |
+| `HTTP_BODY_LIMIT` | `1M` | `required` |
+| `HTTP_CORS_ORIGINS` |  |  |
+| `HTTP_TRUSTED_PROXIES` |  | `dive,cidr` |
+| `ADMIN_ADDR` | `:9090` | `required` |
+| `ADMIN_ENABLE_PPROF` | `false` |  |
+| `ADMIN_READINESS_TIMEOUT` | `2s` | `gt=0` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` |  |  |
+| `OTEL_EXPORTER_OTLP_INSECURE` | `false` |  |
+| `OTEL_TRACES_SAMPLER_RATIO` | `1` | `gte=0,lte=1` |
+| `DATABASE_URL` |  | `required` |
+| `DATABASE_DIRECT_URL` |  |  |
+| `DATABASE_MAX_CONNS` | `10` | `gt=0` |
+| `DATABASE_MIN_CONNS` | `0` | `gte=0` |
+| `DATABASE_MAX_CONN_LIFETIME` | `30m` | `gt=0` |
+| `DATABASE_MAX_CONN_IDLE_TIME` | `5m` | `gt=0` |
+| `DATABASE_HEALTH_CHECK_PERIOD` | `30s` | `gt=0` |
+| `DATABASE_STATEMENT_TIMEOUT` | `15s` | `gt=0` |
+| `DATABASE_LOG_QUERIES` | `false` |  |
+| `AUTH_ISSUER` |  |  |
+| `AUTH_JWKS_URL` |  | `omitempty,url` |
+| `AUTH_JWKS_TTL` | `10m` | `gt=0` |
+| `AUTH_JWKS_MIN_REFRESH` | `30s` | `gt=0` |
+| `AUTH_JWKS_FETCH_TIMEOUT` | `5s` | `gt=0` |
+| `AUTH_CLOCK_SKEW` | `30s` | `gte=0` |
+| `AUTH_SERVICE_KEYS_FILE` |  | `omitempty,file` |
+| `WORKFLOW_READERS` | `admin,it,sales,finance,hr` | `min=1,dive,required` |
+| `WORKFLOW_WRITERS` | `admin` | `min=1,dive,required` |
 | `NATS_URL` |  |  |
 | `NATS_STREAM` | `EVENTS` | `required` |
 | `NATS_SUBJECTS` | `files.>,identity.>,system.>,audit.>,notify.>,itsm.>,cms.>,sales.>,finance.>,workflow.>,hr.>,inventory.>,commerce.>,delivery.>` | `min=1,dive,required` |

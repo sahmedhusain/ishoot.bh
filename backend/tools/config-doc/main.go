@@ -13,25 +13,41 @@ import (
 	"strings"
 
 	audit "platform.local/backend/services/audit/settings"
+	cms "platform.local/backend/services/cms/settings"
+	commerce "platform.local/backend/services/commerce/settings"
+	delivery "platform.local/backend/services/delivery/settings"
 	files "platform.local/backend/services/files/settings"
+	finance "platform.local/backend/services/finance/settings"
 	gateway "platform.local/backend/services/gateway/settings"
+	hr "platform.local/backend/services/hr/settings"
 	identity "platform.local/backend/services/identity/settings"
+	inventory "platform.local/backend/services/inventory/settings"
 	itsm "platform.local/backend/services/itsm/settings"
 	notify "platform.local/backend/services/notify/settings"
 	realtime "platform.local/backend/services/realtime/settings"
+	sales "platform.local/backend/services/sales/settings"
 	system "platform.local/backend/services/system/settings"
+	workflow "platform.local/backend/services/workflow/settings"
 )
 
 // services lists each service's Config type. Add a line when a service is added.
 var services = map[string]any{
-	"files":    files.Config{},
-	"gateway":  gateway.Config{},
-	"identity": identity.Config{},
-	"itsm":     itsm.Config{},
-	"system":   system.Config{},
-	"audit":    audit.Config{},
-	"notify":   notify.Config{},
-	"realtime": realtime.Config{},
+	"audit":     audit.Config{},
+	"cms":       cms.Config{},
+	"commerce":  commerce.Config{},
+	"delivery":  delivery.Config{},
+	"files":     files.Config{},
+	"finance":   finance.Config{},
+	"gateway":   gateway.Config{},
+	"hr":        hr.Config{},
+	"identity":  identity.Config{},
+	"inventory": inventory.Config{},
+	"itsm":      itsm.Config{},
+	"notify":    notify.Config{},
+	"realtime":  realtime.Config{},
+	"sales":     sales.Config{},
+	"system":    system.Config{},
+	"workflow":  workflow.Config{},
 }
 
 type variable struct{ name, def, rules string }

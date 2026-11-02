@@ -1,20 +1,32 @@
+import { getPasswordPolicy } from "@platform/api-client";
 import { companyMetadata } from "../../../lib/company-metadata";
 import * as React from "react";
 import { getCompanySettings } from "@platform/database";
 import { adminTranslations } from "../../../lib/translations-bilingual";
 import { ResetPasswordForm } from "../../../components/auth/ResetPasswordForm";
 
-export const generateMetadata = () => companyMetadata(adminTranslations.ar.resetPasswordForm.resetPassword);
+export const generateMetadata = () =>
+  companyMetadata(adminTranslations.ar.resetPasswordForm.resetPassword);
 
 export const dynamic = "force-dynamic";
 
 export default async function ResetPasswordPage() {
-  const company = await getCompanySettings();
+  const [company, policy] = await Promise.all([
+    getCompanySettings(),
+    getPasswordPolicy("staff"),
+  ]);
   return (
-    <React.Suspense fallback={<div aria-busy="true" className="min-h-screen" />}>
+    <React.Suspense
+      fallback={<div aria-busy="true" className="min-h-screen" />}
+    >
       <ResetPasswordForm
+        minLength={policy.minLength}
         companyName={company.company_name_en}
-        logoUrl={company.logo_url} darkLogoUrl={company.dark_logo_url} iconUrl={company.icon_url} darkIconUrl={company.dark_icon_url} />
+        logoUrl={company.logo_url}
+        darkLogoUrl={company.dark_logo_url}
+        iconUrl={company.icon_url}
+        darkIconUrl={company.dark_icon_url}
+      />
     </React.Suspense>
   );
 }

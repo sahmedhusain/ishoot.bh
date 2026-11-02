@@ -35,6 +35,7 @@ type options struct {
 	MaxBcryptCost int
 }
 type summary struct {
+	ProvidersInserted, ResetChallengesInserted, CustomerCodesInserted                                      int64
 	Staff, Customers, RecoveryCodes, Roles, Permissions, Scopes                                            int64
 	AccountsInserted, RecoveryInserted, RolesInserted, PermissionsInserted, ScopesInserted, AccessInserted int64
 }
@@ -83,7 +84,7 @@ func main() {
 		report, err = run(ctx, pool, options{Apply: *apply, Actor: *actor, Keyring: ring, MaxBcryptCost: cfg.Password.MaxBcryptCost})
 		pool.Close()
 		if err == nil {
-			logger.Info("identity import complete", "apply", *apply, "staff", report.Staff, "customers", report.Customers, "recovery_codes", report.RecoveryCodes, "roles", report.Roles, "permissions", report.Permissions, "scopes", report.Scopes, "accounts_inserted", report.AccountsInserted, "recovery_inserted", report.RecoveryInserted, "roles_inserted", report.RolesInserted, "permissions_inserted", report.PermissionsInserted, "scopes_inserted", report.ScopesInserted, "access_inserted", report.AccessInserted)
+			logger.Info("identity import complete", "apply", *apply, "staff", report.Staff, "customers", report.Customers, "recovery_codes", report.RecoveryCodes, "roles", report.Roles, "permissions", report.Permissions, "scopes", report.Scopes, "accounts_inserted", report.AccountsInserted, "recovery_inserted", report.RecoveryInserted, "roles_inserted", report.RolesInserted, "permissions_inserted", report.PermissionsInserted, "scopes_inserted", report.ScopesInserted, "access_inserted", report.AccessInserted, "providers_inserted", report.ProvidersInserted, "reset_challenges_inserted", report.ResetChallengesInserted, "customer_codes_inserted", report.CustomerCodesInserted)
 		}
 	}
 	if err != nil {
@@ -102,8 +103,8 @@ func run(ctx context.Context, pool *pgxpool.Pool, opts options) (summary, error)
 	}
 	err := db.WithTx(ctx, pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
 		// A consistent snapshot is essential. Operators must keep app writes paused through the final cutover.
-		if _, err := tx.Exec(ctx, `LOCK TABLE public."User", public."Customer", public."MfaRecoveryCode", public."Role", public."Permission", public."RoleDataScope" IN SHARE MODE;
-LOCK TABLE identity.account, identity.mfa_recovery_code, identity.staff_role, identity.staff_permission, identity.staff_role_scope, identity.staff_access IN SHARE ROW EXCLUSIVE MODE`); err != nil {
+		if _, err := tx.Exec(ctx, `LOCK TABLE public."User", public."Customer", public."MfaRecoveryCode", public."Role", public."Permission", public."RoleDataScope", public."AuthChallenge", public."CustomerAuthCode" IN SHARE MODE;
+LOCK TABLE identity.account, identity.mfa_recovery_code, identity.staff_role, identity.staff_permission, identity.staff_role_scope, identity.staff_access,identity.customer_provider,identity.legacy_reset_challenge,identity.customer_code IN SHARE ROW EXCLUSIVE MODE`); err != nil {
 			return fmt.Errorf("lock legacy tables: %w", err)
 		}
 		if err := tx.QueryRow(ctx, `SELECT (SELECT count(*) FROM public."User"),(SELECT count(*) FROM public."Customer"),(SELECT count(*) FROM public."MfaRecoveryCode")`).Scan(&report.Staff, &report.Customers, &report.RecoveryCodes); err != nil {
@@ -171,6 +172,9 @@ LOCK TABLE identity.account, identity.mfa_recovery_code, identity.staff_role, id
 		if err := validateStaffAccess(ctx, tx, &report); err != nil {
 			return err
 		}
+		if err := validateCredentialHandoff(ctx, tx, opts.MaxBcryptCost); err != nil {
+			return err
+		}
 		if !opts.Apply {
 			return nil
 		}
@@ -190,11 +194,15 @@ LOCK TABLE identity.account, identity.mfa_recovery_code, identity.staff_role, id
 		if err := copyStaffAccess(ctx, tx, &report); err != nil {
 			return err
 		}
-		if report.AccountsInserted+report.RecoveryInserted+report.RolesInserted+report.PermissionsInserted+report.ScopesInserted+report.AccessInserted == 0 {
+		if err := copyCredentialHandoff(ctx, tx, &report); err != nil {
+			return err
+		}
+		if report.ProvidersInserted+report.ResetChallengesInserted+report.CustomerCodesInserted+report.AccountsInserted+report.RecoveryInserted+report.RolesInserted+report.PermissionsInserted+report.ScopesInserted+report.AccessInserted == 0 {
 			return nil
 		}
 		return outbox.Enqueue(ctx, tx, "identity", outbox.Event{Subject: "identity.snapshot.imported", Payload: map[string]any{
-			"changedBy":        "operator:" + opts.Actor,
+			"changedBy":         "operator:" + opts.Actor,
+			"providersInserted": report.ProvidersInserted, "resetChallengesInserted": report.ResetChallengesInserted, "customerCodesInserted": report.CustomerCodesInserted,
 			"accountsInserted": report.AccountsInserted, "recoveryInserted": report.RecoveryInserted,
 			"rolesInserted": report.RolesInserted, "permissionsInserted": report.PermissionsInserted,
 			"scopesInserted": report.ScopesInserted, "accessInserted": report.AccessInserted,

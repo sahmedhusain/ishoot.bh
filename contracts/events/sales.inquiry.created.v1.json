@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/sales.inquiry.created.v1.json",
+  "title": "sales.inquiry.created",
+  "description": "A new customer inquiry was submitted.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "inquiryId",
+    "requesterEmail",
+    "subject"
+  ],
+  "properties": {
+    "inquiryId": { "type": "string" },
+    "requesterEmail": { "type": "string" },
+    "subject": { "type": "string" }
+  }
+}

@@ -4126,14 +4126,14 @@
   },
   "resetPasswordForm": {
     "invalidOrMissingPasswordReset": "رمز إعادة تعيين كلمة المرور غير صالح أو مفقود.",
-    "passwordMustBeAtLeast": "يجب ألا تقل كلمة المرور عن 8 أحرف",
+    "passwordMustBeAtLeast": "يجب ألا تقل كلمة المرور عن {count} أحرف",
     "passwordSuccessfullyResetYouCan": "تمت إعادة تعيين كلمة المرور. يمكنك الآن تسجيل الدخول.",
     "failedToResetPassword": "تعذرت إعادة تعيين كلمة المرور.",
     "createNewPassword": "إنشاء كلمة مرور جديدة",
     "setAStrongPasswordFor": "اختر كلمة مرور قوية لحسابك",
     "newPassword": "كلمة المرور الجديدة",
-    "min8Characters": "8 أحرف على الأقل",
-    "resetPassword": "إعادة تعيين كلمة المرور"
+    "resetPassword": "إعادة تعيين كلمة المرور",
+    "minCharacters": "{count} أحرف على الأقل"
   },
   "reviewsManagement": {
     "noReviewsInThisView": "لا توجد تقييمات في هذا العرض.",
@@ -5716,7 +5716,6 @@
       "invoiceNotFound": "الفاتورة غير موجودة",
       "invoiceUpdateFailed": "تعذّر تحديث الفاتورة",
       "invoiceVoidFailed": "تعذّر إلغاء الفاتورة",
-      "jwtSecretMustContainAtLeast32": "إعدادات الأمان غير مكتملة على الخادم",
       "keepAtLeastOneActiveSuperAdministrator": "يجب الإبقاء على مدير عام نشط واحد على الأقل",
       "leaveCannotBeRequestedForAFormer": "لا يمكن طلب إجازة لموظف سابق",
       "leaveRequestNotFound": "طلب الإجازة غير موجود",

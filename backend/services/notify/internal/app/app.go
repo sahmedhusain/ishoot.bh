@@ -152,6 +152,10 @@ func New(store *postgres.Store, jobs Inserter, opts Options) *Service {
 // SetJobs sets the job inserter (the River client is built after the service it works for).
 func (s *Service) SetJobs(jobs Inserter) { s.jobs = jobs }
 
+func (s *Service) UpdateStatusByProviderID(ctx context.Context, providerID, status, lastError string) error {
+	return s.store.UpdateStatusByProviderID(ctx, providerID, status, lastError)
+}
+
 func invalid(format string, args ...any) error {
 	return fmt.Errorf("%w: %s", ErrValidation, fmt.Sprintf(format, args...))
 }

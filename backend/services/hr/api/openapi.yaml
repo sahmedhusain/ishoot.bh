@@ -1,0 +1,398 @@
+openapi: 3.1.0
+info:
+  title: HR Service (hr)
+  version: 1.0.0
+  description: |
+    HR service managing employees, departments, leave requests, attendance, and payroll runs.
+servers:
+  - url: /
+tags:
+  - name: employees
+  - name: departments
+  - name: leave
+  - name: attendance
+  - name: payroll
+paths:
+  /v1/hr/departments:
+    get:
+      tags: [departments]
+      operationId: listDepartments
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of departments
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Department" }
+    post:
+      tags: [departments]
+      operationId: createDepartment
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateDepartmentRequest" }
+      responses:
+        "201":
+          description: Created department
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Department" }
+
+  /v1/hr/employees:
+    get:
+      tags: [employees]
+      operationId: listEmployees
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of employees
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Employee" }
+    post:
+      tags: [employees]
+      operationId: createEmployee
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateEmployeeRequest" }
+      responses:
+        "201":
+          description: Created employee
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Employee" }
+
+  /v1/hr/employees/{id}:
+    get:
+      tags: [employees]
+      operationId: getEmployee
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Employee details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Employee" }
+    delete:
+      tags: [employees]
+      operationId: deleteEmployee
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Deleted }
+
+  /v1/hr/employees/{id}/offboard:
+    post:
+      tags: [employees]
+      operationId: offboardEmployee
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Offboarded employee
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Employee" }
+
+  /v1/hr/leave:
+    get:
+      tags: [leave]
+      operationId: listLeaveRequests
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: employeeId
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        "200":
+          description: List of leave requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/LeaveRequest" }
+    post:
+      tags: [leave]
+      operationId: createLeaveRequest
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateLeaveRequest" }
+      responses:
+        "201":
+          description: Created leave request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LeaveRequest" }
+
+  /v1/hr/leave/{id}/approve:
+    put:
+      tags: [leave]
+      operationId: approveLeaveRequest
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [approvedBy]
+              properties:
+                approvedBy: { type: string }
+      responses:
+        "200":
+          description: Approved leave request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LeaveRequest" }
+
+  /v1/hr/payroll:
+    get:
+      tags: [payroll]
+      operationId: listPayrollRuns
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      responses:
+        "200":
+          description: List of payroll runs
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/PayrollRun" }
+    post:
+      tags: [payroll]
+      operationId: createPayrollRun
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreatePayrollRunRequest" }
+      responses:
+        "201":
+          description: Created payroll run
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PayrollRunWithItems" }
+
+  /v1/hr/payroll/{id}/process:
+    put:
+      tags: [payroll]
+      operationId: processPayrollRun
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [approvedBy]
+              properties:
+                approvedBy: { type: string }
+      responses:
+        "200":
+          description: Processed payroll run
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PayrollRun" }
+
+components:
+  securitySchemes:
+    staffToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    serviceToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Department:
+      type: object
+      required: [id, nameEn, nameAr, code]
+      properties:
+        id: { type: string }
+        nameEn: { type: string }
+        nameAr: { type: string }
+        code: { type: string }
+        headId: { type: string, nullable: true }
+        parentId: { type: string, nullable: true }
+
+    CreateDepartmentRequest:
+      type: object
+      required: [nameEn, nameAr, code]
+      properties:
+        nameEn: { type: string }
+        nameAr: { type: string }
+        code: { type: string }
+        headId: { type: string }
+        parentId: { type: string }
+
+    Employee:
+      type: object
+      required: [id, employeeNumber, firstNameEn, lastNameEn, firstNameAr, lastNameAr, email, jobTitleEn, jobTitleAr, hireDate, status, basicSalary, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        employeeNumber: { type: string }
+        firstNameEn: { type: string }
+        lastNameEn: { type: string }
+        firstNameAr: { type: string }
+        lastNameAr: { type: string }
+        email: { type: string }
+        phone: { type: string, nullable: true }
+        jobTitleEn: { type: string }
+        jobTitleAr: { type: string }
+        departmentId: { type: string, nullable: true }
+        hireDate: { type: string, format: date }
+        status: { type: string }
+        basicSalary: { type: string }
+        housingAllowance: { type: string }
+        transportAllowance: { type: string }
+        otherAllowances: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    CreateEmployeeRequest:
+      type: object
+      required: [employeeNumber, firstNameEn, lastNameEn, firstNameAr, lastNameAr, email, jobTitleEn, jobTitleAr]
+      properties:
+        employeeNumber: { type: string }
+        firstNameEn: { type: string }
+        lastNameEn: { type: string }
+        firstNameAr: { type: string }
+        lastNameAr: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        jobTitleEn: { type: string }
+        jobTitleAr: { type: string }
+        departmentId: { type: string }
+        hireDate: { type: string, format: date }
+        status: { type: string, default: "active" }
+        basicSalary: { type: string, default: "0.000" }
+        housingAllowance: { type: string, default: "0.000" }
+        transportAllowance: { type: string, default: "0.000" }
+        otherAllowances: { type: string, default: "0.000" }
+
+    LeaveRequest:
+      type: object
+      required: [id, employeeId, leaveType, startDate, endDate, daysCount, status, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        employeeId: { type: string }
+        leaveType: { type: string }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date }
+        daysCount: { type: string }
+        status: { type: string }
+        reason: { type: string, nullable: true }
+        approvedBy: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    CreateLeaveRequest:
+      type: object
+      required: [employeeId, leaveType, startDate, endDate, daysCount]
+      properties:
+        employeeId: { type: string }
+        leaveType: { type: string }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date }
+        daysCount: { type: string }
+        reason: { type: string }
+
+    PayrollRun:
+      type: object
+      required: [id, periodMonth, periodYear, status, totalGross, totalDeductions, totalNet, currency, createdAt]
+      properties:
+        id: { type: string }
+        periodMonth: { type: integer }
+        periodYear: { type: integer }
+        status: { type: string }
+        totalGross: { type: string }
+        totalDeductions: { type: string }
+        totalNet: { type: string }
+        currency: { type: string }
+        processedAt: { type: string, format: date-time, nullable: true }
+        approvedBy: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+
+    PayrollItem:
+      type: object
+      required: [id, payrollRunId, employeeId, basicSalary, allowances, deductions, netSalary, status]
+      properties:
+        id: { type: string }
+        payrollRunId: { type: string }
+        employeeId: { type: string }
+        basicSalary: { type: string }
+        allowances: { type: string }
+        deductions: { type: string }
+        netSalary: { type: string }
+        status: { type: string }
+
+    PayrollRunWithItems:
+      allOf:
+        - { $ref: "#/components/schemas/PayrollRun" }
+        - type: object
+          properties:
+            items:
+              type: array
+              items: { $ref: "#/components/schemas/PayrollItem" }
+
+    CreatePayrollRunRequest:
+      type: object
+      required: [periodMonth, periodYear]
+      properties:
+        periodMonth: { type: integer }
+        periodYear: { type: integer }
+        totalGross: { type: string, default: "0.000" }
+        totalDeductions: { type: string, default: "0.000" }
+        totalNet: { type: string, default: "0.000" }
+        currency: { type: string, default: "BHD" }
+        items:
+          type: array
+          items:
+            type: object
+            required: [employeeId, basicSalary, netSalary]
+            properties:
+              employeeId: { type: string }
+              basicSalary: { type: string }
+              allowances: { type: string }
+              deductions: { type: string }
+              netSalary: { type: string }
+              status: { type: string, default: "pending" }

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/itsm.ticket.breached.v1.json",
+  "title": "itsm.ticket.breached",
+  "description": "An IT ticket breached its SLA target.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "ticketId",
+    "number",
+    "breachType",
+    "priority",
+    "breachedAt"
+  ],
+  "properties": {
+    "ticketId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "number": {
+      "type": "integer"
+    },
+    "breachType": {
+      "type": "string",
+      "enum": [
+        "response",
+        "resolve"
+      ]
+    },
+    "priority": {
+      "type": "string",
+      "minLength": 1
+    },
+    "breachedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

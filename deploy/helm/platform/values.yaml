@@ -47,6 +47,8 @@ serviceMonitor:
   enabled: true
   interval: 30s
 
+# Frontends are hosted separately: set IDENTITY_ISSUER to this deployment's issuer and
+# IDENTITY_JWKS_URL (admin) / IT_IDENTITY_JWKS_URL (IT) to a reachable identity JWKS endpoint.
 # One entry per service. `public: true` puts the service behind the ingress (only the gateway).
 services:
   gateway:
@@ -203,8 +205,15 @@ services:
       AUTH_SERVICE_KEYS_FILE: /keys/service-keys.json
       IDENTITY_ISSUER: ""
       IDENTITY_LOGIN_ENABLED: "true"
+      IDENTITY_LOGIN_PASSWORD_MIN_LENGTH: "12"
+      IDENTITY_LOGIN_PASSWORD_RESET_TTL: 15m
+      # Frontend receivers trust identity's public service keys via their SERVICE_KEYS_FILE.
+      IDENTITY_PROJECTION_ADMIN_URL: "https://admin.example.com"
+      IDENTITY_PROJECTION_WEB_URL: "https://www.example.com"
+      IDENTITY_PROJECTION_INTERVAL: 5s
+      IDENTITY_LOGIN_CUSTOMER_WEB_URL: "https://www.example.com"
       IDENTITY_LOGIN_MFA_PRIMARY_ID: primary
-      IDENTITY_CALLERS_STAFF: admin
+      IDENTITY_CALLERS_STAFF: admin,it
       IDENTITY_CALLERS_CUSTOMER: web
       IDENTITY_CALLERS_IT: it
       IDENTITY_SYSTEM_URL: http://system:8080

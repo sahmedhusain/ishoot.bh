@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/itsm.ticket.created.v1.json",
+  "title": "itsm.ticket.created",
+  "description": "An IT ticket was opened. IDs and metadata only; no attachment contents or ticket text.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "ticketId",
+    "number",
+    "requesterId",
+    "category",
+    "subcategory",
+    "priority",
+    "status",
+    "changedBy"
+  ],
+  "properties": {
+    "ticketId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "number": {
+      "type": "integer"
+    },
+    "requesterId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "category": {
+      "type": "string",
+      "minLength": 1
+    },
+    "subcategory": {
+      "type": "string",
+      "minLength": 1
+    },
+    "priority": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "minLength": 1
+    },
+    "changedBy": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

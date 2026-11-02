@@ -1,45 +1,36 @@
-import { measureOperation } from "@platform/database";
+import { measureOperation, createActivityLog } from "@platform/database";
 import { NextRequest, NextResponse } from "next/server";
-import { deleteSession, createActivityLog } from "@platform/database";
-import { verifySessionToken } from "../../../../lib/jwt";
-import { SESSION_COOKIE_NAME } from "../../../../lib/auth";
+import { signOut } from "@platform/api-client";
+import { trustedClientIp } from "@platform/database/services/abuse-limits";
+import {
+  ACCESS_COOKIE,
+  REALM,
+  REFRESH_COOKIE,
+  clearedCookies,
+  verifyAccessToken,
+} from "../../../../lib/identity-session";
 
+/** Ends the identity session and clears its cookies; signing out always succeeds for the browser. */
 export async function POST(req: NextRequest) {
   return measureOperation("admin:auth/logout:POST", async () => {
     try {
-      const token = req.cookies.get(SESSION_COOKIE_NAME)?.value;
-
-      if (token) {
-        const payload = await verifySessionToken(token);
-        if (payload) {
-          const ipAddress =
-            req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
-            req.headers.get("x-real-ip") ||
-            undefined;
-          const userAgent = req.headers.get("user-agent") || undefined;
-
-          await createActivityLog({
-            user_id: payload.userId,
-            action: "logout",
-            entity_type: "auth",
-            entity_id: payload.userId,
-            ip_address: ipAddress,
-            user_agent: userAgent,
-          });
-        }
-
-        await deleteSession(token);
-      }
-
-      const response = NextResponse.json({ success: true });
-      response.cookies.delete(SESSION_COOKIE_NAME);
-
-      return response;
-    } catch (err: any) {
+      const staff = await verifyAccessToken(req.cookies.get(ACCESS_COOKIE)?.value);
+      const refresh = req.cookies.get(REFRESH_COOKIE)?.value;
+      if (refresh) await signOut(REALM, refresh);
+      if (staff)
+        await createActivityLog({
+          user_id: staff.userId,
+          action: "logout",
+          entity_type: "auth",
+          entity_id: staff.userId,
+          ip_address: trustedClientIp(req.headers),
+          user_agent: req.headers.get("user-agent") || undefined,
+        });
+    } catch (err) {
       console.error("Logout error:", err);
-      const response = NextResponse.json({ success: true });
-      response.cookies.delete(SESSION_COOKIE_NAME);
-      return response;
     }
+    const response = NextResponse.json({ success: true });
+    for (const c of clearedCookies()) response.cookies.set(c.name, c.value, c.options);
+    return response;
   });
 }

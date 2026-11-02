@@ -4,13 +4,15 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
+  claimUpload,
   commentOnQueueTicket,
   getQueueTicket,
   isApiError,
+  registerUpload,
+  retryMessageForIT,
+  sendTestMessageForIT,
   setIntegrationForIT,
   setModuleForIT,
-  sendTestMessageForIT,
-  retryMessageForIT,
   setSiteCodeForIT,
   setSiteDomainsForIT,
   type SiteCode,
@@ -19,8 +21,9 @@ import {
   transitionQueueTicket,
   unlinkIntegrationForIT,
   updateSLA,
+  writeUpload,
 } from "@platform/api-client";
-import { testIntegration, syncSocialIntegration } from "@platform/database";
+import { testIntegration, syncSocialIntegration } from "../lib/integrations";
 import {
   checkDomain,
   healthFingerprint,
@@ -123,11 +126,20 @@ const refresh = (id: string) => {
   revalidatePath(`/tickets/${id}`);
 };
 
-/** A catalogue transition; "assign" assigns the ticket to the person acting. */
+export type AttachmentInput = {
+  fileUrl: string;
+  fileName: string;
+  mimeType: string;
+  fileSize: number;
+};
+
+/** A catalogue transition; "assign" assigns the ticket to the person acting or a specified staff member. */
 export async function transitionAction(
   id: string,
   status: string,
   transition: string,
+  targetAssigneeId?: string,
+  targetAssigneeName?: string,
 ): Promise<Outcome> {
   const user = await requireAllowed(
     "tickets",
@@ -137,7 +149,10 @@ export async function transitionAction(
     return { ok: false };
   const assignee =
     transition === "assign"
-      ? { assigneeId: user.subject, assigneeName: user.email || user.subject }
+      ? {
+          assigneeId: targetAssigneeId?.trim() || user.subject,
+          assigneeName: targetAssigneeName?.trim() || user.email || user.subject,
+        }
       : {};
   let ticket: { id: string; number: number; requesterId: string } | undefined;
   const outcome = await attempt(async () => {
@@ -152,12 +167,18 @@ export async function commentAction(
   id: string,
   body: string,
   internal: boolean,
+  attachments?: AttachmentInput[],
 ): Promise<Outcome> {
   const user = await requireAllowed("tickets", "edit");
   const message = body.trim().slice(0, 10000);
   if (!message) return { ok: false };
+  const validAttachments = Array.isArray(attachments)
+    ? attachments
+        .filter((a) => a && a.fileUrl && a.fileName && a.mimeType && a.fileSize > 0)
+        .slice(0, 10)
+    : undefined;
   const outcome = await attempt(() =>
-    commentOnQueueTicket(user.token, id, message, internal === true),
+    commentOnQueueTicket(user.token, id, message, internal === true, validAttachments),
   );
   if (outcome.ok) {
     const detail = await getQueueTicket(user.token, id).catch(() => null);
@@ -165,6 +186,40 @@ export async function commentAction(
   }
   refresh(id);
   return outcome;
+}
+
+/** Uploads and claims an attachment file for a ticket comment. Max 10MB. */
+export async function uploadAttachmentAction(
+  form: FormData,
+): Promise<{ ok: boolean; attachment?: AttachmentInput; error?: string }> {
+  const user = await requireAllowed("tickets", "edit");
+  const file = form.get("file");
+  if (!file || typeof file === "string") return { ok: false, error: "file_required" };
+  const value = file as File;
+  if (value.size > 10 * 1024 * 1024) return { ok: false, error: "file_too_large" };
+  const mime = value.type || "application/octet-stream";
+  try {
+    const upload = await registerUpload({
+      ownerId: user.subject,
+      folder: "general",
+      fileName: value.name.slice(0, 200),
+      fileSize: value.size,
+      mimeType: mime,
+    });
+    await writeUpload(upload.fileUrl, user.subject, await value.arrayBuffer(), value.size);
+    const claimed = await claimUpload(upload.fileUrl, user.subject, { requirePrivate: true });
+    return {
+      ok: true,
+      attachment: {
+        fileUrl: claimed.fileUrl,
+        fileName: claimed.fileName,
+        mimeType: claimed.mimeType,
+        fileSize: claimed.fileSize,
+      },
+    };
+  } catch {
+    return { ok: false, error: "upload_failed" };
+  }
 }
 
 export async function updateSLAAction(

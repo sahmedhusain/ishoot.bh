@@ -2,36 +2,44 @@ import { pickupAvailable } from "@platform/database/constants/website-commerce";
 import { getSite } from "./site";
 import { cache } from "react";
 import { cookies } from "next/headers";
+import {
+  getOwnAccount,
+  isApiError,
+  customerSignInProviders,
+} from "@platform/api-client";
+import { ACCESS_COOKIE, verifyAccessToken } from "./identity-session";
 import { NextRequest, NextResponse } from "next/server";
 import { serverMessages } from "@platform/locales";
 import {
-  CUSTOMER_SESSION_DAYS,
-  customerFromSession,
+  getCustomerProfile,
   isFeatureEnabled,
   getStoreSettings,
   onlinePaymentAvailable,
-  getActiveIntegrationCredentials,
 } from "@platform/database";
 
-export const CUSTOMER_COOKIE = "platform_customer";
-export const SIGNIN_STATE_COOKIE = "platform_signin";
+/** The signed-in customer for this request: verified token, live identity account, then its business profile. */
+export const currentCustomer = cache(async () => {
+  const token = await verifyAccessToken(
+    (await cookies()).get(ACCESS_COOKIE)?.value,
+  );
+  if (!token) return null;
+  try {
+    const security = await getOwnAccount(token.token);
+    const customer = await getCustomerProfile(token.customerId);
+    if (!customer || customer.email !== security.email) return null;
+    return {
+      ...customer,
+      has_password: security.hasPassword,
+      google: security.google,
+      apple: security.apple,
+    };
+  } catch (error) {
+    if (isApiError(error) && error.status === 401) return null;
+    throw error;
+  }
+});
 
-/** The signed-in customer for this request, or null. */
-export const currentCustomer = cache(async () =>
-  customerFromSession((await cookies()).get(CUSTOMER_COOKIE)?.value),
-);
-
-export function setCustomerCookie(response: NextResponse, token: string) {
-  response.cookies.set(CUSTOMER_COOKIE, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: CUSTOMER_SESSION_DAYS * 86_400,
-  });
-}
-
-/** The secret that signs the sign-in state cookie. */
+/** Signs inquiry upload grants until the inquiry service owns attachments. */
 export function signInSecret() {
   const secret =
     process.env.CUSTOMER_AUTH_SECRET || process.env.REVALIDATION_SECRET;
@@ -45,33 +53,31 @@ export const storeEnabled = cache(async () => {
   const { enabled, website, config } = await getSite();
   return enabled && !!website && config.commerce.capabilities.shop;
 });
-export const accountsEnabled = async () => (await storeEnabled()) && (await getSite()).config.commerce.capabilities.accounts;
+export const accountsEnabled = async () =>
+  (await storeEnabled()) &&
+  (await getSite()).config.commerce.capabilities.accounts;
 export const orderingEnabled = cache(async () => {
   if (!(await storeEnabled())) return false;
-  const [{ config }, settings] = await Promise.all([getSite(), getStoreSettings()]);
+  const [{ config }, settings] = await Promise.all([
+    getSite(),
+    getStoreSettings(),
+  ]);
   const capabilities = config.commerce.capabilities;
-  const payment = settings.cod_enabled || settings.bank_transfer_enabled || await onlinePaymentAvailable();
-  return payment && capabilities.ordering && (capabilities.accounts || settings.guest_checkout) && ((capabilities.delivery && settings.delivery_enabled) || (pickupAvailable(config.commerce) && settings.pickup_enabled));
+  const payment =
+    settings.cod_enabled ||
+    settings.bank_transfer_enabled ||
+    (await onlinePaymentAvailable());
+  return (
+    payment &&
+    capabilities.ordering &&
+    (capabilities.accounts || settings.guest_checkout) &&
+    ((capabilities.delivery && settings.delivery_enabled) ||
+      (pickupAvailable(config.commerce) && settings.pickup_enabled))
+  );
 });
 
-/** Google or Apple sign-in credentials when that integration is on, else null. */
-export async function signInCredentials(
-  provider: "google" | "apple",
-): Promise<Record<string, string> | null> {
-  return await getActiveIntegrationCredentials(`${provider}_signin` as any);
-}
-
-/** Which sign-in providers the account page offers. */
-export async function signInProviders() {
-  const [google, apple] = await Promise.all([
-    getActiveIntegrationCredentials("google_signin"),
-    getActiveIntegrationCredentials("apple_signin"),
-  ]);
-  return {
-    google: !!google,
-    apple: !!apple,
-  };
-}
+/** Enabled provider names only; OAuth credentials never reach the frontend process. */
+export const signInProviders = customerSignInProviders;
 
 /** Form posts from this website only (the browser sends the Origin header on POST). */
 export function sameOrigin(req: NextRequest) {

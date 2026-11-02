@@ -81,7 +81,7 @@ func run(command string) error {
 	checker.Register("postgres", db.Check(pool))
 	checker.Register("schema", func(ctx context.Context) error {
 		var exists bool
-		if err := pool.QueryRow(ctx, `SELECT to_regclass('identity.session_family') IS NOT NULL`).Scan(&exists); err != nil {
+		if err := pool.QueryRow(ctx, `SELECT to_regclass('identity.session_family') IS NOT NULL AND to_regclass('identity.customer_provider') IS NOT NULL AND to_regclass('identity.customer_code') IS NOT NULL AND to_regclass('identity.profile_projection') IS NOT NULL AND to_regclass('identity.legacy_reset_challenge') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='identity' AND table_name='staff_access' AND column_name='data_scopes')`).Scan(&exists); err != nil {
 			return err
 		}
 		if !exists {
@@ -91,7 +91,15 @@ func run(command string) error {
 	})
 	if command == "worker" {
 		repo := postgres.New(pool)
-		client, err := jobs.NewClient(pool, repo, jobs.Options{Schema: "identity", CleanupInterval: cfg.Session.CleanupInterval, CleanupBatch: cfg.Session.CleanupBatch, Workers: cfg.Session.CleanupWorkers, Logger: logger.Logger})
+		var projector *jobs.ProfileProjectionWorker
+		if cfg.Access.ServiceKey != "" {
+			signer, err := authn.NewServiceSigner("identity", cfg.Access.ServiceKey, 5*time.Minute)
+			if err != nil {
+				return err
+			}
+			projector = &jobs.ProfileProjectionWorker{Pool: pool, Transport: signer.Transport(nil), AdminURL: cfg.Projection.AdminURL, WebURL: cfg.Projection.WebURL}
+		}
+		client, err := jobs.NewClient(pool, repo, jobs.Options{Projection: projector, ProjectionInterval: cfg.Projection.Interval, Schema: "identity", CleanupInterval: cfg.Session.CleanupInterval, CleanupBatch: cfg.Session.CleanupBatch, Workers: cfg.Session.CleanupWorkers, Logger: logger.Logger})
 		if err != nil {
 			return err
 		}
@@ -145,14 +153,17 @@ func run(command string) error {
 	}
 	var login *accounts.Service
 	var manager *app.ITAccounts
+	var managed *app.ManagedAccounts
+	var customerCodes *app.CustomerCodes
+	var customerOAuth *app.CustomerOAuth
 	if cfg.Login.Enabled {
-		service, administration, client, err := newLogin(ctx, cfg.Login, pool, svc)
+		services, err := newLogin(ctx, cfg, pool, svc)
 		if err != nil {
 			return err
 		}
-		defer client.Close()
-		login, manager = service, administration
-		checker.Register("redis", redisx.Check(client))
+		defer services.redis.Close()
+		login, manager, managed, customerCodes, customerOAuth = services.login, services.it, services.managed, services.codes, services.oauth
+		checker.Register("redis", redisx.Check(services.redis))
 		checker.Register("accounts_schema", func(ctx context.Context) error {
 			var exists bool
 			if err := pool.QueryRow(ctx, `SELECT to_regclass('identity.account') IS NOT NULL`).Scan(&exists); err != nil {
@@ -171,6 +182,12 @@ func run(command string) error {
 	}
 	e.Use(telemetry.EchoMiddleware())
 	httpapi.Register(e, verifier, svc, issuer, login, cfg.Session.JSONBodyLimit, map[authn.Realm][]string{authn.RealmStaff: cfg.Callers.Staff, authn.RealmCustomer: cfg.Callers.Customer, authn.RealmIT: cfg.Callers.IT})
+	if managed != nil {
+		httpapi.RegisterCustomerOAuth(e, verifier, issuer, customerOAuth, cfg.Callers.Customer, cfg.Session.JSONBodyLimit)
+		httpapi.RegisterCustomerCodes(e, verifier, issuer, customerCodes, cfg.Callers.Customer, cfg.Session.JSONBodyLimit)
+		httpapi.RegisterManagedAccounts(e, verifier, managed, map[authn.Realm][]string{authn.RealmStaff: cfg.Callers.Staff, authn.RealmCustomer: cfg.Callers.Customer}, cfg.Session.JSONBodyLimit)
+		httpapi.RegisterSelfService(e, issuer.Verifier(), app.NewSelfService(pool, login, cfg.Login.PasswordMinLength), cfg.Session.JSONBodyLimit)
+	}
 	if manager != nil {
 		httpapi.RegisterITAccounts(e, issuer.Verifier(), manager, cfg.Session.JSONBodyLimit)
 		httpapi.RegisterDeskSessions(e, issuer.Verifier(), app.NewDeskSessions(pool))
@@ -182,7 +199,10 @@ func run(command string) error {
 			}
 			modules = systemclient.New(cfg.Access.SystemURL, signer.Transport(nil)).Load
 		}
-		httpapi.RegisterStaffAccess(e, issuer.Verifier(), app.NewStaffAccess(pool, modules))
+		httpapi.RegisterDeskStaff(e, issuer.Verifier(), app.NewDeskStaff(pool, modules), cfg.Session.JSONBodyLimit)
+		staffPolicy := app.NewStaffAccess(pool, modules)
+		httpapi.RegisterStaffAccess(e, issuer.Verifier(), staffPolicy)
+		httpapi.RegisterStaffAccessService(e, verifier, staffPolicy)
 	}
 	public, admin := httpx.Servers(cfg.Common, telemetry.Handler(cfg.ServiceName, e), httpx.AdminHandler(cfg.Common, logger, checker, metrics))
 	logger.Info("identity session API starting")

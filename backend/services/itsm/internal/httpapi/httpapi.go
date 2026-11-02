@@ -111,6 +111,7 @@ type ticketJSON struct {
 	Breached        bool       `json:"breached"`
 	ResolvedAt      *time.Time `json:"resolvedAt,omitempty"`
 	ClosedAt        *time.Time `json:"closedAt,omitempty"`
+	RemindedAt      *time.Time `json:"remindedAt,omitempty"`
 	CreatedAt       time.Time  `json:"createdAt"`
 	UpdatedAt       time.Time  `json:"updatedAt"`
 }
@@ -121,7 +122,7 @@ func toTicket(t postgres.Ticket, forIT bool) ticketJSON {
 		Subcategory: t.Subcategory, Priority: t.Priority, Status: t.Status, Title: t.Title, Description: t.Description,
 		AssetRef: t.AssetRef, AssigneeName: t.AssigneeName, RespondBy: t.RespondBy, ResolveBy: t.ResolveBy,
 		FirstResponseAt: t.FirstResponseAt, Breached: t.BreachedAt != nil, ResolvedAt: t.ResolvedAt, ClosedAt: t.ClosedAt,
-		CreatedAt: t.CreatedAt, UpdatedAt: t.UpdatedAt,
+		RemindedAt: t.RemindedAt, CreatedAt: t.CreatedAt, UpdatedAt: t.UpdatedAt,
 	}
 	if forIT {
 		out.RequesterEmail, out.AssigneeID = t.RequesterEmail, t.AssigneeID
@@ -130,16 +131,25 @@ func toTicket(t postgres.Ticket, forIT bool) ticketJSON {
 }
 
 type commentJSON struct {
-	ID          string    `json:"id"`
-	AuthorRealm string    `json:"authorRealm"`
-	AuthorName  string    `json:"authorName"`
-	Body        string    `json:"body"`
-	Internal    bool      `json:"internal"`
-	CreatedAt   time.Time `json:"createdAt"`
+	ID          string           `json:"id"`
+	AuthorRealm string           `json:"authorRealm"`
+	AuthorName  string           `json:"authorName"`
+	Body        string           `json:"body"`
+	Internal    bool             `json:"internal"`
+	CreatedAt   time.Time        `json:"createdAt"`
+	Attachments []attachmentJSON `json:"attachments,omitempty"`
 }
 
-func toComment(c postgres.Comment) commentJSON {
-	return commentJSON{ID: c.ID, AuthorRealm: c.AuthorRealm, AuthorName: c.AuthorName, Body: c.Body, Internal: c.Internal, CreatedAt: c.CreatedAt}
+func toComment(c postgres.Comment, attachments []attachmentJSON) commentJSON {
+	return commentJSON{
+		ID:          c.ID,
+		AuthorRealm: c.AuthorRealm,
+		AuthorName:  c.AuthorName,
+		Body:        c.Body,
+		Internal:    c.Internal,
+		CreatedAt:   c.CreatedAt,
+		Attachments: attachments,
+	}
 }
 
 type eventJSON struct {
@@ -152,16 +162,47 @@ type eventJSON struct {
 }
 
 type attachmentJSON struct {
-	FileURL  string `json:"fileUrl" validate:"required,max=300"`
-	FileName string `json:"fileName" validate:"required,max=200"`
-	MIMEType string `json:"mimeType" validate:"required,max=100"`
-	FileSize int64  `json:"fileSize" validate:"gt=0"`
+	FileURL   string  `json:"fileUrl" validate:"required,max=300"`
+	FileName  string  `json:"fileName" validate:"required,max=200"`
+	MIMEType  string  `json:"mimeType" validate:"required,max=100"`
+	FileSize  int64   `json:"fileSize" validate:"gt=0"`
+	CommentID *string `json:"commentId,omitempty"`
+}
+
+func toAttachment(a postgres.Attachment) attachmentJSON {
+	return attachmentJSON{
+		FileURL:   a.FileUrl,
+		FileName:  a.FileName,
+		MIMEType:  a.MimeType,
+		FileSize:  a.FileSize,
+		CommentID: a.CommentID,
+	}
+}
+
+func toDomainAttachments(in []attachmentJSON) []domain.Attachment {
+	if len(in) == 0 {
+		return nil
+	}
+	out := make([]domain.Attachment, len(in))
+	for i, a := range in {
+		out[i] = domain.Attachment{FileURL: a.FileURL, FileName: a.FileName, MIMEType: a.MIMEType, Size: a.FileSize}
+	}
+	return out
 }
 
 func toDetail(d app.Detail, forIT bool) map[string]any {
+	commentAttachments := make(map[string][]attachmentJSON)
+	attachments := make([]attachmentJSON, len(d.Attachments))
+	for i, a := range d.Attachments {
+		att := toAttachment(a)
+		attachments[i] = att
+		if a.CommentID != nil && *a.CommentID != "" {
+			commentAttachments[*a.CommentID] = append(commentAttachments[*a.CommentID], att)
+		}
+	}
 	comments := make([]commentJSON, len(d.Comments))
 	for i, c := range d.Comments {
-		comments[i] = toComment(c)
+		comments[i] = toComment(c, commentAttachments[c.ID])
 	}
 	events := make([]eventJSON, len(d.Events))
 	for i, e := range d.Events {
@@ -169,10 +210,6 @@ func toDetail(d app.Detail, forIT bool) map[string]any {
 		if forIT {
 			events[i].ActorID = e.ActorID
 		}
-	}
-	attachments := make([]attachmentJSON, len(d.Attachments))
-	for i, a := range d.Attachments {
-		attachments[i] = attachmentJSON{FileURL: a.FileUrl, FileName: a.FileName, MIMEType: a.MimeType, FileSize: a.FileSize}
 	}
 	return map[string]any{"ticket": toTicket(d.Ticket, forIT), "comments": comments, "events": events, "attachments": attachments}
 }
@@ -236,10 +273,7 @@ func (h *handler) create(c echo.Context) error {
 	}
 	n := domain.NewTicket{RequesterID: in.RequesterID, RequesterName: in.RequesterName, RequesterEmail: in.RequesterEmail,
 		Category: in.Category, Subcategory: in.Subcategory, Priority: in.Priority, Title: in.Title, Description: in.Description,
-		AssetRef: in.AssetRef}
-	for _, a := range in.Attachments {
-		n.Attachments = append(n.Attachments, domain.Attachment{FileURL: a.FileURL, FileName: a.FileName, MIMEType: a.MIMEType, Size: a.FileSize})
-	}
+		AssetRef: in.AssetRef, Attachments: toDomainAttachments(in.Attachments)}
 	t, err := h.svc.Create(c.Request().Context(), n)
 	if err != nil {
 		return toProblem(err)
@@ -283,27 +317,45 @@ func (h *handler) getMine(c echo.Context) error {
 	return c.JSON(http.StatusOK, toDetail(d, false))
 }
 
-type requesterBody struct {
+type requesterCommentRequest struct {
+	RequesterID   string           `json:"requesterId" validate:"required,max=64"`
+	RequesterName string           `json:"requesterName" validate:"required,max=200"`
+	Body          string           `json:"body" validate:"required,max=10000"`
+	Attachments   []attachmentJSON `json:"attachments" validate:"dive"`
+}
+
+type requesterTransitionRequest struct {
 	RequesterID   string `json:"requesterId" validate:"required,max=64"`
 	RequesterName string `json:"requesterName" validate:"required,max=200"`
-	Body          string `json:"body" validate:"omitempty,max=10000"`
-	Transition    string `json:"transition" validate:"omitempty,max=40"`
+	Transition    string `json:"transition" validate:"required,max=40"`
 }
 
 func (h *handler) commentMine(c echo.Context) error {
-	var in requesterBody
+	var in requesterCommentRequest
 	if err := httpx.BindJSON(c, &in, h.opts.JSONBodyLimit); err != nil {
 		return err
 	}
-	comment, err := h.svc.CommentAsRequester(c.Request().Context(), c.Param("id"), app.Requester{ID: in.RequesterID, Name: in.RequesterName}, in.Body)
+	comment, err := h.svc.CommentAsRequester(c.Request().Context(), c.Param("id"), app.Requester{ID: in.RequesterID, Name: in.RequesterName}, domain.NewComment{
+		Body:        in.Body,
+		Attachments: toDomainAttachments(in.Attachments),
+	})
 	if err != nil {
 		return toProblem(err)
 	}
-	return c.JSON(http.StatusCreated, toComment(comment))
+	var atts []attachmentJSON
+	if len(in.Attachments) > 0 {
+		cid := comment.ID
+		atts = make([]attachmentJSON, len(in.Attachments))
+		for i, a := range in.Attachments {
+			atts[i] = a
+			atts[i].CommentID = &cid
+		}
+	}
+	return c.JSON(http.StatusCreated, toComment(comment, atts))
 }
 
 func (h *handler) transitionMine(c echo.Context) error {
-	var in requesterBody
+	var in requesterTransitionRequest
 	if err := httpx.BindJSON(c, &in, h.opts.JSONBodyLimit); err != nil {
 		return err
 	}
@@ -328,7 +380,7 @@ func (h *handler) queue(c echo.Context) error {
 	}
 	q := c.QueryParams()
 	rows, err := h.svc.Queue(c.Request().Context(), postgres.Filter{
-		Status: q.Get("status"), AssigneeID: q.Get("assigneeId"), Priority: q.Get("priority"), OpenOnly: q.Get("open") == "true",
+		Status: q.Get("status"), AssigneeID: q.Get("assigneeId"), Priority: q.Get("priority"), Category: q.Get("category"), OpenOnly: q.Get("open") == "true",
 	}, cursor, size)
 	if err != nil {
 		return toProblem(err)
@@ -383,8 +435,9 @@ func (h *handler) transitionDesk(c echo.Context) error {
 }
 
 type deskComment struct {
-	Body     string `json:"body" validate:"required,max=10000"`
-	Internal bool   `json:"internal"`
+	Body        string           `json:"body" validate:"required,max=10000"`
+	Internal    bool             `json:"internal"`
+	Attachments []attachmentJSON `json:"attachments" validate:"dive"`
 }
 
 func (h *handler) commentDesk(c echo.Context) error {
@@ -392,11 +445,24 @@ func (h *handler) commentDesk(c echo.Context) error {
 	if err := httpx.BindJSON(c, &in, h.opts.JSONBodyLimit); err != nil {
 		return err
 	}
-	comment, err := h.svc.CommentAsIT(c.Request().Context(), c.Param("id"), principal(c), in.Body, in.Internal)
+	comment, err := h.svc.CommentAsIT(c.Request().Context(), c.Param("id"), principal(c), domain.NewComment{
+		Body:        in.Body,
+		Internal:    in.Internal,
+		Attachments: toDomainAttachments(in.Attachments),
+	})
 	if err != nil {
 		return toProblem(err)
 	}
-	return c.JSON(http.StatusCreated, toComment(comment))
+	var atts []attachmentJSON
+	if len(in.Attachments) > 0 {
+		cid := comment.ID
+		atts = make([]attachmentJSON, len(in.Attachments))
+		for i, a := range in.Attachments {
+			atts[i] = a
+			atts[i].CommentID = &cid
+		}
+	}
+	return c.JSON(http.StatusCreated, toComment(comment, atts))
 }
 
 type slaJSON struct {

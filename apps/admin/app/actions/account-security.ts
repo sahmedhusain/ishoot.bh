@@ -1,17 +1,28 @@
 "use server";
 import { serverMessages } from "@platform/locales";
 import { validateActionArguments } from "../../lib/action-input";
-import { cookies } from "next/headers";
+import { headers, cookies } from "next/headers";
+import { clearedCookies } from "../../lib/identity-session";
 import { revalidatePath } from "next/cache";
 import { consumeAbuseLimit } from "@platform/database";
-import { getSessionByToken } from "@platform/database/queries/sessions";
+import { trustedClientIp } from "@platform/database/services/abuse-limits";
+import { logOwnSecurityChange } from "@platform/database/queries/account-security";
 import {
   changeOwnPassword,
+  isApiError,
+  revokeOtherOwnSessions,
   revokeOwnSession,
-  revokeOtherSessions,
-} from "@platform/database/queries/account-security";
-import { requireAuth, SESSION_COOKIE_NAME } from "../../lib/auth";
+} from "@platform/api-client";
+import { getStaffToken, requireAuth } from "../../lib/auth";
 import { ROUTES } from "../../constants/routes";
+
+async function staffToken() {
+  const staff = await getStaffToken();
+  if (!staff) throw new Error(serverMessages.unauthorized);
+  return staff;
+}
+
+/** Changes the person's own password through identity, which ends every session, including this one. */
 export async function changeMyPasswordAction(input: {
   currentPassword: string;
   newPassword: string;
@@ -20,24 +31,58 @@ export async function changeMyPasswordAction(input: {
   validateActionArguments("changeMyPasswordAction", { input });
   const user = await requireAuth();
   await consumeAbuseLimit("change-password", user.id, 5);
-  await changeOwnPassword(user.id, input);
-  (await cookies()).delete(SESSION_COOKIE_NAME);
+  const bytes = Buffer.byteLength(input.newPassword, "utf8");
+  if (input.newPassword.length < 12 || bytes > 72)
+    throw new Error(serverMessages.profileSecurityError0);
+  if (input.newPassword === input.currentPassword)
+    throw new Error(serverMessages.profileSecurityError2);
+  const { token } = await staffToken();
+  try {
+    await changeOwnPassword(token, {
+      currentPassword: input.currentPassword,
+      newPassword: input.newPassword,
+      code: input.code || undefined,
+      clientIp: trustedClientIp(await headers()) || undefined,
+    });
+  } catch (error) {
+    if (isApiError(error, "mfa_required"))
+      throw new Error(serverMessages.profileSecurityError3);
+    if (isApiError(error, "password_rejected"))
+      throw new Error(
+        input.code
+          ? serverMessages.profileSecurityError3
+          : serverMessages.profileSecurityError1,
+      );
+    throw error;
+  }
+  const jar = await cookies();
+  for (const c of clearedCookies()) jar.set(c.name, c.value, c.options);
+  await logOwnSecurityChange(user.id, "change_password");
   return { success: true };
 }
+
 export async function revokeMySessionAction(id: string) {
   validateActionArguments("revokeMySessionAction", { id });
-  const user = await requireAuth();
-  const token = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
-  const current = token ? await getSessionByToken(token) : null;
-  await revokeOwnSession(user.id, id, current?.id);
+  await requireAuth();
+  const staff = await staffToken();
+  if (id === staff.sessionId)
+    throw new Error(serverMessages.profileSecurityError4);
+  try {
+    await revokeOwnSession(staff.token, id);
+  } catch (error) {
+    if (isApiError(error) && error.status === 404)
+      throw new Error(serverMessages.profileSecurityError5);
+    throw error;
+  }
+  await logOwnSecurityChange(staff.userId, "revoke_session", id);
   revalidatePath(ROUTES.profile());
 }
+
 export async function revokeOtherSessionsAction() {
   validateActionArguments("revokeOtherSessionsAction", {});
-  const user = await requireAuth();
-  const token = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
-  const current = token ? await getSessionByToken(token) : null;
-  if (!current) throw new Error(serverMessages.profileSecurityError5);
-  await revokeOtherSessions(user.id, current.id);
+  await requireAuth();
+  const staff = await staffToken();
+  await revokeOtherOwnSessions(staff.token);
+  await logOwnSecurityChange(staff.userId, "revoke_other_sessions");
   revalidatePath(ROUTES.profile());
 }

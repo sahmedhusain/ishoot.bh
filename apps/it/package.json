@@ -8,14 +8,15 @@
     "build": "next build --webpack",
     "start": "next start -p 3002",
     "lint": "eslint .",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@platform/api-client": "workspace:*",
-    "@platform/contracts": "workspace:*",
-    "@platform/database": "workspace:*",
-    "@platform/locales": "workspace:*",
-    "@platform/ui": "workspace:*",
+    "@platform/api-client": "file:../../packages/api-client",
+    "@platform/contracts": "file:../../packages/contracts",
+    "@platform/locales": "file:../../packages/locales",
+    "@platform/ui": "file:../../packages/ui",
     "jose": "^6.2.12",
     "lucide-react": "^0.475.0",
     "next": "16.4.4",
@@ -24,12 +25,14 @@
     "sonner": "^2.0.8"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@types/node": "^22.13.4",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^4.1.12"
   }
 }

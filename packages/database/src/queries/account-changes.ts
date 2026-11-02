@@ -238,13 +238,8 @@ export async function applyAccountChanges(
       }),
     },
   });
-  // Losing access or changing role ends open sessions so new rights apply at once.
-  if (
-    changes.role ||
-    changes.status === "suspended" ||
-    changes.status === "archived"
-  )
-    await db.session.deleteMany({ where: { userId } });
+  // Losing access or changing role ends open sessions so new rights apply at once: identity does this when the
+  // change is synced (services/identity-sync).
   await db.activityLog.create({
     data: {
       userId: actorId,

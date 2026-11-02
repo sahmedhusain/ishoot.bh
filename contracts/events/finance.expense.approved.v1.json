@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/finance.expense.approved.v1.json",
+  "title": "finance.expense.approved",
+  "description": "An expense was approved.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "expenseId",
+    "approvedBy"
+  ],
+  "properties": {
+    "expenseId": { "type": "string" },
+    "approvedBy": { "type": "string" }
+  }
+}

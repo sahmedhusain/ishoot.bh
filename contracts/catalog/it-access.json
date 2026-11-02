@@ -21,67 +21,232 @@
     "api_keys",
     "backups"
   ],
-  "actions": ["read", "create", "edit", "delete", "assign", "execute"],
-  "roles": ["it_admin", "it_engineer", "it_support", "it_auditor"],
+  "actions": [
+    "read",
+    "create",
+    "edit",
+    "delete",
+    "assign",
+    "execute"
+  ],
+  "roles": [
+    "it_admin",
+    "it_engineer",
+    "it_support",
+    "it_auditor"
+  ],
   "defaultRoleRules": {
     "it_admin": {
-      "system_health": ["read"],
-      "logs": ["read"],
-      "runtime_config": ["read", "edit"],
-      "jobs": ["read", "execute"],
-      "database": ["read"],
-      "integrations": ["read", "create", "edit", "delete", "execute"],
-      "domains": ["read", "create", "edit", "delete", "execute"],
-      "site_code": ["read", "edit"],
-      "modules": ["read", "edit"],
-      "staff_accounts": ["read", "create", "edit", "delete", "execute"],
-      "staff_roles": ["read", "create", "edit", "delete"],
-      "audit": ["read"],
-      "notifications": ["read", "execute"],
-      "sessions": ["read", "delete"],
-      "setup": ["read", "execute"],
-      "tickets": ["read", "create", "edit", "assign", "delete"],
-      "ticket_settings": ["read", "edit"],
-      "it_accounts": ["read", "create", "edit", "delete"],
-      "api_keys": ["read", "create", "delete"],
-      "backups": ["read", "execute"]
+      "system_health": [
+        "read"
+      ],
+      "logs": [
+        "read"
+      ],
+      "runtime_config": [
+        "read",
+        "edit"
+      ],
+      "jobs": [
+        "read",
+        "execute"
+      ],
+      "database": [
+        "read"
+      ],
+      "integrations": [
+        "read",
+        "create",
+        "edit",
+        "delete",
+        "execute"
+      ],
+      "domains": [
+        "read",
+        "create",
+        "edit",
+        "delete",
+        "execute"
+      ],
+      "site_code": [
+        "read",
+        "edit"
+      ],
+      "modules": [
+        "read",
+        "edit"
+      ],
+      "staff_accounts": [
+        "read",
+        "create",
+        "edit",
+        "delete",
+        "execute"
+      ],
+      "staff_roles": [
+        "read",
+        "create",
+        "edit",
+        "delete"
+      ],
+      "audit": [
+        "read"
+      ],
+      "notifications": [
+        "read",
+        "execute"
+      ],
+      "sessions": [
+        "read",
+        "delete"
+      ],
+      "setup": [
+        "read",
+        "edit",
+        "execute"
+      ],
+      "tickets": [
+        "read",
+        "create",
+        "edit",
+        "assign",
+        "delete"
+      ],
+      "ticket_settings": [
+        "read",
+        "edit"
+      ],
+      "it_accounts": [
+        "read",
+        "create",
+        "edit",
+        "delete"
+      ],
+      "api_keys": [
+        "read",
+        "create",
+        "delete"
+      ],
+      "backups": [
+        "read",
+        "execute"
+      ]
     },
     "it_engineer": {
-      "system_health": ["read"],
-      "logs": ["read"],
-      "runtime_config": ["read", "edit"],
-      "jobs": ["read", "execute"],
-      "database": ["read"],
-      "integrations": ["read", "edit", "execute"],
-      "domains": ["read", "edit", "execute"],
-      "site_code": ["read", "edit"],
-      "modules": ["read"],
-      "staff_accounts": ["read"],
-      "staff_roles": ["read"],
-      "audit": ["read"],
-      "notifications": ["read", "execute"],
-      "sessions": ["read"],
-      "tickets": ["read", "create", "edit", "assign"],
-      "ticket_settings": ["read"],
-      "backups": ["read"]
+      "system_health": [
+        "read"
+      ],
+      "logs": [
+        "read"
+      ],
+      "runtime_config": [
+        "read",
+        "edit"
+      ],
+      "jobs": [
+        "read",
+        "execute"
+      ],
+      "database": [
+        "read"
+      ],
+      "integrations": [
+        "read",
+        "edit",
+        "execute"
+      ],
+      "domains": [
+        "read",
+        "edit",
+        "execute"
+      ],
+      "site_code": [
+        "read",
+        "edit"
+      ],
+      "modules": [
+        "read"
+      ],
+      "staff_accounts": [
+        "read"
+      ],
+      "staff_roles": [
+        "read"
+      ],
+      "audit": [
+        "read"
+      ],
+      "notifications": [
+        "read",
+        "execute"
+      ],
+      "sessions": [
+        "read"
+      ],
+      "tickets": [
+        "read",
+        "create",
+        "edit",
+        "assign"
+      ],
+      "ticket_settings": [
+        "read"
+      ],
+      "backups": [
+        "read"
+      ]
     },
     "it_support": {
-      "system_health": ["read"],
-      "notifications": ["read"],
-      "staff_accounts": ["read", "edit", "execute"],
-      "staff_roles": ["read"],
-      "sessions": ["read", "delete"],
-      "tickets": ["read", "create", "edit", "assign"],
-      "ticket_settings": ["read"]
+      "system_health": [
+        "read"
+      ],
+      "notifications": [
+        "read"
+      ],
+      "staff_accounts": [
+        "read",
+        "edit",
+        "execute"
+      ],
+      "staff_roles": [
+        "read"
+      ],
+      "sessions": [
+        "read",
+        "delete"
+      ],
+      "tickets": [
+        "read",
+        "create",
+        "edit",
+        "assign"
+      ],
+      "ticket_settings": [
+        "read"
+      ]
     },
     "it_auditor": {
-      "system_health": ["read"],
-      "logs": ["read"],
-      "audit": ["read"],
-      "sessions": ["read"],
-      "staff_accounts": ["read"],
-      "staff_roles": ["read"],
-      "tickets": ["read"]
+      "system_health": [
+        "read"
+      ],
+      "logs": [
+        "read"
+      ],
+      "audit": [
+        "read"
+      ],
+      "sessions": [
+        "read"
+      ],
+      "staff_accounts": [
+        "read"
+      ],
+      "staff_roles": [
+        "read"
+      ],
+      "tickets": [
+        "read"
+      ]
     }
   }
 }

@@ -27,3 +27,12 @@ func New(pool *pgxpool.Pool) *Store { return &Store{pool: pool, Queries: sqlcdb.
 func (s *Store) Tx(ctx context.Context, fn func(*sqlcdb.Queries, pgx.Tx) error) error {
 	return db.WithTx(ctx, s.pool, pgx.TxOptions{}, func(tx pgx.Tx) error { return fn(s.WithTx(tx), tx) })
 }
+
+func (s *Store) UpdateStatusByProviderID(ctx context.Context, providerID, status, lastError string) error {
+	var errPtr *string
+	if lastError != "" {
+		errPtr = &lastError
+	}
+	_, err := s.pool.Exec(ctx, `UPDATE notify.message SET status = $1, last_error = $2, updated_at = now() WHERE provider_id = $3`, status, errPtr, providerID)
+	return err
+}

@@ -773,7 +773,10 @@
       "uploading": "Uploading…",
       "upload": "Upload file",
       "printReceipt": "Print receipt"
-    }
+    },
+    "mfaLabel": "Authenticator or recovery code",
+    "mfaHint": "Enter your authenticator code or one unused recovery code.",
+    "mfaRequired": "A second-factor code is required to finish signing in."
   },
   "store": {
     "pickupStatuses": {

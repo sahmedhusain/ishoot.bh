@@ -1,6 +1,26 @@
+import { listFAQs } from "@platform/api-client";
 import { db } from "../db";
 
 export async function getFaqs(adminOnly = true) {
+  try {
+    const items = await listFAQs(adminOnly);
+    if (items && items.length > 0) {
+      return items.map((f) => ({
+        id: f.id,
+        questionEn: f.questionEn,
+        questionAr: f.questionAr,
+        answerEn: f.answerEn,
+        answerAr: f.answerAr,
+        category: f.category,
+        isPublished: f.isPublished,
+        sortOrder: f.sortOrder,
+        createdAt: new Date(f.createdAt),
+        isSample: false,
+      }));
+    }
+  } catch {
+    // Fall back to direct database
+  }
   try {
     return await db.faq.findMany({
       where: adminOnly ? undefined : { isPublished: true },

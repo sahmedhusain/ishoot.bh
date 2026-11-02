@@ -56,6 +56,7 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	services.POST("/messages", h.queue, send)
 	services.GET("/messages/:id", h.status, send)
 	registerInbox(e, services, h)
+	h.registerWebhooks(e)
 
 	desk := e.Group("/v1/notify/desk", authn.Require(opts.Verifier, authn.RealmIT))
 	desk.GET("/messages", h.list, authz.Require(catalog.ITAccess, "notifications", "read"))

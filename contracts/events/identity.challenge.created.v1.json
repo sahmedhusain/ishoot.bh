@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/identity.challenge.created.v1.json",
+  "title": "identity.challenge.created",
+  "description": "Authentication lifecycle metadata only; no address, code or token.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "challengeId",
+    "realm",
+    "changedBy"
+  ],
+  "properties": {
+    "challengeId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "realm": {
+      "type": "string",
+      "enum": [
+        "staff",
+        "customer"
+      ]
+    },
+    "changedBy": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}
