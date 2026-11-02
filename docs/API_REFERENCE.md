@@ -1,17 +1,27 @@
 # API reference
 
-Generated from the code by `pnpm docs:api`; do not edit by hand. Input contracts for admin server actions are in `apps/admin/lib/action-schemas.json`; unmigrated data models remain in `packages/database/prisma/schema.prisma` (browse them with `pnpm db:studio`).
+API reference covering Go backend microservice contracts, Next.js application routes, and typed platform client bindings. Input contracts for admin server actions are in `apps/admin/lib/action-schemas.json`.
 
 ## Go service contracts
 
 | Service | OpenAPI contract |
 |---|---|
 | audit | [OpenAPI](../backend/services/audit/api/openapi.yaml) |
+| cms | [OpenAPI](../backend/services/cms/api/openapi.yaml) |
+| commerce | [OpenAPI](../backend/services/commerce/api/openapi.yaml) |
+| delivery | [OpenAPI](../backend/services/delivery/api/openapi.yaml) |
 | files | [OpenAPI](../backend/services/files/api/openapi.yaml) |
+| finance | [OpenAPI](../backend/services/finance/api/openapi.yaml) |
+| gateway | [OpenAPI](../backend/services/gateway/api/openapi.yaml) |
+| hr | [OpenAPI](../backend/services/hr/api/openapi.yaml) |
 | identity | [OpenAPI](../backend/services/identity/api/openapi.yaml) |
+| inventory | [OpenAPI](../backend/services/inventory/api/openapi.yaml) |
 | itsm | [OpenAPI](../backend/services/itsm/api/openapi.yaml) |
 | notify | [OpenAPI](../backend/services/notify/api/openapi.yaml) |
+| realtime | [OpenAPI](../backend/services/realtime/api/openapi.yaml) |
+| sales | [OpenAPI](../backend/services/sales/api/openapi.yaml) |
 | system | [OpenAPI](../backend/services/system/api/openapi.yaml) |
+| workflow | [OpenAPI](../backend/services/workflow/api/openapi.yaml) |
 
 ## Website HTTP routes (`apps/web`)
 

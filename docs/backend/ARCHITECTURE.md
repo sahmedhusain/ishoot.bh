@@ -115,7 +115,7 @@ vulnerabilities in called code or imported packages; one advisory remains in the
 Next.js is patched to 15.5.28, sanitize-html to 2.18.1 and Vitest to 4.1.12, with compatible transitive updates.
 All 327 frontend unit/static tests, lint and app/package type-checks pass. The expanded IT browser journey passes
 on the rebuilt isolated stack (16.7 s). The broader browser run exposed separate calendar and test defects under
-investigation; it is not yet green. `pnpm audit` now reports one moderate minimatch advisory in lint tooling,
+investigation; it is not yet green. `npm audit` now reports one moderate minimatch advisory in lint tooling,
 with no high/critical findings. A breaking minimatch override has not been applied. Image scans, k6 load baselines
 and a Kubernetes smoke deployment remain pending.
 

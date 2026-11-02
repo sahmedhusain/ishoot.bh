@@ -1,6 +1,6 @@
 # Module source inventory
 
-Generated from the saved source on 2026-10-28. This covers all **101 query modules**, **731 exported operations**, and a schema containing **182 models**. The domain relationships and implementation decisions are in [the implementation ledger](GENERALIZATION_IMPLEMENTATION.md).
+Generated from the saved source. This covers all **101 query modules**, **731 exported operations**, and a schema containing **182 models**.
 
 The table identifies direct Prisma/SQL table references and imports of peer query modules. Shared services, permissions, transactions and provider calls also create indirect relationships; this is a source inventory, not runtime test evidence. Historical database identifiers are retained for compatibility. No application or test was executed to produce it.
 

@@ -1,25 +1,25 @@
 # Services
 
-Each service has its own README with endpoints, events, tables, configuration and a runbook.
+Each service has its own README with endpoints, events, tables, configuration, and runbook.
 
-| Service                                               | Owns                                                                                                                  | Status                 |
-| ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ---------------------- |
-| [gateway](../../backend/services/gateway/README.md)   | Routing, token check, rate limits (no data)                                                                           | Live                   |
-| [identity](../../backend/services/identity/README.md) | Staff, customer and IT accounts; sessions, refresh tokens, MFA; roles, permissions, data scopes; Google/Apple sign-in | IT controls, audit and staff policy preview; staff/customer app cutover pending |
-| [system](../../backend/services/system/README.md)     | Company settings, modules, integrations (encrypted credentials), domains, runtime configuration                       | Modules, integrations, domains and site code live; Phase 4 |
-| [files](../../backend/services/files/README.md)       | Upload records, streamed S3 bytes, type and size checks, River cleanup                                                | Phase 2 verification   |
-| [notify](../../backend/services/notify/README.md)     | E-mail and WhatsApp delivery with retries and IT's queue; in-app notifications, their settings and mutes (staff and IT) | Live (delivery, inbox) |
-| [realtime](../../backend/services/realtime/README.md) | Live updates to browsers (Server-Sent Events over NATS hints); people's statuses, meetings and leave windows        | Live                   |
-| [audit](../../backend/services/audit/README.md)       | The audit trail: every published event, append-only, searched from the IT dashboard                                  | Live (system events)   |
-| workflow                                              | Approval engine, signatures, documents, letters, minutes, tasks, calendar, legal, report schedules                    | Phase 6                |
-| cms                                                   | Website content, pages, articles, publication, website revalidation                                                   | Phase 6                |
-| sales                                                 | Inquiries and service desk, CRM, quotations, commissions, outreach, marketing                                         | Phase 6                |
-| finance                                               | Invoices, payments, expenses, taxes, accounting journal, numbering                                                    | Phase 6                |
-| hr                                                    | Employees, leave, attendance, payroll, social insurance, settlements, handovers, claims                               | Phase 6                |
-| inventory                                             | Products, stock ledger, serials, counts, transfers, procurement, company assets                                       | Phase 6                |
-| commerce                                              | Store, customers' orders, coupons, payment gateways, retail                                                           | Phase 6                |
-| delivery                                              | Delivery settings, shipments, courier adapters, fleet, cash on delivery                                               | Phase 6                |
-| [itsm](../../backend/services/itsm/README.md)         | IT tickets, categories and SLAs, system-health view for the IT dashboard                                              | Phase 5                |
+| Service | Owns | Status |
+|---|---|---|
+| [gateway](../../backend/services/gateway/README.md) | Routing, token check, rate limits (no data) | Active |
+| [identity](../../backend/services/identity/README.md) | Staff, customer and IT accounts; sessions, refresh tokens, MFA; roles, permissions, data scopes; OAuth | Active; cutover pending final verification phase |
+| [system](../../backend/services/system/README.md) | Company settings, setup wizard, modules, integrations (encrypted credentials), domains, operations | Active |
+| [files](../../backend/services/files/README.md) | Upload records, streamed S3 bytes, type and size checks, River cleanup | Active |
+| [notify](../../backend/services/notify/README.md) | E-mail and WhatsApp delivery with retries; in-app notifications and preferences | Active |
+| [realtime](../../backend/services/realtime/README.md) | Live updates to browsers (Server-Sent Events over NATS hints); presence, meetings, leaves | Active |
+| [audit](../../backend/services/audit/README.md) | The audit trail: every published event, append-only, searched from the IT dashboard | Active |
+| [itsm](../../backend/services/itsm/README.md) | IT tickets, categories and SLAs, system-health view for the IT dashboard | Active |
+| [workflow](../../backend/services/workflow/README.md) | Approval engine, signatures, documents, letters, tasks, calendar events | Implemented |
+| [cms](../../backend/services/cms/README.md) | Website content, pages, articles, reviews, FAQs, statistics, snapshots, revalidation | Implemented |
+| [sales](../../backend/services/sales/README.md) | Inquiries and service desk, CRM contacts, deals, quotations, marketing campaigns | Implemented |
+| [finance](../../backend/services/finance/README.md) | Invoices, payments, expenses, expense claims, bank settlements | Implemented |
+| [hr](../../backend/services/hr/README.md) | Departments, employees, leave requests, attendance tracking, payroll runs | Implemented |
+| [inventory](../../backend/services/inventory/README.md) | Warehouses, categories, products, variants, stock levels, batches, movements, counts | Implemented |
+| [commerce](../../backend/services/commerce/README.md) | Customers, addresses, store settings, coupons, sales orders, retail registers and shifts | Implemented |
+| [delivery](../../backend/services/delivery/README.md) | Delivery settings, zones, slots, fleet vehicles, route sheets, shipments, courier adapters, COD | Implemented |
 
 The IT dashboard ([apps/it](../../apps/it/README.md)) is the IT team's front end for these services.
 

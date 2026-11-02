@@ -1,20 +1,50 @@
 # Architecture
 
-> The backend is moving, one domain at a time, to Go services described in [backend/](backend/README.md)
-> ([migration status](backend/ARCHITECTURE.md#migration-status)). This page describes the current TypeScript backend.
+The platform combines three independent Next.js App Router frontend applications with a decoupled Go microservices backend.
 
-## Topology
+```
+Browser ──▶ apps/web · apps/admin · apps/it   (Next.js: UI, cookies, Server Components, Server Actions)
+                 │ server-side only: Bearer token + X-Request-ID, typed @platform/api-client
+                 ▼
+             gateway ── routing · token check (JWKS) · rate limits (Valkey) · OpenTelemetry
+                 ▼
+   16 Go microservices:
+   identity · system · files · notify · realtime · audit · itsm
+   cms · sales · finance · workflow · hr · inventory · commerce · delivery
+         │ pgx + sqlc                    │ outbox → NATS JetStream          │ River jobs
+         ▼                               ▼                                   ▼
+   PostgreSQL 17 (schema per service)    Valkey    S3-compatible storage    OpenTelemetry
+```
 
-A pnpm and Turborepo monorepo with two Next.js App Router applications sharing one Prisma data layer:
+## Frontend Applications
 
-- **`apps/web`**: the public website (Arabic and English). React Server Components read published website content, company settings and the theme directly from the database. It also serves customer accounts, the cart and checkout, payment pages and webhooks, delivery tracking, the press page and unsubscribe links (`app/api/account`, `app/api/store`).
-- **`apps/admin`**: the business system (CRM, sales, finance, HR and payroll, assets, approvals, documents, website and CMS, products, stock, purchasing, online store, delivery, tasks, customer service, marketing, PR, legal, reports). Server Actions perform every change after a permission check, input validation (generated schemas in `lib/action-schemas.json`) and a database transaction. `/api/cron` runs the scheduled job; `/api/reports/<key>` exports reports.
-- **`packages/database`**: Prisma schema and migrations, queries, domain services (approval engine, payroll engine, numbering, signing, storage, service SLAs, payment links) and the theme engine (`constants/theme.ts`). Provider adapters live behind one interface each: `payments/gateways.ts` (seven payment gateways) and `couriers/adapters.ts` (three courier APIs). `cms/` holds the page blocks and article renderer, `reports/` the Excel writer, `samples/` the sample content per activity, and `constants/` the runtime-free catalogues (activities, modules, permissions, reports, delivery, tasks…).
-- **`packages/config`**: the Tailwind preset. Every brand colour, tone and font is a CSS variable, and so are the motion tokens (`--motion-fast|base|slow`, `--ease-standard|emphasized|exit`, `animate-page-in`, `animate-fade-up`, `stagger-children`, `skeleton`, `press`), which also switch every animation off for "reduce motion".
-- **`packages/locales`, `packages/ui`, `packages/email`**: copy, shared components and email delivery.
-- **`company/`**: company profiles, demo seed data and the installer. It is outside the apps, so no app carries a company's files.
+- **`apps/admin`**: The internal business operating system (CRM, sales, finance, HR and payroll, assets, approvals, documents, website and CMS, products, stock, purchasing, online store, delivery, tasks, reports). Server actions validate input via action schemas and dispatch commands to Go services through the API gateway.
+- **`apps/it`**: The IT operational dashboard. Operates against its own `identity` realm with mandatory TOTP MFA. Manages ticket queues, SLA configuration, system health probes, module switches, company branding, database maintenance, staff access, and audit trail inspection.
+- **`apps/web`**: The public-facing website and customer storefront in Arabic (`/ar`) and English (`/en`). Renders published CMS blocks, product catalog, customer accounts, shopping cart, checkout, payment webhooks, and shipment tracking.
 
-## Company identity and theming
+The frontends are standalone npm applications referencing shared packages (`@platform/ui`, `@platform/config`, `@platform/locales`, `@platform/api-client`, `@platform/email`) via local file dependencies without requiring a monorepo workspace tool.
+
+## Go Microservices Backend
+
+The backend is composed of 16 domain-scoped Go services:
+- **`gateway`**: Reverse proxy, path routing, rate limiting, and JWT validation via JWKS.
+- **`identity`**: Manages staff, customer, and IT accounts, sessions, passwords, MFA, and OAuth.
+- **`system`**: Company profile settings, setup wizard, module toggles, encrypted integration credentials, and site settings.
+- **`files`**: S3-compatible file storage, metadata records, upload validation, and River garbage collection.
+- **`notify`**: Email and WhatsApp delivery, delivery webhook processing, and in-app notifications.
+- **`realtime`**: Server-Sent Events (SSE) for real-time presence, notifications, and dashboard updates.
+- **`audit`**: Immutable, append-only audit trail capturing published domain events.
+- **`itsm`**: IT ticket lifecycles, SLA policy tracking, breach detection, and ticket comments.
+- **`cms`**: Content management, pages, articles, reviews, FAQs, statistics, and published content snapshots.
+- **`sales`**: CRM contacts, pipeline deals, inquiries, quotations, and outreach campaigns.
+- **`finance`**: Invoicing, payment records, expense claims, and bank settlements.
+- **`workflow`**: Multi-step approvals, digital signatures, official letters, tasks, and company calendar.
+- **`hr`**: Organizational departments, employee profiles, leave requests, attendance, and payroll.
+- **`inventory`**: Product catalogue, variants, stock movements, batches, counts, and warehouses.
+- **`commerce`**: Customers, addresses, store configuration, discount coupons, sales orders, and retail POS.
+- **`delivery`**: Shipping zones, time slots, delivery fleet, route sheets, shipments, courier adapters, and COD.
+
+## Company Identity and Theming
 
 ```
 company/profiles/<name>  ──db:bootstrap / db:seed──▶  CompanySetting (identity, theme JSON, file URLs)
@@ -22,56 +52,18 @@ setup wizard / Settings ──────────────────�
                                                                 ▼
               each root layout: themeStylesheet(theme) → <style> CSS variables + Google/uploaded fonts
                                                                 ▼
-                       Tailwind classes (bg-primary, text-accent, bg-tone-90, font-sans…) in both apps
+                       Tailwind classes (bg-primary, text-accent, bg-tone-90, font-sans…)
               PDFs: colours and font from the theme · emails: colours inlined · <meta theme-color>
 ```
 
 - `normalizeTheme` turns any stored value into a complete, safe theme: hex colours only, plain font names, and approved font files only.
-- `themeVariables` derives everything else from two colours: hover and pressed shades, tinted surfaces for light and dark, a tonal palette (`--brand-tone-5` … `--brand-tone-95`) and readable text colours.
-- The admin's default light or dark mode comes from the theme; each person can override it.
-- `CompanySetting.setupCompletedAt` gates the dashboard: until it is set, every dashboard page redirects to `/setup`.
+- `themeVariables` derives tonal shades and contrast-compliant surfaces for light and dark modes.
+- The admin's default light or dark mode comes from the theme; individual users can toggle their preference.
+- `CompanySetting.setupCompletedAt` gates the dashboard: until it is set, dashboard pages redirect to `/setup`.
 
 ## Infrastructure
 
-- **Hosting:** any Node host or Vercel. With serverless hosting, connect through the database pooler and schedule `/api/cron` for maintenance.
-- **Database:** PostgreSQL 17 (Compose locally). Migrations are the only way the schema changes.
-- **Storage:** The Go files service owns upload records and S3 bytes (SeaweedFS locally). Browsers stream through same-origin app routes. Apps enforce permissions; the service verifies type, size, ownership and stored bytes. Both S3 buckets are private, including `public-assets`, whose files are served publicly through app routes.
-- **Email:** Resend, through a durable outbox, with signature-verified delivery webhooks.
-- **Payments and couriers:** hosted payment pages (the card never touches the platform), verified and de-duplicated webhooks, and courier APIs, all configured as encrypted integrations.
-
-## Security boundaries
-
-- JWT session cookie backed by a revocable stored session, bcrypt passwords and optional TOTP MFA (see [SECURITY.md](SECURITY.md)).
-- `requirePermission(resource, action)` runs before every privileged read or write.
-- Integration secrets are encrypted at rest with AES-256-GCM.
-- Modules (`FeatureToggle`) switch whole areas on or off; every permission resource belongs to a module, and role data scopes (own, department, all) narrow lists further.
-- Website customers are a separate account type (`Customer`, with their own sessions) from staff (`User`).
-
-## Background work
-
-The system needs no always-on daemon to stay correct. Work that must survive failures is written to Postgres first (email outbox, website revalidation outbox, broadcast recipients, report schedules) and processed by workers or the cron route, with retries. Provider webhooks (email delivery, payments) update state asynchronously; payments are also re-checked by the cron route, so a lost webhook never loses money. See [OPERATIONS.md](OPERATIONS.md#background-work).
-
-## Data model
-
-`packages/database/prisma/schema.prisma` is the source of truth (180 models, 84 migrations). The main groups:
-
-| Area               | Models                                                                                                                                                                                              |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Company            | `CompanySetting` (identity, numbering, VAT, theme, setup state), `CompanyAsset`, `FeatureToggle`, `CompanyDocument`                                                                                 |
-| Access             | `User`, `Role`, `Permission`, `Session`, `MfaRecoveryCode`, `ActivityLog`, `Department`                                                                                                             |
-| Sales              | `CrmContact`, `CrmDeal`, `Inquiry`, `Quotation`, `Invoice`, `Payment`, `Expense`, approval requests and decisions                                                                                   |
-| People             | `Employee`, employment and compensation history, leave, attendance, payroll runs and items, social insurance, support programmes, settlements, handovers                                            |
-| Operations         | assets, handovers, calendar events, minutes of meetings, announcements, official letters                                                                                                            |
-| Website and CMS    | banners, portfolio, services, equipment, client logos, reviews, FAQs, statistics, `CmsPage`, `CmsArticle`, menus, published website snapshots                                                       |
-| Products and stock | `Product`, `ProductVariant`, `ProductCategory`, `Warehouse`, `StockLocation`, `StockLevel`, `StockMovement` (the ledger), batches, reorder points, stock counts                                     |
-| Purchasing         | requisitions, RFQs and quotes, `PurchaseOrder`, goods receipts, `SupplierBill`, supplier payments                                                                                                   |
-| Store and payments | `Customer` (sessions, addresses, wishlist), `StoreSettings`, `Coupon`, `SalesOrder`, lines and events, `PaymentAttempt`, `PaymentWebhookEvent`                                                      |
-| Delivery           | `DeliverySettings`, `DeliveryZone`, `DeliverySlot`, `Shipment` and events, `Vehicle`, `RouteSheet`, `CodSettlement`, `CourierAgency`, `AgencyInvoice`                                               |
-| Departments' tools | `Project`, `Task`, `TaskComment`, `ServiceSettings`, `CannedReply`, `Campaign`, `CustomerSegment`, `Broadcast`, `MediaContact`, `MediaCoverage`, `LegalMatter`, `ReportSchedule`, `DashboardLayout` |
-| Files              | `UploadObject` (every stored file: owner, type, size, public or private, claimed), `Attachment`                                                                                                     |
-
-Rules the code relies on are listed in `packages/database/prisma/check-integrity.ts`, and `pnpm db:check-integrity` verifies them on any database.
-
-## Testing and CI
-
-Unit tests, check suites on bare and seeded disposable databases, and Playwright end-to-end tests run on every pull request (see [TESTING.md](TESTING.md)).
+- **Database:** PostgreSQL 17 with schema-per-service isolation (`identity`, `system`, `files`, `notify`, `realtime`, `audit`, `itsm`, `cms`, `sales`, `finance`, `workflow`, `hr`, `inventory`, `commerce`, `delivery`).
+- **Storage:** Go `files` service backed by S3-compatible storage (SeaweedFS locally). Buckets remain private; applications proxy authorized access.
+- **Messaging:** NATS JetStream for event outbox publishing and durable subscriber consumption.
+- **Background Jobs:** PostgreSQL-backed River workers within Go services.

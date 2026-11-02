@@ -53,7 +53,7 @@ What the admin system does, by area, and the rules behind it. The exact routes a
 
 - **CRM:** web inquiries are de-duplicated into clients and deals. The deal pipeline has stages, and client profiles cover individuals, local and foreign companies and government, with points of contact and an ABC ranking.
 - **Quotations to invoices:** quotations convert to invoices under a row lock, so one quotation never produces two invoices. Discounts above the company or per-user limit need approval.
-- **Invoices and payments:** line items, VAT and other taxes, the configured company currency without conversion or FX margins, receipts with their own numbering, and overdue tracking. `pnpm db:check-integrity` audits totals, statuses and numbering.
+- **Invoices and payments:** line items, VAT and other taxes, the configured company currency without conversion or FX margins, receipts with their own numbering, and overdue tracking. `./run.sh db integrity` audits totals, statuses and numbering.
 - **Expenses and claims:** categories, recurring expenses, staff expense claims with approval and payment, and sales commissions.
 
 ## HR and payroll

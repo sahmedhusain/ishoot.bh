@@ -25,18 +25,18 @@ A company writes its content in Arabic, English or both (`contentLanguages`, cho
 - Digits are Western in both languages, including PDFs.
 - Stored notifications keep a translation key and parameters, so they follow the reader's current language.
 - Generated CSVs, calendar names, emails and metadata use the configured company identity.
-- No locale string may name a company, an address or a registration number; the brand check (`pnpm test:brand`) enforces this for every company profile.
+- No locale string may name a company, an address or a registration number; the brand check (`./run.sh test brand`) enforces this for every company profile.
 
 ## Checks
 
-`pnpm test:copy` checks:
+`./run.sh test copy` checks:
 
 - key and placeholder parity between the languages;
 - hardcoded display text in JSX, attributes, component defaults and messages;
 - that every server message is translated;
 - formatter behaviour.
 
-It runs as part of `pnpm test` and in CI.
+It runs as part of `./run.sh test` and in CI.
 
 
 ## Interface languages

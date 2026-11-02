@@ -75,14 +75,11 @@ Period, route, panel and menu transitions use short Material curves. Reduced/off
 Playwright, Chromium and `@axe-core/playwright` provide browser checks. Vitest checks generated schemes, contrast across every preset and extreme source colors, neutral mode, accent roles, saved theme validation and font handling.
 
 ```sh
-pnpm test:unit
-pnpm --filter @platform/admin type-check
-pnpm --filter @platform/ui type-check
-pnpm --filter @platform/web type-check
-pnpm lint
-pnpm test:copy
-pnpm test:e2e:prepare
-pnpm exec playwright test --project=admin m3-accessibility.spec.ts controls-layout.spec.ts redesign.spec.ts route-layout.spec.ts navigation-overlays.spec.ts
+./run.sh test unit
+./run.sh types
+./run.sh lint
+./run.sh test copy
+./run.sh test e2e
 ```
 
 The production build also checks the static fallback document. The navigation provider keeps its context tree stable when Next prerenders without a router; editable pages keep their existing guards.
@@ -97,7 +94,7 @@ The workspace now has a separate navigation rail, collapsible desktop navigation
 
 All admin modal callers were reviewed. Form actions were moved out of scrolling bodies, including modular forms and edit/review states. Footer action groups wrap when space is limited, and stale body separators were removed. Native submit association, validation, action handlers and permissions remain in their existing code paths. Browser checks cover contrast in both modes, Arabic/English layout, reduced motion, nested focus, backdrop/placement preferences, customization persistence and footer position while scrolling. This is representative workflow coverage, not a per-screen M3 certification.
 
-The [route audit](ADMIN_UI_ROUTE_AUDIT.md) records all 154 dashboard routes, 52 local tab selections per language and 1,236 viewport measurements. Authentication screens have separate layout, label and error-contrast checks in both languages.
+The admin route audit records all 154 dashboard routes, 52 local tab selections per language and 1,236 viewport measurements. Authentication screens have separate layout, label and error-contrast checks in both languages.
 
 The route-layout audit enumerates the dashboard routes directly from the app directory. It checks local tab panels at 390, 768 and 1440 pixels in both languages. Temporary draft fixtures cover detail routes, and optional modules are enabled only in the disposable database for the audit; records and module flags are restored afterward. The audit fails if any route lacks a fixture. Manual screen-reader, other-browser and physical-device testing remain outside this pass.
 

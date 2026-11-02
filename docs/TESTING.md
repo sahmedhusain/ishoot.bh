@@ -4,25 +4,25 @@ Three layers, all of which run in GitHub Actions (`.github/workflows/ci.yml`) on
 
 | Layer           | Command               | Needs                 | What it covers                                                                                                                                                                                                                                                                                                                                                                                    |
 | --------------- | --------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Unit            | `pnpm test:unit`      | nothing               | Theme engine, company profiles, activities and website presets, CMS blocks, sample content, departments and roles, products, inventory, purchasing, store pricing and orders, payment gateways (webhook verification, amounts), customer sign-in, delivery zones and slots, couriers, tasks, marketing, reports (periods, schedules, the Excel writer)                                            |
-| Static checks   | `pnpm test:checks`    | nothing               | Brand neutrality, copy and language rules, permissions, payroll and approval engines, security boundaries, upload storage, navigation                                                                                                                                                                                                                                                             |
-| Database checks | `pnpm test:checks:db` | two `_test` databases | About 35 suites of business rules on real Postgres (finance, payroll, GOSI, approvals, assets, handovers, archive, signatures, website…). Each rolls back its own records.                                                                                                                                                                                                                        |
-| End-to-end      | `pnpm test:e2e`       | Postgres, Chromium    | First-run setup wizard, admin sign-in and audit, branding, theme editing, departments, every sidebar page and link, phone layouts; products, stock, purchasing, orders, payments, delivery, fleet, courier agencies, tasks, customer service, marketing, PR, legal and reports; website pages in English and Arabic, customer accounts, cart and checkout, online payment, delivery tracking, 404 |
+| Unit            | `./run.sh test unit`  | nothing               | Theme engine, company profiles, activities and website presets, CMS blocks, sample content, departments and roles, products, inventory, purchasing, store pricing and orders, payment gateways (webhook verification, amounts), customer sign-in, delivery zones and slots, couriers, tasks, marketing, reports (periods, schedules, the Excel writer)                                            |
+| Static checks   | `./run.sh test checks`| nothing               | Brand neutrality, copy and language rules, permissions, payroll and approval engines, security boundaries, upload storage, navigation                                                                                                                                                                                                                                                             |
+| Database checks | `./run.sh test db`    | two `_test` databases | About 35 suites of business rules on real Postgres (finance, payroll, GOSI, approvals, assets, handovers, archive, signatures, website…). Each rolls back its own records.                                                                                                                                                                                                                        |
+| End-to-end      | `./run.sh test e2e`   | Postgres, Chromium    | First-run setup wizard, admin sign-in and audit, branding, theme editing, departments, every sidebar page and link, phone layouts; products, stock, purchasing, orders, payments, delivery, fleet, courier agencies, tasks, customer service, marketing, PR, legal and reports; website pages in English and Arabic, customer accounts, cart and checkout, online payment, delivery tracking, 404 |
 
-`pnpm test` runs the unit tests and static checks together, and needs no database. `./run.sh check` runs everything the CI static job runs (lint, types, tests, copy, brand, action schemas, knip); `./run.sh test db` prepares both databases and runs the database checks; `./run.sh test e2e [args]` prepares the e2e databases and runs Playwright; `./run.sh test ci` runs all three.
+`./run.sh test` runs the unit tests and static checks together, and needs no database. `./run.sh check` runs everything the CI static job runs (lint, types, tests, copy, brand, action schemas); `./run.sh test db` prepares both databases and runs the database checks; `./run.sh test e2e [args]` prepares the e2e databases and runs Playwright; `./run.sh test ci` runs all three.
 
 ## Database checks
 
 ```bash
-node tests/e2e/prepare-db.cjs bare platform_bare_test
+node apps/admin/tests/e2e/helpers/prepare-db.cjs bare platform_bare_test
 ```
 
 ```bash
-SEED_VOLUME=on node tests/e2e/prepare-db.cjs seeded platform_seeded_test
+SEED_VOLUME=on node apps/admin/tests/e2e/helpers/prepare-db.cjs seeded platform_seeded_test
 ```
 
 ```bash
-CHECKS_BARE_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/platform_bare_test CHECKS_SEEDED_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/platform_seeded_test pnpm test:checks:db
+CHECKS_BARE_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/platform_bare_test CHECKS_SEEDED_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/platform_seeded_test ./run.sh test checks:db
 ```
 
 Some checks count rows or expect a company that is not set up yet, so they need the **bare** database. The others need demo data. A suite only runs when its database name ends in `_test`.
@@ -30,14 +30,14 @@ Some checks count rows or expect a company that is not set up yet, so they need 
 ## End-to-end (Playwright)
 
 ```bash
-pnpm exec playwright install chromium
+npx playwright install chromium
 ```
 
 ```bash
-pnpm test:e2e
+./run.sh test e2e
 ```
 
-`test:e2e` rebuilds `platform_e2e_test` (seeded, demo profile) and `platform_e2e_blank_test` (blank install), then starts four servers through `tests/e2e/serve.cjs`, each on its own database and build folder:
+`test:e2e` rebuilds `platform_e2e_test` (seeded, demo profile) and `platform_e2e_blank_test` (blank install), then starts four servers through `apps/admin/tests/e2e/helpers/serve.cjs`, each on its own database and build folder:
 
 | Port | Server                                                | Projects                                                                              |
 | ---- | ----------------------------------------------------- | ------------------------------------------------------------------------------------- |
@@ -47,19 +47,19 @@ pnpm test:e2e
 | 3015 | IT dashboard through identity and the gateway         | `it`                                                                                  |
 | 3199 | A local Stripe stand-in, started by the payment specs | (the servers get `PAYMENT_GATEWAY_BASE_URL_STRIPE` and `CRON_SECRET=e2e-cron-secret`) |
 
-Disposable accounts for these runs (administrator, viewer, driver) are in `tests/e2e/fixtures/users.json`; they exist only in the test databases.
+Disposable accounts for these runs (administrator, viewer, driver) are in `apps/admin/tests/e2e/fixtures/users.json` or generated at test start; they exist only in the test databases.
 
 Useful variations:
 
 ```bash
-pnpm exec playwright test --project=web
+npx playwright test --project=web
 ```
 
 ```bash
-pnpm exec playwright test --ui
+npx playwright test --ui
 ```
 
-`pnpm exec playwright test` reuses the prepared databases (`E2E_SEEDED_DATABASE` and `E2E_BLANK_DATABASE` choose other `_test` databases). Run `pnpm test:e2e:prepare` again after the setup-wizard test, because that test completes the blank company's setup. The IT server builds into `.next-e2e` before listening, so the desk journey never waits for page compilation; a failed build stops startup. `E2E_SERVER_MODE=start` serves prebuilt production builds of all apps, as CI does; build them first with `NEXT_DIST_DIR=.next-e2e`. Build with `WEB_URL`/`NEXT_PUBLIC_WEB_URL` at `http://localhost:3013`, `ADMIN_URL`/`NEXT_PUBLIC_ADMIN_URL` at `http://localhost:3012`, and `ADMIN_PREVIEW_ORIGINS=http://localhost:3014`: the website's frame policy is generated at build time, and the setup server needs preview access. Before the IT suite, run `node tests/e2e/it-account.cjs` against the disposable stack; `COMPOSE_ARGS` selects its project/env file and `E2E_IT_ACCOUNT_FILE` selects the credential file. Reports, traces, videos and screenshots go to `tests/.results/`.
+`npx playwright test` reuses the prepared databases (`E2E_SEEDED_DATABASE` and `E2E_BLANK_DATABASE` choose other `_test` databases). Run `./run.sh test e2e:prepare` again after the setup-wizard test, because that test completes the blank company's setup. The IT server builds into `.next-e2e` before listening, so the desk journey never waits for page compilation; a failed build stops startup. `E2E_SERVER_MODE=start` serves prebuilt production builds of all apps, as CI does; build them first with `NEXT_DIST_DIR=.next-e2e`. Build with `WEB_URL`/`NEXT_PUBLIC_WEB_URL` at `http://localhost:3013`, `ADMIN_URL`/`NEXT_PUBLIC_ADMIN_URL` at `http://localhost:3012`, and `ADMIN_PREVIEW_ORIGINS=http://localhost:3014`: the website's frame policy is generated at build time, and the setup server needs preview access. Before the IT suite, run `node apps/admin/tests/e2e/helpers/it-account.cjs` against the disposable stack; `COMPOSE_ARGS` selects its project/env file and `E2E_IT_ACCOUNT_FILE` selects the credential file. Reports, traces, videos and screenshots go to `apps/admin/test-results/`.
 
 `specs/admin/links.spec.ts` and `specs/web/links.spec.ts` crawl every page (`tests/e2e/crawl.ts`): error statuses,
 broken images and downloads, new-tab links without `rel="noreferrer"`, links into the other language, and who may
@@ -77,7 +77,7 @@ Tests read their expectations from the repository instead of hardcoding them: th
 ## Volume
 
 ```bash
-pnpm test:volume
+./run.sh test volume
 ```
 
 Rebuilds `platform_volume_test` from the demo seed, adds 2,000 employees (1,500 with accounts) in a nested
@@ -92,6 +92,6 @@ These need running servers and are not part of CI:
 | Script                                               | Purpose                                                                                                                   |
 | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | `node scripts/check-website-http.cjs`                | Website HTTP behaviour against a preview server on a `_test` database (fixtures: `node company/seed/website-preview.cjs`) |
-| `pnpm test:followup-http`                            | Admin HTTP follow-up checks against a running server                                                                      |
+| `node scripts/check-admin-followup-http.cjs`         | Admin HTTP follow-up checks against a running server                                                                      |
 | `node scripts/profile-local-http.cjs`                | Local response-time baseline (not a production benchmark)                                                                 |
 | `node scripts/test-heavy-load-and-optimizations.cjs` | Stress and edge-case scenarios on a `_test` database                                                                      |

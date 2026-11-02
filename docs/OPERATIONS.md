@@ -44,8 +44,9 @@ Generate a secret by hand with `openssl rand -base64 32` (`openssl rand -hex 16`
 
 | Service                               | Address                                                     | Notes                                                         |
 | ------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------- |
-| Website                               | http://localhost:3000                                       | `pnpm dev:web`                                                |
-| Admin                                 | http://localhost:3001                                       | `pnpm dev:admin`                                              |
+| Website                               | http://localhost:3000                                       | `./run.sh dev web`                                            |
+| Admin                                 | http://localhost:3001                                       | `./run.sh dev admin`                                          |
+| IT Dashboard                          | http://localhost:3002                                       | `./run.sh dev it`                                             |
 | Postgres 17 (Compose)                 | 127.0.0.1:5432                                              | See [DATABASE.md](DATABASE.md)                                |
 | Gateway / files health                | http://127.0.0.1:9080/readyz / http://127.0.0.1:9081/readyz | Compose probes                                                |
 | Prisma Studio                         | http://localhost:5555                                       | `./run.sh db studio`                                          |
@@ -80,11 +81,12 @@ Payment webhooks arrive at `<WEB_URL>/api/store/payment/webhook/<gateway>` (veri
 
 | Process             | Command                    | Purpose                                                                                  |
 | ------------------- | -------------------------- | ---------------------------------------------------------------------------------------- |
-| Email worker        | `pnpm worker:email`        | Sends queued email, retries failures                                                     |
-| Revalidation worker | `pnpm worker:revalidation` | Pushes published website changes to the website (needs `WEB_URL`, `REVALIDATION_SECRET`) |
-| Maintenance worker  | `pnpm worker:maintenance`  | Removes expired sessions and abuse windows; files cleanup runs in the Go worker          |
+| River workers       | Run in Go services         | Background jobs (files cleanup, ITSM SLA breaches, outbox publication, notify dispatch) |
+| Email worker        | `./run.sh worker email`    | Sends queued email, retries failures                                                     |
+| Revalidation worker | `./run.sh worker revalidation` | Pushes published website changes to the website (needs `WEB_URL`, `REVALIDATION_SECRET`) |
+| Maintenance worker  | `./run.sh worker maintenance`  | Removes expired sessions and abuse windows; files cleanup runs in the Go worker          |
 
-`./run.sh worker all` runs the three together. `pnpm check:workers` verifies the worker configuration.
+`./run.sh worker all` runs legacy workers together. `./run.sh worker check` verifies the worker configuration.
 
 **Scheduled job.** The admin's `/api/cron` (`Authorization: Bearer <CRON_SECRET>`) does everything time-based in one call. Schedule it every 5 to 15 minutes (a Vercel cron, a system cron, or any scheduler); `./run.sh cron` calls it once by hand. Each run:
 
@@ -132,6 +134,6 @@ Each app is a standard Next.js server (`next build`, `next start`): host them on
 
 **Upgrading an installation:** pull, then `./run.sh upgrade` (install, `env sync`, migrate). Migrations that add permission resources also give existing roles their default grants, so new modules work for existing companies once switched on in Settings → Modules.
 
-**Upgrading an installation from before company profiles:** after migrating, run `COMPANY_PROFILE=<name> COMPANY_PROFILE_OVERWRITE=1 pnpm db:bootstrap`. This restores the company's theme and fonts and moves stored `/brand/...` file paths to uploads (see [GETTING_STARTED.md](GETTING_STARTED.md#re-apply-a-profile-to-an-existing-installation)). Everyone signs in again once, because the session cookie was renamed.
+**Upgrading an installation from before company profiles:** after migrating, run `COMPANY_PROFILE=<name> COMPANY_PROFILE_OVERWRITE=1 ./run.sh db bootstrap`. This restores the company's theme and fonts and moves stored `/brand/...` file paths to uploads (see [GETTING_STARTED.md](GETTING_STARTED.md#re-apply-a-profile-to-an-existing-installation)). Everyone signs in again once, because the session cookie was renamed.
 
 Back up the database and both buckets together (`./run.sh db backup` dumps the database); stored file URLs point into storage. Restores, provider quotas, mail-domain verification and production latency need checking against the live environment; the test suites do not certify them.

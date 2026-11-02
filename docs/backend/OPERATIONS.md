@@ -129,7 +129,7 @@ integrations set up in the IT dashboard.
 4. **Stack smoke test:** `docker compose up --wait`, then probe the gateway.
 
 `.github/workflows/ci.yml` (the Next.js apps) also runs `tests/unit/catalog-sync.test.ts`. That test keeps
-`contracts/catalog` equal to the TypeScript constants; `pnpm catalog:sync` rewrites the catalogue after a constant
+`contracts/catalog` equal to the TypeScript constants; `npm run catalog:sync` rewrites the catalogue after a constant
 changes.
 
 ## Kubernetes

@@ -1,6 +1,6 @@
 # Files service
 
-Owns `files.upload_object`, private S3 objects and expired-upload cleanup. Domain attachments remain with their business domain in Prisma during Phase 2. The HTTP contract is [api/openapi.yaml](api/openapi.yaml); regenerate the TypeScript client with `pnpm --filter @platform/api-client generate` from the repository root.
+Owns `files.upload_object`, private S3 objects and expired-upload cleanup. Domain attachments remain with their business domain during the migration. The HTTP contract is [api/openapi.yaml](api/openapi.yaml); regenerate the TypeScript client with `npm --prefix packages/api-client run generate` from the repository root.
 
 ## Requests and authentication
 

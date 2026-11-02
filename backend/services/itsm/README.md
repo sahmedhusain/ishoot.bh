@@ -3,7 +3,7 @@
 IT tickets: employees raise requests from the admin app; IT staff work them from the IT dashboard (ADR 0010). Owns the
 `itsm` schema: `ticket`, `ticket_event` (the audit trail), `ticket_comment`, `ticket_attachment` and `sla_policy`.
 The HTTP contract is [api/openapi.yaml](api/openapi.yaml); regenerate the TypeScript client with
-`pnpm --filter @platform/api-client generate` from the repository root.
+`npm --prefix packages/api-client run generate` from the repository root.
 
 ## Rules
 

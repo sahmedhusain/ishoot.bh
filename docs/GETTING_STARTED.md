@@ -12,7 +12,7 @@ All three use the same code. They differ only in what goes into the database and
 
 ## 1. One-time setup
 
-Prerequisites: Node 22 or newer, pnpm 12, and Docker.
+Prerequisites: Node 22 or newer, Go 1.24+, Docker, and npm.
 
 The quickest way is one command, which installs dependencies, creates `.env` with generated secrets, starts the local Compose stack and builds the demo database (add `--light` for less data or `--empty` for the setup wizard):
 
@@ -25,7 +25,7 @@ Set `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD` in `.env` first if you want t
 Step by step instead:
 
 ```bash
-pnpm install
+./run.sh install
 ```
 
 ```bash
@@ -41,11 +41,11 @@ pnpm install
 ## A. Demo company
 
 ```bash
-pnpm db:reset
+./run.sh db reset
 ```
 
 ```bash
-pnpm dev
+./run.sh dev
 ```
 
 This loads **Northwind Studio**, a fictional company with its own logo, colours and fonts, plus about two minutes' worth of generated business data: clients, deals, quotations, invoices, payments, employees, payroll, assets, approvals and website content.
@@ -53,7 +53,7 @@ This loads **Northwind Studio**, a fictional company with its own logo, colours 
 - Admin: http://localhost:3001. Sign in with `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD`.
 - Website: http://localhost:3000 (English at `/en`, Arabic at `/ar`).
 - Other demo accounts are listed in `company/seed/demo-staff.json` (for example `finance@example.com`, `sales@example.com`). They all use `SUPER_ADMIN_PASSWORD`.
-- `pnpm db:reset:light` gives the same company with less data and takes about 20 seconds.
+- `./run.sh db reset --light` gives the same company with less data and takes about 20 seconds.
 
 ## B. Load a company profile
 
@@ -83,27 +83,27 @@ The format of each file is described in [company/README.md](../company/README.md
    - `stamp` and `signature`: printed on approved documents.
 5. Check the profile:
    ```bash
-   pnpm test:unit
+   ./run.sh test unit
    ```
 
 ### Use it for development (demo data with your brand)
 
 ```bash
-pnpm db:reset --profile acme
+./run.sh db reset --profile acme
 ```
 
-Or set `COMPANY_PROFILE=acme` in `.env` and run `pnpm db:reset`.
+Or set `COMPANY_PROFILE=acme` in `.env` and run `./run.sh db reset`.
 
 ### Use it for a real installation (no demo data)
 
 On an empty database:
 
 ```bash
-pnpm db:migrate
+./run.sh db migrate
 ```
 
 ```bash
-COMPANY_PROFILE=acme pnpm db:bootstrap
+COMPANY_PROFILE=acme ./run.sh db bootstrap
 ```
 
 `db:bootstrap` creates the roles, permissions, default modules and your super admin. It installs the profile's identity, uploads its brand files to storage, saves its theme and marks the company as set up. It never deletes or overwrites existing records, and it is safe to run again.
@@ -113,7 +113,7 @@ COMPANY_PROFILE=acme pnpm db:bootstrap
 After changing a profile's files, or when upgrading an installation from before profiles existed:
 
 ```bash
-COMPANY_PROFILE=acme COMPANY_PROFILE_OVERWRITE=1 pnpm db:bootstrap
+COMPANY_PROFILE=acme COMPANY_PROFILE_OVERWRITE=1 ./run.sh db bootstrap
 ```
 
 This updates the company's identity, brand files and theme. It also moves any stored `/brand/...` paths left over from older versions to uploaded files, and lists anything it could not find in the profile.
@@ -121,11 +121,11 @@ This updates the company's identity, brand files and theme. It also moves any st
 ## C. Blank install with the setup wizard
 
 ```bash
-pnpm db:reset:empty
+./run.sh db reset --empty
 ```
 
 ```bash
-pnpm dev
+./run.sh dev
 ```
 
 Sign in at http://localhost:3001 and the admin opens **/setup**. It walks through six steps:
@@ -139,13 +139,13 @@ Sign in at http://localhost:3001 and the admin opens **/setup**. It walks throug
 
 Until setup is finished, every dashboard page redirects to `/setup`. People without settings permission see a "being set up" page. All of these choices can be changed later in **Settings → Company**; colours and fonts are under **Colours & fonts**.
 
-For a production installation, run `pnpm db:migrate` and then `pnpm db:bootstrap` without `COMPANY_PROFILE`, and complete the wizard in the browser.
+For a production installation, run `./run.sh db migrate` and then `./run.sh db bootstrap` without `COMPANY_PROFILE`, and complete the wizard in the browser.
 
 ## 2. Day-to-day commands
 
 | Task                                                                | Command                                                           |
 | ------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| Start both apps / only one                                          | `./run.sh dev` · `./run.sh dev admin` · `./run.sh dev web`        |
+| Start all apps / specific app                                       | `./run.sh dev` · `./run.sh dev admin` · `./run.sh dev it` · `./run.sh dev web` |
 | Start over with fresh data                                          | `./run.sh db reset` (or `--light`, `--empty`, `--profile <name>`) |
 | After pulling new work                                              | `./run.sh upgrade` (install, new `.env` variables, migrations)    |
 | Apply new migrations                                                | `./run.sh db migrate`                                             |
@@ -156,12 +156,12 @@ For a production installation, run `pnpm db:migrate` and then `pnpm db:bootstrap
 | Run every static check CI runs                                      | `./run.sh check`                                                  |
 | Run everything CI runs                                              | `./run.sh test ci`                                                |
 
-Each `./run.sh` command prints the `pnpm` command it runs, so the `pnpm` scripts in `package.json` still work on their own.
+Each frontend application is an independent npm project (`apps/admin`, `apps/it`, `apps/web`) with its own npm scripts.
 
 More detail: [DATABASE.md](DATABASE.md) (database and seeds), [TESTING.md](TESTING.md) (tests), [OPERATIONS.md](OPERATIONS.md) (environment, services, deployment).
 
 ## Rules that keep the system company-neutral
 
-- Company names, colours, fonts, logos, addresses and registration numbers go in `company/profiles/<name>/` or in the database, never in `apps/` or `packages/`. `pnpm test:brand` fails otherwise, and it runs in CI.
+- Company names, colours, fonts, logos, addresses and registration numbers go in `company/profiles/<name>/` or in the database, never in `apps/` or `packages/`. `./run.sh test brand` fails otherwise, and it runs in CI.
 - Interface text goes in the locale files (`packages/locales/src`), never inline (see [LOCALIZATION.md](LOCALIZATION.md)).
 - Demo people and companies are fictional and use `example.com` or `.example` addresses.
