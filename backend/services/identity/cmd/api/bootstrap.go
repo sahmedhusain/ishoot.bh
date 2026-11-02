@@ -26,7 +26,7 @@ import (
 func provisionIT(ctx context.Context, command string, args []string, cfg settings.Login, pool *pgxpool.Pool) error {
 	flags := flag.NewFlagSet(command, flag.ContinueOnError)
 	email := flags.String("email", "", "e-mail address of the IT account")
-	role := flags.String("role", "it_admin", "IT role (contracts/catalog/it-access.json)")
+	role := flags.String("role", "it_admin", "first-account role (must be it_admin; manage other roles in the IT dashboard)")
 	actor := flags.String("actor", "", "operator ID for break-glass recovery (required for recover-it)")
 	if err := flags.Parse(args); err != nil {
 		return err

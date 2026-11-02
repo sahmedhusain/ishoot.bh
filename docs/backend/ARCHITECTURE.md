@@ -31,7 +31,7 @@ Browser ─▶ apps/web · apps/admin · apps/it   (Next.js: UI, cookies, server
 | ----- | ------------------------------------------------------------------------------------- | ------------ |
 | 1     | Shared kit, catalogue, gateway, local stack, CI, Helm, docs                           | **Done**; chart validation below |
 | 2     | `files` on S3-compatible storage; Supabase removed                                    | Verification |
-| 3     | `identity` (staff, customer and IT realms)                                            | In progress; IT auth, audit/recovery (`5ea19e78`) and account management verified below |
+| 3     | `identity` (staff, customer and IT realms)                                            | In progress; IT auth/recovery/management and identity snapshot restore verified below |
 | 4     | `system`, `audit`, `notify` and the IT dashboard (`apps/it`)                          | In progress  |
 | 5     | `itsm` and IT support in the admin app                                                | In progress  |
 | 6     | Domain waves: cms → sales → finance → workflow → hr → inventory → commerce → delivery | Planned      |
@@ -79,7 +79,7 @@ in audit; all 19 running containers are healthy. Helm lint/render/schema checks 
 values (49 valid resources each, seven ServiceMonitors skipped). Frontend unit/static checks (327 tests) and lint
 pass. The IT journey passes in 11.2 s after fixing a navigation race: the overview and queue both show the same
 ticket links, so the spec now waits for the queue URL and heading before opening a ticket. IT type-check and
-action-schema checks pass. Staff/customer sign-in, access handoff, IT account management and the later domain waves remain unfinished.
+action-schema checks pass. Staff/customer sign-in, access handoff and the later domain waves remain unfinished.
 No production/development data or environment values were changed. Real-data migration/restore, image scans, load
 tests and a cluster smoke deployment are not verified by this milestone.
 
@@ -117,6 +117,20 @@ on the rebuilt isolated stack (16.7 s). The broader browser run exposed separate
 investigation; it is not yet green. `pnpm audit` now reports one moderate minimatch advisory in lint tooling,
 with no high/critical findings. A breaking minimatch override has not been applied. Image scans, k6 load baselines
 and a Kubernetes smoke deployment remain pending.
+
+### Identity snapshot restore (2026-11-02)
+
+A read-only clone of an offline developer volume supplied a disposable public-schema copy. Identity imported
+23 staff and 24 customer authentication records, validated an unchanged rerun, then validated another rerun after
+dumping/restoring the migrated copy into a second disposable database. Both reruns inserted zero rows. Migration,
+import and the second restore took 38 seconds after the initial source restore; full platform/bucket recovery and
+real-data MFA remain unverified. Protected archives were deleted after verification. See the
+[rehearsal record](IDENTITY-MIGRATION.md#recorded-snapshot-rehearsal-2026-11-02).
+
+First-account bootstrap now requires `it_admin`, maintaining the administration access guaranteed by the new
+last-admin checks. The Go identity race suite, vet, lint and security scan pass, including restricted-role refusal.
+This remains a preview snapshot: staff/customer apps, access grants, invitations and OAuth are not cut over, and
+all import/restore tools are retained. Developer volumes and environment values were not changed.
 
 ## Request path
 

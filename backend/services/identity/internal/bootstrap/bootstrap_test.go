@@ -48,6 +48,10 @@ func TestValidate(t *testing.T) {
 		assert.Error(t, in.Validate(), name)
 	}
 	assert.NoError(t, input("it@example.test").Validate())
+	limited := input("it@example.test")
+	limited.Role = "it_support"
+	_, err := bootstrap.CreateITAdmin(context.Background(), nil, nil, nil, limited, time.Now())
+	require.ErrorContains(t, err, "first IT account")
 }
 
 func TestCreateITAdminSignsInWithTheEnrolledFactor(t *testing.T) {

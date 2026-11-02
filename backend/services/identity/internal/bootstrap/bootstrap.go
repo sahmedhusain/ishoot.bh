@@ -87,6 +87,9 @@ func (in Input) Validate() error {
 
 // CreateITAdmin creates the first IT account with an enrolled authenticator and recovery codes.
 func CreateITAdmin(ctx context.Context, pool *pgxpool.Pool, hasher Hasher, sealer Sealer, in Input, now time.Time) (Result, error) {
+	if in.Role != "it_admin" {
+		return Result{}, errors.New("the first IT account must have the it_admin role")
+	}
 	return provision(ctx, pool, hasher, sealer, in, now, "", nil)
 }
 
