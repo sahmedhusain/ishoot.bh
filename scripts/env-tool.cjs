@@ -33,6 +33,7 @@ const SECRETS = {
   SYSTEM_DB_PASSWORD: () => crypto.randomBytes(24).toString("base64url"),
   ITSM_DB_PASSWORD: () => crypto.randomBytes(24).toString("base64url"),
   AUDIT_DB_PASSWORD: () => crypto.randomBytes(24).toString("base64url"),
+  NOTIFY_DB_PASSWORD: () => crypto.randomBytes(24).toString("base64url"),
   VALKEY_PASSWORD: () => crypto.randomBytes(24).toString("base64url"),
   GRAFANA_ADMIN_PASSWORD: () => crypto.randomBytes(18).toString("base64url"),
   S3_ACCESS_KEY_ID: () => `platform${crypto.randomBytes(6).toString("hex")}`,
@@ -40,6 +41,8 @@ const SECRETS = {
   ADMIN_SERVICE_KEY: () => serviceKey("admin"),
   WEB_SERVICE_KEY: () => serviceKey("web"),
   IT_SERVICE_KEY: () => serviceKey("it"),
+  // Backend services that call other services (notify reads integration credentials from system).
+  NOTIFY_SERVICE_KEY: () => serviceKey("notify"),
   IDENTITY_SIGNING_JWK: () => serviceKey("identity"),
   IDENTITY_LOGIN_RATE_KEY: () => crypto.randomBytes(32).toString("base64url"),
   IDENTITY_LOGIN_MFA_KEYS: () => `primary:${crypto.randomBytes(32).toString("base64")}`,
@@ -57,12 +60,14 @@ const RETIRED = {
   NEXT_PUBLIC_SUPABASE_URL: "Supabase is no longer used",
   NEXT_PUBLIC_SUPABASE_ANON_KEY: "Supabase is no longer used",
   UPLOAD_ROOT: "files are kept by the files service in S3-compatible storage",
+  RESEND_API_KEY: "the notify service sends e-mail with the Resend integration (IT dashboard → Integrations)",
+  FROM_EMAIL: "the sender is part of the Resend integration (IT dashboard → Integrations)",
 };
 
 // Service keys (docs/adr/0011): each app signs its calls to the backend with its own Ed25519 key, stored in .env as
 // a base64url private JWK whose key ID starts with the caller's name. The services trust the public halves, written
 // to SERVICE_KEYS_FILE as a JWKS document. During a rotation, <APP>_SERVICE_KEY_PREVIOUS stays trusted.
-const SERVICE_CALLERS = ["admin", "web", "it"];
+const SERVICE_CALLERS = ["admin", "web", "it", "notify"];
 function serviceKey(caller) {
   const { privateKey } = crypto.generateKeyPairSync("ed25519");
   const jwk = privateKey.export({ format: "jwk" });
@@ -201,10 +206,10 @@ function check() {
   for (const [key, entry] of parse(text))
     need(entry.commented || !/^\s*[A-Z0-9_]+="[^"]*$/.test(entry.line.replace(/\s+#.*$/, "")), `${key} has an unclosed quote: docker compose cannot read this file`);
   need(!!env.API_URL, "API_URL is empty: the apps cannot reach the backend gateway (files, and later every service)");
+  need(!!env.NOTIFY_SERVICE_KEY, "NOTIFY_SERVICE_KEY is empty: notify cannot read integration credentials (run ./run.sh env secrets)", warnings);
   for (const caller of ["ADMIN", "WEB"]) need(!!env[`${caller}_SERVICE_KEY`], `${caller}_SERVICE_KEY is empty: run ./run.sh env secrets`);
   if (env.IDENTITY_LOGIN_ENABLED === "true") need(!!env.IT_SERVICE_KEY, "IT_SERVICE_KEY is empty: run ./run.sh env secrets");
   need(!!env.CRON_SECRET, "CRON_SECRET is empty: /api/cron (reminders, payments, tracking, reports) cannot run", production ? problems : warnings);
-  need(!!env.RESEND_API_KEY && !!env.FROM_EMAIL, "No legacy mail credentials: configure the encrypted Resend integration in Settings", warnings);
   need(!!env.RESEND_WEBHOOK_SECRET, "No legacy webhook secret: configure the signing secret in the encrypted Resend integration", warnings);
   need(!!env.CUSTOMER_AUTH_SECRET, "CUSTOMER_AUTH_SECRET is empty: customer sign-in falls back to REVALIDATION_SECRET", warnings);
   if (production) {

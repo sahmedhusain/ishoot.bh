@@ -1,17 +1,9 @@
 import { serverMessages } from "@platform/locales";
 import { getIntegrationRecord } from "@platform/database";
-import { Resend } from "resend";
+import { randomUUID } from "node:crypto";
+import { isApiError, queueMessage } from "@platform/api-client";
 
-class BoundedResend extends Resend {
-  override fetchRequest<T>(path: string, options: RequestInit = {}) {
-    return super.fetchRequest<T>(path, {
-      ...options,
-      signal: AbortSignal.timeout(30000),
-    });
-  }
-}
-
-/** Server-only credentials. A stored disabled connection takes precedence over legacy environment keys. */
+/** Server-only Resend credentials (the delivery webhook checks its signature with them). */
 export async function getResendCredentials() {
   const record = await getIntegrationRecord("resend");
   if (record) {
@@ -21,13 +13,12 @@ export async function getResendCredentials() {
       ? record.credentials
       : null;
   }
-  return process.env.RESEND_API_KEY ||
-    process.env.FROM_EMAIL ||
-    process.env.RESEND_WEBHOOK_SECRET
+  // Before the integration is saved, only the webhook's signing secret may come from the environment.
+  return process.env.RESEND_WEBHOOK_SECRET
     ? {
-        apiKey: process.env.RESEND_API_KEY ?? "",
-        fromEmail: process.env.FROM_EMAIL ?? "",
-        webhookSecret: process.env.RESEND_WEBHOOK_SECRET ?? "",
+        apiKey: "",
+        fromEmail: "",
+        webhookSecret: process.env.RESEND_WEBHOOK_SECRET,
       }
     : null;
 }
@@ -36,43 +27,59 @@ export interface SendEmailOptions {
   to: string | string[];
   subject: string;
   html: string;
-  from?: string;
+  /** Repeating a key never sends again (per recipient). Without one, every call is a new message. */
   idempotencyKey?: string;
-  attachments?: Array<{ filename: string; content: Buffer | string }>;
+  attachments?: Array<{
+    filename: string;
+    content: Buffer | string;
+    contentType?: string;
+  }>;
 }
 
+/**
+ * Hands the e-mail to the notify service (backend/services/notify), which sends it through the provider IT set up
+ * (Resend), or Mailpit locally, retrying while the provider is unavailable. Success means the message is queued; IT
+ * sees how each delivery went in the IT dashboard. Several recipients are separate messages.
+ */
 export async function sendEmail({
   to,
   subject,
   html,
-  from,
   attachments,
   idempotencyKey,
-}: SendEmailOptions) {
+}: SendEmailOptions): Promise<{
+  success: boolean;
+  id?: string;
+  error?: string;
+}> {
+  const recipients = Array.isArray(to) ? to : [to];
+  const key = idempotencyKey ?? randomUUID();
   try {
-    const credentials = await getResendCredentials();
-    if (!credentials?.apiKey || !(from ?? credentials.fromEmail))
-      return {
-        success: false,
-        error: serverMessages.runtimeEmailServiceIsNotConfigured,
-      };
-    const resend = new BoundedResend(credentials.apiKey);
-    const { data, error } = await resend.emails.send(
-      { from: from ?? credentials.fromEmail, to, subject, html, attachments },
-      { idempotencyKey },
-    );
-    if (error)
-      return {
-        success: false,
-        error: error.message.split(credentials.apiKey).join("[redacted]"),
-      };
-    if (!data?.id)
-      return {
-        success: false,
-        error: serverMessages.providerAcceptanceMissing,
-      };
-    return { success: true, id: data.id };
-  } catch {
+    const ids: string[] = [];
+    for (let index = 0; index < recipients.length; index++) {
+      const recipient = recipients[index];
+      const message = await queueMessage({
+        channel: "email",
+        to: recipient,
+        subject,
+        html,
+        idempotencyKey: recipients.length > 1 ? `${key}:${index}` : key,
+        attachments: attachments?.map((a) => ({
+          filename: a.filename,
+          contentType: a.contentType,
+          content: (typeof a.content === "string"
+            ? Buffer.from(a.content)
+            : a.content
+          ).toString("base64"),
+        })),
+      });
+      ids.push(message.id);
+    }
+    return { success: true, id: ids[0] };
+  } catch (error) {
+    // notify refused the message itself (an invalid address, too large attachments): say so, in the person's terms.
+    if (isApiError(error) && error.status === 422)
+      return { success: false, error: serverMessages.enterAValidEMailAddress };
     return { success: false, error: serverMessages.providerAcceptanceMissing };
   }
 }

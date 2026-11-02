@@ -1,0 +1,220 @@
+openapi: 3.1.0
+info:
+  title: Notifications (notify)
+  version: 1.0.0
+  description: |
+    Delivers the platform's e-mail and WhatsApp messages. A caller queues a message with its own idempotency key; a
+    worker sends it through the configured provider (SMTP or Resend for e-mail, the WhatsApp Cloud API) and retries
+    transient failures. Each outcome is announced as an event (`notify.message.sent`, `notify.message.failed`). IT
+    sees the queue, retries failed messages and sends test messages from the IT dashboard (`notifications`).
+servers:
+  - url: /
+tags:
+  - name: services
+  - name: desk
+paths:
+  /v1/notify/messages:
+    post:
+      tags: [services]
+      operationId: queueMessage
+      description: |
+        Queues a message. The same caller and `idempotencyKey` return the first message (200) instead of sending
+        again; a new message answers 202.
+      security: [{ serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/QueueMessageInput" }
+      responses:
+        "200": { $ref: "#/components/responses/Message" }
+        "202": { $ref: "#/components/responses/Message" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/notify/messages/{id}:
+    get:
+      tags: [services]
+      operationId: getMessageStatus
+      description: A message this caller queued.
+      security: [{ serviceToken: [] }]
+      parameters: [{ $ref: "#/components/parameters/MessageId" }]
+      responses:
+        "200": { $ref: "#/components/responses/Message" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/notify/desk/messages:
+    get:
+      tags: [desk]
+      operationId: listMessagesForIT
+      description: Newest first. Needs `notifications:read`.
+      security: [{ userToken: [] }]
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [queued, sent, failed] } }
+        - { name: channel, in: query, schema: { type: string, enum: [email, whatsapp] } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 1000 } }
+        - { name: cursor, in: query, schema: { type: string, maxLength: 200 } }
+      responses:
+        "200":
+          description: One page of messages
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/Message" }
+                  nextCursor: { type: string }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/notify/desk/summary:
+    get:
+      tags: [desk]
+      operationId: messageSummaryForIT
+      description: The last 24 hours' messages by status and channel. Needs `notifications:read`.
+      security: [{ userToken: [] }]
+      responses:
+        "200":
+          description: Counts
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required: [status, channel, messages]
+                      properties:
+                        status: { type: string }
+                        channel: { type: string }
+                        messages: { type: integer }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/notify/desk/messages/{id}:
+    get:
+      tags: [desk]
+      operationId: getMessageForIT
+      description: A message with its text, HTML and attachment names. Needs `notifications:read`.
+      security: [{ userToken: [] }]
+      parameters: [{ $ref: "#/components/parameters/MessageId" }]
+      responses:
+        "200": { $ref: "#/components/responses/Message" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/notify/desk/messages/{id}/retry:
+    post:
+      tags: [desk]
+      operationId: retryMessageForIT
+      description: Queues a failed message again. Needs `notifications:execute`. A message that has not failed answers 409.
+      security: [{ userToken: [] }]
+      parameters: [{ $ref: "#/components/parameters/MessageId" }]
+      responses:
+        "200": { $ref: "#/components/responses/Message" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/notify/desk/test:
+    post:
+      tags: [desk]
+      operationId: sendTestMessageForIT
+      description: Sends a short test message. Needs `notifications:execute`.
+      security: [{ userToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [channel, to]
+              properties:
+                channel: { type: string, enum: [email, whatsapp] }
+                to: { type: string, minLength: 1, maxLength: 320 }
+      responses:
+        "202": { $ref: "#/components/responses/Message" }
+        default: { $ref: "#/components/responses/Problem" }
+components:
+  securitySchemes:
+    serviceToken: { type: http, scheme: bearer, bearerFormat: JWT }
+    userToken: { type: http, scheme: bearer, bearerFormat: JWT }
+  parameters:
+    MessageId: { name: id, in: path, required: true, schema: { type: string, maxLength: 64 } }
+  responses:
+    Message:
+      description: The message
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Message" }
+    Problem:
+      description: An error (RFC 9457). Codes include `validation_failed`, `message_not_found`, `message_not_failed`, `unauthenticated`, `forbidden`.
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+  schemas:
+    QueueMessageInput:
+      type: object
+      required: [channel, to, idempotencyKey]
+      properties:
+        channel: { type: string, enum: [email, whatsapp] }
+        to: { type: string, maxLength: 320, description: "An e-mail address, or a phone number with its country code" }
+        subject: { type: string, maxLength: 998, description: Required for e-mail; not allowed for WhatsApp }
+        text: { type: string, description: "Plain text (required for WhatsApp, up to 4096 characters)" }
+        html: { type: string, description: E-mail only }
+        attachments:
+          type: array
+          maxItems: 10
+          description: E-mail only; together at most NOTIFY_MAX_ATTACHMENT_BYTES
+          items:
+            type: object
+            required: [filename, content]
+            properties:
+              filename: { type: string, maxLength: 200 }
+              contentType: { type: string, maxLength: 200 }
+              content: { type: string, contentEncoding: base64 }
+        idempotencyKey: { type: string, minLength: 1, maxLength: 200 }
+        actorId: { type: string, maxLength: 64, description: The person the caller acts for }
+    Message:
+      type: object
+      required: [id, caller, actor, channel, recipient, subject, status, attempts, provider, providerId, lastError, createdAt, sentAt]
+      properties:
+        id: { type: string, format: uuid }
+        caller: { type: string }
+        actor: { type: [string, "null"] }
+        channel: { type: string, enum: [email, whatsapp] }
+        recipient: { type: string }
+        subject: { type: [string, "null"] }
+        status: { type: string, enum: [queued, sent, failed] }
+        attempts: { type: integer }
+        provider: { type: [string, "null"] }
+        providerId: { type: [string, "null"] }
+        lastError: { type: [string, "null"] }
+        createdAt: { type: string, format: date-time }
+        sentAt: { type: [string, "null"], format: date-time }
+        text: { type: [string, "null"], description: IT detail only }
+        html: { type: [string, "null"], description: IT detail only }
+        attachments:
+          type: array
+          description: IT detail only
+          items:
+            type: object
+            required: [filename, contentType, size]
+            properties:
+              filename: { type: string }
+              contentType: { type: string }
+              size: { type: integer }
+    Problem:
+      type: object
+      required: [type, title, status, code]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+        code: { type: string }
+        requestId: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            required: [field, code]
+            properties:
+              field: { type: string }
+              code: { type: string }

@@ -17,6 +17,7 @@ import (
 	gateway "platform.local/backend/services/gateway/settings"
 	identity "platform.local/backend/services/identity/settings"
 	itsm "platform.local/backend/services/itsm/settings"
+	notify "platform.local/backend/services/notify/settings"
 	system "platform.local/backend/services/system/settings"
 )
 
@@ -28,6 +29,7 @@ var services = map[string]any{
 	"itsm":     itsm.Config{},
 	"system":   system.Config{},
 	"audit":    audit.Config{},
+	"notify":   notify.Config{},
 }
 
 type variable struct{ name, def, rules string }

@@ -80,6 +80,38 @@ x-audit: &audit
   volumes:
     - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/config/service-keys.json:ro
 
+x-notify: &notify
+  <<: *service
+  build:
+    context: backend
+    args: { SERVICE: notify }
+  image: platform/notify:dev
+  environment:
+    <<: *service-env
+    SERVICE_NAME: notify
+    HTTP_BODY_LIMIT: 11M
+    DATABASE_URL: postgres://svc_notify:${NOTIFY_DB_PASSWORD}@pgbouncer:6432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_DIRECT_URL: postgres://svc_notify:${NOTIFY_DB_PASSWORD:?Set NOTIFY_DB_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_LOG_QUERIES: ${DATABASE_LOG_QUERIES:-false}
+    AUTH_SERVICE_KEYS_FILE: /config/service-keys.json
+    AUTH_ISSUER: ${AUTH_ISSUER:-http://identity:8080}
+    AUTH_JWKS_URL: ${AUTH_JWKS_URL:-http://identity:8080/.well-known/jwks.json}
+    NATS_URL: ${NATS_URL:-nats://nats:4222}
+    NOTIFY_SERVICE_KEY: ${NOTIFY_SERVICE_KEY:?Set NOTIFY_SERVICE_KEY in .env}
+    NOTIFY_SYSTEM_URL: http://system:8080
+    # Locally every e-mail goes to Mailpit and every WhatsApp message to the sandbox; nothing leaves the machine.
+    NOTIFY_EMAIL_PROVIDER: ${NOTIFY_EMAIL_PROVIDER:-smtp}
+    NOTIFY_EMAIL_FROM: ${NOTIFY_EMAIL_FROM:-Platform <no-reply@platform.test>}
+    NOTIFY_SMTP_HOST: ${NOTIFY_SMTP_HOST:-mailpit}
+    NOTIFY_SMTP_PORT: ${NOTIFY_SMTP_PORT:-1025}
+    NOTIFY_SMTP_TLS: ${NOTIFY_SMTP_TLS:-none}
+    NOTIFY_WHATSAPP_URL: ${NOTIFY_WHATSAPP_URL:-http://whatsapp-sandbox:8080/v21.0}
+    NOTIFY_WHATSAPP_CREDENTIALS: ${NOTIFY_WHATSAPP_CREDENTIALS:-static}
+    NOTIFY_WHATSAPP_PHONE_ID: ${NOTIFY_WHATSAPP_PHONE_ID:-sandbox}
+    NOTIFY_WHATSAPP_TOKEN: ${NOTIFY_WHATSAPP_TOKEN:-sandbox-token}
+  volumes:
+    - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/config/service-keys.json:ro
+
 x-system: &system
   <<: *service
   build:
@@ -95,7 +127,7 @@ x-system: &system
     AUTH_SERVICE_KEYS_FILE: /config/service-keys.json
     AUTH_ISSUER: ${AUTH_ISSUER:-http://identity:8080}
     AUTH_JWKS_URL: ${AUTH_JWKS_URL:-http://identity:8080/.well-known/jwks.json}
-    SYSTEM_READ_CALLERS: ${SYSTEM_READ_CALLERS:-admin,web,it}
+    SYSTEM_READ_CALLERS: ${SYSTEM_READ_CALLERS:-admin,web,it,notify}
     SYSTEM_MODULE_WRITERS: ${SYSTEM_MODULE_WRITERS:-admin}
     SYSTEM_INTEGRATION_WRITERS: ${SYSTEM_INTEGRATION_WRITERS:-admin}
     SYSTEM_DOMAIN_WRITERS: ${SYSTEM_DOMAIN_WRITERS:-admin}
@@ -236,12 +268,13 @@ services:
       disable: true
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
-      DB_ROLES: files,identity,system,itsm,audit
+      DB_ROLES: files,identity,system,itsm,audit,notify
       DB_ROLE_PASSWORD_FILES: ${FILES_DB_PASSWORD:?Set FILES_DB_PASSWORD in .env}
       DB_ROLE_PASSWORD_IDENTITY: ${IDENTITY_DB_PASSWORD:?Set IDENTITY_DB_PASSWORD in .env}
       DB_ROLE_PASSWORD_SYSTEM: ${SYSTEM_DB_PASSWORD:?Set SYSTEM_DB_PASSWORD in .env}
       DB_ROLE_PASSWORD_ITSM: ${ITSM_DB_PASSWORD:?Set ITSM_DB_PASSWORD in .env}
       DB_ROLE_PASSWORD_AUDIT: ${AUDIT_DB_PASSWORD:?Set AUDIT_DB_PASSWORD in .env}
+      DB_ROLE_PASSWORD_NOTIFY: ${NOTIFY_DB_PASSWORD:?Set NOTIFY_DB_PASSWORD in .env}
       DB_ROLE_STATEMENT_TIMEOUT: ${DB_ROLE_STATEMENT_TIMEOUT:-15s}
     depends_on:
       postgres: { condition: service_healthy }
@@ -253,7 +286,7 @@ services:
     environment:
       AUTH_TYPE: scram-sha-256
       DATABASE_URLS: >-
-        postgres://svc_files:${FILES_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_identity:${IDENTITY_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_system:${SYSTEM_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_itsm:${ITSM_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_audit:${AUDIT_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db}
+        postgres://svc_files:${FILES_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_identity:${IDENTITY_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_system:${SYSTEM_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_itsm:${ITSM_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_audit:${AUDIT_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_notify:${NOTIFY_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db}
     volumes:
       - ./deploy/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
     ports:
@@ -371,6 +404,50 @@ services:
       audit-migrate: { condition: service_completed_successfully }
       nats: { condition: service_healthy }
 
+  notify-migrate:
+    <<: *notify
+    restart: "no"
+    command: ["migrate"]
+    healthcheck:
+      disable: true
+    ports: []
+    depends_on:
+      db-roles: { condition: service_completed_successfully }
+
+  notify:
+    <<: *notify
+    command: ["serve"]
+    ports:
+      - "127.0.0.1:${NOTIFY_ADMIN_PORT:-9086}:9090"
+    depends_on:
+      notify-migrate: { condition: service_completed_successfully }
+      pgbouncer: { condition: service_healthy }
+      identity: { condition: service_healthy }
+
+  # Delivers queued messages and publishes notify's events.
+  notify-worker:
+    <<: *notify
+    command: ["worker"]
+    ports: []
+    depends_on:
+      notify-migrate: { condition: service_completed_successfully }
+      nats: { condition: service_healthy }
+      system: { condition: service_healthy }
+      mailpit: { condition: service_healthy }
+      whatsapp-sandbox: { condition: service_healthy }
+
+  # Stands in for the WhatsApp Cloud API locally (backend/tools/whatsapp-sandbox): http://localhost:8095 lists what
+  # was sent; numbers ending in 0500, 0429 or 0400 fail on purpose.
+  whatsapp-sandbox:
+    <<: *service
+    build:
+      context: backend
+      args: { SERVICE: whatsapp-sandbox, PACKAGE: ./tools/whatsapp-sandbox }
+    image: platform/whatsapp-sandbox:dev
+    environment: {}
+    ports:
+      - "127.0.0.1:${WHATSAPP_SANDBOX_PORT:-8095}:8080"
+
   gateway:
     <<: *service
     build:
@@ -382,7 +459,7 @@ services:
       SERVICE_NAME: gateway
       REDIS_URL: redis://:${VALKEY_PASSWORD}@valkey:6379/0
       GATEWAY_ROUTES_FILE: /config/routes.yaml
-      GATEWAY_UPSTREAMS: ${GATEWAY_UPSTREAMS:-files=http://files:8080,itsm=http://itsm:8080,identity=http://identity:8080,system=http://system:8080,audit=http://audit:8080}
+      GATEWAY_UPSTREAMS: ${GATEWAY_UPSTREAMS:-files=http://files:8080,itsm=http://itsm:8080,identity=http://identity:8080,system=http://system:8080,audit=http://audit:8080,notify=http://notify:8080}
       GATEWAY_IDENTITY_STATUS_URL: ${GATEWAY_IDENTITY_STATUS_URL:-http://identity:8080/v1/identity/session}
       GATEWAY_IDENTITY_STATUS_TIMEOUT: ${GATEWAY_IDENTITY_STATUS_TIMEOUT:-3s}
       HTTP_CORS_ORIGINS: ${GATEWAY_CORS_ORIGINS:-}
@@ -404,6 +481,7 @@ services:
       identity: { condition: service_healthy }
       system: { condition: service_healthy }
       audit: { condition: service_healthy }
+      notify: { condition: service_healthy }
 
   identity-migrate:
     <<: *identity

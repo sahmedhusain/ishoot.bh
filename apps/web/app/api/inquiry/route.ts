@@ -41,7 +41,11 @@ const escape = (value: string) =>
 export async function POST(req: NextRequest) {
   return measureOperation("web:inquiry:POST", async () => {
     try {
-      if (await isWebsitePreview()) return NextResponse.json({ error: serverMessages.runtimeSubmissionsAreTemporarilyUnavailable }, { status: 404 });
+      if (await isWebsitePreview())
+        return NextResponse.json(
+          { error: serverMessages.runtimeSubmissionsAreTemporarilyUnavailable },
+          { status: 404 },
+        );
       try {
         await requireFeatureEnabled("crm_deals");
         await requireFeatureEnabled("cms");
@@ -84,7 +88,11 @@ export async function POST(req: NextRequest) {
       )
         throw new Error(serverMessages.invalidInput);
       const website = await getWebsiteSnapshot();
-      if (!resolveWebsiteConfig(website.config).commerce.capabilities.inquiries) return NextResponse.json({ error: serverMessages.runtimeSubmissionsAreTemporarilyUnavailable }, { status: 404 });
+      if (!resolveWebsiteConfig(website.config).commerce.capabilities.inquiries)
+        return NextResponse.json(
+          { error: serverMessages.runtimeSubmissionsAreTemporarilyUnavailable },
+          { status: 404 },
+        );
       const available = website.services;
       const selected = available.filter((service) =>
         serviceIds.includes(service.id),
@@ -175,8 +183,8 @@ export async function POST(req: NextRequest) {
               : null;
           const confirmation = result(0);
           const notification = result(1);
-          confirmationSent =
-            !!confirmation?.success && !!process.env.RESEND_API_KEY;
+          // Queued with the notify service, which delivers and retries; IT sees each outcome.
+          confirmationSent = !!confirmation?.success;
           await db.inquiry.update({
             where: { id: resolved.inquiryId },
             data: {
@@ -185,10 +193,7 @@ export async function POST(req: NextRequest) {
                 : confirmationSent
                   ? "sent"
                   : "failed",
-              notificationStatus:
-                notification?.success && process.env.RESEND_API_KEY
-                  ? "sent"
-                  : "failed",
+              notificationStatus: notification?.success ? "sent" : "failed",
               confirmationProviderId: confirmation?.id,
               notificationProviderId: notification?.id,
             },
@@ -207,8 +212,13 @@ export async function POST(req: NextRequest) {
         }
       }
       let uploadToken: string | undefined;
-      if (resolveWebsiteConfig(website.config).commerce.inquiryAttachments !== false) {
-        try { uploadToken = inquiryUploadToken(resolved.inquiryId, signInSecret()); } catch {}
+      if (
+        resolveWebsiteConfig(website.config).commerce.inquiryAttachments !==
+        false
+      ) {
+        try {
+          uploadToken = inquiryUploadToken(resolved.inquiryId, signInSecret());
+        } catch {}
       }
       return NextResponse.json({
         success: true,

@@ -448,11 +448,11 @@
           "steps": [
             "Verify the domain DNS in Resend, then save the API key and sender email here.",
             "Optionally register the admin webhook address below and save its signing secret for delivery events.",
-            "Enable and test. Run the email worker for queued mail, then verify an agreed test delivery and signed webhook."
+            "Enable and test. The notify service sends every e-mail with these credentials; send a test from IT dashboard → Notifications, then verify the signed webhook."
           ],
           "verify": "Test connection lists domains and verifies the sender domain. Actual delivery, idempotency and signed webhooks are separate checks.",
           "errors": "403 with a sending-only key can mean the domain check is unauthorized, even if delivery works. Unverified domain: complete DNS verification. Signature errors: copy the webhook signing secret.",
-          "limits": "Saved settings take precedence over legacy environment keys. Disconnecting blocks delivery. This test does not validate recipient delivery or worker deployment."
+          "limits": "Only the saved integration sends e-mail; environment keys are no longer read. Disconnecting makes queued e-mail fail until it is reconnected and sent again from Notifications. The connection test does not prove delivery: send a test message for that."
         }
       },
       "google_signin": {

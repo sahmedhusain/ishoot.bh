@@ -227,7 +227,7 @@ export function IntegrationCard({
     if (!canExecute || !waTo.trim()) return;
     setBusy("send");
     try {
-      const result = await sendWhatsAppTestAction(waTo, c.whatsappBody);
+      const result = await sendWhatsAppTestAction(waTo);
       if (result.ok) {
         toast.success(c.sent);
       } else {

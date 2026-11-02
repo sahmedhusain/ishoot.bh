@@ -8,6 +8,8 @@ import {
   isApiError,
   setIntegrationForIT,
   setModuleForIT,
+  sendTestMessageForIT,
+  retryMessageForIT,
   setSiteCodeForIT,
   setSiteDomainsForIT,
   type SiteCode,
@@ -17,11 +19,7 @@ import {
   unlinkIntegrationForIT,
   updateSLA,
 } from "@platform/api-client";
-import {
-  testIntegration,
-  syncSocialIntegration,
-  sendWhatsAppTestMessage,
-} from "@platform/database";
+import { testIntegration, syncSocialIntegration } from "@platform/database";
 import {
   checkDomain,
   healthFingerprint,
@@ -265,19 +263,44 @@ export async function syncIntegrationAction(provider: string) {
   }
 }
 
-/** Sends a test message via WhatsApp (integrations:execute). */
-export async function sendWhatsAppTestAction(to: string, message: string) {
-  await requireAllowed("integrations", "execute");
+/** Sends a WhatsApp test message through the notify service (integrations:execute; notify checks notifications:execute). */
+export async function sendWhatsAppTestAction(to: string) {
+  const user = await requireAllowed("integrations", "execute");
   try {
-    const result = await sendWhatsAppTestMessage(to, message);
-    return { ok: true, messageId: result.messageId, error: null };
+    const message = await asUser(() =>
+      sendTestMessageForIT(user.token, "whatsapp", String(to).slice(0, 32)),
+    );
+    revalidatePath("/notifications");
+    return { ok: true, messageId: message.id, error: null };
   } catch (error) {
-    return {
-      ok: false,
-      messageId: null,
-      error: error instanceof Error ? error.message : "WhatsApp send failed",
-    };
+    if (isApiError(error) && error.status === 422)
+      return { ok: false, messageId: null, error: error.message };
+    throw error;
   }
+}
+
+/** Sends a test e-mail or WhatsApp message (notifications:execute). */
+export async function sendTestMessageAction(
+  channel: string,
+  to: string,
+): Promise<Outcome> {
+  const user = await requireAllowed("notifications", "execute");
+  if (channel !== "email" && channel !== "whatsapp") return { ok: false };
+  const outcome = await attempt(() =>
+    sendTestMessageForIT(user.token, channel, String(to).slice(0, 320)),
+  );
+  revalidatePath("/notifications");
+  return outcome;
+}
+
+/** Queues a failed message again (notifications:execute). */
+export async function retryMessageAction(id: string): Promise<Outcome> {
+  const user = await requireAllowed("notifications", "execute");
+  const outcome = await attempt(() =>
+    retryMessageForIT(user.token, String(id)),
+  );
+  revalidatePath("/notifications");
+  return outcome;
 }
 
 export type SiteOutcome<T> =

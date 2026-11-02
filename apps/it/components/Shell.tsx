@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Bell,
   Blocks,
   Gauge,
   History,
@@ -35,6 +36,12 @@ const NAV = [
     resource: "integrations",
   },
   { href: "/site", icon: Globe, label: "site", resource: "domains" },
+  {
+    href: "/notifications",
+    icon: Bell,
+    label: "notifications",
+    resource: "notifications",
+  },
   { href: "/audit", icon: History, label: "audit", resource: "audit" },
 ] as const;
 

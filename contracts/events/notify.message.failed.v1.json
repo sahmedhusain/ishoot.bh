@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/notify.message.failed.v1.json",
+  "title": "notify.message.failed",
+  "description": "A message could not be delivered (a permanent refusal, or the last retry). Never carries the recipient or the message.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "messageId",
+    "channel",
+    "caller"
+  ],
+  "properties": {
+    "messageId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "email",
+        "whatsapp"
+      ]
+    },
+    "caller": {
+      "type": "string"
+    },
+    "actorId": {
+      "type": "string"
+    },
+    "provider": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string"
+    }
+  }
+}

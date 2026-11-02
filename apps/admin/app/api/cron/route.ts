@@ -15,7 +15,7 @@ import {
   sendExpiryReminders,
   processRecurringExpenses,
 } from "@platform/database";
-import { getResendCredentials, sendEmail } from "@platform/email";
+import { sendEmail } from "@platform/email";
 import { deliverReportSchedules } from "../../../lib/report-delivery";
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
@@ -25,8 +25,8 @@ export async function GET(req: Request) {
       { status: 401 },
     );
   try {
-    const mail = await getResendCredentials();
-    if (mail?.apiKey && mail.fromEmail) await processEmailJobs(sendEmail);
+    // The notify service sends them (through the provider IT set up) and retries; this hands the queued jobs over.
+    await processEmailJobs(sendEmail);
     if (process.env.WEB_URL && process.env.REVALIDATION_SECRET)
       await processRevalidationJobs({
         webUrl: process.env.WEB_URL,

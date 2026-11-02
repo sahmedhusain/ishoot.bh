@@ -22,7 +22,9 @@ const securityHeaders = [
   { key: "Content-Security-Policy", value: contentSecurityPolicy },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
-  { key: "Referrer-Policy", value: "no-referrer" },
+  // same-origin, not no-referrer: with no-referrer a form posted before the page hydrates carries "Origin: null",
+  // which server actions reject. Other sites still get no referrer.
+  { key: "Referrer-Policy", value: "same-origin" },
   {
     key: "Permissions-Policy",
     value: "camera=(), microphone=(), geolocation=()",

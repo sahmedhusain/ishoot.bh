@@ -170,6 +170,63 @@ test("IT works a ticket from the desk", async ({ page }) => {
   await saveDomains.click();
   await expect(page.getByText(t.site.domains.saved).first()).toBeVisible();
 
+  // Notifications: test messages go out through notify, locally to Mailpit and the WhatsApp sandbox.
+  const stamp = Date.now();
+  const testEmail = `it-test-${stamp}@example.test`;
+  const testPhone = `9733${String(stamp).slice(-6)}1`;
+  await page.getByRole("link", { name: t.nav.notifications }).click();
+  await expect(
+    page.getByRole("heading", { name: t.notifications.title }),
+  ).toBeVisible();
+  const to = page.getByLabel(t.notifications.testTo);
+  const sendTest = page.getByRole("button", { name: t.notifications.sendTest });
+  await to.fill(testEmail);
+  await sendTest.click();
+  await expect(
+    page.getByText(t.notifications.testQueued).first(),
+  ).toBeVisible();
+  await page.getByLabel(t.notifications.channel).selectOption("whatsapp");
+  await to.fill(`+${testPhone}`);
+  await sendTest.click();
+  await expect(
+    page.getByText(t.notifications.testQueued).first(),
+  ).toBeVisible();
+  // A number the sandbox refuses fails at once, with the reason, and can be sent again.
+  await page.getByLabel(t.notifications.channel).selectOption("whatsapp");
+  await to.fill("+97333000400");
+  await sendTest.click();
+  const messages = page.getByRole("list", { name: t.notifications.title });
+  await expect(async () => {
+    await page.reload();
+    await expect(
+      messages.getByRole("listitem").filter({ hasText: "97333000400" }).first(),
+    ).toContainText(t.notifications.statuses.failed, { timeout: 2_000 });
+    await expect(
+      messages.getByRole("listitem").filter({ hasText: testEmail }),
+    ).toContainText(t.notifications.statuses.sent, { timeout: 2_000 });
+  }).toPass({ timeout: 45_000 });
+  const refused = messages
+    .getByRole("listitem")
+    .filter({ hasText: "97333000400" })
+    .first();
+  await expect(refused).toContainText(
+    "recipient phone number not in allowed list",
+  );
+  await expect(
+    refused.getByRole("button", { name: t.notifications.retry }),
+  ).toBeVisible();
+  const mailpit = await page.request.get(
+    `http://127.0.0.1:${process.env.MAILPIT_UI_PORT ?? "8025"}/api/v1/search?query=${encodeURIComponent(`to:${testEmail}`)}`,
+  );
+  expect((await mailpit.json()).messages_count).toBe(1);
+  const sandbox = await page.request.get(
+    `http://127.0.0.1:${process.env.WHATSAPP_SANDBOX_PORT ?? "8095"}/sandbox/messages?to=${testPhone}`,
+  );
+  await expect(async () => {
+    const res = await page.request.get(sandbox.url());
+    expect((await res.json()).items).toHaveLength(1);
+  }).toPass({ timeout: 30_000 });
+
   // Audit trail: the changes just made arrive through the events stream, named after the person who made them.
   await page.getByRole("link", { name: t.nav.audit }).click();
   await expect(
@@ -192,6 +249,13 @@ test("IT works a ticket from the desk", async ({ page }) => {
   await entry.getByText(t.audit.subjects["system.site_code.changed"]).click();
   await expect(entry.getByText(/"changedBy": "it:/)).toBeVisible();
   await expect(events.getByText(domainsChanged)).toHaveCount(0);
+  // notify's outcomes reach the trail too.
+  await page.getByLabel(t.audit.subject).selectOption("notify.message.failed");
+  await page.getByRole("button", { name: t.audit.apply }).click();
+  await expect(page).toHaveURL(/subject=notify\.message\.failed/);
+  await expect(
+    events.getByText(t.audit.subjects["notify.message.failed"]).first(),
+  ).toBeVisible();
 
   await page.getByRole("button", { name: t.app.signOut }).click();
   await expect(page).toHaveURL(/\/login$/);

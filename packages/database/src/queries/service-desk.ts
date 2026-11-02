@@ -5,8 +5,7 @@ import {
   serverMessages,
 } from "@platform/locales";
 import { db } from "../db";
-import { sendWhatsAppText } from "../integrations/providers";
-import { getActiveIntegrationCredentials } from "./integrations";
+import { getMessageStatus, queueMessage } from "@platform/api-client";
 import { resolveIncomingLead } from "../services/lead-resolver";
 
 const escape = (value: string) =>
@@ -103,13 +102,28 @@ export async function saveCannedReply(input: CannedReplyInput) {
     : db.cannedReply.create({ data });
 }
 
+/**
+ * Whether notify has not refused a message within a few seconds. A refusal comes quickly (the provider answers at
+ * once); a message still queued after that is on its way, and IT sees how it ends.
+ */
+async function notRefused(id: string, waitMs = 5000) {
+  for (let waited = 0; waited <= waitMs; waited += 500) {
+    const message = await getMessageStatus(id).catch(() => null);
+    if (message?.status === "sent") return true;
+    if (message?.status === "failed") return false;
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  return true;
+}
+
 // ─── Replying to the customer ────────────────────────────────────────────────────────────────────────────────────
 
 /**
  * Replies to the person who raised a request, then keeps the reply on the request as a customer-visible comment
  * and moves the request out of "received". E-mail goes out through `sendEmail` (passed in by the app, which owns
- * the mailer) before anything is recorded; WhatsApp goes through the WhatsApp integration when it is on, otherwise
- * the reply is recorded and a wa.me link comes back for the agent to send it by hand.
+ * the mailer) before anything is recorded; WhatsApp goes through the notify service, and when it refuses the message
+ * (no WhatsApp integration, or outside WhatsApp's 24-hour window) a wa.me link comes back for the agent to send it by
+ * hand.
  */
 export async function replyToRequest(
   inquiryId: string,
@@ -162,15 +176,16 @@ export async function replyToRequest(
   } else {
     const to = (request.phoneE164 || request.phone || "").replace(/[^\d]/g, "");
     if (to.length < 8) throw new Error(serverMessages.serviceReplyNoPhone);
-    const credentials = await getActiveIntegrationCredentials("whatsapp");
-    let delivered = false;
-    if (credentials) {
-      // The integration may refuse it (for example outside WhatsApp's 24-hour window): then the agent sends it by hand.
-      delivered = await sendWhatsAppText(credentials, to, body).then(
-        () => true,
-        () => false,
-      );
-    }
+    const delivered = await queueMessage({
+      channel: "whatsapp",
+      to,
+      text: body,
+      idempotencyKey: `request_reply:${request.id}:${Date.now()}`,
+      actorId: author.id,
+    }).then(
+      (queued) => notRefused(queued.id),
+      () => false,
+    );
     if (!delivered)
       whatsappLink = `https://wa.me/${to}?text=${encodeURIComponent(body)}`;
   }

@@ -23,7 +23,6 @@ import { checkSignInCredentials } from "../services/oauth-signin";
 import {
   checkConnection,
   fetchSocialSnapshot,
-  sendWhatsAppText,
   ProviderError,
   type Credentials,
 } from "../integrations/providers";
@@ -479,18 +478,6 @@ export async function syncDueSocialIntegrations(
     }
   }
   return { synced, failed };
-}
-
-export async function sendWhatsAppTestMessage(to: string, body: string) {
-  const credentials = await getActiveIntegrationCredentials("whatsapp");
-  if (!credentials) throw new Error(serverMessages.turnWhatsappOnFirst);
-  try {
-    return await sendWhatsAppText(credentials, to, body);
-  } catch (error) {
-    throw new Error(
-      error instanceof ProviderError ? error.message : "WhatsApp send failed",
-    );
-  }
 }
 
 /** Google calendar sync feature toggle */

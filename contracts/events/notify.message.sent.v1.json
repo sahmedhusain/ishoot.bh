@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/notify.message.sent.v1.json",
+  "title": "notify.message.sent",
+  "description": "A message was accepted by its provider. Never carries the recipient or the message.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "messageId",
+    "channel",
+    "caller"
+  ],
+  "properties": {
+    "messageId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "email",
+        "whatsapp"
+      ]
+    },
+    "caller": {
+      "type": "string"
+    },
+    "actorId": {
+      "type": "string",
+      "description": "<caller>:<person> the message was sent for, when named"
+    },
+    "provider": {
+      "type": "string"
+    }
+  }
+}

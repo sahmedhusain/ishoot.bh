@@ -1173,32 +1173,3 @@ export async function checkConnection(
     };
   }
 }
-
-/** Sends a plain text WhatsApp message. Business-initiated chats outside 24 hours need an approved template. */
-export async function sendWhatsAppText(
-  credentials: Credentials,
-  to: string,
-  body: string,
-): Promise<{ messageId: string }> {
-  need(credentials, "phoneId", "token");
-  const recipient = to.replace(/[^\d]/g, "");
-  if (recipient.length < 8)
-    throw new ProviderError("Enter the number with its country code");
-  const result = await request<{ messages?: Array<{ id: string }> }>(
-    `${GRAPH}/${encodeURIComponent(credentials.phoneId)}/messages`,
-    {
-      method: "POST",
-      token: credentials.token,
-      body: JSON.stringify({
-        messaging_product: "whatsapp",
-        to: recipient,
-        type: "text",
-        text: { body: body.slice(0, 4096) },
-      }),
-    },
-  );
-  const messageId = result.messages?.[0]?.id;
-  if (!messageId)
-    throw new ProviderError("WhatsApp did not accept the message");
-  return { messageId };
-}

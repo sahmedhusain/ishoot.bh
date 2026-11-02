@@ -456,7 +456,7 @@ Use an owned test recipient before enabling live jobs. A connection test does no
 
 1. Verify the domain DNS in Resend, then save the API key and sender email here.
 2. Optionally register the admin webhook address below and save its signing secret for delivery events.
-3. Enable and test. Run the email worker for queued mail, then verify an agreed test delivery and signed webhook.
+3. Enable and test. The notify service sends every e-mail with these credentials; send a test from IT dashboard → Notifications, then verify the signed webhook.
 
 **What the test checks**
 
@@ -468,7 +468,7 @@ Test connection lists domains and verifies the sender domain. Actual delivery, i
 
 **Current limits**
 
-Saved settings take precedence over legacy environment keys. Disconnecting blocks delivery. This test does not validate recipient delivery or worker deployment.
+Only the saved integration sends e-mail; environment keys are no longer read. Disconnecting makes queued e-mail fail until it is reconnected and sent again from Notifications. The connection test does not prove delivery: send a test message for that.
 
 ### العربية
 
@@ -488,7 +488,7 @@ Saved settings take precedence over legacy environment keys. Disconnecting block
 
 1. وثّق DNS للنطاق لدى Resend ثم احفظ المفتاح وعنوان المرسل هنا.
 2. سجّل اختياريًا عنوان إشعارات الإدارة أدناه واحفظ سر التوقيع لأحداث التسليم.
-3. فعّل واختبر وشغّل عامل البريد للرسائل المجدولة، ثم تحقّق من تسليم متفق عليه وإشعار موقّع.
+3. فعّل واختبر. ترسل خدمة الإشعارات كل بريد بهذه البيانات؛ أرسل رسالة تجريبية من لوحة تقنية المعلومات ← الإشعارات، ثم تحقّق من الإشعار الموقّع.
 
 **ما الذي يفحصه الاختبار**
 
@@ -500,7 +500,7 @@ Saved settings take precedence over legacy environment keys. Disconnecting block
 
 **الحدود الحالية**
 
-للإعدادات المحفوظة أولوية على مفاتيح البيئة القديمة. قطع الاتصال يمنع الإرسال. الاختبار لا يثبت تسليم المستلم أو نشر عامل البريد.
+التكامل المحفوظ وحده يرسل البريد؛ لم تعد مفاتيح البيئة تُقرأ. قطع الاتصال يجعل الرسائل المنتظرة تفشل حتى يُعاد الاتصال وتُرسل مجدداً من صفحة الإشعارات. اختبار الاتصال لا يثبت التسليم: أرسل رسالة تجريبية لذلك.
 
 ## Sign in with Google (`google_signin`)
 

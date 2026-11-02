@@ -287,6 +287,81 @@ the environment. A service refuses to start when a value is missing or fails its
 | `ITSM_BREACH_BATCH` | `200` | `gt=0` |
 | `ITSM_WORKERS` | `1` | `gt=0` |
 
+## notify
+
+| Variable | Default | Rules |
+| --- | --- | --- |
+| `APP_ENV` | `development` | `oneof=development test staging production` |
+| `SERVICE_NAME` |  | `required` |
+| `SERVICE_VERSION` | `dev` |  |
+| `LOG_LEVEL` | `info` | `oneof=debug info warn error` |
+| `LOG_FORMAT` | `json` | `oneof=json text` |
+| `HTTP_ADDR` | `:8080` | `required` |
+| `HTTP_READ_HEADER_TIMEOUT` | `5s` | `gt=0` |
+| `HTTP_READ_TIMEOUT` | `30s` | `gt=0` |
+| `HTTP_WRITE_TIMEOUT` | `30s` | `gt=0` |
+| `HTTP_IDLE_TIMEOUT` | `120s` | `gt=0` |
+| `HTTP_SHUTDOWN_TIMEOUT` | `20s` | `gt=0` |
+| `HTTP_REQUEST_TIMEOUT` | `25s` | `gt=0` |
+| `HTTP_BODY_LIMIT` | `1M` | `required` |
+| `HTTP_CORS_ORIGINS` |  |  |
+| `HTTP_TRUSTED_PROXIES` |  | `dive,cidr` |
+| `ADMIN_ADDR` | `:9090` | `required` |
+| `ADMIN_ENABLE_PPROF` | `false` |  |
+| `ADMIN_READINESS_TIMEOUT` | `2s` | `gt=0` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` |  |  |
+| `OTEL_EXPORTER_OTLP_INSECURE` | `false` |  |
+| `OTEL_TRACES_SAMPLER_RATIO` | `1` | `gte=0,lte=1` |
+| `DATABASE_URL` |  | `required` |
+| `DATABASE_DIRECT_URL` |  |  |
+| `DATABASE_MAX_CONNS` | `10` | `gt=0` |
+| `DATABASE_MIN_CONNS` | `0` | `gte=0` |
+| `DATABASE_MAX_CONN_LIFETIME` | `30m` | `gt=0` |
+| `DATABASE_MAX_CONN_IDLE_TIME` | `5m` | `gt=0` |
+| `DATABASE_HEALTH_CHECK_PERIOD` | `30s` | `gt=0` |
+| `DATABASE_STATEMENT_TIMEOUT` | `15s` | `gt=0` |
+| `DATABASE_LOG_QUERIES` | `false` |  |
+| `AUTH_ISSUER` |  |  |
+| `AUTH_JWKS_URL` |  | `omitempty,url` |
+| `AUTH_JWKS_TTL` | `10m` | `gt=0` |
+| `AUTH_JWKS_MIN_REFRESH` | `30s` | `gt=0` |
+| `AUTH_JWKS_FETCH_TIMEOUT` | `5s` | `gt=0` |
+| `AUTH_CLOCK_SKEW` | `30s` | `gte=0` |
+| `AUTH_SERVICE_KEYS_FILE` |  | `omitempty,file` |
+| `NATS_URL` |  |  |
+| `NATS_STREAM` | `EVENTS` | `required` |
+| `NATS_SUBJECTS` | `files.>,identity.>,system.>,audit.>,notify.>,itsm.>,cms.>,sales.>,finance.>,workflow.>,hr.>,inventory.>,commerce.>,delivery.>` | `min=1,dive,required` |
+| `NATS_REPLICAS` | `1` | `gte=1,lte=5` |
+| `NATS_MAX_AGE` | `168h` | `gt=0` |
+| `NATS_DUPLICATE_WINDOW` | `2h` | `gt=0` |
+| `NATS_PUBLISH_TIMEOUT` | `5s` | `gt=0` |
+| `NATS_CREDENTIALS_FILE` |  |  |
+| `OUTBOX_INTERVAL` | `1s` | `gt=0` |
+| `OUTBOX_BATCH` | `100` | `gt=0,lte=1000` |
+| `OUTBOX_RETENTION` | `168h` | `gte=0` |
+| `NOTIFY_SEND_CALLERS` | `admin,web,it` | `min=1,dive,required` |
+| `NOTIFY_BODY_LIMIT` | `11534336` | `gt=0` |
+| `NOTIFY_MAX_ATTACHMENT_BYTES` | `7864320` | `gt=0` |
+| `NOTIFY_DEFAULT_PAGE_SIZE` | `50` | `gt=0,ltefield=MaxPageSize` |
+| `NOTIFY_MAX_PAGE_SIZE` | `200` | `gt=0,lte=1000` |
+| `NOTIFY_MAX_ATTEMPTS` | `8` | `gte=1,lte=25` |
+| `NOTIFY_WORKERS` | `4` | `gt=0` |
+| `NOTIFY_SEND_TIMEOUT` | `30s` | `gt=0` |
+| `NOTIFY_SERVICE_KEY` |  |  |
+| `NOTIFY_SYSTEM_URL` | `http://system:8080` | `url` |
+| `NOTIFY_EMAIL_PROVIDER` | `integration` | `oneof=integration smtp` |
+| `NOTIFY_EMAIL_FROM` | `Platform <no-reply@example.com>` |  |
+| `NOTIFY_RESEND_URL` | `https://api.resend.com` | `url` |
+| `NOTIFY_SMTP_HOST` | `mailpit` |  |
+| `NOTIFY_SMTP_PORT` | `1025` | `gt=0,lt=65536` |
+| `NOTIFY_SMTP_USERNAME` |  |  |
+| `NOTIFY_SMTP_PASSWORD` |  |  |
+| `NOTIFY_SMTP_TLS` | `starttls` | `oneof=none starttls tls` |
+| `NOTIFY_WHATSAPP_URL` | `https://graph.facebook.com/v21.0` | `url` |
+| `NOTIFY_WHATSAPP_CREDENTIALS` | `integration` | `oneof=integration static` |
+| `NOTIFY_WHATSAPP_PHONE_ID` |  |  |
+| `NOTIFY_WHATSAPP_TOKEN` |  |  |
+
 ## system
 
 | Variable | Default | Rules |
@@ -331,7 +406,7 @@ the environment. A service refuses to start when a value is missing or fails its
 | `SECRETS_KEYS` | `primary:MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=` | `min=1,dive,required` |
 | `SECRETS_PRIMARY_KEY_ID` | `primary` | `required` |
 | `SECRETS_LEGACY_INTEGRATION_KEY` |  |  |
-| `SYSTEM_READ_CALLERS` | `admin,web,it` | `min=1,dive,required` |
+| `SYSTEM_READ_CALLERS` | `admin,web,it,notify` | `min=1,dive,required` |
 | `SYSTEM_MODULE_WRITERS` | `admin` | `dive,required` |
 | `SYSTEM_INTEGRATION_WRITERS` | `admin` | `dive,required` |
 | `SYSTEM_DOMAIN_WRITERS` | `admin` | `dive,required` |

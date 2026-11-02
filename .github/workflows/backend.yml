@@ -69,7 +69,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        service: [gateway, files, identity, itsm, system, audit, db-roles]
+        service: [gateway, files, identity, itsm, system, audit, notify, db-roles]
     env:
       IMAGE: ghcr.io/${{ github.repository_owner }}/platform/${{ matrix.service }}
       PUSH: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}

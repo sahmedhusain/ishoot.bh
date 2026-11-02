@@ -41,7 +41,8 @@ What exists today (2026-11-02): identity runs the IT realm with mandatory MFA; s
 the apps. The system service owns modules, integrations, and the website's domains and site-wide code, all managed
 from the IT dashboard, and publishes its changes as events (transactional outbox to NATS JetStream). `itsm` holds IT tickets with SLAs; employees raise them from the admin. Each service signs in
 as its own database login behind PgBouncer. The audit service records every event for the IT dashboard's audit
-trail. Notify and the remaining IT pages are not built yet, and no business domain has moved.
+trail, and notify delivers every e-mail and WhatsApp message. In-app notifications, broadcasts and the remaining IT
+pages are not built yet, and no business domain has moved.
 
 Until a domain moves, the Next.js apps keep using `packages/database` (Prisma) for it, as described in
 [../ARCHITECTURE.md](../ARCHITECTURE.md).

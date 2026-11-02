@@ -130,7 +130,11 @@ export function AuditView({
         <ol className="space-y-2" aria-label={a.title}>
           {page.items.map((event) => (
             <li key={event.id}>
-              <details className="group rounded-2xl border border-outline-variant bg-surface">
+              {/* Opening an entry before the page hydrates adds "open"; that is the reader's choice, not a mismatch. */}
+              <details
+                suppressHydrationWarning
+                className="group rounded-2xl border border-outline-variant bg-surface"
+              >
                 <summary className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 cursor-pointer list-none">
                   <span className="font-semibold text-ink">
                     {label(event.subject)}

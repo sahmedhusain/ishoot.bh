@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/notify.message.retried.v1.json",
+  "title": "notify.message.retried",
+  "description": "IT queued a failed message again. Never carries the recipient or the message.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "messageId",
+    "channel",
+    "changedBy"
+  ],
+  "properties": {
+    "messageId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "email",
+        "whatsapp"
+      ]
+    },
+    "changedBy": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Who made the change: <caller>:<person> or it:<IT account>"
+    }
+  }
+}

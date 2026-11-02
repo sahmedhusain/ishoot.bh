@@ -1,19 +1,47 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ setting: vi.fn(), fetch: vi.fn() }));
+const mocks = vi.hoisted(() => ({ setting: vi.fn(), queue: vi.fn() }));
 vi.mock("../../packages/database/src/queries/integrations", () => ({
   getIntegrationRecord: mocks.setting,
 }));
 vi.mock("@platform/database", async () => {
-  const actual = await vi.importActual<Record<string, unknown>>("@platform/database");
+  const actual =
+    await vi.importActual<Record<string, unknown>>("@platform/database");
   return {
     ...actual,
     getIntegrationRecord: mocks.setting,
   };
 });
+// The notify client as @platform/email sees it: one factory per specifier, as the package resolves differently.
+const client = vi.hoisted(() => {
+  class ApiError extends Error {
+    constructor(
+      readonly status: number,
+      readonly code: string,
+    ) {
+      super(`backend answered ${status} ${code}`);
+    }
+  }
+  const isApiError = (error: unknown, ...codes: string[]) =>
+    error instanceof ApiError &&
+    (codes.length === 0 || codes.includes(error.code));
+  return { ApiError, isApiError };
+});
+vi.mock("@platform/api-client", () => ({
+  queueMessage: mocks.queue,
+  isApiError: client.isApiError,
+}));
+vi.mock("../../packages/api-client", () => ({
+  queueMessage: mocks.queue,
+  isApiError: client.isApiError,
+}));
+vi.mock("../../packages/api-client/src", () => ({
+  queueMessage: mocks.queue,
+  isApiError: client.isApiError,
+}));
+const { ApiError } = client;
 import { getResendCredentials, sendEmail } from "../../packages/email/src";
 
-const secret = "re_settings_only_test_key";
 const mail = {
   to: "recipient@example.test",
   subject: "Subject",
@@ -21,96 +49,95 @@ const mail = {
   idempotencyKey: "one-message",
 };
 beforeEach(() => {
-  vi.stubEnv("ENCRYPTION_KEY", "01234567890123456789012345678901");
   vi.stubEnv("RESEND_API_KEY", "re_environment_test_key");
   vi.stubEnv("FROM_EMAIL", "legacy@example.test");
   vi.stubEnv("RESEND_WEBHOOK_SECRET", "legacy-webhook-secret");
   vi.clearAllMocks();
-  vi.stubGlobal("fetch", mocks.fetch);
-  mocks.fetch.mockImplementation(
-    async () =>
-      new Response(JSON.stringify({ id: "provider-receipt" }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }),
-  );
+  let n = 0;
+  mocks.queue.mockImplementation(async () => ({
+    id: `message-${++n}`,
+    status: "queued",
+  }));
 });
 afterEach(() => {
   vi.unstubAllEnvs();
-  vi.unstubAllGlobals();
 });
 
-describe("encrypted email integration", () => {
-  test("settings credentials drive actual delivery and preserve idempotency", async () => {
-    mocks.setting.mockResolvedValue({
+describe("e-mail through the notify service", () => {
+  test("each recipient is one queued message, keyed so a repeat never sends twice", async () => {
+    const result = await sendEmail({
+      ...mail,
+      to: ["a@example.test", "b@example.test"],
+      attachments: [{ filename: "slip.pdf", content: Buffer.from("%PDF") }],
+    });
+    expect(result).toEqual({ success: true, id: "message-1" });
+    expect(mocks.queue).toHaveBeenCalledTimes(2);
+    expect(
+      mocks.queue.mock.calls.map(([input]) => [input.to, input.idempotencyKey]),
+    ).toEqual([
+      ["a@example.test", "one-message:0"],
+      ["b@example.test", "one-message:1"],
+    ]);
+    expect(mocks.queue.mock.calls[0][0]).toMatchObject({
+      channel: "email",
+      subject: "Subject",
+      html: "<p>Body</p>",
+      attachments: [
+        {
+          filename: "slip.pdf",
+          content: Buffer.from("%PDF").toString("base64"),
+        },
+      ],
+    });
+    await sendEmail(mail);
+    expect(mocks.queue.mock.calls[2][0].idempotencyKey).toBe("one-message");
+  });
+  test("legacy environment keys never send: notify uses the integration IT set up", async () => {
+    await sendEmail(mail);
+    expect(JSON.stringify(mocks.queue.mock.calls)).not.toContain(
+      "re_environment_test_key",
+    );
+    expect(JSON.stringify(mocks.queue.mock.calls)).not.toContain(
+      "legacy@example.test",
+    );
+  });
+  test("a refused message reports the reason; an outage reports failure without claiming delivery", async () => {
+    mocks.queue.mockRejectedValueOnce(
+      new ApiError(
+        422,
+        "validation_failed",
+        "to is not an e-mail address",
+        "request-1",
+      ),
+    );
+    const refused = await sendEmail({ ...mail, to: "nobody" });
+    expect(refused.success).toBe(false);
+    expect(refused.error).toBe("Enter a valid e-mail address");
+    mocks.queue.mockRejectedValueOnce(new Error("connect ECONNREFUSED"));
+    const down = await sendEmail(mail);
+    expect(down.success).toBe(false);
+    expect(down.error).not.toContain("ECONNREFUSED");
+  });
+  test("the webhook secret comes from the saved integration, else the environment; a disconnect stops it", async () => {
+    mocks.setting.mockResolvedValueOnce({
       isActive: true,
       credentials: {
-        apiKey: secret,
+        apiKey: "re_key",
         fromEmail: "settings@example.test",
         webhookSecret: "stored-signing-secret",
       },
     });
-    expect(await sendEmail(mail)).toEqual({
-      success: true,
-      id: "provider-receipt",
-    });
-    const request = mocks.fetch.mock.calls[0][1] as RequestInit;
-    expect(new Headers(request.headers).get("Authorization")).toBe(
-      `Bearer ${secret}`,
-    );
-    expect(new Headers(request.headers).get("Idempotency-Key")).toBe(
-      mail.idempotencyKey,
-    );
-    expect(JSON.parse(String(request.body))).toMatchObject({
-      from: "settings@example.test",
-      to: mail.to,
-    });
     expect((await getResendCredentials())?.webhookSecret).toBe(
       "stored-signing-secret",
     );
-  });
-  test("explicit disconnect prevents legacy environment keys from sending mail", async () => {
-    mocks.setting.mockResolvedValue({ isActive: false, credentials: null });
-    expect((await sendEmail(mail)).success).toBe(false);
+    mocks.setting.mockResolvedValueOnce(null);
+    expect(await getResendCredentials()).toEqual({
+      apiKey: "",
+      fromEmail: "",
+      webhookSecret: "legacy-webhook-secret",
+    });
+    mocks.setting.mockResolvedValueOnce({ isActive: false, credentials: null });
     expect(await getResendCredentials()).toBeNull();
-    expect(mocks.fetch).not.toHaveBeenCalled();
-  });
-  test("unreadable encrypted credentials do not fall back to environment keys", async () => {
-    mocks.setting.mockResolvedValue({
-      isActive: true,
-      credentials: null,
-    });
-    expect((await sendEmail(mail)).success).toBe(false);
-    expect(mocks.fetch).not.toHaveBeenCalled();
-  });
-  test("environment-only legacy installations remain supported before a settings record exists", async () => {
-    mocks.setting.mockResolvedValue(null);
-    expect((await sendEmail(mail)).success).toBe(true);
-    expect(
-      new Headers(mocks.fetch.mock.calls[0][1].headers).get("Authorization"),
-    ).toBe("Bearer re_environment_test_key");
-  });
-  test("provider errors are returned without exposing the API key or claiming delivery", async () => {
-    mocks.setting.mockResolvedValue({
-      isActive: true,
-      credentials: {
-        apiKey: secret,
-        fromEmail: "settings@example.test",
-      },
-    });
-    mocks.fetch.mockImplementation(
-      async () =>
-        new Response(
-          JSON.stringify({
-            name: "validation_error",
-            message: `Rejected ${secret}`,
-          }),
-          { status: 400, headers: { "Content-Type": "application/json" } },
-        ),
-    );
-    const result = await sendEmail(mail);
-    expect(result.success).toBe(false);
-    expect(JSON.stringify(result)).not.toContain(secret);
   });
 });
 
@@ -135,10 +162,4 @@ test("Resend webhook verification accepts the stored signing secret instead of t
   expect(() => verifyResendWebhook(payload, headers, "")).toThrow(
     "WEBHOOK_NOT_CONFIGURED",
   );
-});
-
-test("a settings read failure returns failure without losing the caller's queued job", async () => {
-  mocks.setting.mockRejectedValueOnce(new Error("Database unavailable"));
-  expect((await sendEmail(mail)).success).toBe(false);
-  expect(mocks.fetch).not.toHaveBeenCalled();
 });

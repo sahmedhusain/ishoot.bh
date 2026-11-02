@@ -7,3 +7,4 @@ export * from "./itsm";
 export * from "./itsm-desk";
 export * from "./system";
 export * from "./audit";
+export * from "./notify";

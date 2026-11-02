@@ -40,6 +40,14 @@ routes:
     upstream: system
     realms: [service, it]
     rateLimit: services
+  # Notifications: the apps' back ends queue messages (service tokens); IT staff watch and retry them (IT tokens).
+  # Attachments travel base64-encoded in the request.
+  - name: notify
+    prefix: /v1/notify/
+    upstream: notify
+    realms: [service, it]
+    rateLimit: services
+    bodyLimit: 11M
   # The audit trail: IT staff with their own tokens (audit:read).
   - name: audit-desk
     prefix: /v1/audit/desk/
