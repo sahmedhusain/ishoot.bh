@@ -747,7 +747,13 @@
       "system.site_code.changed": "Site code changed",
       "notify.message.sent": "Message sent",
       "notify.message.failed": "Message failed",
-      "notify.message.retried": "Message sent again"
+      "notify.message.retried": "Message sent again",
+      "identity.user.created": "IT account created",
+      "identity.user.recovered": "IT administrator recovered",
+      "identity.session.started": "Session started",
+      "identity.session.rotated": "Session refreshed",
+      "identity.session.revoked": "Session revoked",
+      "identity.mfa.changed": "Authenticator settings changed"
     }
   },
   "notifications": {

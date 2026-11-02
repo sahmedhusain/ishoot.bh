@@ -182,6 +182,8 @@ services:
       IDENTITY_CALLERS_STAFF: admin
       IDENTITY_CALLERS_CUSTOMER: web
       IDENTITY_CALLERS_IT: it
+      NATS_URL: nats://nats.nats:4222
+      NATS_REPLICAS: "3"
     # Secrets (identity-secrets): DATABASE_URL (svc_<service> through PgBouncer), DATABASE_DIRECT_URL (the same login, direct), IDENTITY_SIGNING_JWK, IDENTITY_LOGIN_REDIS_URL,
     # IDENTITY_LOGIN_RATE_KEY, IDENTITY_LOGIN_MFA_KEYS, IDENTITY_LOGIN_MFA_LEGACY_KEY.
     configFiles: []

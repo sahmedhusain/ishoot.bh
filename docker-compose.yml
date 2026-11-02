@@ -514,6 +514,7 @@ services:
       IDENTITY_CLEANUP_INTERVAL: ${IDENTITY_CLEANUP_INTERVAL:-}
       IDENTITY_CLEANUP_BATCH: ${IDENTITY_CLEANUP_BATCH:-}
       IDENTITY_CLEANUP_WORKERS: ${IDENTITY_CLEANUP_WORKERS:-}
+      NATS_URL: ${NATS_URL:-nats://nats:4222}
     volumes: []
     depends_on:
       identity-migrate: { condition: service_completed_successfully }

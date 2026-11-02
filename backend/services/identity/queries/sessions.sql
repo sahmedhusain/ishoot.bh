@@ -13,9 +13,6 @@ SELECT consumed_at FROM identity.refresh_token WHERE token_hash=$1;
 UPDATE identity.session_family SET revoked_at=$2 WHERE id=$1;
 -- name: MarkRefreshConsumed :exec
 UPDATE identity.refresh_token SET consumed_at=$2 WHERE token_hash=$1;
--- name: LogoutSessionFamily :exec
-UPDATE identity.session_family SET revoked_at=COALESCE(revoked_at,$3)
-WHERE realm=$1 AND id=(SELECT family_id FROM identity.refresh_token WHERE token_hash=$2);
 -- name: ActiveSessionFamily :one
 SELECT * FROM identity.session_family WHERE id=$1 AND realm=$2 AND revoked_at IS NULL AND expires_at>$3;
 

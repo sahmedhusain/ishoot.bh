@@ -64,6 +64,25 @@ pages are not built yet, and no business domain has moved.
 Until a domain moves, the Next.js apps keep using `packages/database` (Prisma) for it, as described in
 [../ARCHITECTURE.md](../ARCHITECTURE.md).
 
+### Identity audit and offline recovery (2026-11-02)
+
+Phase 3 remains **In progress**. Bootstrap, session login/rotation/revocation and MFA changes now write ID-only
+events to identity's transactional outbox; its worker publishes them to JetStream for audit. Offline `recover-it`
+replaces credentials only for an existing active IT administrator, preserves their ID/roles and revokes every
+session. It requires an operator ID and cannot create, reactivate or promote an account. See the
+[recovery runbook](OPERATIONS.md#it-administrator-recovery).
+
+Evidence: Go vet, lint and the full race suite pass; recovery tests verify rollback on audit failure, invalid old
+credentials, replacement recovery codes, session revocation and every emitted event's JSON Schema. A rehearsal on
+`platform-verify` confirmed old access/refresh/password rejection, successful new MFA login and the operator event
+in audit; all 19 running containers are healthy. Helm lint/render/schema checks pass for default/staging/production
+values (49 valid resources each, seven ServiceMonitors skipped). Frontend unit/static checks (327 tests) and lint
+pass. The IT journey passes in 11.2 s after fixing a navigation race: the overview and queue both show the same
+ticket links, so the spec now waits for the queue URL and heading before opening a ticket. IT type-check and
+action-schema checks pass. Staff/customer sign-in, access handoff, IT account management and the later domain waves remain unfinished.
+No production/development data or environment values were changed. Real-data migration/restore, image scans, load
+tests and a cluster smoke deployment are not verified by this milestone.
+
 ## Request path
 
 1. A server component or server action calls the API client with the user's access token.

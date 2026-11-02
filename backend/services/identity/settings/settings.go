@@ -7,6 +7,8 @@ import (
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/config"
 	"platform.local/backend/pkg/db"
+	"platform.local/backend/pkg/natsx"
+	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/pkg/password"
 	"platform.local/backend/pkg/totp"
 	"platform.local/backend/services/identity/internal/tokens"
@@ -20,6 +22,8 @@ type Config struct {
 	Session  Session       `envPrefix:"IDENTITY_"`
 	Login    Login         `envPrefix:"IDENTITY_LOGIN_"`
 	Callers  Callers       `envPrefix:"IDENTITY_CALLERS_"`
+	NATS     natsx.Config  `envPrefix:"NATS_"`
+	Outbox   outbox.Config `envPrefix:"OUTBOX_"`
 }
 
 type Session struct {
@@ -49,7 +53,7 @@ type Login struct {
 	TOTP             totp.Config     `envPrefix:"TOTP_"`
 	// MFAIssuer labels the entry in authenticator apps.
 	MFAIssuer string `env:"MFA_ISSUER" envDefault:"Platform IT" validate:"required,max=100"`
-	// ITPasswordMinLength applies to IT accounts created by bootstrap-it.
+	// ITPasswordMinLength applies when provisioning or recovering an IT account.
 	ITPasswordMinLength int `env:"IT_PASSWORD_MIN_LENGTH" envDefault:"14" validate:"gte=12,lte=128"`
 }
 

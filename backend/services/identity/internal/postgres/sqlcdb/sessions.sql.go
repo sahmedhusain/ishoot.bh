@@ -125,22 +125,6 @@ func (q *Queries) LockSessionFamily(ctx context.Context, id string) (IdentitySes
 	return i, err
 }
 
-const logoutSessionFamily = `-- name: LogoutSessionFamily :exec
-UPDATE identity.session_family SET revoked_at=COALESCE(revoked_at,$3)
-WHERE realm=$1 AND id=(SELECT family_id FROM identity.refresh_token WHERE token_hash=$2)
-`
-
-type LogoutSessionFamilyParams struct {
-	Realm     string
-	TokenHash string
-	RevokedAt *time.Time
-}
-
-func (q *Queries) LogoutSessionFamily(ctx context.Context, arg LogoutSessionFamilyParams) error {
-	_, err := q.db.Exec(ctx, logoutSessionFamily, arg.Realm, arg.TokenHash, arg.RevokedAt)
-	return err
-}
-
 const markRefreshConsumed = `-- name: MarkRefreshConsumed :exec
 UPDATE identity.refresh_token SET consumed_at=$2 WHERE token_hash=$1
 `

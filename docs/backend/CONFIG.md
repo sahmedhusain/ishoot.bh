@@ -235,6 +235,17 @@ the environment. A service refuses to start when a value is missing or fails its
 | `IDENTITY_CALLERS_STAFF` | `admin` | `min=1,dive,required` |
 | `IDENTITY_CALLERS_CUSTOMER` | `web` | `min=1,dive,required` |
 | `IDENTITY_CALLERS_IT` | `it` | `min=1,dive,required` |
+| `NATS_URL` |  |  |
+| `NATS_STREAM` | `EVENTS` | `required` |
+| `NATS_SUBJECTS` | `files.>,identity.>,system.>,audit.>,notify.>,itsm.>,cms.>,sales.>,finance.>,workflow.>,hr.>,inventory.>,commerce.>,delivery.>` | `min=1,dive,required` |
+| `NATS_REPLICAS` | `1` | `gte=1,lte=5` |
+| `NATS_MAX_AGE` | `168h` | `gt=0` |
+| `NATS_DUPLICATE_WINDOW` | `2h` | `gt=0` |
+| `NATS_PUBLISH_TIMEOUT` | `5s` | `gt=0` |
+| `NATS_CREDENTIALS_FILE` |  |  |
+| `OUTBOX_INTERVAL` | `1s` | `gt=0` |
+| `OUTBOX_BATCH` | `100` | `gt=0,lte=1000` |
+| `OUTBOX_RETENTION` | `168h` | `gte=0` |
 
 ## itsm
 

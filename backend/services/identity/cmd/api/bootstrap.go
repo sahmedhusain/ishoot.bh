@@ -20,15 +20,19 @@ import (
 	"platform.local/backend/services/identity/settings"
 )
 
-// bootstrapIT creates the first IT account: `identity bootstrap-it -email it@example.com [-role it_admin]`.
+// provisionIT creates the first IT account or recovers an existing administrator (see the service README).
 // The password is read from the terminal without echo, or from the first line of standard input when piped.
 // The authenticator secret and recovery codes are printed once, to standard output only.
-func bootstrapIT(ctx context.Context, args []string, cfg settings.Login, pool *pgxpool.Pool) error {
-	flags := flag.NewFlagSet("bootstrap-it", flag.ContinueOnError)
-	email := flags.String("email", "", "e-mail address of the first IT administrator")
+func provisionIT(ctx context.Context, command string, args []string, cfg settings.Login, pool *pgxpool.Pool) error {
+	flags := flag.NewFlagSet(command, flag.ContinueOnError)
+	email := flags.String("email", "", "e-mail address of the IT account")
 	role := flags.String("role", "it_admin", "IT role (contracts/catalog/it-access.json)")
+	actor := flags.String("actor", "", "operator ID for break-glass recovery (required for recover-it)")
 	if err := flags.Parse(args); err != nil {
 		return err
+	}
+	if flags.NArg() != 0 || command == "recover-it" && (*actor == "" || *role != "it_admin") {
+		return errors.New("recover-it requires -email and -actor and cannot change account roles")
 	}
 	hasher, err := password.New(cfg.Password)
 	if err != nil {
@@ -42,14 +46,20 @@ func bootstrapIT(ctx context.Context, args []string, cfg settings.Login, pool *p
 	if err != nil {
 		return err
 	}
-	result, err := bootstrap.CreateITAdmin(ctx, pool, hasher, ring, bootstrap.Input{
+	in := bootstrap.Input{
 		Email: *email, Password: plain, Role: *role, MinPasswordLength: cfg.ITPasswordMinLength,
 		RecoveryCount: cfg.MFARecoveryCount, Issuer: cfg.MFAIssuer, Digits: cfg.TOTP.Digits, Period: cfg.TOTP.Period,
-	}, time.Now().UTC())
+	}
+	var result bootstrap.Result
+	if command == "recover-it" {
+		result, err = bootstrap.RecoverITAdmin(ctx, pool, hasher, ring, in, time.Now().UTC(), *actor)
+	} else {
+		result, err = bootstrap.CreateITAdmin(ctx, pool, hasher, ring, in, time.Now().UTC())
+	}
 	if err != nil {
 		return err
 	}
-	fmt.Printf("IT account %s created.\n\nAdd it to an authenticator app (shown once):\n  %s\n  secret: %s\n\nRecovery codes (each works once; store them offline):\n  %s\n",
+	fmt.Printf("IT account %s provisioned.\n\nAdd it to an authenticator app (shown once):\n  %s\n  secret: %s\n\nRecovery codes (each works once; store them offline):\n  %s\n",
 		result.SubjectID, result.OTPAuthURL, result.Secret, strings.Join(result.RecoveryCodes, "\n  "))
 	return nil
 }

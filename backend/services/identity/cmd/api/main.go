@@ -1,5 +1,5 @@
 // Command api runs the identity service. Subcommands: serve (default), worker, migrate, healthcheck, and
-// bootstrap-it (creates the first IT account; see the README).
+// bootstrap-it and recover-it (offline IT account provisioning; see the README).
 package main
 
 import (
@@ -17,6 +17,8 @@ import (
 	"platform.local/backend/pkg/httpx"
 	"platform.local/backend/pkg/logx"
 	"platform.local/backend/pkg/migrate"
+	"platform.local/backend/pkg/natsx"
+	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/pkg/redisx"
 	"platform.local/backend/pkg/telemetry"
 	"platform.local/backend/services/identity/internal/accounts"
@@ -48,12 +50,12 @@ func run(command string) error {
 	if command == httpx.HealthcheckCommand {
 		return httpx.Probe(ctx, cfg.Admin.Addr, cfg.Admin.ReadinessTimeout)
 	}
-	if command != "serve" && command != "migrate" && command != "worker" && command != "bootstrap-it" {
+	if command != "serve" && command != "migrate" && command != "worker" && command != "bootstrap-it" && command != "recover-it" {
 		return fmt.Errorf("unknown command %q", command)
 	}
 	logger := logx.New(os.Stdout, logx.Options{Level: cfg.Log.Level, Format: cfg.Log.Format, Service: cfg.ServiceName, Version: cfg.Version, Env: cfg.AppEnv})
 	dbCfg := cfg.Database
-	if command == "migrate" || command == "worker" {
+	if command == "migrate" || command == "worker" || command == "bootstrap-it" || command == "recover-it" {
 		dbCfg = dbCfg.Session() // past the pooler: they need a whole session
 	}
 	pool, err := db.Open(ctx, dbCfg, logger.Logger)
@@ -64,8 +66,8 @@ func run(command string) error {
 	if command == "migrate" {
 		return migrate.Run(ctx, pool, migrate.Options{Schema: "identity", Migrations: migrations.FS, WithRiver: true, Logger: logger.Logger})
 	}
-	if command == "bootstrap-it" {
-		return bootstrapIT(ctx, os.Args[2:], cfg.Login, pool)
+	if command == "bootstrap-it" || command == "recover-it" {
+		return provisionIT(ctx, command, os.Args[2:], cfg.Login, pool)
 	}
 	shutdownTracing, err := telemetry.Setup(ctx, cfg.Common)
 	if err != nil {
@@ -94,10 +96,33 @@ func run(command string) error {
 			return err
 		}
 		metrics := httpx.NewMetrics(cfg.ServiceName)
+		relayDone := make(chan struct{})
+		if cfg.NATS.Configured() {
+			broker, err := natsx.Connect(ctx, cfg.NATS, cfg.ServiceName, logger.Logger)
+			if err != nil {
+				return err
+			}
+			checker.Register("nats", broker.Check())
+			relay, err := outbox.NewRelay(pool, outbox.RelayOptions{Schema: "identity", Publisher: broker, Logger: logger.Logger,
+				Interval: cfg.Outbox.Interval, Batch: cfg.Outbox.Batch, Retention: cfg.Outbox.Retention, Metrics: metrics.Registry})
+			if err != nil {
+				broker.Close()
+				return err
+			}
+			go func() {
+				defer close(relayDone)
+				defer broker.Close()
+				_ = relay.Run(ctx)
+			}()
+		} else {
+			logger.Warn("NATS_URL is not set: events stay in identity.outbox until a relay publishes them")
+			close(relayDone)
+		}
 		_, admin := httpx.Servers(cfg.Common, nil, httpx.AdminHandler(cfg.Common, logger, checker, metrics))
 		runErr := httpx.Run(ctx, cfg.Common, logger, admin)
 		stopCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), cfg.HTTP.ShutdownTimeout)
 		defer cancel()
+		<-relayDone
 		return errors.Join(runErr, client.Stop(stopCtx))
 	}
 	if cfg.Auth.ServiceKeysFile == "" {

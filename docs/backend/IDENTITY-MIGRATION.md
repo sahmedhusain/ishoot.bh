@@ -21,7 +21,9 @@ A successful rehearsal does not authorize a production cutover. Before an eventu
 
 ## Remaining before cutover
 
-- Implement and test OAuth, customer email codes and registration, password reset and invitations, MFA administration and reset, and IT account bootstrap.
+- Implement and test OAuth, customer email codes and registration, password reset and invitations, MFA administration
+  and reset, and IT account management. First-account bootstrap and offline administrator recovery are implemented;
+  recovery is documented in the [operations runbook](OPERATIONS.md#it-administrator-recovery).
 - Preserve staff profile, role, permission, data-scope and override behavior. Define synchronization between identity and the remaining business-owned user and customer projections.
 - Ensure all user-token traffic reaches services through the gateway or an equivalent live session check, and configure the identity status URL and network policy.
 - Integrate the generated client, gateway, app cookies and existing auth DTOs; preserve existing auth exports and authorization behavior. Wire production deployment and key rotation.

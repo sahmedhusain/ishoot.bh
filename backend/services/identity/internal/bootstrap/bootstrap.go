@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"net/mail"
 	"net/url"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -23,6 +24,7 @@ import (
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/catalog"
 	"platform.local/backend/pkg/db"
+	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/pkg/totp"
 	"platform.local/backend/services/identity/internal/postgres/sqlcdb"
 )
@@ -30,7 +32,12 @@ import (
 // ErrExists means an IT account already exists; bootstrapping runs once per installation.
 var ErrExists = errors.New("an IT account already exists; create further accounts from the IT dashboard")
 
-// lockKey serialises concurrent bootstraps (pg_advisory_xact_lock).
+// ErrRecoveryTarget refuses creating, reactivating or promoting an account during break-glass recovery.
+var ErrRecoveryTarget = errors.New("recovery requires an existing active IT administrator")
+
+var operatorID = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9:._/-]{0,190}$`)
+
+// lockKey serialises offline account provisioning (pg_advisory_xact_lock).
 const lockKey = 0x1d_b007
 
 // Hasher hashes passwords (pkg/password).
@@ -78,6 +85,20 @@ func (in Input) Validate() error {
 
 // CreateITAdmin creates the first IT account with an enrolled authenticator and recovery codes.
 func CreateITAdmin(ctx context.Context, pool *pgxpool.Pool, hasher Hasher, sealer Sealer, in Input, now time.Time) (Result, error) {
+	return provision(ctx, pool, hasher, sealer, in, now, "")
+}
+
+// RecoverITAdmin replaces an existing administrator's password and factor and ends every session. It is an offline
+// operator command, never an HTTP endpoint; actorID identifies the operator in the audit trail.
+func RecoverITAdmin(ctx context.Context, pool *pgxpool.Pool, hasher Hasher, sealer Sealer, in Input, now time.Time, actorID string) (Result, error) {
+	if !operatorID.MatchString(actorID) {
+		return Result{}, errors.New("an operator ID (1 to 191 letters, digits or :._/-) is required")
+	}
+	in.Role = "it_admin"
+	return provision(ctx, pool, hasher, sealer, in, now, actorID)
+}
+
+func provision(ctx context.Context, pool *pgxpool.Pool, hasher Hasher, sealer Sealer, in Input, now time.Time, actorID string) (Result, error) {
 	in.Email = strings.ToLower(strings.TrimSpace(in.Email))
 	if err := in.Validate(); err != nil {
 		return Result{}, err
@@ -92,10 +113,6 @@ func CreateITAdmin(ctx context.Context, pool *pgxpool.Pool, hasher Hasher, seale
 	}
 	defer clear(secret)
 	subject := uuid.NewString()
-	sealed, err := sealer.Seal(secret, subject)
-	if err != nil {
-		return Result{}, err
-	}
 	codes, hashes, err := totp.NewRecoveryCodes(in.RecoveryCount)
 	if err != nil {
 		return Result{}, err
@@ -105,25 +122,66 @@ func CreateITAdmin(ctx context.Context, pool *pgxpool.Pool, hasher Hasher, seale
 			return err
 		}
 		q := sqlcdb.New(tx)
-		n, err := q.CountRealmAccounts(ctx, string(authn.RealmIT))
+		if actorID == "" {
+			n, err := q.CountRealmAccounts(ctx, string(authn.RealmIT))
+			if err != nil {
+				return err
+			}
+			if n > 0 {
+				return ErrExists
+			}
+		} else {
+			target, err := q.FindAccountByEmail(ctx, sqlcdb.FindAccountByEmailParams{Realm: string(authn.RealmIT), Email: in.Email})
+			if errors.Is(err, pgx.ErrNoRows) {
+				return ErrRecoveryTarget
+			}
+			if err != nil {
+				return err
+			}
+			target, err = q.LockAccount(ctx, sqlcdb.LockAccountParams{Realm: target.Realm, SubjectID: target.SubjectID})
+			if err != nil {
+				return err
+			}
+			if !target.Active || !slices.Contains(target.Roles, "it_admin") {
+				return ErrRecoveryTarget
+			}
+			subject = target.SubjectID
+		}
+		sealed, err := sealer.Seal(secret, subject)
 		if err != nil {
 			return err
 		}
-		if n > 0 {
-			return ErrExists
-		}
-		if err := q.InsertAccount(ctx, sqlcdb.InsertAccountParams{
-			Realm: string(authn.RealmIT), SubjectID: subject, Email: in.Email, PasswordHash: &hash,
-			Roles: []string{in.Role}, MfaEnabled: true, MfaSecretEncrypted: &sealed, Now: now,
-		}); err != nil {
-			return err
+		verb, actor := "created", "identity:bootstrap-it"
+		if actorID == "" {
+			if err := q.InsertAccount(ctx, sqlcdb.InsertAccountParams{
+				Realm: string(authn.RealmIT), SubjectID: subject, Email: in.Email, PasswordHash: &hash,
+				Roles: []string{in.Role}, MfaEnabled: true, MfaSecretEncrypted: &sealed, Now: now,
+			}); err != nil {
+				return err
+			}
+		} else {
+			verb, actor = "recovered", "operator:"+actorID
+			if err := q.UpdateAccountHash(ctx, sqlcdb.UpdateAccountHashParams{Realm: string(authn.RealmIT), SubjectID: subject, PasswordHash: &hash, UpdatedAt: now}); err != nil {
+				return err
+			}
+			if err := q.SetMFAState(ctx, sqlcdb.SetMFAStateParams{Realm: string(authn.RealmIT), SubjectID: subject, MfaEnabled: true, MfaSecretEncrypted: &sealed, UpdatedAt: now}); err != nil {
+				return err
+			}
+			if err := q.DeleteAccountRecovery(ctx, sqlcdb.DeleteAccountRecoveryParams{Realm: string(authn.RealmIT), SubjectID: subject}); err != nil {
+				return err
+			}
+			if err := q.RevokeSubjectSessions(ctx, sqlcdb.RevokeSubjectSessionsParams{Realm: string(authn.RealmIT), SubjectID: subject, RevokedAt: &now}); err != nil {
+				return err
+			}
 		}
 		for _, h := range hashes {
 			if err := q.InsertAccountRecovery(ctx, sqlcdb.InsertAccountRecoveryParams{Realm: string(authn.RealmIT), SubjectID: subject, CodeHash: h}); err != nil {
 				return err
 			}
 		}
-		return nil
+		return outbox.Enqueue(ctx, tx, "identity", outbox.Event{Subject: "identity.user." + verb, Payload: map[string]any{
+			"subjectId": subject, "realm": authn.RealmIT, "changedBy": actor,
+		}})
 	})
 	if err != nil {
 		return Result{}, err

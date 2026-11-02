@@ -60,11 +60,12 @@ test("IT works a ticket from the desk", async ({ page }) => {
   await expect(page.getByText(t.overview.unavailable)).toHaveCount(0);
 
   await page.getByRole("link", { name: t.nav.tickets }).click();
+  await expect(page).toHaveURL(/\/tickets$/);
+  await expect(
+    page.getByRole("heading", { name: t.tickets.title }),
+  ).toBeVisible();
   await page.getByRole("link", { name: new RegExp(title) }).click();
-  // The first visit compiles the ticket page in development.
-  await expect(page.getByRole("heading", { name: title })).toBeVisible({
-    timeout: 45_000,
-  });
+  await expect(page.getByRole("heading", { name: title })).toBeVisible();
   await expect(page.getByText("e2e-employee@example.test")).toBeVisible();
 
   await page.getByRole("button", { name: t.tickets.assignToMe }).click();

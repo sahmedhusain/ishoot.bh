@@ -10,6 +10,7 @@ import (
 
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/db"
+	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/services/identity/internal/accounts"
 	"platform.local/backend/services/identity/internal/postgres/sqlcdb"
 	"platform.local/backend/services/identity/internal/sessions"
@@ -74,7 +75,10 @@ func (p *Repository) CompleteLogin(ctx context.Context, snapshot accounts.Accoun
 		if err := q.CreateSessionFamily(ctx, sqlcdb.CreateSessionFamilyParams{ID: credential.Family.ID, SubjectID: row.SubjectID, Realm: row.Realm, ExpiresAt: credential.Family.ExpiresAt}); err != nil {
 			return err
 		}
-		return q.InsertRefreshRecord(ctx, sqlcdb.InsertRefreshRecordParams{TokenHash: credential.Digest(), FamilyID: credential.Family.ID})
+		if err := q.InsertRefreshRecord(ctx, sqlcdb.InsertRefreshRecordParams{TokenHash: credential.Digest(), FamilyID: credential.Family.ID}); err != nil {
+			return err
+		}
+		return sessionEvent(ctx, tx, "started", credential.Family, "login")
 	})
 	if err != nil {
 		return accounts.Account{}, err
@@ -139,7 +143,9 @@ func (p *Repository) ChangeMFA(ctx context.Context, snapshot accounts.Account, p
 		}
 		switch update.Kind {
 		case "begin", "cancel":
-			return q.SetMFAPending(ctx, sqlcdb.SetMFAPendingParams{Realm: row.Realm, SubjectID: row.SubjectID, MfaPendingSecretEncrypted: update.Secret, MfaPendingExpiresAt: update.ExpiresAt, UpdatedAt: now})
+			if err := q.SetMFAPending(ctx, sqlcdb.SetMFAPendingParams{Realm: row.Realm, SubjectID: row.SubjectID, MfaPendingSecretEncrypted: update.Secret, MfaPendingExpiresAt: update.ExpiresAt, UpdatedAt: now}); err != nil {
+				return err
+			}
 		case "confirm", "disable":
 			enabled := update.Kind == "confirm"
 			if enabled && (update.Secret == nil || update.Step == nil || len(update.RecoveryHashes) == 0) {
@@ -156,10 +162,15 @@ func (p *Repository) ChangeMFA(ctx context.Context, snapshot accounts.Account, p
 					return err
 				}
 			}
-			return q.RevokeSubjectSessions(ctx, sqlcdb.RevokeSubjectSessionsParams{Realm: row.Realm, SubjectID: row.SubjectID, RevokedAt: &now})
+			if err := q.RevokeSubjectSessions(ctx, sqlcdb.RevokeSubjectSessionsParams{Realm: row.Realm, SubjectID: row.SubjectID, RevokedAt: &now}); err != nil {
+				return err
+			}
 		default:
 			return accounts.ErrInvalid
 		}
+		return outbox.Enqueue(ctx, tx, "identity", outbox.Event{Subject: "identity.mfa.changed", Payload: map[string]any{
+			"subjectId": row.SubjectID, "realm": row.Realm, "changedBy": row.Realm + ":" + row.SubjectID, "operation": update.Kind,
+		}})
 	})
 }
 

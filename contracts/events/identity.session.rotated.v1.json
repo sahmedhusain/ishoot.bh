@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/identity.session.rotated.v1.json",
+  "title": "identity.session.rotated",
+  "description": "Identity lifecycle change. IDs only; no credentials, factors, addresses or recovery codes.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["subjectId", "realm", "changedBy", "sessionId", "reason"],
+  "properties": {
+    "subjectId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "realm": {
+      "type": "string",
+      "minLength": 1,
+      "enum": ["staff", "customer", "it"]
+    },
+    "changedBy": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sessionId": {
+      "type": "string",
+      "minLength": 1,
+      "format": "uuid"
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

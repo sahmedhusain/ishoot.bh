@@ -69,6 +69,37 @@ trail); notify publishes the outcome of every message.
 
 To read events locally: `docker run --rm --network platform_default natsio/nats-box nats -s nats://nats:4222 stream view EVENTS`.
 
+## IT administrator recovery
+
+First try an unused recovery code in the sign-in form's authenticator field. If none remain, an operator with
+controlled access to identity's database login and MFA encryption keys can perform offline recovery. Record the
+incident and operator ID before running this command; keep the terminal private, without output capture or session
+recording, because it prints the new authenticator secret and recovery codes once.
+
+```sh
+docker compose run --rm identity recover-it -email it-admin@example.com -actor operator-123
+```
+
+The command prompts for the new password without echo (at least `IDENTITY_LOGIN_IT_PASSWORD_MIN_LENGTH` characters).
+Piped input is supported, but do not put passwords in arguments or shell history. `-actor` is an operator ID, not a
+name or email, of at most 191 letters/digits or `:._/-`. Recovery requires an existing **active** `it_admin` account;
+it refuses missing, disabled, non-admin and other-realm accounts. It never creates, reactivates or promotes one.
+The direct database URL is used, without the pooler.
+
+The password, enrolled authenticator and recovery codes are replaced together, pending enrollment is cleared and
+all account sessions are revoked. The account ID and role assignments are preserved. If any write, including the
+audit outbox write, fails, the whole change rolls back. Do not retry after successful output: each successful run
+replaces the just-issued credentials again. Enroll the new secret, store the recovery codes offline, then sign in
+with the new password and authenticator. Verify that `identity.user.recovered` reaches the IT audit trail with
+`changedBy=operator:<operator ID>`. If NATS is down, the event stays in `identity.outbox`; restore the relay and
+verify delivery before closing the incident.
+
+Rehearse only on a disposable stack, selecting it explicitly with
+`docker compose -p platform-verify --env-file <disposable-env> run --rm identity recover-it ...`. Integration tests
+exercise rollback on audit failure, revoked access/refresh sessions, invalid old credentials, replacement recovery
+codes, preserved IDs/roles and refusal to reactivate or promote. This is an offline recovery procedure; IT account
+management and staff/customer cutover remain separate migration work.
+
 ## Local mail and WhatsApp
 
 The notify service sends every e-mail and WhatsApp message. Locally nothing leaves the machine:

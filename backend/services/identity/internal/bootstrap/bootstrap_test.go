@@ -4,13 +4,16 @@ import (
 	"context"
 	"encoding/base32"
 	"encoding/base64"
+	"encoding/json"
 	"log/slog"
+	"os"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/santhosh-tekuri/jsonschema/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -110,4 +113,98 @@ func TestCreateITAdminSignsInWithTheEnrolledFactor(t *testing.T) {
 	signedIn, err := svc.Login(ctx, login, now)
 	require.NoError(t, err)
 	assert.Equal(t, []string{"it_admin"}, signedIn.Account.Roles)
+
+	p := authn.Principal{Realm: authn.RealmIT, Subject: result.SubjectID, SessionID: signedIn.Credential.Family.ID, Roles: []string{"it_admin"}}
+	_, err = svc.BeginMFA(ctx, p, login.Password, "", now)
+	require.NoError(t, err)
+	require.NoError(t, svc.CancelMFA(ctx, p, login.Password, "", now))
+	_, err = svc.BeginMFA(ctx, p, login.Password, "", now)
+	require.NoError(t, err)
+
+	in := input(email)
+	in.Password = "a different long password"
+	_, err = bootstrap.RecoverITAdmin(ctx, pool, hasher, ring, in, now, "")
+	require.ErrorContains(t, err, "operator ID")
+	_, err = bootstrap.RecoverITAdmin(ctx, pool, hasher, ring, input("missing@example.test"), now, "operator-123")
+	require.ErrorIs(t, err, bootstrap.ErrRecoveryTarget)
+	for _, update := range []string{`active=false`, `active=true,roles=ARRAY['it_support']`} {
+		_, err = pool.Exec(ctx, `UPDATE identity.account SET `+update+` WHERE realm='it'`)
+		require.NoError(t, err)
+		_, err = bootstrap.RecoverITAdmin(ctx, pool, hasher, ring, in, now, "operator-123")
+		require.ErrorIs(t, err, bootstrap.ErrRecoveryTarget)
+	}
+	_, err = pool.Exec(ctx, `UPDATE identity.account SET active=true,roles=ARRAY['it_admin'] WHERE realm='it'`)
+	require.NoError(t, err)
+
+	// If the audit write fails, the previous credentials, factor, recovery codes and sessions survive.
+	_, err = pool.Exec(ctx, `CREATE FUNCTION identity.refuse_recovery() RETURNS trigger LANGUAGE plpgsql AS $$
+ BEGIN IF NEW.subject='identity.user.recovered' THEN RAISE EXCEPTION 'audit unavailable'; END IF; RETURN NEW; END $$;
+ CREATE TRIGGER refuse_recovery BEFORE INSERT ON identity.outbox FOR EACH ROW EXECUTE FUNCTION identity.refuse_recovery()`)
+	require.NoError(t, err)
+	_, err = bootstrap.RecoverITAdmin(ctx, pool, hasher, ring, in, now, "operator-123")
+	require.ErrorContains(t, err, "audit unavailable")
+	require.NoError(t, svc.ValidateSession(ctx, p, now))
+	unchanged, err := repo.FindBySubject(ctx, authn.RealmIT, result.SubjectID)
+	require.NoError(t, err)
+	_, err = hasher.Verify(login.Password, *unchanged.PasswordHash)
+	require.NoError(t, err)
+	require.NotNil(t, unchanged.PendingSecret)
+	_, err = pool.Exec(ctx, `DROP TRIGGER refuse_recovery ON identity.outbox; DROP FUNCTION identity.refuse_recovery()`)
+	require.NoError(t, err)
+
+	recovered, err := bootstrap.RecoverITAdmin(ctx, pool, hasher, ring, in, now, "operator-123")
+	require.NoError(t, err)
+	require.Equal(t, result.SubjectID, recovered.SubjectID)
+	require.NotEqual(t, result.Secret, recovered.Secret)
+	require.NotEqual(t, result.RecoveryCodes, recovered.RecoveryCodes)
+	require.ErrorIs(t, svc.ValidateSession(ctx, p, now), accounts.ErrInvalid)
+	_, err = svc.Refresh(ctx, authn.RealmIT, signedIn.Credential.Token, now)
+	require.ErrorIs(t, err, sessions.ErrInvalid)
+	_, err = svc.Login(ctx, login, now)
+	require.ErrorIs(t, err, accounts.ErrInvalid, "old password must not work")
+	login.Password, login.OTP = in.Password, result.RecoveryCodes[0]
+	_, err = svc.Login(ctx, login, now)
+	require.ErrorIs(t, err, accounts.ErrInvalid, "old recovery codes must not work")
+	login.OTP = recovered.RecoveryCodes[0]
+	signedIn, err = svc.Login(ctx, login, now)
+	require.NoError(t, err)
+	assert.Nil(t, signedIn.Account.PendingSecret)
+	assert.Nil(t, signedIn.Account.LastStep)
+	assert.True(t, signedIn.Account.MFAEnabled)
+	rotated, err := svc.Refresh(ctx, authn.RealmIT, signedIn.Credential.Token, now)
+	require.NoError(t, err)
+	require.NoError(t, sessionService.Logout(ctx, authn.RealmIT, rotated.Credential.Token, now))
+	require.NoError(t, sessionService.Logout(ctx, authn.RealmIT, rotated.Credential.Token, now))
+
+	rows, err := pool.Query(ctx, `SELECT subject,payload FROM identity.outbox ORDER BY created_at,id`)
+	require.NoError(t, err)
+	defer rows.Close()
+	counts := map[string]int{}
+	for rows.Next() {
+		var subject string
+		var raw []byte
+		require.NoError(t, rows.Scan(&subject, &raw))
+		counts[subject]++
+		var doc, body any
+		schemaFile := "../../../../../contracts/events/" + subject + ".v1.json"
+		schemaBytes, err := os.ReadFile(schemaFile)
+		require.NoError(t, err)
+		require.NoError(t, json.Unmarshal(schemaBytes, &doc))
+		require.NoError(t, json.Unmarshal(raw, &body))
+		compiler := jsonschema.NewCompiler()
+		compiler.AssertFormat()
+		require.NoError(t, compiler.AddResource("https://platform.local/event.json", doc))
+		schema, err := compiler.Compile("https://platform.local/event.json")
+		require.NoError(t, err)
+		require.NoError(t, schema.Validate(body))
+		for _, secret := range []string{email, login.Password, result.Secret, recovered.Secret, result.RecoveryCodes[0], recovered.RecoveryCodes[0], signedIn.Credential.Token} {
+			assert.NotContains(t, string(raw), secret)
+		}
+		if subject == "identity.user.recovered" {
+			assert.Contains(t, string(raw), `"changedBy": "operator:operator-123"`)
+		}
+	}
+	require.NoError(t, rows.Err())
+	assert.Equal(t, map[string]int{"identity.user.created": 1, "identity.user.recovered": 1, "identity.session.started": 2,
+		"identity.session.rotated": 1, "identity.session.revoked": 1, "identity.mfa.changed": 3}, counts)
 }

@@ -25,11 +25,29 @@ type IdentityAccount struct {
 	MfaPendingExpiresAt       *time.Time
 }
 
+type IdentityInbox struct {
+	Consumer  string
+	EventID   string
+	HandledAt time.Time
+}
+
 type IdentityMfaRecoveryCode struct {
 	Realm     string
 	SubjectID string
 	CodeHash  string
 	UsedAt    *time.Time
+}
+
+type IdentityOutbox struct {
+	ID          string
+	Subject     string
+	Payload     []byte
+	Headers     []byte
+	CreatedAt   time.Time
+	PublishedAt *time.Time
+	Attempts    int32
+	NextTryAt   time.Time
+	LastError   *string
 }
 
 type IdentityRefreshToken struct {

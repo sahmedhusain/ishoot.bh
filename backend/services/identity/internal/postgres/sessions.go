@@ -11,6 +11,7 @@ import (
 
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/db"
+	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/services/identity/internal/accounts"
 	"platform.local/backend/services/identity/internal/postgres/sqlcdb"
 	"platform.local/backend/services/identity/internal/sessions"
@@ -29,7 +30,10 @@ func (p *Repository) Create(ctx context.Context, f sessions.Family, tokenHash st
 		if err := q.CreateSessionFamily(ctx, sqlcdb.CreateSessionFamilyParams{ID: f.ID, SubjectID: f.SubjectID, Realm: string(f.Realm), ExpiresAt: f.ExpiresAt}); err != nil {
 			return err
 		}
-		return q.InsertRefreshRecord(ctx, sqlcdb.InsertRefreshRecordParams{TokenHash: tokenHash, FamilyID: f.ID})
+		if err := q.InsertRefreshRecord(ctx, sqlcdb.InsertRefreshRecordParams{TokenHash: tokenHash, FamilyID: f.ID}); err != nil {
+			return err
+		}
+		return sessionEvent(ctx, tx, "started", f, "login")
 	})
 }
 
@@ -93,7 +97,10 @@ func (p *Repository) rotate(ctx context.Context, realm authn.Realm, oldHash, nex
 		}
 		if checkAccount && (accountInvalid || row.SubjectID != account.SubjectID || row.Realm != string(realm)) {
 			result = sessions.ErrInvalid
-			return q.RevokeSessionFamily(ctx, sqlcdb.RevokeSessionFamilyParams{ID: id, RevokedAt: &now})
+			if err := q.RevokeSessionFamily(ctx, sqlcdb.RevokeSessionFamilyParams{ID: id, RevokedAt: &now}); err != nil {
+				return err
+			}
+			return sessionEvent(ctx, tx, "revoked", toFamily(row), "account_invalid")
 		}
 		consumed, err := q.RefreshConsumedAt(ctx, oldHash)
 		if err != nil {
@@ -101,7 +108,10 @@ func (p *Repository) rotate(ctx context.Context, realm authn.Realm, oldHash, nex
 		}
 		if consumed != nil {
 			result = sessions.ErrReuse
-			return q.RevokeSessionFamily(ctx, sqlcdb.RevokeSessionFamilyParams{ID: id, RevokedAt: &now})
+			if err := q.RevokeSessionFamily(ctx, sqlcdb.RevokeSessionFamilyParams{ID: id, RevokedAt: &now}); err != nil {
+				return err
+			}
+			return sessionEvent(ctx, tx, "revoked", toFamily(row), "refresh_reuse")
 		}
 		if err := q.MarkRefreshConsumed(ctx, sqlcdb.MarkRefreshConsumedParams{TokenHash: oldHash, ConsumedAt: &now}); err != nil {
 			return err
@@ -110,7 +120,7 @@ func (p *Repository) rotate(ctx context.Context, realm authn.Realm, oldHash, nex
 			return err
 		}
 		family = toFamily(row)
-		return nil
+		return sessionEvent(ctx, tx, "rotated", family, "refresh")
 	})
 	if err != nil {
 		return sessions.Family{}, accounts.Account{}, err
@@ -122,7 +132,36 @@ func (p *Repository) rotate(ctx context.Context, realm authn.Realm, oldHash, nex
 }
 
 func (p *Repository) Revoke(ctx context.Context, realm authn.Realm, tokenHash string, now time.Time) error {
-	return p.q.LogoutSessionFamily(ctx, sqlcdb.LogoutSessionFamilyParams{Realm: string(realm), TokenHash: tokenHash, RevokedAt: &now})
+	return db.WithTx(ctx, p.pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
+		q := p.q.WithTx(tx)
+		id, err := q.FindRefreshFamily(ctx, sqlcdb.FindRefreshFamilyParams{Realm: string(realm), TokenHash: tokenHash})
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		row, err := q.LockSessionFamily(ctx, id)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		if row.RevokedAt != nil {
+			return nil
+		}
+		if err := q.RevokeSessionFamily(ctx, sqlcdb.RevokeSessionFamilyParams{ID: id, RevokedAt: &now}); err != nil {
+			return err
+		}
+		return sessionEvent(ctx, tx, "revoked", toFamily(row), "logout")
+	})
+}
+
+func sessionEvent(ctx context.Context, tx pgx.Tx, verb string, f sessions.Family, reason string) error {
+	return outbox.Enqueue(ctx, tx, "identity", outbox.Event{Subject: "identity.session." + verb, Payload: map[string]any{
+		"subjectId": f.SubjectID, "realm": f.Realm, "sessionId": f.ID, "changedBy": string(f.Realm) + ":" + f.SubjectID, "reason": reason,
+	}})
 }
 
 func (p *Repository) Active(ctx context.Context, realm authn.Realm, id string, now time.Time) (sessions.Family, error) {

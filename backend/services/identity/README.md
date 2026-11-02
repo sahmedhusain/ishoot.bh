@@ -19,3 +19,20 @@ docker compose run --rm identity bootstrap-it -email it-admin@example.com
 The command asks for the password without echo (or reads the first line of piped input), needs at least `IDENTITY_LOGIN_IT_PASSWORD_MIN_LENGTH` characters, and prints the `otpauth://` link, its secret and the recovery codes once. Nothing secret is logged. It refuses to run when any IT account exists; further IT accounts are created from the IT dashboard. The role defaults to `it_admin` (`-role` takes any role in `contracts/catalog/it-access.json`), and `IDENTITY_LOGIN_MFA_ISSUER` names the entry in authenticator apps. See [configuration](../../../docs/backend/CONFIG.md) for environment settings and [identity migration](../../../docs/backend/IDENTITY-MIGRATION.md) for account import and cutover limitations.
 
 From `backend/`, run `go test -race ./services/identity/...` for real Postgres session, account, worker and OpenAPI contract tests. Run `go generate ./services/identity` after editing SQL queries. Existing Prisma user tables and app sessions remain in place.
+
+## IT account recovery
+
+An unused recovery code works in place of a TOTP code on the sign-in form. If the authenticator and every recovery
+code are lost, use the offline `recover-it` command in the [operations runbook](../../../docs/backend/OPERATIONS.md#it-administrator-recovery).
+It requires database and MFA-key access, an existing active IT administrator and an operator ID. It cannot create,
+reactivate or promote accounts. It replaces the password and factor, clears pending enrollment, replaces all
+recovery codes and revokes every existing session in one transaction. Account ID and roles stay unchanged.
+
+## Events
+
+`identity.user.created`, `identity.user.recovered`, `identity.session.started`, `identity.session.rotated`,
+`identity.session.revoked` and `identity.mfa.changed` are written to `identity.outbox` with their changes. They carry
+only account/session IDs, realm, operation/reason and actor; never an address, password, token, secret or recovery
+code. Schemas live in [contracts/events](../../../contracts/events). The worker publishes the outbox to NATS and
+exposes its lag metrics. Without `NATS_URL`, events wait durably for the relay. Failed authentication emits no
+state-change event; refresh reuse commits revocation and its event even though the request is refused.
