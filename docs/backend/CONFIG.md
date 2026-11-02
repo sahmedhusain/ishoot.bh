@@ -232,6 +232,8 @@ the environment. A service refuses to start when a value is missing or fails its
 | `IDENTITY_LOGIN_TOTP_WINDOW` | `1` |  |
 | `IDENTITY_LOGIN_MFA_ISSUER` | `Platform IT` | `required,max=100` |
 | `IDENTITY_LOGIN_IT_PASSWORD_MIN_LENGTH` | `14` | `gte=12,lte=128` |
+| `IDENTITY_SERVICE_KEY` |  |  |
+| `IDENTITY_SYSTEM_URL` | `http://system:8080` | `url` |
 | `IDENTITY_CALLERS_STAFF` | `admin` | `min=1,dive,required` |
 | `IDENTITY_CALLERS_CUSTOMER` | `web` | `min=1,dive,required` |
 | `IDENTITY_CALLERS_IT` | `it` | `min=1,dive,required` |
@@ -418,6 +420,7 @@ the environment. A service refuses to start when a value is missing or fails its
 | `SECRETS_PRIMARY_KEY_ID` | `primary` | `required` |
 | `SECRETS_LEGACY_INTEGRATION_KEY` |  |  |
 | `SYSTEM_READ_CALLERS` | `admin,web,it,notify` | `min=1,dive,required` |
+| `SYSTEM_MODULE_READ_CALLERS` | `identity` | `dive,required` |
 | `SYSTEM_MODULE_WRITERS` | `admin` | `dive,required` |
 | `SYSTEM_INTEGRATION_WRITERS` | `admin` | `dive,required` |
 | `SYSTEM_DOMAIN_WRITERS` | `admin` | `dive,required` |

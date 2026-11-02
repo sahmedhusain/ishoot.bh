@@ -13,6 +13,42 @@ servers:
 security:
   - serviceToken: []
 paths:
+  /v1/identity/staff/access:
+    get:
+      operationId: getStaffAccess
+      summary: Read the current staff account's effective permissions and scope policy
+      description: |
+        Requires a live staff session and a migrated staff access record. Stored grants, user overrides and
+        current system module availability are evaluated in identity. Missing grants are denied; Super Admin
+        retains access regardless of stored denials or module switches. This does not resolve department members.
+        Staff app cutover is still pending; this endpoint reads identity's snapshot, not the legacy account tables.
+      security: [{userToken: []}]
+      responses:
+        '200':
+          description: Effective access, without credentials or personal profile data
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [subjectId, role, permissions, dataScopes]
+                properties:
+                  subjectId: {type: string}
+                  role: {type: string}
+                  permissions:
+                    type: object
+                    additionalProperties: {type: boolean}
+                  dataScopes:
+                    type: object
+                    additionalProperties: false
+                    required: [deals, requests, expenses, claims, leave]
+                    properties:
+                      deals: {type: string, enum: [own, department, all]}
+                      requests: {type: string, enum: [own, department, all]}
+                      expenses: {type: string, enum: [own, department, all]}
+                      claims: {type: string, enum: [own, department, all]}
+                      leave: {type: string, enum: [own, department, all]}
+        default: {$ref: '#/components/responses/Problem'}
   /v1/identity/desk/sessions:
     get:
       operationId: listIdentitySessionsForIT

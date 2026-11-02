@@ -1,0 +1,119 @@
+[
+  {
+    "name": "missing template grants fail closed",
+    "role": "admin",
+    "permissions": {
+      "invoices:read": false,
+      "invoices:create": false,
+      "users:read": false
+    },
+    "scopes": { "deals": "all", "claims": "all" }
+  },
+  {
+    "name": "stored write supports older create and edit grants",
+    "role": "employee",
+    "stored": { "invoices:write": true },
+    "permissions": {
+      "invoices:write": true,
+      "invoices:create": true,
+      "invoices:edit": true,
+      "invoices:read": false,
+      "invoices:delete": false
+    }
+  },
+  {
+    "name": "explicit action denial wins over stored write",
+    "role": "admin",
+    "stored": { "invoices:write": true, "invoices:create": false },
+    "permissions": { "invoices:create": false, "invoices:edit": true }
+  },
+  {
+    "name": "stored write denial does not fall back to templates",
+    "role": "admin",
+    "stored": { "invoices:write": false },
+    "permissions": { "invoices:create": false, "invoices:edit": false }
+  },
+  {
+    "name": "user overrides can grant and deny known actions",
+    "role": "viewer",
+    "stored": { "invoices:read": true, "invoices:write": true },
+    "overrides": {
+      "invoices:read": false,
+      "invoices:delete": true,
+      "invoices:write": false,
+      "unknown:read": true
+    },
+    "permissions": {
+      "invoices:read": false,
+      "invoices:delete": true,
+      "invoices:write": false,
+      "invoices:create": true,
+      "invoices:edit": true
+    },
+    "absent": ["unknown:read"]
+  },
+  {
+    "name": "disabled modules beat stored grants and user overrides",
+    "role": "admin",
+    "stored": { "invoices:read": true, "settings:read": true },
+    "overrides": { "invoices:delete": true },
+    "modules": { "invoicing": false },
+    "permissions": {
+      "invoices:read": false,
+      "invoices:delete": false,
+      "settings:read": true
+    }
+  },
+  {
+    "name": "module catalogue defaults apply when no choice is stored",
+    "role": "admin",
+    "stored": { "orders:read": true, "invoices:read": true },
+    "permissions": { "orders:read": false, "invoices:read": true }
+  },
+  {
+    "name": "an installation can enable a default-disabled module",
+    "role": "admin",
+    "stored": { "orders:read": true },
+    "modules": { "store": true },
+    "permissions": { "orders:read": true }
+  },
+  {
+    "name": "super admin bypasses denials modules and narrowed scopes",
+    "role": "super_admin",
+    "stored": { "invoices:read": false },
+    "overrides": { "invoices:delete": false, "unknown:read": true },
+    "modules": { "invoicing": false, "store": false },
+    "storedScopes": { "deals": "own", "claims": "department" },
+    "permissions": {
+      "invoices:read": true,
+      "invoices:delete": true,
+      "orders:read": true
+    },
+    "scopes": { "deals": "all", "claims": "all" },
+    "absent": ["unknown:read"]
+  },
+  {
+    "name": "stored scopes override defaults and invalid scopes use defaults",
+    "role": "department_manager",
+    "storedScopes": { "deals": "own", "expenses": "invalid", "unknown": "own" },
+    "permissions": { "invoices:read": false },
+    "scopes": {
+      "deals": "own",
+      "expenses": "department",
+      "claims": "department"
+    }
+  },
+  {
+    "name": "custom roles use their stored grants and scopes",
+    "role": "custom-auditor",
+    "stored": { "invoices:read": true },
+    "storedScopes": { "deals": "department" },
+    "permissions": { "invoices:read": true, "invoices:edit": false },
+    "scopes": { "deals": "department", "claims": "all" }
+  },
+  {
+    "name": "legacy role names do not invent unstored grants",
+    "role": "manager",
+    "permissions": { "invoices:read": false, "deals:read": false }
+  }
+]

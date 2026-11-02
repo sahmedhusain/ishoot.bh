@@ -41,8 +41,9 @@ const SECRETS = {
   ADMIN_SERVICE_KEY: () => serviceKey("admin"),
   WEB_SERVICE_KEY: () => serviceKey("web"),
   IT_SERVICE_KEY: () => serviceKey("it"),
-  // Backend services that call other services (notify reads integration credentials from system).
+  // Backend callers: notify reads integration credentials; identity reads module availability.
   NOTIFY_SERVICE_KEY: () => serviceKey("notify"),
+  IDENTITY_SERVICE_KEY: () => serviceKey("identity"),
   IDENTITY_SIGNING_JWK: () => serviceKey("identity"),
   IDENTITY_LOGIN_RATE_KEY: () => crypto.randomBytes(32).toString("base64url"),
   IDENTITY_LOGIN_MFA_KEYS: () => `primary:${crypto.randomBytes(32).toString("base64")}`,
@@ -67,7 +68,7 @@ const RETIRED = {
 // Service keys (docs/adr/0011): each app signs its calls to the backend with its own Ed25519 key, stored in .env as
 // a base64url private JWK whose key ID starts with the caller's name. The services trust the public halves, written
 // to SERVICE_KEYS_FILE as a JWKS document. During a rotation, <APP>_SERVICE_KEY_PREVIOUS stays trusted.
-const SERVICE_CALLERS = ["admin", "web", "it", "notify"];
+const SERVICE_CALLERS = ["admin", "web", "it", "notify", "identity"];
 function serviceKey(caller) {
   const { privateKey } = crypto.generateKeyPairSync("ed25519");
   const jwk = privateKey.export({ format: "jwk" });
@@ -207,6 +208,7 @@ function check() {
     need(entry.commented || !/^\s*[A-Z0-9_]+="[^"]*$/.test(entry.line.replace(/\s+#.*$/, "")), `${key} has an unclosed quote: docker compose cannot read this file`);
   need(!!env.API_URL, "API_URL is empty: the apps cannot reach the backend gateway (files, and later every service)");
   need(!!env.NOTIFY_SERVICE_KEY, "NOTIFY_SERVICE_KEY is empty: notify cannot read integration credentials (run ./run.sh env secrets)", warnings);
+  need(!!env.IDENTITY_SERVICE_KEY, "IDENTITY_SERVICE_KEY is empty: staff access policy cannot read module availability (run ./run.sh env secrets)", warnings);
   for (const caller of ["ADMIN", "WEB"]) need(!!env[`${caller}_SERVICE_KEY`], `${caller}_SERVICE_KEY is empty: run ./run.sh env secrets`);
   if (env.IDENTITY_LOGIN_ENABLED === "true") need(!!env.IT_SERVICE_KEY, "IT_SERVICE_KEY is empty: run ./run.sh env secrets");
   need(!!env.CRON_SECRET, "CRON_SECRET is empty: /api/cron (reminders, payments, tracking, reports) cannot run", production ? problems : warnings);

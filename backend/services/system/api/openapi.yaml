@@ -17,6 +17,7 @@ paths:
     get:
       tags: [services]
       operationId: listModules
+      description: General settings readers and configured module-only readers may read availability. Module-only readers cannot read integration credentials or site settings.
       security: [{ serviceToken: [] }]
       responses:
         "200": { $ref: "#/components/responses/Modules" }

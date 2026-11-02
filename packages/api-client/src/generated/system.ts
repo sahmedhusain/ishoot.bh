@@ -11,6 +11,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** @description General settings readers and configured module-only readers may read availability. Module-only readers cannot read integration credentials or site settings. */
         get: operations["listModules"];
         put?: never;
         post?: never;

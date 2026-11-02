@@ -21,9 +21,16 @@ type Config struct {
 	Signing  tokens.Config `envPrefix:"IDENTITY_"`
 	Session  Session       `envPrefix:"IDENTITY_"`
 	Login    Login         `envPrefix:"IDENTITY_LOGIN_"`
+	Access   StaffAccess   `envPrefix:"IDENTITY_"`
 	Callers  Callers       `envPrefix:"IDENTITY_CALLERS_"`
 	NATS     natsx.Config  `envPrefix:"NATS_"`
 	Outbox   outbox.Config `envPrefix:"OUTBOX_"`
+}
+
+type StaffAccess struct {
+	// ServiceKey signs module-availability reads; it cannot read integration credentials.
+	ServiceKey string `env:"SERVICE_KEY"`
+	SystemURL  string `env:"SYSTEM_URL" envDefault:"http://system:8080" validate:"url"`
 }
 
 type Session struct {

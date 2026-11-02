@@ -33,6 +33,8 @@ type Secrets struct {
 type System struct {
 	// ReadCallers are the service identities that may read settings.
 	ReadCallers []string `env:"READ_CALLERS" envDefault:"admin,web,it,notify" envSeparator:"," validate:"min=1,dive,required"`
+	// ModuleReadCallers may read module availability only, without integration credentials or site settings.
+	ModuleReadCallers []string `env:"MODULE_READ_CALLERS" envDefault:"identity" envSeparator:"," validate:"dive,required"`
 	// ModuleWriters may switch modules for a person they name (the admin's setup wizard).
 	ModuleWriters []string `env:"MODULE_WRITERS" envDefault:"admin" envSeparator:"," validate:"dive,required"`
 	// IntegrationWriters may modify integration settings.

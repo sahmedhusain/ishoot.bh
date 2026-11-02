@@ -68,6 +68,13 @@ export const signOut = (realm: Realm, refreshToken: string) =>
     }),
   );
 
+export type StaffAccessPolicy =
+  paths["/v1/identity/staff/access"]["get"]["responses"][200]["content"]["application/json"];
+
+/** Live identity-owned staff policy; legacy apps remain on their own auth until cutover. */
+export const getStaffAccess = (token: string) =>
+  unwrap(userClient<paths>(token).GET("/v1/identity/staff/access"));
+
 export const listITAccountsForIT = (token: string, cursor?: string) =>
   unwrap(
     userClient<paths>(token).GET("/v1/identity/desk/it-accounts", {

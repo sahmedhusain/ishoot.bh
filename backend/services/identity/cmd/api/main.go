@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/config"
@@ -27,6 +28,7 @@ import (
 	"platform.local/backend/services/identity/internal/jobs"
 	"platform.local/backend/services/identity/internal/postgres"
 	"platform.local/backend/services/identity/internal/sessions"
+	"platform.local/backend/services/identity/internal/systemclient"
 	"platform.local/backend/services/identity/migrations"
 	"platform.local/backend/services/identity/settings"
 )
@@ -172,6 +174,15 @@ func run(command string) error {
 	if manager != nil {
 		httpapi.RegisterITAccounts(e, issuer.Verifier(), manager, cfg.Session.JSONBodyLimit)
 		httpapi.RegisterDeskSessions(e, issuer.Verifier(), app.NewDeskSessions(pool))
+		var modules func(context.Context) (map[string]bool, error)
+		if cfg.Access.ServiceKey != "" {
+			signer, err := authn.NewServiceSigner("identity", cfg.Access.ServiceKey, 5*time.Minute)
+			if err != nil {
+				return fmt.Errorf("IDENTITY_SERVICE_KEY: %w", err)
+			}
+			modules = systemclient.New(cfg.Access.SystemURL, signer.Transport(nil)).Load
+		}
+		httpapi.RegisterStaffAccess(e, issuer.Verifier(), app.NewStaffAccess(pool, modules))
 	}
 	public, admin := httpx.Servers(cfg.Common, telemetry.Handler(cfg.ServiceName, e), httpx.AdminHandler(cfg.Common, logger, checker, metrics))
 	logger.Info("identity session API starting")

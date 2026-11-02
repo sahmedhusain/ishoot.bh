@@ -4,6 +4,29 @@
  */
 
 export interface paths {
+    "/v1/identity/staff/access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read the current staff account's effective permissions and scope policy
+         * @description Requires a live staff session and a migrated staff access record. Stored grants, user overrides and
+         *     current system module availability are evaluated in identity. Missing grants are denied; Super Admin
+         *     retains access regardless of stored denials or module switches. This does not resolve department members.
+         *     Staff app cutover is still pending; this endpoint reads identity's snapshot, not the legacy account tables.
+         */
+        get: operations["getStaffAccess"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/identity/desk/sessions": {
         parameters: {
             query?: never;
@@ -351,6 +374,45 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getStaffAccess: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Effective access, without credentials or personal profile data */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        subjectId: string;
+                        role: string;
+                        permissions: {
+                            [key: string]: boolean;
+                        };
+                        dataScopes: {
+                            /** @enum {string} */
+                            deals: "own" | "department" | "all";
+                            /** @enum {string} */
+                            requests: "own" | "department" | "all";
+                            /** @enum {string} */
+                            expenses: "own" | "department" | "all";
+                            /** @enum {string} */
+                            claims: "own" | "department" | "all";
+                            /** @enum {string} */
+                            leave: "own" | "department" | "all";
+                        };
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
     listIdentitySessionsForIT: {
         parameters: {
             query?: {
