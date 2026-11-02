@@ -14,6 +14,8 @@ interface UserState {
   fullName: string;
   email: string;
   role: UserRole;
+  /** The profile photo's address; the initials show without one. */
+  avatarUrl?: string | null;
   permissions?: Record<string, boolean>;
   /** Has direct reports or heads a department (or is an admin), so sees the team page. */
   managesTeam?: boolean;

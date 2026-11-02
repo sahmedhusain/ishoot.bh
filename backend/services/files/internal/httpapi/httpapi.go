@@ -28,6 +28,10 @@ const (
 	CodeContentMismatch = "file_content_mismatch"
 	CodeExists          = "file_exists"
 	CodeNotPrivate      = "file_not_private"
+	// Imports from links.
+	CodeSourceBlocked     = "source_not_allowed"
+	CodeSourceUnreachable = "source_unreachable"
+	CodeImportsOff        = "imports_off"
 )
 
 // Handler serves the API.
@@ -44,6 +48,7 @@ func Register(g *echo.Group, svc *app.Service, jsonBodyLimit int64) {
 	g.PUT("/uploads/content", h.writeUpload)
 	g.POST("/uploads/verify", h.verify)
 	g.POST("/uploads/claim", h.claim)
+	g.POST("/uploads/import", h.importLink)
 	g.GET("/records", h.lookup)
 	g.GET("/content", h.read)
 	g.PUT("/content", h.store)
@@ -138,6 +143,32 @@ func (h *Handler) claim(c echo.Context) error {
 		return h.toProblem(err)
 	}
 	return c.JSON(http.StatusOK, toJSON(f))
+}
+
+type importRequest struct {
+	OwnerID string `json:"ownerId" validate:"required,max=64"`
+	Folder  string `json:"folder" validate:"required,max=40"`
+	URL     string `json:"url" validate:"required,max=2048"`
+}
+
+// importLink downloads a file from a link into an upload the owner can claim (a profile picture given as a link).
+func (h *Handler) importLink(c echo.Context) error {
+	var req importRequest
+	if err := httpx.BindJSON(c, &req, h.jsonBodyLimit); err != nil {
+		return err
+	}
+	f, err := h.svc.Import(c.Request().Context(), req.OwnerID, req.Folder, req.URL)
+	switch {
+	case errors.Is(err, app.ErrSourceBlocked):
+		return problem.New(http.StatusUnprocessableEntity, CodeSourceBlocked, "")
+	case errors.Is(err, app.ErrSourceUnreachable):
+		return problem.New(http.StatusUnprocessableEntity, CodeSourceUnreachable, "")
+	case errors.Is(err, app.ErrImportsOff):
+		return problem.New(http.StatusNotImplemented, CodeImportsOff, "")
+	case err != nil:
+		return h.toProblem(err)
+	}
+	return c.JSON(http.StatusCreated, toJSON(f))
 }
 
 func (h *Handler) lookup(c echo.Context) error {

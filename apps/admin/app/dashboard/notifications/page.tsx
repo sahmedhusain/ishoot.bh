@@ -1,4 +1,3 @@
-import { notificationInbox } from "@platform/database";
 import { requireAuth } from "../../../lib/auth";
 import { NotificationInboxView } from "../../../components/communications/NotificationInboxView";
 import { pageMetadata } from "../../../lib/company-metadata";
@@ -6,25 +5,8 @@ import { pageMetadata } from "../../../lib/company-metadata";
 export const generateMetadata = () => pageMetadata("notifications");
 
 export const dynamic = "force-dynamic";
-export default async function Page({
-  searchParams,
-}: {
-  searchParams: Promise<{ filter?: string; page?: string }>;
-}) {
-  const user = await requireAuth();
-  const query = await searchParams;
-  const filter = ["hidden", "unread"].includes(query.filter ?? "")
-    ? query.filter!
-    : "all";
-  const page = Math.max(
-    1,
-    Math.min(10000, Number.parseInt(query.page ?? "1", 10) || 1),
-  );
-  return (
-    <NotificationInboxView
-      {...await notificationInbox(user.id, filter, page)}
-      filter={filter}
-      page={page}
-    />
-  );
+export default async function Page({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+  await requireAuth();
+  const { tab } = await searchParams;
+  return <NotificationInboxView tab={tab ?? "all"} />;
 }

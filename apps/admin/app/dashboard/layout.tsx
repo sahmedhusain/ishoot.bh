@@ -10,6 +10,8 @@ import { db, getActiveTaxSummary } from "@platform/database";
 import { PermissionsProvider } from "../../hooks/usePermissions";
 import { FeatureTogglesProvider } from "../../hooks/useFeatureToggles";
 import { CompanyVatProvider } from "../../hooks/useCompanyVat";
+import { LiveProvider } from "../../components/live/LiveProvider";
+import { NotificationAlerts } from "../../components/live/NotificationAlerts";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +39,7 @@ export default async function DashboardLayout({
         fullName: user.full_name,
         email: user.email,
         role: user.role,
+        avatarUrl: user.avatar_url ?? null,
         permissions,
         managesTeam: user.role === "super_admin" || user.role === "admin" || reports + headedDepartments > 0,
       }}
@@ -44,6 +47,8 @@ export default async function DashboardLayout({
       <FeatureTogglesProvider initialFeatures={toggles}>
         <CompanyVatProvider value={{ enabled: !!company.vat_enabled, rate: company.vat_enabled ? Number(company.vat_percentage ?? 10) : 0, taxes }}>
           <SidebarProvider>
+            <LiveProvider userId={user.id}>
+            <NotificationAlerts />
             <div className="admin-shell text-on-surface">
               <WorkspaceInteractions />
               {/* Fixed Topbar spanning full width with Logo at start */}
@@ -68,6 +73,7 @@ export default async function DashboardLayout({
                 </main>
               </div>
             </div>
+            </LiveProvider>
           </SidebarProvider>
         </CompanyVatProvider>
       </FeatureTogglesProvider>

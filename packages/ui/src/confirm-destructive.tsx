@@ -126,7 +126,8 @@ export function ConfirmDialog({
 }
 
 interface ConfirmationRequest {
-  description: string;
+  /** Text, or a summary of what will change (for example old and new values). */
+  description: React.ReactNode;
   onConfirm: () => Promise<unknown> | unknown;
   title?: string;
   confirmMatchText?: string;

@@ -34,6 +34,7 @@ const SECRETS = {
   ITSM_DB_PASSWORD: () => crypto.randomBytes(24).toString("base64url"),
   AUDIT_DB_PASSWORD: () => crypto.randomBytes(24).toString("base64url"),
   NOTIFY_DB_PASSWORD: () => crypto.randomBytes(24).toString("base64url"),
+  REALTIME_DB_PASSWORD: () => crypto.randomBytes(24).toString("base64url"),
   VALKEY_PASSWORD: () => crypto.randomBytes(24).toString("base64url"),
   GRAFANA_ADMIN_PASSWORD: () => crypto.randomBytes(18).toString("base64url"),
   S3_ACCESS_KEY_ID: () => `platform${crypto.randomBytes(6).toString("hex")}`,

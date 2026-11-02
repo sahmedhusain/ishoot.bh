@@ -64,6 +64,12 @@ export async function requireAttachmentAccess(
     if (action === "read") return requirePermission("users", "read");
     return user;
   }
+  if (entityType === "user_avatar" && (entityId === "pending" || !entityId)) {
+    // Anyone may upload a profile photo for themselves; it applies when they save it (updateMyAvatarAction).
+    const user = await getCurrentUser();
+    if (!user) throw new Error(serverMessages.unauthorized);
+    return user;
+  }
   if (entityType === "user_signature" && action === "read") {
     const user = await getCurrentUser();
     if (user && user.id === entityId) return user;

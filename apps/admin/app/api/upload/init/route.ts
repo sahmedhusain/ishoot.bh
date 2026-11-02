@@ -76,6 +76,7 @@ export async function POST(req: NextRequest) {
       else if (entityType === "contact" || entityType === "customer_vault")
         subfolder = "vault";
       else if (entityType === "deal") subfolder = "deals";
+      else if (entityType === "user_avatar") subfolder = "avatars";
 
       const publicBrand =
         brandFont ||

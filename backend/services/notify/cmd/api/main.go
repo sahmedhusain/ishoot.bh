@@ -23,6 +23,7 @@ import (
 	"platform.local/backend/pkg/db"
 	"platform.local/backend/pkg/health"
 	"platform.local/backend/pkg/httpx"
+	"platform.local/backend/pkg/live"
 	"platform.local/backend/pkg/logx"
 	"platform.local/backend/pkg/migrate"
 	"platform.local/backend/pkg/natsx"
@@ -87,16 +88,28 @@ func run(command string) error {
 	metrics := httpx.NewMetrics(cfg.ServiceName)
 	opts := app.Options{MaxAttempts: cfg.Notify.MaxAttempts, MaxAttachmentBytes: cfg.Notify.MaxAttachmentBytes}
 	jobOpts := jobs.Options{Schema: postgres.Schema, Workers: cfg.Notify.Workers, MaxAttempts: cfg.Notify.MaxAttempts,
-		SendTimeout: cfg.Notify.SendTimeout, Logger: logger.Logger}
+		SendTimeout: cfg.Notify.SendTimeout, Logger: logger.Logger,
+		InboxRetention: cfg.Notify.InboxRetention, PurgeEvery: cfg.Notify.InboxPurgeEvery}
 
 	switch command {
 	case "serve":
 		svc := app.New(postgres.New(pool), nil, opts)
+		svc.SetLiveWindow(cfg.Notify.InboxLiveWindow)
 		inserter, err := jobs.NewClient(pool, nil, jobOpts)
 		if err != nil {
 			return err
 		}
 		svc.SetJobs(inserter)
+		// Live hints for the in-app inbox go over NATS core (ADR 0012); without NATS, browsers catch up on resync.
+		if cfg.NATS.Configured() {
+			broker, err := natsx.Connect(ctx, cfg.NATS, cfg.ServiceName, logger.Logger)
+			if err != nil {
+				return err
+			}
+			defer broker.Close()
+			checker.Register("nats", broker.Check())
+			svc.SetLive(live.NATS{Conn: broker.Conn})
+		}
 		return serve(ctx, cfg, logger, svc, metrics, httpx.AdminHandler(cfg.Common, logger, checker, metrics))
 	case "worker":
 		senders, err := buildSenders(cfg.Notify)
@@ -154,6 +167,7 @@ func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, svc *a
 	e.Use(telemetry.EchoMiddleware())
 	httpapi.Register(e, svc, httpapi.Options{
 		Verifier: verifier, SendCallers: cfg.Notify.SendCallers, BodyLimit: cfg.Notify.BodyLimit,
+		InboxCallers: cfg.Notify.InboxCallers, InboxBodyLimit: cfg.Notify.InboxBodyLimit,
 		DefaultPageSize: cfg.Notify.DefaultPageSize, MaxPageSize: cfg.Notify.MaxPageSize,
 	})
 	public, adminServer := httpx.Servers(cfg.Common, telemetry.Handler(cfg.ServiceName, e), admin)
@@ -179,6 +193,7 @@ func work(ctx context.Context, cfg settings.Config, logger *logx.Logger, pool *p
 			return err
 		}
 		checker.Register("nats", broker.Check())
+		svc.SetLive(live.NATS{Conn: broker.Conn}) // scheduled notifications ring when they become due
 		relay, err := outbox.NewRelay(pool, outbox.RelayOptions{Schema: postgres.Schema, Publisher: broker, Logger: logger.Logger,
 			Interval: cfg.Outbox.Interval, Batch: cfg.Outbox.Batch, Retention: cfg.Outbox.Retention, Metrics: metrics.Registry})
 		if err != nil {

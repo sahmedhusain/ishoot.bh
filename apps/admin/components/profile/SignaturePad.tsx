@@ -6,6 +6,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Eraser, PenLine, Send, Undo2, History, X } from "lucide-react";
 import { toast } from "sonner";
+import { useConfirmation } from "@platform/ui";
 import type { SignatureChangeRow } from "@platform/database/queries/signature-changes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { uploadFileDirectly } from "../../lib/upload-client";
@@ -30,6 +31,9 @@ export function SignaturePad({ currentUrl, changes }: { currentUrl?: string | nu
   const drawing = React.useRef(false);
   const [hasInk, setHasInk] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
+  // The pad shows only after "Change signature", so the current one is never replaced by accident.
+  const [editing, setEditing] = React.useState(false);
+  const confirmAction = useConfirmation();
   const pending = changes.find((c) => c.status === "pending");
 
   const redraw = React.useCallback(() => {
@@ -87,6 +91,37 @@ export function SignaturePad({ currentUrl, changes }: { currentUrl?: string | nu
     setHasInk(strokes.current.some((st) => st.length > 1));
   };
 
+  const review = () => {
+    const canvas = canvasRef.current;
+    if (!canvas || !hasInk) return;
+    const preview = canvas.toDataURL("image/png");
+    confirmAction({
+      title: s.confirmTitle,
+      variant: "warning",
+      description: (
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3 text-xs text-ink-muted">
+            <figure className="space-y-1">
+              <figcaption>{s.current}</figcaption>
+              <div className="flex h-16 items-center justify-center overflow-hidden rounded-xl border border-outline-variant bg-white">
+                {currentUrl ? <ContentImage src={currentUrl} alt={s.current} className="max-h-full max-w-full object-contain" /> : <span>{s.none}</span>}
+              </div>
+            </figure>
+            <figure className="space-y-1">
+              <figcaption>{s.newSignature}</figcaption>
+              <div className="flex h-16 items-center justify-center overflow-hidden rounded-xl border border-accent/40 bg-white">
+                {/* eslint-disable-next-line @next/next/no-img-element -- a data URL of the drawing */}
+                <img src={preview} alt={s.newSignature} className="max-h-full max-w-full object-contain" />
+              </div>
+            </figure>
+          </div>
+          <p className="text-xs text-ink-muted">{s.confirmHint}</p>
+        </div>
+      ),
+      onConfirm: submit,
+    });
+  };
+
   const submit = async () => {
     const canvas = canvasRef.current;
     if (!canvas || !hasInk) return;
@@ -99,6 +134,7 @@ export function SignaturePad({ currentUrl, changes }: { currentUrl?: string | nu
       const res = await requestSignatureChangeAction(uploaded.fileUrl);
       toast.success(res.approvalStatus === "approved" ? s.applied : s.submitted);
       clear();
+      setEditing(false);
       router.refresh();
     } catch (err) {
       toast.error(errorMessage(err, t, s.failed));
@@ -151,9 +187,25 @@ export function SignaturePad({ currentUrl, changes }: { currentUrl?: string | nu
             <div className="font-semibold">{s.pending}</div>
             <div className="text-ink-muted">{s.pendingHint}</div>
           </div>
-          <button type="button" onClick={() => withdraw(pending.id)} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-outline-variant text-xs text-ink">
+          <button
+            type="button"
+            onClick={() => confirmAction({ description: s.withdrawConfirm, variant: "warning", onConfirm: () => withdraw(pending.id) })}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-outline-variant text-xs text-ink"
+          >
             <X className="w-3.5 h-3.5" />
             {s.withdraw}
+          </button>
+        </div>
+      ) : !editing ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-outline-variant bg-surface-raised p-4">
+          <p className="text-xs text-ink-muted max-w-md">{s.changeHint}</p>
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-accent text-accent-foreground text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+          >
+            <PenLine className="w-3.5 h-3.5" />
+            {currentUrl ? s.change : s.add}
           </button>
         </div>
       ) : (
@@ -184,7 +236,19 @@ export function SignaturePad({ currentUrl, changes }: { currentUrl?: string | nu
                 <Eraser className="w-3.5 h-3.5" />
                 {s.clear}
               </button>
-              <button type="button" onClick={submit} disabled={!hasInk || saving} className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-accent text-accent-foreground text-xs font-semibold disabled:opacity-50">
+              <button
+                type="button"
+                onClick={() => {
+                  clear();
+                  setEditing(false);
+                }}
+                disabled={saving}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-outline-variant text-xs text-ink disabled:opacity-40"
+              >
+                <X className="w-3.5 h-3.5" />
+                {s.cancelChange}
+              </button>
+              <button type="button" onClick={review} disabled={!hasInk || saving} className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-accent text-accent-foreground text-xs font-semibold disabled:opacity-50">
                 <Send className="w-3.5 h-3.5" />
                 {saving ? s.submitting : s.submit}
               </button>

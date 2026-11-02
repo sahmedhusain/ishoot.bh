@@ -8,3 +8,5 @@ export * from "./itsm-desk";
 export * from "./system";
 export * from "./audit";
 export * from "./notify";
+export * from "./inbox";
+export * from "./realtime";

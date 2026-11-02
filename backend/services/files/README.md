@@ -10,6 +10,10 @@ All `/v1/files` endpoints require a short-lived service token from a trusted app
 - `PUT /uploads/content`: stream the declared bytes for that owner.
 - `POST /uploads/verify`: verify ownership, expiry, stored size and magic bytes.
 - `POST /uploads/claim`: verify and atomically claim once.
+- `POST /uploads/import`: download a file from a link into an upload of the owner (a profile picture given as a link,
+  [ADR 0012](../../../docs/adr/0012-in-app-notifications-realtime-presence.md)). Only public http(s) addresses are
+  reached: every connection, redirects included, is checked after DNS resolution, up to `FILES_IMPORT_MAX_SIZE` within
+  `FILES_IMPORT_TIMEOUT`. The bytes must be a type the folder accepts; the upload expires unless claimed.
 - Lookup, read, store and delete endpoints are specified in OpenAPI. Store accepts an explicit address or generates one from the detected type.
 
 The browser uses same-origin Next.js upload and download routes. Both S3 buckets stay private. Public brand assets are exposed through application routes; private downloads require application permission. Folder rules and magic-byte signatures come from `contracts/catalog/files.json`.

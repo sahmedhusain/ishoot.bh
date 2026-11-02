@@ -26,8 +26,8 @@ const {
 const security = require("../packages/database/src/queries/account-security.ts");
 const mfa = require("../packages/database/src/services/mfa.ts");
 const {
-  notificationPreview,
-} = require("../packages/database/src/queries/notifications.ts");
+  toNewNotification,
+} = require("../packages/database/src/services/notification-handover.ts");
 const profile = require("../packages/database/src/queries/profile-changes.ts");
 const rollback = new Error("ROLLBACK_PROFILE_SECURITY");
 process.env.MFA_ENCRYPTION_KEY = crypto.randomBytes(32).toString("base64");
@@ -227,14 +227,20 @@ function unbase32(value) {
           await tx.notification.create({
             data: { userId: other.id, title: "Other", message: "Test" },
           });
-          const preview = await notificationPreview(user.id);
-          assert.equal(preview.items.length, 8);
+          // Unread counts and paging are the notify service's (docs/adr/0012, its Go tests); here the rows must reach it
+          // with their state: hidden ones archived, long titles cut to notify's limit.
+          const hidden = await tx.notification.findFirstOrThrow({ where: { userId: user.id, title: "Hidden" } });
+          const handedHidden = toNewNotification({ ...hidden, messageParams: hidden.messageParams ?? null });
+          assert.equal(handedHidden.archivedAt, hidden.hiddenAt.toISOString());
+          assert.equal(handedHidden.readAt, null);
+          const long = toNewNotification({ ...hidden, title: "x".repeat(400), hiddenAt: null, isRead: true, messageParams: null });
+          assert.equal(Array.from(long.title).length, 300);
+          assert.equal(long.readAt, hidden.createdAt.toISOString());
           assert.equal(
-            preview.unreadCount,
-            60,
-            "count includes messages beyond the preview, excludes hidden, future and other recipients",
+            await tx.notification.count({ where: { handedOverAt: null, userId: { in: [user.id, other.id] } } }),
+            63,
+            "every row waits for the hand-over, including the future one",
           );
-          assert.ok(preview.items.every((n) => n.user_id === user.id));
           throw rollback;
         }),
       { timeout: 120000 },
@@ -243,7 +249,7 @@ function unbase32(value) {
     if (err !== rollback) throw err;
   }
   console.log(
-    "Profile security checks passed and rolled back: password verification, MFA/recovery codes, session ownership and revocation, no-op identity validation and exact notification counts.",
+    "Profile security checks passed and rolled back: password verification, MFA/recovery codes, session ownership and revocation, no-op identity validation and notifications handed over with their state.",
   );
 })()
   .catch((e) => {

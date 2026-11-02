@@ -16,6 +16,7 @@ import (
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/rivertype"
 
+	"platform.local/backend/pkg/live"
 	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/services/notify/internal/postgres"
 	"platform.local/backend/services/notify/internal/postgres/sqlcdb"
@@ -134,15 +135,18 @@ type Options struct {
 
 // Service implements the use cases.
 type Service struct {
-	store *postgres.Store
-	jobs  Inserter
-	opts  Options
-	now   func() time.Time
+	store      *postgres.Store
+	jobs       Inserter
+	opts       Options
+	now        func() time.Time
+	live       live.Publisher
+	liveWindow time.Duration
 }
 
 // New returns the service. jobs may be nil for a process that only delivers.
 func New(store *postgres.Store, jobs Inserter, opts Options) *Service {
-	return &Service{store: store, jobs: jobs, opts: opts, now: func() time.Time { return time.Now().UTC() }}
+	return &Service{store: store, jobs: jobs, opts: opts, now: func() time.Time { return time.Now().UTC() },
+		live: live.Nop{}, liveWindow: 2 * time.Minute}
 }
 
 // SetJobs sets the job inserter (the River client is built after the service it works for).

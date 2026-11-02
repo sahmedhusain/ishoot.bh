@@ -31,6 +31,34 @@ func (w *DeliverWorker) Work(ctx context.Context, job *river.Job[app.DeliverArgs
 // Timeout bounds one attempt.
 func (w *DeliverWorker) Timeout(*river.Job[app.DeliverArgs]) time.Duration { return w.SendTimeout }
 
+// DueWorker announces a scheduled in-app notification when its time comes.
+type DueWorker struct {
+	river.WorkerDefaults[app.DueArgs]
+	Service *app.Service
+}
+
+// Work sends the notification's live hint.
+func (w *DueWorker) Work(ctx context.Context, job *river.Job[app.DueArgs]) error {
+	return w.Service.AnnounceDue(ctx, job.Args.ID)
+}
+
+// PurgeWorker removes old read and archived in-app notifications.
+type PurgeWorker struct {
+	river.WorkerDefaults[app.PurgeArgs]
+	Service   *app.Service
+	Retention time.Duration
+	Logger    *slog.Logger
+}
+
+// Work purges once.
+func (w *PurgeWorker) Work(ctx context.Context, _ *river.Job[app.PurgeArgs]) error {
+	n, err := w.Service.Purge(ctx, w.Retention)
+	if err == nil && n > 0 {
+		w.Logger.InfoContext(ctx, "purged old notifications", "removed", n)
+	}
+	return err
+}
+
 // Options configures the River client.
 type Options struct {
 	Schema      string
@@ -38,6 +66,10 @@ type Options struct {
 	MaxAttempts int
 	SendTimeout time.Duration
 	Logger      *slog.Logger
+	// InboxRetention is how long read and archived in-app notifications are kept; PurgeEvery is how often the
+	// worker removes older ones (zero turns purging off).
+	InboxRetention time.Duration
+	PurgeEvery     time.Duration
 }
 
 // NewClient returns a River client that delivers messages (worker) or only inserts jobs (svc nil: the API).
@@ -47,6 +79,16 @@ func NewClient(pool *pgxpool.Pool, svc *app.Service, opts Options) (*river.Clien
 		workers := river.NewWorkers()
 		if err := river.AddWorkerSafely(workers, &DeliverWorker{Service: svc, SendTimeout: opts.SendTimeout}); err != nil {
 			return nil, err
+		}
+		if err := river.AddWorkerSafely(workers, &DueWorker{Service: svc}); err != nil {
+			return nil, err
+		}
+		if opts.InboxRetention > 0 && opts.PurgeEvery > 0 {
+			if err := river.AddWorkerSafely(workers, &PurgeWorker{Service: svc, Retention: opts.InboxRetention, Logger: opts.Logger}); err != nil {
+				return nil, err
+			}
+			cfg.PeriodicJobs = []*river.PeriodicJob{river.NewPeriodicJob(river.PeriodicInterval(opts.PurgeEvery),
+				func() (river.JobArgs, *river.InsertOpts) { return app.PurgeArgs{}, nil }, &river.PeriodicJobOpts{RunOnStart: true})}
 		}
 		cfg.Workers = workers
 		cfg.Queues = map[string]river.QueueConfig{app.Queue: {MaxWorkers: opts.Workers}}

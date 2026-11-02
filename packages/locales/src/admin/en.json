@@ -4616,6 +4616,16 @@
       "reopen": "Reopened",
       "close": "Closed",
       "cancel": "Cancelled"
+    },
+    "notifications": {
+      "updated": {
+        "title": "Ticket #{number} was updated",
+        "message": "IT updated your request. Open it to see where it stands."
+      },
+      "reply": {
+        "title": "IT replied on ticket #{number}",
+        "message": "There is a new message on your IT request."
+      }
     }
   },
   "financialDetail": {
@@ -4823,7 +4833,15 @@
       "approved": "Approved",
       "rejected": "Rejected",
       "cancelled": "Withdrawn"
-    }
+    },
+    "confirmTitle": "Submit this signature?",
+    "confirmHint": "It replaces your current signature once it is approved.",
+    "newSignature": "New signature",
+    "changeHint": "Your signature is applied to documents you approve. Draw a new one only when you need to change it.",
+    "change": "Change signature",
+    "add": "Add your signature",
+    "cancelChange": "Cancel",
+    "withdrawConfirm": "Withdraw this signature change?"
   },
   "signing": {
     "title": "Approval, signature & stamp",
@@ -6357,7 +6375,14 @@
       "salesOrderLineNotFound": "Sales order line not found",
       "serialCountMismatch": "Serial count does not match line quantity",
       "serialNotAvailableForSale": "Serial not available for sale",
-      "serialNotSoldOnOrder": "Serial was not sold on this order"
+      "serialNotSoldOnOrder": "Serial was not sold on this order",
+      "notificationSettingsInvalid": "These notification settings cannot be saved.",
+      "statusInvalid": "That status cannot be set.",
+      "avatarInvalid": "This photo cannot be used. Upload it again.",
+      "avatarLinkInvalid": "Enter a link to an image on the public web (starting with https://).",
+      "avatarLinkUnreachable": "The image at that link could not be loaded.",
+      "avatarNotImage": "That link is not a PNG, JPEG or WebP image.",
+      "avatarTooLarge": "That image is too large."
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",
@@ -8353,7 +8378,19 @@
     "requestedName": "New name: {name}",
     "requestedEmail": "New email: {email}",
     "reviewedDate": "Reviewed: {date}",
-    "reviewNote": "Review notes: {note}"
+    "reviewNote": "Review notes: {note}",
+    "confirmContactTitle": "Save your contact details?",
+    "empty": "(empty)",
+    "confirmIdentityTitle": "Send this change for approval?",
+    "confirmIdentityHint": "Your manager reviews it; nothing changes until it is approved.",
+    "newValue": "New value:",
+    "withdrawConfirm": "Withdraw this request? You can send a new one later.",
+    "changePhoto": "Change profile photo",
+    "addPhoto": "Add a profile photo",
+    "photoSaved": "Profile photo saved",
+    "photoRemoved": "Profile photo removed",
+    "photoFailed": "The profile photo could not be saved. Please try again.",
+    "photoLinkFailed": "That link could not be used. Check that it opens an image."
   },
   "profileSecurity": {
     "title": "Account security",
@@ -12476,5 +12513,162 @@
   },
   "pageHeader": {
     "back": "Back"
+  },
+  "liveNotifications": {
+    "open": "Open",
+    "live": "Live updates on",
+    "reconnecting": "Reconnecting…",
+    "offline": "Live updates paused; checking every minute",
+    "muteMenu": "Mute or turn off sound",
+    "unmute": "Turn notifications back on",
+    "unmuted": "Notifications are on again",
+    "muted": "Notifications muted",
+    "muteFor": {
+      "1h": "Mute for 1 hour",
+      "8h": "Mute for 8 hours",
+      "tomorrow": "Mute until tomorrow morning",
+      "forever": "Mute until I turn them back on"
+    },
+    "mutedUntil": "Muted until {time}",
+    "mutedForever": "Muted until you turn them back on",
+    "soundOn": "Turn sound on",
+    "soundOff": "Turn sound off",
+    "soundTurnedOn": "Sound is on",
+    "soundTurnedOff": "Sound is off",
+    "settings": {
+      "pauseTitle": "Pause notifications",
+      "pauseHint": "While paused, notifications still arrive in your inbox, without sound, pop-ups or desktop alerts. Security notifications always show.",
+      "dndHint": "Setting your status to Do not disturb also keeps notifications quiet.",
+      "soundTitle": "Sound",
+      "soundHint": "Played once per browser, even with several tabs open.",
+      "soundEnabled": "Play a sound for new notifications",
+      "soundChoice": "Sound",
+      "sounds": {
+        "chime": "Chime",
+        "ping": "Ping",
+        "pop": "Pop",
+        "bell": "Bell",
+        "alert": "Alert"
+      },
+      "volume": "Volume",
+      "test": "Play",
+      "alertsTitle": "Pop-ups and desktop alerts",
+      "alertsHint": "Pop-ups show inside the app. Desktop alerts show when the app is in the background.",
+      "popups": "Show a pop-up for new notifications",
+      "desktop": "Desktop alerts",
+      "desktopHint": "Allow this browser to show alerts outside the app.",
+      "desktopBlocked": "This browser blocks alerts from the app. Allow them in the browser's site settings.",
+      "desktopUnsupported": "This browser cannot show desktop alerts. Pop-ups and sound still work.",
+      "desktopEnable": "Allow desktop alerts",
+      "categoriesTitle": "What you are notified about",
+      "categoriesHint": "Only the kinds your role can see are listed. Muted kinds still arrive in your inbox, quietly.",
+      "category": "Kind",
+      "notify": "Alert me",
+      "sound": "Sound",
+      "alwaysOn": "Always on, for your account's safety.",
+      "notifyFor": "Alerts for {category}",
+      "soundFor": "Sound for {category}",
+      "mutedTitle": "Muted records",
+      "mutedHint": "Records you asked not to be alerted about.",
+      "mutedNone": "You have not muted any record.",
+      "unmuteRecord": "Unmute",
+      "unmuted": "Alerts for this record are back on",
+      "unsaved": "You have unsaved changes",
+      "discard": "Discard",
+      "save": "Save settings",
+      "saving": "Saving…",
+      "saved": "Notification settings saved",
+      "failed": "The settings could not be saved. Please try again."
+    },
+    "markRead": "Mark as read",
+    "markUnread": "Mark as unread",
+    "archive": "Archive",
+    "unarchive": "Restore",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this notification? This cannot be undone.",
+    "deleteManyConfirm": "Delete {count} notifications? This cannot be undone.",
+    "muteRecord": "Mute updates about this",
+    "recordMuted": "You will no longer be alerted about this. Unmute it in notification settings.",
+    "mutedBadge": "Muted",
+    "priority": {
+      "urgent": "Urgent",
+      "high": "Important"
+    },
+    "tabs": {
+      "all": "All",
+      "unread": "Unread",
+      "muted": "Muted",
+      "archived": "Archived",
+      "settings": "Settings"
+    },
+    "category": "Category",
+    "allCategories": "All categories",
+    "selected": "{count} selected",
+    "selectAll": "Select all on this page",
+    "selectOne": "Select {title}",
+    "clearSelection": "Clear selection",
+    "bulkDone": "{count} notifications updated",
+    "clearRead": "Delete read",
+    "clearReadConfirm": "Delete every read notification in this view? This cannot be undone.",
+    "clearArchived": "Empty archive",
+    "clearArchivedConfirm": "Delete every archived notification in this view? This cannot be undone.",
+    "empty": {
+      "all": "No notifications yet.",
+      "unread": "You're all caught up.",
+      "muted": "Nothing muted arrived.",
+      "archived": "The archive is empty.",
+      "settings": ""
+    },
+    "loadMore": "Load more",
+    "entityTypes": {
+      "task": "Task",
+      "invoice": "Invoice",
+      "payment": "Payment",
+      "approval": "Approval",
+      "expense_claim": "Expense claim",
+      "sales_order": "Order",
+      "deal": "Deal",
+      "inquiry": "Inquiry",
+      "lead": "Lead",
+      "product": "Product",
+      "stock_count": "Stock count",
+      "announcement": "Announcement",
+      "legal_matter": "Legal matter",
+      "calendar": "Calendar",
+      "employee": "Employee",
+      "recurring_expense": "Recurring expense",
+      "asset_handover": "Asset handover",
+      "employee_handover": "Employee handover"
+    },
+    "settingsLink": "Notification settings"
+  },
+  "presence": {
+    "title": "Your status",
+    "setStatus": "Set status",
+    "choose": "Status",
+    "message": "Message (optional)",
+    "messagePlaceholder": "e.g. Back after lunch",
+    "clearAfter": "Clear after",
+    "durations": {
+      "30m": "30 minutes",
+      "1h": "1 hour",
+      "2h": "2 hours",
+      "4h": "4 hours",
+      "today": "Today",
+      "this_week": "This week",
+      "never": "Don't clear"
+    },
+    "upcoming": "Coming up from your calendar and leave",
+    "reset": "Reset to automatic",
+    "resetDone": "Your status follows your calendar and activity again",
+    "save": "Save status",
+    "saving": "Saving…",
+    "saved": "Status updated",
+    "failed": "Your status could not be changed. Please try again.",
+    "until": "until {time}",
+    "fromCalendar": "from your calendar",
+    "fromLeave": "from approved leave",
+    "automatic": "automatic",
+    "dndHint": "While you are on Do not disturb, notifications arrive without sound or pop-ups."
   }
 }

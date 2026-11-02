@@ -8,17 +8,8 @@ import { Mail, Phone, MessageCircle, Search, Plane, Network } from "lucide-react
 import { ROUTES } from "../../constants/routes";
 import type { DirectoryEntry } from "@platform/database/queries/directory";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-import { ContentImage } from "../shared/ContentImage";
 import { PageHeader } from "../layout/PageHeader";
-
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase())
-    .join("");
-}
+import { PresenceAvatar } from "../live/PresenceAvatar";
 
 /** Everyone's work contacts with one-tap call, WhatsApp and email. */
 export function DirectoryView({
@@ -82,9 +73,7 @@ export function DirectoryView({
             return (
               <li key={e.id} className="rounded-3xl border border-outline-variant bg-surface p-5 flex flex-col gap-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-12 h-12 rounded-full bg-accent/15 text-accent font-bold flex items-center justify-center overflow-hidden shrink-0">
-                    {e.avatarUrl ? <ContentImage src={e.avatarUrl} alt="" className="w-full h-full object-cover" /> : initials(e.name)}
-                  </div>
+                  <PresenceAvatar userId={e.userId} name={ar && e.nameAr ? e.nameAr : e.name} src={e.avatarUrl} size={48} />
                   <div className="min-w-0">
                     <div className="font-bold text-ink truncate">{ar && e.nameAr ? e.nameAr : e.name}</div>
                     <div className="text-xs text-ink-muted truncate">{(ar ? e.titleAr : e.title) ?? roleName(e.role) ?? "—"}</div>

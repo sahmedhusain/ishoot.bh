@@ -18,7 +18,7 @@ const {
 } = require("../packages/database/src/transaction-context.ts");
 const announcements = require("../packages/database/src/queries/announcements.ts");
 const letters = require("../packages/database/src/queries/official-letters.ts");
-const notifications = require("../packages/database/src/queries/notifications.ts");
+const handover = require("../packages/database/src/services/notification-handover.ts");
 const engine = require("../packages/database/src/services/approval-engine.ts");
 const path = require("node:path");
 const sharp = require(
@@ -166,37 +166,16 @@ async function main() {
             reader.id,
             "unhide",
           );
+          // The inbox itself (hide, delete, ownership) is the notify service's (docs/adr/0012, its Go tests); here
+          // the row is written for the hand-over, which keeps its ID and recipient.
           const message = await tx.notification.findFirstOrThrow({
             where: { userId: reader.id, entityId: a.id },
           });
-          await assert.rejects(
-            notifications.updateOwnNotification(
-              outsider.id,
-              message.id,
-              "delete",
-            ),
-            /not found/,
-          );
-          await notifications.updateOwnNotification(
-            reader.id,
-            message.id,
-            "hide",
-          );
-          assert.equal(
-            (
-              await notifications.notificationInbox(reader.id, "hidden")
-            ).items.some((n) => n.id === message.id),
-            true,
-          );
-          await notifications.updateOwnNotification(
-            reader.id,
-            message.id,
-            "delete",
-          );
-          assert.equal(
-            await tx.notification.findUnique({ where: { id: message.id } }),
-            null,
-          );
+          assert.equal(message.handedOverAt, null, "new notifications wait for the hand-over");
+          const handed = handover.toNewNotification({ ...message, messageParams: message.messageParams ?? null });
+          assert.equal(handed.id, message.id);
+          assert.equal(handed.recipient, reader.id);
+          assert.equal(handed.realm, "staff");
           const employee = await tx.employee.findFirstOrThrow();
           const template = await letters.saveLetterTemplate({
             key: `test_${stamp}`,
@@ -298,22 +277,14 @@ async function main() {
             null,
             "scheduled announcements are not visible early",
           );
+          const scheduled = await tx.notification.findFirstOrThrow({
+            where: { userId: reader.id, entityId: future.id },
+          });
+          assert.ok(scheduled.createdAt > new Date(), "scheduled announcements notify at their time");
           assert.equal(
-            (await notifications.notificationInbox(reader.id)).items.some(
-              (n) => n.entity_id === future.id,
-            ),
-            false,
-            "scheduled announcements do not notify early",
-          );
-          await notifications.markAllNotificationsRead(reader.id);
-          assert.equal(
-            (
-              await tx.notification.findFirstOrThrow({
-                where: { userId: reader.id, entityId: future.id },
-              })
-            ).isRead,
-            false,
-            "mark all read does not consume future notifications",
+            handover.toNewNotification({ ...scheduled, messageParams: scheduled.messageParams ?? null }).createdAt,
+            scheduled.createdAt.toISOString(),
+            "the hand-over keeps the time, so notify shows it only then",
           );
           throw rollback;
         }),
@@ -323,7 +294,7 @@ async function main() {
     if (e !== rollback) throw e;
   }
   console.log(
-    "Communications checks passed and rolled back: manager/team boundaries, approval and live signatures, receipt ownership, hidden/deleted notifications, template filling, immutable approved letters, cancellation and verification.",
+    "Communications checks passed and rolled back: manager/team boundaries, approval and live signatures, receipt ownership, notifications handed over with their time, template filling, immutable approved letters, cancellation and verification.",
   );
 }
 main()

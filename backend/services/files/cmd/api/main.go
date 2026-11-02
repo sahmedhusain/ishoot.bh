@@ -30,6 +30,7 @@ import (
 	"platform.local/backend/services/files/internal/httpapi"
 	"platform.local/backend/services/files/internal/jobs"
 	"platform.local/backend/services/files/internal/postgres"
+	"platform.local/backend/services/files/internal/remote"
 	"platform.local/backend/services/files/migrations"
 	"platform.local/backend/services/files/settings"
 )
@@ -94,6 +95,7 @@ func run(command string) error {
 		PublicBucket: cfg.Files.PublicBucket, PrivateBucket: cfg.Files.PrivateBucket, MaxFileSize: cfg.Files.MaxFileSize,
 		UploadTTL: cfg.Files.UploadTTL, LookupLimit: cfg.Files.LookupLimit, CleanupBatch: cfg.Files.CleanupBatch,
 	})
+	svc.SetImporter(remote.New(cfg.Files.ImportTimeout, min(cfg.Files.ImportMaxSize, cfg.Files.MaxFileSize), cfg.Files.ImportAllowPrivate))
 
 	checker := health.NewChecker(cfg.ServiceName, cfg.Version, cfg.Admin.ReadinessTimeout)
 	checker.Register("postgres", db.Check(pool))

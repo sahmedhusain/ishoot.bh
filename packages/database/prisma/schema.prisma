@@ -860,10 +860,14 @@ model Notification {
   /// Hidden from the person's inbox (kept for the audit trail until they delete it).
   hiddenAt      DateTime?
   createdAt     DateTime  @default(now())
+  /// When the admin handed it to the notify service, which owns the inbox from then on (docs/adr/0012). Rows are
+  /// written here in the producer's transaction; read state lives in notify.
+  handedOverAt  DateTime?
 
   @@index([userId, isRead, createdAt])
   @@index([userId, hiddenAt, createdAt])
   @@index([eventKey])
+  @@index([handedOverAt, createdAt])
 }
 
 model Tag {

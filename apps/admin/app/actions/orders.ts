@@ -28,10 +28,12 @@ import { ROUTES } from "../../constants/routes";
 import { requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
 import { notifyLowStock } from "../../lib/low-stock";
+import { announceChange } from "../../lib/live";
 
 const refresh = (id?: string) => {
   revalidatePath(ROUTES.orders.list);
   if (id) revalidatePath(ROUTES.orders.detail(id));
+  void announceChange("orders", id);
 };
 
 /** Moves an order on (packing, shipped, delivered…), with the stock that goes with it. */

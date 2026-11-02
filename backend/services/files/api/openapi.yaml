@@ -93,6 +93,32 @@ paths:
           $ref: "#/components/responses/File"
         default:
           $ref: "#/components/responses/Problem"
+  /v1/files/uploads/import:
+    post:
+      tags: [uploads]
+      operationId: importUpload
+      summary: Download a file from a link into an upload the owner can claim
+      description: |
+        For a profile picture given as a link. Only public http(s) addresses are reached (checked after DNS resolution,
+        redirects included); the bytes must be a type the folder accepts. The upload expires unless claimed, like one
+        the owner sent. Problems: `source_not_allowed`, `source_unreachable`, `unsupported_file_type`, `payload_too_large`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [ownerId, folder, url]
+              properties:
+                ownerId: { type: string, maxLength: 64 }
+                folder: { type: string, maxLength: 40 }
+                url: { type: string, maxLength: 2048 }
+      responses:
+        "201":
+          $ref: "#/components/responses/File"
+        default:
+          $ref: "#/components/responses/Problem"
   /v1/files/records:
     get:
       tags: [files]

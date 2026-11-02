@@ -2,6 +2,7 @@
 import { serverMessages } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@platform/database";
+import { syncMeetingStatus } from "@platform/database/services/status-windows";
 import { runAtomicMutation } from "@platform/database";
 import { validateActionArguments } from "../../lib/action-input";
 
@@ -22,6 +23,7 @@ import {
 import { publicOrigin } from "../../lib/public-origin";
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "../../lib/auth";
+import { announceChange } from "../../lib/live";
 
 function assertEventWindow(start: string | undefined, end: string | undefined) {
   if (start === undefined && end === undefined) return;
@@ -73,6 +75,8 @@ export async function createCalendarEventAction(data: {
       return { event };
     });
 
+    await syncMeetingStatus(event.id);
+    void announceChange("calendar", event.id);
     revalidatePath(ROUTES.calendar);
     revalidatePath(ROUTES.home);
     return { success: true, event };
@@ -144,6 +148,8 @@ export async function updateCalendarEventAction(
       return { event };
     });
 
+    await syncMeetingStatus(id);
+    void announceChange("calendar", id);
     revalidatePath(ROUTES.calendar);
     revalidatePath(ROUTES.home);
     return { success: true, event };
@@ -171,6 +177,8 @@ export async function deleteCalendarEventAction(id: string) {
       });
       return {};
     });
+    await syncMeetingStatus(id);
+    void announceChange("calendar", id);
 
     revalidatePath(ROUTES.calendar);
     revalidatePath(ROUTES.home);

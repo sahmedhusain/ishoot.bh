@@ -19,6 +19,9 @@ import {
 import { itAllowed } from "@platform/contracts";
 import { setLocaleAction, signOutAction } from "../app/actions";
 import { useCopy } from "./CopyProvider";
+import { ItLive } from "./live/ItLive";
+import { ItBell } from "./live/ItBell";
+import { ItStatus } from "./live/ItStatus";
 
 const NAV = [
   { href: "/", icon: Gauge, label: "overview", resource: "tickets" },
@@ -67,6 +70,7 @@ export function Shell({
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
+    <ItLive>
     <div className="min-h-screen lg:grid lg:grid-cols-[260px_1fr]">
       <a
         href="#content"
@@ -100,6 +104,8 @@ export function Shell({
       </aside>
       <div className="min-w-0">
         <header className="flex items-center justify-end gap-3 px-6 py-4 border-b border-outline-variant">
+          <ItStatus email={email} />
+          <ItBell />
           <div className="text-end me-auto lg:me-0">
             <div className="text-xs text-ink-muted">{copy.app.signedInAs}</div>
             <div className="text-sm font-semibold text-ink" dir="ltr">
@@ -133,5 +139,6 @@ export function Shell({
         </main>
       </div>
     </div>
+    </ItLive>
   );
 }

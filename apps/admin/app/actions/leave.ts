@@ -1,4 +1,5 @@
 "use server";
+import { syncLeaveStatus } from "@platform/database/services/status-windows";
 import {
   serverTemplates,
   formatMessage,
@@ -191,6 +192,7 @@ export async function cancelLeaveRequestAction(requestId: string) {
       await cancelPendingApprovals("leave_request", requestId);
       await refreshLeaveBalanceCache(leave.employeeId);
     });
+    await syncLeaveStatus(requestId);
 
     await createActivityLog({
       user_id: actor.id,

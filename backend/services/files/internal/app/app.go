@@ -40,10 +40,11 @@ type Options struct {
 
 // Service implements the use cases.
 type Service struct {
-	repo    Repository
-	objects objectstore.Store
-	opts    Options
-	now     func() time.Time
+	repo     Repository
+	objects  objectstore.Store
+	opts     Options
+	now      func() time.Time
+	importer Importer
 }
 
 // New returns the service.

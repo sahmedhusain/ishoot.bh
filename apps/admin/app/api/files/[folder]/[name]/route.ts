@@ -58,6 +58,9 @@ export async function GET(
       if (!upload.isPublic) {
         const user = await getCurrentUser();
         if (!user) return new NextResponse(null, { status: 401 });
+        // Saved profile photos are shown to every colleague; an unsaved one only to the person cropping it.
+        if (folder === "avatars" && (upload.claimedAt || upload.ownerId === user.id))
+          return (await fileResponse(upload)) ?? new NextResponse(null, { status: 404 });
         const attachment = await db.attachment.findFirst({
           where: {
             OR: [{ fileUrl }, { fileUrl: `/uploads/${folder}/${name}` }],

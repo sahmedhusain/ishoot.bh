@@ -92,6 +92,10 @@ func Handler(target Target, transport http.RoundTripper, logger *logx.Logger) ec
 		if hasDotSegment(c.Request().URL.Path) {
 			return problem.BadRequest("path must not contain dot segments")
 		}
+		if httpx.IsStream(c) {
+			// A Server-Sent Events stream (realtime) outlives the write timeout; ReverseProxy flushes each event.
+			_ = httpx.KeepStreaming(c.Response())
+		}
 		rp.ServeHTTP(c.Response(), c.Request())
 		return nil
 	}

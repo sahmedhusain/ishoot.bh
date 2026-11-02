@@ -112,6 +112,9 @@ the environment. A service refuses to start when a value is missing or fails its
 | `FILES_CLEANUP_INTERVAL` | `5m` | `gt=0` |
 | `FILES_CLEANUP_BATCH` | `100` | `gt=0` |
 | `FILES_CLEANUP_WORKERS` | `1` | `gt=0` |
+| `FILES_IMPORT_TIMEOUT` | `10s` | `gt=0` |
+| `FILES_IMPORT_MAX_SIZE` | `5242880` | `gt=0` |
+| `FILES_IMPORT_ALLOW_PRIVATE` | `false` |  |
 
 ## gateway
 
@@ -351,6 +354,11 @@ the environment. A service refuses to start when a value is missing or fails its
 | `OUTBOX_BATCH` | `100` | `gt=0,lte=1000` |
 | `OUTBOX_RETENTION` | `168h` | `gte=0` |
 | `NOTIFY_SEND_CALLERS` | `admin,web,it` | `min=1,dive,required` |
+| `NOTIFY_INBOX_CALLERS` | `admin,web,it` | `min=1,dive,required` |
+| `NOTIFY_INBOX_BODY_LIMIT` | `2097152` | `gt=0` |
+| `NOTIFY_INBOX_RETENTION` | `8760h` | `gte=0` |
+| `NOTIFY_INBOX_PURGE_EVERY` | `6h` | `gte=0` |
+| `NOTIFY_INBOX_LIVE_WINDOW` | `2m` | `gt=0` |
 | `NOTIFY_BODY_LIMIT` | `11534336` | `gt=0` |
 | `NOTIFY_MAX_ATTACHMENT_BYTES` | `7864320` | `gt=0` |
 | `NOTIFY_DEFAULT_PAGE_SIZE` | `50` | `gt=0,ltefield=MaxPageSize` |
@@ -372,6 +380,70 @@ the environment. A service refuses to start when a value is missing or fails its
 | `NOTIFY_WHATSAPP_CREDENTIALS` | `integration` | `oneof=integration static` |
 | `NOTIFY_WHATSAPP_PHONE_ID` |  |  |
 | `NOTIFY_WHATSAPP_TOKEN` |  |  |
+
+## realtime
+
+| Variable | Default | Rules |
+| --- | --- | --- |
+| `APP_ENV` | `development` | `oneof=development test staging production` |
+| `SERVICE_NAME` |  | `required` |
+| `SERVICE_VERSION` | `dev` |  |
+| `LOG_LEVEL` | `info` | `oneof=debug info warn error` |
+| `LOG_FORMAT` | `json` | `oneof=json text` |
+| `HTTP_ADDR` | `:8080` | `required` |
+| `HTTP_READ_HEADER_TIMEOUT` | `5s` | `gt=0` |
+| `HTTP_READ_TIMEOUT` | `30s` | `gt=0` |
+| `HTTP_WRITE_TIMEOUT` | `30s` | `gt=0` |
+| `HTTP_IDLE_TIMEOUT` | `120s` | `gt=0` |
+| `HTTP_SHUTDOWN_TIMEOUT` | `20s` | `gt=0` |
+| `HTTP_REQUEST_TIMEOUT` | `25s` | `gt=0` |
+| `HTTP_BODY_LIMIT` | `1M` | `required` |
+| `HTTP_CORS_ORIGINS` |  |  |
+| `HTTP_TRUSTED_PROXIES` |  | `dive,cidr` |
+| `ADMIN_ADDR` | `:9090` | `required` |
+| `ADMIN_ENABLE_PPROF` | `false` |  |
+| `ADMIN_READINESS_TIMEOUT` | `2s` | `gt=0` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` |  |  |
+| `OTEL_EXPORTER_OTLP_INSECURE` | `false` |  |
+| `OTEL_TRACES_SAMPLER_RATIO` | `1` | `gte=0,lte=1` |
+| `DATABASE_URL` |  | `required` |
+| `DATABASE_DIRECT_URL` |  |  |
+| `DATABASE_MAX_CONNS` | `10` | `gt=0` |
+| `DATABASE_MIN_CONNS` | `0` | `gte=0` |
+| `DATABASE_MAX_CONN_LIFETIME` | `30m` | `gt=0` |
+| `DATABASE_MAX_CONN_IDLE_TIME` | `5m` | `gt=0` |
+| `DATABASE_HEALTH_CHECK_PERIOD` | `30s` | `gt=0` |
+| `DATABASE_STATEMENT_TIMEOUT` | `15s` | `gt=0` |
+| `DATABASE_LOG_QUERIES` | `false` |  |
+| `AUTH_ISSUER` |  |  |
+| `AUTH_JWKS_URL` |  | `omitempty,url` |
+| `AUTH_JWKS_TTL` | `10m` | `gt=0` |
+| `AUTH_JWKS_MIN_REFRESH` | `30s` | `gt=0` |
+| `AUTH_JWKS_FETCH_TIMEOUT` | `5s` | `gt=0` |
+| `AUTH_CLOCK_SKEW` | `30s` | `gte=0` |
+| `AUTH_SERVICE_KEYS_FILE` |  | `omitempty,file` |
+| `NATS_URL` |  |  |
+| `NATS_STREAM` | `EVENTS` | `required` |
+| `NATS_SUBJECTS` | `files.>,identity.>,system.>,audit.>,notify.>,itsm.>,cms.>,sales.>,finance.>,workflow.>,hr.>,inventory.>,commerce.>,delivery.>` | `min=1,dive,required` |
+| `NATS_REPLICAS` | `1` | `gte=1,lte=5` |
+| `NATS_MAX_AGE` | `168h` | `gt=0` |
+| `NATS_DUPLICATE_WINDOW` | `2h` | `gt=0` |
+| `NATS_PUBLISH_TIMEOUT` | `5s` | `gt=0` |
+| `NATS_CREDENTIALS_FILE` |  |  |
+| `REDIS_URL` |  | `required,url` |
+| `REALTIME_CALLERS` | `admin,it` | `min=1,dive,required` |
+| `REALTIME_HEARTBEAT` | `20s` | `gt=0` |
+| `REALTIME_MAX_STREAM_AGE` | `30m` | `gt=0` |
+| `REALTIME_RETRY` | `3s` | `gt=0` |
+| `REALTIME_BUFFER` | `64` | `gt=0,lte=4096` |
+| `REALTIME_MAX_STREAMS_PER_USER` | `20` | `gt=0` |
+| `REALTIME_MAX_TOPICS` | `64` | `gt=0,lte=256` |
+| `REALTIME_PRESENCE_TTL` | `60s` | `gt=0` |
+| `REALTIME_IDLE_TTL` | `15m` | `gt=0` |
+| `REALTIME_TICK` | `30s` | `gt=0` |
+| `REALTIME_RETENTION` | `720h` | `gt=0` |
+| `REALTIME_MAX_PRESENCE_IDS` | `200` | `gt=0,lte=1000` |
+| `REALTIME_MAX_SYNC_WINDOWS` | `5000` | `gt=0` |
 
 ## system
 

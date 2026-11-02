@@ -32,6 +32,10 @@ export const writeUpload = (
     }),
   );
 
+/** Downloads a file from a public link into an upload the owner can claim (a profile picture given as a link). */
+export const importUpload = (body: { ownerId: string; folder: string; url: string }) =>
+  unwrap(files().POST("/v1/files/uploads/import", { body }));
+
 /** Checks that an upload is still the owner's and arrived intact. */
 export const verifyUpload = (fileUrl: string, ownerId: string) =>
   unwrap(

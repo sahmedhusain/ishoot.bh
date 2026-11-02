@@ -48,6 +48,13 @@ routes:
     realms: [service, it]
     rateLimit: services
     bodyLimit: 11M
+  # Live updates and statuses (ADR 0012): the apps' back ends open Server-Sent Events streams for their people and set
+  # statuses with service tokens; IT staff use their own tokens. A stream is one long request.
+  - name: realtime
+    prefix: /v1/realtime/
+    upstream: realtime
+    realms: [service, it]
+    rateLimit: services
   # The audit trail: IT staff with their own tokens (audit:read).
   - name: audit-desk
     prefix: /v1/audit/desk/

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
   commentOnQueueTicket,
+  getQueueTicket,
   isApiError,
   setIntegrationForIT,
   setModuleForIT,
@@ -35,6 +36,7 @@ import {
 } from "../lib/credentials";
 import { revalidatePublicSite } from "../lib/revalidate-web";
 import { asUser, requireAllowed } from "../lib/session";
+import { announceTicketChange } from "../lib/live";
 
 export type SignInState = {
   step: "password" | "otp";
@@ -137,9 +139,11 @@ export async function transitionAction(
     transition === "assign"
       ? { assigneeId: user.subject, assigneeName: user.email || user.subject }
       : {};
-  const outcome = await attempt(() =>
-    transitionQueueTicket(user.token, id, { transition, ...assignee }),
-  );
+  let ticket: { id: string; number: number; requesterId: string } | undefined;
+  const outcome = await attempt(async () => {
+    ticket = await transitionQueueTicket(user.token, id, { transition, ...assignee });
+  });
+  if (outcome.ok && ticket) await announceTicketChange(ticket, "status");
   refresh(id);
   return outcome;
 }
@@ -155,6 +159,10 @@ export async function commentAction(
   const outcome = await attempt(() =>
     commentOnQueueTicket(user.token, id, message, internal === true),
   );
+  if (outcome.ok) {
+    const detail = await getQueueTicket(user.token, id).catch(() => null);
+    if (detail) await announceTicketChange(detail.ticket, internal === true ? "note" : "reply");
+  }
   refresh(id);
   return outcome;
 }

@@ -7,6 +7,7 @@ import {
 import { requirePagePermission } from "../../../lib/auth";
 import { CalendarView } from "../../../components/calendar/CalendarView";
 import { pageMetadata } from "../../../lib/company-metadata";
+import { LiveRefresh } from "../../../components/live/LiveRefresh";
 
 export const generateMetadata = () => pageMetadata("calendar");
 
@@ -42,15 +43,18 @@ export default async function CalendarPage() {
       isCalendarSyncEnabled(),
     ]);
   return (
-    <CalendarView
-      initialEvents={events}
-      currentUserId={user.id}
-      people={people.map((p) => ({ id: p.id, name: p.fullName }))}
-      departments={departments}
-      roles={roles}
-      feedConnected={!!feed}
-      feed={feed}
-      syncEnabled={syncEnabled}
-    />
+    <>
+      <LiveRefresh resources={["calendar"]} notificationCategories={["calendar"]} />
+      <CalendarView
+        initialEvents={events}
+        currentUserId={user.id}
+        people={people.map((p) => ({ id: p.id, name: p.fullName }))}
+        departments={departments}
+        roles={roles}
+        feedConnected={!!feed}
+        feed={feed}
+        syncEnabled={syncEnabled}
+      />
+    </>
   );
 }

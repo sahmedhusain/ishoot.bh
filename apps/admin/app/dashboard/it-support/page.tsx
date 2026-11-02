@@ -3,6 +3,7 @@ import { TICKET_STATUSES } from "@platform/contracts";
 import { hasPermission, requirePagePermission } from "../../../lib/auth";
 import { pageMetadata } from "../../../lib/company-metadata";
 import { ItSupportView } from "../../../components/it-support/ItSupportView";
+import { LiveRefresh } from "../../../components/live/LiveRefresh";
 
 export const generateMetadata = () => pageMetadata("it-support");
 
@@ -24,10 +25,13 @@ export default async function ItSupportPage({
     cursor: params.cursor || undefined,
   }).catch(() => null);
   return (
-    <ItSupportView
-      status={status}
-      page={page}
-      canCreate={await hasPermission("it_support", "create")}
-    />
+    <>
+      <LiveRefresh resources={["it_support"]} notificationCategories={["service_desk"]} />
+      <ItSupportView
+        status={status}
+        page={page}
+        canCreate={await hasPermission("it_support", "create")}
+      />
+    </>
   );
 }

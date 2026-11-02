@@ -33,8 +33,11 @@ const (
 type Options struct {
 	Verifier *authn.Verifier
 	// SendCallers are the service identities that may queue messages.
-	SendCallers                  []string
+	SendCallers []string
+	// InboxCallers are the service identities that may deliver in-app notifications and act for their people.
+	InboxCallers                 []string
 	BodyLimit                    int64
+	InboxBodyLimit               int64
 	DefaultPageSize, MaxPageSize int32
 }
 
@@ -48,9 +51,11 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 	h := &handler{svc: svc, opts: opts}
 	e.GET("/v1/notify/openapi.yaml", func(c echo.Context) error { return c.Blob(http.StatusOK, "application/yaml", api.OpenAPI) })
 
-	services := e.Group("/v1/notify", authn.Require(opts.Verifier, authn.RealmService), caller(opts.SendCallers))
-	services.POST("/messages", h.queue)
-	services.GET("/messages/:id", h.status)
+	services := e.Group("/v1/notify", authn.Require(opts.Verifier, authn.RealmService))
+	send := caller(opts.SendCallers)
+	services.POST("/messages", h.queue, send)
+	services.GET("/messages/:id", h.status, send)
+	registerInbox(e, services, h)
 
 	desk := e.Group("/v1/notify/desk", authn.Require(opts.Verifier, authn.RealmIT))
 	desk.GET("/messages", h.list, authz.Require(catalog.ITAccess, "notifications", "read"))

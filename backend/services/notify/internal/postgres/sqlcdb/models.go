@@ -17,6 +17,14 @@ type NotifyAttachment struct {
 	Content     []byte
 }
 
+type NotifyCategorySetting struct {
+	Realm    string
+	UserID   string
+	Category string
+	Muted    bool
+	Sound    bool
+}
+
 type NotifyInbox struct {
 	Consumer  string
 	EventID   string
@@ -43,6 +51,38 @@ type NotifyMessage struct {
 	SentAt         *time.Time
 }
 
+type NotifyMute struct {
+	Realm      string
+	UserID     string
+	EntityType string
+	EntityID   string
+	Until      *time.Time
+	CreatedAt  time.Time
+}
+
+type NotifyNotification struct {
+	ID            string
+	Realm         string
+	Recipient     string
+	Category      string
+	Priority      string
+	Title         string
+	Body          string
+	MessageKey    *string
+	MessageParams json.RawMessage
+	ActionUrl     *string
+	EntityType    *string
+	EntityID      *string
+	Actor         *string
+	Caller        string
+	DedupeKey     *string
+	Silent        bool
+	DeliverAt     time.Time
+	ReadAt        *time.Time
+	ArchivedAt    *time.Time
+	CreatedAt     time.Time
+}
+
 type NotifyOutbox struct {
 	ID          string
 	Subject     string
@@ -53,4 +93,16 @@ type NotifyOutbox struct {
 	Attempts    int32
 	NextTryAt   time.Time
 	LastError   *string
+}
+
+type NotifyPreference struct {
+	Realm          string
+	UserID         string
+	MutedUntil     *time.Time
+	SoundEnabled   bool
+	Sound          string
+	Volume         int16
+	PopupsEnabled  bool
+	DesktopEnabled bool
+	UpdatedAt      time.Time
 }

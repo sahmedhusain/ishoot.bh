@@ -830,5 +830,36 @@
       "lastAdmin": "Keep at least one active IT administrator.",
       "unavailable": "Identity is unavailable. Try again."
     }
+  },
+  "live": {
+    "title": "Notifications",
+    "unread": "{count} unread",
+    "empty": "No notifications yet.",
+    "liveOn": "Live updates on",
+    "reconnecting": "Reconnecting…",
+    "muted": "Muted until you turn them back on",
+    "mute": "Mute notifications",
+    "unmute": "Turn notifications back on",
+    "soundOn": "Turn sound on",
+    "soundOff": "Turn sound off",
+    "markAllRead": "Mark all as read",
+    "markRead": "Mark as read",
+    "markUnread": "Mark as unread",
+    "delete": "Delete",
+    "open": "Open",
+    "newTicket": "A new IT request arrived",
+    "failed": "That did not work. Please try again.",
+    "status": "Your status",
+    "clearAfter": "Clear after",
+    "reset": "Reset to automatic",
+    "durations": {
+      "30m": "30 minutes",
+      "1h": "1 hour",
+      "2h": "2 hours",
+      "4h": "4 hours",
+      "today": "Today",
+      "this_week": "This week",
+      "never": "Don't clear"
+    }
   }
 }

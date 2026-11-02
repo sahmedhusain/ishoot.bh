@@ -4,6 +4,7 @@ import { listApprovalRequests, canDecideApproval, approvalTargetUrl, APPROVAL_TA
 import { ApprovalsCenterView } from "../../../components/approvals/ApprovalsCenterView";
 import type { ApprovalListItem, ApprovalScope } from "../../../types/approvals";
 import { pageMetadata } from "../../../lib/company-metadata";
+import { LiveRefresh } from "../../../components/live/LiveRefresh";
 
 export const generateMetadata = () => pageMetadata("approvals");
 
@@ -49,17 +50,20 @@ export default async function ApprovalsPage({
   }));
 
   return (
-    <ApprovalsCenterView
-      requests={requests}
-      total={total}
-      pageSize={PAGE_SIZE}
-      page={page}
-      scope={scope}
-      status={status}
-      targetType={targetType ?? "all"}
-      canViewAll={readable.length > 0}
-      currentUserId={user.id}
-      counts={{ awaiting: awaitingCount, mine: mineOpenCount }}
-    />
+    <>
+      <LiveRefresh resources={["approvals", "requests"]} notificationCategories={["approvals"]} />
+      <ApprovalsCenterView
+        requests={requests}
+        total={total}
+        pageSize={PAGE_SIZE}
+        page={page}
+        scope={scope}
+        status={status}
+        targetType={targetType ?? "all"}
+        canViewAll={readable.length > 0}
+        currentUserId={user.id}
+        counts={{ awaiting: awaitingCount, mine: mineOpenCount }}
+      />
+    </>
   );
 }

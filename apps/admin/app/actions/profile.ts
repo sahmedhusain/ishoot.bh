@@ -15,6 +15,8 @@ import {
   cancelSignatureChange,
 } from "@platform/database";
 import { revalidatePath } from "next/cache";
+import { claimUpload, deleteFile, isApiError } from "@platform/api-client";
+import { FILE_URL_PREFIX } from "@platform/contracts";
 import { requireAuth } from "../../lib/auth";
 
 export async function updateMyProfileAction(data: {
@@ -228,4 +230,41 @@ export async function cancelMyProfileChangeAction(id: string) {
   });
   revalidatePath(ROUTES.profile());
   revalidatePath(ROUTES.approvals());
+}
+
+const AVATAR_PREFIX = `${FILE_URL_PREFIX}avatars/`;
+
+/**
+ * Makes an uploaded (cropped) photo the signed-in person's profile photo. The upload must be theirs, in the avatars
+ * folder; the previous photo's file is removed.
+ */
+export async function updateMyAvatarAction(fileUrl: string) {
+  validateActionArguments("updateMyAvatarAction", { fileUrl });
+  const user = await requireAuth();
+  if (!fileUrl.startsWith(AVATAR_PREFIX)) throw new Error(serverMessages.avatarInvalid);
+  try {
+    await claimUpload(fileUrl, user.id, { requirePrivate: true });
+  } catch (error) {
+    if (isApiError(error)) throw new Error(serverMessages.avatarInvalid);
+    throw error;
+  }
+  const previous = await db.user.findUniqueOrThrow({ where: { id: user.id }, select: { avatarUrl: true } });
+  await db.user.update({ where: { id: user.id }, data: { avatarUrl: fileUrl }, select: { id: true } });
+  await createActivityLog({ user_id: user.id, action: "update", entity_type: "profile", entity_id: user.id, details: { updatedFields: ["avatar"] } });
+  if (previous.avatarUrl?.startsWith(AVATAR_PREFIX) && previous.avatarUrl !== fileUrl)
+    await deleteFile(previous.avatarUrl).catch(() => {}); // a leftover file is harmless; the photo already changed
+  revalidatePath("/dashboard", "layout");
+  return { avatarUrl: fileUrl };
+}
+
+/** Removes the signed-in person's profile photo; their initials show instead. */
+export async function removeMyAvatarAction() {
+  validateActionArguments("removeMyAvatarAction", {});
+  const user = await requireAuth();
+  const previous = await db.user.findUniqueOrThrow({ where: { id: user.id }, select: { avatarUrl: true } });
+  if (!previous.avatarUrl) return;
+  await db.user.update({ where: { id: user.id }, data: { avatarUrl: null }, select: { id: true } });
+  await createActivityLog({ user_id: user.id, action: "update", entity_type: "profile", entity_id: user.id, details: { updatedFields: ["avatar"], removed: true } });
+  if (previous.avatarUrl.startsWith(AVATAR_PREFIX)) await deleteFile(previous.avatarUrl).catch(() => {});
+  revalidatePath("/dashboard", "layout");
 }

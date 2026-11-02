@@ -19,7 +19,9 @@ import {
   Users,
   FileText,
 } from "lucide-react";
-import { Button, PhoneInput, StatusBadge, formatDate } from "@platform/ui";
+import { Button, PhoneInput, StatusBadge, formatDate, useConfirmation } from "@platform/ui";
+import { ProfilePhoto } from "./ProfilePhoto";
+import { StatusDialog, StatusSummary } from "../live/StatusEditor";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
   updateMyProfileAction,
@@ -42,6 +44,29 @@ interface UserProfileViewProps {
   myRequests: ProfileChangeRequest[];
 }
 
+/** What a confirmed change replaces: one row per field, current value then new value. */
+export function ChangeSummary({ rows }: { rows: { label: string; from: string; to: string; ltr?: boolean }[] }) {
+  const { t } = useAdminLocale();
+  return (
+    <dl className="divide-y divide-outline-variant overflow-hidden rounded-xl border border-outline-variant text-sm">
+      {rows.map((row) => (
+        <div key={row.label} className="grid grid-cols-1 gap-1 px-3 py-2.5 sm:grid-cols-[8rem_1fr]">
+          <dt className="text-xs font-semibold text-ink-muted">{row.label}</dt>
+          <dd className="space-y-0.5">
+            <span className="block text-xs text-ink-muted line-through">
+              <bdi dir={row.ltr ? "ltr" : "auto"}>{row.from}</bdi>
+            </span>
+            <span className="block font-medium text-ink">
+              <span className="sr-only">{t.profileWorkspace.newValue} </span>
+              <bdi dir={row.ltr ? "ltr" : "auto"}>{row.to}</bdi>
+            </span>
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
 export function UserProfileView({
   user,
   manager,
@@ -50,6 +75,8 @@ export function UserProfileView({
 }: UserProfileViewProps) {
   const router = useRouter();
   const { isArabic, t, locale } = useAdminLocale();
+  const confirmAction = useConfirmation();
+  const [statusOpen, setStatusOpen] = React.useState(false);
 
   // Contact Form (Immediate Update)
   const [phone, setPhone] = React.useState(user.phone || "");
@@ -62,9 +89,23 @@ export function UserProfileView({
   const [isSubmittingRequest, setIsSubmittingRequest] = React.useState(false);
   const [withdrawing, setWithdrawing] = React.useState<string | null>(null);
 
-  // Handle Immediate Contact Update
-  const handleUpdateContact = async (e: React.FormEvent) => {
+  // Nothing is saved until the person confirms what changes.
+  const handleUpdateContact = (e: React.FormEvent) => {
     e.preventDefault();
+    const next = phone.trim();
+    confirmAction({
+      title: t.profileWorkspace.confirmContactTitle,
+      variant: "warning",
+      description: (
+        <ChangeSummary
+          rows={[{ label: t.shared.phoneNumber, from: user.phone || t.profileWorkspace.empty, to: next || t.profileWorkspace.empty, ltr: true }]}
+        />
+      ),
+      onConfirm: saveContact,
+    });
+  };
+
+  const saveContact = async () => {
     setIsUpdatingContact(true);
     const toastId = toast.loading(t.userProfile.updatingContactDetails);
 
@@ -90,15 +131,32 @@ export function UserProfileView({
     }
   };
 
-  // Handle Identity Change Request
-  const handleSubmitIdentityChange = async (e: React.FormEvent) => {
+  // Identity changes go to the manager for approval, after the person confirms them here.
+  const handleSubmitIdentityChange = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!proposedFullName.trim() && !proposedEmail.trim()) {
       toast.error(t.userProfile.pleaseSpecifyEitherANew);
       return;
     }
+    const rows = [
+      ...(proposedFullName.trim() ? [{ label: t.userProfile.proposedFullName, from: user.full_name, to: proposedFullName.trim() }] : []),
+      ...(proposedEmail.trim() ? [{ label: t.userProfile.proposedEmail, from: user.email, to: proposedEmail.trim(), ltr: true }] : []),
+    ];
+    confirmAction({
+      title: t.profileWorkspace.confirmIdentityTitle,
+      variant: "warning",
+      description: (
+        <div className="space-y-3">
+          <ChangeSummary rows={rows} />
+          <p className="text-xs text-ink-muted">{t.profileWorkspace.confirmIdentityHint}</p>
+        </div>
+      ),
+      onConfirm: submitIdentityChange,
+    });
+  };
 
+  const submitIdentityChange = async () => {
     setIsSubmittingRequest(true);
     const toastId = toast.loading(
       t.userProfile.submittingIdentityChangeRequest,
@@ -177,11 +235,9 @@ export function UserProfileView({
     <div id="details" className="scroll-mt-20 space-y-6">
       {/* Profile Header Banner */}
       <div className="p-6 sm:p-8 rounded-3xl bg-surface-raised border border-outline-variant/80 dark:border-white/10 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-accent/10 border border-accent/20 text-accent font-bold text-2xl flex items-center justify-center font-display">
-            {user.full_name ? user.full_name.charAt(0).toUpperCase() : "U"}
-          </div>
-          <div className="space-y-1">
+        <div className="flex items-center gap-5">
+          <ProfilePhoto userId={user.id} name={user.full_name} avatarUrl={user.avatar_url} />
+          <div className="min-w-0 space-y-1.5">
             <div className="flex items-center gap-2">
               <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-ink font-display">
                 <bdi dir="auto">{user.full_name}</bdi>
@@ -208,8 +264,19 @@ export function UserProfileView({
                 </span>
               )}
             </div>
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <StatusSummary />
+              <button
+                type="button"
+                onClick={() => setStatusOpen(true)}
+                className="rounded-full border border-outline-variant px-2.5 py-0.5 text-[11px] font-medium text-ink hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                {t.presence.setStatus}
+              </button>
+            </div>
           </div>
         </div>
+        <StatusDialog isOpen={statusOpen} onClose={() => setStatusOpen(false)} />
 
         <div className="flex items-center gap-3">
           <div className="text-end">
@@ -485,26 +552,24 @@ export function UserProfileView({
                             <button
                               type="button"
                               disabled={withdrawing !== null}
-                              onClick={async () => {
-                                setWithdrawing(req.id);
-                                try {
-                                  await cancelMyProfileChangeAction(req.id);
-                                  toast.success(
-                                    t.profileWorkspace.requestWithdrawn,
-                                  );
-                                  router.refresh();
-                                } catch (err) {
-                                  toast.error(
-                                    errorMessage(
-                                      err,
-                                      t,
-                                      t.userProfile.failedToUpdateProfile,
-                                    ),
-                                  );
-                                } finally {
-                                  setWithdrawing(null);
-                                }
-                              }}
+                              onClick={() =>
+                                confirmAction({
+                                  description: t.profileWorkspace.withdrawConfirm,
+                                  variant: "warning",
+                                  onConfirm: async () => {
+                                    setWithdrawing(req.id);
+                                    try {
+                                      await cancelMyProfileChangeAction(req.id);
+                                      toast.success(t.profileWorkspace.requestWithdrawn);
+                                      router.refresh();
+                                    } catch (err) {
+                                      toast.error(errorMessage(err, t, t.userProfile.failedToUpdateProfile));
+                                    } finally {
+                                      setWithdrawing(null);
+                                    }
+                                  },
+                                })
+                              }
                               className="text-ink-muted hover:text-ink disabled:opacity-50"
                             >
                               {t.profileWorkspace.withdraw}

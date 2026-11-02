@@ -27,6 +27,18 @@ type Config struct {
 type Notify struct {
 	// SendCallers are the service identities that may queue messages.
 	SendCallers []string `env:"SEND_CALLERS" envDefault:"admin,web,it" envSeparator:"," validate:"min=1,dive,required"`
+	// InboxCallers are the service identities that may deliver in-app notifications and act for their signed-in
+	// people (ADR 0012).
+	InboxCallers []string `env:"INBOX_CALLERS" envDefault:"admin,web,it" envSeparator:"," validate:"min=1,dive,required"`
+	// InboxBodyLimit caps one delivery call (up to 500 notifications).
+	InboxBodyLimit int64 `env:"INBOX_BODY_LIMIT" envDefault:"2097152" validate:"gt=0"`
+	// InboxRetention is how long read and archived in-app notifications are kept; the worker purges older ones every
+	// InboxPurgeEvery (0 keeps them).
+	InboxRetention  time.Duration `env:"INBOX_RETENTION" envDefault:"8760h" validate:"gte=0"`
+	InboxPurgeEvery time.Duration `env:"INBOX_PURGE_EVERY" envDefault:"6h" validate:"gte=0"`
+	// InboxLiveWindow is how old a delivered notification may be and still ring live; older ones (a hand-over of
+	// earlier notifications) arrive quietly.
+	InboxLiveWindow time.Duration `env:"INBOX_LIVE_WINDOW" envDefault:"2m" validate:"gt=0"`
 	// BodyLimit caps a queued message (attachments travel base64-encoded); keep it within the gateway's 11M route
 	// limit and HTTP_BODY_LIMIT.
 	BodyLimit          int64 `env:"BODY_LIMIT" envDefault:"11534336" validate:"gt=0"`

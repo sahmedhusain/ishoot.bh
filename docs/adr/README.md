@@ -15,3 +15,4 @@ Each record states one decision, why it was made and what it costs. Records are 
 | [0009](0009-object-storage-s3.md)           | S3-compatible object storage instead of Supabase Storage  | Accepted |
 | [0010](0010-it-dashboard.md)                | A separate IT dashboard and IT ticketing for employees    | Accepted |
 | [0011](0011-service-authentication.md)      | App service tokens during the phased migration            | Accepted |
+| [0012](0012-in-app-notifications-realtime-presence.md) | In-app notifications, live updates and presence | Accepted |

@@ -72,6 +72,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/files/uploads/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Download a file from a link into an upload the owner can claim
+         * @description For a profile picture given as a link. Only public http(s) addresses are reached (checked after DNS resolution,
+         *     redirects included); the bytes must be a type the folder accepts. The upload expires unless claimed, like one
+         *     the owner sent. Problems: `source_not_allowed`, `source_unreachable`, `unsupported_file_type`, `payload_too_large`.
+         */
+        post: operations["importUpload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/files/records": {
         parameters: {
             query?: never;
@@ -269,6 +291,27 @@ export interface operations {
         };
         responses: {
             200: components["responses"]["File"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    importUpload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    ownerId: string;
+                    folder: string;
+                    url: string;
+                };
+            };
+        };
+        responses: {
+            201: components["responses"]["File"];
             default: components["responses"]["Problem"];
         };
     };

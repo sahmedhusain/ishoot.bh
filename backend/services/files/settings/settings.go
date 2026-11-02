@@ -33,4 +33,9 @@ type Files struct {
 	CleanupInterval time.Duration `env:"CLEANUP_INTERVAL" envDefault:"5m" validate:"gt=0"`
 	CleanupBatch    int32         `env:"CLEANUP_BATCH" envDefault:"100" validate:"gt=0"`
 	CleanupWorkers  int           `env:"CLEANUP_WORKERS" envDefault:"1" validate:"gt=0"`
+	// ImportTimeout bounds fetching a file from a link (a profile picture's address); ImportMaxSize caps it.
+	ImportTimeout time.Duration `env:"IMPORT_TIMEOUT" envDefault:"10s" validate:"gt=0"`
+	ImportMaxSize int64         `env:"IMPORT_MAX_SIZE" envDefault:"5242880" validate:"gt=0"`
+	// ImportAllowPrivate lets imports reach private network addresses. Leave it off: links come from people.
+	ImportAllowPrivate bool `env:"IMPORT_ALLOW_PRIVATE" envDefault:"false"`
 }

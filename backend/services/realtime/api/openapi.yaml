@@ -1,0 +1,368 @@
+openapi: 3.1.0
+info:
+  title: Live updates and statuses (realtime)
+  version: 1.0.0
+  description: |
+    Pushes live updates to the apps' browsers over Server-Sent Events and works out people's statuses (ADR 0012).
+    Services publish small hints on NATS core subjects (`live.user.<realm>.<id>`, `live.topic.<topic>`); every replica
+    writes them to the streams it holds. Hints carry IDs and counts, never message text. A status is, in order: appear
+    offline, leave (chosen or from approved leave), a chosen status while connected, a calendar meeting, then the
+    connection itself (available, away when idle, offline).
+servers:
+  - url: /
+tags:
+  - name: services
+    description: Called by the apps' back ends for their signed-in people, with service tokens.
+  - name: me
+    description: The signed-in IT account, with their own token.
+paths:
+  /v1/realtime/stream:
+    get:
+      tags: [services]
+      operationId: openStream
+      description: |
+        A Server-Sent Events stream for one person. Every event is one JSON object `{type, data}` on a `data:` line:
+        first `realtime.ready`, then hints for the person, their topics and their realm's statuses
+        (`presence.<realm>`). A comment line is sent every heartbeat. After the maximum age the server sends
+        `realtime.reconnect` and closes; a slow or ended stream gets `realtime.closed`.
+      security: [{ serviceToken: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/Realm" }
+        - { $ref: "#/components/parameters/UserId" }
+        - name: topics
+          in: query
+          description: Comma-separated topics the app allows this person to follow.
+          schema: { type: string, maxLength: 4000 }
+        - name: session
+          in: query
+          description: The person's session, so the stream closes when it is revoked.
+          schema: { type: string, maxLength: 128 }
+      responses:
+        "200":
+          description: The stream
+          content:
+            text/event-stream:
+              schema: { type: string }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/realtime/publish:
+    post:
+      tags: [services]
+      operationId: publishHint
+      description: Sends a hint to topics and people, for changes in domains the apps still own.
+      security: [{ serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [type]
+              properties:
+                topics: { type: array, maxItems: 50, items: { type: string, maxLength: 200 } }
+                users:
+                  type: array
+                  maxItems: 500
+                  items:
+                    type: object
+                    additionalProperties: false
+                    required: [realm, id]
+                    properties:
+                      realm: { type: string, enum: [staff, it] }
+                      id: { type: string, maxLength: 128 }
+                type: { type: string, maxLength: 100, description: "e.g. entity.changed" }
+                data: { type: object, additionalProperties: true, description: Up to 4 KB; IDs and counts only }
+      responses:
+        "202": { description: Published }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/realtime/presence:
+    get:
+      tags: [services]
+      operationId: getPresence
+      description: The statuses of people in one realm, in the order asked.
+      security: [{ serviceToken: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/Realm" }
+        - { $ref: "#/components/parameters/Ids" }
+      responses:
+        "200": { $ref: "#/components/responses/PresenceList" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/realtime/status:
+    get:
+      tags: [services]
+      operationId: getMyStatus
+      description: A person's own status, what they chose, and their windows in the next week.
+      security: [{ serviceToken: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/Realm" }
+        - { $ref: "#/components/parameters/UserId" }
+      responses:
+        "200": { $ref: "#/components/responses/Mine" }
+        default: { $ref: "#/components/responses/Problem" }
+    put:
+      tags: [services]
+      operationId: setMyStatus
+      security: [{ serviceToken: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/Realm" }
+        - { $ref: "#/components/parameters/UserId" }
+      requestBody: { $ref: "#/components/requestBodies/Status" }
+      responses:
+        "200": { $ref: "#/components/responses/Mine" }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [services]
+      operationId: clearMyStatus
+      description: Goes back to the automatic status.
+      security: [{ serviceToken: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/Realm" }
+        - { $ref: "#/components/parameters/UserId" }
+      responses:
+        "200": { $ref: "#/components/responses/Mine" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/realtime/activity:
+    post:
+      tags: [services]
+      operationId: reportActivity
+      description: The person's browser reports them idle or active again.
+      security: [{ serviceToken: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/Realm" }
+        - { $ref: "#/components/parameters/UserId" }
+      requestBody: { $ref: "#/components/requestBodies/Activity" }
+      responses:
+        "204": { description: Recorded }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/realtime/windows:
+    put:
+      tags: [services]
+      operationId: replaceWindow
+      description: Sets one record's window (a meeting, a leave request) for exactly the people given.
+      security: [{ serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/WindowInput"
+                - type: object
+                  required: [realm, source]
+                  properties:
+                    realm: { type: string, enum: [staff, it] }
+                    source: { type: string, pattern: "^[a-z][a-z0-9_]{0,31}$", description: "e.g. calendar, leave" }
+      responses:
+        "204": { description: Stored }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [services]
+      operationId: removeWindow
+      description: Removes one record's window for everyone.
+      security: [{ serviceToken: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/Realm" }
+        - { name: source, in: query, required: true, schema: { type: string, maxLength: 32 } }
+        - { name: sourceId, in: query, required: true, schema: { type: string, maxLength: 100 } }
+      responses:
+        "204": { description: Removed }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/realtime/windows/sync:
+    post:
+      tags: [services]
+      operationId: syncWindows
+      description: Replaces every window of a source that overlaps [from, until) with the ones given.
+      security: [{ serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [realm, source, from, until, windows]
+              properties:
+                realm: { type: string, enum: [staff, it] }
+                source: { type: string, maxLength: 32 }
+                from: { type: string, format: date-time }
+                until: { type: string, format: date-time }
+                windows: { type: array, items: { $ref: "#/components/schemas/WindowInput" } }
+      responses:
+        "200":
+          description: How many person-windows were stored
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [stored]
+                properties:
+                  stored: { type: integer }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/realtime/me/stream:
+    get:
+      tags: [me]
+      operationId: openMyStream
+      description: The signed-in IT account's stream, with the topics their roles allow (`it.tickets`, `it.platform`).
+      security: [{ userToken: [] }]
+      responses:
+        "200":
+          description: The stream
+          content:
+            text/event-stream:
+              schema: { type: string }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/realtime/me/presence:
+    get:
+      tags: [me]
+      operationId: getITPresence
+      description: The statuses of IT colleagues.
+      security: [{ userToken: [] }]
+      parameters: [{ $ref: "#/components/parameters/Ids" }]
+      responses:
+        "200": { $ref: "#/components/responses/PresenceList" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/realtime/me/status:
+    get:
+      tags: [me]
+      operationId: getITStatus
+      security: [{ userToken: [] }]
+      responses:
+        "200": { $ref: "#/components/responses/Mine" }
+        default: { $ref: "#/components/responses/Problem" }
+    put:
+      tags: [me]
+      operationId: setITStatus
+      security: [{ userToken: [] }]
+      requestBody: { $ref: "#/components/requestBodies/Status" }
+      responses:
+        "200": { $ref: "#/components/responses/Mine" }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [me]
+      operationId: clearITStatus
+      security: [{ userToken: [] }]
+      responses:
+        "200": { $ref: "#/components/responses/Mine" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/realtime/me/activity:
+    post:
+      tags: [me]
+      operationId: reportITActivity
+      security: [{ userToken: [] }]
+      requestBody: { $ref: "#/components/requestBodies/Activity" }
+      responses:
+        "204": { description: Recorded }
+        default: { $ref: "#/components/responses/Problem" }
+components:
+  securitySchemes:
+    serviceToken: { type: http, scheme: bearer, bearerFormat: JWT }
+    userToken: { type: http, scheme: bearer, bearerFormat: JWT }
+  parameters:
+    Realm: { name: realm, in: query, required: true, schema: { type: string, enum: [staff, it] } }
+    UserId: { name: userId, in: query, required: true, schema: { type: string, minLength: 1, maxLength: 128 } }
+    Ids: { name: ids, in: query, description: Comma-separated user IDs, schema: { type: string, maxLength: 30000 } }
+  requestBodies:
+    Status:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required: [status]
+            properties:
+              status: { type: string, description: A status from the catalogue that can be chosen }
+              message: { type: [string, "null"], maxLength: 1000, description: Up to the catalogue's message length }
+              expiresAt: { type: [string, "null"], format: date-time, description: Until changed when null }
+    Activity:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required: [state]
+            properties:
+              state: { type: string, enum: [active, idle] }
+  responses:
+    PresenceList:
+      description: Statuses
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [items]
+            properties:
+              items: { type: array, items: { $ref: "#/components/schemas/Presence" } }
+    Mine:
+      description: The person's own status
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [presence, chosen, upcoming]
+            properties:
+              presence: { $ref: "#/components/schemas/Presence" }
+              chosen:
+                type: [object, "null"]
+                required: [status, message, expiresAt]
+                properties:
+                  status: { type: string }
+                  message: { type: [string, "null"] }
+                  expiresAt: { type: [string, "null"], format: date-time }
+              upcoming:
+                type: array
+                items:
+                  type: object
+                  required: [kind, status, source, startsAt, endsAt]
+                  properties:
+                    kind: { type: string }
+                    status: { type: string }
+                    source: { type: string }
+                    startsAt: { type: string, format: date-time }
+                    endsAt: { type: string, format: date-time }
+    Problem:
+      description: An error (RFC 9457). Codes include `validation_failed`, `not_found`, `too_many_streams`, `unauthenticated`, `forbidden`.
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+  schemas:
+    Presence:
+      type: object
+      required: [userId, status, source, connection, message, until, lastSeenAt]
+      properties:
+        userId: { type: string }
+        status: { type: string }
+        source: { type: string, enum: [manual, leave, calendar, connection] }
+        connection: { type: string, enum: [online, idle, offline] }
+        message: { type: [string, "null"] }
+        until: { type: [string, "null"], format: date-time, description: "When this status ends, if known" }
+        lastSeenAt: { type: [string, "null"], format: date-time }
+    WindowInput:
+      type: object
+      required: [sourceId, kind, startsAt, endsAt, userIds]
+      properties:
+        sourceId: { type: string, minLength: 1, maxLength: 100 }
+        kind: { type: string, enum: [meeting, leave, sick] }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+        userIds: { type: array, maxItems: 500, items: { type: string, maxLength: 128 } }
+    Problem:
+      type: object
+      required: [type, title, status, code]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+        code: { type: string }
+        requestId: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            required: [field, code]
+            properties:
+              field: { type: string }
+              code: { type: string }

@@ -5,7 +5,9 @@ package httpx
 import (
 	"log/slog"
 	"net"
+	"net/http"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -54,7 +56,7 @@ func New(cfg config.Common, logger *logx.Logger, metrics *Metrics) (*echo.Echo, 
 		ReferrerPolicy:        "no-referrer",
 	}))
 	e.Use(middleware.BodyLimit(cfg.HTTP.BodyLimit))
-	e.Use(middleware.ContextTimeoutWithConfig(middleware.ContextTimeoutConfig{Timeout: cfg.HTTP.RequestTimeout}))
+	e.Use(middleware.ContextTimeoutWithConfig(middleware.ContextTimeoutConfig{Timeout: cfg.HTTP.RequestTimeout, Skipper: IsStream}))
 	if len(cfg.HTTP.CORSOrigins) > 0 {
 		e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 			AllowOrigins:     cfg.HTTP.CORSOrigins,
@@ -68,6 +70,18 @@ func New(cfg config.Common, logger *logx.Logger, metrics *Metrics) (*echo.Echo, 
 	}
 	e.Use(accessLog(logger))
 	return e, nil
+}
+
+// IsStream reports whether the request asks for a Server-Sent Events stream. A stream manages its own lifetime
+// (heartbeats and a maximum age), so the request timeout does not apply; its handler lifts the write deadline with
+// KeepStreaming.
+func IsStream(c echo.Context) bool {
+	return strings.Contains(c.Request().Header.Get(echo.HeaderAccept), "text/event-stream")
+}
+
+// KeepStreaming lifts the server's write timeout for one response, so a stream outlives HTTP_WRITE_TIMEOUT.
+func KeepStreaming(w http.ResponseWriter) error {
+	return http.NewResponseController(w).SetWriteDeadline(time.Time{})
 }
 
 func hstsMaxAge(cfg config.Common) int {

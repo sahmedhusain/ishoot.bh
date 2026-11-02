@@ -7851,6 +7851,210 @@
       }
     }
   },
+  "bulkNotificationAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "action": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "read"
+              },
+              {
+                "kind": "literal",
+                "value": "unread"
+              },
+              {
+                "kind": "literal",
+                "value": "archive"
+              },
+              {
+                "kind": "literal",
+                "value": "unarchive"
+              },
+              {
+                "kind": "literal",
+                "value": "delete"
+              }
+            ],
+            "optional": false
+          },
+          "ids": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": true
+          },
+          "all": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "filter": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "all"
+              },
+              {
+                "kind": "literal",
+                "value": "unread"
+              },
+              {
+                "kind": "literal",
+                "value": "read"
+              },
+              {
+                "kind": "literal",
+                "value": "archived"
+              },
+              {
+                "kind": "literal",
+                "value": "muted"
+              }
+            ],
+            "optional": true
+          },
+          "category": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveNotificationPreferencesAction": {
+    "kind": "object",
+    "fields": {
+      "preferences": {
+        "kind": "object",
+        "fields": {
+          "mutedUntil": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": false
+          },
+          "soundEnabled": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "sound": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "chime"
+              },
+              {
+                "kind": "literal",
+                "value": "ping"
+              },
+              {
+                "kind": "literal",
+                "value": "pop"
+              },
+              {
+                "kind": "literal",
+                "value": "bell"
+              },
+              {
+                "kind": "literal",
+                "value": "alert"
+              }
+            ],
+            "optional": false
+          },
+          "volume": {
+            "kind": "number",
+            "optional": false
+          },
+          "popupsEnabled": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "desktopEnabled": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "categories": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "category": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "muted": {
+                  "kind": "boolean",
+                  "optional": false
+                },
+                "sound": {
+                  "kind": "boolean",
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "muteNotificationRecordAction": {
+    "kind": "object",
+    "fields": {
+      "entityType": {
+        "kind": "string",
+        "optional": false
+      },
+      "entityId": {
+        "kind": "string",
+        "optional": false
+      },
+      "until": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "string"
+          },
+          {
+            "kind": "literal",
+            "value": null
+          }
+        ],
+        "optional": true
+      }
+    }
+  },
+  "unmuteNotificationRecordAction": {
+    "kind": "object",
+    "fields": {
+      "entityType": {
+        "kind": "string",
+        "optional": false
+      },
+      "entityId": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
   "moveOrderAction": {
     "kind": "object",
     "fields": {
@@ -9027,6 +9231,55 @@
     "kind": "object",
     "fields": {}
   },
+  "getMyStatusAction": {
+    "kind": "object",
+    "fields": {}
+  },
+  "setMyStatusAction": {
+    "kind": "object",
+    "fields": {
+      "choice": {
+        "kind": "object",
+        "fields": {
+          "status": {
+            "kind": "string",
+            "optional": false
+          },
+          "message": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "expiresAt": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "clearMyStatusAction": {
+    "kind": "object",
+    "fields": {}
+  },
   "saveSupplierAction": {
     "kind": "object",
     "fields": {
@@ -9879,6 +10132,19 @@
         "optional": false
       }
     }
+  },
+  "updateMyAvatarAction": {
+    "kind": "object",
+    "fields": {
+      "fileUrl": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "removeMyAvatarAction": {
+    "kind": "object",
+    "fields": {}
   },
   "createQuotationAction": {
     "kind": "object",

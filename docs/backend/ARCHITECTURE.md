@@ -6,7 +6,7 @@ Browser ─▶ apps/web · apps/admin · apps/it   (Next.js: UI, cookies, server
                 ▼
             gateway ── routing · token check (JWKS) · rate limits (Valkey) · tracing
                 ▼
-  identity · system · files · notify · audit · workflow · cms · sales · finance · hr · inventory · commerce · delivery · itsm
+  identity · system · files · notify · realtime · audit · workflow · cms · sales · finance · hr · inventory · commerce · delivery · itsm
         │ pgx + sqlc                     │ outbox → NATS JetStream          │ River jobs
         ▼                                ▼                                   ▼
   PostgreSQL 17 (one schema + role per service)    Valkey    S3-compatible storage    OpenTelemetry → Prometheus · Loki · Tempo · Grafana
@@ -41,7 +41,9 @@ What exists today (2026-11-02): identity runs the IT realm with mandatory MFA; s
 the apps. The system service owns modules, integrations, and the website's domains and site-wide code, all managed
 from the IT dashboard, and publishes its changes as events (transactional outbox to NATS JetStream). `itsm` holds IT tickets with SLAs; employees raise them from the admin. Each service signs in
 as its own database login behind PgBouncer. The audit service records every event for the IT dashboard's audit
-trail, and notify delivers every e-mail and WhatsApp message. In-app notifications, broadcasts and the remaining IT
+trail, and notify delivers every e-mail and WhatsApp message. notify also keeps every in-app notification with each
+person's settings, and the realtime service pushes live updates and statuses to the admin and IT dashboards over
+Server-Sent Events ([ADR 0012](../adr/0012-in-app-notifications-realtime-presence.md)). Broadcasts and the remaining IT
 pages are not built yet, and no business domain has moved.
 
 ### Verification follow-up (2026-11-02)

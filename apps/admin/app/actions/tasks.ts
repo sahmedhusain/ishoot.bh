@@ -15,10 +15,12 @@ import { ROUTES } from "../../constants/routes";
 import { requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
 import { taskScope } from "../../lib/task-scope";
+import { announceChange } from "../../lib/live";
 
 const refresh = (id?: string) => {
   revalidatePath(ROUTES.tasks.list);
   if (id) revalidatePath(ROUTES.tasks.detail(id));
+  void announceChange("tasks", id);
 };
 
 export async function saveTaskAction(input: TaskInput) {
