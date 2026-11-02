@@ -4,14 +4,14 @@ Owns `files.upload_object`, private S3 objects and expired-upload cleanup. Domai
 
 ## Requests and authentication
 
-All `/v1/files` endpoints require a short-lived service token from a trusted app issuer. The gateway and files service verify it independently. Apps authorize the end user before calling this API; it is not a browser-facing authorization API. See [ADR 0011](../../../docs/adr/0011-service-authentication.md).
+All `/v1/files` endpoints require a short-lived service token from a trusted app issuer. The gateway and files service verify it independently. Apps authorize the end user before calling this API; it is not a browser-facing authorization API. See [docs/ARCHITECTURE.md](../../../docs/ARCHITECTURE.md#architectural-decisions--core-principles).
 
 - `POST /uploads`: reserve an address with owner, folder, type and size.
 - `PUT /uploads/content`: stream the declared bytes for that owner.
 - `POST /uploads/verify`: verify ownership, expiry, stored size and magic bytes.
 - `POST /uploads/claim`: verify and atomically claim once.
 - `POST /uploads/import`: download a file from a link into an upload of the owner (a profile picture given as a link,
-  [ADR 0012](../../../docs/adr/0012-in-app-notifications-realtime-presence.md)). Only public http(s) addresses are
+  for in-app notifications and presence). Only public http(s) addresses are
   reached: every connection, redirects included, is checked after DNS resolution, up to `FILES_IMPORT_MAX_SIZE` within
   `FILES_IMPORT_TIMEOUT`. The bytes must be a type the folder accepts; the upload expires unless claimed.
 - Lookup, read, store and delete endpoints are specified in OpenAPI. Store accepts an explicit address or generates one from the detected type.

@@ -1,6 +1,6 @@
 # realtime service
 
-Pushes live updates to the apps' browsers and works out people's statuses ([ADR 0012](../../../docs/adr/0012-in-app-notifications-realtime-presence.md)).
+Pushes live updates to the apps' browsers and works out people's statuses (see [docs/ARCHITECTURE.md](../../../docs/ARCHITECTURE.md#architectural-decisions--core-principles)).
 Owns the `realtime` schema: `status` (the status each person chose) and `status_window` (meetings and approved leave
 the apps send). Who is connected and who is idle lives in Valkey. The HTTP contract is [api/openapi.yaml](api/openapi.yaml).
 

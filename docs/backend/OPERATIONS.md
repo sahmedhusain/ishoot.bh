@@ -60,7 +60,7 @@ way on their first start.
 ## Events
 
 A service writes each event to its own `outbox` table in the transaction that makes the change
-([ADR 0003](../adr/0003-events-outbox-nats.md), `pkg/outbox`). Its relay publishes pending rows to the JetStream stream
+(transactional outbox, `pkg/outbox`). Its relay publishes pending rows to the JetStream stream
 `EVENTS` with the event ID as the message ID, so a re-sent event is stored once. When NATS is down, events wait in the
 outbox and go out once it is back; nothing is lost. Watch `outbox_pending` and `outbox_publish_failures_total` on each
 service's admin port, and the stream at `http://127.0.0.1:8222/jsz?streams=true`. Payload schemas are in

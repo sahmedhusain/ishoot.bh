@@ -1,6 +1,6 @@
 # Backend security
 
-## Accounts and tokens ([ADR 0005](../adr/0005-identity-realms.md))
+## Accounts and tokens (see [docs/ARCHITECTURE.md](../ARCHITECTURE.md#architectural-decisions--core-principles))
 
 - **Realms.** There are three separate account realms: `staff` (admin app), `customer` (website) and `it` (IT
   dashboard). A fourth, `service`, covers calls between services. A token's audience is `platform:<realm>`, and every

@@ -1,6 +1,6 @@
 # audit service
 
-The platform's audit trail: every event the services publish ([ADR 0003](../../../docs/adr/0003-events-outbox-nats.md)),
+The platform's audit trail: every event the services publish (see [docs/ARCHITECTURE.md](../../../docs/ARCHITECTURE.md#architectural-decisions--core-principles)),
 recorded once and never changed, for IT to search from the IT dashboard (**Audit trail**, `audit:read`). Owns the
 `audit` schema: `event`. The HTTP contract is [api/openapi.yaml](api/openapi.yaml); regenerate the TypeScript client
 with `npm --prefix packages/api-client run generate` from the repository root.

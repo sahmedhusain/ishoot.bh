@@ -1,7 +1,7 @@
 # notify service
 
 Delivers the platform's e-mail and WhatsApp messages. Callers queue a message; a worker sends it through the configured
-provider, retries what may pass later, and announces each outcome as an event ([ADR 0003](../../../docs/adr/0003-events-outbox-nats.md)),
+provider, retries what may pass later, and announces each outcome as an event (transactional outbox),
 which the audit trail records. IT watches the queue, sends failed messages again and sends test messages from the IT
 dashboard (**Notifications**). Owns the `notify` schema: `message`, `attachment`, the outbox and River's tables. The
 HTTP contract is [api/openapi.yaml](api/openapi.yaml).
@@ -28,14 +28,14 @@ Rules: an e-mail needs one address, a one-line subject and text or HTML, with up
 | e-mail   | `NOTIFY_EMAIL_PROVIDER=integration`: Resend, with the credentials IT saved (the message ID is Resend's idempotency key); `smtp`: any SMTP server (Mailpit locally) |
 | WhatsApp | The WhatsApp Cloud API (`NOTIFY_WHATSAPP_URL`) with IT's credentials (`integration`), or fixed ones for the sandbox (`static`)                                     |
 
-Credentials kept by the system service are read with notify's own service token (`NOTIFY_SERVICE_KEY`, ADR 0011).
+Credentials kept by the system service are read with notify's own service token (`NOTIFY_SERVICE_KEY`).
 A refusal that retrying cannot fix (an invalid recipient, a 4xx other than 408/429, a missing or switched-off
 integration) fails the message at once; anything else is retried with River's back-off up to `NOTIFY_MAX_ATTEMPTS`,
 then the message fails. IT can send a failed message again once the cause is fixed.
 
 ## In-app notifications
 
-notify also owns every person's inbox in the staff and IT realms ([ADR 0012](../../../docs/adr/0012-in-app-notifications-realtime-presence.md)):
+notify also owns every person's inbox in the staff and IT realms (see [docs/ARCHITECTURE.md](../../../docs/ARCHITECTURE.md#architectural-decisions--core-principles)):
 `notification` (with a category from [contracts/catalog/notifications.json](../../../contracts/catalog/notifications.json),
 a priority, read and archive state and an optional delivery time), `preference` (mute everything until a time, sound,
 volume, pop-ups, desktop alerts), `category_setting` (per category: muted, sound) and `mute` (records a person muted).

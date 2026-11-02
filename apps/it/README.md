@@ -1,6 +1,6 @@
 # IT dashboard (`apps/it`)
 
-The IT department's operational dashboard ([ADR 0010](../../docs/adr/0010-it-dashboard.md)). Pages communicate with the Go backend microservices through the API gateway. IT staff sign in with **IT accounts**, an isolated authentication realm in the `identity` service with mandatory TOTP MFA.
+The IT department's operational dashboard (see [docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md#architectural-decisions--core-principles)). Pages communicate with the Go backend microservices through the API gateway. IT staff sign in with **IT accounts**, an isolated authentication realm in the `identity` service with mandatory TOTP MFA.
 
 ## Pages & Capabilities
 

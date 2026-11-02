@@ -1,7 +1,7 @@
 # Backend
 
 Go services that replace the TypeScript backend of the Next.js apps, one business domain at a time
-([ADR 0008](../docs/adr/0008-phased-migration.md)). Start with [docs/backend](../docs/backend/README.md).
+(see [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md#architectural-decisions--core-principles)). Start with [docs/backend](../docs/backend/README.md).
 
 ## Quick start
 
@@ -38,7 +38,7 @@ backend/
     ratelimit          shared rate limits (Redis/Valkey, GCRA)
     telemetry          OpenTelemetry tracing
     db                 PostgreSQL pool, statement timeout, transactions
-    outbox             transactional outbox, its relay and the consumers' inbox (ADR 0003)
+    outbox             transactional outbox, its relay and the consumers' inbox
     natsx              NATS JetStream: the EVENTS stream, publishing and durable consumers
     redisx             Redis/Valkey client
     secrets            AES-256-GCM key ring (reads the old TypeScript formats too)
@@ -62,7 +62,7 @@ backend/
   `settings.Config`; defaults sit in its `envDefault` tags and are listed in
   [docs/backend/CONFIG.md](../docs/backend/CONFIG.md) (generated). Business values that change at runtime live in the
   database of the service that owns them. Shared constants (permissions, modules, statuses, ticket categories) live in
-  [`contracts/catalog`](../contracts/catalog) ([ADR 0007](../docs/adr/0007-shared-catalogue.md)).
+  [`contracts/catalog`](../contracts/catalog).
 - **Errors** are `problem.Problem` values. Anything else becomes a bare 500; the cause is logged, never returned.
 - **Every request** carries `X-Request-ID` and a trace. Both appear in every log line.
 - **Two listeners per service.** Public HTTP on `:8080`. Internal admin on `:9090` (`/livez`, `/readyz`, `/metrics`,

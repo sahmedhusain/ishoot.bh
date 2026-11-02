@@ -59,7 +59,7 @@ tools until the full migration and restore rehearsal succeeds.
 - Integrate the generated client, gateway, app cookies and existing auth DTOs; preserve existing auth exports and authorization behavior. Wire production deployment and key rotation.
 - Rehearse migration and restore with real customer, MFA and recovery-code data; verify permission parity and run the staff, customer, setup, OAuth, MFA, reset and logout regression and browser suites.
 
-`User` and `Customer` also contain business relationships used by Prisma. Do not move or delete those tables until their remaining readers and projections have replacements. No cross-service foreign keys are added by the identity snapshot. See [ADR 0005](../adr/0005-identity-realms.md) and the original architecture plan for the intended boundaries.
+`User` and `Customer` also contain business relationships used by Prisma. Do not move or delete those tables until their remaining readers and projections have replacements. No cross-service foreign keys are added by the identity snapshot. See [docs/ARCHITECTURE.md](../ARCHITECTURE.md#architectural-decisions--core-principles) for the intended boundaries.
 
 ## Pending staff/frontend cutover
 

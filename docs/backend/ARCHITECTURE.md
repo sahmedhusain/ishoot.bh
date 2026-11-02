@@ -14,16 +14,11 @@ Browser ─▶ apps/web · apps/admin · apps/it   (Next.js: UI, cookies, server
 
 ## Principles
 
-- **One service per business domain** ([ADR 0001](../adr/0001-go-echo-microservices.md)). Each service owns its tables
-  in its own schema and connects with its own database role ([ADR 0002](../adr/0002-postgres-schema-per-service.md)).
-  No service reads another's tables.
-- **APIs for questions, events for facts.** Synchronous reads use the owning service's HTTP API, described by
-  OpenAPI ([ADR 0006](../adr/0006-openapi-first.md)). Changes other services must react to are events, written to an
-  outbox in the same transaction and published to NATS JetStream ([ADR 0003](../adr/0003-events-outbox-nats.md)).
-  Background work runs as River jobs ([ADR 0004](../adr/0004-background-jobs-river.md)).
-- **The front ends keep their look.** The Next.js apps keep their pages, components and styles. Only their data
-  access changes, from Prisma to the generated API client.
-- **Configuration, not code.** See [CONFIG](CONFIG.md) and the [catalogue](../adr/0007-shared-catalogue.md).
+The system architecture is governed by the core principles detailed in [Architecture & Principles](../ARCHITECTURE.md#architectural-decisions--core-principles):
+- **One service per business domain.** Each service owns its tables in its own PostgreSQL schema and connects with its own database role. No service reads another's tables.
+- **APIs for questions, events for facts.** Synchronous reads use the owning service's HTTP API, described by OpenAPI 3.1. Changes other services must react to are events, written to an outbox in the same transaction and published to NATS JetStream. Background work runs as River jobs.
+- **The front ends keep their look.** The Next.js apps keep their pages, components and styles. Only their data access changes, from legacy Prisma to the generated typed API client.
+- **Configuration, not code.** See [CONFIG](CONFIG.md) and the shared business catalogue.
 
 ## Migration status
 
@@ -42,7 +37,7 @@ from the IT dashboard, and publishes its changes as events (transactional outbox
 as its own database login behind PgBouncer. The audit service records every event for the IT dashboard's audit
 trail, and notify delivers every e-mail and WhatsApp message. notify also keeps every in-app notification with each
 person's settings, and the realtime service pushes live updates and statuses to the admin and IT dashboards over
-Server-Sent Events ([ADR 0012](../adr/0012-in-app-notifications-realtime-presence.md)). Broadcasts and the remaining IT
+Server-Sent Events. Broadcasts and the remaining IT
 pages are not built yet, and no business domain has moved.
 
 ### Verification follow-up (2026-11-02)

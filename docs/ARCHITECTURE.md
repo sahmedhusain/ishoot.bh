@@ -44,6 +44,53 @@ The backend is composed of 16 domain-scoped Go services:
 - **`commerce`**: Customers, addresses, store configuration, discount coupons, sales orders, and retail POS.
 - **`delivery`**: Shipping zones, time slots, delivery fleet, route sheets, shipments, courier adapters, and COD.
 
+## Architectural Decisions & Core Principles
+
+The platform's technical architecture is governed by key engineering decisions:
+
+### 1. Go Microservices with Echo & API Gateway
+- **Decision**: The backend is written in Go using the Echo v4 web framework, partitioned into domain-scoped services behind an API Gateway (`gateway`).
+- **Rationale**: Replaces the monolith where database access, business rules, and UI rendering were coupled in Next.js Server Actions. Enables independent service scaling, resource allocation, and zero-downtime rolling updates.
+
+### 2. Schema-per-Service Database Isolation
+- **Decision**: PostgreSQL 17 serves as the primary database with a dedicated schema and role for each microservice (`identity`, `system`, `files`, `notify`, `realtime`, `audit`, `itsm`, `cms`, `sales`, `finance`, `workflow`, `hr`, `inventory`, `commerce`, `delivery`).
+- **Rationale**: Enforces hard domain boundaries at the database layer. No service may read or write another service's tables directly. Cross-service interactions must use HTTP APIs or asynchronous events.
+
+### 3. Transactional Outbox & NATS JetStream Events
+- **Decision**: State mutations write domain events to an append-only `outbox` table in the same database transaction. An outbox relay worker publishes these events to NATS JetStream, and subscribing services consume messages via durable consumers with an `inbox` table.
+- **Rationale**: Eliminates dual-write anomalies, prevents lost events on crash, and decouples side-effects (e.g. notifications, audit trail, projections) from synchronous request latency.
+
+### 4. River Background Workers
+- **Decision**: Background jobs, retry schedules, and maintenance tasks run as PostgreSQL-backed River workers compiled directly into Go service binaries.
+- **Rationale**: Guarantees atomic job scheduling within domain transactions (`FOR UPDATE SKIP LOCKED`), eliminating external cron routes and dedicated Node worker processes.
+
+### 5. Triple Identity Realms & JWKS Token Verification
+- **Decision**: The `identity` service manages three isolated realms with separate policies:
+  - **Staff Realm**: Employee accounts with role permissions and optional MFA.
+  - **IT Realm**: Operational accounts with mandatory TOTP MFA.
+  - **Customer Realm**: Store visitors with email code and Google/Apple OAuth sign-in.
+- **Rationale**: Prevents privilege leakage between public shoppers, employees, and infrastructure operators. Services verify caller tokens using EdDSA public keys fetched from `identity` JWKS endpoints.
+
+### 6. OpenAPI-First Contracts & Typed Client Generation
+- **Decision**: Microservice HTTP interfaces are defined using OpenAPI 3.1 specifications (`api/openapi.yaml`), and typed TypeScript client functions in `packages/api-client` are automatically generated.
+- **Rationale**: Provides contract testing, strict input/output validation, and prevents schema divergence between frontend applications and backend handlers.
+
+### 7. Centralized Business Catalogue
+- **Decision**: Common constants, enumerations, statuses, and workflow transitions reside in `contracts/catalog/*.json` and are generated into both Go packages (`backend/pkg/catalog`) and TypeScript constants.
+- **Rationale**: Single source of truth across language boundaries without manual duplication or drift.
+
+### 8. Private S3-Compatible Storage
+- **Decision**: File storage uses S3-compatible APIs (SeaweedFS locally, cloud S3 in production). The Go `files` service validates MIME types, dimensions, and quotas before storing bytes.
+- **Rationale**: All storage buckets remain private. Client browsers access files only through authorized application proxy routes.
+
+### 9. Dedicated IT Operational Dashboard
+- **Decision**: IT operations, system health, ticketing, database maintenance, and access policies are hosted in a separate application (`apps/it`) rather than inside the general business admin.
+- **Rationale**: Keeps administrative and infrastructure controls physically and architecturally separate from daily business functions.
+
+### 10. Decoupled Frontend Applications & Standalone NPM Setup
+- **Decision**: `apps/admin`, `apps/it`, and `apps/web` are standalone npm projects referencing local packages (`@platform/*`) via relative `file:../../packages/<pkg>` dependencies.
+- **Rationale**: Eliminates monorepo workspace managers (PNPM, Turborepo), avoids root `node_modules` pollution, and enables independent frontend builds, deployments, and testing.
+
 ## Company Identity and Theming
 
 ```

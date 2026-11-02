@@ -1,6 +1,6 @@
 # system service
 
-Installation-wide settings the IT team manages from the IT dashboard ([ADR 0010](../../../docs/adr/0010-it-dashboard.md)).
+Installation-wide settings the IT team manages from the IT dashboard (see [docs/ARCHITECTURE.md](../../../docs/ARCHITECTURE.md#architectural-decisions--core-principles)).
 Today it owns **modules**, **integrations** and the **site**: which optional areas of the platform are switched on,
 external service credentials (encrypted at rest), and the website's domains and site-wide analytics and code. Runtime
 configuration and company settings move here next (Phase 4). The HTTP contract
