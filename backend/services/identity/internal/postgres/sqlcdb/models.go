@@ -65,3 +65,33 @@ type IdentitySessionFamily struct {
 	RevokedAt *time.Time
 	CreatedAt time.Time
 }
+
+type IdentityStaffAccess struct {
+	Realm               string
+	SubjectID           string
+	PermissionOverrides []byte
+	UpdatedAt           time.Time
+}
+
+type IdentityStaffPermission struct {
+	ID        string
+	RoleID    string
+	Resource  string
+	Action    string
+	Allowed   bool
+	CreatedAt time.Time
+}
+
+type IdentityStaffRole struct {
+	ID        string
+	NameEn    string
+	NameAr    string
+	IsSystem  bool
+	CreatedAt time.Time
+}
+
+type IdentityStaffRoleScope struct {
+	RoleID string
+	Area   string
+	Scope  string
+}

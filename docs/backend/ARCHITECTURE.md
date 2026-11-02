@@ -31,7 +31,7 @@ Browser ─▶ apps/web · apps/admin · apps/it   (Next.js: UI, cookies, server
 | ----- | ------------------------------------------------------------------------------------- | ------------ |
 | 1     | Shared kit, catalogue, gateway, local stack, CI, Helm, docs                           | **Done**; chart validation below |
 | 2     | `files` on S3-compatible storage; Supabase removed                                    | Verification |
-| 3     | `identity` (staff, customer and IT realms)                                            | In progress; IT auth/recovery/management and identity snapshot restore verified below |
+| 3     | `identity` (staff, customer and IT realms)                                            | In progress; IT auth/recovery/management and account/access snapshot restore verified below |
 | 4     | `system`, `audit`, `notify` and the IT dashboard (`apps/it`)                          | In progress  |
 | 5     | `itsm` and IT support in the admin app                                                | In progress  |
 | 6     | Domain waves: cms → sales → finance → workflow → hr → inventory → commerce → delivery | Planned      |
@@ -131,6 +131,12 @@ First-account bootstrap now requires `it_admin`, maintaining the administration 
 last-admin checks. The Go identity race suite, vet, lint and security scan pass, including restricted-role refusal.
 This remains a preview snapshot: staff/customer apps, access grants, invitations and OAuth are not cut over, and
 all import/restore tools are retained. Developer volumes and environment values were not changed.
+
+The extended snapshot now preserves roles, grants/denials, overrides and role data scopes. On the same disposable
+copy, it imported 22 roles, 11,132 grants and 23 staff access records; SQL comparisons and a second restore/rerun
+confirmed storage parity. Unchanged reruns write nothing, and changed imports require an operator ID and an atomic
+audit event. Go fixtures cover nonempty scopes/overrides, malformed access, target conflicts and audit rollback.
+Runtime permission evaluation and staff/customer app integration remain pending.
 
 ## Request path
 

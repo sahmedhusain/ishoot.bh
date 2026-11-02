@@ -50,6 +50,11 @@ customer account migration remains separate work.
 
 ## Events
 
+The preview [snapshot importer](../../../docs/backend/IDENTITY-MIGRATION.md) also preserves staff roles, grants,
+overrides and role data scopes. Its apply command requires an operator ID and writes `identity.snapshot.imported`
+in the same transaction, carrying only that ID and insertion counts. Dry runs and unchanged reruns emit nothing.
+Runtime staff authorization and the staff/customer app cutover remain pending.
+
 `identity.user.created`, `identity.user.changed`, `identity.user.recovered`, `identity.session.started`, `identity.session.rotated`,
 `identity.session.revoked` and `identity.mfa.changed` are written to `identity.outbox` with their changes. They carry
 only account/session IDs, realm, operation/reason and actor; never an address, password, token, secret or recovery

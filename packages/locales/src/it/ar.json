@@ -750,6 +750,7 @@
       "notify.message.failed": "فشل رسالة",
       "notify.message.retried": "إعادة إرسال رسالة",
       "identity.user.created": "إنشاء حساب تقنية المعلومات",
+      "identity.snapshot.imported": "استيراد نسخة حسابات الهوية",
       "identity.user.recovered": "استعادة حساب مسؤول تقنية المعلومات",
       "identity.session.started": "بدء جلسة",
       "identity.session.rotated": "تجديد جلسة",
