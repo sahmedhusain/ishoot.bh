@@ -9,17 +9,21 @@ import {
 export default async function SessionsPage({
   searchParams,
 }: {
-  searchParams: Promise<Record<string, string | undefined>>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const user = await requireAllowed("sessions", "read");
   const params = await searchParams;
-  const realm = ["staff", "customer", "it"].includes(params.realm || "")
-    ? (params.realm as Realm)
+  const query = (name: string) => {
+    const value = params[name];
+    return (Array.isArray(value) ? value[0] : value) || "";
+  };
+  const realm = ["staff", "customer", "it"].includes(query("realm"))
+    ? (query("realm") as Realm)
     : "";
   const filter: SessionFilter = {
     realm,
-    subjectId: (params.subjectId || "").trim().slice(0, 200),
-    cursor: (params.cursor || "").slice(0, 36),
+    subjectId: query("subjectId").trim().slice(0, 200),
+    cursor: query("cursor").slice(0, 36),
   };
   const page = await asUser(() =>
     listIdentitySessionsForIT(user.token, {

@@ -36,7 +36,6 @@ const server = (
   env: {
     NEXT_PUBLIC_WEB_URL: `http://localhost:${ports.web}`,
     NEXT_PUBLIC_ADMIN_URL: `http://localhost:${ports.admin}`,
-    ADMIN_PREVIEW_ORIGINS: `http://localhost:${ports.setup}`,
     WEB_URL: `http://localhost:${ports.web}`,
     ADMIN_URL: `http://localhost:${ports.admin}`,
     ADMIN_PREVIEW_ORIGINS: `http://localhost:${ports.setup}`,

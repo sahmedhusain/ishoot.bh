@@ -153,6 +153,15 @@ Their fixtures use typed inputs and explicit customer/deal/invoice records rathe
 combined browser run remains pending; the earlier combined run had 189 passes, 12 failures and one blocked test.
 These checks preserve the existing UI and business behavior; the remaining business backend is still TypeScript.
 
+The next combined run reached 196 passes, three failures and three blocked cases. Follow-up fixes remove competing
+refreshes from order/procurement/store views and invalidate saved requisition details. Purchase-order submission
+retains its saved draft ID for retry and navigates after submission completes. Invoice/deal saves use document
+navigation to avoid the reproduced Next transition stall; this workaround remains until an upgrade is verified.
+Eight controlled save runs pass. All 38 focused admin cases pass across the follow-up and final order runs,
+including failed submission/retry and leaving an editor while its successful response is pending. Fixtures use a
+unique buyer and committed-page selectors. Unit/static checks (332), lint, production builds and action schemas
+pass; a fresh combined suite is running and has no final result yet.
+
 ### IT session controls (2026-11-02)
 
 The IT dashboard lists identity-issued sessions with realm/account filters and cursor paging, and permits audited
@@ -169,6 +178,11 @@ pass. Both production IT browser journeys pass without retries (46.3 seconds inc
 phone/English desktop filters, read-only access, cancel, injected failure/retry, live gateway invalidation, audit
 delivery and own-session cookie removal. The broad admin regression suite remains under investigation separately.
 Phase 3 remains in progress; staff/customer cutover and later migration waves are unfinished.
+
+A follow-up browser check reproduced a timestamp hydration error with an operator in a different timezone. The
+shared IT formatter now matches the server's first render before switching to the operator's local time. Both IT
+journeys pass with a Honolulu browser context (43.6 seconds), including local-time output, repeated session-filter
+parameters and no browser page errors. Session filters consistently use the first value of repeated parameters.
 
 ## Request path
 

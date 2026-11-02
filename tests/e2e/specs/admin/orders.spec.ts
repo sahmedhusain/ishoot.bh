@@ -12,6 +12,7 @@ import {
 const copy = t.orders;
 const db = testDatabase();
 const SKU = "E2E-COUNTER";
+const buyerName = `Phone Buyer ${Date.now()}`;
 let productId = "";
 
 test.describe.configure({ mode: "serial" });
@@ -85,7 +86,7 @@ test("a phone order is paid later (which invoices it), packed and made ready for
   await acceptConfirmations(page);
   await startSale(page, "1");
   await selectOption(page.getByLabel(copy.pos.channel), "phone");
-  await page.locator('input[name="saleName"]').fill("Phone Buyer");
+  await page.locator('input[name="saleName"]').fill(buyerName);
   await selectOption(page.getByTestId("sale-paid-with"), "");
   await page.getByTestId("sale-create").click();
   await expect(page).toHaveURL(/\/dashboard\/orders\/[0-9a-f-]{36}$/, {
@@ -125,14 +126,14 @@ test("a phone order is paid later (which invoices it), packed and made ready for
       ),
     )
     .toBe(1.5);
-  await expect(page.getByTestId("order-history")).toContainText(
-    copy.pickupStatuses.shipped,
-  );
+  await expect(
+    page.getByRole("main").getByTestId("order-history"),
+  ).toContainText(copy.pickupStatuses.shipped);
   errors.assertClean();
 });
 
 test("the orders list finds an order by its customer", async ({ page }) => {
-  await page.goto("/dashboard/orders?q=Phone%20Buyer");
+  await page.goto(`/dashboard/orders?q=${encodeURIComponent(buyerName)}`);
   await expect(page.getByTestId("orders-list").getByRole("link")).toHaveCount(
     1,
   );

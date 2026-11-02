@@ -34,7 +34,6 @@ export function SuppliersView({ suppliers, performance, currency, search, canEdi
     try {
       await saveSupplierAction(draft);
       setDraft(null);
-      router.refresh();
     } catch (err) {
       setError(errorMessage(err, t));
     } finally {

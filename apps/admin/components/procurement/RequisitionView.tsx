@@ -55,7 +55,6 @@ export function RequisitionView({ requisition, products, currency, canEdit, canP
       await task();
       if (done) setMessage({ tone: "ok", text: done });
       if (!requisition && savedId.current) router.replace(ROUTES.procurement.requisition(savedId.current));
-      else router.refresh();
     } catch (err) {
       setMessage({ tone: "error", text: errorMessage(err, t) });
     } finally {

@@ -4,7 +4,7 @@ type Option = string | { label?: string; value?: string; index?: number };
 /** Exercises the visible Material selector while keeping existing business-flow fixtures readable. */
 export async function selectOption(
   control: Locator,
-  option: Option | Option[],
+  option: Option | string[] | Exclude<Option, string>[],
   options?: { force?: boolean; timeout?: number },
 ) {
   const tag = await control.evaluate((element) => element.tagName);

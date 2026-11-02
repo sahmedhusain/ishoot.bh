@@ -109,6 +109,7 @@ export async function saveRequisitionAction(input: RequisitionInput) {
       { number: requisition.number },
     );
     revalidatePath(ROUTES.procurement.requisitions);
+    revalidatePath(ROUTES.procurement.requisition(requisition.id));
     return { success: true, id: requisition.id };
   });
 }

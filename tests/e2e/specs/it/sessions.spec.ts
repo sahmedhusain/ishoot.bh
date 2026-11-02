@@ -66,6 +66,7 @@ test("IT lists, filters and revokes sessions with bilingual confirmation and liv
   });
   const guest = await browser.newContext({
     baseURL: `http://localhost:${ports.it}`,
+    timezoneId: "Pacific/Honolulu",
   });
   try {
     const other = await guest.newPage();
@@ -86,13 +87,26 @@ test("IT lists, filters and revokes sessions with bilingual confirmation and liv
     });
     expect(items).toHaveLength(1);
     const id = items[0].id;
-    await other.goto(`/sessions?realm=it&subjectId=${created.subjectId}`);
+    await other.goto(
+      `/sessions?realm=it&realm=staff&subjectId=${created.subjectId}&subjectId=ignored&cursor=&cursor=invalid`,
+    );
     await expect(
       other.getByRole("heading", { name: ar.sessions.title, exact: true }),
     ).toBeVisible();
     await expect(
       other.getByRole("button", { name: ar.sessions.revoke, exact: true }),
     ).toHaveCount(0);
+    const localDate = await other.evaluate(
+      (value) =>
+        new Intl.DateTimeFormat("ar-u-nu-latn", {
+          dateStyle: "medium",
+          timeStyle: "short",
+        }).format(new Date(value)),
+      items[0].createdAt,
+    );
+    await expect(other.getByTestId(`identity-session-${id}`)).toContainText(
+      localDate,
+    );
 
     for (const copy of [ar, en]) {
       await page.setViewportSize({
@@ -212,7 +226,20 @@ test("IT lists, filters and revokes sessions with bilingual confirmation and liv
       role: "it_engineer",
       active: false,
     });
-    await page.goto(`/sessions?realm=it&subjectId=${root.sub}`);
+    let cursor = "";
+    for (;;) {
+      const own = await listIdentitySessionsForIT(rootToken, {
+        realm: "it",
+        subjectId: root.sub,
+        cursor: cursor || undefined,
+      });
+      if (own.items.some((session) => session.id === root.sid)) break;
+      expect(own.nextCursor).not.toBe("");
+      cursor = own.nextCursor;
+    }
+    await page.goto(
+      `/sessions?realm=it&subjectId=${root.sub}&cursor=${cursor}`,
+    );
     const current = page
       .getByRole("main")
       .getByTestId(`identity-session-${root.sid}`);

@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import { Loader2, Plus, Ticket } from "lucide-react";
 import { Button, Card, Input, Select } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
@@ -30,7 +29,6 @@ interface CouponRow {
 export function StoreSettingsView({ settings, coupons, gateways, currency, languages, canEdit, canCoupons }: { settings: StoreSettingsRecord; coupons: CouponRow[]; gateways: { id: string; test_mode: boolean }[]; currency: string; languages: readonly ContentLanguage[]; canEdit: boolean; canCoupons: boolean }) {
   const { t } = useAdminLocale();
   const copy = t.orders.settings;
-  const router = useRouter();
   const [form, setForm] = React.useState({
     guestCheckout: settings.guest_checkout,
     deliveryEnabled: settings.delivery_enabled,
@@ -53,7 +51,6 @@ export function StoreSettingsView({ settings, coupons, gateways, currency, langu
     try {
       await task();
       setMessage({ tone: "ok", text: done });
-      router.refresh();
     } catch (err) {
       setMessage({ tone: "error", text: errorMessage(err, t) });
     } finally {

@@ -3,7 +3,6 @@ import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Copy, CreditCard, Link2, Loader2, Paperclip } from "lucide-react";
 import { Button, Card, CurrencyDisplay, Input, Select, formatCurrencyValue, formatDate } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
@@ -27,7 +26,6 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
   const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const copy = t.orders.detail;
-  const router = useRouter();
   const [note, setNote] = React.useState("");
   const [payment, setPayment] = React.useState({ amount: String(Math.max(0, Math.round((order.total - order.amount_paid) * 1000) / 1000)), method: "cash", reference: "", proofUrl: "" });
   const [refund, setRefund] = React.useState({ amount: "", reason: "" });
@@ -48,7 +46,6 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
     try {
       await task();
       setMessage({ tone: "ok", text: done });
-      router.refresh();
     } catch (err) {
       setMessage({ tone: "error", text: errorMessage(err, t) });
     } finally {
