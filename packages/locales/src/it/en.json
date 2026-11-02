@@ -15,7 +15,8 @@
     "integrations": "Integrations",
     "site": "Website",
     "audit": "Audit trail",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "itAccounts": "IT accounts"
   },
   "login": {
     "title": "IT dashboard",
@@ -753,7 +754,8 @@
       "identity.session.started": "Session started",
       "identity.session.rotated": "Session refreshed",
       "identity.session.revoked": "Session revoked",
-      "identity.mfa.changed": "Authenticator settings changed"
+      "identity.mfa.changed": "Authenticator settings changed",
+      "identity.user.changed": "IT account access changed"
     }
   },
   "notifications": {
@@ -797,5 +799,36 @@
     "bytes": "{size} bytes",
     "text": "Text",
     "html": "HTML (source)"
+  },
+  "itAccounts": {
+    "title": "IT accounts",
+    "description": "Access to the IT dashboard. Changing access ends existing sessions. Keep at least one active administrator.",
+    "create": "Create IT account",
+    "email": "Email",
+    "password": "Password",
+    "role": "Role",
+    "active": "Active",
+    "save": "Save access",
+    "saved": "Access saved",
+    "created": "IT account created",
+    "lastLogin": "Last sign-in",
+    "never": "Never",
+    "mfaEnabled": "Authenticator enrolled",
+    "mfaMissing": "Authenticator not enrolled",
+    "passwordMin": "At least {count} characters",
+    "provisioning": "Save these credentials now",
+    "provisioningHint": "Shown once. Deliver the authenticator secret and recovery codes securely to the account holder before leaving this page.",
+    "secret": "Authenticator secret",
+    "setupLink": "Open authenticator setup",
+    "recoveryCodes": "Recovery codes",
+    "dismiss": "Clear credentials",
+    "first": "First page",
+    "next": "Next page",
+    "errors": {
+      "invalid": "Check the email, password length and role.",
+      "exists": "An IT account already uses this email.",
+      "lastAdmin": "Keep at least one active IT administrator.",
+      "unavailable": "Identity is unavailable. Try again."
+    }
   }
 }

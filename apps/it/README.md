@@ -1,18 +1,24 @@
 # IT dashboard (`apps/it`)
 
-The IT department's own dashboard ([ADR 0010](../../docs/adr/0010-it-dashboard.md)). It has no database: everything
-goes through the backend gateway. People sign in with **IT accounts**, a realm of their own in the identity service,
+The IT department's own dashboard ([ADR 0010](../../docs/adr/0010-it-dashboard.md)). Migrated pages read through the
+backend gateway. Integration connection tests and social synchronization still import legacy database helpers;
+removing those calls requires their service replacements. People sign in with **IT accounts**, a realm of their own in the identity service,
 and an authenticator is always required.
 
-| Page       | Needs (`contracts/catalog/it-access.json`) | Backend                        |
-| ---------- | ------------------------------------------ | ------------------------------ |
-| `/`        | `tickets:read`                             | itsm `GET /v1/itsm/desk/stats` |
-| `/tickets` | `tickets:read` (`edit`, `assign` to act)   | itsm `/v1/itsm/desk/tickets`   |
-| `/sla`     | `ticket_settings:read` (`edit` to change)  | itsm `/v1/itsm/desk/sla`       |
-| `/login`   | —                                          | identity `/v1/identity/it/...` |
+| Page             | Needs (`contracts/catalog/it-access.json`)   | Backend                                                                      |
+| ---------------- | -------------------------------------------- | ---------------------------------------------------------------------------- |
+| `/`              | `tickets:read`                               | itsm `GET /v1/itsm/desk/stats`                                               |
+| `/tickets`       | `tickets:read` (`edit`, `assign` to act)     | itsm `/v1/itsm/desk/tickets`                                                 |
+| `/sla`           | `ticket_settings:read` (`edit` to change)    | itsm `/v1/itsm/desk/sla`                                                     |
+| `/login`         | —                                            | identity `/v1/identity/it/...`                                               |
+| `/modules`       | `modules:read` (`edit` to change)            | system `/v1/system/desk/modules`                                             |
+| `/integrations`  | `integrations:read`                          | system `/v1/system/desk/integrations`; legacy connection/sync helpers remain |
+| `/site`          | `domains:read`, `site_code:read`             | system `/v1/system/desk/site/...`                                            |
+| `/notifications` | `notifications:read` (`execute` to act)      | notify `/v1/notify/desk/...`                                                 |
+| `/audit`         | `audit:read`                                 | audit `/v1/audit/desk/...`                                                   |
+| `/it-accounts`   | `it_accounts:read` (`create`, `edit` to act) | identity `/v1/identity/desk/it-accounts`                                     |
 
-System settings, domains, integrations, staff accounts and the other pages listed in the ADR move here from the admin
-app with the `system`, `audit` and `notify` services (Phase 4).
+Company settings, staff accounts and the remaining operations pages listed in the ADR are still to move here.
 
 ## Sign-in and sessions
 
@@ -30,6 +36,9 @@ app with the `system`, `audit` and `notify` services (Phase 4).
 
 The first IT account is created with `docker compose run --rm identity bootstrap-it -email …` (see the identity
 service README); it prints the authenticator link and recovery codes once.
+Further IT accounts are created from **IT accounts**, which shows fresh provisioning material once. Role changes
+and deactivation end existing sessions; the service refuses removing the last active administrator. See the
+[offline administrator recovery runbook](../../docs/backend/OPERATIONS.md#it-administrator-recovery) if all factors are lost.
 
 ## Running
 
@@ -44,5 +53,7 @@ The app runs on port 3002 and reads the root `.env` (`API_URL`, `IT_SERVICE_KEY`
 
 ## Tests
 
-`tests/e2e/specs/it` signs in with a password and an authenticator code, works a ticket and changes an SLA target.
+`tests/e2e/specs/it` signs in with a password and an authenticator, works tickets, settings, notifications and audit,
+then creates an IT account, changes its role, verifies its MFA and permission boundary, deactivates it and checks
+session revocation. It also verifies that the last administrator cannot be deactivated.
 `node tests/e2e/it-account.cjs` creates the account it uses (once per database) with `bootstrap-it`.

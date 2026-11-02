@@ -28,9 +28,29 @@ It requires database and MFA-key access, an existing active IT administrator and
 reactivate or promote accounts. It replaces the password and factor, clears pending enrollment, replaces all
 recovery codes and revokes every existing session in one transaction. Account ID and roles stay unchanged.
 
+## IT account administration
+
+The IT dashboard's `/it-accounts` page uses these endpoints with IT-realm tokens. The service locks and rechecks the
+live actor account, role assignments, mandatory MFA and session before each action; service/staff/customer tokens
+cannot administer IT accounts.
+
+| Endpoint | Permission | Result |
+| --- | --- | --- |
+| `GET /v1/identity/desk/it-accounts` | `it_accounts:read` | ID/email/roles/status/MFA and login times, cursor paging, password minimum; no credentials |
+| `POST /v1/identity/desk/it-accounts` | `it_accounts:create` | Creates a fresh ID, password hash, authenticator and recovery codes; returns provisioning material once |
+| `PUT /v1/identity/desk/it-accounts/{id}` | `it_accounts:edit` | Sets the role and active status and revokes existing sessions |
+
+Creation uses the configured password minimum and bounded hashing concurrency. All responses are `no-store`.
+Account changes are serialized with bootstrap/recovery, so concurrent requests cannot demote or disable the last
+active, MFA-enrolled administrator with a password. Repeating unchanged access is a no-op. Deactivation retains
+account and audit references; it never deletes an account. Each successful create/change records the acting IT
+account in `identity.user.created` / `identity.user.changed`. An audit failure rolls back the operation, including
+session revocation. IT accounts already belong to identity, so this page needs no legacy table handoff. Staff and
+customer account migration remains separate work.
+
 ## Events
 
-`identity.user.created`, `identity.user.recovered`, `identity.session.started`, `identity.session.rotated`,
+`identity.user.created`, `identity.user.changed`, `identity.user.recovered`, `identity.session.started`, `identity.session.rotated`,
 `identity.session.revoked` and `identity.mfa.changed` are written to `identity.outbox` with their changes. They carry
 only account/session IDs, realm, operation/reason and actor; never an address, password, token, secret or recovery
 code. Schemas live in [contracts/events](../../../contracts/events). The worker publishes the outbox to NATS and

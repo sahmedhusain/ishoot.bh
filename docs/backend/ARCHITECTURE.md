@@ -31,7 +31,7 @@ Browser ─▶ apps/web · apps/admin · apps/it   (Next.js: UI, cookies, server
 | ----- | ------------------------------------------------------------------------------------- | ------------ |
 | 1     | Shared kit, catalogue, gateway, local stack, CI, Helm, docs                           | **Done**; chart validation below |
 | 2     | `files` on S3-compatible storage; Supabase removed                                    | Verification |
-| 3     | `identity` (staff, customer and IT realms)                                            | In progress  |
+| 3     | `identity` (staff, customer and IT realms)                                            | In progress; IT auth, audit/recovery (`5ea19e78`) and account management verified below |
 | 4     | `system`, `audit`, `notify` and the IT dashboard (`apps/it`)                          | In progress  |
 | 5     | `itsm` and IT support in the admin app                                                | In progress  |
 | 6     | Domain waves: cms → sales → finance → workflow → hr → inventory → commerce → delivery | Planned      |
@@ -82,6 +82,28 @@ ticket links, so the spec now waits for the queue URL and heading before opening
 action-schema checks pass. Staff/customer sign-in, access handoff, IT account management and the later domain waves remain unfinished.
 No production/development data or environment values were changed. Real-data migration/restore, image scans, load
 tests and a cluster smoke deployment are not verified by this milestone.
+
+### IT account management (2026-11-02)
+
+`/it-accounts` now lists, creates, changes roles and deactivates IT accounts through identity's OpenAPI contract.
+Creation shows a fresh authenticator and recovery codes once; the UI reads the password minimum from the service.
+The owning service rechecks a locked live account, role, MFA and session for each action. Every access change
+revokes sessions and records its IT actor transactionally. Serialized changes retain at least one active,
+MFA-enrolled administrator, including during concurrent requests. IT data was already identity-owned; no legacy
+table migration is needed for this page.
+
+Evidence: the full Go vet/race suite and lint pass; HTTP tests validate every response against OpenAPI and cover
+realm/permission refusals, stale sessions, mandatory MFA login, paging, password policy, audit-failure rollback,
+session revocation and concurrent last-admin protection. All 327 frontend unit/static tests, lint, app/package
+type-checks and action schemas pass. The expanded IT Playwright journey passes in 15.2 s, including both roles,
+fresh MFA login, hidden/forbidden account management for engineers, deactivation and live gateway revocation.
+The generated API reference now links to all six Go OpenAPI documents (the gateway owns routing configuration).
+Seven new catalogue sync copies were reviewed as identical and removed after they appeared during generation.
+
+Phase 3 is still in progress: staff/customer auth and access handoff are not cut over. IT integration helpers still
+load Prisma. Company settings, operations pages, audit/notify completion, business services and legacy retirement
+remain open. Security scanning currently reports six pre-existing checked integer conversions in audit/notify;
+these do not come from the new account paths and are being addressed separately.
 
 ## Request path
 

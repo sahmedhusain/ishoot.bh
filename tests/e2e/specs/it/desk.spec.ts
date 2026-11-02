@@ -16,7 +16,7 @@ const accountFile = path.resolve(
 
 test.describe.configure({ mode: "serial" });
 
-test("IT works a ticket from the desk", async ({ page }) => {
+test("IT works a ticket from the desk", async ({ page, browser }) => {
   // It drives the IT dashboard, the backend and the website; a cold development build can take a while.
   test.slow();
   test.skip(
@@ -257,6 +257,84 @@ test("IT works a ticket from the desk", async ({ page }) => {
   await expect(
     events.getByText(t.audit.subjects["notify.message.failed"]).first(),
   ).toBeVisible();
+
+  // Account administration cannot remove the last administrator; new accounts get fresh mandatory MFA.
+  await page.getByRole("link", { name: t.nav.itAccounts }).click();
+  await expect(
+    page.getByRole("heading", { name: t.itAccounts.title, exact: true }),
+  ).toBeVisible();
+  const administrator = page.getByRole("form", {
+    name: account.email,
+    exact: true,
+  });
+  await administrator.getByLabel(t.itAccounts.active).uncheck();
+  await administrator.getByRole("button", { name: t.itAccounts.save }).click();
+  await expect(page.getByText(t.itAccounts.errors.lastAdmin)).toBeVisible();
+  await expect(administrator.getByLabel(t.itAccounts.active)).toBeChecked();
+
+  const newEmail = `it-account-${stamp}@example.test`;
+  const newPassword = "e2e-account-password-".repeat(8);
+  const create = page.getByRole("form", {
+    name: t.itAccounts.create,
+    exact: true,
+  });
+  await create.getByLabel(t.itAccounts.email).fill(newEmail);
+  await create
+    .getByLabel(t.itAccounts.password, { exact: true })
+    .fill(newPassword);
+  await create.getByRole("button", { name: t.itAccounts.create }).click();
+  await expect(
+    page.getByRole("heading", { name: t.itAccounts.provisioning }),
+  ).toBeVisible();
+  const provisioning = page
+    .getByRole("status")
+    .filter({ hasText: t.itAccounts.provisioning });
+  const newSecret = (await provisioning.locator("code").textContent())!.trim();
+  expect(newSecret).toMatch(/^[A-Z2-7]+$/);
+  await provisioning
+    .getByRole("button", { name: t.itAccounts.dismiss })
+    .click();
+  await expect(provisioning).toHaveCount(0);
+  const member = page.getByRole("form", { name: newEmail, exact: true });
+  await member.getByRole("combobox", { name: t.itAccounts.role }).click();
+  await page
+    .getByRole("option", { name: t.roles.it_engineer, exact: true })
+    .click();
+  await member.getByRole("button", { name: t.itAccounts.save }).click();
+  await expect(page.getByText(t.itAccounts.saved).first()).toBeVisible();
+
+  const guest = await browser.newContext({
+    baseURL: `http://localhost:${ports.it}`,
+  });
+  try {
+    const other = await guest.newPage();
+    await other.goto("/login");
+    await other.getByLabel(t.login.email).fill(newEmail);
+    await other.getByLabel(t.login.password).fill(newPassword);
+    await other.getByRole("button", { name: t.login.submit }).click();
+    await other.getByLabel(t.login.otp).fill(totp(newSecret));
+    await other.getByRole("button", { name: t.login.verify }).click();
+    await expect(other).toHaveURL(/\/$/);
+    await expect(
+      other.getByRole("link", { name: t.nav.itAccounts }),
+    ).toHaveCount(0);
+    expect((await other.goto("/it-accounts"))?.status()).toBe(403);
+    const access = (await guest.cookies()).find(
+      (c) => c.name === (process.env.IT_ACCESS_COOKIE || "platform_it_access"),
+    )!.value;
+    await member.getByLabel(t.itAccounts.active).uncheck();
+    await member.getByRole("button", { name: t.itAccounts.save }).click();
+    await expect(member.getByLabel(t.itAccounts.active)).not.toBeChecked();
+    await expect(async () => {
+      const status = await other.request.get(
+        `${process.env.API_URL}/v1/identity/session`,
+        { headers: { Authorization: `Bearer ${access}` } },
+      );
+      expect(status.status()).toBe(401);
+    }).toPass({ timeout: 10_000 });
+  } finally {
+    await guest.close();
+  }
 
   await page.getByRole("button", { name: t.app.signOut }).click();
   await expect(page).toHaveURL(/\/login$/);

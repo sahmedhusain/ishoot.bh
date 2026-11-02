@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.local/events/identity.user.changed.v1.json",
+  "title": "identity.user.changed",
+  "description": "Identity lifecycle change. IDs only; no credentials, factors, addresses or recovery codes.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["subjectId", "realm", "changedBy"],
+  "properties": {
+    "subjectId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "realm": {
+      "type": "string",
+      "minLength": 1,
+      "enum": ["staff", "customer", "it"]
+    },
+    "changedBy": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

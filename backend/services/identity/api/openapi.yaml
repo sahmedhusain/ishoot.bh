@@ -13,6 +13,74 @@ servers:
 security:
   - serviceToken: []
 paths:
+  /v1/identity/desk/it-accounts:
+    get:
+      operationId: listITAccounts
+      summary: List IT accounts without credentials (it_accounts:read; live IT session required)
+      security: [{userToken: []}]
+      parameters:
+        - {name: cursor, in: query, schema: {type: string, maxLength: 200}}
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 200, default: 50}}
+      responses:
+        '200':
+          description: Accounts ordered by ID; pass nextCursor back as cursor
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [items, nextCursor, passwordMinLength]
+                properties:
+                  items: {type: array, items: {$ref: '#/components/schemas/ITAccount'}}
+                  nextCursor: {type: string}
+                  passwordMinLength: {type: integer, minimum: 12, maximum: 128}
+        default: {$ref: '#/components/responses/Problem'}
+    post:
+      operationId: createITAccount
+      summary: Create an IT account with an enrolled factor (it_accounts:create)
+      description: Returns provisioning material once. Never cache or log it; deliver it securely to the new account holder.
+      security: [{userToken: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [email, password, role]
+              properties:
+                email: {type: string, format: email, maxLength: 254}
+                password: {type: string, minLength: 12, maxLength: 1024, writeOnly: true}
+                role: {$ref: '#/components/schemas/ITRole'}
+      responses:
+        '201':
+          description: Account created; provisioning secrets are returned only in this response
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ITProvisioning'}
+        default: {$ref: '#/components/responses/Problem'}
+  /v1/identity/desk/it-accounts/{id}:
+    parameters:
+      - {name: id, in: path, required: true, schema: {type: string, minLength: 1, maxLength: 200}}
+    put:
+      operationId: updateITAccount
+      summary: Change role or active status and revoke sessions (it_accounts:edit)
+      description: Refuses disabling or demoting the last active MFA-enrolled IT administrator. Accounts and audit references are retained.
+      security: [{userToken: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [role, active]
+              properties:
+                role: {$ref: '#/components/schemas/ITRole'}
+                active: {type: boolean}
+      responses:
+        '204': {description: Access updated; existing sessions revoked}
+        default: {$ref: '#/components/responses/Problem'}
   /.well-known/jwks.json:
     get:
       operationId: identityJWKS
@@ -238,6 +306,30 @@ components:
           schema:
             $ref: '#/components/schemas/Problem'
   schemas:
+    ITRole:
+      type: string
+      enum: [it_admin, it_engineer, it_support, it_auditor]
+    ITAccount:
+      type: object
+      additionalProperties: false
+      required: [id, email, roles, active, mfaEnabled, createdAt, lastLoginAt]
+      properties:
+        id: {type: string}
+        email: {type: string, format: email}
+        roles: {type: array, items: {$ref: '#/components/schemas/ITRole'}}
+        active: {type: boolean}
+        mfaEnabled: {type: boolean}
+        createdAt: {type: string, format: date-time}
+        lastLoginAt: {type: [string, 'null'], format: date-time}
+    ITProvisioning:
+      type: object
+      additionalProperties: false
+      required: [subjectId, secret, otpAuthUrl, recoveryCodes]
+      properties:
+        subjectId: {type: string}
+        secret: {type: string, minLength: 1}
+        otpAuthUrl: {type: string, format: uri}
+        recoveryCodes: {type: array, minItems: 1, items: {type: string}}
     SessionCredential:
       type: object
       additionalProperties: false

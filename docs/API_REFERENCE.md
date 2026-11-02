@@ -1,6 +1,17 @@
 # API reference
 
-Generated from the code by `pnpm docs:api`; do not edit by hand. Input contracts for every server action are in `apps/admin/lib/action-schemas.json`, and the full data model is `packages/database/prisma/schema.prisma` (browse it with `pnpm db:studio`).
+Generated from the code by `pnpm docs:api`; do not edit by hand. Input contracts for admin server actions are in `apps/admin/lib/action-schemas.json`; unmigrated data models remain in `packages/database/prisma/schema.prisma` (browse them with `pnpm db:studio`).
+
+## Go service contracts
+
+| Service | OpenAPI contract |
+|---|---|
+| audit | [OpenAPI](../backend/services/audit/api/openapi.yaml) |
+| files | [OpenAPI](../backend/services/files/api/openapi.yaml) |
+| identity | [OpenAPI](../backend/services/identity/api/openapi.yaml) |
+| itsm | [OpenAPI](../backend/services/itsm/api/openapi.yaml) |
+| notify | [OpenAPI](../backend/services/notify/api/openapi.yaml) |
+| system | [OpenAPI](../backend/services/system/api/openapi.yaml) |
 
 ## Website HTTP routes (`apps/web`)
 

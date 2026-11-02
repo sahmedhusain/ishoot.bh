@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   Timer,
   ToggleRight,
+  Users,
 } from "lucide-react";
 import { itAllowed } from "@platform/contracts";
 import { setLocaleAction, signOutAction } from "../app/actions";
@@ -43,6 +44,12 @@ const NAV = [
     resource: "notifications",
   },
   { href: "/audit", icon: History, label: "audit", resource: "audit" },
+  {
+    href: "/it-accounts",
+    icon: Users,
+    label: "itAccounts",
+    resource: "it_accounts",
+  },
 ] as const;
 
 export function Shell({

@@ -22,10 +22,12 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"platform.local/backend/pkg/authn"
+	"platform.local/backend/pkg/authz"
 	"platform.local/backend/pkg/catalog"
 	"platform.local/backend/pkg/db"
 	"platform.local/backend/pkg/outbox"
 	"platform.local/backend/pkg/totp"
+	"platform.local/backend/services/identity/internal/accounts"
 	"platform.local/backend/services/identity/internal/postgres/sqlcdb"
 )
 
@@ -37,8 +39,8 @@ var ErrRecoveryTarget = errors.New("recovery requires an existing active IT admi
 
 var operatorID = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9:._/-]{0,190}$`)
 
-// lockKey serialises offline account provisioning (pg_advisory_xact_lock).
-const lockKey = 0x1d_b007
+// AccountLock serialises IT account changes, including checks that retain the last administrator.
+const AccountLock = 0x1d_b007
 
 // Hasher hashes passwords (pkg/password).
 type Hasher interface {
@@ -63,10 +65,10 @@ type Input struct {
 
 // Result is shown once to the operator and never stored in plain text.
 type Result struct {
-	SubjectID     string
-	Secret        string
-	OTPAuthURL    string
-	RecoveryCodes []string
+	SubjectID     string   `json:"subjectId"`
+	Secret        string   `json:"secret"`
+	OTPAuthURL    string   `json:"otpAuthUrl"`
+	RecoveryCodes []string `json:"recoveryCodes"`
 }
 
 // Validate checks the input before anything is hashed or written.
@@ -85,7 +87,15 @@ func (in Input) Validate() error {
 
 // CreateITAdmin creates the first IT account with an enrolled authenticator and recovery codes.
 func CreateITAdmin(ctx context.Context, pool *pgxpool.Pool, hasher Hasher, sealer Sealer, in Input, now time.Time) (Result, error) {
-	return provision(ctx, pool, hasher, sealer, in, now, "")
+	return provision(ctx, pool, hasher, sealer, in, now, "", nil)
+}
+
+// CreateITAccount provisions a further account for an authorized IT administrator, with a fresh factor.
+func CreateITAccount(ctx context.Context, pool *pgxpool.Pool, hasher Hasher, sealer Sealer, in Input, now time.Time, actor authn.Principal) (Result, error) {
+	if actor.Realm != authn.RealmIT || !authz.Allowed(catalog.ITAccess, actor, "it_accounts", "create") {
+		return Result{}, accounts.ErrForbidden
+	}
+	return provision(ctx, pool, hasher, sealer, in, now, "", &actor)
 }
 
 // RecoverITAdmin replaces an existing administrator's password and factor and ends every session. It is an offline
@@ -95,10 +105,10 @@ func RecoverITAdmin(ctx context.Context, pool *pgxpool.Pool, hasher Hasher, seal
 		return Result{}, errors.New("an operator ID (1 to 191 letters, digits or :._/-) is required")
 	}
 	in.Role = "it_admin"
-	return provision(ctx, pool, hasher, sealer, in, now, actorID)
+	return provision(ctx, pool, hasher, sealer, in, now, actorID, nil)
 }
 
-func provision(ctx context.Context, pool *pgxpool.Pool, hasher Hasher, sealer Sealer, in Input, now time.Time, actorID string) (Result, error) {
+func provision(ctx context.Context, pool *pgxpool.Pool, hasher Hasher, sealer Sealer, in Input, now time.Time, actorID string, creator *authn.Principal) (Result, error) {
 	in.Email = strings.ToLower(strings.TrimSpace(in.Email))
 	if err := in.Validate(); err != nil {
 		return Result{}, err
@@ -118,11 +128,16 @@ func provision(ctx context.Context, pool *pgxpool.Pool, hasher Hasher, sealer Se
 		return Result{}, err
 	}
 	err = db.WithTx(ctx, pool, pgx.TxOptions{}, func(tx pgx.Tx) error {
-		if _, err := tx.Exec(ctx, "SELECT pg_advisory_xact_lock($1)", lockKey); err != nil {
+		if _, err := tx.Exec(ctx, "SELECT pg_advisory_xact_lock($1)", AccountLock); err != nil {
 			return err
 		}
 		q := sqlcdb.New(tx)
-		if actorID == "" {
+		switch {
+		case creator != nil:
+			if err := accounts.CheckITAccess(ctx, q, *creator, "it_accounts", "create", now); err != nil {
+				return err
+			}
+		case actorID == "":
 			n, err := q.CountRealmAccounts(ctx, string(authn.RealmIT))
 			if err != nil {
 				return err
@@ -130,7 +145,7 @@ func provision(ctx context.Context, pool *pgxpool.Pool, hasher Hasher, sealer Se
 			if n > 0 {
 				return ErrExists
 			}
-		} else {
+		default:
 			target, err := q.FindAccountByEmail(ctx, sqlcdb.FindAccountByEmailParams{Realm: string(authn.RealmIT), Email: in.Email})
 			if errors.Is(err, pgx.ErrNoRows) {
 				return ErrRecoveryTarget
@@ -152,6 +167,9 @@ func provision(ctx context.Context, pool *pgxpool.Pool, hasher Hasher, sealer Se
 			return err
 		}
 		verb, actor := "created", "identity:bootstrap-it"
+		if creator != nil {
+			actor = "it:" + creator.Subject
+		}
 		if actorID == "" {
 			if err := q.InsertAccount(ctx, sqlcdb.InsertAccountParams{
 				Realm: string(authn.RealmIT), SubjectID: subject, Email: in.Email, PasswordHash: &hash,

@@ -1,6 +1,6 @@
 // Run: pnpm docs:api
-// Writes docs/API_REFERENCE.md from the code: every HTTP route of both apps, every server action (grouped by
-// file, with the permission it requires) and every database model. Regenerate after adding routes or actions.
+// Writes docs/API_REFERENCE.md from the Go contracts, website/admin HTTP routes, admin actions and database models.
+// Regenerate after adding contracts, routes or actions.
 const fs = require("node:fs");
 const path = require("node:path");
 
@@ -60,7 +60,11 @@ const allModels = models();
 const out = [
   "# API reference",
   "",
-  "Generated from the code by `pnpm docs:api`; do not edit by hand. Input contracts for every server action are in `apps/admin/lib/action-schemas.json`, and the full data model is `packages/database/prisma/schema.prisma` (browse it with `pnpm db:studio`).",
+  "Generated from the code by `pnpm docs:api`; do not edit by hand. Input contracts for admin server actions are in `apps/admin/lib/action-schemas.json`; unmigrated data models remain in `packages/database/prisma/schema.prisma` (browse them with `pnpm db:studio`).",
+  "",
+  "## Go service contracts",
+  "",
+  table(["Service", "OpenAPI contract"], walk("backend/services", (name) => name === "openapi.yaml").map((file) => [file.split(path.sep)[2], `[OpenAPI](../${file.split(path.sep).join("/")})`])),
   "",
   "## Website HTTP routes (`apps/web`)",
   "",

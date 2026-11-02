@@ -22,6 +22,7 @@ import (
 	"platform.local/backend/pkg/redisx"
 	"platform.local/backend/pkg/telemetry"
 	"platform.local/backend/services/identity/internal/accounts"
+	"platform.local/backend/services/identity/internal/app"
 	"platform.local/backend/services/identity/internal/httpapi"
 	"platform.local/backend/services/identity/internal/jobs"
 	"platform.local/backend/services/identity/internal/postgres"
@@ -141,13 +142,14 @@ func run(command string) error {
 		return err
 	}
 	var login *accounts.Service
+	var manager *app.ITAccounts
 	if cfg.Login.Enabled {
-		service, client, err := newLogin(ctx, cfg.Login, pool, svc)
+		service, administration, client, err := newLogin(ctx, cfg.Login, pool, svc)
 		if err != nil {
 			return err
 		}
 		defer client.Close()
-		login = service
+		login, manager = service, administration
 		checker.Register("redis", redisx.Check(client))
 		checker.Register("accounts_schema", func(ctx context.Context) error {
 			var exists bool
@@ -167,6 +169,9 @@ func run(command string) error {
 	}
 	e.Use(telemetry.EchoMiddleware())
 	httpapi.Register(e, verifier, svc, issuer, login, cfg.Session.JSONBodyLimit, map[authn.Realm][]string{authn.RealmStaff: cfg.Callers.Staff, authn.RealmCustomer: cfg.Callers.Customer, authn.RealmIT: cfg.Callers.IT})
+	if manager != nil {
+		httpapi.RegisterITAccounts(e, issuer.Verifier(), manager, cfg.Session.JSONBodyLimit)
+	}
 	public, admin := httpx.Servers(cfg.Common, telemetry.Handler(cfg.ServiceName, e), httpx.AdminHandler(cfg.Common, logger, checker, metrics))
 	logger.Info("identity session API starting")
 	return httpx.Run(ctx, cfg.Common, logger, public, admin)
