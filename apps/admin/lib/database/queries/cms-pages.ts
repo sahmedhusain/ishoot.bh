@@ -1,7 +1,15 @@
 import { SITE_TONES, type SiteTone } from "../constants/website-design";
 import { randomUUID } from "node:crypto";
 import { getTranslations, serverMessages } from "@platform/locales";
-import { db } from "../db";
+import {
+  listPages,
+  getPageByID,
+  createPage,
+  updatePage,
+  deletePage,
+  getContentSnapshot,
+  type CMSPage,
+} from "@platform/api-client";
 import {
   BLOCK_TYPES,
   CODE_BLOCKS,
@@ -39,10 +47,9 @@ export interface CmsPageRecord {
   updated_at: string;
 }
 
-type PageRow = Awaited<ReturnType<typeof db.cmsPage.findMany>>[number];
 const PAGE_TYPES = ["home", "about", "contact", "custom"] as const;
 
-const mapPage = (row: PageRow): CmsPageRecord => ({
+const mapPage = (row: CMSPage): CmsPageRecord => ({
   id: row.id,
   slug: row.slug,
   page_type: (PAGE_TYPES as readonly string[]).includes(row.pageType)
@@ -59,7 +66,7 @@ const mapPage = (row: PageRow): CmsPageRecord => ({
   in_header: row.inHeader,
   in_footer: row.inFooter,
   sort_order: row.sortOrder,
-  updated_at: row.updatedAt.toISOString(),
+  updated_at: row.updatedAt ? new Date(row.updatedAt).toISOString() : new Date().toISOString(),
 });
 
 const blockId = () => randomUUID().slice(0, 8);
@@ -98,6 +105,7 @@ export function defaultCmsPages(config: ResolvedWebsiteConfig) {
       return type ? [block(type, section.visible)] : [];
     }),
   ];
+
   return [
     {
       slug: "",
@@ -142,34 +150,40 @@ export function defaultCmsPages(config: ResolvedWebsiteConfig) {
 
 /** Creates the starting pages from the current website draft the first time pages are needed. */
 export async function ensureCmsPages() {
-  if ((await db.cmsPage.count()) > 0) return;
-  const content = await db.websiteContent.findUnique({
-    where: { id: "main" },
-    select: { draft: true },
-  });
-  const config = resolveWebsiteConfig(
-    validateWebsiteConfig(content?.draft ?? {}),
-  );
-  for (const page of defaultCmsPages(config)) {
-    await db.cmsPage.upsert({
-      where: { slug: page.slug },
-      update: {},
-      create: { ...page, blocks: JSON.parse(JSON.stringify(page.blocks)) },
-    });
+  try {
+    const existing = await listPages(true);
+    if (existing && existing.length > 0) return;
+    const snap = await getContentSnapshot("main");
+    const config = resolveWebsiteConfig(
+      validateWebsiteConfig((snap?.draft as any) ?? {}),
+    );
+    for (const page of defaultCmsPages(config)) {
+      await createPage("", { ...page, blocks: JSON.parse(JSON.stringify(page.blocks)) });
+    }
+  } catch (e) {
+    console.error("Error ensuring CMS pages:", e);
   }
 }
 
 export async function listCmsPages(): Promise<CmsPageRecord[]> {
   await ensureCmsPages().catch(() => undefined);
-  const rows = await db.cmsPage.findMany({
-    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-  });
-  return rows.map(mapPage);
+  try {
+    const rows = await listPages(true);
+    const sorted = [...(rows || [])].sort((a, b) => a.sortOrder - b.sortOrder);
+    return sorted.map(mapPage);
+  } catch (e) {
+    console.error("Error listing CMS pages:", e);
+    return [];
+  }
 }
 
 export async function getCmsPage(id: string): Promise<CmsPageRecord | null> {
-  const row = await db.cmsPage.findUnique({ where: { id } });
-  return row ? mapPage(row) : null;
+  try {
+    const row = await getPageByID("", id);
+    return row ? mapPage(row) : null;
+  } catch {
+    return null;
+  }
 }
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -391,11 +405,16 @@ export async function saveCmsPage(
   blocks: Block[],
   collectionSlug: string,
 ) {
-  const existing = input.id
-    ? await db.cmsPage.findUnique({ where: { id: input.id } })
-    : null;
-  if (input.id && !existing) throw new Error(serverMessages.cmsPageNotFound);
-  // Built-in pages keep their addresses; new pages need one that is free and not a reserved route.
+  let existing: CMSPage | null = null;
+  if (input.id) {
+    try {
+      existing = await getPageByID("", input.id);
+    } catch {
+      existing = null;
+    }
+    if (!existing) throw new Error(serverMessages.cmsPageNotFound);
+  }
+
   const slug =
     existing && existing.pageType !== "custom"
       ? existing.slug
@@ -409,10 +428,9 @@ export async function saveCmsPage(
       ["about", "contact"].includes(slug)
     )
       throw new Error(serverMessages.cmsPageSlugInvalid);
-    const clash = await db.cmsPage.findUnique({
-      where: { slug },
-      select: { id: true },
-    });
+
+    const allPages = await listPages(true);
+    const clash = allPages?.find((p) => p.slug === slug);
     if (clash && clash.id !== input.id)
       throw new Error(serverMessages.cmsPageSlugTaken);
   }
@@ -420,6 +438,7 @@ export async function saveCmsPage(
     throw new Error(serverMessages.cmsPageTitleRequired);
   const text = (value: string, max: number) =>
     value.trim().slice(0, max) || null;
+
   const data = {
     slug,
     titleEn: input.title_en.trim().slice(0, 200),
@@ -429,77 +448,69 @@ export async function saveCmsPage(
     seoDescriptionEn: text(input.seo_description_en, 400),
     seoDescriptionAr: text(input.seo_description_ar, 400),
     blocks: JSON.parse(JSON.stringify(blocks)),
-    // The homepage is always on; it is reached through the logo, not a menu.
     isVisible: existing?.pageType === "home" ? true : input.is_visible,
     inHeader: existing?.pageType === "home" ? false : input.in_header,
     inFooter: existing?.pageType === "home" ? false : input.in_footer,
   };
-  if (existing)
-    return mapPage(
-      await db.cmsPage.update({ where: { id: existing.id }, data }),
-    );
-  const last = await db.cmsPage.aggregate({ _max: { sortOrder: true } });
-  return mapPage(
-    await db.cmsPage.create({
-      data: {
-        ...data,
-        pageType: "custom",
-        sortOrder: (last._max.sortOrder ?? 0) + 1,
-      },
-    }),
-  );
+
+  if (existing) {
+    const updated = await updatePage("", existing.id, data);
+    return mapPage(updated);
+  }
+
+  const allPages = await listPages(true);
+  const maxSort = allPages?.reduce((max, p) => Math.max(max, p.sortOrder ?? 0), 0) ?? 0;
+  const created = await createPage("", {
+    ...data,
+    pageType: "custom",
+    sortOrder: maxSort + 1,
+  });
+  return mapPage(created);
 }
 
 /** A copy of a page with fresh block ids, hidden until the editor shows it. */
 export async function duplicateCmsPage(id: string) {
-  const page = await db.cmsPage.findUnique({ where: { id } });
+  const page = await getPageByID("", id);
   if (!page) throw new Error(serverMessages.cmsPageNotFound);
+  const allPages = await listPages(true);
+  const existingSlugs = new Set(allPages?.map((p) => p.slug) ?? []);
+
   let slug = `${page.slug || "home"}-copy`;
-  for (
-    let n = 2;
-    await db.cmsPage.findUnique({ where: { slug }, select: { id: true } });
-    n++
-  )
+  for (let n = 2; existingSlugs.has(slug); n++) {
     slug = `${page.slug || "home"}-copy-${n}`;
+  }
+
   const blocks = (
     Array.isArray(page.blocks) ? (page.blocks as unknown as Block[]) : []
   ).map((b) => ({ ...b, id: blockId() }));
-  const last = await db.cmsPage.aggregate({ _max: { sortOrder: true } });
-  return mapPage(
-    await db.cmsPage.create({
-      data: {
-        slug,
-        pageType: "custom",
-        titleEn: page.titleEn,
-        titleAr: page.titleAr,
-        blocks: JSON.parse(JSON.stringify(blocks)),
-        isVisible: false,
-        sortOrder: (last._max.sortOrder ?? 0) + 1,
-      },
-    }),
-  );
+
+  const maxSort = allPages?.reduce((max, p) => Math.max(max, p.sortOrder ?? 0), 0) ?? 0;
+  const created = await createPage("", {
+    slug,
+    pageType: "custom",
+    titleEn: page.titleEn,
+    titleAr: page.titleAr,
+    blocks: JSON.parse(JSON.stringify(blocks)),
+    isVisible: false,
+    sortOrder: maxSort + 1,
+  });
+  return mapPage(created);
 }
 
 /** Removes a page the company added; the built-in pages can be hidden but not removed. */
 export async function deleteCmsPage(id: string) {
-  const page = await db.cmsPage.findUnique({
-    where: { id },
-    select: { pageType: true },
-  });
+  const page = await getPageByID("", id);
   if (!page) return;
   if (page.pageType !== "custom")
     throw new Error(serverMessages.cmsPageBuiltIn);
-  await db.cmsPage.delete({ where: { id } });
+  await deletePage("", id);
 }
 
 export async function reorderCmsPages(ids: string[]) {
-  await db.$transaction(
-    ids
-      .slice(0, 200)
-      .map((id, index) =>
-        db.cmsPage.updateMany({ where: { id }, data: { sortOrder: index } }),
-      ),
+  const tasks = ids.slice(0, 200).map((id, index) =>
+    updatePage("", id, { sortOrder: index }).catch(() => undefined),
   );
+  await Promise.all(tasks);
 }
 
 /** Whether a page shows on the website and in the header and footer menus (the homepage is always shown, menus never). */
@@ -507,18 +518,12 @@ export async function updateCmsPageFlags(
   id: string,
   flags: { is_visible: boolean; in_header: boolean; in_footer: boolean },
 ) {
-  const page = await db.cmsPage.findUnique({
-    where: { id },
-    select: { pageType: true },
-  });
+  const page = await getPageByID("", id);
   if (!page) return;
   const home = page.pageType === "home";
-  await db.cmsPage.update({
-    where: { id },
-    data: {
-      isVisible: home || flags.is_visible,
-      inHeader: !home && flags.in_header,
-      inFooter: !home && flags.in_footer,
-    },
+  await updatePage("", id, {
+    isVisible: home || flags.is_visible,
+    inHeader: !home && flags.in_header,
+    inFooter: !home && flags.in_footer,
   });
 }

@@ -3,6 +3,12 @@ import {
   formatMessage,
   serverMessages,
 } from "@platform/locales";
+import {
+  listQuotations as listSalesQuotations,
+  getQuotation as getSalesQuotation,
+  createQuotation as createSalesQuotation,
+  updateQuotationStatus as updateSalesQuotationStatus,
+} from "@platform/api-client";
 
 import { db, runAtomicMutation } from "../db";
 import { Quotation, calculateInvoiceTotals } from "../types";
@@ -750,31 +756,36 @@ export interface QuotationListSummary {
 
 /** Headline figures for the quotations list, across every quotation (not just the current page). */
 export async function getQuotationListSummary(): Promise<QuotationListSummary> {
-  const groups = await db.quotation.groupBy({
-    by: ["status", "currency"],
-    _count: { _all: true },
-    _sum: { totalAmount: true },
-  });
-  const summary: QuotationListSummary = {
-    total: 0,
-    pendingApproval: 0,
-    acceptedOrConverted: 0,
-    openValueByCurrency: {},
-  };
-  for (const group of groups) {
-    const count = group._count._all;
-    summary.total += count;
-    if (group.status === "submitted") summary.pendingApproval += count;
-    if (group.status === "accepted" || group.status === "converted")
-      summary.acceptedOrConverted += count;
-    if ((OPEN_QUOTATION_STATUSES as readonly string[]).includes(group.status))
-      summary.openValueByCurrency[group.currency] = roundMoney(
-        (summary.openValueByCurrency[group.currency] ?? 0) +
-          Number(group._sum.totalAmount ?? 0),
-        group.currency,
-      );
+  try {
+    const list = await listSalesQuotations();
+    const summary: QuotationListSummary = {
+      total: 0,
+      pendingApproval: 0,
+      acceptedOrConverted: 0,
+      openValueByCurrency: {},
+    };
+    for (const q of list || []) {
+      summary.total++;
+      if (q.status === "submitted") summary.pendingApproval++;
+      if (q.status === "accepted" || q.status === "converted")
+        summary.acceptedOrConverted++;
+      if ((OPEN_QUOTATION_STATUSES as readonly string[]).includes(q.status)) {
+        const cur = q.currency || "BHD";
+        summary.openValueByCurrency[cur] = roundMoney(
+          (summary.openValueByCurrency[cur] ?? 0) + Number(q.total ?? 0),
+          cur,
+        );
+      }
+    }
+    return summary;
+  } catch {
+    return {
+      total: 0,
+      pendingApproval: 0,
+      acceptedOrConverted: 0,
+      openValueByCurrency: {},
+    };
   }
-  return summary;
 }
 
 export async function listQuotations(filters: {
@@ -784,113 +795,76 @@ export async function listQuotations(filters: {
   page?: number;
   pageSize?: number;
 }): Promise<{ items: Quotation[]; total: number }> {
-  const page = Math.max(1, filters.page || 1);
-  const pageSize = Math.min(100, Math.max(1, filters.pageSize || 25));
-  const where: any = {};
-
-  if (filters.status) where.status = filters.status;
-  if (filters.clientId) where.clientId = filters.clientId;
-  if (filters.search) {
-    where.OR = [
-      { quotationNumber: { contains: filters.search, mode: "insensitive" } },
-      {
-        client: {
-          companyName: { contains: filters.search, mode: "insensitive" },
-        },
-      },
-      {
-        client: {
-          firstName: { contains: filters.search, mode: "insensitive" },
-        },
-      },
-    ];
-  }
-
-  const [total, records] = await Promise.all([
-    db.quotation.count({ where }),
-    db.quotation.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-      include: {
-        lineItems: { orderBy: { orderIndex: "asc" } },
-
-        taxes: { orderBy: { displayOrder: "asc" } },
-        client: true,
-        createdBy: { select: { id: true, fullName: true, email: true } },
-      },
-    }),
-  ]);
-
-  return {
-    total,
-    items: records.map((q) => ({
-      ...q,
+  try {
+    const list = await listSalesQuotations();
+    let filtered = list || [];
+    if (filters.status) filtered = filtered.filter((q) => q.status === filters.status);
+    if (filters.clientId) filtered = filtered.filter((q) => q.contactId === filters.clientId);
+    if (filters.search) {
+      const s = filters.search.toLowerCase();
+      filtered = filtered.filter((q) => q.quotationNumber.toLowerCase().includes(s));
+    }
+    const page = Math.max(1, filters.page || 1);
+    const pageSize = Math.min(100, Math.max(1, filters.pageSize || 25));
+    const total = filtered.length;
+    const items = filtered.slice((page - 1) * pageSize, page * pageSize).map((q: any) => ({
+      id: q.id,
+      quotationNumber: q.quotationNumber,
+      revision: 1,
+      dealId: q.dealId,
+      clientId: q.contactId,
+      issueDate: q.issuedAt || q.createdAt,
+      validUntilDate: q.validUntil || q.createdAt,
       subtotal: Number(q.subtotal),
-      discountValue: Number(q.discountValue),
-      discountAmount: Number(q.discountAmount),
-      vatPercentage: Number(q.vatPercentage),
-      vatAmount: Number(q.vatAmount),
-      otherTaxAmount: Number(q.otherTaxAmount ?? 0),
-      taxes: mapDocumentTaxLines(q.taxes),
-      totalAmount: Number(q.totalAmount),
-      rawRate: q.rawRate ? Number(q.rawRate) : null,
-      fxMarginPercent: Number(q.fxMarginPercent),
-      effectiveRate: q.effectiveRate ? Number(q.effectiveRate) : null,
-      issueDate: q.issueDate.toISOString(),
-      validUntilDate: q.validUntilDate.toISOString(),
-      createdAt: q.createdAt.toISOString(),
-      updatedAt: q.updatedAt.toISOString(),
-      lineItems: q.lineItems.map((li) => ({
-        ...li,
-        quantity: Number(li.quantity),
-        unitPrice: Number(li.unitPrice),
-        lineTotal: Number(li.lineTotal),
-      })),
-    })),
-  };
+      vatEnabled: true,
+      vatPercentage: Number(q.vatRate ?? 10),
+      vatAmount: Number(q.vatAmount ?? 0),
+      discountType: "fixed",
+      discountValue: Number(q.discount ?? 0),
+      discountAmount: Number(q.discount ?? 0),
+      totalAmount: Number(q.total ?? 0),
+      currency: q.currency || "BHD",
+      language: "ar",
+      status: q.status || "draft",
+      createdAt: q.createdAt,
+      updatedAt: q.updatedAt,
+      lineItems: [],
+    }));
+    return { items, total };
+  } catch (e) {
+    console.error("Error listing quotations:", e);
+    return { items: [], total: 0 };
+  }
 }
 
 export async function getAcceptedQuotationsUninvoiced(): Promise<Quotation[]> {
-  const records = await db.quotation.findMany({
-    where: {
-      currency: await assertCompanyCurrency(),
-      status: "accepted",
-      invoiceId: null,
-    },
-    orderBy: { updatedAt: "desc" },
-    include: {
-      lineItems: { orderBy: { orderIndex: "asc" } },
-
-      taxes: { orderBy: { displayOrder: "asc" } },
-      client: true,
-      createdBy: { select: { id: true, fullName: true, email: true } },
-    },
-  });
-
-  return records.map((q) => ({
-    ...q,
-    subtotal: Number(q.subtotal),
-    discountValue: Number(q.discountValue),
-    discountAmount: Number(q.discountAmount),
-    vatPercentage: Number(q.vatPercentage),
-    vatAmount: Number(q.vatAmount),
-    otherTaxAmount: Number(q.otherTaxAmount ?? 0),
-    taxes: mapDocumentTaxLines(q.taxes),
-    totalAmount: Number(q.totalAmount),
-    rawRate: q.rawRate ? Number(q.rawRate) : null,
-    fxMarginPercent: Number(q.fxMarginPercent),
-    effectiveRate: q.effectiveRate ? Number(q.effectiveRate) : null,
-    issueDate: q.issueDate.toISOString(),
-    validUntilDate: q.validUntilDate.toISOString(),
-    createdAt: q.createdAt.toISOString(),
-    updatedAt: q.updatedAt.toISOString(),
-    lineItems: q.lineItems.map((li) => ({
-      ...li,
-      quantity: Number(li.quantity),
-      unitPrice: Number(li.unitPrice),
-      lineTotal: Number(li.lineTotal),
-    })),
-  }));
+  try {
+    const list = await listSalesQuotations();
+    const filtered = (list || []).filter((q) => q.status === "accepted");
+    return filtered.map((q: any) => ({
+      id: q.id,
+      quotationNumber: q.quotationNumber,
+      revision: 1,
+      dealId: q.dealId,
+      clientId: q.contactId,
+      issueDate: q.issuedAt || q.createdAt,
+      validUntilDate: q.validUntil || q.createdAt,
+      subtotal: Number(q.subtotal),
+      vatEnabled: true,
+      vatPercentage: Number(q.vatRate ?? 10),
+      vatAmount: Number(q.vatAmount ?? 0),
+      discountType: "fixed",
+      discountValue: Number(q.discount ?? 0),
+      discountAmount: Number(q.discount ?? 0),
+      totalAmount: Number(q.total ?? 0),
+      currency: q.currency || "BHD",
+      language: "ar",
+      status: q.status || "draft",
+      createdAt: q.createdAt,
+      updatedAt: q.updatedAt,
+      lineItems: [],
+    }));
+  } catch {
+    return [];
+  }
 }

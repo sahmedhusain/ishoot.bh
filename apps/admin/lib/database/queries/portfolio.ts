@@ -1,64 +1,24 @@
-import { db } from "../db";
+import { randomUUID } from "node:crypto";
+import { getContentSnapshot, saveContentDraft } from "@platform/api-client";
 import { PortfolioCategory, PortfolioItem } from "../types";
 
-function mapCategory(c: any): PortfolioCategory {
-  return {
-    id: c.id,
-    slug: c.slug,
-    name_en: c.nameEn,
-    name_ar: c.nameAr,
-    display_order: c.displayOrder,
-  };
-}
-
-function mapItem(item: any): PortfolioItem {
-  return {
-    id: item.id,
-    category_id: item.categoryId || "",
-    category: item.category ? mapCategory(item.category) : undefined,
-    slug: item.slug,
-    title_en: item.titleEn,
-    title_ar: item.titleAr,
-    client_name: item.clientName ?? "",
-    year: item.year ?? undefined,
-    subtitle_en: item.subtitleEn || undefined,
-    subtitle_ar: item.subtitleAr || undefined,
-    price:
-      item.price === null || item.price === undefined
-        ? undefined
-        : Number(item.price),
-    price_note_en: item.priceNoteEn || undefined,
-    price_note_ar: item.priceNoteAr || undefined,
-    location: item.location || undefined,
-    external_url: item.externalUrl || undefined,
-    attributes: Array.isArray(item.attributes) ? item.attributes : [],
-    aspect_ratio: (item.aspectRatio as any) || "16:9",
-    thumbnail_url: item.thumbnailUrl,
-    preview_video_url: item.previewVideoUrl || undefined,
-    full_video_url: item.fullVideoUrl || undefined,
-    gallery_urls: item.galleryUrls || [],
-    description_en: item.descriptionEn || undefined,
-    description_ar: item.descriptionAr || undefined,
-    credits: (item.credits as any) || {},
-    is_featured: item.isFeatured,
-    display_order: item.displayOrder,
-    created_at: item.createdAt.toISOString(),
-  };
+async function getDraftSnapshot(): Promise<{ draft: any; revision: number }> {
+  try {
+    const snap = await getContentSnapshot("main");
+    const draft = snap?.draft && typeof snap.draft === "object" ? snap.draft : {};
+    return { draft, revision: snap?.revision ?? 1 };
+  } catch (e) {
+    console.error("Error fetching content snapshot for portfolio:", e);
+    return { draft: {}, revision: 1 };
+  }
 }
 
 export async function getPortfolioCategories(): Promise<PortfolioCategory[]> {
-  try {
-    const cats = await db.portfolioCategory.findMany({
-      orderBy: { displayOrder: "asc" },
-    });
-    return cats.map(mapCategory);
-  } catch (e) {
-    console.error(
-      "Error fetching portfolio categories:",
-      e instanceof Error ? e.message : e,
-    );
-    throw e;
-  }
+  const { draft } = await getDraftSnapshot();
+  const list: PortfolioCategory[] = Array.isArray(draft.categories)
+    ? draft.categories
+    : [];
+  return [...list].sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
 }
 
 export async function createPortfolioCategory(data: {
@@ -67,101 +27,87 @@ export async function createPortfolioCategory(data: {
   name_ar: string;
   display_order?: number;
 }): Promise<PortfolioCategory> {
-  const created = await db.portfolioCategory.create({
-    data: {
-      slug: data.slug,
-      nameEn: data.name_en,
-      nameAr: data.name_ar,
-      displayOrder: data.display_order ?? 0,
-    },
-  });
-  return mapCategory(created);
+  const { draft } = await getDraftSnapshot();
+  const categories: PortfolioCategory[] = Array.isArray(draft.categories)
+    ? [...draft.categories]
+    : [];
+  const created: PortfolioCategory = {
+    id: randomUUID(),
+    slug: data.slug,
+    name_en: data.name_en,
+    name_ar: data.name_ar,
+    display_order: data.display_order ?? categories.length,
+  };
+  categories.push(created);
+  draft.categories = categories;
+  await saveContentDraft("", "main", draft);
+  return created;
 }
 
 export async function updatePortfolioCategory(
   id: string,
   data: Partial<PortfolioCategory>,
 ): Promise<PortfolioCategory | null> {
-  try {
-    const updateData: any = {};
-    if (data.slug !== undefined) updateData.slug = data.slug;
-    if (data.name_en !== undefined) updateData.nameEn = data.name_en;
-    if (data.name_ar !== undefined) updateData.nameAr = data.name_ar;
-    if (data.display_order !== undefined)
-      updateData.displayOrder = data.display_order;
-
-    const updated = await db.portfolioCategory.update({
-      where: { id },
-      data: updateData,
-    });
-    return mapCategory(updated);
-  } catch (e) {
-    console.error(
-      `Error updating portfolio category ${id}:`,
-      e instanceof Error ? e.message : e,
-    );
-    throw e;
-  }
+  const { draft } = await getDraftSnapshot();
+  const categories: PortfolioCategory[] = Array.isArray(draft.categories)
+    ? [...draft.categories]
+    : [];
+  const index = categories.findIndex((c) => c.id === id);
+  if (index === -1) return null;
+  const updated = { ...categories[index], ...data };
+  categories[index] = updated;
+  draft.categories = categories;
+  await saveContentDraft("", "main", draft);
+  return updated;
 }
 
 export async function deletePortfolioCategory(id: string): Promise<boolean> {
-  try {
-    await db.portfolioCategory.delete({ where: { id } });
-    return true;
-  } catch (e) {
-    console.error(
-      `Error deleting portfolio category ${id}:`,
-      e instanceof Error ? e.message : e,
-    );
-    throw e;
-  }
+  const { draft } = await getDraftSnapshot();
+  const categories: PortfolioCategory[] = Array.isArray(draft.categories)
+    ? [...draft.categories]
+    : [];
+  const filtered = categories.filter((c) => c.id !== id);
+  if (filtered.length === categories.length) return false;
+  draft.categories = filtered;
+  await saveContentDraft("", "main", draft);
+  return true;
 }
 
 export async function getPortfolioItems(
   categorySlug?: string,
 ): Promise<PortfolioItem[]> {
-  try {
-    const whereCondition: any = {};
-    if (categorySlug && categorySlug !== "all") {
-      const cat = await db.portfolioCategory.findUnique({
-        where: { slug: categorySlug },
-      });
-      if (cat) {
-        whereCondition.categoryId = cat.id;
-      }
-    }
+  const { draft } = await getDraftSnapshot();
+  const items: PortfolioItem[] = Array.isArray(draft.portfolio)
+    ? draft.portfolio
+    : [];
+  const categories: PortfolioCategory[] = Array.isArray(draft.categories)
+    ? draft.categories
+    : [];
+  const categoryMap = new Map(categories.map((c) => [c.id, c]));
 
-    const items = await db.portfolioItem.findMany({
-      where: whereCondition,
-      include: { category: true },
-      orderBy: { displayOrder: "asc" },
-    });
-    return items.map(mapItem);
-  } catch (e) {
-    console.error(
-      "Error fetching portfolio items:",
-      e instanceof Error ? e.message : e,
-    );
-    throw e;
+  const enriched = items.map((it) => ({
+    ...it,
+    category: it.category_id ? categoryMap.get(it.category_id) : undefined,
+  }));
+
+  if (categorySlug && categorySlug !== "all") {
+    const targetCat = categories.find((c) => c.slug === categorySlug);
+    if (targetCat) {
+      return enriched
+        .filter((it) => it.category_id === targetCat.id)
+        .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
+    }
+    return [];
   }
+
+  return enriched.sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
 }
 
 export async function getPortfolioItemBySlug(
   slug: string,
 ): Promise<PortfolioItem | null> {
-  try {
-    const item = await db.portfolioItem.findUnique({
-      where: { slug },
-      include: { category: true },
-    });
-    return item ? mapItem(item) : null;
-  } catch (e) {
-    console.error(
-      `Error fetching portfolio item ${slug}:`,
-      e instanceof Error ? e.message : e,
-    );
-    throw e;
-  }
+  const items = await getPortfolioItems();
+  return items.find((it) => it.slug === slug) ?? null;
 }
 
 export async function createPortfolioItem(data: {
@@ -190,105 +136,69 @@ export async function createPortfolioItem(data: {
   is_featured?: boolean;
   display_order?: number;
 }): Promise<PortfolioItem> {
-  const created = await db.portfolioItem.create({
-    data: {
-      categoryId: data.category_id || null,
-      slug: data.slug,
-      titleEn: data.title_en,
-      titleAr: data.title_ar,
-      clientName: data.client_name || null,
-      year: data.year ?? null,
-      subtitleEn: data.subtitle_en || null,
-      subtitleAr: data.subtitle_ar || null,
-      price: data.price ?? null,
-      priceNoteEn: data.price_note_en || null,
-      priceNoteAr: data.price_note_ar || null,
-      location: data.location || null,
-      externalUrl: data.external_url || null,
-      attributes: (data.attributes ?? []) as object[],
-      aspectRatio: data.aspect_ratio || "16:9",
-      thumbnailUrl: data.thumbnail_url,
-      previewVideoUrl: data.preview_video_url || null,
-      fullVideoUrl: data.full_video_url || null,
-      galleryUrls: data.gallery_urls || [],
-      descriptionEn: data.description_en || null,
-      descriptionAr: data.description_ar || null,
-      credits: data.credits || {},
-      isFeatured: data.is_featured ?? false,
-      displayOrder: data.display_order ?? 0,
-    },
-  });
-  return mapItem(created);
+  const { draft } = await getDraftSnapshot();
+  const portfolio: PortfolioItem[] = Array.isArray(draft.portfolio)
+    ? [...draft.portfolio]
+    : [];
+  const created: PortfolioItem = {
+    id: randomUUID(),
+    category_id: data.category_id || "",
+    slug: data.slug,
+    title_en: data.title_en,
+    title_ar: data.title_ar,
+    client_name: data.client_name ?? "",
+    year: data.year,
+    subtitle_en: data.subtitle_en,
+    subtitle_ar: data.subtitle_ar,
+    price: data.price,
+    price_note_en: data.price_note_en,
+    price_note_ar: data.price_note_ar,
+    location: data.location,
+    external_url: data.external_url,
+    attributes: data.attributes || [],
+    aspect_ratio: (data.aspect_ratio as any) || "16:9",
+    thumbnail_url: data.thumbnail_url,
+    preview_video_url: data.preview_video_url,
+    full_video_url: data.full_video_url,
+    gallery_urls: data.gallery_urls || [],
+    description_en: data.description_en,
+    description_ar: data.description_ar,
+    credits: data.credits || {},
+    is_featured: data.is_featured ?? false,
+    display_order: data.display_order ?? portfolio.length,
+    created_at: new Date().toISOString(),
+  };
+  portfolio.push(created);
+  draft.portfolio = portfolio;
+  await saveContentDraft("", "main", draft);
+  return created;
 }
 
 export async function updatePortfolioItem(
   id: string,
   data: Partial<PortfolioItem>,
 ): Promise<PortfolioItem | null> {
-  try {
-    const updateData: any = {};
-    if (data.category_id !== undefined)
-      updateData.categoryId = data.category_id || null;
-    if (data.slug !== undefined) updateData.slug = data.slug;
-    if (data.title_en !== undefined) updateData.titleEn = data.title_en;
-    if (data.title_ar !== undefined) updateData.titleAr = data.title_ar;
-    if (data.client_name !== undefined)
-      updateData.clientName = data.client_name || null;
-    if (data.year !== undefined) updateData.year = data.year ?? null;
-    for (const [key, column] of [
-      ["subtitle_en", "subtitleEn"],
-      ["subtitle_ar", "subtitleAr"],
-      ["price_note_en", "priceNoteEn"],
-      ["price_note_ar", "priceNoteAr"],
-      ["location", "location"],
-      ["external_url", "externalUrl"],
-    ] as const)
-      if (data[key] !== undefined) updateData[column] = data[key] || null;
-    if (data.price !== undefined) updateData.price = data.price ?? null;
-    if (data.attributes !== undefined) updateData.attributes = data.attributes;
-    if (data.aspect_ratio !== undefined)
-      updateData.aspectRatio = data.aspect_ratio;
-    if (data.thumbnail_url !== undefined)
-      updateData.thumbnailUrl = data.thumbnail_url;
-    if (data.preview_video_url !== undefined)
-      updateData.previewVideoUrl = data.preview_video_url;
-    if (data.full_video_url !== undefined)
-      updateData.fullVideoUrl = data.full_video_url;
-    if (data.gallery_urls !== undefined)
-      updateData.galleryUrls = data.gallery_urls;
-    if (data.description_en !== undefined)
-      updateData.descriptionEn = data.description_en;
-    if (data.description_ar !== undefined)
-      updateData.descriptionAr = data.description_ar;
-    if (data.credits !== undefined) updateData.credits = data.credits;
-    if (data.is_featured !== undefined)
-      updateData.isFeatured = data.is_featured;
-    if (data.display_order !== undefined)
-      updateData.displayOrder = data.display_order;
-
-    const updated = await db.portfolioItem.update({
-      where: { id },
-      data: updateData,
-    });
-    return mapItem(updated);
-  } catch (e) {
-    console.error(
-      `Error updating portfolio item ${id}:`,
-      e instanceof Error ? e.message : e,
-    );
-    throw e;
-  }
+  const { draft } = await getDraftSnapshot();
+  const portfolio: PortfolioItem[] = Array.isArray(draft.portfolio)
+    ? [...draft.portfolio]
+    : [];
+  const index = portfolio.findIndex((it) => it.id === id);
+  if (index === -1) return null;
+  const updated = { ...portfolio[index], ...data };
+  portfolio[index] = updated;
+  draft.portfolio = portfolio;
+  await saveContentDraft("", "main", draft);
+  return updated;
 }
 
 export async function deletePortfolioItem(id: string): Promise<boolean> {
-  try {
-    await db.portfolioItem.delete({ where: { id } });
-    return true;
-  } catch (e) {
-    console.error(
-      `Error deleting portfolio item ${id}:`,
-      e instanceof Error ? e.message : e,
-    );
-    throw e;
-  }
+  const { draft } = await getDraftSnapshot();
+  const portfolio: PortfolioItem[] = Array.isArray(draft.portfolio)
+    ? [...draft.portfolio]
+    : [];
+  const filtered = portfolio.filter((it) => it.id !== id);
+  if (filtered.length === portfolio.length) return false;
+  draft.portfolio = filtered;
+  await saveContentDraft("", "main", draft);
+  return true;
 }

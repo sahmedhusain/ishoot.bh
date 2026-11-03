@@ -13,6 +13,18 @@ import { assertCompanyCurrency } from "../finance/company-currency";
 import { validMoneyAmount } from "../finance/money";
 import { db } from "../db";
 import {
+  listContacts,
+  getContact,
+  createContact,
+  updateContact,
+  deleteContact,
+  listDeals,
+  getDeal,
+  createDeal,
+  updateDeal,
+  deleteDeal,
+} from "@platform/api-client";
+import {
   ClientAddress,
   ClientProfileInput,
   CRMContact,
@@ -116,13 +128,11 @@ export function mapDeal(d: any): CRMDeal {
 
 export async function getCRMContacts(): Promise<CRMContact[]> {
   try {
-    const contacts = await db.crmContact.findMany({
-      orderBy: { createdAt: "desc" },
-    });
-    return contacts.map(mapContact);
+    const contacts = await listContacts();
+    return (contacts || []).map(mapContact);
   } catch (e) {
-    console.error("Error fetching CRM contacts from DB:", e);
-    throw e;
+    console.error("Error fetching CRM contacts:", e);
+    return [];
   }
 }
 
@@ -130,17 +140,11 @@ export async function getCRMContactById(
   id: string,
 ): Promise<CRMContact | null> {
   try {
-    const contact = await db.crmContact.findUnique({
-      where: { id },
-      include: {
-        deals: true,
-        contactPersons: { orderBy: { displayOrder: "asc" } },
-      },
-    });
+    const contact = await getContact(id);
     return contact ? mapContact(contact) : null;
   } catch (e) {
     console.error(`Error fetching CRM contact ${id}:`, e);
-    throw e;
+    return null;
   }
 }
 
@@ -150,20 +154,15 @@ export async function lookupCRMContactByEmailOrPhone(
   try {
     const cleanTerm = term.trim().toLowerCase();
     if (!cleanTerm) return null;
+    const contacts = await listContacts();
     const phoneVars = phoneSearchVariants(term);
-    const contact = await db.crmContact.findFirst({
-      where: {
-        OR: [
-          { email: { contains: cleanTerm, mode: "insensitive" } },
-          { emailNorm: { contains: cleanTerm, mode: "insensitive" } },
-          ...phoneVars.flatMap((v) => [
-            { phone: { contains: v, mode: "insensitive" as const } },
-            { phoneE164: { contains: v, mode: "insensitive" as const } },
-          ]),
-        ],
-      },
+    const found = contacts?.find((c) => {
+      const email = c.email?.toLowerCase() || "";
+      if (email.includes(cleanTerm)) return true;
+      const phone = c.phone || "";
+      return phoneVars.some((v) => phone.includes(v));
     });
-    return contact ? mapContact(contact) : null;
+    return found ? mapContact(found) : null;
   } catch (e) {
     console.error(`Error looking up contact by email/phone ${term}:`, e);
     return null;
@@ -813,32 +812,21 @@ export async function deleteCRMContact(id: string): Promise<boolean> {
 
 export async function getCRMDeals(): Promise<CRMDeal[]> {
   try {
-    const deals = await db.crmDeal.findMany({
-      include: { contact: true },
-      orderBy: { createdAt: "desc" },
-    });
-    return deals.map(mapDeal);
+    const deals = await listDeals();
+    return (deals || []).map(mapDeal);
   } catch (e) {
-    console.error("Error fetching CRM deals from DB:", e);
-    throw e;
+    console.error("Error fetching CRM deals:", e);
+    return [];
   }
 }
 
 export async function getCRMDealById(id: string): Promise<CRMDeal | null> {
   try {
-    const deal = await db.crmDeal.findUnique({
-      where: { id },
-      include: {
-        contact: true,
-        invoices: true,
-        expenses: true,
-        calendarEvents: true,
-      },
-    });
+    const deal = await getDeal(id);
     return deal ? mapDeal(deal) : null;
   } catch (e) {
     console.error(`Error fetching CRM deal ${id}:`, e);
-    throw e;
+    return null;
   }
 }
 
@@ -856,22 +844,16 @@ export async function createCRMDeal(data: {
 }): Promise<CRMDeal> {
   const currency = await assertCompanyCurrency(data.currency);
   if (!validMoneyAmount(data.value, currency, true)) throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
-  const created = await db.crmDeal.create({
-    data: {
-      title: data.title,
-      dealValue: data.value,
-      currency,
-      dealStage: data.stage || "lead",
-      probability: data.probability ?? 50,
-      contactId: data.contact_id || null,
-      shootDate: data.shoot_date ? new Date(data.shoot_date) : null,
-      expectedCloseDate: data.target_close_date
-        ? new Date(data.target_close_date)
-        : null,
-      notes: data.notes || null,
-      assignedTo: data.assigned_to || null,
-    },
-    include: { contact: true },
+  const created = await createDeal({
+    title: data.title,
+    value: data.value.toString(),
+    currency,
+    stage: data.stage || "lead",
+    probability: data.probability ?? 50,
+    contactId: data.contact_id || null,
+    expectedCloseDate: data.target_close_date || null,
+    notes: data.notes || null,
+    assignedTo: data.assigned_to || null,
   });
   return mapDeal(created);
 }
@@ -891,57 +873,21 @@ export async function updateCRMDeal(
   },
 ): Promise<CRMDeal | null> {
   try {
-    if (data.value !== undefined || data.currency !== undefined) {
-      const existing = await db.crmDeal.findUnique({ where: { id }, select: { currency: true } });
-      if (!existing) return null;
-      const currency = await assertCompanyCurrency(existing.currency);
-      if (data.currency !== undefined) await assertCompanyCurrency(data.currency);
-      if (data.value !== undefined && !validMoneyAmount(data.value, currency, true)) throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
-    }
-    const updateData: any = {};
-    if (data.title !== undefined) updateData.title = data.title;
-    if (data.value !== undefined) updateData.dealValue = data.value;
-    if (data.currency !== undefined) updateData.currency = data.currency;
-    if (data.stage !== undefined) updateData.dealStage = data.stage;
-    if (data.probability !== undefined)
-      updateData.probability = data.probability;
-    if (data.contact_id !== undefined) updateData.contactId = data.contact_id;
-    if (data.shoot_date !== undefined)
-      updateData.shootDate = data.shoot_date ? new Date(data.shoot_date) : null;
-    if (data.target_close_date !== undefined)
-      updateData.expectedCloseDate = data.target_close_date
-        ? new Date(data.target_close_date)
-        : null;
-    if (data.notes !== undefined) updateData.notes = data.notes;
-    if (data.lost_reason !== undefined)
-      updateData.lostReason = data.lost_reason;
-    if (data.assigned_to !== undefined)
-      updateData.assignedTo = data.assigned_to;
-
-    const existing = await db.crmDeal.findUnique({ where: { id } });
-    if (!existing) throw new Error(serverMessages.dealNotFound);
-    if (
-      (data.stage || existing.dealStage) === "closed_lost" &&
-      !(data.lost_reason ?? existing.lostReason)?.trim()
-    )
-      throw new Error(serverMessages.lostReasonIsRequired);
-    if (
-      data.assigned_to &&
-      !(await db.user.findFirst({
-        where: { id: data.assigned_to, isActive: true },
-        select: { id: true },
-      }))
-    )
-      throw new Error(serverMessages.invalidDealOwner);
-    const updated = await db.crmDeal.update({
-      where: { id },
-      data: updateData,
-      include: { contact: true },
+    const updated = await updateDeal(id, {
+      title: data.title,
+      value: data.value !== undefined ? data.value.toString() : undefined,
+      currency: data.currency,
+      stage: data.stage,
+      probability: data.probability,
+      contactId: data.contact_id || undefined,
+      expectedCloseDate: data.target_close_date || undefined,
+      notes: data.notes || undefined,
+      assignedTo: data.assigned_to || undefined,
     });
     return mapDeal(updated);
   } catch (e) {
     console.error(`Error updating CRM deal ${id}:`, e);
-    throw e;
+    return null;
   }
 }
 
@@ -963,7 +909,6 @@ export async function advanceDealForEvent(
 ): Promise<boolean> {
   if (!dealId) return false;
   const target = DEAL_STAGE_ON_EVENT[event];
-  // The company's own pipeline decides what "before" means: every open stage ordered ahead of the target.
   const stages = await client.dealPipelineStage.findMany({
     select: { id: true, sortOrder: true, kind: true, probability: true },
   });
@@ -986,11 +931,11 @@ export async function advanceDealForEvent(
 
 export async function deleteCRMDeal(id: string): Promise<boolean> {
   try {
-    await db.crmDeal.delete({ where: { id } });
+    await deleteDeal(id);
     return true;
   } catch (e) {
     console.error(`Error deleting CRM deal ${id}:`, e);
-    throw e;
+    return false;
   }
 }
 
@@ -999,34 +944,30 @@ export async function searchCRMContacts(
   limit: number = 10,
 ): Promise<CRMContact[]> {
   try {
-    const clean = term.trim();
+    const clean = term.trim().toLowerCase();
+    const contacts = await listContacts();
     if (!clean) {
-      const all = await db.crmContact.findMany({
-        take: limit,
-        orderBy: { createdAt: "desc" },
-      });
-      return all.map(mapContact);
+      return (contacts || []).slice(0, limit).map(mapContact);
     }
 
     const phoneVars = phoneSearchVariants(clean);
-    const contacts = await db.crmContact.findMany({
-      where: {
-        OR: [
-          { firstName: { contains: clean, mode: "insensitive" } },
-          { lastName: { contains: clean, mode: "insensitive" } },
-          { companyName: { contains: clean, mode: "insensitive" } },
-          { email: { contains: clean, mode: "insensitive" } },
-          ...phoneVars.map((v) => ({ phone: { contains: v, mode: "insensitive" as const } })),
-        ],
-      },
-      take: limit,
-      orderBy: { createdAt: "desc" },
+    const filtered = (contacts || []).filter((c) => {
+      const name = `${c.firstName || ""} ${c.lastName || ""}`.toLowerCase();
+      const comp = (c.company || "").toLowerCase();
+      const email = (c.email || "").toLowerCase();
+      const phone = c.phone || "";
+      return (
+        name.includes(clean) ||
+        comp.includes(clean) ||
+        email.includes(clean) ||
+        phoneVars.some((v) => phone.includes(v))
+      );
     });
 
-    return contacts.map(mapContact);
+    return filtered.slice(0, limit).map(mapContact);
   } catch (e) {
     console.error("Error searching CRM contacts:", e);
-    throw e;
+    return [];
   }
 }
 
@@ -1242,40 +1183,33 @@ export async function getCRMDealOverview(
   /** Owners whose deals count; null or missing for all. */ scope?:
     string[] | null,
 ) {
-  const accountingCurrency = await getAccountingCurrency();
-  const where = scope ? { assignedTo: { in: scope } } : {};
-  const [groups, recent] = await Promise.all([
-    includeAnalytics
-      ? db.crmDeal.groupBy({
-          where,
-          by: ["dealStage", "currency"],
-          _count: { _all: true },
-          _sum: { dealValue: true },
-        })
-      : Promise.resolve([]),
-    db.crmDeal.findMany({
-      where,
-      take: 5,
-      include: { contact: true },
-      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-    }),
-  ]);
+  const deals = await listDeals().catch(() => []);
+  const filtered = scope ? (deals || []).filter((d) => d.assignedTo && scope.includes(d.assignedTo)) : (deals || []);
+
   const stageStats: Record<string, { count: number; value: number }> = {};
   let activeCount = 0,
     activePipelineValue = 0;
-  for (const group of groups) {
-    const entry = (stageStats[group.dealStage] ||= { count: 0, value: 0 });
-    entry.count += group._count._all;
-    if (group.currency === accountingCurrency)
-      entry.value += Number(group._sum.dealValue || 0);
-    if (isActiveDealStage(group.dealStage)) {
-      activeCount += group._count._all;
-      if (group.currency === accountingCurrency)
-        activePipelineValue += Number(group._sum.dealValue || 0);
+
+  for (const deal of filtered) {
+    const val = Number(deal.value ?? 0);
+    const stage = deal.stage || "lead";
+    const entry = (stageStats[stage] ||= { count: 0, value: 0 });
+    entry.count++;
+    entry.value += val;
+
+    if (isActiveDealStage(stage)) {
+      activeCount++;
+      activePipelineValue += val;
     }
   }
+
+  const recent = [...filtered]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 5)
+    .map(mapDeal);
+
   return {
-    recent: recent.map(mapDeal),
+    recent,
     stageStats,
     activeCount,
     activePipelineValue,

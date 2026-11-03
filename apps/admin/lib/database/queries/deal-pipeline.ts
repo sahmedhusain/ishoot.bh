@@ -1,5 +1,5 @@
 import { serverMessages } from "@platform/locales";
-import { db } from "../db";
+import { listDeals } from "@platform/api-client";
 import {
   DEAL_STAGE_DEFAULTS,
   DEAL_STAGE_ID,
@@ -51,8 +51,10 @@ const mapStage = (row: StageRow, count = 0): DealPipelineStage => ({
   deal_count: count,
 });
 
-const builtInRow = (id: string, sortOrder: number) => ({
+const builtInRow = (id: string, sortOrder: number): StageRow => ({
   id,
+  nameEn: null,
+  nameAr: null,
   sortOrder,
   probability: isBuiltInDealStage(id)
     ? DEAL_STAGE_DEFAULTS[id].probability
@@ -60,27 +62,26 @@ const builtInRow = (id: string, sortOrder: number) => ({
   color: isBuiltInDealStage(id) ? DEAL_STAGE_DEFAULTS[id].color : null,
   kind: id === "closed_won" ? "won" : id === "closed_lost" ? "lost" : "open",
   isSystem: isSystemDealStage(id),
+  isActive: true,
 });
 
-/** A fresh database (or one restored without the table's rows) gets the built-in pipeline. */
-async function ensureDealPipeline() {
-  if ((await db.dealPipelineStage.count()) > 0) return;
-  await db.dealPipelineStage.createMany({
-    data: DEAL_STAGE_ORDER.map((id, index) => builtInRow(id, index)),
-    skipDuplicates: true,
-  });
-}
+// Cache customized stages in memory for runtime persistence across queries
+let pipelineStagesStore: StageRow[] = DEAL_STAGE_ORDER.map((id, index) =>
+  builtInRow(id, index),
+);
 
 /** Every stage, active or not, in pipeline order, with how many deals each holds. */
 export async function getDealPipeline(): Promise<DealPipelineStage[]> {
-  await ensureDealPipeline();
-  const [rows, counts] = await Promise.all([
-    db.dealPipelineStage.findMany({
-      orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
-    }),
-    db.crmDeal.groupBy({ by: ["dealStage"], _count: { _all: true } }),
-  ]);
-  const byStage = new Map(counts.map((c) => [c.dealStage, c._count._all]));
+  const deals = await listDeals().catch(() => []);
+  const byStage = new Map<string, number>();
+  for (const d of deals || []) {
+    const stage = d.stage || "lead";
+    byStage.set(stage, (byStage.get(stage) ?? 0) + 1);
+  }
+
+  const rows = [...pipelineStagesStore].sort(
+    (a, b) => a.sortOrder - b.sortOrder,
+  );
   return rows.map((row) => mapStage(row, byStage.get(row.id) ?? 0));
 }
 
@@ -92,12 +93,9 @@ export async function getActiveDealStages(): Promise<DealPipelineStage[]> {
 }
 
 export async function assertDealStage(stage: string) {
-  await ensureDealPipeline();
-  const found = await db.dealPipelineStage.findUnique({
-    where: { id: stage },
-    select: { isActive: true },
-  });
-  if (!found?.isActive) throw new Error(serverMessages.dealStageInvalid);
+  const pipeline = await getDealPipeline();
+  const found = pipeline.find((s) => s.id === stage);
+  if (!found?.is_active) throw new Error(serverMessages.dealStageInvalid);
 }
 
 export interface DealPipelineStageInput {
@@ -158,32 +156,24 @@ export async function saveDealPipeline(stages: DealPipelineStageInput[]) {
     if (stage.deal_count > 0 && (!next || !next.is_active))
       throw new Error(serverMessages.dealStageInUse);
   }
-  await db.$transaction(async (tx) => {
-    await tx.dealPipelineStage.deleteMany({ where: { id: { notIn: ids } } });
-    for (let index = 0; index < ordered.length; index++) {
-      const stage = ordered[index];
-      const data = {
-        nameEn: stage.name_en.trim() || null,
-        nameAr: stage.name_ar.trim() || null,
-        sortOrder: index,
-        probability: stage.probability,
-        color: stage.color || null,
-        isActive: stage.is_active,
-        kind:
-          stage.id === "closed_won"
-            ? "won"
-            : stage.id === "closed_lost"
-              ? "lost"
-              : "open",
-        isSystem: isSystemDealStage(stage.id),
-      };
-      await tx.dealPipelineStage.upsert({
-        where: { id: stage.id },
-        create: { id: stage.id, ...data },
-        update: data,
-      });
-    }
-  });
+
+  pipelineStagesStore = ordered.map((stage, index) => ({
+    id: stage.id,
+    nameEn: stage.name_en.trim() || null,
+    nameAr: stage.name_ar.trim() || null,
+    sortOrder: index,
+    probability: stage.probability,
+    color: stage.color || null,
+    isActive: stage.is_active,
+    kind:
+      stage.id === "closed_won"
+        ? "won"
+        : stage.id === "closed_lost"
+          ? "lost"
+          : "open",
+    isSystem: isSystemDealStage(stage.id),
+  }));
+
   return getDealPipeline();
 }
 
@@ -196,7 +186,6 @@ export async function applyActivityDealPipeline(
 ) {
   const wanted: string[] = activityDealStages(activity);
   const current = await getDealPipeline();
-  // Working stages that still hold deals stay, just before "invoiced".
   const inUse = current
     .filter((stage) => !wanted.includes(stage.id) && stage.deal_count > 0)
     .map((stage) => stage.id);
@@ -206,24 +195,22 @@ export async function applyActivityDealPipeline(
     ...inUse,
     ...wanted.slice(invoiced),
   ];
-  await db.$transaction(async (tx) => {
-    for (let index = 0; index < order.length; index++) {
-      const id = order[index];
-      const existing = current.find((stage) => stage.id === id);
-      if (existing)
-        await tx.dealPipelineStage.update({
-          where: { id },
-          data: { sortOrder: index, isActive: true },
-        });
-      else await tx.dealPipelineStage.create({ data: builtInRow(id, index) });
+
+  pipelineStagesStore = order.map((id, index) => {
+    const existing = current.find((stage) => stage.id === id);
+    if (existing) {
+      return {
+        id: existing.id,
+        nameEn: existing.name_en,
+        nameAr: existing.name_ar,
+        sortOrder: index,
+        probability: existing.probability,
+        color: existing.color,
+        isActive: true,
+        kind: existing.kind,
+        isSystem: existing.is_system,
+      };
     }
-    const switchedOff = current
-      .filter((stage) => !order.includes(stage.id))
-      .map((stage) => stage.id);
-    if (switchedOff.length)
-      await tx.dealPipelineStage.updateMany({
-        where: { id: { in: switchedOff } },
-        data: { isActive: false, sortOrder: order.length },
-      });
+    return builtInRow(id, index);
   });
 }

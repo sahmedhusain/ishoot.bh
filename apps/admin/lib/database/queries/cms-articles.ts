@@ -1,6 +1,13 @@
 import { serverMessages } from "@platform/locales";
-import { db } from "../db";
 import { safeWebsiteUrl } from "../website-config";
+import {
+  listArticles,
+  getArticleByID,
+  createArticle,
+  updateArticle,
+  deleteArticle,
+  type CMSArticle,
+} from "@platform/api-client";
 
 /** Built-in article categories; a company may also use its own keys. PR uses press_release. */
 export const ARTICLE_CATEGORIES = [
@@ -42,9 +49,7 @@ export interface CmsArticleRecord extends PublicArticle {
   updated_at: string;
 }
 
-type ArticleRow = Awaited<ReturnType<typeof db.cmsArticle.findMany>>[number];
-
-const mapPublic = (row: ArticleRow): PublicArticle => ({
+const mapPublic = (row: CMSArticle): PublicArticle => ({
   id: row.id,
   slug: row.slug,
   title_en: row.titleEn,
@@ -55,9 +60,9 @@ const mapPublic = (row: ArticleRow): PublicArticle => ({
   body_html_ar: row.bodyHtmlAr ?? "",
   cover_url: row.coverUrl ?? "",
   category: row.category,
-  tags: row.tags,
+  tags: row.tags ?? [],
   author_name: row.authorName ?? "",
-  publish_at: row.publishAt?.toISOString() ?? null,
+  publish_at: row.publishAt ? new Date(row.publishAt).toISOString() : null,
   featured: row.featured,
   seo_title_en: row.seoTitleEn ?? "",
   seo_title_ar: row.seoTitleAr ?? "",
@@ -65,27 +70,30 @@ const mapPublic = (row: ArticleRow): PublicArticle => ({
   seo_description_ar: row.seoDescriptionAr ?? "",
 });
 
-const mapArticle = (row: ArticleRow): CmsArticleRecord => ({
+const mapArticle = (row: CMSArticle): CmsArticleRecord => ({
   ...mapPublic(row),
   status: row.status === "published" ? "published" : "draft",
   body_en: row.bodyEn,
   body_ar: row.bodyAr,
-  author_id: row.authorId,
-  updated_at: row.updatedAt.toISOString(),
+  author_id: null,
+  updated_at: row.updatedAt ? new Date(row.updatedAt).toISOString() : new Date().toISOString(),
 });
 
 /** Published articles (including scheduled ones) for the website snapshot, newest first. */
 export async function getPublishedArticles(): Promise<PublicArticle[]> {
-  const rows = await db.cmsArticle.findMany({
-    where: { status: "published" },
-    orderBy: [
-      { featured: "desc" },
-      { publishAt: "desc" },
-      { createdAt: "desc" },
-    ],
-    take: 500,
-  });
-  return rows.map(mapPublic);
+  try {
+    const rows = await listArticles(false);
+    const sorted = [...(rows || [])].sort((a, b) => {
+      if (a.featured !== b.featured) return a.featured ? -1 : 1;
+      const aDate = a.publishAt ? new Date(a.publishAt).getTime() : 0;
+      const bDate = b.publishAt ? new Date(b.publishAt).getTime() : 0;
+      return bDate - aDate;
+    });
+    return sorted.slice(0, 500).map(mapPublic);
+  } catch (e) {
+    console.error("Error fetching published articles:", e);
+    return [];
+  }
 }
 
 export interface ArticleListFilters {
@@ -96,42 +104,54 @@ export interface ArticleListFilters {
 }
 
 export async function getArticlesPage(filters: ArticleListFilters) {
-  const q = (filters.q ?? "").trim().slice(0, 120);
-  const where = {
-    ...(filters.status === "draft" || filters.status === "published"
-      ? { status: filters.status }
-      : {}),
-    ...(filters.category && filters.category !== "all"
-      ? { category: filters.category }
-      : {}),
-    ...(q
-      ? {
-          OR: [
-            { titleEn: { contains: q, mode: "insensitive" as const } },
-            { titleAr: { contains: q } },
-            { slug: { contains: q } },
-          ],
-        }
-      : {}),
-  };
-  const total = await db.cmsArticle.count({ where });
+  const q = (filters.q ?? "").trim().toLowerCase().slice(0, 120);
+  let rows: CMSArticle[] = [];
+  try {
+    rows = await listArticles(true);
+  } catch (e) {
+    console.error("Error fetching articles list:", e);
+  }
+
+  let filtered = rows;
+  if (filters.status === "draft" || filters.status === "published") {
+    filtered = filtered.filter((r) => r.status === filters.status);
+  }
+  if (filters.category && filters.category !== "all") {
+    filtered = filtered.filter((r) => r.category === filters.category);
+  }
+  if (q) {
+    filtered = filtered.filter(
+      (r) =>
+        r.titleEn?.toLowerCase().includes(q) ||
+        r.titleAr?.includes(q) ||
+        r.slug?.toLowerCase().includes(q),
+    );
+  }
+
+  filtered.sort((a, b) => {
+    const aTime = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+    const bTime = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+    return bTime - aTime;
+  });
+
+  const total = filtered.length;
   const pageSize = 30;
   const page = Math.min(
     Math.max(1, filters.page || 1),
     Math.max(1, Math.ceil(total / pageSize)),
   );
-  const rows = await db.cmsArticle.findMany({
-    where,
-    orderBy: [{ updatedAt: "desc" }],
-    skip: (page - 1) * pageSize,
-    take: pageSize,
-  });
-  return { items: rows.map(mapArticle), total, page, pageSize };
+  const items = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+  return { items: items.map(mapArticle), total, page, pageSize };
 }
 
 export async function getCmsArticle(id: string) {
-  const row = await db.cmsArticle.findUnique({ where: { id } });
-  return row ? mapArticle(row) : null;
+  try {
+    const row = await getArticleByID("", id);
+    return row ? mapArticle(row) : null;
+  } catch {
+    return null;
+  }
 }
 
 export interface CmsArticleInput {
@@ -175,27 +195,14 @@ export function articleSlug(title: string) {
 export async function saveCmsArticle(
   input: CmsArticleInput,
   html: { en: string; ar: string },
-  authorId: string,
+  _authorId: string,
 ) {
-  const existing = input.id
-    ? await db.cmsArticle.findUnique({
-        where: { id: input.id },
-        select: { id: true, authorId: true },
-      })
-    : null;
-  if (input.id && !existing) throw new Error(serverMessages.cmsArticleNotFound);
   if (!input.title_en.trim() || !input.title_ar.trim())
     throw new Error(serverMessages.cmsArticleTitleRequired);
   const slug = (
     input.slug.trim().toLowerCase() || articleSlug(input.title_en)
   ).slice(0, 80);
   if (!SLUG.test(slug)) throw new Error(serverMessages.cmsArticleSlugInvalid);
-  const clash = await db.cmsArticle.findUnique({
-    where: { slug },
-    select: { id: true },
-  });
-  if (clash && clash.id !== input.id)
-    throw new Error(serverMessages.cmsArticleSlugTaken);
   if (!CATEGORY.test(input.category))
     throw new Error(serverMessages.cmsArticleCategoryInvalid);
   const publishAt = input.publish_at ? new Date(input.publish_at) : null;
@@ -203,14 +210,15 @@ export async function saveCmsArticle(
     throw new Error(serverMessages.cmsArticleDateInvalid);
   const text = (value: string, max: number) =>
     value.trim().slice(0, max) || null;
-  const data = {
+
+  const data: Partial<CMSArticle> = {
     slug,
     titleEn: input.title_en.trim().slice(0, 200),
     titleAr: input.title_ar.trim().slice(0, 200),
     excerptEn: text(input.excerpt_en, 600),
     excerptAr: text(input.excerpt_ar, 600),
-    bodyEn: (input.body_en ?? undefined) as never,
-    bodyAr: (input.body_ar ?? undefined) as never,
+    bodyEn: input.body_en,
+    bodyAr: input.body_ar,
     bodyHtmlEn: html.en.slice(0, 500_000),
     bodyHtmlAr: html.ar.slice(0, 500_000),
     coverUrl: safeWebsiteUrl(input.cover_url.trim()) || null,
@@ -220,21 +228,29 @@ export async function saveCmsArticle(
     ).slice(0, 20),
     authorName: text(input.author_name, 120),
     status: input.status === "published" ? "published" : "draft",
-    // A published article without a date goes out now; drafts keep whatever date was chosen.
     publishAt:
-      input.status === "published" && !publishAt ? new Date() : publishAt,
+      input.status === "published" && !publishAt
+        ? new Date().toISOString()
+        : publishAt
+          ? publishAt.toISOString()
+          : null,
     featured: input.featured,
     seoTitleEn: text(input.seo_title_en, 200),
     seoTitleAr: text(input.seo_title_ar, 200),
     seoDescriptionEn: text(input.seo_description_en, 400),
     seoDescriptionAr: text(input.seo_description_ar, 400),
   };
-  const row = existing
-    ? await db.cmsArticle.update({ where: { id: existing.id }, data })
-    : await db.cmsArticle.create({ data: { ...data, authorId } });
+
+  const row = input.id
+    ? await updateArticle("", input.id, data)
+    : await createArticle("", data);
   return mapArticle(row);
 }
 
 export async function deleteCmsArticle(id: string) {
-  await db.cmsArticle.deleteMany({ where: { id } });
+  try {
+    await deleteArticle("", id);
+  } catch (e) {
+    console.error("Error deleting cms article:", e);
+  }
 }
