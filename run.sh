@@ -80,8 +80,8 @@ ${BOLD}Business platform: ./run.sh <command> [options]${RESET}
 ${BOLD}Getting started${RESET}
   setup [--demo|--light|--empty]   Install, create .env with secrets, start services, build the database
   doctor                           Check tools, versions, .env, services, database and ports
-  install                          pnpm install and generate the Prisma client
-  upgrade                          git pull, install, migrate and regenerate (after pulling new work)
+  install                          npm install and build backend binaries
+  upgrade                          git pull, install, migrate Go services and build apps
 
 ${BOLD}Environment (.env)${RESET}
   env init                         Create .env from .env.example and generate every secret
@@ -339,24 +339,52 @@ cmd_db() {
       [ "${YES:-0}" = 1 ] && args+=("--yes")
       node scripts/db-reset.cjs ${args[@]+"${args[@]}"}
       ;;
-    migrate) run pnpm db:migrate ;;
-    status) run pnpm db:status ;;
-    new)
-      [ -n "${1:-}" ] || die "Usage: ./run.sh db new <name>"
-      run pnpm db:migrate:new --name "$1"
-      warn "Review the SQL, add CHECK constraints by hand, then run: ./run.sh db migrate && ./run.sh db generate"
+    migrate)
+      step "Applying Go backend database migrations across all services"
+      local svcs=(audit cms commerce delivery files finance hr identity inventory itsm notify realtime sales system workflow)
+      local svc
+      for svc in "${svcs[@]}"; do
+        step "Migrating $svc schema..."
+        if [ -x "backend/bin/$svc" ]; then
+          (cd backend && SERVICE_NAME="$svc" ./bin/"$svc" migrate) || (cd backend && SERVICE_NAME="$svc" go run "./services/$svc/cmd/api" migrate)
+        else
+          (cd backend && SERVICE_NAME="$svc" go run "./services/$svc/cmd/api" migrate)
+        fi
+      done
+      ok "All backend service schemas migrated successfully."
       ;;
-    generate) run pnpm db:generate ;;
-    seed) run pnpm db:seed ;;
+    status)
+      step "Checking backend database status"
+      pg_tool psql "$(plain_db_url)" -c "SELECT nspname AS schema_name, count(*) AS table_count FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE c.relkind = 'r' AND nspname IN ('audit','cms','commerce','delivery','files','finance','hr','identity','inventory','itsm','notify','realtime','sales','system','workflow') GROUP BY nspname ORDER BY nspname;"
+      ;;
+    new)
+      [ -n "${1:-}" ] || die "Usage: ./run.sh db new <service> <migration_name>"
+      die "Backend migrations are versioned under backend/services/<service>/migrations/. Add standard SQL migrations there and run ./run.sh db migrate."
+      ;;
+    generate)
+      step "Generating Go backend code"
+      (cd backend && make gen)
+      if [ -f "apps/admin/prisma/schema.prisma" ]; then
+        step "Generating Prisma client for admin"
+        npm --prefix apps/admin run db:generate || true
+      fi
+      ;;
+    seed) run npm --prefix apps/admin run db:seed 2>/dev/null || warn "Seed via admin UI or Go services." ;;
     bootstrap)
       local profile="" overwrite=""
       while [ $# -gt 0 ]; do
         case "$1" in --profile) profile="$2"; shift 2 ;; --overwrite) overwrite=1; shift ;; *) die "Unknown option $1" ;; esac
       done
-      COMPANY_PROFILE="${profile:-${COMPANY_PROFILE:-}}" COMPANY_PROFILE_OVERWRITE="$overwrite" run pnpm db:bootstrap
+      COMPANY_PROFILE="${profile:-${COMPANY_PROFILE:-}}" COMPANY_PROFILE_OVERWRITE="$overwrite" node scripts/bootstrap-database.cjs
       ;;
-    integrity | check) run pnpm db:check-integrity ;;
-    studio) run pnpm db:studio ;;
+    integrity | check) node scripts/check-operations-db.cjs ;;
+    studio)
+      if [ -f "apps/admin/prisma/schema.prisma" ]; then
+        npx --prefix apps/admin prisma studio --schema=prisma/schema.prisma
+      else
+        die "Prisma studio is retired in favor of direct service schemas and admin UI."
+      fi
+      ;;
     psql) pg_tool psql "$(plain_db_url)" ;;
     backup)
       local url name file
@@ -526,15 +554,17 @@ cmd_deploy() {
       cmd_deploy check
       load_env
       confirm "Apply migrations to the configured database and build?" || die "Cancelled."
-      run pnpm db:migrate
-      run pnpm db:generate
-      run pnpm build
+      cmd_db migrate
+      cmd_db generate
+      run npm run build:it
+      run npm run build:web
+      run npm run build:admin
       ok "Built. Start the apps (./run.sh start), the workers (./run.sh worker all) or schedule /api/cron."
       ;;
     migrate)
       load_env
       confirm "Apply pending migrations to the configured database?" || die "Cancelled."
-      run pnpm db:migrate
+      cmd_db migrate
       ;;
     vercel)
       local app="${1:-}" prod=""
