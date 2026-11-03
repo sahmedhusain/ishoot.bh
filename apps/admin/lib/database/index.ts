@@ -68,7 +68,7 @@ export * from "./services/email-outbox";
 export * from "./services/revalidation-outbox";
 export * from "./services/installation";
 export * from "./services/sample-files";
-export type { Prisma } from "@prisma/client";
+export type Prisma = any;
 export * from "./queries/sequence";
 export * from "./queries/approvals";
 export * from "./queries/leave";

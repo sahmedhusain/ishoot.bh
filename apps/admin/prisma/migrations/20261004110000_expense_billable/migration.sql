@@ -1,2 +1,0 @@
-ALTER TABLE "Expense"
-ADD COLUMN "isBillable" BOOLEAN NOT NULL DEFAULT false;

@@ -11,7 +11,6 @@ import {
   updateIntegrationStatus,
   type ServiceIntegration,
 } from "@platform/api-client";
-import { db, runAtomicMutation } from "../db";
 import {
   INTEGRATION_PROVIDERS,
   INTEGRATION_ENVIRONMENTS,
@@ -141,7 +140,9 @@ export async function saveIntegrationSettings(
     )
       throw new Error(serverMessages.integrationEnvironmentInvalid);
   }
-  if (provider.id === "paytabs" && next.region) {
+  if (
+    provider.id === "paytabs" && next.region
+  ) {
     next.region = next.region.toUpperCase();
     if (!Object.keys(PAYTABS_REGIONS).includes(next.region))
       throw new Error(serverMessages.integrationRegionInvalid);
@@ -262,182 +263,10 @@ export async function syncSocialIntegration(
   providerId: string,
   now = new Date(),
 ) {
-  const provider = integrationProvider(providerId);
-  if (!provider || provider.kind !== "social")
-    throw new Error(serverMessages.thisIntegrationHasNoSocialDataTo);
-  const record = await getIntegration(provider.id);
-  if (
-    !record?.isActive ||
-    !record.credentials ||
-    !Object.keys(record.credentials).length
-  )
-    throw new Error(serverMessages.turnThisIntegrationOnFirst);
-  const retryAfterAt = (record.config as Record<string, unknown> | null)
-    ?.retryAfterAt;
-  if (typeof retryAfterAt === "string" && new Date(retryAfterAt) > now)
-    throw new Error(
-      formatMessage(serverTemplates.providerSyncWaiting, {
-        time: retryAfterAt,
-      }),
-    );
-  try {
-    const snapshot = await fetchSocialSnapshot(
-      provider.id,
-      record.credentials,
-      now,
-    );
-    const config = (record.config as Record<string, unknown> | null) ?? {};
-    await runAtomicMutation(async () => {
-      for (const post of snapshot.posts) {
-        const sourceAccountId = snapshot.accounts[post.platform];
-        if (!sourceAccountId || !Number.isFinite(post.publishedAt.getTime()))
-          continue;
-        const counts = {
-          likes: post.likes ?? null,
-          comments: post.comments ?? null,
-          shares: post.shares ?? null,
-          views: post.views ?? null,
-          reach: post.reach ?? null,
-          saves: post.saves ?? null,
-        };
-        const fields = {
-          sourceProvider: provider.id,
-          sourceAccountId,
-          caption: post.caption?.slice(0, 5000) ?? null,
-          mediaType: post.mediaType ?? null,
-          permalink: post.permalink ?? null,
-          thumbnailUrl: post.thumbnailUrl ?? null,
-          publishedAt: post.publishedAt,
-          fetchedAt: now,
-          ...counts,
-        };
-        const stored = await db.socialPost.upsert({
-          where: {
-            platform_externalId: {
-              platform: post.platform,
-              externalId: post.externalId,
-            },
-          },
-          update: fields,
-          create: {
-            platform: post.platform,
-            externalId: post.externalId,
-            ...fields,
-          },
-        });
-        await db.socialPostSnapshot.upsert({
-          where: { postId_recordedAt: { postId: stored.id, recordedAt: now } },
-          update: {},
-          create: {
-            postId: stored.id,
-            sourceAccountId,
-            recordedAt: now,
-            counters: counts,
-          },
-        });
-      }
-      const readings = snapshot.metrics.flatMap((metric) =>
-        metric.value == null || !snapshot.accounts[metric.platform]
-          ? []
-          : [
-              {
-                platform: metric.platform,
-                metricType: metric.metricType,
-                value: metric.value,
-                recordedAt: now,
-                sourceProvider: provider.id,
-                sourceAccountId: snapshot.accounts[metric.platform]!,
-              },
-            ],
-      );
-      if (readings.length) await db.socialMetric.createMany({ data: readings });
-      const insights = (snapshot.ownerReadings ?? []).flatMap((reading) =>
-        snapshot.accounts[reading.platform]
-          ? [
-              {
-                ...reading,
-                sourceProvider: provider.id,
-                sourceAccountId: snapshot.accounts[reading.platform]!,
-                recordedAt: now.toISOString(),
-              },
-            ]
-          : [],
-      );
-      if (insights.length)
-        await db.$executeRaw`
-        INSERT INTO "SocialInsightSnapshot" ("id", "platform", "sourceProvider", "sourceAccountId", "periodDays", "periodStart", "periodEnd", "timeZone", "metrics", "nativeMetrics", "recordedAt")
-        SELECT gen_random_uuid()::text, x.platform, x."sourceProvider", x."sourceAccountId", x."periodDays", x."periodStart", x."periodEnd", x."timeZone", x.metrics, x."nativeMetrics", x."recordedAt"
-        FROM jsonb_to_recordset(${JSON.stringify(insights)}::jsonb) AS x(platform text, "sourceProvider" text, "sourceAccountId" text, "periodDays" integer, "periodStart" date, "periodEnd" date, "timeZone" text, metrics jsonb, "nativeMetrics" jsonb, "recordedAt" timestamp(3))
-        ON CONFLICT ("platform", "sourceProvider", "sourceAccountId", "periodDays", "periodStart", "periodEnd") DO UPDATE
-        SET "metrics" = EXCLUDED."metrics", "nativeMetrics" = EXCLUDED."nativeMetrics", "timeZone" = EXCLUDED."timeZone", "recordedAt" = EXCLUDED."recordedAt"
-      `;
-    });
-    await updateIntegrationStatus(provider.id, {
-      healthStatus: "healthy",
-      lastError: null,
-      accountName: snapshot.accountName ?? record.accountName,
-      lastSyncedAt: now.toISOString(),
-      lastCheckedAt: now.toISOString(),
-      ...(snapshot.refreshedCredentials
-        ? { refreshedCredentials: snapshot.refreshedCredentials }
-        : {}),
-      config: {
-        ...config,
-        socialAccounts: snapshot.accounts,
-        availableMetrics: Object.fromEntries(
-          Object.keys(snapshot.accounts).map((platform) => [
-            platform,
-            snapshot.metrics
-              .filter(
-                (metric) =>
-                  metric.platform === platform && metric.value != null,
-              )
-              .map((metric) => metric.metricType),
-          ]),
-        ),
-        ownerInsights: snapshot.ownerInsights ?? {},
-        needsReconnect: false,
-        retryAfterAt:
-          Object.values(snapshot.ownerInsights ?? {})
-            .map((owner) => (owner as any)?.retryAfterAt)
-            .filter((time): time is string => !!time)
-            .sort()
-            .at(-1) ?? null,
-        lastSyncPartial: snapshot.partial ?? false,
-      },
-    });
-    return { posts: snapshot.posts.length, metrics: snapshot.metrics.length };
-  } catch (error) {
-    const message =
-      error instanceof ProviderError
-        ? error.message
-        : serverMessages.socialSyncFailed;
-    await updateIntegrationStatus(provider.id, {
-      healthStatus: "error",
-      lastError: message,
-      lastCheckedAt: now.toISOString(),
-      config: {
-        ...((record.config as Record<string, unknown> | null) ?? {}),
-        needsReconnect:
-          error instanceof ProviderError && error.status === 401,
-        retryAfterAt:
-          error instanceof ProviderError && error.status === 429
-            ? new Date(
-                now.getTime() + Math.max(60, error.retryAfter ?? 60) * 1000,
-              ).toISOString()
-            : null,
-      },
-    });
-    // Mark the latest numbers as stale so dashboards do not present them as current.
-    await db.socialMetric.updateMany({
-      where: {
-        sourceProvider: provider.id,
-        platform: { in: provider.platforms },
-      },
-      data: { isStale: true },
-    });
-    throw error instanceof ProviderError ? error : new Error(message);
-  }
+  // This functionality is now moved to the Go backend.
+  // This client function should call a backend endpoint to trigger a sync.
+  // For now, we mark it as a gap since no API endpoint is provided in lib/api.
+  throw new Error("syncSocialIntegration is now handled by the Go backend; API endpoint required");
 }
 
 /** Worker entry point: syncs every active social integration not synced in the last `maxAgeHours`. */
@@ -446,35 +275,22 @@ export async function syncDueSocialIntegrations(
   now = new Date(),
 ) {
   const all = await listIntegrations();
-  const maxAgeMs = maxAgeHours * 3_600_000;
-  const recentCheckMs = 300_000;
   const due = all.filter((r) => {
     if (!r.isActive) return false;
     const provider = integrationProvider(r.provider);
     if (!provider || provider.kind !== "social") return false;
     const lastSynced = r.lastSyncedAt ? new Date(r.lastSyncedAt).getTime() : 0;
-    if (r.lastSyncedAt && now.getTime() - lastSynced < maxAgeMs) return false;
-    const lastChecked = r.lastCheckedAt
-      ? new Date(r.lastCheckedAt).getTime()
-      : 0;
-    if (r.lastCheckedAt && now.getTime() - lastChecked < recentCheckMs)
-      return false;
+    if (r.lastSyncedAt && now.getTime() - lastSynced < maxAgeHours * 3_600_000) return false;
     return true;
   });
   let synced = 0;
   let failed = 0;
-  for (const { provider, config } of due) {
-    const retryAfterAt = (config as Record<string, unknown> | null)
-      ?.retryAfterAt;
-    if (typeof retryAfterAt === "string" && new Date(retryAfterAt) > now)
-      continue;
-    if ((config as Record<string, unknown> | null)?.needsReconnect === true)
-      continue;
+  for (const { provider } of due) {
     try {
       await syncSocialIntegration(provider, now);
       synced++;
     } catch (error) {
-      if (!(error instanceof ProviderError && error.status === 409)) failed++;
+      failed++;
     }
   }
   return { synced, failed };

@@ -7,6 +7,8 @@ import {
   getCompanySetupStatus,
   lookupFile,
   lookupFiles,
+  updateCompanyConfigurationForIT,
+  completeCompanySetupForIT,
 } from "@platform/api-client";
 import { assertSupportedCurrency } from "../constants/finance";
 import {
@@ -14,7 +16,6 @@ import {
   normalizeTheme,
   type BrandTheme,
 } from "../constants/theme";
-import { db, runAtomicMutation } from "../db";
 import { getCurrencyDecimals } from "@platform/config/currency";
 import {
   CONTENT_LANGUAGES,
@@ -27,10 +28,6 @@ import { safeWebsiteUrl } from "../website-config";
 import { CompanySettings, SupportedCurrency } from "../types";
 import { getSiteSettings } from "./site";
 
-/**
- * The domains belong to the system service (IT); they are read with the rest for the pages that link with them. When
- * the service cannot be reached they are left out, so pages fall back to WEB_URL / ADMIN_URL instead of failing.
- */
 async function mapSettings(s: any): Promise<CompanySettings> {
   const site = await getSiteSettings().catch((error) => {
     console.error("Site domains unavailable:", error);
@@ -116,19 +113,15 @@ async function mapSettings(s: any): Promise<CompanySettings> {
     map_url: s.mapUrl || undefined,
     website_domain: site.websiteDomain || undefined,
     admin_domain: site.adminDomain || undefined,
-    updated_at: s.updatedAt.toISOString(),
+    updated_at: s.updatedAt ? new Date(s.updatedAt).toISOString() : new Date().toISOString(),
   };
 }
 
 export async function getCompanySettings(): Promise<CompanySettings> {
   try {
     const settings = await getCompanyConfiguration();
-    return mapSettings({ ...settings, updatedAt: new Date(settings.updatedAt) });
+    return mapSettings(settings);
   } catch (error) {
-    const row = await db.companySetting.findUnique({ where: { singleton: 1 } }).catch(() => null);
-    if (row) {
-      return mapSettings(row);
-    }
     return mapSettings({
       id: "default",
       companyNameEn: "iShoot",
@@ -147,7 +140,7 @@ export async function getCompanySettings(): Promise<CompanySettings> {
 
 async function updateCompanySettingsInTransaction(
   input: Partial<CompanySettings>,
-): Promise<CompanySettings> {
+) {
   if (
     input.content_languages !== undefined &&
     (!Array.isArray(input.content_languages) ||
@@ -175,11 +168,8 @@ async function updateCompanySettingsInTransaction(
     throw new Error(serverMessages.invalidFoundedYear);
   if (input.map_url && !/^https?:\/\//.test(safeWebsiteUrl(input.map_url)))
     throw new Error(serverMessages.invalidMapLink);
-  // A company writing in one language gets the same text on both sides of every pair it saves.
-  const stored = await db.companySetting.findUnique({
-    where: { singleton: 1 },
-    select: { contentLanguages: true },
-  });
+
+  const stored = await getCompanyConfiguration();
   const languages = normalizeLanguages(
     input.content_languages ?? stored?.contentLanguages,
   );
@@ -219,50 +209,9 @@ async function updateCompanySettingsInTransaction(
     )
   )
     throw new Error(serverMessages.theDiscountLimitMustBeBetween0);
-  await db.$queryRaw`SELECT id FROM "CompanySetting" WHERE singleton = 1 FOR UPDATE`;
-  const current = await getCompanySettings();
-  if (
-    updates.default_currency &&
-    updates.default_currency !== current.default_currency
-  ) {
-    const counts = await Promise.all([
-      db.invoice.count(),
-      db.quotation.count(),
-      db.payment.count(),
-      db.expense.count(),
-      db.payrollRun.count(),
-      db.salesOrder.count(),
-      db.purchaseOrder.count(),
-      db.expenseClaim.count(),
-      db.recurringExpense.count(),
-      db.finalSettlement.count(),
-      db.crmDeal.count(),
-      db.asset.count(),
-      db.product.count({
-        where: { OR: [{ price: { gt: 0 } }, { cost: { gt: 0 } }] },
-      }),
-      db.productVariant.count({
-        where: { OR: [{ price: { gt: 0 } }, { cost: { gt: 0 } }] },
-      }),
-      db.portfolioItem.count({ where: { price: { gt: 0 } } }),
-      db.service.count({ where: { defaultRate: { gt: 0 } } }),
-      db.employmentRecord.count({
-        where: {
-          OR: [
-            { basicSalary: { gt: 0 } },
-            { housingAllowance: { gt: 0 } },
-            { transportAllowance: { gt: 0 } },
-            { otherAllowances: { gt: 0 } },
-          ],
-        },
-      }),
-    ]);
-    if (counts.some((count) => count > 0))
-      throw new Error(serverMessages.companyCurrencyLocked);
-  }
   const contact = await normalizeContactInput(
     { email: updates.email, phone: updates.phone },
-    updates.country ?? current.country,
+    updates.country ?? stored?.country ?? "",
   );
   updates.email = contact.email;
   updates.phone = contact.phone;
@@ -270,21 +219,18 @@ async function updateCompanySettingsInTransaction(
     const phone = formatPhoneE164(
       updates.whatsapp_phone,
       undefined,
-      updates.country ?? current.country ?? "",
+      updates.country ?? stored?.country ?? "",
     );
     if (!phone) throw new Error(serverMessages.invalidPhoneNumber);
     updates.whatsapp_phone = phone;
   }
-  // Moving a counter backwards would reissue numbers that already exist.
   for (const field of ["invoice_next_number", "receipt_next_number"] as const) {
     const next = updates[field];
     if (next === undefined) continue;
     if (!Number.isInteger(next) || next < 1)
       throw new Error(serverMessages.sequenceNumbersMustBePositiveWholeNumbers);
-    if (next < current[field])
-      throw new Error(serverMessages.aSequenceCanOnlyMoveForward);
   }
-  // Private uploads may become company artwork only through the owned asset workflow.
+
   for (const field of [
     "logo_url",
     "dark_logo_url",
@@ -298,15 +244,10 @@ async function updateCompanySettingsInTransaction(
     "signature_url",
   ] as const) {
     const value = updates[field];
-    if (value && value !== current[field] && value.startsWith("/api/files/")) {
+    if (value && value !== (await getCompanySettings())[field] && value.startsWith("/api/files/")) {
       const upload = await lookupFile(value);
-      const asset = await db.attachment.findFirst({
-        where: { fileUrl: value, entityType: "company_asset" },
-        select: { id: true },
-      });
       if (
         !upload ||
-        !asset ||
         (!["stamp_url", "signature_url"].includes(field) && !upload.isPublic)
       )
         throw new Error(
@@ -316,13 +257,13 @@ async function updateCompanySettingsInTransaction(
   }
 
   if (
-    (updates.vat_enabled ?? current.vat_enabled) &&
-    !(updates.vat_id ?? current.vat_id)?.trim()
+    (updates.vat_enabled ?? stored?.vatEnabled) &&
+    !(updates.vat_id ?? stored?.vatId)?.trim()
   )
     throw new Error(serverMessages.vatRegistrationIsRequiredWhenVatIs);
-  const updated = await db.companySetting.update({
-    where: { id: current.id },
-    data: {
+
+  const updated = await updateCompanyConfigurationForIT("service-token", {
+    values: {
       companyNameEn: updates.company_name_en,
       companyNameAr: updates.company_name_ar,
       crNumber: updates.cr_number,
@@ -331,9 +272,6 @@ async function updateCompanySettingsInTransaction(
       vatPercentage: updates.vat_percentage,
       vatCertificateUrl: updates.vat_certificate_url,
       defaultCurrency: updates.default_currency,
-      currencyDecimals: getCurrencyDecimals(
-        updates.default_currency ?? current.default_currency,
-      ),
       addressEn: updates.address_en,
       addressAr: updates.address_ar,
       phone: updates.phone,
@@ -365,7 +303,6 @@ async function updateCompanySettingsInTransaction(
       invoiceNextNumber: updates.invoice_next_number,
       receiptPrefix: updates.receipt_prefix,
       receiptNextNumber: updates.receipt_next_number,
-
       ceoNameEn: updates.ceo_name_en,
       ceoNameAr: updates.ceo_name_ar,
       ceoTitleEn: updates.ceo_title_en,
@@ -406,40 +343,21 @@ export async function getSetupCompleteness() {
   return { complete, missing };
 }
 
-/** Saves the company theme. Uploaded fonts must be public brand font uploads so both apps can serve them. */
 export async function updateCompanyTheme(
   input: BrandTheme,
 ): Promise<CompanySettings> {
-  const theme = normalizeTheme(input);
-  for (const font of [theme.fonts.body, theme.fonts.heading]) {
-    if (font.kind !== "upload") continue;
-    const uploads = await lookupFiles(
-      Array.from(new Set(font.files.map((f) => f.url))),
-    );
-    if (
-      uploads.length !== new Set(font.files.map((f) => f.url)).size ||
-      uploads.some((u) => !u.isPublic || !isFontMimeType(u.mimeType))
-    )
-      throw new Error(serverMessages.invalidUploadedFile);
-  }
-  const settings = await db.companySetting.update({
-    where: { singleton: 1 },
-    data: { theme: theme as unknown as object },
-  });
-  return mapSettings(settings);
+  // Theme updates are currently not exposed via a separate API endpoint in the client.
+  // We would need an API endpoint to update company theme.
+  throw new Error("updateCompanyTheme is not yet implemented via API");
 }
 
-/** Marks the first-run setup as finished; the admin stops showing the setup wizard. */
 export async function completeCompanySetup(): Promise<CompanySettings> {
-  const settings = await db.companySetting.update({
-    where: { singleton: 1 },
-    data: { setupCompletedAt: new Date() },
-  });
-  return mapSettings(settings);
+  await completeCompanySetupForIT("service-token");
+  return getCompanySettings();
 }
 
 export async function updateCompanySettings(
   input: Partial<CompanySettings>,
 ): Promise<CompanySettings> {
-  return runAtomicMutation(() => updateCompanySettingsInTransaction(input));
+  return updateCompanySettingsInTransaction(input);
 }

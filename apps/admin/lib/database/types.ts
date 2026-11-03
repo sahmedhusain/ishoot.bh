@@ -1032,12 +1032,57 @@ export interface CompanyDocument {
   created_at: string;
   updated_at: string;
 }
-export type {
-  Faq,
-  Statistic,
-  Review,
-  Role,
-} from "@prisma/client";
+export interface Faq {
+  id: string;
+  questionEn: string;
+  questionAr: string;
+  answerEn: string;
+  answerAr: string;
+  category?: string | null;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+}
+
+export interface Statistic {
+  id: string;
+  labelEn: string;
+  labelAr: string;
+  value: string;
+  icon?: string | null;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+}
+
+export interface Review {
+  id: string;
+  authorName: string;
+  authorTitleEn?: string | null;
+  authorTitleAr?: string | null;
+  authorAvatarUrl?: string | null;
+  contentEn: string;
+  contentAr: string;
+  rating: number;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+}
+
+export interface Role {
+  id: string;
+  key: string;
+  nameEn: string;
+  nameAr: string;
+  descriptionEn?: string | null;
+  descriptionAr?: string | null;
+  isSystem: boolean;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+}
 export type { FeatureToggle } from "./queries/features";
 
 export interface SocialLink {

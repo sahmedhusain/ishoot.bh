@@ -677,7 +677,6 @@ export async function getRequestList(
           },
         }),
       ]),
-    "RepeatableRead",
   );
   return {
     page: safePage,

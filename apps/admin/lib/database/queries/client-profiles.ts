@@ -623,7 +623,7 @@ export async function getClientsPage(
         number
       >,
     };
-  }, "RepeatableRead");
+  });
 }
 
 /** One client's rank and tier among all clients, for the client page. */

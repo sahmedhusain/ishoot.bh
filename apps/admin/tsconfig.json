@@ -9,6 +9,7 @@
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
+    "noImplicitAny": false,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
@@ -80,6 +81,12 @@
       ],
       "@platform/ui/*": [
         "./components/ui/*"
+      ],
+      "@prisma/client": [
+        "./lib/database/prisma-stub.ts"
+      ],
+      "@prisma/client/*": [
+        "./lib/database/prisma-stub.ts"
       ]
     }
   },

@@ -87,7 +87,6 @@ async function pageQuery<T>(
       });
       return { rows, total, page, pageSize: 50 };
     },
-    { isolationLevel: "RepeatableRead" },
   );
 }
 /** `scope`: the staff accounts whose deals the viewer may see (data scope); null or missing for all of them. */
@@ -212,7 +211,7 @@ export async function getInvoicesPage(
       };
     });
     return { ...result, items, rows: undefined, filters: f };
-  }, "RepeatableRead");
+  });
 }
 export type PaymentListRow = Pick<
   Payment,
@@ -317,7 +316,7 @@ export async function getPaymentsPage(
       receiptCount,
       invoiceCount,
     };
-  }, "RepeatableRead");
+  });
 }
 
 export async function getCalendarPage(
@@ -377,7 +376,7 @@ export async function getCalendarPage(
       filters: f,
       count,
     };
-  }, "RepeatableRead");
+  });
 }
 
 export async function getMomsPage(input: ListParameters, batch?: ExportBatch) {
@@ -445,7 +444,7 @@ export async function getMomsPage(input: ListParameters, batch?: ExportBatch) {
       filters: f,
       count,
     };
-  }, "RepeatableRead");
+  });
 }
 
 export async function getCompanyDocumentsPage(
@@ -497,7 +496,7 @@ export async function getCompanyDocumentsPage(
       filters: f,
       count,
     };
-  }, "RepeatableRead");
+  });
 }
 
 export const listDomains = {
@@ -578,7 +577,7 @@ export async function getAttachmentsPage(
       filters: f,
       counts: Object.fromEntries(groups.map((g) => [g.entityType, g._count])),
     };
-  }, "RepeatableRead");
+  });
 }
 export async function getExpensesPage(
   input: ListParameters,
@@ -668,5 +667,5 @@ export async function getExpensesPage(
       })),
       count,
     };
-  }, "RepeatableRead");
+  });
 }

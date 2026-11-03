@@ -13,6 +13,7 @@ export default defineConfig({
       "@platform/email": path.resolve(__dirname, "./lib/email"),
       "@platform/ui": path.resolve(__dirname, "./components/ui"),
       "@material/material-color-utilities": path.resolve(__dirname, "./node_modules/@material/material-color-utilities/index.js"),
+      "@prisma/client": path.resolve(__dirname, "./lib/database/prisma-stub.ts"),
       "@": path.resolve(__dirname, "./"),
     },
   },
@@ -20,5 +21,9 @@ export default defineConfig({
     environment: "node",
     include: ["tests/unit/**/*.test.ts"],
     testTimeout: 30_000,
+    env: {
+      API_URL: "http://127.0.0.1:8080",
+      SERVICE_KEY: "test-key",
+    },
   },
 });

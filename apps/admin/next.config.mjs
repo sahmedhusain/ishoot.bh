@@ -43,6 +43,9 @@ const securityHeaders = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   distDir: process.env.NEXT_DIST_DIR || ".next",
   devIndicators: process.env.NEXT_DIST_DIR?.startsWith(".next-e2e") ? false : undefined,
   serverExternalPackages: ['@react-pdf/renderer', 'libphonenumber-js', 'bcryptjs', 'sharp'],

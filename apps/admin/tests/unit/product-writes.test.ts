@@ -5,6 +5,14 @@ const mocks = vi.hoisted(() => ({
   create: vi.fn(),
   removeVariants: vi.fn(),
 }));
+vi.mock("@platform/api-client", async (importOriginal) => {
+  const actual: any = await importOriginal();
+  return {
+    ...actual,
+    createProduct: (data: any) => mocks.create({ data }),
+    updateProduct: (id: string, data: any) => mocks.create({ data }),
+  };
+});
 vi.mock("../../lib/database/db", () => ({
   db: {
     product: { findFirst: mocks.find },

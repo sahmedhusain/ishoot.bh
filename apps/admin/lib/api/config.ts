@@ -5,9 +5,7 @@ export const serviceCaller = () => process.env.SERVICE_CALLER || "admin";
 
 /** The gateway's base URL, e.g. http://127.0.0.1:8080. */
 export function apiUrl() {
-  const url = process.env.API_URL;
-  if (!url)
-    throw new Error("API_URL is not set: point it at the backend gateway");
+  const url = process.env.API_URL || "http://127.0.0.1:8080";
   return url.replace(/\/+$/, "");
 }
 

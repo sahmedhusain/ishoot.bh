@@ -1,1 +1,0 @@
-CREATE UNIQUE INDEX "PaymentAttempt_gateway_gatewayPaymentId_key" ON "PaymentAttempt" ("gateway", "gatewayPaymentId");
