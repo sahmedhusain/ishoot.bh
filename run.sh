@@ -165,14 +165,16 @@ EOF
 # ----------------------------------------------------------------------------------------------------------
 cmd_install() {
   step "Installing dependencies"
-  run pnpm install
-  run pnpm db:generate
+  for app in apps/admin apps/it apps/web company contracts scripts; do
+    if [ -f "$app/package.json" ]; then
+      npm --prefix "$app" install
+    fi
+  done
 }
 
 cmd_setup() {
   local mode="${1:---demo}"
   have node || die "Node 22 or newer is needed."
-  have pnpm || die "pnpm is needed: corepack enable && corepack prepare pnpm@12 --activate"
   cmd_install
   if [ -f .env ]; then
     step "Updating .env"
@@ -211,7 +213,7 @@ cmd_doctor() {
     local major; major="$(node -p 'process.versions.node.split(".")[0]')"
     [ "$major" -ge 22 ] || { warn "Node $major is older than 22"; failures=$((failures + 1)); }
   fi
-  check_tool pnpm "corepack enable" required
+  check_tool npm "Node package manager" required
   check_tool docker "needed for the local stack" required
   check_tool git
   check_tool psql "optional: brew install libpq"
@@ -219,7 +221,7 @@ cmd_doctor() {
   step "Environment"
   if [ -f .env ]; then node scripts/env-tool.cjs check || failures=$((failures + 1)); else warn ".env missing: ./run.sh env init"; failures=$((failures + 1)); fi
   step "Dependencies"
-  if [ -d node_modules ]; then ok "node_modules present"; else warn "dependencies not installed: ./run.sh install"; failures=$((failures + 1)); fi
+  if [ -d apps/admin/node_modules ]; then ok "dependencies installed"; else warn "dependencies not installed: ./run.sh install"; failures=$((failures + 1)); fi
   if [ -f .env ]; then
     load_env
     step "Database"
@@ -510,17 +512,17 @@ cmd_test() {
 # ----------------------------------------------------------------------------------------------------------
 cmd_worker() {
   case "${1:-}" in
-    email) run pnpm worker:email ;;
-    revalidation) run pnpm worker:revalidation ;;
-    maintenance) run pnpm worker:maintenance ;;
+    email) node scripts/email-worker.cjs ;;
+    revalidation) node scripts/revalidation-worker.cjs ;;
+    maintenance) node scripts/maintenance-worker.cjs ;;
     all)
       trap 'kill 0' INT TERM EXIT
-      pnpm worker:email &
-      pnpm worker:revalidation &
-      pnpm worker:maintenance &
+      node scripts/email-worker.cjs &
+      node scripts/revalidation-worker.cjs &
+      node scripts/maintenance-worker.cjs &
       wait
       ;;
-    check) run pnpm check:workers ;;
+    check) node scripts/check-workers.cjs ;;
     *) die "worker <email|revalidation|maintenance|all|check>" ;;
   esac
 }
@@ -543,7 +545,7 @@ cmd_deploy() {
       step "Checking .env for production"
       node scripts/env-tool.cjs check --production || true
       step "Deployment configuration"
-      run pnpm check:deployment
+      node scripts/check-deployment-config.cjs
       ;;
     prepare)
       cmd_deploy check
@@ -551,9 +553,9 @@ cmd_deploy() {
       confirm "Apply migrations to the configured database and build?" || die "Cancelled."
       cmd_db migrate
       cmd_db generate
-      run npm run build:it
-      run npm run build:web
-      run npm run build:admin
+      run npm --prefix apps/it run build
+      run npm --prefix apps/web run build
+      run npm --prefix apps/admin run build
       ok "Built. Start the apps (./run.sh start), the workers (./run.sh worker all) or schedule /api/cron."
       ;;
     migrate)
@@ -565,7 +567,7 @@ cmd_deploy() {
       local app="${1:-}" prod=""
       shift || true
       case " $* " in *" --prod "*) prod="--prod" ;; esac
-      have vercel || die "Install the Vercel CLI: pnpm add -g vercel (then vercel login)."
+      have vercel || die "Install the Vercel CLI: npm i -g vercel (then vercel login)."
       deploy_one() {
         step "Deploying apps/$1 to Vercel ${prod:+(production)}"
         warn "First time: link the project with 'vercel link --cwd apps/$1' and set its root directory to apps/$1, its environment variables, and a cron calling /api/cron on the admin."
@@ -593,15 +595,15 @@ cmd_deploy() {
 cmd_company() {
   case "${1:-list}" in
     list) ls -1 company/profiles | grep -v '^\.' | grep -v README ;;
-    demo-assets) run pnpm company:demo-assets ;;
+    demo-assets) npm --prefix company run assets:demo ;;
     *) die "company [list|demo-assets]" ;;
   esac
 }
 cmd_audit() {
   case "${1:-inventory}" in
-    inventory) run pnpm audit:inventory ;;
-    identities) run pnpm audit:customer-identities ;;
-    security) run pnpm test:audit-security ;;
+    inventory) node scripts/inventory-platform.cjs ;;
+    identities) node scripts/check-customer-identities.cjs ;;
+    security) node scripts/check-audit-security.cjs ;;
     *) die "audit [inventory|identities|security]" ;;
   esac
 }
@@ -633,17 +635,31 @@ case "$command" in
   dev) cmd_dev "$@" ;;
   build) cmd_build "$@" ;;
   start) cmd_start "$@" ;;
-  kill-ports) run pnpm kill-ports ;;
-  clean) run pnpm clean ;;
-  format) run pnpm format ;;
-  lint) run pnpm lint ;;
-  types | type-check) run pnpm type-check ;;
+  kill-ports) node scripts/kill-ports.cjs ;;
+  clean) node scripts/clean-builds.cjs ;;
+  format)
+    for app in apps/admin apps/it apps/web; do
+      npm --prefix "$app" run format || true
+    done
+    ;;
+  lint)
+    for app in apps/admin apps/it apps/web; do
+      npm --prefix "$app" run lint || true
+    done
+    ;;
+  types | type-check)
+    for app in apps/admin apps/it apps/web company contracts scripts; do
+      if [ -f "$app/package.json" ]; then
+        npm --prefix "$app" run type-check || true
+      fi
+    done
+    ;;
   check) cmd_check ;;
   test) cmd_test "$@" ;;
   worker | workers) cmd_worker "$@" ;;
   cron) cmd_cron "$@" ;;
   deploy) cmd_deploy "$@" ;;
-  docs) run pnpm docs:api ;;
+  docs) node scripts/generate-api-reference.cjs ;;
   company) cmd_company "$@" ;;
   audit) cmd_audit "$@" ;;
   urls) cmd_urls ;;
