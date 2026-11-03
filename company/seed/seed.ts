@@ -35,7 +35,7 @@ import { demoPreset } from "./demo-presets";
 import { seedPresetWebsite } from "./seed-presets";
 import { seedOperations } from "./seed-operations";
 
-const prisma = new PrismaClient();
+const prisma = websiteDb;
 
 /** A one-page PDF that says what the demo document stands for (a real file, so previews and downloads work). */
 function placeholderPdf(title: string) {

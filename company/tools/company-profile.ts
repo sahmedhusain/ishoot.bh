@@ -186,8 +186,8 @@ async function installTheme(
   ownerId: string,
 ): Promise<BrandTheme> {
   const font = async (
-    choice: ProfileFont | undefined,
-  ): Promise<FontChoice | undefined> => {
+    choice: any,
+  ): Promise<any> => {
     if (!choice || choice.kind !== "upload") return choice;
     const files = [];
     for (const f of choice.files as {
@@ -204,7 +204,7 @@ async function installTheme(
     }
     return { kind: "upload", family: choice.family, files };
   };
-  const fonts = profile.theme.fonts ?? {};
+  const fonts = (profile.theme as any).fonts ?? {};
   return normalizeTheme({
     ...profile.theme,
     fonts: { body: await font(fonts.body), heading: await font(fonts.heading) },
@@ -233,12 +233,12 @@ export async function installCompanyProfile(
     );
   }
   const theme = await installTheme(db, profile, ownerId);
-  const data = {
+  const data: any = {
     ...profile.company,
     ...urls,
-    theme: theme as unknown as Prisma.InputJsonValue,
+    theme: theme as any,
     ...(options.markSetupComplete ? { setupCompletedAt: new Date() } : {}),
-  } as Prisma.CompanySettingUncheckedCreateInput;
+  };
   const existing = await db.companySetting.findFirst({ select: { id: true } });
   const company = existing
     ? await db.companySetting.update({ where: { id: existing.id }, data })

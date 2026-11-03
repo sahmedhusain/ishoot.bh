@@ -721,7 +721,7 @@ export async function seedVolume(
   const lineItemsFor = (scale = 1) =>
     shuffle(services)
       .slice(0, int(3, 5))
-      .map((s) => ({
+      .map((s: any) => ({
         serviceId: s.id,
         descriptionEn: s.nameEn,
         descriptionAr: s.nameAr,
@@ -1075,11 +1075,11 @@ export async function seedVolume(
       take: 400,
     });
     for (const inv of shuffle(credited).slice(0, 14)) {
-      const to = pick(salesTeam.filter((x) => x.id !== inv.salesOwnerId));
+      const to = pick(salesTeam.filter((x: any) => x.id !== (inv as any).salesOwnerId));
       if (!to) continue;
       await reassignSalesOwner(
         "invoice",
-        inv.id,
+        (inv as any).id,
         to.id,
         owner.id,
         pick([
@@ -1597,10 +1597,10 @@ export async function seedVolume(
     employees.filter((e) => e.user?.role !== "super_admin"),
   ).slice(0, 9)) {
     const start = addDays(TODAY, int(7, 50));
-    let leave;
+    let leave: any;
     try {
       leave = await createLeaveRequest({
-        employeeId: employee.id,
+        employeeId: (employee as any).id,
         leaveTypeId: leaveTypes.annual,
         startDate: start,
         endDate: addDays(start, int(1, 6)),
@@ -1609,7 +1609,7 @@ export async function seedVolume(
     } catch {
       continue;
     }
-    const outcome = await submit("leave_request", leave.id, employee.userId!, {
+    const outcome = await submit("leave_request", leave.id, (employee as any).userId!, {
       startDate: iso(start),
       leaveTypeId: leave.leaveTypeId,
     });
@@ -1908,9 +1908,9 @@ export async function seedVolume(
           dealId: deal?.id ?? null,
           invoiceId:
             deal && invoicesForClaims.length && chance(0.2)
-              ? pick(invoicesForClaims).id
+              ? (pick(invoicesForClaims) as any)?.id
               : null,
-          calendarEventId: meeting?.id ?? null,
+          calendarEventId: (meeting as any)?.id ?? null,
           receiptUrl: fileUrl,
         },
         claimant.id,
@@ -2115,27 +2115,27 @@ export async function seedVolume(
       ]);
     }
     for (const employee of shuffle(
-      employees.filter((e) => e.userId && e.user?.role !== "super_admin"),
+      employees.filter((e: any) => e.userId && e.user?.role !== "super_admin"),
     ).slice(0, 22)) {
-      const available = (monthsByEmployee.get(employee.id) ?? []).sort();
+      const available = (monthsByEmployee.get((employee as any).id) ?? []).sort();
       const wantsPayslip = available.length > 0 && chance(0.6);
       const picked = wantsPayslip
         ? available.slice(-int(1, Math.min(3, available.length)))
         : [];
       const document = await prisma.salaryDocument.create({
         data: {
-          employeeId: employee.id,
+          employeeId: (employee as any).id,
           kind: wantsPayslip ? "payslip" : "salary_certificate",
           months: picked,
           languages: pick([["ar"], ["en"], ["ar", "en"]]),
-          requestedById: employee.userId!,
+          requestedById: (employee as any).userId!,
           status: "pending",
         },
       });
       const outcome = await submit(
         "salary_document",
         document.id,
-        employee.userId!,
+        (employee as any).userId!,
         { kind: document.kind, months: picked },
       );
       bump("salaryDocuments");

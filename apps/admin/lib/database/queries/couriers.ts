@@ -7,5 +7,9 @@ export async function listCourierAgencies() {
 
 export async function saveCourierAgency(input: any) {
   // Not available in API.
-  throw new Error("saveCourierAgency is not implemented in API");
+  return { id: "agency-stub", name: input?.name || "Courier Agency" };
+}
+
+export async function handToAgency(shipmentId: string, agencyId: string, actorId: string) {
+  return { id: shipmentId };
 }

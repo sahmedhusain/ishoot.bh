@@ -72,3 +72,7 @@ CLAUDE_*.md
 GEMINI_*.md
 GEMINI_*.json
 
+apps/admin/next-env.d.ts
+apps/it/next-env.d.ts
+apps/web/next-env.d.ts
+*package-lock.json
