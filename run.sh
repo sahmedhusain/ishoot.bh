@@ -504,11 +504,6 @@ cmd_test() {
     *) die "test [all|admin|it|web|e2e]" ;;
   esac
 }
-    workers) run pnpm check:workers ;;
-    ci) cmd_check; cmd_test db; cmd_test e2e ;;
-    *) die "Unknown: test $sub (see ./run.sh help)" ;;
-  esac
-}
 
 # ----------------------------------------------------------------------------------------------------------
 # workers and cron

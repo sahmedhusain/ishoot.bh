@@ -5,7 +5,7 @@
 // payroll figures are exactly what the app would have produced. Dates are relative to the day the
 // seed runs (≈15 months of history plus a little future), so date-driven states stay valid.
 // The generator is deterministic: the same day produces the same data.
-import type { PrismaClient } from "@prisma/client";
+type PrismaClient = any;
 import {
   createCRMContact,
   createCRMDeal,

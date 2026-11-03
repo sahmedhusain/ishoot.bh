@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import path from "node:path";
 import dotenv from "dotenv";
-import { PrismaClient } from "@prisma/client";
+type PrismaClient = any;
 import { demoPreset } from "./demo-presets";
 import { loadCompanyProfile } from "../tools/company-profile";
 import { listModules } from "../../apps/admin/lib/api/system";

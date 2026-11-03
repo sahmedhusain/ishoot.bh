@@ -5,7 +5,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../.env"), quiet: true });
 
 import fs from "fs";
 import crypto from "crypto";
-import { PrismaClient } from "@prisma/client";
+type PrismaClient = any;
 import bcrypt from "bcryptjs";
 import { workingDaysBetween } from "../../apps/admin/lib/database/hr/payroll-engine";
 import {

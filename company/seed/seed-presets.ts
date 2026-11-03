@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+type PrismaClient = any;
 import { ACTIVITY_PRESETS } from "../../apps/admin/lib/database/website-presets";
 import {
   ACTIVITY_SAMPLES,

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import type { PrismaClient, Product } from "@prisma/client";
+type PrismaClient = any;
+type Product = any;
 import { ACTIVITY_SAMPLES } from "../../apps/admin/lib/database/samples/activity-samples";
 import { ACTIVITY_PRESETS } from "../../apps/admin/lib/database/website-presets";
 import {

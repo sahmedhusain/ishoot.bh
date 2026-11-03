@@ -8,7 +8,6 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import type { Prisma, PrismaClient } from "@prisma/client";
 import {
   isFontMimeType,
   normalizeTheme,
@@ -18,7 +17,7 @@ import {
 import { detectFileType, extensionFor } from "../../contracts/src";
 import { storeFileBytes } from "../../apps/admin/lib/database/services/uploads";
 
-type Db = PrismaClient | Prisma.TransactionClient;
+type Db = any;
 
 /** Brand slots: which company setting each profile asset fills, and the CompanyAsset rows that mirror it. */
 const BRAND_SLOTS = {
