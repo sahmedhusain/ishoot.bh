@@ -161,7 +161,10 @@ export async function POST(
       });
       await sendConfirmation(order.id, locale, siteUrl(req));
       // The people who handle orders hear about it at once.
-      const alert = getTranslations("en").admin.orders.notifications.placed;
+      const alert = {
+        title: "New order #{number}",
+        message: "Order #{number} placed by {name} for {total}",
+      };
       const params = {
         number: order.number,
         name: order.name,

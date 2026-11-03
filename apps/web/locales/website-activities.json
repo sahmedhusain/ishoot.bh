@@ -1,0 +1,1854 @@
+{
+  "_common": {
+    "en": {
+      "about": {
+        "title": "Who we are",
+        "headline": "A team built around the people we serve at {companyName}.",
+        "discoverStudio": "Discover our story and team",
+        "behindTheScenes": "Our team at work",
+        "pillars": {
+          "badge": "What we stand for",
+          "title": "The values behind our work at {companyName}"
+        },
+        "stats": {
+          "badge": "In numbers"
+        },
+        "studioImageAlt": "{companyName} team and workplace"
+      },
+      "services": {
+        "badge": "What we offer",
+        "title": "Our services",
+        "subtitle": "Everything {companyName} provides, explained clearly so you can choose with confidence."
+      },
+      "faq": {
+        "headline": "Questions we are often asked",
+        "subtitle": "Straight answers about how we work at {companyName}, what to expect and how to get started."
+      },
+      "reviews": {
+        "headline": "What our customers say",
+        "subtitle": "Honest feedback from the people and organisations {companyName} works with.",
+        "modal": {
+          "subtitle": "Your feedback helps {companyName} improve",
+          "quotePlaceholder": "Tell us about your experience with {companyName}…"
+        }
+      },
+      "clients": {
+        "marqueeBadge": "Trusted by"
+      },
+      "hero": {
+        "caption": "Welcome to {companyName} — take a look around"
+      },
+      "contact": {
+        "directStudioLine": "Contact our team",
+        "messagePlaceholder": "Tell us what you need from {companyName} and any details that help us respond…",
+        "intents": {
+          "quoteRequestDesc": "Tell us what you need so we can prepare an accurate quote for {companyName}."
+        },
+        "shootLocation": "Location / city (optional)",
+        "shootLocationPlaceholder": "City or location",
+        "projectRefPlaceholder": "https://example.com/reference"
+      },
+      "footer": {
+        "invitationTitle": "Let’s work together with {companyName}.",
+        "invitationAction": "Get in touch"
+      },
+      "cta": {
+        "requestTreatment": "Request a quote"
+      }
+    },
+    "ar": {
+      "about": {
+        "title": "من نحن",
+        "headline": "فريق يعمل من أجل من نخدمهم في {companyName}.",
+        "discoverStudio": "تعرّف على قصتنا وفريقنا",
+        "behindTheScenes": "فريقنا أثناء العمل",
+        "pillars": {
+          "badge": "ما نؤمن به",
+          "title": "القيم التي تقود عملنا في {companyName}"
+        },
+        "stats": {
+          "badge": "بالأرقام"
+        },
+        "studioImageAlt": "فريق ومقر عمل {companyName}"
+      },
+      "services": {
+        "badge": "ما نقدّمه",
+        "title": "خدماتنا",
+        "subtitle": "كل ما يقدّمه {companyName} بوضوح لتختار بثقة."
+      },
+      "faq": {
+        "headline": "أسئلة تصلنا كثيراً",
+        "subtitle": "إجابات مباشرة عن طريقة عملنا في {companyName} وما تتوقعه وكيف تبدأ."
+      },
+      "reviews": {
+        "headline": "ماذا يقول عملاؤنا",
+        "subtitle": "آراء صادقة من الأفراد والجهات التي تعمل مع {companyName}.",
+        "modal": {
+          "subtitle": "رأيك يساعد {companyName} على التحسّن",
+          "quotePlaceholder": "أخبرنا عن تجربتك مع {companyName}…"
+        }
+      },
+      "clients": {
+        "marqueeBadge": "يثقون بنا"
+      },
+      "hero": {
+        "caption": "أهلاً بك في {companyName}، تفضّل بالاطلاع"
+      },
+      "contact": {
+        "directStudioLine": "تواصل مع فريقنا",
+        "messagePlaceholder": "أخبرنا بما تحتاجه من {companyName} وأي تفاصيل تساعدنا على الرد…",
+        "intents": {
+          "quoteRequestDesc": "أخبرنا بما تحتاجه لنعدّ لك عرض سعر دقيقاً لخدمات {companyName}."
+        },
+        "shootLocation": "الموقع / المدينة (اختياري)",
+        "shootLocationPlaceholder": "المدينة أو الموقع",
+        "projectRefPlaceholder": "https://example.com/reference"
+      },
+      "footer": {
+        "invitationTitle": "لنعمل معاً مع {companyName}.",
+        "invitationAction": "تواصل معنا"
+      },
+      "cta": {
+        "requestTreatment": "اطلب عرض سعر"
+      }
+    }
+  },
+  "agency": {
+    "en": {
+      "nav": {
+        "works": "Case studies",
+        "articles": "Insights"
+      },
+      "portfolio": {
+        "badge": "Selected work",
+        "title": "Case studies",
+        "subtitle": "Campaigns and brands {companyName} has helped grow, with the results behind them.",
+        "viewProject": "View case study",
+        "filterAll": "All case studies",
+        "allWork": "All case studies",
+        "backToWorks": "Back to case studies",
+        "productionOverview": "The brief and the outcome"
+      },
+      "hero": {
+        "explore": "See our work",
+        "ideaAction": "Start a project"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "Start a project"
+        },
+        "messagePlaceholder": "Tell {companyName} about your brand, your goals and the audience you want to reach…"
+      },
+      "footer": {
+        "invitationTitle": "Your next campaign with {companyName}. Built together.",
+        "invitationAction": "Start a project"
+      },
+      "articles": {
+        "slug": "insights",
+        "title": "Insights",
+        "badge": "Insights"
+      }
+    },
+    "ar": {
+      "nav": {
+        "works": "دراسات الحالة",
+        "articles": "رؤى"
+      },
+      "portfolio": {
+        "badge": "مختارات من أعمالنا",
+        "title": "دراسات الحالة",
+        "subtitle": "حملات وعلامات ساعدتها {companyName} على النمو، مع النتائج التي حققتها.",
+        "viewProject": "عرض دراسة الحالة",
+        "filterAll": "جميع دراسات الحالة",
+        "allWork": "جميع دراسات الحالة",
+        "backToWorks": "العودة إلى دراسات الحالة",
+        "productionOverview": "المهمة والنتيجة"
+      },
+      "hero": {
+        "explore": "شاهد أعمالنا",
+        "ideaAction": "ابدأ مشروعاً"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "ابدأ مشروعاً"
+        },
+        "messagePlaceholder": "أخبر {companyName} عن علامتك وأهدافك والجمهور الذي تريد الوصول إليه…"
+      },
+      "footer": {
+        "invitationTitle": "حملتك القادمة مع {companyName}. نبنيها معاً.",
+        "invitationAction": "ابدأ مشروعاً"
+      },
+      "articles": {
+        "slug": "insights",
+        "title": "رؤى وأفكار",
+        "badge": "رؤى"
+      }
+    }
+  },
+  "products": {
+    "en": {
+      "nav": {
+        "works": "Products",
+        "articles": "Blog"
+      },
+      "portfolio": {
+        "badge": "Our range",
+        "title": "Products",
+        "subtitle": "Explore our products at {companyName}, find the right one and ask us anything about it.",
+        "viewProject": "View product",
+        "filterAll": "All products",
+        "allWork": "All products",
+        "backToWorks": "Back to products",
+        "productionOverview": "Product details"
+      },
+      "hero": {
+        "explore": "Browse products",
+        "ideaAction": "Request a quote"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "Order or request a quote",
+          "quoteRequestDesc": "Tell us which products and quantities you need, and where to deliver."
+        },
+        "messagePlaceholder": "Tell {companyName} which products interest you, quantities and your location…",
+        "shootLocation": "Delivery area / city (optional)",
+        "shootLocationPlaceholder": "e.g. Delivery district or city"
+      },
+      "footer": {
+        "invitationTitle": "Found what you were looking for at {companyName}?",
+        "invitationAction": "Order or ask a question"
+      },
+      "cta": {
+        "requestTreatment": "Request a quote"
+      },
+      "articles": {
+        "slug": "blog",
+        "title": "From our blog",
+        "badge": "Blog"
+      }
+    },
+    "ar": {
+      "nav": {
+        "works": "المنتجات",
+        "articles": "المدونة"
+      },
+      "portfolio": {
+        "badge": "تشكيلتنا",
+        "title": "المنتجات",
+        "subtitle": "تصفّح منتجاتنا لدى {companyName} واختر ما يناسبك واسألنا عن أي تفاصيل.",
+        "viewProject": "عرض المنتج",
+        "filterAll": "جميع المنتجات",
+        "allWork": "جميع المنتجات",
+        "backToWorks": "العودة إلى المنتجات",
+        "productionOverview": "تفاصيل المنتج"
+      },
+      "hero": {
+        "explore": "تصفّح المنتجات",
+        "ideaAction": "اطلب عرض سعر"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "اطلب أو استفسر عن السعر",
+          "quoteRequestDesc": "أخبرنا بالمنتجات والكميات التي تحتاجها ومكان التوصيل."
+        },
+        "messagePlaceholder": "أخبر {companyName} بالمنتجات التي تهمك والكميات وموقعك…",
+        "shootLocation": "منطقة التوصيل / المدينة (اختياري)",
+        "shootLocationPlaceholder": "مثال: حي التوصيل أو المدينة"
+      },
+      "footer": {
+        "invitationTitle": "هل وجدت ما تبحث عنه لدى {companyName}؟",
+        "invitationAction": "اطلب أو اسأل"
+      },
+      "cta": {
+        "requestTreatment": "اطلب عرض سعر"
+      },
+      "articles": {
+        "slug": "blog",
+        "title": "من مدونتنا",
+        "badge": "المدونة"
+      }
+    }
+  },
+  "food": {
+    "en": {
+      "nav": {
+        "works": "Menu",
+        "articles": "Blog"
+      },
+      "portfolio": {
+        "badge": "Our menu",
+        "title": "Menu",
+        "subtitle": "Freshly prepared dishes and drinks from {companyName}. Ask us about ingredients, catering and reservations.",
+        "viewProject": "View dish",
+        "filterAll": "Full menu",
+        "allWork": "Full menu",
+        "backToWorks": "Back to the menu",
+        "productionOverview": "About this dish"
+      },
+      "hero": {
+        "caption": "Fresh every day"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "Book a table or catering",
+          "quoteRequestDesc": "Tell us the date, time and number of guests, or what you need catered."
+        },
+        "messagePlaceholder": "Tell {companyName} the date, time, number of guests and any requests…",
+        "shootLocation": "Event location (catering, optional)",
+        "shootLocationPlaceholder": "e.g. Event venue or city"
+      },
+      "about": {
+        "headline": "Good food, made with care at {companyName}.",
+        "behindTheScenes": "In our kitchen"
+      },
+      "footer": {
+        "invitationTitle": "Hungry? {companyName} is ready for you.",
+        "invitationAction": "Book a table"
+      },
+      "cta": {
+        "requestTreatment": "Book a table"
+      },
+      "articles": {
+        "slug": "blog",
+        "title": "From our kitchen",
+        "badge": "Blog"
+      }
+    },
+    "ar": {
+      "nav": {
+        "works": "القائمة",
+        "articles": "المدونة"
+      },
+      "portfolio": {
+        "badge": "قائمتنا",
+        "title": "القائمة",
+        "subtitle": "أطباق ومشروبات تُحضَّر بعناية لدى {companyName}. اسألنا عن المكونات والضيافة والحجوزات.",
+        "viewProject": "عرض الطبق",
+        "filterAll": "القائمة كاملة",
+        "allWork": "القائمة كاملة",
+        "backToWorks": "العودة إلى القائمة",
+        "productionOverview": "عن هذا الطبق"
+      },
+      "hero": {
+        "caption": "طازج كل يوم"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "احجز طاولة أو ضيافة",
+          "quoteRequestDesc": "أخبرنا بالتاريخ والوقت وعدد الضيوف، أو بما تحتاجه من ضيافة."
+        },
+        "messagePlaceholder": "أخبر {companyName} بالتاريخ والوقت وعدد الضيوف وأي طلبات خاصة…",
+        "shootLocation": "مكان المناسبة (للضيافة، اختياري)",
+        "shootLocationPlaceholder": "مثال: موقع الفعالية أو المدينة"
+      },
+      "about": {
+        "headline": "طعام شهي يُحضَّر بعناية في {companyName}.",
+        "behindTheScenes": "في مطبخنا"
+      },
+      "footer": {
+        "invitationTitle": "جائع؟ {companyName} في انتظارك.",
+        "invitationAction": "احجز طاولة"
+      },
+      "cta": {
+        "requestTreatment": "احجز طاولة"
+      },
+      "articles": {
+        "slug": "blog",
+        "title": "من مطبخنا",
+        "badge": "المدونة"
+      }
+    }
+  },
+  "services": {
+    "en": {
+      "nav": {
+        "works": "Projects"
+      },
+      "portfolio": {
+        "badge": "Our track record",
+        "title": "Projects",
+        "subtitle": "What {companyName} does, how we work and the results you can expect.",
+        "viewProject": "View project",
+        "filterAll": "All projects",
+        "allWork": "All projects",
+        "backToWorks": "Back to projects",
+        "productionOverview": "The engagement"
+      },
+      "hero": {
+        "explore": "See our projects",
+        "ideaAction": "Book a consultation"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "Book a consultation",
+          "quoteRequestDesc": "Tell us about your organisation and what you need help with."
+        },
+        "messagePlaceholder": "Tell {companyName} about your requirements, timeline and where the work takes place…"
+      },
+      "footer": {
+        "invitationTitle": "Ready to get started with {companyName}?",
+        "invitationAction": "Book a consultation"
+      },
+      "cta": {
+        "requestTreatment": "Book a consultation"
+      }
+    },
+    "ar": {
+      "nav": {
+        "works": "المشاريع"
+      },
+      "portfolio": {
+        "badge": "سجل إنجازاتنا",
+        "title": "المشاريع",
+        "subtitle": "ما يقدّمه {companyName} وكيف نعمل والنتائج التي يمكنك توقعها.",
+        "viewProject": "عرض المشروع",
+        "filterAll": "جميع المشاريع",
+        "allWork": "جميع المشاريع",
+        "backToWorks": "العودة إلى المشاريع",
+        "productionOverview": "تفاصيل العمل"
+      },
+      "hero": {
+        "explore": "شاهد مشاريعنا",
+        "ideaAction": "احجز استشارة"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "احجز استشارة",
+          "quoteRequestDesc": "أخبرنا عن جهتك وما تحتاج المساعدة فيه."
+        },
+        "messagePlaceholder": "أخبر {companyName} بمتطلباتك والجدول الزمني وموقع العمل…"
+      },
+      "footer": {
+        "invitationTitle": "جاهز للبدء مع {companyName}؟",
+        "invitationAction": "احجز استشارة"
+      },
+      "cta": {
+        "requestTreatment": "احجز استشارة"
+      }
+    }
+  },
+  "real_estate": {
+    "en": {
+      "nav": {
+        "works": "Properties"
+      },
+      "portfolio": {
+        "badge": "Available now",
+        "title": "Properties",
+        "subtitle": "Homes, offices and land for sale or rent with {companyName}, with the details you need to decide.",
+        "viewProject": "View property",
+        "filterAll": "All properties",
+        "allWork": "All properties",
+        "backToWorks": "Back to properties",
+        "productionOverview": "Property details"
+      },
+      "hero": {
+        "caption": "Find your next place"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "Arrange a viewing",
+          "quoteRequestDesc": "Tell us which property interests you and when you would like to see it."
+        },
+        "messagePlaceholder": "Tell {companyName} the property, your budget and when you are free for a viewing…",
+        "shootLocation": "Preferred area (optional)",
+        "shootLocationPlaceholder": "e.g. Neighborhood or city"
+      },
+      "footer": {
+        "invitationTitle": "Your next address with {companyName} starts here.",
+        "invitationAction": "Arrange a viewing"
+      },
+      "cta": {
+        "requestTreatment": "Arrange a viewing"
+      }
+    },
+    "ar": {
+      "nav": {
+        "works": "العقارات"
+      },
+      "portfolio": {
+        "badge": "متاح الآن",
+        "title": "العقارات",
+        "subtitle": "منازل ومكاتب وأراضٍ للبيع أو الإيجار مع {companyName}، مع كل التفاصيل التي تحتاجها.",
+        "viewProject": "عرض العقار",
+        "filterAll": "جميع العقارات",
+        "allWork": "جميع العقارات",
+        "backToWorks": "العودة إلى العقارات",
+        "productionOverview": "تفاصيل العقار"
+      },
+      "hero": {
+        "caption": "اعثر على مكانك القادم"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "رتّب معاينة",
+          "quoteRequestDesc": "أخبرنا بالعقار الذي يهمك ومتى تريد معاينته."
+        },
+        "messagePlaceholder": "أخبر {companyName} بالعقار المطلوب وميزانيتك والوقت المناسب للمعاينة…",
+        "shootLocation": "المنطقة المفضلة (اختياري)",
+        "shootLocationPlaceholder": "مثال: الحي أو المدينة"
+      },
+      "footer": {
+        "invitationTitle": "عنوانك القادم مع {companyName} يبدأ هنا.",
+        "invitationAction": "رتّب معاينة"
+      },
+      "cta": {
+        "requestTreatment": "رتّب معاينة"
+      }
+    }
+  },
+  "construction": {
+    "en": {
+      "nav": {
+        "works": "Projects"
+      },
+      "portfolio": {
+        "badge": "Built by us",
+        "title": "Projects",
+        "subtitle": "Buildings, fit-outs and infrastructure delivered by {companyName}, on time and to standard.",
+        "viewProject": "View project",
+        "filterAll": "All projects",
+        "allWork": "All projects",
+        "backToWorks": "Back to projects",
+        "productionOverview": "Project overview"
+      },
+      "hero": {
+        "explore": "See our projects",
+        "ideaAction": "Request a site visit"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "Request a site visit or quote",
+          "quoteRequestDesc": "Tell us about the site, the scope and your timeline."
+        },
+        "messagePlaceholder": "Tell {companyName} about your site, drawings, scope and preferred completion date…",
+        "shootLocation": "Site location (optional)",
+        "shootLocationPlaceholder": "e.g. Project site or district"
+      },
+      "footer": {
+        "invitationTitle": "Building something new with {companyName}? Let us talk.",
+        "invitationAction": "Request a quote"
+      }
+    },
+    "ar": {
+      "nav": {
+        "works": "المشاريع"
+      },
+      "portfolio": {
+        "badge": "من إنجازنا",
+        "title": "المشاريع",
+        "subtitle": "مبانٍ وتشطيبات وبنى تحتية نفذتها {companyName} في موعدها وبالمواصفات المطلوبة.",
+        "viewProject": "عرض المشروع",
+        "filterAll": "جميع المشاريع",
+        "allWork": "جميع المشاريع",
+        "backToWorks": "العودة إلى المشاريع",
+        "productionOverview": "نظرة على المشروع"
+      },
+      "hero": {
+        "explore": "شاهد مشاريعنا",
+        "ideaAction": "اطلب زيارة للموقع"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "اطلب زيارة موقع أو عرض سعر",
+          "quoteRequestDesc": "أخبرنا عن الموقع ونطاق العمل والجدول الزمني."
+        },
+        "messagePlaceholder": "أخبر {companyName} بموقعك والمخططات ونطاق العمل والموعد المستهدف للإنجاز…",
+        "shootLocation": "موقع المشروع (اختياري)",
+        "shootLocationPlaceholder": "مثال: موقع المشروع أو المنطقة"
+      },
+      "footer": {
+        "invitationTitle": "تبني مشروعاً جديداً مع {companyName}؟ لنبدأ الحديث.",
+        "invitationAction": "اطلب عرض سعر"
+      }
+    }
+  },
+  "education": {
+    "en": {
+      "nav": {
+        "works": "Programs"
+      },
+      "portfolio": {
+        "badge": "Learn with us",
+        "title": "Programs",
+        "subtitle": "Courses, workshops and qualifications offered by {companyName}.",
+        "viewProject": "View program",
+        "filterAll": "All programs",
+        "allWork": "All programs",
+        "backToWorks": "Back to programs",
+        "productionOverview": "About this program"
+      },
+      "hero": {
+        "caption": "Learning that moves you forward"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "Register or ask about a program",
+          "quoteRequestDesc": "Tell us which program interests you and how many people will join."
+        },
+        "messagePlaceholder": "Tell {companyName} the course, your background and any questions you have…"
+      },
+      "footer": {
+        "invitationTitle": "Ready to learn with {companyName}?",
+        "invitationAction": "Register your interest"
+      },
+      "cta": {
+        "requestTreatment": "Register your interest"
+      },
+      "about": {
+        "headline": "Learning that opens doors with {companyName}."
+      }
+    },
+    "ar": {
+      "nav": {
+        "works": "البرامج"
+      },
+      "portfolio": {
+        "badge": "تعلّم معنا",
+        "title": "البرامج",
+        "subtitle": "دورات وورش عمل ومؤهلات تقدمها {companyName}.",
+        "viewProject": "عرض البرنامج",
+        "filterAll": "جميع البرامج",
+        "allWork": "جميع البرامج",
+        "backToWorks": "العودة إلى البرامج",
+        "productionOverview": "عن هذا البرنامج"
+      },
+      "hero": {
+        "caption": "تعلّم يأخذك إلى الأمام"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "سجّل أو استفسر عن برنامج",
+          "quoteRequestDesc": "أخبرنا بالبرنامج الذي يهمك وعدد المشاركين."
+        },
+        "messagePlaceholder": "أخبر {companyName} بالبرنامج المطلوب وخلفيتك وأي أسئلة لديك…"
+      },
+      "footer": {
+        "invitationTitle": "جاهز للتعلم وتطوير مهاراتك مع {companyName}؟",
+        "invitationAction": "سجّل اهتمامك"
+      },
+      "cta": {
+        "requestTreatment": "سجّل اهتمامك"
+      },
+      "about": {
+        "headline": "تعليم يفتح لك آفاقاً جديدة مع {companyName}."
+      }
+    }
+  },
+  "healthcare": {
+    "en": {
+      "nav": {
+        "works": "Treatments"
+      },
+      "portfolio": {
+        "badge": "Care we provide",
+        "title": "Treatments",
+        "subtitle": "Treatments and services from {companyName}, what to expect and how to prepare.",
+        "viewProject": "View treatment",
+        "filterAll": "All treatments",
+        "allWork": "All treatments",
+        "backToWorks": "Back to treatments",
+        "productionOverview": "About this treatment"
+      },
+      "hero": {
+        "caption": "Your health, our priority"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "Book an appointment",
+          "quoteRequestDesc": "Tell us which treatment you need and the days that suit you."
+        },
+        "messagePlaceholder": "Tell {companyName} which treatment you need and your preferred days… Please do not share medical details here."
+      },
+      "about": {
+        "headline": "Care you can trust from {companyName}, close to home."
+      },
+      "footer": {
+        "invitationTitle": "{companyName} is here when you need us.",
+        "invitationAction": "Book an appointment"
+      },
+      "cta": {
+        "requestTreatment": "Book an appointment"
+      }
+    },
+    "ar": {
+      "nav": {
+        "works": "العلاجات"
+      },
+      "portfolio": {
+        "badge": "رعايتنا",
+        "title": "العلاجات",
+        "subtitle": "خدمات ورعاية صحية من {companyName}، مع ما يمكنك توقعه وكيفية الاستعداد.",
+        "viewProject": "عرض العلاج",
+        "filterAll": "جميع العلاجات",
+        "allWork": "جميع العلاجات",
+        "backToWorks": "العودة إلى العلاجات",
+        "productionOverview": "عن هذا العلاج"
+      },
+      "hero": {
+        "caption": "صحتك أولويتنا"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "احجز موعداً",
+          "quoteRequestDesc": "أخبرنا بالعلاج الذي تحتاجه والأيام المناسبة لك."
+        },
+        "messagePlaceholder": "أخبر {companyName} بالخدمة المطلوبة وأوقاتك المفضلة… يرجى عدم مشاركة تفاصيل طبية حساسة هنا."
+      },
+      "about": {
+        "headline": "رعاية تثق بها من {companyName}، قريبة منك دائماً."
+      },
+      "footer": {
+        "invitationTitle": "{companyName} هنا دائماً حين تحتاج إلينا.",
+        "invitationAction": "احجز موعداً"
+      },
+      "cta": {
+        "requestTreatment": "احجز موعداً"
+      }
+    }
+  },
+  "events": {
+    "en": {
+      "nav": {
+        "works": "Events"
+      },
+      "portfolio": {
+        "badge": "Moments we created",
+        "title": "Events",
+        "subtitle": "Conferences, celebrations and launches planned and run by {companyName}.",
+        "viewProject": "View event",
+        "filterAll": "All events",
+        "allWork": "All events",
+        "backToWorks": "Back to events",
+        "productionOverview": "Event overview"
+      },
+      "hero": {
+        "explore": "See our events",
+        "ideaAction": "Plan your event"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "Plan an event",
+          "quoteRequestDesc": "Tell us the occasion, date, venue and number of guests."
+        },
+        "messagePlaceholder": "Tell {companyName} the occasion, expected guests, preferred dates and venue ideas…",
+        "shootLocation": "Venue / city (optional)",
+        "shootLocationPlaceholder": "e.g. Venue, hall or city"
+      },
+      "footer": {
+        "invitationTitle": "Planning an event? Let {companyName} take care of the details.",
+        "invitationAction": "Plan your event"
+      },
+      "cta": {
+        "requestTreatment": "Plan your event"
+      }
+    },
+    "ar": {
+      "nav": {
+        "works": "الفعاليات"
+      },
+      "portfolio": {
+        "badge": "لحظات صنعناها",
+        "title": "الفعاليات",
+        "subtitle": "مؤتمرات واحتفالات وإطلاقات خططت لها ونفذتها {companyName}.",
+        "viewProject": "عرض الفعالية",
+        "filterAll": "جميع الفعاليات",
+        "allWork": "جميع الفعاليات",
+        "backToWorks": "العودة إلى الفعاليات",
+        "productionOverview": "نظرة على الفعالية"
+      },
+      "hero": {
+        "explore": "شاهد فعالياتنا",
+        "ideaAction": "خطّط لفعاليتك"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "خطّط لفعالية",
+          "quoteRequestDesc": "أخبرنا بالمناسبة والتاريخ والمكان وعدد الضيوف."
+        },
+        "messagePlaceholder": "أخبر {companyName} بالمناسبة وعدد الضيوف المتوقع والتواريخ المفضلة…",
+        "shootLocation": "المكان / المدينة (اختياري)",
+        "shootLocationPlaceholder": "مثال: القاعة أو الفعالية أو المدينة"
+      },
+      "footer": {
+        "invitationTitle": "تخطط لفعالية قادمة؟ دع {companyName} تتولى كافة التفاصيل.",
+        "invitationAction": "خطّط لفعاليتك"
+      },
+      "cta": {
+        "requestTreatment": "خطّط لفعاليتك"
+      }
+    }
+  },
+  "other": {
+    "en": {
+      "nav": {
+        "works": "Our work"
+      },
+      "portfolio": {
+        "badge": "Selected work",
+        "title": "Our work",
+        "subtitle": "Our capabilities and what {companyName} can do for you.",
+        "viewProject": "View details",
+        "filterAll": "All work",
+        "allWork": "All work",
+        "backToWorks": "Back to our work",
+        "productionOverview": "Overview"
+      },
+      "hero": {
+        "explore": "See our work",
+        "ideaAction": "Get in touch"
+      }
+    },
+    "ar": {
+      "nav": {
+        "works": "أعمالنا"
+      },
+      "portfolio": {
+        "badge": "مختارات من أعمالنا",
+        "title": "أعمالنا",
+        "subtitle": "إمكانياتنا وكل ما يمكن لـ {companyName} تقديمه لك.",
+        "viewProject": "عرض التفاصيل",
+        "filterAll": "جميع الأعمال",
+        "allWork": "جميع الأعمال",
+        "backToWorks": "العودة إلى أعمالنا",
+        "productionOverview": "نظرة عامة"
+      },
+      "hero": {
+        "explore": "شاهد أعمالنا",
+        "ideaAction": "تواصل معنا"
+      }
+    }
+  },
+  "online_store": {
+    "en": {
+      "nav": {
+        "works": "Shop",
+        "articles": "Blog"
+      },
+      "portfolio": {
+        "badge": "Our shop",
+        "title": "Shop",
+        "subtitle": "Everything {companyName} sells, ready to order and delivered to your door.",
+        "viewProject": "View product",
+        "filterAll": "All",
+        "allWork": "All shop",
+        "backToWorks": "Back to the shop",
+        "productionOverview": "Product details"
+      },
+      "hero": {
+        "explore": "Shop now",
+        "ideaAction": "Ask about an order"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "Ask about an order",
+          "quoteRequestDesc": "Tell us what you would like to order and where to deliver it."
+        },
+        "messagePlaceholder": "Tell {companyName} the products, quantities and your delivery area…",
+        "shootLocationPlaceholder": "e.g. Delivery area or city"
+      },
+      "about": {
+        "headline": "Shopping made simple, delivered fast by {companyName}."
+      },
+      "footer": {
+        "invitationTitle": "Found something you like at {companyName}?",
+        "invitationAction": "Ask about an order"
+      },
+      "cta": {
+        "requestTreatment": "Ask about an order"
+      },
+      "articles": {
+        "slug": "blog"
+      }
+    },
+    "ar": {
+      "nav": {
+        "works": "المتجر",
+        "articles": "المدونة"
+      },
+      "portfolio": {
+        "badge": "متجرنا",
+        "title": "المتجر",
+        "subtitle": "كل ما يبيعه متجر {companyName}، جاهز للطلب والتوصيل إلى بابك.",
+        "viewProject": "عرض المنتج",
+        "filterAll": "الكل",
+        "allWork": "المتجر",
+        "backToWorks": "العودة إلى المتجر",
+        "productionOverview": "تفاصيل المنتج"
+      },
+      "hero": {
+        "explore": "تسوّق الآن",
+        "ideaAction": "استفسر عن طلب"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "استفسر عن طلب",
+          "quoteRequestDesc": "أخبرنا بما تريد طلبه وعنوان التوصيل."
+        },
+        "messagePlaceholder": "أخبر {companyName} بالمنتجات والكميات المطلوبة ومنطقة التوصيل…",
+        "shootLocationPlaceholder": "مثال: منطقة التوصيل أو المدينة"
+      },
+      "about": {
+        "headline": "تسوق سهل وتوصيل سريع وموثوق من {companyName}."
+      },
+      "footer": {
+        "invitationTitle": "هل أعجبك شيء في متجر {companyName}؟",
+        "invitationAction": "استفسر عن طلب"
+      },
+      "cta": {
+        "requestTreatment": "استفسر عن طلب"
+      },
+      "articles": {
+        "slug": "blog"
+      }
+    }
+  },
+  "beauty": {
+    "en": {
+      "nav": {
+        "works": "Treatments",
+        "articles": "Tips"
+      },
+      "portfolio": {
+        "badge": "Our treatments",
+        "title": "Treatments",
+        "subtitle": "Treatments, styles and products offered by {companyName}.",
+        "viewProject": "View treatment",
+        "filterAll": "All",
+        "allWork": "All treatments",
+        "backToWorks": "Back to treatments",
+        "productionOverview": "About this treatment"
+      },
+      "hero": {
+        "explore": "See our treatments",
+        "ideaAction": "Book an appointment"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "Book an appointment",
+          "quoteRequestDesc": "Tell us which treatment you would like and the days that suit you."
+        },
+        "messagePlaceholder": "Tell {companyName} the treatment, preferred dates and any questions…"
+      },
+      "about": {
+        "headline": "Look and feel your best with {companyName}."
+      },
+      "footer": {
+        "invitationTitle": "Time for yourself at {companyName}.",
+        "invitationAction": "Book an appointment"
+      },
+      "cta": {
+        "requestTreatment": "Book an appointment"
+      },
+      "articles": {
+        "slug": "tips"
+      }
+    },
+    "ar": {
+      "nav": {
+        "works": "العلاجات",
+        "articles": "نصائح"
+      },
+      "portfolio": {
+        "badge": "خدماتنا",
+        "title": "العلاجات",
+        "subtitle": "جلسات وتصفيفات ومنتجات تقدمها {companyName}.",
+        "viewProject": "عرض العلاج",
+        "filterAll": "الكل",
+        "allWork": "العلاجات",
+        "backToWorks": "العودة إلى العلاجات",
+        "productionOverview": "عن هذا العلاج"
+      },
+      "hero": {
+        "explore": "اكتشف خدماتنا",
+        "ideaAction": "احجز موعدًا"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "احجز موعدًا",
+          "quoteRequestDesc": "أخبرنا بالعلاج الذي تريده والأيام المناسبة لك."
+        },
+        "messagePlaceholder": "أخبري {companyName} بالجلسة المطلوبة والتواريخ المفضلة وأي استفسارات…"
+      },
+      "about": {
+        "headline": "تألقي واشعري بالثقة والراحة مع {companyName}."
+      },
+      "footer": {
+        "invitationTitle": "حان وقت العناية بنفسك مع {companyName}.",
+        "invitationAction": "احجز موعدًا"
+      },
+      "cta": {
+        "requestTreatment": "احجز موعدًا"
+      },
+      "articles": {
+        "slug": "tips"
+      }
+    }
+  },
+  "fitness": {
+    "en": {
+      "nav": {
+        "works": "Memberships",
+        "articles": "Blog"
+      },
+      "portfolio": {
+        "badge": "Join us",
+        "title": "Memberships & classes",
+        "subtitle": "Programs, classes and memberships at {companyName}.",
+        "viewProject": "View plan",
+        "filterAll": "All",
+        "allWork": "All memberships",
+        "backToWorks": "Back to memberships",
+        "productionOverview": "Plan details"
+      },
+      "hero": {
+        "explore": "See memberships",
+        "ideaAction": "Book a free trial"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "Book a free trial",
+          "quoteRequestDesc": "Tell us your goals and when you would like to visit."
+        },
+        "messagePlaceholder": "Tell {companyName} your fitness goals, experience and schedule…"
+      },
+      "about": {
+        "headline": "Strength, stamina and health with {companyName}."
+      },
+      "footer": {
+        "invitationTitle": "Ready to start training with {companyName}?",
+        "invitationAction": "Book a free trial"
+      },
+      "cta": {
+        "requestTreatment": "Book a free trial"
+      },
+      "articles": {
+        "slug": "blog"
+      }
+    },
+    "ar": {
+      "nav": {
+        "works": "العضويات",
+        "articles": "المدونة"
+      },
+      "portfolio": {
+        "badge": "انضم إلينا",
+        "title": "العضويات والحصص",
+        "subtitle": "برامج وحصص واشتراكات تدريبية في {companyName}.",
+        "viewProject": "عرض الخطة",
+        "filterAll": "الكل",
+        "allWork": "العضويات والحصص",
+        "backToWorks": "العودة إلى العضويات",
+        "productionOverview": "تفاصيل الخطة"
+      },
+      "hero": {
+        "explore": "اطّلع على العضويات",
+        "ideaAction": "احجز تجربة مجانية"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "احجز تجربة مجانية",
+          "quoteRequestDesc": "أخبرنا بأهدافك ومتى تريد الزيارة."
+        },
+        "messagePlaceholder": "أخبر {companyName} بأهدافك الرياضية وتجربتك والجدول المناسب لك…"
+      },
+      "about": {
+        "headline": "قوة ولياقة وصحة مستدامة مع {companyName}."
+      },
+      "footer": {
+        "invitationTitle": "جاهز لبدء التحدي والتدريب مع {companyName}؟",
+        "invitationAction": "احجز تجربة مجانية"
+      },
+      "cta": {
+        "requestTreatment": "احجز تجربة مجانية"
+      },
+      "articles": {
+        "slug": "blog"
+      }
+    }
+  },
+  "automotive": {
+    "en": {
+      "nav": {
+        "works": "Vehicles"
+      },
+      "portfolio": {
+        "badge": "Our vehicles",
+        "title": "Vehicles",
+        "subtitle": "Vehicles, parts and services available at {companyName}.",
+        "viewProject": "View vehicle",
+        "filterAll": "All",
+        "allWork": "All vehicles",
+        "backToWorks": "Back to vehicles",
+        "productionOverview": "Vehicle details"
+      },
+      "hero": {
+        "explore": "See our vehicles",
+        "ideaAction": "Book a test drive"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "Book a test drive or service",
+          "quoteRequestDesc": "Tell us which car or service you are interested in and when suits you."
+        },
+        "messagePlaceholder": "Tell {companyName} the vehicle or service you need, model year and your questions…"
+      },
+      "about": {
+        "headline": "Driven by trust."
+      },
+      "footer": {
+        "invitationTitle": "Looking for your next vehicle or service with {companyName}?",
+        "invitationAction": "Book a test drive"
+      },
+      "cta": {
+        "requestTreatment": "Book a test drive"
+      }
+    },
+    "ar": {
+      "nav": {
+        "works": "السيارات"
+      },
+      "portfolio": {
+        "badge": "سياراتنا",
+        "title": "السيارات",
+        "subtitle": "مركبات وقطع غيار وخدمات صيانة متوفرة لدى {companyName}.",
+        "viewProject": "عرض السيارة",
+        "filterAll": "الكل",
+        "allWork": "السيارات",
+        "backToWorks": "العودة إلى السيارات",
+        "productionOverview": "تفاصيل السيارة"
+      },
+      "hero": {
+        "explore": "اطّلع على سياراتنا",
+        "ideaAction": "احجز تجربة قيادة"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "احجز تجربة قيادة أو صيانة",
+          "quoteRequestDesc": "أخبرنا بالسيارة أو الخدمة التي تهمك والوقت المناسب."
+        },
+        "messagePlaceholder": "أخبر {companyName} بالمركبة أو الخدمة المطلوبة وسنة الصنع وأي استفسارات…"
+      },
+      "about": {
+        "headline": "ثقة تقودك."
+      },
+      "footer": {
+        "invitationTitle": "تبحث عن سيارتك القادمة أو خدمة موثوقة مع {companyName}؟",
+        "invitationAction": "احجز تجربة قيادة"
+      },
+      "cta": {
+        "requestTreatment": "احجز تجربة قيادة"
+      }
+    }
+  },
+  "logistics": {
+    "en": {
+      "nav": {
+        "works": "Solutions"
+      },
+      "portfolio": {
+        "badge": "What we move",
+        "title": "Solutions",
+        "subtitle": "Freight, warehousing and delivery solutions by {companyName}.",
+        "viewProject": "View solution",
+        "filterAll": "All",
+        "allWork": "All solutions",
+        "backToWorks": "Back to solutions",
+        "productionOverview": "How it works"
+      },
+      "hero": {
+        "explore": "See our solutions",
+        "ideaAction": "Request a quote"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "Request a shipping quote",
+          "quoteRequestDesc": "Tell us what you ship, from where to where and how often."
+        },
+        "messagePlaceholder": "Tell {companyName} origin, destination, cargo type, volume and timeline…"
+      },
+      "about": {
+        "headline": "Delivered on time, every time."
+      },
+      "footer": {
+        "invitationTitle": "Need cargo moved? Talk to {companyName}.",
+        "invitationAction": "Request a quote"
+      },
+      "cta": {
+        "requestTreatment": "Request a quote"
+      }
+    },
+    "ar": {
+      "nav": {
+        "works": "الحلول"
+      },
+      "portfolio": {
+        "badge": "ما ننقله",
+        "title": "الحلول",
+        "subtitle": "حلول شحن وتخزين وتوصيل متكاملة من {companyName}.",
+        "viewProject": "عرض الحل",
+        "filterAll": "الكل",
+        "allWork": "الحلول",
+        "backToWorks": "العودة إلى الحلول",
+        "productionOverview": "كيف يعمل"
+      },
+      "hero": {
+        "explore": "اكتشف حلولنا",
+        "ideaAction": "اطلب عرض سعر"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "اطلب عرض سعر للشحن",
+          "quoteRequestDesc": "أخبرنا بما تشحنه ومن أين إلى أين وكم مرة."
+        },
+        "messagePlaceholder": "أخبر {companyName} بنقطة الانطلاق والوجهة ونوع الشحنة وحجمها والجدول الزمني…"
+      },
+      "about": {
+        "headline": "في الموعد، في كل مرة."
+      },
+      "footer": {
+        "invitationTitle": "تحتاج إلى نقل شحنتك؟ استشر خبراء {companyName}.",
+        "invitationAction": "اطلب عرض سعر"
+      },
+      "cta": {
+        "requestTreatment": "اطلب عرض سعر"
+      }
+    }
+  },
+  "travel": {
+    "en": {
+      "nav": {
+        "works": "Trips",
+        "articles": "Stories"
+      },
+      "portfolio": {
+        "badge": "Where to next",
+        "title": "Trips & experiences",
+        "subtitle": "Destinations, tours and holiday packages crafted by {companyName}.",
+        "viewProject": "View trip",
+        "filterAll": "All",
+        "allWork": "All trips",
+        "backToWorks": "Back to trips",
+        "productionOverview": "Trip details"
+      },
+      "hero": {
+        "explore": "Explore trips",
+        "ideaAction": "Plan my trip"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "Plan my trip",
+          "quoteRequestDesc": "Tell us where you would like to go, when, and who is travelling."
+        },
+        "messagePlaceholder": "Tell {companyName} where you want to go, dates, number of travelers and budget…"
+      },
+      "about": {
+        "headline": "Journeys planned with care by {companyName}."
+      },
+      "footer": {
+        "invitationTitle": "Where next with {companyName}?",
+        "invitationAction": "Plan my trip"
+      },
+      "cta": {
+        "requestTreatment": "Plan my trip"
+      },
+      "articles": {
+        "slug": "stories"
+      }
+    },
+    "ar": {
+      "nav": {
+        "works": "الرحلات",
+        "articles": "حكايات"
+      },
+      "portfolio": {
+        "badge": "إلى أين بعد ذلك",
+        "title": "الرحلات والتجارب",
+        "subtitle": "وجهات وجولات وباقات عطلات مصممة بعناية من {companyName}.",
+        "viewProject": "عرض الرحلة",
+        "filterAll": "الكل",
+        "allWork": "الرحلات والتجارب",
+        "backToWorks": "العودة إلى الرحلات",
+        "productionOverview": "تفاصيل الرحلة"
+      },
+      "hero": {
+        "explore": "اكتشف الرحلات",
+        "ideaAction": "خطط رحلتي"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "خطط رحلتي",
+          "quoteRequestDesc": "أخبرنا بوجهتك ومتى ومن سيسافر."
+        },
+        "messagePlaceholder": "أخبر {companyName} بوجهتك المفضلة والتواريخ وعدد المسافرين والميزانية…"
+      },
+      "about": {
+        "headline": "رحلات وتجارب سياحية تخططها لك {companyName} بكل عناية."
+      },
+      "footer": {
+        "invitationTitle": "إلى أين ستكون رحلتك القادمة مع {companyName}؟",
+        "invitationAction": "خطط رحلتي"
+      },
+      "cta": {
+        "requestTreatment": "خطط رحلتي"
+      },
+      "articles": {
+        "slug": "stories"
+      }
+    }
+  },
+  "hotel": {
+    "en": {
+      "nav": {
+        "works": "Rooms"
+      },
+      "portfolio": {
+        "badge": "Stay with us",
+        "title": "Rooms & suites",
+        "subtitle": "Rooms, suites and amenities at {companyName}.",
+        "viewProject": "View room",
+        "filterAll": "All",
+        "allWork": "All rooms",
+        "backToWorks": "Back to rooms",
+        "productionOverview": "Room details"
+      },
+      "hero": {
+        "explore": "See our rooms",
+        "ideaAction": "Book your stay"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "Book your stay",
+          "quoteRequestDesc": "Tell us your dates, the number of guests and any requests."
+        },
+        "messagePlaceholder": "Tell {companyName} your check-in, check-out dates, room preference and guests…"
+      },
+      "about": {
+        "headline": "Comfort, hospitality and calm at {companyName}."
+      },
+      "footer": {
+        "invitationTitle": "We look forward to welcoming you at {companyName}.",
+        "invitationAction": "Book your stay"
+      },
+      "cta": {
+        "requestTreatment": "Book your stay"
+      }
+    },
+    "ar": {
+      "nav": {
+        "works": "الغرف"
+      },
+      "portfolio": {
+        "badge": "أقم معنا",
+        "title": "الغرف والأجنحة",
+        "subtitle": "غرف وأجنحة ومرافق راقية في {companyName}.",
+        "viewProject": "عرض الغرفة",
+        "filterAll": "الكل",
+        "allWork": "الغرف والأجنحة",
+        "backToWorks": "العودة إلى الغرف",
+        "productionOverview": "تفاصيل الغرفة"
+      },
+      "hero": {
+        "explore": "اطّلع على الغرف",
+        "ideaAction": "احجز إقامتك"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "احجز إقامتك",
+          "quoteRequestDesc": "أخبرنا بتواريخك وعدد الضيوف وأي طلبات."
+        },
+        "messagePlaceholder": "أخبر {companyName} بتاريخ الوصول والمغادرة ونوع الغرفة وعدد الضيوف…"
+      },
+      "about": {
+        "headline": "راحة وضيافة وأجواء هادئة في {companyName}."
+      },
+      "footer": {
+        "invitationTitle": "نتطلع للترحيب بك وإقامتك معنا في {companyName}.",
+        "invitationAction": "احجز إقامتك"
+      },
+      "cta": {
+        "requestTreatment": "احجز إقامتك"
+      }
+    }
+  },
+  "law_firm": {
+    "en": {
+      "nav": {
+        "works": "Practice areas",
+        "articles": "Insights"
+      },
+      "portfolio": {
+        "badge": "How we help",
+        "title": "Practice areas",
+        "subtitle": "The areas of law {companyName} practises and how we can help you.",
+        "viewProject": "View practice area",
+        "filterAll": "All",
+        "allWork": "All practice areas",
+        "backToWorks": "Back to practice areas",
+        "productionOverview": "About this practice"
+      },
+      "hero": {
+        "explore": "Our practice areas",
+        "ideaAction": "Book a consultation"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "Book a consultation",
+          "quoteRequestDesc": "Tell us briefly about your matter; everything you share is confidential."
+        },
+        "messagePlaceholder": "Tell {companyName} a short summary of your matter and how we can reach you…"
+      },
+      "about": {
+        "headline": "Clear advice when it matters most from {companyName}."
+      },
+      "footer": {
+        "invitationTitle": "Need legal advice? Consult with {companyName}.",
+        "invitationAction": "Book a consultation"
+      },
+      "cta": {
+        "requestTreatment": "Book a consultation"
+      },
+      "articles": {
+        "slug": "insights"
+      }
+    },
+    "ar": {
+      "nav": {
+        "works": "مجالات الممارسة",
+        "articles": "رؤى"
+      },
+      "portfolio": {
+        "badge": "كيف نساعد",
+        "title": "مجالات الممارسة",
+        "subtitle": "مجالات القانون التي تمارسها {companyName} وكيف يمكننا مساعدتك.",
+        "viewProject": "عرض المجال",
+        "filterAll": "الكل",
+        "allWork": "مجالات الممارسة",
+        "backToWorks": "العودة إلى مجالات الممارسة",
+        "productionOverview": "عن هذا المجال"
+      },
+      "hero": {
+        "explore": "مجالات ممارستنا",
+        "ideaAction": "احجز استشارة"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "احجز استشارة",
+          "quoteRequestDesc": "أخبرنا باختصار عن قضيتك؛ كل ما تشاركه سري."
+        },
+        "messagePlaceholder": "أخبر {companyName} بملخص موجز عن موضوعك وطريقة التواصل المناسبة…"
+      },
+      "about": {
+        "headline": "مشورة قانونية واضحة وموثوقة من {companyName}."
+      },
+      "footer": {
+        "invitationTitle": "تحتاج إلى استشارة قانونية؟ تواصل مع {companyName}.",
+        "invitationAction": "احجز استشارة"
+      },
+      "cta": {
+        "requestTreatment": "احجز استشارة"
+      },
+      "articles": {
+        "slug": "insights"
+      }
+    }
+  },
+  "nonprofit": {
+    "en": {
+      "nav": {
+        "works": "Programs",
+        "articles": "News"
+      },
+      "portfolio": {
+        "badge": "Our work",
+        "title": "Programs",
+        "subtitle": "Programs, initiatives and the impact {companyName} makes.",
+        "viewProject": "View program",
+        "filterAll": "All",
+        "allWork": "All programs",
+        "backToWorks": "Back to programs",
+        "productionOverview": "About this program"
+      },
+      "hero": {
+        "explore": "See our programs",
+        "ideaAction": "Get involved"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "Volunteer or partner with us",
+          "quoteRequestDesc": "Tell us how you would like to help or partner with us."
+        },
+        "messagePlaceholder": "Tell {companyName} how you would like to help or partner with us…"
+      },
+      "about": {
+        "headline": "Working together for positive change with {companyName}."
+      },
+      "footer": {
+        "invitationTitle": "Join {companyName} in making a difference.",
+        "invitationAction": "Get involved"
+      },
+      "cta": {
+        "requestTreatment": "Get involved"
+      },
+      "articles": {
+        "slug": "news"
+      }
+    },
+    "ar": {
+      "nav": {
+        "works": "البرامج",
+        "articles": "الأخبار"
+      },
+      "portfolio": {
+        "badge": "عملنا",
+        "title": "البرامج",
+        "subtitle": "مبادرات وبرامج والأثر الإيجابي الذي تصنعه {companyName}.",
+        "viewProject": "عرض البرنامج",
+        "filterAll": "الكل",
+        "allWork": "البرامج",
+        "backToWorks": "العودة إلى البرامج",
+        "productionOverview": "عن هذا البرنامج"
+      },
+      "hero": {
+        "explore": "اطّلع على برامجنا",
+        "ideaAction": "شارك معنا"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "تطوّع أو كن شريكًا",
+          "quoteRequestDesc": "أخبرنا كيف تريد المساعدة أو الشراكة معنا."
+        },
+        "messagePlaceholder": "أخبر {companyName} كيف ترغب في المشاركة أو التعاون معنا…"
+      },
+      "about": {
+        "headline": "نعمل معاً من أجل إحداث تغيير إيجابي من خلال {companyName}."
+      },
+      "footer": {
+        "invitationTitle": "شارك مع {companyName} في صنع أثر حقيقي ومستدام.",
+        "invitationAction": "شارك معنا"
+      },
+      "cta": {
+        "requestTreatment": "شارك معنا"
+      },
+      "articles": {
+        "slug": "news"
+      }
+    }
+  },
+  "pharmacy": {
+    "en": {
+      "nav": {
+        "works": "Products",
+        "articles": "Health tips"
+      },
+      "portfolio": {
+        "badge": "Health & care",
+        "title": "Products",
+        "subtitle": "Medicines, wellness products and healthcare advice from {companyName}.",
+        "viewProject": "View product",
+        "filterAll": "All",
+        "allWork": "All products",
+        "backToWorks": "Back to products",
+        "productionOverview": "Product details"
+      },
+      "hero": {
+        "explore": "Browse products",
+        "ideaAction": "Ask a pharmacist"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "Ask a pharmacist or order",
+          "quoteRequestDesc": "Tell us what you need; our pharmacists will get back to you."
+        },
+        "messagePlaceholder": "Tell {companyName} the product or prescription you need…"
+      },
+      "about": {
+        "headline": "Your health in good hands at {companyName}."
+      },
+      "footer": {
+        "invitationTitle": "How can {companyName} help you today?",
+        "invitationAction": "Ask a pharmacist"
+      },
+      "cta": {
+        "requestTreatment": "Ask a pharmacist"
+      },
+      "articles": {
+        "slug": "health-tips"
+      }
+    },
+    "ar": {
+      "nav": {
+        "works": "المنتجات",
+        "articles": "نصائح صحية"
+      },
+      "portfolio": {
+        "badge": "الصحة والعناية",
+        "title": "المنتجات",
+        "subtitle": "أدوية ومنتجات صحية وإرشادات علاجية من {companyName}.",
+        "viewProject": "عرض المنتج",
+        "filterAll": "الكل",
+        "allWork": "المنتجات",
+        "backToWorks": "العودة إلى المنتجات",
+        "productionOverview": "تفاصيل المنتج"
+      },
+      "hero": {
+        "explore": "تصفح المنتجات",
+        "ideaAction": "اسأل الصيدلي"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "اسأل الصيدلي أو اطلب",
+          "quoteRequestDesc": "أخبرنا بما تحتاجه وسيعود إليك صيادلتنا."
+        },
+        "messagePlaceholder": "أخبر {companyName} بالمنتج أو الوصفة الطبية التي تبحث عنها…"
+      },
+      "about": {
+        "headline": "صحتك وعافيتك في أيدٍ أمينة مع {companyName}."
+      },
+      "footer": {
+        "invitationTitle": "كيف يمكن لصيدلية {companyName} مساعدتك اليوم؟",
+        "invitationAction": "اسأل الصيدلي"
+      },
+      "cta": {
+        "requestTreatment": "اسأل الصيدلي"
+      },
+      "articles": {
+        "slug": "health-tips"
+      }
+    }
+  },
+  "manufacturing": {
+    "en": {
+      "nav": {
+        "works": "Products"
+      },
+      "portfolio": {
+        "badge": "What we make",
+        "title": "Products",
+        "subtitle": "Products, components and custom manufacturing by {companyName}.",
+        "viewProject": "View product",
+        "filterAll": "All",
+        "allWork": "All products",
+        "backToWorks": "Back to products",
+        "productionOverview": "Specifications"
+      },
+      "hero": {
+        "explore": "See our products",
+        "ideaAction": "Request a quote"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "Request a quote",
+          "quoteRequestDesc": "Tell us what you need made, the quantities and your timeline."
+        },
+        "messagePlaceholder": "Tell {companyName} your specifications, volume requirements, materials and timeline…"
+      },
+      "about": {
+        "headline": "Built to last, made to order."
+      },
+      "footer": {
+        "invitationTitle": "Ready to manufacture with {companyName}?",
+        "invitationAction": "Request a quote"
+      },
+      "cta": {
+        "requestTreatment": "Request a quote"
+      }
+    },
+    "ar": {
+      "nav": {
+        "works": "المنتجات"
+      },
+      "portfolio": {
+        "badge": "ما نصنعه",
+        "title": "المنتجات",
+        "subtitle": "منتجات ومكونات وتصنيع مخصص وفق أعلى المعايير من {companyName}.",
+        "viewProject": "عرض المنتج",
+        "filterAll": "الكل",
+        "allWork": "المنتجات",
+        "backToWorks": "العودة إلى المنتجات",
+        "productionOverview": "المواصفات"
+      },
+      "hero": {
+        "explore": "اطّلع على منتجاتنا",
+        "ideaAction": "اطلب عرض سعر"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "اطلب عرض سعر",
+          "quoteRequestDesc": "أخبرنا بما تريد تصنيعه والكميات والجدول الزمني."
+        },
+        "messagePlaceholder": "أخبر {companyName} بالمواصفات والكميات والمواد المطلوبة والجدول الزمني…"
+      },
+      "about": {
+        "headline": "صُنع ليدوم، حسب الطلب."
+      },
+      "footer": {
+        "invitationTitle": "جاهز لبدء التصنيع مع {companyName}؟",
+        "invitationAction": "اطلب عرض سعر"
+      },
+      "cta": {
+        "requestTreatment": "اطلب عرض سعر"
+      }
+    }
+  },
+  "it_software": {
+    "en": {
+      "nav": {
+        "works": "Solutions",
+        "articles": "Blog"
+      },
+      "portfolio": {
+        "badge": "Our solutions",
+        "title": "Solutions & case studies",
+        "subtitle": "Software, platforms and digital products built by {companyName}.",
+        "viewProject": "View solution",
+        "filterAll": "All",
+        "allWork": "All solutions",
+        "backToWorks": "Back to solutions",
+        "productionOverview": "The solution"
+      },
+      "hero": {
+        "explore": "See our solutions",
+        "ideaAction": "Talk to us"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "Start a project",
+          "quoteRequestDesc": "Tell us about your project, your timeline and your budget."
+        },
+        "messagePlaceholder": "Tell {companyName} about your stack, timeline, features and team requirements…"
+      },
+      "about": {
+        "headline": "Technology that works for you."
+      },
+      "footer": {
+        "invitationTitle": "Building your next digital product with {companyName}?",
+        "invitationAction": "Talk to us"
+      },
+      "cta": {
+        "requestTreatment": "Talk to us"
+      },
+      "articles": {
+        "slug": "blog"
+      }
+    },
+    "ar": {
+      "nav": {
+        "works": "الحلول",
+        "articles": "المدونة"
+      },
+      "portfolio": {
+        "badge": "حلولنا",
+        "title": "الحلول ودراسات الحالة",
+        "subtitle": "برمجيات ومنصات ومنتجات رقمية طورتها {companyName}.",
+        "viewProject": "عرض الحل",
+        "filterAll": "الكل",
+        "allWork": "الحلول ودراسات الحالة",
+        "backToWorks": "العودة إلى الحلول",
+        "productionOverview": "الحل"
+      },
+      "hero": {
+        "explore": "اكتشف حلولنا",
+        "ideaAction": "تحدث إلينا"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequest": "ابدأ مشروعًا",
+          "quoteRequestDesc": "أخبرنا عن مشروعك وجدولك الزمني وميزانيتك."
+        },
+        "messagePlaceholder": "أخبر {companyName} عن البنية التقنية والميزات المطلوبة وفريق العمل…"
+      },
+      "about": {
+        "headline": "تقنية تعمل لأجلك."
+      },
+      "footer": {
+        "invitationTitle": "تبني منتجك الرقمي القادم مع {companyName}؟",
+        "invitationAction": "تحدث إلينا"
+      },
+      "cta": {
+        "requestTreatment": "تحدث إلينا"
+      },
+      "articles": {
+        "slug": "blog"
+      }
+    }
+  },
+  "media": {
+    "en": {
+      "nav": {
+        "works": "Portfolio"
+      },
+      "portfolio": {
+        "badge": "Selected Works",
+        "title": "Portfolio & Projects",
+        "subtitle": "Curated creative productions, visual stories, and case studies produced for {companyName} clients.",
+        "viewProject": "View project",
+        "filterAll": "All work",
+        "allWork": "All work",
+        "backToWorks": "Back to portfolio",
+        "productionOverview": "Project overview"
+      },
+      "hero": {
+        "explore": "Explore our work",
+        "ideaAction": "Discuss a project",
+        "caption": "From concept to completion with {companyName}"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequestDesc": "Tell us about your project so we can prepare an accurate quote for {companyName} services."
+        },
+        "messagePlaceholder": "Tell us about your project goals, scope, and desired outcomes from {companyName}…",
+        "shootLocation": "Location or city (optional)",
+        "shootLocationPlaceholder": "City or location"
+      },
+      "about": {
+        "headline": "Creative production and visual storytelling engineered around our clients at {companyName}."
+      },
+      "footer": {
+        "invitationTitle": "Let’s create something exceptional together with {companyName}.",
+        "invitationAction": "Start a project"
+      },
+      "cta": {
+        "requestTreatment": "Request a quote"
+      }
+    },
+    "ar": {
+      "nav": {
+        "works": "معرض الأعمال"
+      },
+      "portfolio": {
+        "badge": "أعمال مختارة",
+        "title": "معرض الأعمال والمشاريع",
+        "subtitle": "إنتاجات إبداعية وروايات بصرية ودراسات حالة منجزة لعملاء {companyName}.",
+        "viewProject": "عرض المشروع",
+        "filterAll": "كل الأعمال",
+        "allWork": "كل الأعمال",
+        "backToWorks": "العودة إلى المعرض",
+        "productionOverview": "نظرة عامة على المشروع"
+      },
+      "hero": {
+        "explore": "استكشف أعمالنا",
+        "ideaAction": "ناقش مشروعك",
+        "caption": "من الفكرة إلى الإنجاز مع {companyName}"
+      },
+      "contact": {
+        "intents": {
+          "quoteRequestDesc": "أخبرنا عن مشروعك لنعد لك عرض سعر دقيقاً لخدمات {companyName}."
+        },
+        "messagePlaceholder": "أخبرنا عن أهداف مشروعك، النطاق، والمخرجات المطلوبة من {companyName}…",
+        "shootLocation": "الموقع أو المدينة (اختياري)",
+        "shootLocationPlaceholder": "المدينة أو الموقع"
+      },
+      "about": {
+        "headline": "إنتاج إبداعي ورواية بصرية مصممة لتلبية تطلعات عملاء {companyName}."
+      },
+      "footer": {
+        "invitationTitle": "لنصنع عملاً استثنائياً معاً مع {companyName}.",
+        "invitationAction": "ابدأ مشروعك"
+      },
+      "cta": {
+        "requestTreatment": "اطلب عرض سعر"
+      }
+    }
+  }
+}

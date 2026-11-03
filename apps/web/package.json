@@ -12,14 +12,11 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@platform/api-client": "file:../../packages/api-client",
-    "@platform/config": "file:../../packages/config",
-    "@platform/contracts": "file:../../packages/contracts",
-    "@platform/database": "file:../../packages/database",
-    "@platform/email": "file:../../packages/email",
-    "@platform/locales": "file:../../packages/locales",
-    "@platform/ui": "file:../../packages/ui",
+    "@floating-ui/react-dom": "^2.1.9",
+    "@material/material-color-utilities": "^0.4.0",
+    "@material/web": "^2.5.0",
     "@prisma/client": "5.22.0",
+    "clsx": "^2.1.1",
     "dotenv": "^18.0.9",
     "framer-motion": "^13.4.6",
     "jose": "^6.2.12",
@@ -27,8 +24,12 @@
     "libphonenumber-js": "^1.13.14",
     "lucide-react": "^0.475.0",
     "next": "16.4.4",
+    "openapi-fetch": "^0.17.0",
+    "overlayscrollbars": "^2.17.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^3.7.0",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
