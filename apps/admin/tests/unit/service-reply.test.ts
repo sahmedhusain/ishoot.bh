@@ -1,24 +1,24 @@
 import { beforeEach, expect, it, vi } from "vitest";
-import { serverMessages } from "../../packages/locales/src";
+import { serverMessages } from "../../locales";
 
 const db = vi.hoisted(() => ({
   inquiry: { findUnique: vi.fn(), update: vi.fn() },
   companySetting: { findFirst: vi.fn() },
   requestComment: { create: vi.fn() },
 }));
-vi.mock("../../packages/database/src/db", () => ({ db }));
+vi.mock("../../lib/database/db", () => ({ db }));
 const api = vi.hoisted(() => ({
   queueMessage: vi.fn(),
   getMessageStatus: vi.fn(),
 }));
-vi.mock("../../packages/api-client/src/index", async (importOriginal) => ({
+vi.mock("../../lib/api/index", async (importOriginal) => ({
   ...(await importOriginal<
-    typeof import("../../packages/api-client/src/index")
+    typeof import("../../lib/api/index")
   >()),
   ...api,
 }));
 
-import { replyToRequest } from "../../packages/database/src/queries/service-desk";
+import { replyToRequest } from "../../lib/database/queries/service-desk";
 beforeEach(() => vi.clearAllMocks());
 
 it("does not record a reply or advance its request when the mail queue refuses it", async () => {

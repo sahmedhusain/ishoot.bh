@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
-import en from "../../../../packages/locales/src/admin/en";
-import ar from "../../../../packages/locales/src/admin/ar";
+import en from "../../locales/admin/en";
+import ar from "../../locales/admin/ar";
 import { testDatabase } from "../../helpers";
 import {
   setIntegration,

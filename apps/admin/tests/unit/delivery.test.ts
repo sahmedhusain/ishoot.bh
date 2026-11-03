@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { getTranslations } from "../../packages/locales/src";
+import { getTranslations } from "../../locales";
 import {
   FAILURE_REASONS,
   SHIPMENT_STATUSES,
@@ -12,11 +12,11 @@ import {
   zoneForAddress,
   zonedDate,
   zonedMoment,
-} from "../../packages/database/src/constants/delivery";
+} from "../../lib/database/constants/delivery";
 import {
   ALL_RESOURCES,
   RESOURCE_FEATURES,
-} from "../../packages/database/src/constants/permissions";
+} from "../../lib/database/constants/permissions";
 
 const zones = [
   {

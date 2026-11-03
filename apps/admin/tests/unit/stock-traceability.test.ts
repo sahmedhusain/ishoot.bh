@@ -7,7 +7,7 @@ import {
   assertPackageParent,
   branchBusinessDate,
   validateStockLabelTemplate,
-} from "../../packages/database/src/constants/stock-traceability";
+} from "../../lib/database/constants/stock-traceability";
 describe("physical stock identities", () => {
   it("converts cartons and fractional bulk quantities without floating point loss", () => {
     expect(convertPackagingQuantity("2", "72", true)).toBe("144.000000");

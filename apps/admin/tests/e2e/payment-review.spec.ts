@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test";
 import { randomUUID } from "node:crypto";
-import en from "../../../../packages/locales/src/admin/en";
-import ar from "../../../../packages/locales/src/admin/ar";
-import { en as webEn } from "../../../../packages/locales/src";
-import { ar as webAr } from "../../../../packages/locales/src";
-import { paymentLinkToken } from "../../../../packages/database/src/services/payment-links";
-import { serverMessages } from "../../../../packages/locales/src";
+import en from "../../locales/admin/en";
+import ar from "../../locales/admin/ar";
+import { en as webEn } from "../../locales";
+import { ar as webAr } from "../../locales";
+import { paymentLinkToken } from "../../lib/database/services/payment-links";
+import { serverMessages } from "../../locales";
 import { ports } from "../../../../playwright.config";
 import { testDatabase } from "../../helpers";
 

@@ -1,5 +1,5 @@
-import { getTranslations } from "../../packages/locales/src";
-import { PAYMENT_ATTEMPT_STATUSES } from "../../packages/database/src/constants/payments";
+import { getTranslations } from "../../locales";
+import { PAYMENT_ATTEMPT_STATUSES } from "../../lib/database/constants/payments";
 import { beforeEach, expect, test, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   attempt: vi.fn(),
@@ -14,7 +14,7 @@ const mocks = vi.hoisted(() => ({
   count: vi.fn(),
   currency: vi.fn(),
 }));
-vi.mock("../../packages/database/src/db", () => ({
+vi.mock("../../lib/database/db", () => ({
   db: {
     $queryRaw: mocks.currency,
     paymentAttempt: {
@@ -30,15 +30,15 @@ vi.mock("../../packages/database/src/db", () => ({
   },
   runAtomicMutation: (operation: () => Promise<unknown>) => operation(),
 }));
-vi.mock("../../packages/database/src/queries/store", () => ({
+vi.mock("../../lib/database/queries/store", () => ({
   recordOrderPayment: mocks.receipt,
   recordOrderRefund: vi.fn(),
   moveOrder: vi.fn(),
 }));
-vi.mock("../../packages/database/src/queries/notify", () => ({
+vi.mock("../../lib/database/queries/notify", () => ({
   notifyUsersWithPermission: mocks.notify,
 }));
-vi.mock("../../packages/database/src/payments/active", () => ({
+vi.mock("../../lib/database/payments/active", () => ({
   activePaymentGateway: mocks.active,
   gatewayWithCredentials: async () => ({
     credentials: {},
@@ -49,7 +49,7 @@ import {
   confirmReturn,
   settleAttempt,
   startOrderPayment,
-} from "../../packages/database/src/queries/online-payments";
+} from "../../lib/database/queries/online-payments";
 
 const order = {
   id: "order",

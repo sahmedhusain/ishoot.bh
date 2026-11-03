@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import en from "../../../../packages/locales/src/admin/en";
-import ar from "../../../../packages/locales/src/admin/ar";
+import en from "../../locales/admin/en";
+import ar from "../../locales/admin/ar";
 import { acceptConfirmations } from "../../helpers";
 
 for (const locale of ["en", "ar"] as const) {

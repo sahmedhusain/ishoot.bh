@@ -1,12 +1,12 @@
 import { describe, expect, test } from "vitest";
-import { getTranslations } from "../../packages/locales/src";
-import { BUSINESS_ACTIVITIES } from "../../packages/database/src/website-presets";
+import { getTranslations } from "../../locales";
+import { BUSINESS_ACTIVITIES } from "../../lib/database/website-presets";
 import {
   ACTIVITY_DEPARTMENTS,
   DEPARTMENT_CATALOGUE,
   DEPARTMENT_CODES,
   activityDepartments,
-} from "../../packages/database/src/constants/departments";
+} from "../../lib/database/constants/departments";
 
 describe("department catalogue", () => {
   test("every catalogue department has a unique code and a name in both languages", () => {
@@ -36,7 +36,7 @@ describe("department catalogue", () => {
 
 describe("data scope defaults", async () => {
   const { DATA_SCOPE_AREAS, defaultDataScope } =
-    await import("../../packages/database/src/constants/data-scope");
+    await import("../../lib/database/constants/data-scope");
   test("owners see everything and roles from before data scopes keep seeing everything", () => {
     for (const area of DATA_SCOPE_AREAS) {
       for (const role of [

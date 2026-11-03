@@ -1,0 +1,420 @@
+{
+  "media": {
+    "en": {
+      "executiveOps": "{companyName} Operations",
+      "executiveSub": "Real-time operations, deal pipeline, and financial cashflow.",
+      "nav": {
+        "calendar": "Schedule & Calendar",
+        "leads": "Incoming Inquiries",
+        "equipment": "Equipment & Inventory",
+        "stats": "Business Statistics"
+      },
+      "actions": {
+        "newEvent": "New Event"
+      },
+      "kpi": {
+        "expensesDesc": "Operational costs, supplies, overhead"
+      },
+      "stages": {
+        "production": "In Progress",
+        "post_production": "Review & QA",
+        "delivered": "Completed & Delivered"
+      },
+      "roles": {
+        "production_manager": "Operations Lead",
+        "producer": "Project Lead",
+        "editor": "Senior Specialist",
+        "operations_manager": "Operations Manager",
+        "project_lead": "Project Lead"
+      },
+      "calendar": {
+        "title": "Schedule & Milestones",
+        "subtitle": "Interactive Month, Week, and Day planner for project milestones, meetings, and delivery deadlines.",
+        "eventShoot": "Session",
+        "location": "Location"
+      },
+      "cms": {
+        "portfolioTitle": "Portfolio & Case Studies",
+        "equipmentTitle": "Equipment & Assets Inventory"
+      },
+      "invoice": {
+        "terms3": "Intellectual property and deliverables transfer once the balance is paid in full."
+      },
+      "crm": {
+        "dealTitle": "Deals Pipeline",
+        "contactTypes": {
+          "freelancer": "Contractor / Freelancer"
+        },
+        "stages": {
+          "production": "In Progress",
+          "postProduction": "Review & QA"
+        }
+      },
+      "invoiceForm": {
+        "deliverables": "Deliverables & Scope"
+      },
+      "companySettingsView": {
+        "googleSubtitle": "Automatic two-way sync between schedule deadlines and Google Calendars.",
+        "addressLabel": "Operating Address"
+      },
+      "deals": {
+        "shootPrefix": "Date: ",
+        "shootDate": "Scheduled Date"
+      },
+      "contactsView": {
+        "typeFreelancer": "Contractor / Freelancer"
+      },
+      "equipmentView": {
+        "subtitle": "Company tools, equipment, and assets displayed on the website.",
+        "categories": {
+          "cameras": "Primary Equipment",
+          "lighting": "Field Equipment",
+          "grip": "Support & Hardware"
+        }
+      },
+      "portfolioView": {
+        "subtitle": "Showcase projects, portfolio works, and client case studies.",
+        "year": "Year",
+        "productionYear": "Completion Year"
+      },
+      "financialView": {
+        "productionCostsDesc": "Direct project costs, supplies, and contractor fees"
+      },
+      "expensesView": {
+        "subtitle": "Track project expenditures, equipment purchases, contractor payroll, and operational overhead."
+      },
+      "dashboardView": {
+        "zeroUpcomingShoots": "Zero upcoming sessions scheduled",
+        "shootDate": "Date:"
+      },
+      "calendarView": {
+        "shoot": "Session",
+        "linkDeal": "Link with Deal",
+        "locationAddress": "Location / Address"
+      },
+      "usersView": {
+        "departments": {
+          "production": "Production",
+          "post_production": "Post-Production"
+        }
+      },
+      "loginView": {
+        "subtitle": "{companyName} Workspace"
+      },
+      "dealsNew": {
+        "title": "Create New Deal",
+        "subtitle": "Launch a new business opportunity in the sales pipeline",
+        "targetDateLabel": "Target Close / Execution Date"
+      },
+      "usersNew": {
+        "subtitle": "Add an administrator, manager, accountant, or team member to the portal"
+      },
+      "security": {
+        "roles": {
+          "production_manager": "Operations Head",
+          "editor": "Senior Specialist",
+          "operations_manager": "Operations Head"
+        }
+      },
+      "customer360": {
+        "commercialDeals": "Commercial Deals & History"
+      },
+      "dealDossier": {
+        "shootDate": "Scheduled Date",
+        "productionTimelineAndLog": "Project Timeline & Log",
+        "scheduledShootDate": "Scheduled Date"
+      },
+      "dealEdit": {
+        "shootDateLabel": "Scheduled Date",
+        "notesLabel": "Project Scope & Notes"
+      },
+      "servicesView": {
+        "title": "Service Catalog & Pricing",
+        "subtitle": "Manage standard services, specialized offerings, and rate cards",
+        "categoryProduction": "Primary Services",
+        "categoryPost": "Specialized Services",
+        "categoryEquipment": "Equipment & Facilities",
+        "categoryCrew": "Professional Services"
+      },
+      "statsView": {
+        "title": "{companyName} Statistics"
+      },
+      "webSettingsView": {
+        "managePortfolio": "Portfolio Works",
+        "managePortfolioDesc": "Showcase works, case studies, and client projects",
+        "manageStats": "Key Metrics",
+        "manageEquipment": "Equipment & Assets",
+        "manageEquipmentDesc": "Tools, assets, and equipment catalog",
+        "cmsCameraSystems": "{count} Units & Systems"
+      },
+      "portfolioManagement": {
+        "fullFilmUrl": "External project URL"
+      },
+      "dealEditForm": {
+        "shootDate": "Scheduled Date",
+        "postProduction": "Review & QA"
+      },
+      "newQuotationForm": {
+        "productionServices": "Professional Services"
+      },
+      "newRequestForm": {
+        "productionTeam": "Operations Team",
+        "postProduction": "Review Team",
+        "commercialShootDroneStudio": "Project, service or delivery request"
+      },
+      "generalInfoTab": {
+        "productionAndShootLiveFeed": "Calendar Live Feed URL (.ics)",
+        "allScheduledShootsClientMeetings": "All scheduled milestones, client meetings, and deadlines sync in real time to Google Calendar and Apple Calendar."
+      },
+      "requestLabels": {
+        "teams": {
+          "production": "Production",
+          "post_production": "Post-Production"
+        }
+      },
+      "workload": {
+        "focus": {
+          "production": "Production desk"
+        },
+        "focusSubtitle": {
+          "production": "Service requests, SLAs and approvals for the production team."
+        }
+      },
+      "statusLabels": {
+        "production": "In production",
+        "post_production": "Post-production"
+      },
+      "calendarSharing": {
+        "subtitle": "Your events, what colleagues share with you, and the dates of your work: leave, sessions, quotations, invoices, payroll and expiring documents."
+      },
+      "navigationGroups": {
+        "operations": "Production & operations"
+      },
+      "calendarMessages": {
+        "shoot": "Event: {title}"
+      },
+      "pages": {
+        "calendar": {
+          "title": "Schedule & calendar"
+        },
+        "crm/leads": {
+          "title": "Incoming inquiries"
+        },
+        "cms/equipment": {
+          "title": "Equipment & inventory"
+        },
+        "cms/stats": {
+          "title": "Business statistics"
+        }
+      }
+    },
+    "ar": {
+      "executiveOps": "عمليات {companyName}",
+      "executiveSub": "متابعة فورية للعمليات ومسار الصفقات والتدفقات النقدية.",
+      "nav": {
+        "calendar": "التقويم والجدول الزمني",
+        "leads": "الطلبات الواردة",
+        "equipment": "المعدات والمخزون",
+        "stats": "إحصائيات الأعمال"
+      },
+      "actions": {
+        "newEvent": "موعد جديد"
+      },
+      "kpi": {
+        "expensesDesc": "تكاليف التشغيل والتوريدات والمصروفات العامة"
+      },
+      "stages": {
+        "production": "قيد التنفيذ",
+        "post_production": "المراجعة وضمان الجودة",
+        "delivered": "تم التسليم النهائي"
+      },
+      "roles": {
+        "production_manager": "مسؤول العمليات",
+        "producer": "مسؤول المشروع",
+        "editor": "أخصائي أول",
+        "operations_manager": "مدير العمليات",
+        "project_lead": "مسؤول المشروع"
+      },
+      "calendar": {
+        "title": "الجدول الزمني والمواعيد",
+        "subtitle": "مخطط تفاعلي للمشاريع والاجتماعات ومواعيد التسليم.",
+        "eventShoot": "جلسة عمل",
+        "location": "الموقع"
+      },
+      "cms": {
+        "portfolioTitle": "معرض الأعمال ودراسات الحالة",
+        "equipmentTitle": "المعدات ومخزون الأصول"
+      },
+      "invoice": {
+        "terms3": "تنتقل حقوق الملكية الفكرية ومخرجات العمل بعد سداد الرصيد بالكامل."
+      },
+      "crm": {
+        "dealTitle": "مسار الصفقات",
+        "contactTypes": {
+          "freelancer": "مستقل / متعاقد"
+        },
+        "stages": {
+          "production": "قيد التنفيذ",
+          "postProduction": "المراجعة وضمان الجودة"
+        }
+      },
+      "invoiceForm": {
+        "deliverables": "مخرجات ونطاق العمل"
+      },
+      "companySettingsView": {
+        "googleSubtitle": "مزامنة تلقائية ثنائية الاتجاه بين مواعيد العمل وتقويم Google.",
+        "addressLabel": "عنوان المقر"
+      },
+      "deals": {
+        "shootPrefix": "الموعد: ",
+        "shootDate": "تاريخ الموعد"
+      },
+      "contactsView": {
+        "typeFreelancer": "مستقل / متعاقد"
+      },
+      "equipmentView": {
+        "subtitle": "المعدات والأدوات والأصول المملوكة للشركة والمعروضة على الموقع.",
+        "categories": {
+          "cameras": "المعدات الأساسية",
+          "lighting": "المعدات الميدانية",
+          "grip": "أدوات الدعم والتجهيز"
+        }
+      },
+      "portfolioView": {
+        "subtitle": "المشاريع المميزة، معرض الأعمال، ودراسات الحالة للعملاء.",
+        "year": "السنة",
+        "productionYear": "سنة الإنجاز"
+      },
+      "financialView": {
+        "productionCostsDesc": "تكاليف المشاريع المباشرة، التوريدات، وأتعاب المتعاقدين"
+      },
+      "expensesView": {
+        "subtitle": "تتبع نفقات المشاريع ومشتريات المعدات وأجور المتعاقدين والتكاليف التشغيلية."
+      },
+      "dashboardView": {
+        "zeroUpcomingShoots": "لا توجد جلسات أو مواعيد مجدولة",
+        "shootDate": "الموعد:"
+      },
+      "calendarView": {
+        "shoot": "جلسة",
+        "linkDeal": "ربط بصفقة",
+        "locationAddress": "الموقع / العنوان"
+      },
+      "usersView": {
+        "departments": {
+          "production": "الإنتاج السينمائي",
+          "post_production": "المونتاج وما بعد الإنتاج"
+        }
+      },
+      "loginView": {
+        "subtitle": "مساحة عمل {companyName}"
+      },
+      "dealsNew": {
+        "title": "إنشاء صفقة جديدة",
+        "subtitle": "إطلاق فرصة عمل جديدة في مسار المبيعات",
+        "targetDateLabel": "تاريخ الإغلاق / التنفيذ المستهدف"
+      },
+      "usersNew": {
+        "subtitle": "إضافة مسؤول أو مدير أو محاسب أو عضو فريق إلى البوابة"
+      },
+      "security": {
+        "roles": {
+          "production_manager": "رئيس العمليات",
+          "editor": "أخصائي أول",
+          "operations_manager": "رئيس العمليات"
+        }
+      },
+      "customer360": {
+        "commercialDeals": "الصفقات التجارية والسجل"
+      },
+      "dealDossier": {
+        "shootDate": "الموعد المحدد",
+        "productionTimelineAndLog": "الجدول الزمني وسجل المشروع",
+        "scheduledShootDate": "الموعد المجدول"
+      },
+      "dealEdit": {
+        "shootDateLabel": "الموعد المجدول",
+        "notesLabel": "نطاق المشروع والملاحظات"
+      },
+      "servicesView": {
+        "title": "دليل الخدمات والتسعير",
+        "subtitle": "إدارة باقات الخدمات والخدمات التخصصية وبطاقات التسعير المعتمدة",
+        "categoryProduction": "الخدمات الأساسية",
+        "categoryPost": "الخدمات التخصصية",
+        "categoryEquipment": "المعدات والمرافق",
+        "categoryCrew": "الخدمات المهنية"
+      },
+      "statsView": {
+        "title": "إحصائيات {companyName}"
+      },
+      "webSettingsView": {
+        "managePortfolio": "معرض الأعمال",
+        "managePortfolioDesc": "الأعمال المميزة ودراسات الحالة ومشاريع العملاء",
+        "manageStats": "المؤشرات الرئيسية",
+        "manageEquipment": "المعدات والأصول",
+        "manageEquipmentDesc": "دليل الأدوات والأصول والمعدات",
+        "cmsCameraSystems": "{count} وحدة ونظام"
+      },
+      "portfolioManagement": {
+        "fullFilmUrl": "رابط المشروع الخارجي"
+      },
+      "dealEditForm": {
+        "shootDate": "الموعد المحدد",
+        "postProduction": "المراجعة وضمان الجودة"
+      },
+      "newQuotationForm": {
+        "productionServices": "الخدمات المهنية"
+      },
+      "newRequestForm": {
+        "productionTeam": "فريق العمليات",
+        "postProduction": "فريق المراجعة",
+        "commercialShootDroneStudio": "طلب مشروع أو خدمة أو تسليم"
+      },
+      "generalInfoTab": {
+        "productionAndShootLiveFeed": "رابط التغذية الحية للتقويم (.ics)",
+        "allScheduledShootsClientMeetings": "تتزامن جميع المواعيد واجتماعات العملاء والمهام لحظياً مع تقويم Google وتقويم Apple."
+      },
+      "requestLabels": {
+        "teams": {
+          "production": "فريق الإنتاج",
+          "post_production": "المونتاج وما بعد الإنتاج"
+        }
+      },
+      "workload": {
+        "focus": {
+          "production": "مكتب الإنتاج"
+        },
+        "focusSubtitle": {
+          "production": "طلبات الخدمة واتفاقيات مستوى الخدمة والموافقات لفريق الإنتاج."
+        }
+      },
+      "statusLabels": {
+        "production": "قيد الإنتاج",
+        "post_production": "ما بعد الإنتاج"
+      },
+      "calendarSharing": {
+        "subtitle": "فعالياتك ومواعيدك وما يشاركه زملاؤك ومواعيد العمل: الإجازات، الجلسات، عروض الأسعار، الفواتير، والرواتب."
+      },
+      "navigationGroups": {
+        "operations": "الإنتاج والعمليات"
+      },
+      "calendarMessages": {
+        "shoot": "موعد: {title}"
+      },
+      "pages": {
+        "calendar": {
+          "title": "التقويم والجدول الزمني"
+        },
+        "crm/leads": {
+          "title": "الطلبات الواردة"
+        },
+        "cms/equipment": {
+          "title": "المعدات والمخزون"
+        },
+        "cms/stats": {
+          "title": "إحصائيات الأعمال"
+        }
+      }
+    }
+  }
+}

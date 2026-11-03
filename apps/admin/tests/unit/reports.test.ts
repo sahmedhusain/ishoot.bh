@@ -3,7 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, test } from "vitest";
-import { getTranslations } from "../../packages/locales/src";
+import { getTranslations } from "../../locales";
 import {
   REPORTS,
   REPORT_AREAS,
@@ -11,9 +11,9 @@ import {
   nextScheduledRun,
   previousPeriod,
   scheduledPeriod,
-} from "../../packages/database/src/constants/reports";
-import { ALL_RESOURCES } from "../../packages/database/src/constants/permissions";
-import { buildXlsx } from "../../packages/database/src/reports/xlsx";
+} from "../../lib/database/constants/reports";
+import { ALL_RESOURCES } from "../../lib/database/constants/permissions";
+import { buildXlsx } from "../../lib/database/reports/xlsx";
 
 describe("reports", () => {
   test("the period before has the same length and ends the day before", () => {

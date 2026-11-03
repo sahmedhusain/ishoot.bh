@@ -8,7 +8,7 @@ import {
   unlinkIntegration as unlink,
   updateIntegrationStatus as updateStatus,
   type ServiceIntegration,
-} from "../../packages/api-client/src/system";
+} from "../../../lib/api/system";
 
 require("dotenv").config({
   path: path.resolve(__dirname, "../../.env"),

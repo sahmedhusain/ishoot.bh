@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => ({
   create: vi.fn(),
   removeVariants: vi.fn(),
 }));
-vi.mock("../../packages/database/src/db", () => ({
+vi.mock("../../lib/database/db", () => ({
   db: {
     product: { findFirst: mocks.find },
     productVariant: { findFirst: mocks.find },
@@ -15,8 +15,8 @@ vi.mock("../../packages/database/src/db", () => ({
 import {
   saveProduct,
   type ProductInput,
-} from "../../packages/database/src/queries/products";
-import { serverMessages } from "../../packages/locales/src";
+} from "../../lib/database/queries/products";
+import { serverMessages } from "../../locales";
 const input: ProductInput = {
   sku: "TEST-1",
   barcode: "",

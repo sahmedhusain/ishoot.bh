@@ -5,8 +5,8 @@ import path from "node:path";
 import {
   listModules,
   setModule as save,
-} from "../../packages/api-client/src/system";
-import { moduleOnByDefault } from "../../packages/database/src/constants/features";
+} from "../../../lib/api/system";
+import { moduleOnByDefault } from "../../../lib/database/constants/features";
 
 require("dotenv").config({
   path: path.resolve(__dirname, "../../.env"),

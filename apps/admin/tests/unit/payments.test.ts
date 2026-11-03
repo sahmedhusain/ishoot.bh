@@ -1,12 +1,12 @@
 import crypto from "node:crypto";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { getTranslations } from "../../packages/locales/src";
+import { getTranslations } from "../../locales";
 import {
   PAYMENT_GATEWAY_IDS,
   formatGatewayAmount,
   fromMinorUnits,
-} from "../../packages/database/src/constants/payments";
-import { INTEGRATION_PROVIDERS } from "../../packages/database/src/constants/integrations";
+} from "../../lib/database/constants/payments";
+import { INTEGRATION_PROVIDERS } from "../../lib/database/constants/integrations";
 import {
   WebhookSignatureError,
   checkoutCom,
@@ -17,11 +17,11 @@ import {
   paytabs,
   stripe,
   tap,
-} from "../../packages/database/src/payments/gateways";
+} from "../../lib/database/payments/gateways";
 import {
   orderFromPaymentLink,
   paymentLinkToken,
-} from "../../packages/database/src/services/payment-links";
+} from "../../lib/database/services/payment-links";
 
 const hmac = (key: string, text: string) =>
   crypto.createHmac("sha256", key).update(text).digest("hex");

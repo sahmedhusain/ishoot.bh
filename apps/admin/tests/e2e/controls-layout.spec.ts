@@ -1,9 +1,9 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import en from "../../../../packages/locales/src/admin/en";
-import ar from "../../../../packages/locales/src/admin/ar";
-import uiEn from "../../../../packages/locales/src/ui/en";
-import uiAr from "../../../../packages/locales/src/ui/ar";
+import en from "../../locales/admin/en";
+import ar from "../../locales/admin/ar";
+import uiEn from "../../locales/ui/en";
+import uiAr from "../../locales/ui/ar";
 import { selectOption } from "../../select-option";
 
 test("deferred scroll content is enhanced only after it becomes visible", async ({

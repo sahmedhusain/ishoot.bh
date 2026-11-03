@@ -6,7 +6,7 @@ import {
   DEFAULT_APPEARANCE,
   appearanceBootstrapScript,
   normalizeAdminAppearance,
-} from "../../apps/admin/lib/admin-appearance";
+} from "../../lib/admin-appearance";
 
 test("appearance choices accept only supported keys and values", () => {
   for (const input of [

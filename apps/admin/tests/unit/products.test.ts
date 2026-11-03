@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { getTranslations } from "../../packages/locales/src";
+import { getTranslations } from "../../locales";
 import {
   MAX_OPTIONS,
   PRODUCT_UNITS,
@@ -9,12 +9,12 @@ import {
   variantCombinations,
   variantLabel,
   variantSku,
-} from "../../packages/database/src/constants/products";
+} from "../../lib/database/constants/products";
 import {
   DEFAULT_FEATURE_MODULES,
   moduleOnByDefault,
-} from "../../packages/database/src/constants/features";
-import { ACTIVITY_PRESETS } from "../../packages/database/src/website-presets";
+} from "../../lib/database/constants/features";
+import { ACTIVITY_PRESETS } from "../../lib/database/website-presets";
 
 describe("products", () => {
   test("options are cleaned: names and values trimmed, one language fills the other, repeats dropped", () => {

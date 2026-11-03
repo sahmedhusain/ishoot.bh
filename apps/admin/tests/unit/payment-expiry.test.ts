@@ -8,25 +8,25 @@ const mocks = vi.hoisted(() => ({
   status: vi.fn(),
   move: vi.fn(),
 }));
-vi.mock("../../packages/database/src/db", () => ({
+vi.mock("../../lib/database/db", () => ({
   db: {
     paymentAttempt: { findMany: mocks.attempts, updateMany: mocks.expire },
     salesOrder: { findUnique: mocks.order },
   },
 }));
-vi.mock("../../packages/database/src/payments/active", () => ({
+vi.mock("../../lib/database/payments/active", () => ({
   activePaymentGateway: vi.fn(),
   gatewayWithCredentials: mocks.gateway,
 }));
-vi.mock("../../packages/database/src/queries/store", () => ({
+vi.mock("../../lib/database/queries/store", () => ({
   moveOrder: mocks.move,
   recordOrderPayment: vi.fn(),
   recordOrderRefund: vi.fn(),
 }));
-vi.mock("../../packages/database/src/queries/notify", () => ({
+vi.mock("../../lib/database/queries/notify", () => ({
   notifyUsersWithPermission: vi.fn(),
 }));
-import { expireOnlinePayments } from "../../packages/database/src/queries/online-payments";
+import { expireOnlinePayments } from "../../lib/database/queries/online-payments";
 
 const now = new Date("2026-10-26T12:00:00Z");
 beforeEach(() => {

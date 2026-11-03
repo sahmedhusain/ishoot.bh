@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { getTranslations } from "../../packages/locales/src";
+import { getTranslations } from "../../locales";
 import {
   BILL_STATUSES,
   PURCHASE_ORDER_STATUSES,
@@ -10,12 +10,12 @@ import {
   documentTotals,
   matchBillLine,
   orderReceiptStatus,
-} from "../../packages/database/src/constants/procurement";
+} from "../../lib/database/constants/procurement";
 import {
   APPROVAL_CONDITION_FIELDS,
   APPROVAL_TARGET_ROUTES,
   APPROVAL_TARGET_TYPES,
-} from "../../packages/database/src/constants/approvals";
+} from "../../lib/database/constants/approvals";
 
 describe("procurement", () => {
   test("document totals round each line, then add VAT", () => {

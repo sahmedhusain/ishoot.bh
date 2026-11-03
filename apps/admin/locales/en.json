@@ -1,0 +1,95 @@
+{
+  "email": {
+    "confirmation": {
+      "subject": "Thank you for contacting {companyName}",
+      "title": "Thank you for contacting us, {name}!",
+      "receivedMessage": "We have received your message. Our team will review your requirements and get back to you.",
+      "servicesRequested": "Services Requested:",
+      "urgentInquiries": "You can reply to this message to contact our team.",
+      "warmRegards": "Warm regards,",
+      "productionTeam": "The {companyName} team"
+    },
+    "notification": {
+      "subject": "🔔 New Inquiry: {fullName}",
+      "badge": "New Lead Received",
+      "title": "{fullName} sent an inquiry to {companyName}",
+      "fullName": "Full Name:",
+      "email": "Email:",
+      "phone": "Phone:",
+      "company": "Company:",
+      "budget": "Anticipated Budget:",
+      "services": "Services:",
+      "projectBrief": "Project Brief:",
+      "notSpecified": "Not specified",
+      "directIndividual": "Direct / Individual",
+      "toBeDiscussed": "To be discussed",
+      "noMessage": "No additional message provided."
+    },
+    "invoiceDelivery": {
+      "subject": "Invoice {invoiceNumber} from {companyName}",
+      "greeting": "Dear {clientName},",
+      "body": "Please find attached official invoice {invoiceNumber} from {companyName}.",
+      "invoiceNumber": "Invoice Number:",
+      "dueDate": "Payment Due Date:",
+      "amountDue": "Amount Due:",
+      "bankDetails": "Bank Transfer Details:",
+      "bank": "Bank:",
+      "iban": "IBAN:",
+      "pdfNotice": "The complete printable PDF document is attached to this email."
+    },
+    "paymentReceipt": {
+      "subject": "Payment Receipt {receiptNumber} — {companyName}",
+      "badgePaidInFull": "Paid in Full",
+      "badgePartial": "Partial Payment Received",
+      "title": "Payment Receipt Confirmation",
+      "greeting": "Dear {clientName},",
+      "body": "We confirm receipt of your payment for invoice {invoiceNumber} from {companyName}.",
+      "receiptNumber": "Receipt Number:",
+      "paymentMethod": "Payment Method:",
+      "amountReceived": "Amount Received:",
+      "remainingBalance": "Remaining Balance:",
+      "pdfNotice": "Your formal payment receipt document is attached to this email."
+    },
+    "layout": {
+      "cr": "CR: {cr}",
+      "rights": "© {year} {companyName}. All rights reserved."
+    },
+    "inquiryReceived": {
+      "subject": "We received your message — {reference}",
+      "body": "Thank you for contacting us. Your message has been received and will be reviewed by our team."
+    }
+  },
+  "api": {
+    "inquiry": {
+      "requiredFields": "Full name, email, and message are required.",
+      "success": "Inquiry received and notifications dispatched.",
+      "serverError": "Internal server error processing inquiry."
+    },
+    "auth": {
+      "requiredFields": "Email and password are required.",
+      "invalidCredentials": "Invalid credentials or inactive account.",
+      "serverError": "Internal server error during authentication."
+    },
+    "upload": {
+      "noFile": "No file provided.",
+      "failed": "Failed to upload file."
+    },
+    "pdf": {
+      "receiptNotFound": "Receipt not found.",
+      "invoiceNotFound": "Invoice not found.",
+      "generationError": "Error generating PDF.",
+      "quotationNotFound": "Quotation not found."
+    },
+    "reviews": {
+      "requiredFields": "Author name and review quote are required.",
+      "success": "Thank you for sharing your feedback! Your review has been submitted and will appear on the website once approved by our team.",
+      "serverError": "Failed to submit review. Please try again later."
+    }
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "contact": "Contact",
+    "works": "Works"
+  }
+}

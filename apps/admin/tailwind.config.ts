@@ -1,5 +1,5 @@
 import type { Config } from "tailwindcss";
-import sharedConfig from "@platform/config";
+import sharedConfig from "./lib/config/tailwind-preset";
 
 // Theme-aware colours resolve through CSS variables (app/globals.css), so one class is correct in
 // both light and dark mode. Brand colours, ink and fonts come from the shared preset (company theme).
@@ -14,7 +14,7 @@ const config: Config = {
     "./constants/**/*.{js,ts,jsx,tsx}",
     "./lib/**/*.{js,ts,jsx,tsx}",
     "./hooks/**/*.{js,ts,jsx,tsx}",
-    "../../packages/ui/src/**/*.{js,ts,jsx,tsx}",
+    "./components/ui/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {

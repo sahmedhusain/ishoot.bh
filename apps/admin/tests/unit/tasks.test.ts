@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { getTranslations } from "../../packages/locales/src";
+import { getTranslations } from "../../locales";
 import {
   PROJECT_STATUSES,
   TASK_LINK_TYPES,
@@ -7,16 +7,16 @@ import {
   TASK_STATUSES,
   dueBucket,
   projectProgress,
-} from "../../packages/database/src/constants/tasks";
+} from "../../lib/database/constants/tasks";
 import {
   ALL_RESOURCES,
   DEFAULT_ROLE_RULES,
   RESOURCE_FEATURES,
-} from "../../packages/database/src/constants/permissions";
+} from "../../lib/database/constants/permissions";
 import {
   DEFAULT_FEATURE_MODULES,
   moduleOnByDefault,
-} from "../../packages/database/src/constants/features";
+} from "../../lib/database/constants/features";
 
 describe("tasks", () => {
   test("due dates group into overdue, today, this week, later and none", () => {

@@ -28,7 +28,7 @@ test.afterAll(async () => {
 
 const routeRoot = path.resolve(
   __dirname,
-  "../../../../apps/admin/app/dashboard",
+  "../../app/dashboard",
 );
 function routes(directory: string): string[] {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {

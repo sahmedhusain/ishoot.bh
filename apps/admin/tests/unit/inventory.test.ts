@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { getTranslations } from "../../packages/locales/src";
+import { getTranslations } from "../../locales";
 import {
   ADJUSTMENT_REASONS,
   COUNT_STATUSES,
@@ -8,12 +8,12 @@ import {
   countVariance,
   daysToExpiry,
   roundQuantity,
-} from "../../packages/database/src/constants/inventory";
+} from "../../lib/database/constants/inventory";
 import {
   ALL_RESOURCES,
   PERMISSION_GROUPS,
   RESOURCE_FEATURES,
-} from "../../packages/database/src/constants/permissions";
+} from "../../lib/database/constants/permissions";
 
 describe("inventory", () => {
   test("receipts move the weighted average cost; empty or negative stock takes the new cost", () => {

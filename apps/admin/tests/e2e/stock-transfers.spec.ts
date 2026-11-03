@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { admin, testDatabase } from "../../helpers";
-import en from "../../../../packages/locales/src/admin/en";
-import ar from "../../../../packages/locales/src/admin/ar";
+import en from "../../locales/admin/en";
+import ar from "../../locales/admin/ar";
 const db = testDatabase();
 test.afterAll(() => db.$disconnect());
 for (const locale of ["en", "ar"] as const) {

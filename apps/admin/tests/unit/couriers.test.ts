@@ -1,17 +1,17 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { getTranslations } from "../../packages/locales/src";
+import { getTranslations } from "../../locales";
 import {
   COURIER_KINDS,
   measuredCourierParcel,
-} from "../../packages/database/src/constants/delivery";
-import { INTEGRATION_PROVIDERS } from "../../packages/database/src/constants/integrations";
+} from "../../lib/database/constants/delivery";
+import { INTEGRATION_PROVIDERS } from "../../lib/database/constants/integrations";
 import {
   aramex,
   countryCode,
   courierStateFrom,
   dhlExpress,
   smsa,
-} from "../../packages/database/src/couriers/adapters";
+} from "../../lib/database/couriers/adapters";
 
 afterEach(() => vi.unstubAllGlobals());
 

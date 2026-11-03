@@ -1,0 +1,95 @@
+{
+  "email": {
+    "confirmation": {
+      "subject": "شكراً لتواصلك مع {companyName}",
+      "title": "شكراً لتواصلك معنا، {name}!",
+      "receivedMessage": "استلمنا رسالتك. سيراجع فريقنا متطلباتك ويرد عليك.",
+      "servicesRequested": "الخدمات المطلوبة:",
+      "urgentInquiries": "يمكنك الرد على هذه الرسالة للتواصل مع فريقنا.",
+      "warmRegards": "مع أطيب التحيات،",
+      "productionTeam": "فريق {companyName}"
+    },
+    "notification": {
+      "subject": "🔔 طلب جديد: {fullName}",
+      "badge": "طلب تواصل جديد",
+      "title": "{fullName} أرسل استفساراً إلى {companyName}",
+      "fullName": "الاسم الكامل:",
+      "email": "البريد الإلكتروني:",
+      "phone": "رقم الهاتف:",
+      "company": "الشركة / الجهة:",
+      "budget": "الميزانية المتوقعة:",
+      "services": "الخدمات المطلوبة:",
+      "projectBrief": "تفاصيل المشروع:",
+      "notSpecified": "غير محدد",
+      "directIndividual": "مباشر / فردي",
+      "toBeDiscussed": "سيتم مناقشتها",
+      "noMessage": "لم يتم إرفاق رسالة إضافية."
+    },
+    "invoiceDelivery": {
+      "subject": "فاتورة رقم {invoiceNumber} من {companyName}",
+      "greeting": "عزيزنا {clientName}،",
+      "body": "يرجى الاطلاع على الفاتورة الرسمية المرفقة {invoiceNumber} من {companyName}.",
+      "invoiceNumber": "رقم الفاتورة:",
+      "dueDate": "تاريخ الاستحقاق:",
+      "amountDue": "المبلغ المطلوب سداده:",
+      "bankDetails": "بيانات التحويل البنكي:",
+      "bank": "البنك:",
+      "iban": "الآيبان:",
+      "pdfNotice": "تجدون نسخة الفاتورة الرسمية بصيغة PDF مرفقة مع هذا البريد الإلكتروني."
+    },
+    "paymentReceipt": {
+      "subject": "إيصال استلام دفعة {receiptNumber} — {companyName}",
+      "badgePaidInFull": "تم سداد الفاتورة بالكامل",
+      "badgePartial": "استلام دفعة جزئية",
+      "title": "تأكيد استلام الدفعة",
+      "greeting": "عزيزنا {clientName}،",
+      "body": "نؤكد استلام دفعتكم للفاتورة رقم {invoiceNumber} من {companyName}.",
+      "receiptNumber": "رقم الإيصال:",
+      "paymentMethod": "طريقة الدفع:",
+      "amountReceived": "المبلغ المستلم:",
+      "remainingBalance": "المتبقي على الفاتورة:",
+      "pdfNotice": "تجدون إيصال الاستلام الرسمي بصيغة PDF مرفقاً مع هذه الرسالة."
+    },
+    "layout": {
+      "cr": "سجل تجاري: {cr}",
+      "rights": "© {year} {companyName}. جميع الحقوق محفوظة."
+    },
+    "inquiryReceived": {
+      "subject": "استلمنا رسالتك — {reference}",
+      "body": "شكراً لتواصلك معنا. استلمنا رسالتك وسيراجعها فريقنا."
+    }
+  },
+  "api": {
+    "inquiry": {
+      "requiredFields": "الاسم الكامل، البريد الإلكتروني، والرسالة مطلوبة.",
+      "success": "تم استلام الطلب وإرسال الإشعارات بنجاح.",
+      "serverError": "خطأ داخلي في الخادم أثناء معالجة الطلب."
+    },
+    "auth": {
+      "requiredFields": "البريد الإلكتروني وكلمة المرور مطلوبة.",
+      "invalidCredentials": "بيانات الاعتماد غير صحيحة أو الحساب غير نشط.",
+      "serverError": "خطأ في الخادم أثناء مصادقة المستخدم."
+    },
+    "upload": {
+      "noFile": "لم يتم تقديم أي ملف.",
+      "failed": "فشل في رفع الملف."
+    },
+    "pdf": {
+      "receiptNotFound": "لم يتم العثور على الإيصال.",
+      "invoiceNotFound": "لم يتم العثور على الفاتورة.",
+      "generationError": "خطأ في إنشاء ملف PDF.",
+      "quotationNotFound": "لم يتم العثور على عرض السعر."
+    },
+    "reviews": {
+      "requiredFields": "الاسم والتقييم مطلوبان.",
+      "success": "شكراً لمشاركتنا تقييمك! تم إرسال مراجعتك بنجاح وستظهر في الموقع فور اعتمادها من قبل الإدارة.",
+      "serverError": "فشل في إرسال التقييم. يرجى المحاولة مرة أخرى لاحقاً."
+    }
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "about": "من نحن",
+    "contact": "اتصل بنا",
+    "works": "أعمالنا"
+  }
+}

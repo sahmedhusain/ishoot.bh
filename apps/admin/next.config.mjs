@@ -46,11 +46,11 @@ const nextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next",
   devIndicators: process.env.NEXT_DIST_DIR?.startsWith(".next-e2e") ? false : undefined,
   serverExternalPackages: ['@react-pdf/renderer', 'libphonenumber-js', 'bcryptjs', 'sharp'],
-  transpilePackages: ['@platform/ui', '@platform/database', '@platform/locales', '@platform/email', '@platform/config', '@platform/api-client', '@platform/contracts'],
+  transpilePackages: [],
   // Which service key this app signs its backend calls with (docs/adr/0011).
   env: { SERVICE_CALLER: 'admin' },
   experimental: {
-    optimizePackageImports: ['lucide-react', '@platform/ui'],
+    optimizePackageImports: ['lucide-react'],
     // Enables forbidden(): pages a role may not open render app/forbidden.tsx with HTTP 403.
     authInterrupts: true,
   },

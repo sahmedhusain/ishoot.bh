@@ -1,12 +1,12 @@
 import { describe, expect, test } from "vitest";
-import { expectedDrawerCash } from "../../packages/database/src/finance/journal";
+import { expectedDrawerCash } from "../../lib/database/finance/journal";
 import {
   convertPackagingQuantity,
   assertPackageParent,
   expandSerialRange,
   uniqueSerials,
   validateStockLabelTemplate,
-} from "../../packages/database/src/constants/stock-traceability";
+} from "../../lib/database/constants/stock-traceability";
 
 describe("retail and closing calculations", () => {
   test("expectedDrawerCash computes opening + receipts + in - refunds - out - drops", () => {
@@ -94,7 +94,7 @@ describe("retail and closing calculations", () => {
 
   test("generateStockLabelsPdf renders physical dimension pages", async () => {
     const { generateStockLabelsPdf } = await import(
-      "../../apps/admin/lib/pdf/stock-label-pdf"
+      "../../lib/pdf/stock-label-pdf"
     );
     const pdfBuf = await generateStockLabelsPdf({
       id: "job-test-1234",

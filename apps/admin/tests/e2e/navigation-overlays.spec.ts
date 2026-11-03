@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { randomUUID } from "node:crypto";
-import en from "../../../../packages/locales/src/admin/en";
-import ar from "../../../../packages/locales/src/admin/ar";
+import en from "../../locales/admin/en";
+import ar from "../../locales/admin/ar";
 import users from "../../fixtures/users.json";
 import { admin, login, testDatabase } from "../../helpers";
 

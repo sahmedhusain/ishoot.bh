@@ -5,7 +5,7 @@ import vm from "node:vm";
 import ts from "typescript";
 
 const appRequire = createRequire(
-  new URL("../../apps/admin/package.json", import.meta.url),
+  new URL("../../package.json", import.meta.url),
 );
 const React = appRequire("react");
 const { renderToStaticMarkup } = appRequire("react-dom/server");
@@ -13,7 +13,7 @@ const AppRouterContext = React.createContext(null);
 const compiledModule = { exports: {} as Record<string, any> };
 const code = ts.transpileModule(
   fs.readFileSync(
-    new URL("../../apps/admin/hooks/useUnsavedChanges.tsx", import.meta.url),
+    new URL("../../hooks/useUnsavedChanges.tsx", import.meta.url),
     "utf8",
   ),
   {

@@ -3,7 +3,7 @@ import {
   journalMinorUnits,
   validateJournalLines,
   expectedDrawerCash,
-} from "../../packages/database/src/finance/journal";
+} from "../../lib/database/finance/journal";
 test("journals balance exactly without binary floating point", () => {
   expect(
     validateJournalLines(

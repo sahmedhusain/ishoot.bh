@@ -6,7 +6,7 @@ import ts from "typescript";
 
 // Every dashboard page opens with the shared PageHeader, sets its browser title from the same copy, and has a
 // title and description in both admin dictionaries.
-const admin = path.resolve(__dirname, "../../apps/admin");
+const admin = path.resolve(__dirname, "../..");
 const dashboard = path.join(admin, "app/dashboard");
 const read = (file: string) => fs.readFileSync(file, "utf8");
 
@@ -72,7 +72,7 @@ describe("admin page headers", () => {
   });
 
   test.each(["en", "ar"])("every page has a title and description in %s", (locale) => {
-    const copy = JSON.parse(read(path.resolve(__dirname, `../../packages/locales/src/admin/${locale}.json`))).pages;
+    const copy = JSON.parse(read(path.resolve(__dirname, `../../locales/admin/${locale}.json`))).pages;
     for (const key of PAGE_KEYS) {
       const entry = copy[key || "home"];
       expect(entry?.title, key).toBeTruthy();

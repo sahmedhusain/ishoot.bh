@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { getTranslations } from "../../packages/locales/src";
+import { getTranslations } from "../../locales";
 import {
   CAMPAIGN_CHANNELS,
   CAMPAIGN_STATUSES,
@@ -11,11 +11,11 @@ import {
   matchesSegment,
   trackedLink,
   utmSlug,
-} from "../../packages/database/src/constants/outreach";
+} from "../../lib/database/constants/outreach";
 import {
   ALL_RESOURCES,
   RESOURCE_FEATURES,
-} from "../../packages/database/src/constants/permissions";
+} from "../../lib/database/constants/permissions";
 
 describe("marketing, PR and legal", () => {
   test("campaign names become tracking names, and links carry them", () => {

@@ -3,9 +3,9 @@ import {
   adminActivityCopy,
   getAdminTranslations,
   getTranslations,
-} from "../../packages/locales/src";
-import adminActivities from "../../packages/locales/src/admin-activities.json";
-import { BUSINESS_ACTIVITIES } from "../../packages/database/src/website-presets";
+} from "../../locales";
+import adminActivities from "../../locales/admin-activities.json";
+import { BUSINESS_ACTIVITIES } from "../../lib/database/website-presets";
 
 const FILM_WORDS =
   /cinema|cinematic|film|shoot|production|studio|crew|\bgear\b|سينما|سينمائي|فيلم|أفلام|تصوير|إنتاج|الإنتاج|استوديو|طاقم|مونتاج/i;
