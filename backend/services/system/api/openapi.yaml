@@ -281,6 +281,34 @@ paths:
               "default": { "$ref": "#/components/responses/Problem" },
             },
         },
+      "put":
+        {
+          "operationId": "updateCompanyConfiguration",
+          "summary": "Update company configuration for a named app actor",
+          "security": [{ "serviceToken": [] }],
+          "requestBody":
+            {
+              "required": true,
+              "content":
+                {
+                  "application/json":
+                    { "schema": { "$ref": "#/components/schemas/CompanyPatchServiceBody" } },
+                },
+            },
+          "responses":
+            {
+              "200":
+                {
+                  "description": "Success",
+                  "content":
+                    {
+                      "application/json":
+                        { "schema": { "$ref": "#/components/schemas/CompanyRecord" } },
+                    },
+                },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+        },
     }
   /v1/system/company/currency-use:
     {
@@ -289,6 +317,33 @@ paths:
           "operationId": "markCompanyCurrencyUsed",
           "summary": "Lock base currency after monetary use (configured monetary callers)",
           "security": [{ "serviceToken": [] }],
+          "responses":
+            {
+              "204": { "description": "Success" },
+              "default": { "$ref": "#/components/responses/Problem" },
+            },
+        },
+    }
+  /v1/system/company/assets/{key}:
+    {
+      "put":
+        {
+          "operationId": "saveCompanyAsset",
+          "summary": "Save a company asset for a named app actor",
+          "security": [{ "serviceToken": [] }],
+          "parameters":
+            [
+              { "name": "key", "in": "path", "required": true, "schema": { "type": "string", "minLength": 1, "maxLength": 128 } },
+            ],
+          "requestBody":
+            {
+              "required": true,
+              "content":
+                {
+                  "application/json":
+                    { "schema": { "$ref": "#/components/schemas/CompanyAssetServiceBody" } },
+                },
+            },
           "responses":
             {
               "204": { "description": "Success" },
@@ -749,6 +804,19 @@ components:
             description: "Who changed it last: <caller>:<person> or it:<IT account>",
           }
         updatedAt: { type: string, format: date-time }
+    CompanyPatchServiceBody:
+      type: object
+      required: [values, actorId]
+      properties:
+        values: { $ref: "#/components/schemas/CompanyPatch" }
+        actorId: { type: string, minLength: 1, maxLength: 64 }
+    CompanyAssetServiceBody:
+      type: object
+      required: [title, fileUrl, actorId]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 500 }
+        fileUrl: { type: string, minLength: 1, maxLength: 2048 }
+        actorId: { type: string, minLength: 1, maxLength: 64 }
     SiteDomainsInput:
       type: object
       required: [websiteDomain, adminDomain]

@@ -129,7 +129,7 @@ func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, pool *
 	}
 	e.Use(telemetry.EchoMiddleware())
 	httpapi.Register(e, svc, httpapi.Options{
-		CurrencyCallers: cfg.System.CurrencyCallers, CompanyReaders: cfg.System.CompanyReaders, SequenceCallers: cfg.System.SequenceCallers, CompanyBodyLimit: cfg.System.CompanyBodyLimit,
+		CurrencyCallers: cfg.System.CurrencyCallers, CompanyReaders: cfg.System.CompanyReaders, CompanyWriters: cfg.System.CompanyWriters, SequenceCallers: cfg.System.SequenceCallers, CompanyBodyLimit: cfg.System.CompanyBodyLimit,
 		Verifier: verifier, ReadCallers: cfg.System.ReadCallers, ModuleWriters: cfg.System.ModuleWriters,
 		ModuleReadCallers:  cfg.System.ModuleReadCallers,
 		IntegrationWriters: cfg.System.IntegrationWriters, DomainWriters: cfg.System.DomainWriters,

@@ -72,6 +72,7 @@ func TestModules(t *testing.T) {
 		ReadCallers:        []string{"admin", "web"},
 		ModuleReadCallers:  []string{"identity"},
 		ModuleWriters:      []string{"admin"},
+		CompanyWriters:     []string{"admin"},
 		IntegrationWriters: []string{"admin"},
 		DomainWriters:      []string{"admin"},
 		JSONBodyLimit:      4096,

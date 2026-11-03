@@ -28,7 +28,7 @@ const (
 
 // Options configures the handlers.
 type Options struct {
-	CompanyReaders, SequenceCallers, CurrencyCallers []string
+	CompanyReaders, CompanyWriters, SequenceCallers, CurrencyCallers []string
 	CompanyBodyLimit                                 int64
 
 	Verifier *authn.Verifier

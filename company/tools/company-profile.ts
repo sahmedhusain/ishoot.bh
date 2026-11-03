@@ -1,339 +1,99 @@
-// Company profiles live outside the apps, in company/profiles/<name>/ at the repository root:
-//   company.json  identity and configuration (CompanySetting fields), a short display name, and the asset file
-//                 for each brand slot
-//   theme.json    colours, fonts, radius and default mode; uploaded font files are paths inside the profile
-//   assets/       logos, stamp, signatures, fonts, media and documents
-// Installing a profile copies its files into upload storage and points the company settings at them, so no
-// app ever ships a company's files in its own public folder.
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import {
-  isFontMimeType,
-  normalizeTheme,
-  type BrandTheme,
-  type FontChoice,
-} from "../../apps/admin/lib/database/constants/theme";
+import { isFontMimeType, normalizeTheme, type BrandTheme, type FontChoice } from "../../apps/admin/lib/database/constants/theme";
+import { apiTimeoutMs, apiUrl } from "../../apps/admin/lib/api/config";
+import { serviceToken } from "../../apps/admin/lib/api/service-token";
+import { storeFile } from "../../apps/admin/lib/api/files";
 import { detectFileType, extensionFor } from "../../contracts/src";
-import { storeFileBytes } from "../../apps/admin/lib/database/services/uploads";
 
-type Db = any;
-
-/** Brand slots: which company setting each profile asset fills, and the CompanyAsset rows that mirror it. */
 const BRAND_SLOTS = {
-  logo: {
-    field: "logoUrl",
-    assetKeys: ["logo_light"],
-    title: "Logo for light backgrounds",
-  },
-  darkLogo: {
-    field: "darkLogoUrl",
-    assetKeys: ["logo_dark"],
-    title: "Logo for dark backgrounds",
-  },
-  icon: {
-    field: "iconUrl",
-    assetKeys: ["icon_light", "favicon"],
-    title: "Icon for light backgrounds",
-  },
-  darkIcon: {
-    field: "darkIconUrl",
-    assetKeys: ["icon_dark"],
-    title: "Icon for dark backgrounds",
-  },
-  fullLogo: {
-    field: "fullLogoUrl",
-    assetKeys: ["full_logo_light"],
-    title: "Full-sized logo for light backgrounds",
-  },
-  darkFullLogo: {
-    field: "darkFullLogoUrl",
-    assetKeys: ["full_logo_dark"],
-    title: "Full-sized logo for dark backgrounds",
-  },
-  header: {
-    field: "documentHeaderUrl",
-    assetKeys: ["letterhead_header"],
-    title: "Document header banner",
-  },
-  footer: {
-    field: "documentFooterUrl",
-    assetKeys: ["letterhead_footer"],
-    title: "Document footer banner",
-  },
+  logo: { field: "logoUrl", assetKeys: ["logo_light"], title: "Logo for light backgrounds" },
+  darkLogo: { field: "darkLogoUrl", assetKeys: ["logo_dark"], title: "Logo for dark backgrounds" },
+  icon: { field: "iconUrl", assetKeys: ["icon_light", "favicon"], title: "Icon for light backgrounds" },
+  darkIcon: { field: "darkIconUrl", assetKeys: ["icon_dark"], title: "Icon for dark backgrounds" },
+  fullLogo: { field: "fullLogoUrl", assetKeys: ["full_logo_light"], title: "Full-sized logo for light backgrounds" },
+  darkFullLogo: { field: "darkFullLogoUrl", assetKeys: ["full_logo_dark"], title: "Full-sized logo for dark backgrounds" },
+  header: { field: "documentHeaderUrl", assetKeys: ["letterhead_header"], title: "Document header banner" },
+  footer: { field: "documentFooterUrl", assetKeys: ["letterhead_footer"], title: "Document footer banner" },
   stamp: { field: "stampUrl", assetKeys: ["stamp"], title: "Company stamp" },
-  signature: {
-    field: "signatureUrl",
-    assetKeys: ["signature"],
-    title: "Authorised signature",
-  },
+  signature: { field: "signatureUrl", assetKeys: ["signature"], title: "Authorised signature" },
 } as const;
 type BrandSlot = keyof typeof BRAND_SLOTS;
-
-type ProfileFont =
-  | FontChoice
-  | {
-      kind: "upload";
-      family: string;
-      files: { weight: number; file: string }[];
-    };
-interface ProfileTheme extends Omit<BrandTheme, "fonts"> {
-  fonts: { body: ProfileFont; heading: ProfileFont };
-}
+type ProfileFont = FontChoice | { kind: "upload"; family: string; files: { weight: number; file: string }[] };
+interface ProfileTheme extends Omit<BrandTheme, "fonts"> { fonts: { body: ProfileFont; heading: ProfileFont } }
 
 export interface CompanyProfile {
   name: string;
   dir: string;
-  /** Short name used in demo text and greetings, e.g. "Acme" for "Acme Trading W.L.L.". */
   display: { nameEn: string; nameAr: string };
-  company: Record<string, unknown> & {
-    companyNameEn: string;
-    companyNameAr: string;
-  };
+  company: Record<string, unknown> & { companyNameEn: string; companyNameAr: string };
   assets: Partial<Record<BrandSlot, string>>;
   theme: ProfileTheme;
 }
 
 const PROFILE_NAME = /^[a-z0-9][a-z0-9-]{0,40}$/;
+const profilesDir = () => path.resolve(__dirname, "..", "profiles");
 
-/** company/profiles, found from this file so the admin server, seeds and scripts agree whatever their cwd. */
-function companyProfilesDir() {
-  return path.resolve(__dirname, "..", "profiles");
-}
-
-/** The profile named by COMPANY_PROFILE, or the neutral demo profile. */
-export function loadCompanyProfile(
-  name = process.env.COMPANY_PROFILE?.trim() || "demo",
-): CompanyProfile {
+export function loadCompanyProfile(name = process.env.COMPANY_PROFILE?.trim() || "demo"): CompanyProfile {
   if (name === "all") name = "demo";
-  if (!PROFILE_NAME.test(name))
-    throw new Error(`Invalid company profile name: ${name}`);
-  const dir = path.join(companyProfilesDir(), name);
-  const read = (file: string) =>
-    JSON.parse(fs.readFileSync(path.join(dir, file), "utf8"));
-  if (!fs.existsSync(path.join(dir, "company.json")))
-    throw new Error(`Company profile not found: company/profiles/${name}`);
+  if (!PROFILE_NAME.test(name)) throw new Error(`Invalid company profile name: ${name}`);
+  const dir = path.join(profilesDir(), name);
+  const read = (file: string) => JSON.parse(fs.readFileSync(path.join(dir, file), "utf8"));
+  if (!fs.existsSync(path.join(dir, "company.json"))) throw new Error(`Company profile not found: company/profiles/${name}`);
   const { company, assets = {}, display } = read("company.json");
-  if (!company?.companyNameEn?.trim() || !company?.companyNameAr?.trim())
-    throw new Error(
-      `company/profiles/${name}/company.json needs companyNameEn and companyNameAr`,
-    );
-  const theme = fs.existsSync(path.join(dir, "theme.json"))
-    ? read("theme.json")
-    : {};
-  return {
-    name,
-    dir,
-    company,
-    assets,
-    theme,
-    display: {
-      nameEn: display?.nameEn || company.companyNameEn,
-      nameAr: display?.nameAr || company.companyNameAr,
-    },
-  };
+  if (!company?.companyNameEn?.trim() || !company?.companyNameAr?.trim()) throw new Error(`company/profiles/${name}/company.json needs companyNameEn and companyNameAr`);
+  return { name, dir, company, assets, theme: fs.existsSync(path.join(dir, "theme.json")) ? read("theme.json") : {}, display: { nameEn: display?.nameEn || company.companyNameEn, nameAr: display?.nameAr || company.companyNameAr } };
 }
 
-/** Absolute path of a file inside a profile's assets folder, refusing anything that escapes it. */
 export function profileAssetPath(profile: CompanyProfile, relative: string) {
   const root = path.join(profile.dir, "assets");
   const target = path.resolve(root, relative);
-  if (!target.startsWith(root + path.sep))
-    throw new Error(`Profile asset outside assets/: ${relative}`);
+  if (!target.startsWith(root + path.sep)) throw new Error(`Profile asset outside assets/: ${relative}`);
   return target;
 }
 
-/**
- * Stores a profile file in upload storage and registers it as an already-claimed upload owned by `ownerId`.
- * The name carries a content hash, so installing the same profile twice reuses the same file.
- */
-export async function importProfileFile(
-  profile: CompanyProfile,
-  relative: string,
-  ownerId: string,
-  folder: "brand" | "vault" | "general" = "brand",
-) {
+/** Uploads profile artwork through the files service; no app-local storage is used. */
+export async function importProfileFile(profile: CompanyProfile, relative: string, folder: "brand" | "vault" | "general" = "brand") {
   const bytes = fs.readFileSync(profileAssetPath(profile, relative));
   const mimeType = detectFileType(bytes);
-  if (!mimeType)
-    throw new Error(
-      `Unsupported file type (use PNG, JPEG, WebP, PDF or a WOFF2, WOFF, TTF or OTF font): ${relative}`,
-    );
-  if (isFontMimeType(mimeType) && folder !== "brand")
-    throw new Error(`Fonts belong in the brand folder: ${relative}`);
-  const stem = path
-    .basename(relative)
-    .replace(/\.[^.]+$/, "")
-    .replace(/[^a-zA-Z0-9_-]+/g, "-")
-    .slice(0, 60);
-  const hash = crypto
-    .createHash("sha256")
-    .update(bytes)
-    .digest("hex")
-    .slice(0, 12);
+  if (!mimeType) throw new Error(`Unsupported profile asset: ${relative}`);
+  if (isFontMimeType(mimeType) && folder !== "brand") throw new Error(`Fonts belong in the brand folder: ${relative}`);
+  const stem = path.basename(relative).replace(/\.[^.]+$/, "").replace(/[^a-zA-Z0-9_-]+/g, "-").slice(0, 60);
+  const hash = crypto.createHash("sha256").update(bytes).digest("hex").slice(0, 12);
   const fileUrl = `/api/files/${folder}/${stem}_${hash}.${extensionFor(mimeType)}`;
-  await storeFileBytes(fileUrl, bytes, {
-    ownerId,
-    fileName: path.basename(relative),
-  });
+  await storeFile({ fileUrl }, bytes, { fileName: path.basename(relative), ifExists: "keep" });
   return fileUrl;
 }
 
-/** The profile theme with uploaded font files stored and replaced by their URLs. */
-async function installTheme(
-  db: Db,
-  profile: CompanyProfile,
-  ownerId: string,
-): Promise<BrandTheme> {
-  const font = async (
-    choice: any,
-  ): Promise<any> => {
+async function profileTheme(profile: CompanyProfile): Promise<BrandTheme> {
+  const upload = async (choice: ProfileFont): Promise<ProfileFont> => {
     if (!choice || choice.kind !== "upload") return choice;
-    const files = [];
-    for (const f of choice.files as {
-      weight: number;
-      file?: string;
-      url?: string;
-    }[]) {
-      files.push({
-        weight: f.weight,
-        url: f.file
-          ? await importProfileFile(profile, f.file, ownerId)
-          : String(f.url),
-      });
-    }
-    return { kind: "upload", family: choice.family, files };
+    const files = (choice as { files: { weight: number; file: string }[] }).files;
+    return { ...choice, files: await Promise.all(files.map(async ({ weight, file }) => ({ weight, url: await importProfileFile(profile, file) }))) } as ProfileFont;
   };
-  const fonts = (profile.theme as any).fonts ?? {};
-  return normalizeTheme({
-    ...profile.theme,
-    fonts: { body: await font(fonts.body), heading: await font(fonts.heading) },
+  const fonts = profile.theme.fonts ?? ({} as ProfileTheme["fonts"]);
+  return normalizeTheme({ ...profile.theme, fonts: { body: await upload(fonts.body), heading: await upload(fonts.heading) } });
+}
+
+async function systemRequest(pathname: string, body: unknown) {
+  const response = await fetch(`${apiUrl()}${pathname}`, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${await serviceToken()}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(apiTimeoutMs()),
   });
+  if (!response.ok) throw new Error(`System service PUT ${pathname} failed (${response.status}): ${await response.text()}`);
 }
 
-/**
- * Writes the profile's identity, brand files and theme into the single CompanySetting row (created if missing)
- * and the matching CompanyAsset rows. `markSetupComplete` skips the first-run wizard (seeds, CI, migrations).
- */
-export async function installCompanyProfile(
-  db: Db,
-  profile: CompanyProfile,
-  ownerId: string,
-  options: { markSetupComplete?: boolean } = {},
-) {
+/** Installs a profile through system/files service APIs. */
+export async function installCompanyProfile(profile: CompanyProfile, actorId = "seed") {
   const urls: Partial<Record<string, string>> = {};
-  for (const [slot, file] of Object.entries(profile.assets) as [
-    BrandSlot,
-    string,
-  ][]) {
-    if (!BRAND_SLOTS[slot] || !file) continue;
-    urls[BRAND_SLOTS[slot].field] = await importProfileFile(profile,
-      file,
-      ownerId,
-    );
-  }
-  const theme = await installTheme(db, profile, ownerId);
-  const data: any = {
-    ...profile.company,
-    ...urls,
-    theme: theme as any,
-    ...(options.markSetupComplete ? { setupCompletedAt: new Date() } : {}),
-  };
-  const existing = await db.companySetting.findFirst({ select: { id: true } });
-  const company = existing
-    ? await db.companySetting.update({ where: { id: existing.id }, data })
-    : await db.companySetting.create({ data });
-  for (const { field, assetKeys, title } of Object.values(BRAND_SLOTS)) {
-    const fileUrl = urls[field];
+  for (const [slot, file] of Object.entries(profile.assets) as [BrandSlot, string][]) if (file) urls[BRAND_SLOTS[slot].field] = await importProfileFile(profile, file);
+  await systemRequest("/v1/system/company", { values: { ...profile.company, ...urls, theme: await profileTheme(profile) }, actorId });
+  for (const [slot, config] of Object.entries(BRAND_SLOTS) as [BrandSlot, (typeof BRAND_SLOTS)[BrandSlot]][]) {
+    const fileUrl = urls[config.field];
     if (!fileUrl) continue;
-    const mimeType = fileUrl.endsWith(".png")
-      ? "image/png"
-      : fileUrl.endsWith(".webp")
-        ? "image/webp"
-        : "image/jpeg";
-    for (const assetKey of assetKeys) {
-      await db.companyAsset.upsert({
-        where: { assetKey },
-        update: { fileUrl, mimeType, title },
-        create: { assetKey, fileUrl, mimeType, title },
-      });
-    }
+    for (const key of config.assetKeys) await systemRequest(`/v1/system/company/assets/${key}`, { title: config.title, fileUrl, actorId });
   }
-  return company;
-}
-
-/** Columns that may still point at files the apps used to ship in public/ (before company files moved here). */
-const LEGACY_FILE_COLUMNS: [table: string, column: string][] = [
-  ["User", "signatureUrl"],
-  ["User", "avatarUrl"],
-  ["CompanySetting", "logoUrl"],
-  ["CompanySetting", "darkLogoUrl"],
-  ["CompanySetting", "iconUrl"],
-  ["CompanySetting", "darkIconUrl"],
-  ["CompanySetting", "stampUrl"],
-  ["CompanySetting", "signatureUrl"],
-  ["CompanyAsset", "fileUrl"],
-  ["HeroBanner", "mediaUrl"],
-  ["HeroBanner", "posterUrl"],
-  ["PortfolioItem", "thumbnailUrl"],
-  ["Service", "imageUrl"],
-  ["StudioEquipment", "imageUrl"],
-  ["Invoice", "signerSignatureUrl"],
-  ["Payment", "signerSignatureUrl"],
-  ["Quotation", "signerSignatureUrl"],
-  ["MinuteOfMeeting", "signatureUrl"],
-  ["SignatureChange", "signatureUrl"],
-  ["AssetHandover", "creatorSignatureUrl"],
-  ["Announcement", "signatureUrl"],
-  ["OfficialLetter", "signatureUrl"],
-];
-
-/** The profile file that replaces a legacy public path, e.g. /brand/signatures/x.svg -> brand/signatures/x.png. */
-function legacyProfileFile(profile: CompanyProfile, url: string) {
-  const match = url.match(
-    /^\/(brand|banners)\/([a-zA-Z0-9/_-]+)\.(svg|png|jpe?g|webp)$/,
-  );
-  if (!match) return null;
-  const base =
-    match[1] === "banners" ? `media/banners/${match[2]}` : `brand/${match[2]}`;
-  for (const ext of ["png", "jpg", "jpeg", "webp"]) {
-    const candidate = `${base}.${ext}`;
-    if (fs.existsSync(profileAssetPath(profile, candidate))) return candidate;
-  }
-  return null;
-}
-
-/**
- * Moves an existing install off files the apps used to ship in public/: every stored /brand/… or /banners/…
- * path with a matching file in the profile is uploaded and replaced by its upload URL. Returns the paths that
- * had no matching profile file, so an operator can supply them.
- */
-export async function remapLegacyPublicFiles(
-  db: Db,
-  profile: CompanyProfile,
-  ownerId: string,
-) {
-  const missing = new Set<string>();
-  const uploaded = new Map<string, string>();
-  for (const [table, column] of LEGACY_FILE_COLUMNS) {
-    // Identifiers come from the fixed list above, never from input.
-    const rows = await db.$queryRawUnsafe<{ value: string }[]>(
-      `SELECT DISTINCT "${column}" AS value FROM "${table}" WHERE "${column}" LIKE '/brand/%' OR "${column}" LIKE '/banners/%'`,
-    );
-    for (const { value } of rows) {
-      const file = legacyProfileFile(profile, value);
-      if (!file) {
-        missing.add(value);
-        continue;
-      }
-      if (!uploaded.has(file))
-        uploaded.set(file, await importProfileFile(profile, file, ownerId));
-      await db.$executeRawUnsafe(
-        `UPDATE "${table}" SET "${column}" = $1 WHERE "${column}" = $2`,
-        uploaded.get(file),
-        value,
-      );
-    }
-  }
-  return [...missing];
 }

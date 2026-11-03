@@ -29,6 +29,42 @@ func (h *handler) companyRoutes(e *echo.Echo) {
 		}
 		return h.company(c)
 	})
+	service.PUT("/company", func(c echo.Context) error {
+		p, err := allowed(c, h.opts.CompanyWriters)
+		if err != nil {
+			return err
+		}
+		var in struct {
+			Values  map[string]json.RawMessage `json:"values" validate:"required"`
+			ActorID string                     `json:"actorId" validate:"required,max=64"`
+		}
+		if err := httpx.BindJSON(c, &in, h.opts.CompanyBodyLimit); err != nil {
+			return err
+		}
+		out, err := h.svc.SaveCompany(c.Request().Context(), in.Values, "service:"+p.Subject+":"+in.ActorID)
+		if err != nil {
+			return companyError(err)
+		}
+		return c.JSON(http.StatusOK, out)
+	})
+	service.PUT("/company/assets/:key", func(c echo.Context) error {
+		p, err := allowed(c, h.opts.CompanyWriters)
+		if err != nil {
+			return err
+		}
+		var in struct {
+			Title   string `json:"title" validate:"required,max=500"`
+			URL     string `json:"fileUrl" validate:"required,max=2048"`
+			ActorID string `json:"actorId" validate:"required,max=64"`
+		}
+		if err := httpx.BindJSON(c, &in, h.opts.JSONBodyLimit); err != nil {
+			return err
+		}
+		if err := h.svc.SaveCompanyAsset(c.Request().Context(), c.Param("key"), in.Title, in.URL, "service:"+p.Subject+":"+in.ActorID); err != nil {
+			return companyError(err)
+		}
+		return c.NoContent(http.StatusNoContent)
+	})
 	service.GET("/setup/status", func(c echo.Context) error {
 		if _, err := allowed(c, h.opts.CompanyReaders); err != nil {
 			return err

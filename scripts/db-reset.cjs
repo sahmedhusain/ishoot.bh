@@ -1,6 +1,5 @@
 // Run: pnpm db:reset [--profile <name> | --demo <preset>] [--style <style>] [--empty] [--light] [--yes]
-// Local development only: wipes the database in DATABASE_URL and the uploaded files, re-applies every migration
-// and fills it again.
+// Local development only: wipes the local service volumes, re-applies every service migration and fills it again.
 //   (default)  demo business data for COMPANY_PROFILE (or --profile, default "demo"), full volume
 //   --light    the same without the large generated volume (faster)
 //   --empty    no demo data: roles, permissions and SUPER_ADMIN only; the admin then shows the setup wizard
@@ -66,34 +65,28 @@ async function confirm() {
 const run = (command, commandArgs, extra = {}) =>
   execFileSync(command, commandArgs, { cwd: root, stdio: "inherit", env: { ...process.env, ...extra } });
 
-/**
- * The reset drops the whole local database, the files service's schema included. Start the local stack and
- * re-create the files service's tables, so the seed can store its files (docs/backend/OPERATIONS.md).
- */
-function resetFilesService() {
+function resetServiceData() {
   const compose = ["compose", "--env-file", path.join(root, ".env")];
   run("node", ["scripts/env-tool.cjs", "service-keys"]);
+  run("docker", [...compose, "down", "--volumes", "--remove-orphans"]);
   run("docker", [...compose, "up", "-d", "--build", "--wait"]);
-  run("docker", [...compose, "run", "--rm", "files-migrate"]);
 }
 
 async function main() {
   console.log(`Database: ${target}\nMode: ${mode}${mode === "empty" ? "" : ` (company profile "${profile}"${demo ? `, demo "${demo}"` : ""}${style ? `, style "${style}"` : ""})`}`);
   await confirm();
 
-  // Drops every table in the schema and re-applies all migrations from scratch.
-  run(path.join(root, "node_modules/.bin/prisma"), ["migrate", "reset", "--force", "--skip-seed", "--skip-generate", "--schema", "apps/admin/prisma/schema.prisma"]);
-  run(path.join(root, "node_modules/.bin/prisma"), ["generate", "--schema", "apps/admin/prisma/schema.prisma"]);
-  resetFilesService();
+  resetServiceData();
+  run(path.join(root, "run.sh"), ["db", "migrate"]);
 
   if (mode === "empty") {
     run(process.execPath, ["scripts/bootstrap-database.cjs"], { COMPANY_PROFILE: "" });
     console.log("\nEmpty database ready. Sign in with SUPER_ADMIN_EMAIL to run the setup wizard.");
     return;
   }
-  run("pnpm", ["db:seed"], { COMPANY_PROFILE: profile, SEED_PRESET: demo || "", SEED_STYLE: style || "", SEED_VOLUME: mode === "light" ? "off" : "on" });
-  run("pnpm", ["db:check-integrity"]);
-  console.log(`\nDemo database ready for "${profile}". Every demo account uses SUPER_ADMIN_PASSWORD; the super admin is SUPER_ADMIN_EMAIL.`);
+  run("npm", ["--prefix", "company", "run", "seed"], { COMPANY_PROFILE: profile, SEED_PRESET: demo || "", SEED_STYLE: style || "" });
+  run("npm", ["--prefix", "company", "run", "check:demo"], { COMPANY_PROFILE: profile, SEED_PRESET: demo || "" });
+  console.log(`\nDemo service data ready for "${profile}".`);
 }
 
 main().catch((error) => {

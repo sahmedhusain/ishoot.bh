@@ -41,6 +41,15 @@
       ],
       "@platform/api-client/*": [
         "../apps/admin/lib/api/*"
+      ],
+      "@platform/contracts": [
+        "../contracts/src/index.ts"
+      ],
+      "@platform/contracts/catalog/*": [
+        "../contracts/catalog/*"
+      ],
+      "@platform/contracts/*": [
+        "../contracts/*"
       ]
     }
   },
