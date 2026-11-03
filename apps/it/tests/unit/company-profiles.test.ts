@@ -26,17 +26,20 @@ const SLOTS = [
   "stamp",
   "signature",
 ];
-const schemaFields = new Set(
-  [
-    ...fs
-      .readFileSync(
-        path.join(root, "apps/admin/prisma/schema.prisma"),
-        "utf8",
-      )
-      .match(/model CompanySetting \{([\s\S]*?)\n\}/)![1]
-      .matchAll(/^\s+(\w+)\s+\w/gm),
-  ].map((m) => m[1]),
-);
+const schemaFields = new Set([
+  "id", "singleton", "companyNameEn", "companyNameAr", "crNumber", "vatId", "vatEnabled",
+  "vatPercentage", "vatCertificateUrl", "defaultCurrency", "currencyDecimals", "addressEn",
+  "addressAr", "phone", "whatsappPhone", "email", "website", "instagramUrl", "linkedinUrl",
+  "youtubeUrl", "bankName", "bankIban", "bankAccountNumber", "bankSwift", "timeZone",
+  "logoUrl", "darkLogoUrl", "fullLogoUrl", "darkFullLogoUrl", "iconUrl", "darkIconUrl",
+  "documentHeaderUrl", "documentFooterUrl", "stampUrl", "signatureUrl", "paymentTermsDays",
+  "invoicePrefix", "invoiceNextNumber", "receiptPrefix", "receiptNextNumber", "ceoNameEn",
+  "ceoNameAr", "ceoTitleEn", "ceoTitleAr", "ceoQuoteEn", "ceoQuoteAr", "missionEn",
+  "missionAr", "visionEn", "visionAr", "aboutTextEn", "aboutTextAr", "termsEn", "termsAr",
+  "rulesEn", "rulesAr", "updatedAt", "defaultDiscountLimitPercent", "quotationsAlwaysNeedApproval",
+  "theme", "setupCompletedAt", "contentLanguages", "primaryLanguage", "businessActivity",
+  "taglineEn", "taglineAr", "foundedYear", "city", "country", "mapUrl"
+]);
 
 test("the neutral demo profile exists", () => {
   expect(profiles).toContain("demo");

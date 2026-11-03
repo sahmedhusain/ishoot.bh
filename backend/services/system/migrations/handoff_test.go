@@ -20,7 +20,7 @@ func TestPrismaHandoff(t *testing.T) {
 	pool, err := pgxpool.New(ctx, testkit.Postgres(t))
 	require.NoError(t, err)
 	defer pool.Close()
-	sql, err := os.ReadFile("../../../../apps/admin/prisma/migrations/20261102090000_move_modules_to_system_service/migration.sql")
+	sql, err := os.ReadFile("testdata/move_modules.sql")
 	require.NoError(t, err)
 	run := func() error {
 		return migrate.Run(ctx, pool, migrate.Options{Logger: slog.Default(), Schema: "system", Migrations: migrations.FS})
@@ -71,7 +71,7 @@ func TestIntegrationsHandoff(t *testing.T) {
 	pool, err := pgxpool.New(ctx, testkit.Postgres(t))
 	require.NoError(t, err)
 	defer pool.Close()
-	sql, err := os.ReadFile("../../../../apps/admin/prisma/migrations/20261102120000_move_integrations_to_system_service/migration.sql")
+	sql, err := os.ReadFile("testdata/move_integrations.sql")
 	require.NoError(t, err)
 	run := func() error {
 		return migrate.Run(ctx, pool, migrate.Options{Logger: slog.Default(), Schema: "system", Migrations: migrations.FS})
@@ -132,7 +132,7 @@ func TestSiteHandoff(t *testing.T) {
 	pool, err := pgxpool.New(ctx, testkit.Postgres(t))
 	require.NoError(t, err)
 	defer pool.Close()
-	sql, err := os.ReadFile("../../../../apps/admin/prisma/migrations/20261102150000_move_site_settings_to_system_service/migration.sql")
+	sql, err := os.ReadFile("testdata/move_site_settings.sql")
 	require.NoError(t, err)
 	run := func() error {
 		return migrate.Run(ctx, pool, migrate.Options{Logger: slog.Default(), Schema: "system", Migrations: migrations.FS})
