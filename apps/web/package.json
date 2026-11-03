@@ -15,7 +15,6 @@
     "@floating-ui/react-dom": "^2.1.9",
     "@material/material-color-utilities": "0.3.0",
     "@material/web": "^2.5.0",
-    "@prisma/client": "5.22.0",
     "clsx": "^2.1.1",
     "dotenv": "^18.0.9",
     "framer-motion": "^13.4.6",

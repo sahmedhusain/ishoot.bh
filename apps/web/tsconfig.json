@@ -86,6 +86,12 @@
       ],
       "@platform/ui/*": [
         "./components/ui/*"
+      ],
+      "@prisma/client": [
+        "./lib/database/prisma-stub.ts"
+      ],
+      "@prisma/client/*": [
+        "./lib/database/prisma-stub.ts"
       ]
     }
   },

@@ -13,6 +13,7 @@ export default defineConfig({
       "@platform/api-client": path.resolve(__dirname, "./lib/api"),
       "@platform/email": path.resolve(__dirname, "./lib/email"),
       "@platform/ui": path.resolve(__dirname, "./components/ui"),
+      "@prisma/client": path.resolve(__dirname, "./lib/database/prisma-stub.ts"),
       "@": path.resolve(__dirname, "./"),
     },
   },
