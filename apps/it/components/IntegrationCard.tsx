@@ -24,8 +24,8 @@ import {
   INTEGRATION_ENVIRONMENTS,
   PAYTABS_REGIONS,
   type IntegrationProvider,
-} from "@platform/database/constants/integrations";
-import { findSocialPlatform } from "@platform/database/constants/social";
+} from "@platform/config/constants/integrations";
+import { findSocialPlatform } from "@platform/config/constants/social";
 import type { DeskIntegration } from "@platform/api-client";
 import {
   saveIntegrationAction,

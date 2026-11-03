@@ -1,11 +1,12 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
-import en from "../../packages/locales/src/admin/en";
-import ar from "../../packages/locales/src/admin/ar";
+import path from "node:path";
+import en from "../../../../packages/locales/src/admin/en";
+import ar from "../../../../packages/locales/src/admin/ar";
 import {
   INTEGRATION_PROVIDERS,
   integrationSetupLinks,
-} from "../../packages/database/src/constants/integrations";
+} from "../../../../packages/database/src/constants/integrations";
 
 const apiClient = vi.hoisted(() => ({
   getIntegration: vi.fn(),
@@ -15,15 +16,15 @@ vi.mock("@platform/api-client", () => ({
   getIntegration: apiClient.getIntegration,
   setIntegration: apiClient.setIntegration,
 }));
-vi.mock("../../packages/api-client", () => ({
+vi.mock("../../../../packages/api-client", () => ({
   getIntegration: apiClient.getIntegration,
   setIntegration: apiClient.setIntegration,
 }));
-vi.mock("../../packages/api-client/src", () => ({
+vi.mock("../../../../packages/api-client/src", () => ({
   getIntegration: apiClient.getIntegration,
   setIntegration: apiClient.setIntegration,
 }));
-import { saveIntegrationSettings } from "../../packages/database/src/queries/integrations";
+import { saveIntegrationSettings } from "../../../../packages/database/src/queries/integrations";
 beforeEach(() => {
   vi.resetAllMocks();
   apiClient.getIntegration.mockResolvedValue(null);
@@ -31,7 +32,10 @@ beforeEach(() => {
 });
 
 test("every kept provider has both setup guides and useful field formats", () => {
-  const documentation = readFileSync("docs/INTEGRATIONS.md", "utf8");
+  const documentation = readFileSync(
+    path.resolve(__dirname, "../../../../docs/INTEGRATIONS.md"),
+    "utf8",
+  );
   for (const locale of [en, ar])
     for (const provider of INTEGRATION_PROVIDERS) {
       const guide = locale.integrations.providers[provider.id].guide;
@@ -75,7 +79,7 @@ test("setup addresses use real routes and sanitized origins only", () => {
             : link.kind === "webhook"
               ? "apps/web/app/api/store/payment/webhook/[gateway]/route.ts"
               : "apps/web/app/api/store/payment/return/route.ts";
-      expect(existsSync(route)).toBe(true);
+      expect(existsSync(path.resolve(__dirname, "../../../../", route))).toBe(true);
     }
     for (const invalid of [
       "",

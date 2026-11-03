@@ -49,7 +49,6 @@ const nextConfig = {
     "@platform/config",
     "@platform/api-client",
     "@platform/contracts",
-    "@platform/database",
   ],
   // Which service key this app signs its backend calls with (docs/adr/0011).
   env: { SERVICE_CALLER: "it" },

@@ -1,17 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ setting: vi.fn(), queue: vi.fn() }));
-vi.mock("../../packages/database/src/queries/integrations", () => ({
-  getIntegrationRecord: mocks.setting,
-}));
-vi.mock("@platform/database", async () => {
-  const actual =
-    await vi.importActual<Record<string, unknown>>("@platform/database");
-  return {
-    ...actual,
-    getIntegrationRecord: mocks.setting,
-  };
-});
 // The notify client as @platform/email sees it: one factory per specifier, as the package resolves differently.
 const client = vi.hoisted(() => {
   class ApiError extends Error {
@@ -29,18 +18,16 @@ const client = vi.hoisted(() => {
 });
 vi.mock("@platform/api-client", () => ({
   queueMessage: mocks.queue,
+  getIntegration: mocks.setting,
   isApiError: client.isApiError,
 }));
-vi.mock("../../packages/api-client", () => ({
+vi.mock("../../lib/api", () => ({
   queueMessage: mocks.queue,
-  isApiError: client.isApiError,
-}));
-vi.mock("../../packages/api-client/src", () => ({
-  queueMessage: mocks.queue,
+  getIntegration: mocks.setting,
   isApiError: client.isApiError,
 }));
 const { ApiError } = client;
-import { getResendCredentials, sendEmail } from "../../packages/email/src";
+import { getResendCredentials, sendEmail } from "../../lib/email";
 
 const mail = {
   to: "recipient@example.test",
@@ -144,7 +131,7 @@ describe("e-mail through the notify service", () => {
 test("Resend webhook verification accepts the stored signing secret instead of the environment value", async () => {
   const { Webhook } = await import("svix");
   const { verifyResendWebhook } =
-    await import("../../apps/admin/lib/resend-webhook");
+    await import("../../../../apps/admin/lib/resend-webhook");
   const signingSecret = `whsec_${Buffer.from("test-only-signing-material").toString("base64")}`;
   const payload = JSON.stringify({
     type: "email.delivered",

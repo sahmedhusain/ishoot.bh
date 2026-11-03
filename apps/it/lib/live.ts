@@ -3,7 +3,7 @@
 // the change itself.
 import { deliverNotifications, publishHint } from "@platform/api-client";
 import { formatMessage } from "@platform/locales";
-import adminEn from "@platform/locales/admin/en";
+import en from "../locales/en";
 
 type ChangedTicket = { id: string; number: number; requesterId: string };
 
@@ -23,7 +23,7 @@ export async function announceTicketChange(ticket: ChangedTicket, change: "statu
   // The admin shows the message key in the employee's language; the English text is kept as the fallback.
   const key = change === "reply" ? "reply" : "updated";
   const params = { number: String(ticket.number) };
-  const copy = adminEn.itSupport.notifications[key];
+  const copy = en.itSupport.notifications[key];
   try {
     await deliverNotifications([
       {

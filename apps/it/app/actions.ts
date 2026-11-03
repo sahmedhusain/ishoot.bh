@@ -28,7 +28,7 @@ import {
   checkDomain,
   healthFingerprint,
   type DomainCheckResult,
-} from "@platform/database/services/domain-check";
+} from "@platform/config/domain-check";
 import { TICKET_PRIORITIES, transitionsFrom } from "@platform/contracts";
 import { config } from "../lib/config";
 import {

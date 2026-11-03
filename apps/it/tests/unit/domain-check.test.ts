@@ -4,7 +4,7 @@ const lookup = vi.fn();
 vi.mock("node:dns/promises", () => ({ lookup: (...args: unknown[]) => lookup(...args) }));
 
 const { checkDomain, healthFingerprint } = await import(
-  "../../packages/database/src/services/domain-check"
+  "../../../../packages/database/src/services/domain-check"
 );
 
 const answer = (body: unknown, status = 200) =>

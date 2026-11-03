@@ -5,7 +5,7 @@ import { Card } from "@platform/ui";
 import {
   INTEGRATION_PROVIDERS,
   type IntegrationKind,
-} from "@platform/database/constants/integrations";
+} from "@platform/config/constants/integrations";
 import type { DeskIntegration } from "@platform/api-client";
 import { useCopy } from "./CopyProvider";
 import { PageTitle } from "./ticket-ui";

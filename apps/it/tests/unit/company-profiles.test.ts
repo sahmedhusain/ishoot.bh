@@ -4,10 +4,10 @@ import { describe, expect, test } from "vitest";
 import {
   normalizeTheme,
   themeWarnings,
-} from "../../packages/database/src/constants/theme";
-import { detectFileType } from "../../contracts/src";
+} from "../../../../packages/database/src/constants/theme";
+import { detectFileType } from "../../../../contracts/src";
 
-const root = path.resolve(__dirname, "../..");
+const root = path.resolve(__dirname, "../../../../");
 const profilesDir = path.join(root, "company/profiles");
 const profiles = fs
   .readdirSync(profilesDir)

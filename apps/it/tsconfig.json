@@ -1,8 +1,11 @@
 {
-  "extends": "../../packages/config/tsconfig.base.json",
   "compilerOptions": {
     "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -12,29 +15,74 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
+    "forceConsistentCasingInFileNames": true,
     "plugins": [
       {
         "name": "next"
       }
     ],
     "paths": {
-      "@/*": ["./*"],
-      "@platform/api-client": ["../../packages/api-client/src/index.ts"],
-      "@platform/api-client/*": ["../../packages/api-client/src/*"],
-      "@platform/config": ["../../packages/config/src/index.ts"],
-      "@platform/config/*": ["../../packages/config/src/*"],
-      "@platform/contracts": ["../../contracts/src/index.ts"],
-      "@platform/contracts/*": ["../../contracts/src/*"],
-      "@platform/database": ["../../packages/database/src/index.ts"],
-      "@platform/database/*": ["../../packages/database/src/*"],
-      "@platform/locales": ["../../packages/locales/src/index.ts"],
-      "@platform/locales/*": ["../../packages/locales/src/*"],
-      "@platform/ui": ["../../packages/ui/src/index.ts"],
-      "@platform/ui/*": ["../../packages/ui/src/*"]
+      "@/*": [
+        "./*"
+      ],
+      "@platform/api-client": [
+        "./lib/api/index.ts"
+      ],
+      "@platform/api-client/*": [
+        "./lib/api/*"
+      ],
+      "@platform/config/currency": [
+        "./lib/config/currency.ts"
+      ],
+      "@platform/config/currency/*": [
+        "./lib/config/currency/*"
+      ],
+      "@platform/config": [
+        "./lib/config/index.ts"
+      ],
+      "@platform/config/*": [
+        "./lib/config/*"
+      ],
+      "@platform/contracts": [
+        "./lib/contracts/src/index.ts"
+      ],
+      "@platform/contracts/catalog/*": [
+        "./lib/contracts/catalog/*"
+      ],
+      "@platform/contracts/*": [
+        "./lib/contracts/src/*"
+      ],
+      "@platform/email": [
+        "./lib/email/index.ts"
+      ],
+      "@platform/email/*": [
+        "./lib/email/*"
+      ],
+      "@platform/locales": [
+        "./locales/index.ts"
+      ],
+      "@platform/locales/*": [
+        "./locales/*"
+      ],
+      "@platform/ui": [
+        "./components/ui/index.ts"
+      ],
+      "@platform/ui/*": [
+        "./components/ui/*"
+      ]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "next-env.d.ts"],
-  "exclude": ["node_modules", "tests"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "next-env.d.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "tests"
+  ]
 }

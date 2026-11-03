@@ -4,7 +4,7 @@ import {
   googleFontsHref,
   normalizeTheme,
   themeStylesheet,
-} from "@platform/database/constants/theme";
+} from "@platform/config/constants/theme";
 import { ConfirmationProvider, CurrencyLocaleProvider } from "@platform/ui";
 // The IT dashboard shares the admin's design system so both dashboards look and behave the same.
 import "../../admin/app/globals.css";

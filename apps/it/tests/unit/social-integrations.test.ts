@@ -3,11 +3,11 @@ import {
   checkConnection,
   fetchSocialSnapshot,
   ProviderError,
-} from "../../packages/database/src/integrations/providers";
+} from "../../../../packages/database/src/integrations/providers";
 import {
   engagementRate,
   sumSocialCounts,
-} from "../../packages/database/src/constants/integrations";
+} from "../../../../packages/database/src/constants/integrations";
 
 const token = "test-secret-access-token";
 afterEach(() => vi.unstubAllGlobals());

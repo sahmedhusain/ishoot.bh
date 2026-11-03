@@ -6,11 +6,11 @@ import {
   phoneSearchVariants,
   isValidPhone,
   COUNTRY_DIAL_CODES,
-} from "../../packages/database/src/constants/phone";
+} from "../../../../packages/database/src/constants/phone";
 import {
   isValidEmail,
   normalizeEmail,
-} from "../../packages/database/src/constants/validation";
+} from "../../../../packages/database/src/constants/validation";
 
 describe("Phone number parsing, formatting and search", () => {
   it("splits phone numbers correctly with dial code and national digits", () => {

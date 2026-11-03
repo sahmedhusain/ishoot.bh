@@ -16,11 +16,11 @@ import {
 import { Button, Card, Input, Textarea } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import type { SiteCode, SiteDomains } from "@platform/api-client";
-import type { DomainCheckResult } from "@platform/database/services/domain-check";
+import type { DomainCheckResult } from "@platform/config/domain-check";
 import {
   dnsRecords,
   normalizeDomain,
-} from "@platform/database/constants/domains";
+} from "@platform/config/constants/domains";
 import {
   checkSiteDomainAction,
   saveSiteCodeAction,

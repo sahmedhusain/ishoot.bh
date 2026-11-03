@@ -1,7 +1,7 @@
 import { getIntegration, updateIntegrationStatus } from "@platform/api-client";
 import { serverMessages, serverTemplates, formatMessage } from "@platform/locales";
-import { integrationProvider } from "@platform/database/constants/integrations";
-import { checkConnection, fetchSocialSnapshot } from "@platform/database/integrations/providers";
+import { integrationProvider } from "./config/constants/integrations";
+import { checkConnection, fetchSocialSnapshot } from "./integrations/providers";
 
 /** Checks the stored credentials against the provider and records the result. */
 export async function testIntegration(providerId: string) {
