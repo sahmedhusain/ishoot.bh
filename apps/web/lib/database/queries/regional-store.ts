@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import { db, runAtomicMutation } from "../db";
 import { requireBranchAccess } from "./branches";
 
@@ -21,11 +20,8 @@ export async function saveStoreRegion(input: StoreRegionInput, actorId: string) 
     if (!input.code.trim() || !input.nameEn.trim() || !input.nameAr.trim() || !input.currency.trim())
       throw new Error("Invalid store region");
 
-    const multiplier = input.priceMultiplier != null
-      ? new Prisma.Decimal(input.priceMultiplier.toString())
-      : new Prisma.Decimal("1.0000");
-
-    if (multiplier.lessThan(0)) throw new Error("Invalid store region");
+    const multiplier = Number(input.priceMultiplier ?? 1);
+    if (multiplier < 0) throw new Error("Invalid store region");
 
     const data = {
       code: input.code.trim().toUpperCase(),
@@ -66,9 +62,28 @@ export async function getStoreRegion(code: string) {
   });
 }
 
+class Decimal {
+  private value: number;
+  constructor(val: number | string) {
+    this.value = Number(val);
+  }
+  mul(multiplier: number | string | { toString(): string }) {
+    return new Decimal(this.value * Number(multiplier.toString()));
+  }
+  toFixed(digits?: number) {
+    return this.value.toFixed(digits);
+  }
+  toNumber() {
+    return this.value;
+  }
+  toString() {
+    return this.value.toString();
+  }
+}
+
 export async function resolveRegionalPrice(basePrice: number | string, regionCode: string) {
   const region = await getStoreRegion(regionCode);
-  const base = new Prisma.Decimal(basePrice.toString());
+  const base = new Decimal(basePrice.toString());
   if (!region || !region.isEnabled) return base;
   return base.mul(region.priceMultiplier);
 }

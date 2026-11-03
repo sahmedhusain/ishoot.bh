@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import http from "node:http";
 import path from "node:path";
-import type { PrismaClient } from "@prisma/client";
+type PrismaClient = any;
 import { ports } from "../../playwright.config";
 
 // A local stand-in for the few Stripe API calls the store makes (Checkout Sessions, refunds, balance), with a hosted

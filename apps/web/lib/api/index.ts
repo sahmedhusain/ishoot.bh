@@ -4,6 +4,8 @@ export * from "./service-token";
 export * from "./http";
 export * from "./cms";
 export * from "./commerce";
+export * from "./delivery";
+export * from "./inventory";
 export * from "./identity";
 export * from "./files";
 export * from "./company";

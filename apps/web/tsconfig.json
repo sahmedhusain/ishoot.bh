@@ -36,6 +36,12 @@
       "@platform/config/currency": [
         "./lib/config/currency.ts"
       ],
+      "@platform/api-client": [
+        "./lib/api/index.ts"
+      ],
+      "@platform/api-client/*": [
+        "./lib/api/*"
+      ],
       "@platform/config/currency/*": [
         "./lib/config/currency/*"
       ],

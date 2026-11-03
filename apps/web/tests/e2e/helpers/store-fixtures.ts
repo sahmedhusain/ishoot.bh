@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+type PrismaClient = any;
 import { setModule } from "./modules";
 
 /** A fresh tracked product with stock at the default warehouse, and nothing left from earlier runs. */

@@ -1,5 +1,4 @@
 import crypto from "node:crypto";
-import { Prisma } from "@prisma/client";
 import { serverMessages } from "@platform/locales";
 import { db } from "../db";
 import {
@@ -16,7 +15,7 @@ import {
 import { isFeatureEnabled } from "./features";
 import { getNextSequenceNumber } from "./sequence";
 
-type Tx = Prisma.TransactionClient;
+type Tx = any;
 const num = (value: { toString(): string } | null | undefined) =>
   value == null ? 0 : Number(value.toString());
 const numOrNull = (value: { toString(): string } | null | undefined) =>
@@ -102,9 +101,9 @@ export async function saveDeliverySettings(input: DeliverySettingsInput) {
 const zoneTerms = (z: {
   id: string;
   areas: string[];
-  fee: Prisma.Decimal;
-  minOrder: Prisma.Decimal | null;
-  freeOver: Prisma.Decimal | null;
+  fee: { toString(): string } | number;
+  minOrder: { toString(): string } | number | null;
+  freeOver: { toString(): string } | number | null;
 }) => ({
   id: z.id,
   areas: z.areas,
@@ -266,8 +265,8 @@ export async function activeZoneTerms(client: Tx | typeof db = db) {
 }
 
 /** Slots already booked per "date|slotId" from today on. */
-async function bookedSlots(client: Tx | typeof db, from: string) {
-  const rows = await client.shipment.groupBy({
+async function bookedSlots(client: Tx | typeof db, from: string): Promise<Map<string, number>> {
+  const rows: any[] = await client.shipment.groupBy({
     by: ["slotDate", "slotId"],
     where: {
       slotDate: { gte: new Date(`${from}T00:00:00Z`) },
@@ -276,8 +275,8 @@ async function bookedSlots(client: Tx | typeof db, from: string) {
     },
     _count: { _all: true },
   });
-  return new Map(
-    rows.map((r) => [
+  return new Map<string, number>(
+    rows.map((r: any) => [
       `${r.slotDate!.toISOString().slice(0, 10)}|${r.slotId}`,
       r._count._all,
     ]),
@@ -355,7 +354,7 @@ export async function createShipmentForOrder(
   order: {
     id: string;
     placedAt: Date;
-    total: Prisma.Decimal | number;
+    total: number | string | { toString(): string };
     paymentMethod: string;
     name: string;
     phone: string | null;
@@ -441,7 +440,7 @@ export async function createShipmentForOrder(
       promisedBy: promisedBy(order.placedAt, settings.slaHours, slot, timeZone),
       recipientName: address.name || order.name,
       recipientPhone: address.phone || order.phone || "",
-      address: (order.shippingAddress ?? {}) as Prisma.InputJsonValue,
+      address: (order.shippingAddress ?? {}) as any,
       codAmount: order.paymentMethod === "cod" ? order.total : 0,
       trackingToken: crypto.randomBytes(18).toString("base64url"),
       events: { create: { status: "pending" } },
