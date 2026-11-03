@@ -3,9 +3,9 @@
 require("dotenv").config({ quiet: true });
 require("ts-node").register({ transpileOnly: true, skipProject: true, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true, resolveJsonModule: true } });
 const assert = require("node:assert/strict");
-const { db } = require("../packages/database/src/db.ts");
-const { transactionContext } = require("../packages/database/src/transaction-context.ts");
-const w = require("../packages/database/src/queries/dashboard-workload.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
+const { transactionContext } = require("../apps/admin/lib/database/transaction-context.ts");
+const w = require("../apps/admin/lib/database/queries/dashboard-workload.ts");
 
 const rollback = new Error("ROLLBACK_DASHBOARD_TEST");
 const DAY = 86400000;

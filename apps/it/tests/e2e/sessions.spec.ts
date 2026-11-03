@@ -7,9 +7,9 @@ import {
   listAuditEvents,
   listIdentitySessionsForIT,
   updateITAccountForIT,
-} from "../../../../packages/api-client/src";
-import ar from "../../../../packages/locales/src/it/ar.json";
-import en from "../../../../packages/locales/src/it/en.json";
+} from "@platform/api-client";
+import ar from "@platform/locales/it/ar.json";
+import en from "@platform/locales/it/en.json";
 import { ports } from "../../../../playwright.config";
 import { selectOption } from "../../select-option";
 import { totp } from "../../totp";

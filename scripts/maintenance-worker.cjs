@@ -3,12 +3,12 @@
 // and records or reminds periodic company bills (rent, utilities, phones, subscriptions).
 require('dotenv').config({ quiet: true });
 require('ts-node').register({ transpileOnly: true, skipProject: true, compilerOptions: { module: 'CommonJS', target: 'ES2022', moduleResolution: 'Node', esModuleInterop: true } });
-const { db } = require('../packages/database/src/db.ts');
-const { markOverdueInvoices } = require('../packages/database/src/queries/invoices.ts');
-const { processApprovalTimeouts } = require('../packages/database/src/services/approval-engine.ts');
-const { syncDueSocialIntegrations } = require('../packages/database/src/queries/integrations.ts');
-const { sendExpiryReminders } = require('../packages/database/src/services/expiry-reminders.ts');
-const { processRecurringExpenses } = require('../packages/database/src/queries/recurring-expenses.ts');
+const { db } = require('../apps/admin/lib/database/db.ts');
+const { markOverdueInvoices } = require('../apps/admin/lib/database/queries/invoices.ts');
+const { processApprovalTimeouts } = require('../apps/admin/lib/database/services/approval-engine.ts');
+const { syncDueSocialIntegrations } = require('../apps/admin/lib/database/queries/integrations.ts');
+const { sendExpiryReminders } = require('../apps/admin/lib/database/services/expiry-reminders.ts');
+const { processRecurringExpenses } = require('../apps/admin/lib/database/queries/recurring-expenses.ts');
 let stopped = false; process.on('SIGINT', () => stopped = true); process.on('SIGTERM', () => stopped = true);
 async function pass() {
   const approvals = await processApprovalTimeouts();

@@ -15,20 +15,20 @@ require("ts-node").register({
   },
 });
 const assert = require("node:assert/strict");
-const { db } = require("../packages/database/src/db.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
 const {
   transactionContext,
-} = require("../packages/database/src/transaction-context.ts");
-const { createEmployee } = require("../packages/database/src/queries/hrms.ts");
-const handovers = require("../packages/database/src/queries/employee-handovers.ts");
-const assets = require("../packages/database/src/queries/assets.ts");
+} = require("../apps/admin/lib/database/transaction-context.ts");
+const { createEmployee } = require("../apps/admin/lib/database/queries/hrms.ts");
+const handovers = require("../apps/admin/lib/database/queries/employee-handovers.ts");
+const assets = require("../apps/admin/lib/database/queries/assets.ts");
 const {
   approveLeaveRequest,
-} = require("../packages/database/src/queries/leave.ts");
+} = require("../apps/admin/lib/database/queries/leave.ts");
 const {
   decideApprovalRequest,
   findPendingApproval,
-} = require("../packages/database/src/services/approval-engine.ts");
+} = require("../apps/admin/lib/database/services/approval-engine.ts");
 
 const rollback = new Error("ROLLBACK_EMPLOYEE_HANDOVERS_TEST");
 const rejects = (promise, message) =>

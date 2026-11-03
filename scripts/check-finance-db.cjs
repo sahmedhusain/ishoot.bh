@@ -3,14 +3,14 @@
 require("dotenv").config({ quiet: true });
 require("ts-node").register({ transpileOnly: true, skipProject: true, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true, resolveJsonModule: true } });
 const assert = require("node:assert/strict");
-const { db } = require("../packages/database/src/db.ts");
-const { transactionContext } = require("../packages/database/src/transaction-context.ts");
-const { createInvoice, updateInvoiceStatus, markOverdueInvoices } = require("../packages/database/src/queries/invoices.ts");
-const { createPayment } = require("../packages/database/src/queries/payments.ts");
-const { createQuotation, convertQuotationToInvoice } = require("../packages/database/src/queries/quotations.ts");
-const { createExpense } = require("../packages/database/src/queries/expenses.ts");
-const { signDocument, requestInvoiceApproval } = require("../packages/database/src/queries/document-signing.ts");
-const { getFinancialSummaryReport, getFinancialReportDetail } = require("../packages/database/src/queries/finance-reports.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
+const { transactionContext } = require("../apps/admin/lib/database/transaction-context.ts");
+const { createInvoice, updateInvoiceStatus, markOverdueInvoices } = require("../apps/admin/lib/database/queries/invoices.ts");
+const { createPayment } = require("../apps/admin/lib/database/queries/payments.ts");
+const { createQuotation, convertQuotationToInvoice } = require("../apps/admin/lib/database/queries/quotations.ts");
+const { createExpense } = require("../apps/admin/lib/database/queries/expenses.ts");
+const { signDocument, requestInvoiceApproval } = require("../apps/admin/lib/database/queries/document-signing.ts");
+const { getFinancialSummaryReport, getFinancialReportDetail } = require("../apps/admin/lib/database/queries/finance-reports.ts");
 
 const rollback = new Error("ROLLBACK_FINANCE_TEST");
 const line = (unit_price, quantity = 1) => ({ description_en: "Shoot day", quantity, unit_price });
@@ -75,7 +75,7 @@ async function main() {
       const after = await getFinancialSummaryReport({ basis: "accrual" });
       assert.equal(Math.round((after.expensesNet - before.expensesNet) * 1000) / 1000, 100, "net expense, not zero and not VAT-inclusive");
       // Discounts within the issuer's limit are approved on submit; above it a reason is required and it waits.
-      const { submitQuotationForApproval } = require("../packages/database/src/queries/quotations.ts");
+      const { submitQuotationForApproval } = require("../apps/admin/lib/database/queries/quotations.ts");
       await tx.companySetting.updateMany({ data: { defaultDiscountLimitPercent: 5, quotationsAlwaysNeedApproval: false } });
       const seller = await tx.user.create({ data: { email: `seller-${Date.now()}@finance.test`, fullName: "Seller", passwordHash: "x", role: "sales" } });
       const small = await createQuotation({ clientId: contact.id, validUntilDate: new Date(Date.now() + 7 * 86400000), discountType: "percentage", discountValue: 4, lineItems: [{ descriptionEn: "Shoot", quantity: 1, unitPrice: 200 }] }, seller.id);

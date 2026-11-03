@@ -11,7 +11,7 @@ function load(file, mocks = {}) {
   return module.exports;
 }
 async function main() {
-  const { parsePayrollSettings, calculateContributions } = load('packages/database/src/payroll-calculation.ts');
+  const { parsePayrollSettings, calculateContributions } = load('../apps/admin/lib/database/payroll-calculation.ts');
   const settings = { employee: { mode: 'percentage', value: 8 }, employer: { mode: 'fixed', value: 120 }, supports: [{ provider: 'Wage support fund', mode: 'percentage', value: 50, startMonth: '2026-03', endMonth: '2026-05' }] };
   assert.equal(parsePayrollSettings(null), null);
   const result = calculateContributions(1000, settings, '2026-03');
@@ -25,7 +25,7 @@ async function main() {
   assert.throws(() => parsePayrollSettings({ ...settings, employee: { mode: 'percentage', value: 101 } }), /Invalid contribution/);
   assert.throws(() => parsePayrollSettings({ ...settings, supports: [{ ...settings.supports[0], endMonth: '2026-01' }] }), /valid inclusive month/);
   assert.throws(() => calculateContributions(1000, { ...settings, employee: { mode: 'fixed', value: 1001 } }, '2026-04'), /exceed/);
-  const currencies = require("../packages/config/src/constants/currency.cjs");
+  const currencies = require("../apps/admin/lib/config/constants/currency.cjs");
   assert.equal(currencies.getCurrencySymbol("OMR", false), "RO");
   assert.equal(currencies.getCurrencySymbol("MVR"), "\u20c2");
   const { formatCurrencyValue } = load('packages/ui/src/currency-display.tsx', { 'react/jsx-runtime': {}, react: {}, '@platform/config/currency': currencies });
@@ -44,8 +44,8 @@ async function main() {
     assert.equal(formatCurrencyValue(12, 'INR', ar), '12.00 ₹');
     assert.equal(formatCurrencyValue(12, 'jod', ar), ar ? '12.000 د.أ' : '12.000 JOD');
   }
-  const en = require('../packages/locales/src/common.cjs').withCommonCopy(require('../packages/locales/src/admin/en.json'), "admin", require('../packages/locales/src/common.cjs').commonEn);
-  const ar = require('../packages/locales/src/common.cjs').withCommonCopy(require('../packages/locales/src/admin/ar.json'), "admin", require('../packages/locales/src/common.cjs').commonAr);
+  const en = require('../apps/admin/locales/common.cjs').withCommonCopy(require('../apps/admin/locales/admin/en.json'), "admin", require('../apps/admin/locales/common.cjs').commonEn);
+  const ar = require('../apps/admin/locales/common.cjs').withCommonCopy(require('../apps/admin/locales/admin/ar.json'), "admin", require('../apps/admin/locales/common.cjs').commonAr);
   // Every admin string exists in both languages, at every depth.
   const paths = (node, prefix = '') => Object.entries(node).flatMap(([key, value]) => value && typeof value === 'object' ? paths(value, prefix + key + '.') : [prefix + key]);
   assert.deepEqual(paths(en).sort(), paths(ar).sort());

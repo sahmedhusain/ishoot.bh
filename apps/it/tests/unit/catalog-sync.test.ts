@@ -11,13 +11,13 @@ import {
   LEGACY_ROLE_IDS,
   PERMISSION_GROUPS,
   RESOURCE_FEATURES,
-} from "../../../../packages/database/src/constants/permissions";
-import { DEFAULT_FEATURE_MODULES } from "../../../../packages/database/src/constants/features";
+} from "@platform/database/constants/permissions";
+import { DEFAULT_FEATURE_MODULES } from "@platform/database/constants/features";
 import {
   DATA_SCOPE_AREAS,
   DATA_SCOPES,
   DEFAULT_DATA_SCOPES,
-} from "../../../../packages/database/src/constants/data-scope";
+} from "@platform/database/constants/data-scope";
 
 const CATALOG_DIR = join(__dirname, "../../../../contracts/catalog");
 const WRITE = process.env.CATALOG_WRITE === "1";

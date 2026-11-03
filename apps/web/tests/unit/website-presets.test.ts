@@ -3,27 +3,27 @@ import {
   getTranslations,
   getWebsiteTranslations,
   websiteActivityCopy,
-} from "../../packages/locales/src";
+} from "@platform/locales";
 import {
   mirrorBilingual,
   normalizeLanguages,
   normalizePrimaryLanguage,
   pickText,
-} from "../../packages/database/src/constants/languages";
-import { STYLE_PRESETS } from "../../packages/database/src/constants/theme";
-import { DEFAULT_FEATURE_MODULES } from "../../packages/database/src/constants/features";
+} from "@platform/database/constants/languages";
+import { STYLE_PRESETS } from "@platform/database/constants/theme";
+import { DEFAULT_FEATURE_MODULES } from "@platform/database/constants/features";
 import {
   ACTIVITY_PRESETS,
   BUSINESS_ACTIVITIES,
   RESERVED_COLLECTION_SLUGS,
-} from "../../packages/database/src/website-presets";
+} from "@platform/database/website-presets";
 import {
   defaultWebsiteConfig,
   resolveWebsiteConfig,
   validateWebsiteConfig,
   websiteConfigForActivity,
   websiteSections,
-} from "../../packages/database/src/website-config";
+} from "@platform/database/website-config";
 import {
   collectionHref,
   formatPrice,

@@ -20,7 +20,7 @@ func TestPrismaHandoff(t *testing.T) {
 	pool, err := pgxpool.New(ctx, testkit.Postgres(t))
 	require.NoError(t, err)
 	defer pool.Close()
-	sql, err := os.ReadFile("../../../../packages/database/prisma/migrations/20261101120000_move_uploads_to_files_service/migration.sql")
+	sql, err := os.ReadFile("../../../../apps/admin/prisma/migrations/20261101120000_move_uploads_to_files_service/migration.sql")
 	require.NoError(t, err)
 	for _, mode := range []string{"move", "copy", "collision"} {
 		t.Run(mode, func(t *testing.T) {

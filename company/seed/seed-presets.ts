@@ -1,12 +1,12 @@
 import type { PrismaClient } from "@prisma/client";
-import { ACTIVITY_PRESETS } from "../../packages/database/src/website-presets";
+import { ACTIVITY_PRESETS } from "../../apps/admin/lib/database/website-presets";
 import {
   ACTIVITY_SAMPLES,
   SAMPLE_FAQS,
-} from "../../packages/database/src/samples/activity-samples";
-import { applyActivityDealPipeline } from "../../packages/database/src/queries/deal-pipeline";
+} from "../../apps/admin/lib/database/samples/activity-samples";
+import { applyActivityDealPipeline } from "../../apps/admin/lib/database/queries/deal-pipeline";
 import type { DemoPreset } from "./demo-presets";
-import { setModule } from "../../packages/api-client/src/system";
+import { setModule } from "../../apps/admin/lib/api/system";
 
 /** Install preset content before volume generation so its services are used in the sales history. */
 export async function seedPresetWebsite(

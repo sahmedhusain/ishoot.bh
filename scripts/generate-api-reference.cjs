@@ -47,7 +47,7 @@ function actions() {
 }
 
 function models() {
-  const schema = read("packages/database/prisma/schema.prisma");
+  const schema = read("apps/admin/prisma/schema.prisma");
   return [...schema.matchAll(/^model (\w+) \{([\s\S]*?)^\}/gm)].map((m) => ({
     name: m[1],
     fields: m[2].split("\n").filter((l) => /^\s+\w+\s+\w/.test(l) && !/^\s+@@/.test(l)).length,
@@ -60,7 +60,7 @@ const allModels = models();
 const out = [
   "# API reference",
   "",
-  "Generated from the code by `pnpm docs:api`; do not edit by hand. Input contracts for admin server actions are in `apps/admin/lib/action-schemas.json`; unmigrated data models remain in `packages/database/prisma/schema.prisma` (browse them with `pnpm db:studio`).",
+  "Generated from the code by `pnpm docs:api`; do not edit by hand. Input contracts for admin server actions are in `apps/admin/lib/action-schemas.json`; unmigrated data models remain in `apps/admin/prisma/schema.prisma` (browse them with `pnpm db:studio`).",
   "",
   "## Go service contracts",
   "",

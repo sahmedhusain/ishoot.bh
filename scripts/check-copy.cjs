@@ -123,9 +123,9 @@ for (const dir of [
   "apps/admin",
   "apps/web",
   "packages/ui/src",
-  "packages/email/src",
-  "packages/database/src",
-  "packages/config/src",
+  "../apps/admin/lib/email",
+  "../apps/admin/lib/database",
+  "../apps/admin/lib/config",
 ])
   walk(path.join(root, dir));
 if (problems.length) {

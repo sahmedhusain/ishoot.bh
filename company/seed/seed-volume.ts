@@ -11,74 +11,74 @@ import {
   createCRMDeal,
   updateCRMDeal,
   advanceDealForEvent,
-} from "../../packages/database/src/queries/crm";
+} from "../../apps/admin/lib/database/queries/crm";
 import {
   createQuotation,
   submitQuotationForApproval,
   issueQuotation,
   acceptQuotation,
-} from "../../packages/database/src/queries/quotations";
+} from "../../apps/admin/lib/database/queries/quotations";
 import {
   createInvoice,
   updateInvoiceStatus,
   markOverdueInvoices,
-} from "../../packages/database/src/queries/invoices";
-import { createPayment } from "../../packages/database/src/queries/payments";
+} from "../../apps/admin/lib/database/queries/invoices";
+import { createPayment } from "../../apps/admin/lib/database/queries/payments";
 import {
   signDocument,
   requestInvoiceApproval,
-} from "../../packages/database/src/queries/document-signing";
-import { createExpense } from "../../packages/database/src/queries/expenses";
+} from "../../apps/admin/lib/database/queries/document-signing";
+import { createExpense } from "../../apps/admin/lib/database/queries/expenses";
 import {
   getSupportClaims,
   recordSupportReimbursement,
-} from "../../packages/database/src/queries/support-claims";
-import { supportSchedule } from "../../packages/database/src/constants/hr-support";
+} from "../../apps/admin/lib/database/queries/support-claims";
+import { supportSchedule } from "../../apps/admin/lib/database/constants/hr-support";
 import {
   reassignSalesOwner,
   getCommissionStatement,
   recordCommissionPayout,
-} from "../../packages/database/src/queries/sales-attribution";
+} from "../../apps/admin/lib/database/queries/sales-attribution";
 import {
   createExpenseClaim,
   scheduleExpenseClaim,
   payExpenseClaim,
   cancelExpenseClaim,
-} from "../../packages/database/src/queries/expense-claims";
-import { createConsolidatedRequest } from "../../packages/database/src/queries/requests";
+} from "../../apps/admin/lib/database/queries/expense-claims";
+import { createConsolidatedRequest } from "../../apps/admin/lib/database/queries/requests";
 import {
   assignRequest,
   submitRequestForApproval,
   confirmRequest,
   resolveRequest,
   returnRequest,
-} from "../../packages/database/src/queries/inquiries";
-import { createLeaveRequest } from "../../packages/database/src/queries/leave";
-import { registerUpload, writeUpload } from "../../packages/api-client/src";
-import { SAMPLE_RECEIPT_JPEG } from "../../packages/database/src/services/sample-files";
-import { createEmployee } from "../../packages/database/src/queries/hrms";
+} from "../../apps/admin/lib/database/queries/inquiries";
+import { createLeaveRequest } from "../../apps/admin/lib/database/queries/leave";
+import { registerUpload, writeUpload } from "../../apps/admin/lib/api";
+import { SAMPLE_RECEIPT_JPEG } from "../../apps/admin/lib/database/services/sample-files";
+import { createEmployee } from "../../apps/admin/lib/database/queries/hrms";
 import {
   createPayrollRun,
   submitPayrollRunForApproval,
   markPayrollAsPaid,
   setPayrollItemLines,
-} from "../../packages/database/src/queries/payroll";
-import { createCalendarEvent } from "../../packages/database/src/queries/calendar";
+} from "../../apps/admin/lib/database/queries/payroll";
+import { createCalendarEvent } from "../../apps/admin/lib/database/queries/calendar";
 import {
   createMinuteOfMeeting,
   approveAndSignMom,
-} from "../../packages/database/src/queries/moms";
+} from "../../apps/admin/lib/database/queries/moms";
 import {
   submitForApproval,
   decideApprovalRequest,
   type ApprovalOutcome,
-} from "../../packages/database/src/services/approval-engine";
-import type { ApprovalTargetType } from "../../packages/database/src/constants/approvals";
-import { lineTotal } from "../../packages/database/src/finance/money";
-import { saveAsset } from "../../packages/database/src/queries/assets";
-import { resolveIncomingLead } from "../../packages/database/src/services/lead-resolver";
-import { ACTIVITY_SAMPLES } from "../../packages/database/src/samples/activity-samples";
-import type { BusinessActivity } from "../../packages/database/src/website-presets";
+} from "../../apps/admin/lib/database/services/approval-engine";
+import type { ApprovalTargetType } from "../../apps/admin/lib/database/constants/approvals";
+import { lineTotal } from "../../apps/admin/lib/database/finance/money";
+import { saveAsset } from "../../apps/admin/lib/database/queries/assets";
+import { resolveIncomingLead } from "../../apps/admin/lib/database/services/lead-resolver";
+import { ACTIVITY_SAMPLES } from "../../apps/admin/lib/database/samples/activity-samples";
+import type { BusinessActivity } from "../../apps/admin/lib/database/website-presets";
 
 let seedPrisma: PrismaClient;
 /** The demo company's short name, from the company profile. */

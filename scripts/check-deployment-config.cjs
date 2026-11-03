@@ -16,9 +16,9 @@ for (const name of ["IDENTITY_ISSUER", "IDENTITY_JWKS_URL"]) {
 }
 async function finish() {
   require('ts-node').register({ transpileOnly: true, skipProject: true, compilerOptions: { module: 'CommonJS', target: 'ES2022', moduleResolution: 'Node', esModuleInterop: true, resolveJsonModule: true } });
-  const { db } = require('../packages/database/src/db.ts');
+  const { db } = require('../apps/admin/lib/database/db.ts');
   try {
-    const { getResendCredentials } = require('../packages/email/src/index.ts');
+    const { getResendCredentials } = require('../apps/admin/lib/email/index.ts');
     const mail = await getResendCredentials();
     need(!!mail?.apiKey && !!mail.fromEmail, 'Configure an active encrypted Resend integration with a verified sender (or legacy environment keys)');
     need(!!mail?.webhookSecret, 'Configure the Resend webhook signing secret in the active integration');

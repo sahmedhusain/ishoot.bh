@@ -3,12 +3,12 @@
 require("dotenv").config({ quiet: true });
 require("ts-node").register({ transpileOnly: true, skipProject: true, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true, resolveJsonModule: true } });
 const assert = require("node:assert/strict");
-const { db } = require("../packages/database/src/db.ts");
-const { transactionContext } = require("../packages/database/src/transaction-context.ts");
-const { createQuotation, convertQuotationToInvoice } = require("../packages/database/src/queries/quotations.ts");
-const { updateInvoiceStatus } = require("../packages/database/src/queries/invoices.ts");
-const { createPayment } = require("../packages/database/src/queries/payments.ts");
-const sales = require("../packages/database/src/queries/sales-attribution.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
+const { transactionContext } = require("../apps/admin/lib/database/transaction-context.ts");
+const { createQuotation, convertQuotationToInvoice } = require("../apps/admin/lib/database/queries/quotations.ts");
+const { updateInvoiceStatus } = require("../apps/admin/lib/database/queries/invoices.ts");
+const { createPayment } = require("../apps/admin/lib/database/queries/payments.ts");
+const sales = require("../apps/admin/lib/database/queries/sales-attribution.ts");
 
 const rollback = new Error("ROLLBACK_SALES_TEST");
 
@@ -47,7 +47,7 @@ async function main() {
       await sales.reassignSalesOwner("invoice", invoiceId, closer.id, issuer.id, "Corrected");
 
       // Commission: collected net (VAT excluded) × rate, recorded once as an expense.
-      const { signDocument, requestInvoiceApproval } = require("../packages/database/src/queries/document-signing.ts");
+      const { signDocument, requestInvoiceApproval } = require("../apps/admin/lib/database/queries/document-signing.ts");
       await requestInvoiceApproval(invoiceId, issuer.id);
       await signDocument("invoice", invoiceId, issuer.id);
       await updateInvoiceStatus(invoiceId, "sent");
@@ -65,7 +65,7 @@ async function main() {
       await assert.rejects(sales.recordCommissionPayout(closer.id, "2199-03", finance.id), /already recorded/);
       assert.equal((await sales.getCommissionStatement("2199-03")).find((r) => r.userId === other.id)?.commission ?? 0, 0, "the previous owner earns nothing");
       // Invoicing an accepted quotation directly keeps its credit; crediting someone else is recorded as a reassignment.
-      const { createInvoice } = require("../packages/database/src/queries/invoices.ts");
+      const { createInvoice } = require("../apps/admin/lib/database/queries/invoices.ts");
       const accepted = async () => {
         const q = await createQuotation({ clientId: contact.id, salesOwnerId: closer.id, validUntilDate: new Date(Date.now() + 7 * 86400000), lineItems: [{ descriptionEn: "Edit", quantity: 1, unitPrice: 200 }] }, issuer.id);
         await tx.quotation.update({ where: { id: q.id }, data: { status: "accepted" } });

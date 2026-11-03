@@ -4,9 +4,9 @@
 require("dotenv").config({ quiet: true });
 require("ts-node").register({ transpileOnly: true, skipProject: true, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true, resolveJsonModule: true } });
 const assert = require("node:assert/strict");
-const { db } = require("../packages/database/src/db.ts");
-const { transactionContext } = require("../packages/database/src/transaction-context.ts");
-const archive = require("../packages/database/src/queries/document-archive.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
+const { transactionContext } = require("../apps/admin/lib/database/transaction-context.ts");
+const archive = require("../apps/admin/lib/database/queries/document-archive.ts");
 
 const rollback = new Error("ROLLBACK_ARCHIVE_TEST");
 const ALL = Object.keys(archive.ARCHIVE_KINDS);

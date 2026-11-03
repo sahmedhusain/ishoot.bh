@@ -19,8 +19,8 @@ process.chdir(path.resolve(__dirname, "../apps/admin"));
 const { generateLetterheadPdf, generateCommunicationPdf } = require(
   path.resolve("lib/pdf/communications-pdf.tsx"),
 );
-const { db } = require(path.resolve("../../packages/database/src/db.ts"));
-const { DEFAULT_THEME } = require(path.resolve("../../packages/database/src/constants/theme.ts"));
+const { db } = require(path.resolve("../apps/admin/lib/database/db.ts"));
+const { DEFAULT_THEME } = require(path.resolve("../apps/admin/lib/database/constants/theme.ts"));
 const company = {
   // System font: no network or uploaded font needed; colours still come from the theme.
   theme: { ...DEFAULT_THEME, fonts: { body: { kind: "system" }, heading: { kind: "system" } } },

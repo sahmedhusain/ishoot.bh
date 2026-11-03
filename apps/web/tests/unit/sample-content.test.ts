@@ -2,14 +2,14 @@ import { describe, expect, test } from "vitest";
 import {
   BUSINESS_ACTIVITIES,
   activityPreset,
-} from "../../packages/database/src/website-presets";
+} from "@platform/database/website-presets";
 import {
   ACTIVITY_SAMPLES,
   SAMPLE_ARTICLE,
   SAMPLE_FAQS,
   sampleImage,
-} from "../../packages/database/src/samples/activity-samples";
-import { exampleSnapshot } from "../../packages/database/src/queries/samples";
+} from "@platform/database/samples/activity-samples";
+import { exampleSnapshot } from "@platform/database/queries/samples";
 
 const filled = (pair: readonly [string, string]) =>
   pair[0].trim().length > 0 && pair[1].trim().length > 0;

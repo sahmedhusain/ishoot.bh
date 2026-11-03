@@ -224,7 +224,7 @@ cmd_doctor() {
     load_env
     step "Database"
     local status pending
-    status="$(pnpm exec prisma migrate status --schema=packages/database/prisma/schema.prisma 2>&1 || true)"
+    status="$(npx prisma migrate status --schema=apps/admin/prisma/schema.prisma 2>&1 || true)"
     pending="$(printf '%s\n' "$status" | grep -cE '^[0-9]{14}_' || true)"
     if printf '%s' "$status" | grep -q "up to date"; then
       ok "database reachable, migrations up to date"

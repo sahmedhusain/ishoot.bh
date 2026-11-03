@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { en } from "../../../../packages/locales/src";
+import { en } from "@platform/locales";
 import { checkDownload, crawl } from "../../crawl";
 
 // Every page of the website in both languages: no broken links, images or downloads, new tabs open with

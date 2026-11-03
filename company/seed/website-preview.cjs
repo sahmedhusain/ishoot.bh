@@ -13,11 +13,11 @@ require("ts-node").register({
     moduleResolution: "Node",
   },
 });
-const { db } = require("../../packages/database/src/db.ts");
+const { db } = require("../../apps/admin/lib/database/db.ts");
 const { loadCompanyProfile, importProfileFile } = require("../tools/company-profile.ts");
 const { createRequire } = require("node:module");
 const databaseRequire = createRequire(
-  require("node:path").resolve(__dirname, "../../packages/database/package.json"),
+  require("node:path").resolve(__dirname, "../../apps/admin/package.json"),
 );
 async function main() {
   const passwordHash = await databaseRequire("bcryptjs").hash(
@@ -149,10 +149,10 @@ async function main() {
     });
   const {
     collectWebsiteDraft,
-  } = require("../../packages/database/src/queries/website.ts");
+  } = require("../../apps/admin/lib/database/queries/website.ts");
   const {
     defaultWebsiteConfig,
-  } = require("../../packages/database/src/website-config.ts");
+  } = require("../../apps/admin/lib/database/website-config.ts");
   const snapshot = await collectWebsiteDraft(defaultWebsiteConfig);
   await db.websiteContent.upsert({
     where: { id: "main" },

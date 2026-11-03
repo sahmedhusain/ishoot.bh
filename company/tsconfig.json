@@ -1,39 +1,46 @@
 {
-  "extends": "../packages/database/tsconfig.json",
   "compilerOptions": {
+    "target": "ES2022",
     "module": "CommonJS",
     "moduleResolution": "Node",
     "resolveJsonModule": true,
     "esModuleInterop": true,
+    "skipLibCheck": true,
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
       "@platform/config/currency": [
-        "../packages/config/src/constants/currency.d.cts"
+        "../apps/admin/lib/config/constants/currency.d.cts"
       ],
       "@platform/config/phone": [
-        "../packages/config/src/phone.ts"
+        "../apps/admin/lib/config/phone.ts"
       ],
       "@platform/config/constants": [
-        "../packages/config/src/constants/index.ts"
+        "../apps/admin/lib/config/constants/index.ts"
       ],
       "@platform/config": [
-        "../packages/config/tailwind.config.ts"
+        "../apps/admin/lib/config/index.ts"
       ],
       "@platform/config/*": [
-        "../packages/config/src/*"
+        "../apps/admin/lib/config/*"
       ],
       "@platform/locales": [
-        "../packages/locales/src/index.ts"
+        "../apps/admin/locales/index.ts"
       ],
       "@platform/locales/*": [
-        "../packages/locales/src/*"
+        "../apps/admin/locales/*"
       ],
       "@platform/database": [
-        "../packages/database/src/index.ts"
+        "../apps/admin/lib/database/index.ts"
       ],
       "@platform/database/*": [
-        "../packages/database/src/*"
+        "../apps/admin/lib/database/*"
+      ],
+      "@platform/api-client": [
+        "../apps/admin/lib/api/index.ts"
+      ],
+      "@platform/api-client/*": [
+        "../apps/admin/lib/api/*"
       ]
     }
   },

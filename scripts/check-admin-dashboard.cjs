@@ -17,7 +17,7 @@ function load(file, mocks, jsx = false) {
     module, exports: module.exports, require(id) {
       if (jsx && id === 'react/jsx-runtime') return appRequire(id);
       id = ((i, m) => i in m ? i : (i.startsWith('@platform/database/') && '@platform/database' in m ? '@platform/database' : i))(id, mocks);
-      if (id === "../finance/company-currency" && !(id in mocks)) return load("packages/database/src/finance/company-currency.ts", { "../db": mocks["../db"] });
+      if (id === "../finance/company-currency" && !(id in mocks)) return load("../apps/admin/lib/database/finance/company-currency.ts", { "../db": mocks["../db"] });
       if (!(id in mocks)) { const real = realConstants(file, id); if (real) return real; throw Error('Unmocked dependency: ' + id); }
       return mocks[id];
     }, console, Date, Intl, Set, Map, URLSearchParams
@@ -26,7 +26,7 @@ function load(file, mocks, jsx = false) {
 }
 async function main() {
   for (const locale of ['en', 'ar']) {
-    const t = require('../packages/locales/src/admin/' + locale + '.json');
+    const t = require('../apps/admin/locales/admin/' + locale + '.json');
     const node = (tag) => ({ children }) => React.createElement(tag, null, children);
     const link = ({ href, children }) => React.createElement('a', { href }, children);
     const { DashboardWidget } = load('apps/admin/components/dashboard/DashboardWidgets.tsx', {
@@ -105,7 +105,7 @@ async function main() {
   for (const w of dash.DASHBOARD_WIDGETS) assert.ok(w.sizes.includes(w.defaultSize), `${w.id} default size is allowed`);
 
   let aggregations = 0, listReads = 0;
-  const { getCRMDealOverview } = load('packages/database/src/queries/crm.ts', {
+  const { getCRMDealOverview } = load('../apps/admin/lib/database/queries/crm.ts', {
     './company-settings': {}, '../services/lead-resolver': {},
     '../db': {
       db: {
@@ -127,7 +127,7 @@ async function main() {
 
   // Linked deals only ever move forward, and never out of a closed stage.
   const advances = [];
-  const { advanceDealForEvent } = load('packages/database/src/queries/crm.ts', {
+  const { advanceDealForEvent } = load('../apps/admin/lib/database/queries/crm.ts', {
     './company-settings': {}, '../services/lead-resolver': {}, '../db': { db: {} },
   });
   const pipeline = ['lead', 'proposal_sent', 'contract_signed', 'production', 'delivered', 'invoiced', 'closed_won', 'closed_lost']

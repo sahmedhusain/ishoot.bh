@@ -4,10 +4,10 @@
 require("dotenv").config({ quiet: true });
 require("ts-node").register({ transpileOnly: true, skipProject: true, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true, resolveJsonModule: true } });
 const assert = require("node:assert/strict");
-const { db } = require("../packages/database/src/db.ts");
-const { transactionContext } = require("../packages/database/src/transaction-context.ts");
-const payroll = require("../packages/database/src/queries/payroll.ts");
-const recurring = require("../packages/database/src/queries/recurring-pay.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
+const { transactionContext } = require("../apps/admin/lib/database/transaction-context.ts");
+const payroll = require("../apps/admin/lib/database/queries/payroll.ts");
+const recurring = require("../apps/admin/lib/database/queries/recurring-pay.ts");
 
 const rollback = new Error("ROLLBACK_PAY_LINES_TEST");
 const rejects = (promise, message) => assert.rejects(promise, (error) => error.message === message);
@@ -18,7 +18,7 @@ async function main() {
       const actor = await tx.user.findFirstOrThrow({ where: { role: "super_admin", isActive: true } });
       // A complete, isolated employee keeps this check independent of demo onboarding records.
       await tx.employee.updateMany({ data: { status: "suspended" } });
-      await require("../packages/database/src/queries/hrms.ts").createEmployee({
+      await require("../apps/admin/lib/database/queries/hrms.ts").createEmployee({
         firstNameEn: "Pay", lastNameEn: "Lines", firstNameAr: "اختبار", lastNameAr: "رواتب",
         jobTitleEn: "Tester", jobTitleAr: "اختبار", hireDate: new Date("2020-01-01"), basicSalary: 1000,
         payrollSettings: { employee: { mode: "fixed", value: 0 }, employer: { mode: "fixed", value: 0 }, supports: [] },

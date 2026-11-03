@@ -34,7 +34,7 @@ const run = (command, args, extra = {}) => execFileSync(command, args, { cwd: ro
 
 async function main() {
   // CREATE DATABASE cannot run inside a transaction, so it goes through a plain client on the maintenance database.
-  const { PrismaClient } = createRequire(path.join(root, "packages/database/package.json"))("@prisma/client");
+  const { PrismaClient } = createRequire(path.join(root, "apps/admin/package.json"))("@prisma/client");
   const admin = new PrismaClient({ datasources: { db: { url: urlFor("postgres") } } });
   try {
     await admin.$executeRawUnsafe(`DROP DATABASE IF EXISTS "${database}" WITH (FORCE)`);
@@ -42,7 +42,7 @@ async function main() {
   } finally {
     await admin.$disconnect();
   }
-  run(path.join(root, "node_modules/.bin/prisma"), ["migrate", "deploy", "--schema", "packages/database/prisma/schema.prisma"]);
+  run(path.join(root, "node_modules/.bin/prisma"), ["migrate", "deploy", "--schema", "apps/admin/prisma/schema.prisma"]);
   if (mode === "bare") return;
   const login = { SUPER_ADMIN_EMAIL: users.admin.email, SUPER_ADMIN_PASSWORD: users.admin.password, SUPER_ADMIN_NAME: users.admin.fullName };
   if (mode === "seeded") run("pnpm", ["db:seed"], { ...login, COMPANY_PROFILE: "demo", SEED_VOLUME: process.env.SEED_VOLUME || "off" });

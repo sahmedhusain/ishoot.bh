@@ -5,12 +5,12 @@
 require("dotenv").config({ quiet: true });
 require("ts-node").register({ transpileOnly: true, skipProject: true, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true, resolveJsonModule: true } });
 const assert = require("node:assert/strict");
-const { db } = require("../packages/database/src/db.ts");
-const { transactionContext } = require("../packages/database/src/transaction-context.ts");
-const { calculateInvoiceTotals } = require("../packages/database/src/types.ts");
-const taxes = require("../packages/database/src/queries/taxes.ts");
-const quotations = require("../packages/database/src/queries/quotations.ts");
-const invoices = require("../packages/database/src/queries/invoices.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
+const { transactionContext } = require("../apps/admin/lib/database/transaction-context.ts");
+const { calculateInvoiceTotals } = require("../apps/admin/lib/database/types.ts");
+const taxes = require("../apps/admin/lib/database/queries/taxes.ts");
+const quotations = require("../apps/admin/lib/database/queries/quotations.ts");
+const invoices = require("../apps/admin/lib/database/queries/invoices.ts");
 
 const rollback = new Error("ROLLBACK_TAXES_TEST");
 const rejects = (promise, message) => assert.rejects(promise, (error) => error.message === message);

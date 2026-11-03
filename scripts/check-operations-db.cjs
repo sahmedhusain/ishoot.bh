@@ -2,7 +2,7 @@
 require("ts-node").register({
   transpileOnly: true,
   skipProject: true,
-  moduleTypes: { "packages/config/src/**/*.ts": "cjs" },
+  moduleTypes: { "../apps/admin/lib/config/**/*.ts": "cjs" },
   compilerOptions: {
     module: "CommonJS",
     target: "ES2022",
@@ -18,30 +18,30 @@ if (!url.pathname.endsWith("_test"))
   throw Error(
     "Operations checks require an explicit disposable _test database",
   );
-const { db } = require("../packages/database/src/db.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
 const {
   generateSerialLabels,
   getSerialLabelJob,
   reprintSerialLabels,
   confirmSerialLabelPrinting,
-} = require("../packages/database/src/queries/stock-labels.ts");
+} = require("../apps/admin/lib/database/queries/stock-labels.ts");
 const {
   requireBranchAccess,
-} = require("../packages/database/src/queries/branches.ts");
+} = require("../apps/admin/lib/database/queries/branches.ts");
 const {
   postJournal,
   createAccountingPeriod,
   closeAccountingPeriod,
   reverseJournal,
-} = require("../packages/database/src/queries/accounting-ledger.ts");
+} = require("../apps/admin/lib/database/queries/accounting-ledger.ts");
 const {
   verifyGeneratedSerials,
   moveSerialsBetweenBins,
-} = require("../packages/database/src/queries/serialized-stock.ts");
+} = require("../apps/admin/lib/database/queries/serialized-stock.ts");
 const {
   postMovements,
-} = require("../packages/database/src/queries/inventory.ts");
-const { runAtomicMutation } = require("../packages/database/src/db.ts");
+} = require("../apps/admin/lib/database/queries/inventory.ts");
+const { runAtomicMutation } = require("../apps/admin/lib/database/db.ts");
 const {
   reportMissingTransferUnits,
   closeSerialTransfer,
@@ -49,11 +49,11 @@ const {
   approveSerialTransfer,
   dispatchSerialTransfer,
   receiveSerialTransfer,
-} = require("../packages/database/src/queries/stock-transfers.ts");
+} = require("../apps/admin/lib/database/queries/stock-transfers.ts");
 const {
   previewStockHandover,
   acknowledgeStockHandover,
-} = require("../packages/database/src/queries/stock-handover.ts");
+} = require("../apps/admin/lib/database/queries/stock-handover.ts");
 const testSignature =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAAAAABWESUoAAAEE0lEQVR4nHXHf0xSeQAA8G+hIiEgoj4V6UkMidBxxJCMBRE4zl9Dh0Zk+SpyuL0cV6bkjDEjYcYmzWKmrr2INrStmJHjLB1nztF0haw2XLThcubcYszcYs7K+/+2++uzDwD79uPS0jPwmYQDxCwSmZJNzaHl5uVDBYVF9GLGQRjsw6XjCUQShUrLgwrpDJjJYnO4vHK+QCgSV0pOyMD+9EwimZoLFTFKWKXcMv5R0TGJVK5U1dQ3aE7rziEAhydSaBAdZnF4fKFYIlOoatUabQuiN6DGTlOvBaQRyLQCxiFOmaBCcrKqRt2ka9W3d1wz3eyzOe66RjGQTqRCDBaXL5LIVfUaHdKGXjWZrQNO15jb+8w/HQQZpFz6Ie4fYmlVnebsxXZjt/m2Y2jkkff51Mz8YmQlDvAUCObwxTKVWosYjCaL3TmMeX2BYCgcjW8kU3sgk1rEKhNJVQ26S+h1s835wP3UP7PwPrq6+X03jZQPAwKNwRFIqtQ6fYepz+HCJvyzoUhsPbmDI0FMnkgGDuSV8CrkddpLHTesgyNPfK8WlmNft37icxiHhdLqJgQQIRZfotIgqMnqHPP6g0vRteQungbzxAp1i6HTArIKS4Un688arvcNjo1PvQl/3vyBy2YcESsbW9Eb/UMYING54irNRaPZMeKdmo/EE7sEiC2Uq8+jPXaXZzIIyIwySY2u3WRzPfG/iawmf5OKecerzxi6++97XswtxwEF5svUiNHixHzBcDy599+DbOZRRVNbt/3BxKulz4nflBLBKc3lLtvw+PRi7NsvMgyoLJFKh5qdbv9CdHOXBAsUzYYex0Pf3If1FIFeLgM57GO1rVdvDz+dXV77QSjmn2pu7x10vwx9SgBaaWUdAmgciVpvcmD+UCyJg3gyjaHX6QksxbfxdL5Ci1pALleqaTcPeWciX3ez2cfVl3sGPX+/+5LKYlbUXui6g4E8nlzbYR3xLcS28AxhNdLlcAfere1Q2JJGg/neRBDklytbrg08Crxf/0k7Ij9jtD18ufRlJ5sjbb5iHZ18GwcQX4WYnN5gNImHxWqDZdgXiqcoHJnWaMcC4Y09UCCo0d90PQ+t7uTwlOe7neNzn7az2FLtXwOPX39MZMCgUFhv6BubCm/iGOJGtB+b/pDAMyXNxgHPbHSLyJaBIlEDanPPRL+TDitae+77FtcBvaLxiv3x7Mo2matEAF2sMTq88/FdSKhG7Z5gLEXj1xqs2OvoNoWn0ltAceXpzrvPFjfSmNKWG64X4W+EUsUF82jg4xaZ92fbLQwwJDqTyx9JknjVhn7PXPwXvVLbdW8ynCByVW1WdxAcPHGud3R6JZUvauocmlxOksvr0DsTbzcy2Er9Lfc/cQDLEAsWjO/9n/8CpOK0EIKVRrUAAAAASUVORK5CYII=";
 async function main() {
@@ -324,7 +324,7 @@ async function main() {
     },
   });
   // Modules live in the system service (backend/services/system); this check needs the backend stack.
-  await require("../packages/database/src/queries/features.ts").updateFeatureToggle("products", true, "check-operations");
+  await require("../apps/admin/lib/database/queries/features.ts").updateFeatureToggle("products", true, "check-operations");
   const receiver = await db.user.create({
     data: {
       email: `receiver-${tag}@example.test`,
@@ -593,7 +593,7 @@ async function main() {
   const [closedTransfer,closedTransferRetry]=await Promise.all([closeSerialTransfer(closingTransfer,actor.id),closeSerialTransfer(closingTransfer,actor.id)]);
   assert.deepEqual(closedTransfer,closedTransferRetry);
   assert.equal((await db.stockAllocation.findUniqueOrThrow({where:{id:transfer.id}})).status,"closed");
-  const { getTransferWorkspace }=require("../packages/database/src/queries/transfer-workspace.ts");
+  const { getTransferWorkspace }=require("../apps/admin/lib/database/queries/transfer-workspace.ts");
   const scopedWorkspace=await getTransferWorkspace(receiver.id);
   assert.ok(scopedWorkspace.transfers.some(t=>t.id===transfer.id));
   assert.ok(!scopedWorkspace.locations.some(l=>l.id===location.id));
@@ -603,8 +603,8 @@ async function main() {
   assert.equal((await db.stockLevel.findFirstOrThrow({where:{productId:bulk.id}})).onHand.toString(),"0.123456");
   await runAtomicMutation(()=>postMovements(db,[{type:"adjustment",productId:bulk.id,locationId:location.id,quantity:-0.000001}],actor.id));
   assert.equal((await db.stockLevel.findFirstOrThrow({where:{productId:bulk.id}})).onHand.toString(),"0.123455");
-  const {listWarehouses,listMovements,getStockOverview,expiringBatches,getStockCount,getProductStock}=require("../packages/database/src/queries/inventory.ts");
-  const {requireWarehouseAccess,requireStockCountAccess,requireStockLocationAccess}=require("../packages/database/src/queries/branches.ts");
+  const {listWarehouses,listMovements,getStockOverview,expiringBatches,getStockCount,getProductStock}=require("../apps/admin/lib/database/queries/inventory.ts");
+  const {requireWarehouseAccess,requireStockCountAccess,requireStockLocationAccess}=require("../apps/admin/lib/database/queries/branches.ts");
   assert.ok(!(await listWarehouses(receiver.id)).some(w=>w.id===warehouse.id));
   await assert.rejects(listMovements({warehouseId:warehouse.id},receiver.id),/denied/);
   await assert.rejects(getStockOverview({warehouseId:warehouse.id},receiver.id),/denied/);
@@ -853,7 +853,7 @@ async function main() {
     openCashierSession, closeCashierSession,
     recordPaymentCollection, reversePaymentCollection,
     performRetailClosing,
-  } = require("../packages/database/src/queries/retail.ts");
+  } = require("../apps/admin/lib/database/queries/retail.ts");
 
   const reg = await saveRegister({ branchId: destinationBranch.id, code: `R-${tag.slice(0, 10)}`, name: "Checkout 1" }, actor.id);
   const drw = await saveDrawer({ registerId: reg.id, code: `D-${tag.slice(0, 10)}`, name: "Drawer 1", openingFloat: 50 }, actor.id);
@@ -927,7 +927,7 @@ async function main() {
   // ─── Operational Posting Adapters ─────────────────────────────────────────
   const {
     postSaleJournal, postPaymentCollectionJournal, postInventoryAdjustmentJournal,
-  } = require("../packages/database/src/finance/operational-posting.ts");
+  } = require("../apps/admin/lib/database/finance/operational-posting.ts");
 
   const saleJournal = await postSaleJournal({
     orderId: `order-${tag}`,
@@ -967,7 +967,7 @@ async function main() {
   // ─── Historical Commissions ───────────────────────────────────────────────
   const {
     createCommissionRule, recordCommissionSnapshot, reverseCommissionSnapshot, listCommissionSnapshots,
-  } = require("../packages/database/src/queries/commissions.ts");
+  } = require("../apps/admin/lib/database/queries/commissions.ts");
 
   const commRule = await createCommissionRule({
     code: `COMM-${tag.slice(0, 8)}`,
@@ -998,7 +998,7 @@ async function main() {
   // ─── Regional Store & Carts ───────────────────────────────────────────────
   const {
     saveStoreRegion, getStoreRegion, resolveRegionalPrice,
-  } = require("../packages/database/src/queries/regional-store.ts");
+  } = require("../apps/admin/lib/database/queries/regional-store.ts");
 
   const region = await saveStoreRegion({
     code: `R-${tag.slice(0, 6)}`,
@@ -1016,7 +1016,7 @@ async function main() {
   // ─── Packaging & Physical Manifests ───────────────────────────────────────
   const {
     createStockPackage, packSerialsIntoPackage, sealStockPackage, moveStockPackage, unpackStockPackage,
-  } = require("../packages/database/src/queries/packages.ts");
+  } = require("../apps/admin/lib/database/queries/packages.ts");
 
   const pkg = await createStockPackage({
     code: `PKG-${tag.slice(0, 8)}`,
@@ -1055,7 +1055,7 @@ async function main() {
     assert.ok(unpackedSerials.every(s => s.packageId === null));
 
     // Serialized Sales and Returns tests
-    const { fulfillSerializedOrder, returnSerializedOrder, getAvailableSerials } = require("../packages/database/src/queries/serialized-sales.ts");
+    const { fulfillSerializedOrder, returnSerializedOrder, getAvailableSerials } = require("../apps/admin/lib/database/queries/serialized-sales.ts");
     const testSalesOrder = await db.salesOrder.create({
       data: {
         number: `SO-${tag.slice(0, 10)}`,

@@ -7,18 +7,18 @@ import fs from "fs";
 import crypto from "crypto";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { workingDaysBetween } from "../../packages/database/src/hr/payroll-engine";
+import { workingDaysBetween } from "../../apps/admin/lib/database/hr/payroll-engine";
 import {
   ALL_ACTIONS,
   ALL_RESOURCES,
   ALL_ROLES,
   isDefaultAllowed,
-} from "../../packages/database/src/constants/permissions";
-import { collectWebsiteDraft } from "../../packages/database/src/queries/website";
-import { calculateInvoiceTotals } from "../../packages/database/src/types";
+} from "../../apps/admin/lib/database/constants/permissions";
+import { collectWebsiteDraft } from "../../apps/admin/lib/database/queries/website";
+import { calculateInvoiceTotals } from "../../apps/admin/lib/database/types";
 import { seedVolume, reconcileSeed } from "./seed-volume";
-import { storeFileBytes } from "../../packages/database/src/services/uploads";
-import { db as websiteDb } from "../../packages/database/src/db";
+import { storeFileBytes } from "../../apps/admin/lib/database/services/uploads";
+import { db as websiteDb } from "../../apps/admin/lib/database/db";
 import {
   importProfileFile,
   installCompanyProfile,
@@ -26,11 +26,11 @@ import {
   profileAssetPath,
 } from "../tools/company-profile";
 import demoStaff from "./demo-staff.json";
-import adminEn from "../../packages/locales/src/admin/en.json";
-import adminAr from "../../packages/locales/src/admin/ar.json";
+import adminEn from "../../apps/admin/locales/admin/en.json";
+import adminAr from "../../apps/admin/locales/admin/ar.json";
 import demoClients from "./demo-clients.json";
-import { DEFAULT_FEATURE_MODULES, moduleOnByDefault } from "../../packages/database/src/constants/features";
-import { setModule } from "../../packages/api-client/src/system";
+import { DEFAULT_FEATURE_MODULES, moduleOnByDefault } from "../../apps/admin/lib/database/constants/features";
+import { setModule } from "../../apps/admin/lib/api/system";
 import { demoPreset } from "./demo-presets";
 import { seedPresetWebsite } from "./seed-presets";
 import { seedOperations } from "./seed-operations";
@@ -394,7 +394,7 @@ async function main() {
     `✅ Created ${usersData.length} RBAC Users with Signatures & Hierarchy (passwords use the configured SUPER_ADMIN_PASSWORD)`,
   );
 
-  // Seed resets every system role to the shared defaults (packages/database/src/constants/permissions.ts).
+  // Seed resets every system role to the shared defaults (../../apps/admin/lib/database/constants/permissions.ts).
   for (const role of ALL_ROLES) {
     await prisma.permission.deleteMany({ where: { role } });
     await prisma.permission.createMany({

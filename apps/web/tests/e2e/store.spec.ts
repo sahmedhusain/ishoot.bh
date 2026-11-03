@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { en } from "../../../../packages/locales/src";
+import { en } from "@platform/locales";
 import { testDatabase, watchErrors } from "../../helpers";
 import {
   enableStore,

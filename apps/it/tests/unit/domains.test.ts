@@ -3,7 +3,7 @@ import {
   dnsRecords,
   domainOrigin,
   normalizeDomain,
-} from "../../../../packages/database/src/constants/domains";
+} from "@platform/database/constants/domains";
 
 describe("company domains", () => {
   test("accepts host names in any common spelling", () => {

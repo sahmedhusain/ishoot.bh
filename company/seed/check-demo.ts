@@ -4,8 +4,8 @@ import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import { demoPreset } from "./demo-presets";
 import { loadCompanyProfile } from "../tools/company-profile";
-import { listModules } from "../../packages/api-client/src/system";
-import { ACTIVITY_PRESETS } from "../../packages/database/src/website-presets";
+import { listModules } from "../../apps/admin/lib/api/system";
+import { ACTIVITY_PRESETS } from "../../apps/admin/lib/database/website-presets";
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env"), quiet: true });
 const url = new URL(process.env.DIRECT_URL || process.env.DATABASE_URL || "postgresql://localhost/missing");

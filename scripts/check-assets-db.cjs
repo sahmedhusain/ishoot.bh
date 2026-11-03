@@ -15,16 +15,16 @@ require("ts-node").register({
 });
 const assert = require("node:assert/strict");
 const path = require("node:path");
-const { db } = require("../packages/database/src/db.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
 const {
   transactionContext,
-} = require("../packages/database/src/transaction-context.ts");
-const assets = require("../packages/database/src/queries/assets.ts");
+} = require("../apps/admin/lib/database/transaction-context.ts");
+const assets = require("../apps/admin/lib/database/queries/assets.ts");
 const {
   decideApprovalRequest,
   findPendingApproval,
-} = require("../packages/database/src/services/approval-engine.ts");
-const signing = require("../packages/database/src/queries/signature-requests.ts");
+} = require("../apps/admin/lib/database/services/approval-engine.ts");
+const signing = require("../apps/admin/lib/database/queries/signature-requests.ts");
 const sharp = require(
   require.resolve("sharp", {
     paths: [path.resolve(__dirname, "../apps/admin")],

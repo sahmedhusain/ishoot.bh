@@ -1,5 +1,5 @@
 import { afterEach, expect, test, vi } from "vitest";
-import { prefersReducedMotion } from "../../packages/ui/src/count-up";
+import { prefersReducedMotion } from "@platform/ui/count-up";
 
 afterEach(() => vi.unstubAllGlobals());
 test.each(["reduced", "none"])(

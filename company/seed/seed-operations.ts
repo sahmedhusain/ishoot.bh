@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import type { PrismaClient, Product } from "@prisma/client";
-import { ACTIVITY_SAMPLES } from "../../packages/database/src/samples/activity-samples";
-import { ACTIVITY_PRESETS } from "../../packages/database/src/website-presets";
+import { ACTIVITY_SAMPLES } from "../../apps/admin/lib/database/samples/activity-samples";
+import { ACTIVITY_PRESETS } from "../../apps/admin/lib/database/website-presets";
 import {
   saveProduct,
   saveProductCategory,
-} from "../../packages/database/src/queries/products";
+} from "../../apps/admin/lib/database/queries/products";
 import {
   ensureDefaultWarehouse,
   saveWarehouse,
@@ -17,7 +17,7 @@ import {
   recordCountedQuantities,
   setStockCountStatus,
   approveStockCount,
-} from "../../packages/database/src/queries/inventory";
+} from "../../apps/admin/lib/database/queries/inventory";
 import {
   saveSupplier,
   savePurchaseOrder,
@@ -27,13 +27,13 @@ import {
   saveRequisition,
   createRfq,
   saveRfqQuotes,
-} from "../../packages/database/src/queries/procurement";
+} from "../../apps/admin/lib/database/queries/procurement";
 import {
   receiveGoods,
   saveSupplierBill,
   approveSupplierBill,
   recordSupplierPayment,
-} from "../../packages/database/src/queries/procurement-billing";
+} from "../../apps/admin/lib/database/queries/procurement-billing";
 import {
   saveStoreSettings,
   saveCoupon,
@@ -41,34 +41,34 @@ import {
   moveOrder,
   recordOrderPayment,
   recordOrderRefund,
-} from "../../packages/database/src/queries/store";
-import { moveShipment } from "../../packages/database/src/queries/shipments";
+} from "../../apps/admin/lib/database/queries/store";
+import { moveShipment } from "../../apps/admin/lib/database/queries/shipments";
 import {
   assignShipment,
   createRouteSheet,
   startRouteSheet,
   closeRouteSheet,
   settleCash,
-} from "../../packages/database/src/queries/fleet";
+} from "../../apps/admin/lib/database/queries/fleet";
 import {
   saveCourierAgency,
   handToAgency,
-} from "../../packages/database/src/queries/couriers";
-import { createEmployee } from "../../packages/database/src/queries/hrms";
+} from "../../apps/admin/lib/database/queries/couriers";
+import { createEmployee } from "../../apps/admin/lib/database/queries/hrms";
 import {
   saveProject,
   saveTask,
   addTaskComment,
-} from "../../packages/database/src/queries/tasks";
+} from "../../apps/admin/lib/database/queries/tasks";
 import {
   saveCampaign,
   saveSegment,
   saveBroadcast,
-} from "../../packages/database/src/queries/marketing";
+} from "../../apps/admin/lib/database/queries/marketing";
 import {
   saveLegalMatter,
   addLegalNote,
-} from "../../packages/database/src/queries/legal";
+} from "../../apps/admin/lib/database/queries/legal";
 import {
   saveRegister,
   saveDrawer,
@@ -78,19 +78,19 @@ import {
   closeCashierSession,
   recordPaymentCollection,
   performRetailClosing,
-} from "../../packages/database/src/queries/retail";
+} from "../../apps/admin/lib/database/queries/retail";
 import {
   createStockPackage,
   packSerialsIntoPackage,
   sealStockPackage,
   moveStockPackage,
-} from "../../packages/database/src/queries/packages";
-import { saveStoreRegion } from "../../packages/database/src/queries/regional-store";
+} from "../../apps/admin/lib/database/queries/packages";
+import { saveStoreRegion } from "../../apps/admin/lib/database/queries/regional-store";
 import {
   createCommissionRule,
   recordCommissionSnapshot,
-} from "../../packages/database/src/queries/commissions";
-import { decideApprovalRequest } from "../../packages/database/src/services/approval-engine";
+} from "../../apps/admin/lib/database/queries/commissions";
+import { decideApprovalRequest } from "../../apps/admin/lib/database/services/approval-engine";
 import type { DemoPreset } from "./demo-presets";
 
 const day = (offset: number) =>

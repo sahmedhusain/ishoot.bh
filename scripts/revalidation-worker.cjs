@@ -8,10 +8,10 @@ require("ts-node").register({
     moduleResolution: "Node",
   },
 });
-const { db } = require("../packages/database/src/db.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
 const {
   processRevalidationJobs,
-} = require("../packages/database/src/services/revalidation-outbox.ts");
+} = require("../apps/admin/lib/database/services/revalidation-outbox.ts");
 let stopped = false;
 process.on("SIGINT", () => {
   stopped = true;

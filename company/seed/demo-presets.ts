@@ -3,13 +3,13 @@ import {
   BUSINESS_ACTIVITIES,
   isBusinessActivity,
   type BusinessActivity,
-} from "../../packages/database/src/website-presets";
-import { DEFAULT_FEATURE_MODULES } from "../../packages/database/src/constants/features";
+} from "../../apps/admin/lib/database/website-presets";
+import { DEFAULT_FEATURE_MODULES } from "../../apps/admin/lib/database/constants/features";
 import {
   STYLE_PRESETS,
   normalizeTheme,
-} from "../../packages/database/src/constants/theme";
-import { websiteConfigForActivity } from "../../packages/database/src/website-config";
+} from "../../apps/admin/lib/database/constants/theme";
+import { websiteConfigForActivity } from "../../apps/admin/lib/database/website-config";
 
 export const DEMO_PRESETS = [...BUSINESS_ACTIVITIES, "all"] as const;
 

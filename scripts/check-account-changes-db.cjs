@@ -4,10 +4,10 @@
 require("dotenv").config({ quiet: true });
 require("ts-node").register({ transpileOnly: true, skipProject: true, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true, resolveJsonModule: true } });
 const assert = require("node:assert/strict");
-const { db } = require("../packages/database/src/db.ts");
-const { transactionContext } = require("../packages/database/src/transaction-context.ts");
-const acc = require("../packages/database/src/queries/account-changes.ts");
-const { submitForApproval, decideApprovalRequest } = require("../packages/database/src/services/approval-engine.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
+const { transactionContext } = require("../apps/admin/lib/database/transaction-context.ts");
+const acc = require("../apps/admin/lib/database/queries/account-changes.ts");
+const { submitForApproval, decideApprovalRequest } = require("../apps/admin/lib/database/services/approval-engine.ts");
 
 const rollback = new Error("ROLLBACK_ACCOUNT_TEST");
 

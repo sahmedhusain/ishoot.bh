@@ -17,7 +17,7 @@ import {
   STYLE_PRESETS,
   fontMimeFromName,
   weightFromFileName,
-} from "../../packages/database/src/constants/theme";
+} from "@platform/database/constants/theme";
 import { detectFileType } from "../../contracts/src";
 
 describe("normalizeTheme", () => {

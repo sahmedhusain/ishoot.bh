@@ -4,10 +4,10 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 process.chdir(path.resolve(__dirname, '../apps/admin'));
 const { generateSalaryDocumentPdf } = require(path.resolve('lib/pdf/salary-document-pdf.tsx'));
-const { db } = require(path.resolve('../../packages/database/src/db.ts'));
+const { db } = require(path.resolve('../apps/admin/lib/database/db.ts'));
 const employee = { employeeNumber: 'EMP-TEST', firstNameEn: 'Ahmed', lastNameEn: 'Test', firstNameAr: 'أحمد', lastNameAr: 'اختبار', jobTitleEn: 'Photographer', jobTitleAr: 'مصور', hireDate: '2026-01-01' };
 const compensation = { basicSalary: 500, housingAllowance: 100, transportAllowance: 50, otherAllowances: 0 };
-const { DEFAULT_THEME } = require(path.resolve('../../packages/database/src/constants/theme.ts'));
+const { DEFAULT_THEME } = require(path.resolve('../apps/admin/lib/database/constants/theme.ts'));
 const company = { theme: { ...DEFAULT_THEME, fonts: { body: { kind: 'system' }, heading: { kind: 'system' } } }, company_name_en: 'Test Company', company_name_ar: 'شركة اختبار', logo_url: null, signature_url: null, stamp_url: null };
 async function main() {
   for (const locale of ['en', 'ar']) {

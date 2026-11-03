@@ -2,7 +2,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const root = path.resolve(__dirname, "..");
-const localesDir = path.join(root, "packages/locales/src");
+const localesDir = path.join(root, "../apps/admin/locales");
 const { LANGUAGES } = require(path.join(localesDir, "registry.ts"));
 
 const en = JSON.parse(fs.readFileSync(path.join(localesDir, "en.json"), "utf8"));

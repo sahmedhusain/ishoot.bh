@@ -12,14 +12,14 @@ require("ts-node").register({
   },
 });
 const assert = require("node:assert/strict");
-const { db } = require("../packages/database/src/db.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
 const {
   transactionContext,
-} = require("../packages/database/src/transaction-context.ts");
-const announcements = require("../packages/database/src/queries/announcements.ts");
-const letters = require("../packages/database/src/queries/official-letters.ts");
-const handover = require("../packages/database/src/services/notification-handover.ts");
-const engine = require("../packages/database/src/services/approval-engine.ts");
+} = require("../apps/admin/lib/database/transaction-context.ts");
+const announcements = require("../apps/admin/lib/database/queries/announcements.ts");
+const letters = require("../apps/admin/lib/database/queries/official-letters.ts");
+const handover = require("../apps/admin/lib/database/services/notification-handover.ts");
+const engine = require("../apps/admin/lib/database/services/approval-engine.ts");
 const path = require("node:path");
 const sharp = require(
   require.resolve("sharp", {

@@ -1,13 +1,13 @@
 require('dotenv').config({ quiet: true });
 require('ts-node').register({ transpileOnly: true, skipProject: true, compilerOptions: { module: 'CommonJS', target: 'ES2022', moduleResolution: 'Node', esModuleInterop: true, resolveJsonModule: true } });
 const assert = require('node:assert/strict');
-const { db } = require('../packages/database/src/db.ts');
-const { transactionContext } = require('../packages/database/src/transaction-context.ts');
-const { createEmployee, updateEmployee, getEmployeeById } = require('../packages/database/src/queries/hrms.ts');
-const { createPayrollRun, submitPayrollRunForApproval } = require('../packages/database/src/queries/payroll.ts');
-const { createLeaveRequest, approveLeaveRequest } = require('../packages/database/src/queries/leave.ts');
-const { salaryDocumentSnapshot } = require('../packages/database/src/queries/salary-documents.ts');
-const { decideApprovalRequest } = require('../packages/database/src/services/approval-engine.ts');
+const { db } = require('../apps/admin/lib/database/db.ts');
+const { transactionContext } = require('../apps/admin/lib/database/transaction-context.ts');
+const { createEmployee, updateEmployee, getEmployeeById } = require('../apps/admin/lib/database/queries/hrms.ts');
+const { createPayrollRun, submitPayrollRunForApproval } = require('../apps/admin/lib/database/queries/payroll.ts');
+const { createLeaveRequest, approveLeaveRequest } = require('../apps/admin/lib/database/queries/leave.ts');
+const { salaryDocumentSnapshot } = require('../apps/admin/lib/database/queries/salary-documents.ts');
+const { decideApprovalRequest } = require('../apps/admin/lib/database/services/approval-engine.ts');
 const rollback = new Error('ROLLBACK_HRMS_TEST');
 async function main() {
   const url = new URL(process.env.DATABASE_URL);
@@ -37,7 +37,7 @@ async function main() {
       assert.equal(run.totalEmployerCost, 682.5);
       assert.equal(Number((await tx.payrollItem.findFirstOrThrow({ where: { payrollRunId: run.id } })).externalSupport), 562.5);
       // A salary line can be adjusted before submission: bonus on top of gross (no GOSI), deductions off net.
-      const { setPayrollItemLines } = require('../packages/database/src/queries/payroll.ts');
+      const { setPayrollItemLines } = require('../apps/admin/lib/database/queries/payroll.ts');
       const line = run.items[0];
       const edited = await setPayrollItemLines(line.id, {
         additions: [{ category: 'bonus', label: 'Project bonus', amount: 60 }, { category: 'reimbursement', label: 'Taxi to location', amount: 40 }],
@@ -75,7 +75,7 @@ async function main() {
       const leaveType = await tx.leaveType.create({ data: { code: `test-${employee.id}`, nameEn: 'Test paid leave', nameAr: 'إجازة اختبار', isPaid: true } });
       const leave = await createLeaveRequest({ employeeId: employee.id, leaveTypeId: leaveType.id, startDate: new Date('2199-04-01'), endDate: new Date('2199-04-02'), reason: 'Integration test' });
       await approveLeaveRequest(leave.id, actor.id);
-      const { getLeaveBalance } = require('../packages/database/src/queries/leave-balances.ts');
+      const { getLeaveBalance } = require('../apps/admin/lib/database/queries/leave-balances.ts');
       const balance = await getLeaveBalance(employee.id, leaveType.id, 2199);
       assert.equal(balance.used, 2, 'two working days charged');
       assert.equal(balance.available, 28);

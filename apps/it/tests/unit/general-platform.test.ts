@@ -1,12 +1,12 @@
-import { leavingIndemnity, partMonthPay } from "../../../../packages/database/src/hr/final-settlement";
+import { leavingIndemnity, partMonthPay } from "@platform/database/hr/final-settlement";
 import { describe, expect, it } from "vitest";
-const { CURRENCY_CODES, getCurrencyDecimals } = require("../../../../packages/config/src/constants/currency.cjs");
-import { LANGUAGES, isLocale, isRtlLocale } from "../../../../packages/locales/src/registry";
-import { getTranslations, getWebsiteTranslations } from "../../../../packages/locales/src";
-import { validMoneyAmount } from "../../../../packages/database/src/finance/money";
-import { normalizeContactWrites, type ContactModels } from "../../../../packages/database/src/services/contact-writes";
-import { priceOrder } from "../../../../packages/database/src/constants/store";
-import { defaultWebsiteDesign, validateWebsiteDesign } from "../../../../packages/database/src/constants/website-design";
+const { CURRENCY_CODES, getCurrencyDecimals } = require("../../lib/config/constants/currency.cjs");
+import { LANGUAGES, isLocale, isRtlLocale } from "@platform/locales/registry";
+import { getTranslations, getWebsiteTranslations } from "../../../web/locales";
+import { validMoneyAmount } from "@platform/database/finance/money";
+import { normalizeContactWrites, type ContactModels } from "@platform/database/services/contact-writes";
+import { priceOrder } from "@platform/database/constants/store";
+import { defaultWebsiteDesign, validateWebsiteDesign } from "@platform/database/constants/website-design";
 
 describe("General company configuration", () => {
   it("covers active ISO currencies and their minor units without accepting reserved codes", () => {

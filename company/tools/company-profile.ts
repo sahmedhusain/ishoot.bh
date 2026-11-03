@@ -14,9 +14,9 @@ import {
   normalizeTheme,
   type BrandTheme,
   type FontChoice,
-} from "../../packages/database/src/constants/theme";
+} from "../../apps/admin/lib/database/constants/theme";
 import { detectFileType, extensionFor } from "../../contracts/src";
-import { storeFileBytes } from "../../packages/database/src/services/uploads";
+import { storeFileBytes } from "../../apps/admin/lib/database/services/uploads";
 
 type Db = PrismaClient | Prisma.TransactionClient;
 

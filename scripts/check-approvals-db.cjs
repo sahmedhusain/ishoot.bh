@@ -3,11 +3,11 @@
 require("dotenv").config({ quiet: true });
 require("ts-node").register({ transpileOnly: true, skipProject: true, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true, resolveJsonModule: true } });
 const assert = require("node:assert/strict");
-const { db } = require("../packages/database/src/db.ts");
-const { transactionContext } = require("../packages/database/src/transaction-context.ts");
-const { createLeaveRequest } = require("../packages/database/src/queries/leave.ts");
-const { submitForApproval, decideApprovalRequest, canDecideApproval, processApprovalTimeouts } = require("../packages/database/src/services/approval-engine.ts");
-const { updateApprovalPolicy } = require("../packages/database/src/queries/approval-policies.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
+const { transactionContext } = require("../apps/admin/lib/database/transaction-context.ts");
+const { createLeaveRequest } = require("../apps/admin/lib/database/queries/leave.ts");
+const { submitForApproval, decideApprovalRequest, canDecideApproval, processApprovalTimeouts } = require("../apps/admin/lib/database/services/approval-engine.ts");
+const { updateApprovalPolicy } = require("../apps/admin/lib/database/queries/approval-policies.ts");
 
 const rollback = new Error("ROLLBACK_APPROVALS_TEST");
 
@@ -45,7 +45,7 @@ async function main() {
         await decideApprovalRequest(submitted.approvalRequestId, step2.approverIds[0], "approved");
       }
       assert.equal((await tx.leaveRequest.findUniqueOrThrow({ where: { id: leave.id } })).status, "approved");
-      const { getLeaveBalance } = require("../packages/database/src/queries/leave-balances.ts");
+      const { getLeaveBalance } = require("../apps/admin/lib/database/queries/leave-balances.ts");
       assert.equal((await getLeaveBalance(employee.id, leaveType.id, 2199)).available, 28, "two working days deducted");
       assert.ok(await tx.notification.count({ where: { userId: accountant.id, entityId: leave.id } }), "the accountant is notified");
 

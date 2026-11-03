@@ -14,7 +14,7 @@ apps/*/.next/
 */.turbo/
 *.tsbuildinfo
 dist/
-packages/database/prisma/generated/
+apps/admin/prisma/generated/
 
 # ---> OS & System
 .DS_Store

@@ -3,10 +3,10 @@
 require("dotenv").config({ quiet: true });
 require("ts-node").register({ transpileOnly: true, skipProject: true, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true, resolveJsonModule: true } });
 const assert = require("node:assert/strict");
-const { db } = require("../packages/database/src/db.ts");
-const { transactionContext } = require("../packages/database/src/transaction-context.ts");
-const integrations = require("../packages/database/src/queries/integrations.ts");
-const analytics = require("../packages/database/src/queries/social-analytics.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
+const { transactionContext } = require("../apps/admin/lib/database/transaction-context.ts");
+const integrations = require("../apps/admin/lib/database/queries/integrations.ts");
+const analytics = require("../apps/admin/lib/database/queries/social-analytics.ts");
 
 const rollback = new Error("ROLLBACK_SOCIAL_TEST");
 const TOKEN = "EAAG-secret-token-123456";

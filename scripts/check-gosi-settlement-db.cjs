@@ -15,22 +15,22 @@ require("ts-node").register({
   },
 });
 const assert = require("node:assert/strict");
-const { db } = require("../packages/database/src/db.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
 const {
   transactionContext,
-} = require("../packages/database/src/transaction-context.ts");
-const { createEmployee } = require("../packages/database/src/queries/hrms.ts");
-const payroll = require("../packages/database/src/queries/payroll.ts");
-const settings = require("../packages/database/src/queries/hr-settings.ts");
-const gosi = require("../packages/database/src/queries/social-insurance.ts");
-const support = require("../packages/database/src/queries/support-programs.ts");
-const pure = require("../packages/database/src/hr/social-insurance.ts");
-const settlements = require("../packages/database/src/queries/final-settlements.ts");
+} = require("../apps/admin/lib/database/transaction-context.ts");
+const { createEmployee } = require("../apps/admin/lib/database/queries/hrms.ts");
+const payroll = require("../apps/admin/lib/database/queries/payroll.ts");
+const settings = require("../apps/admin/lib/database/queries/hr-settings.ts");
+const gosi = require("../apps/admin/lib/database/queries/social-insurance.ts");
+const support = require("../apps/admin/lib/database/queries/support-programs.ts");
+const pure = require("../apps/admin/lib/database/hr/social-insurance.ts");
+const settlements = require("../apps/admin/lib/database/queries/final-settlements.ts");
 const {
   decideApprovalRequest,
   findPendingApproval,
-} = require("../packages/database/src/services/approval-engine.ts");
-const engine = require("../packages/database/src/hr/payroll-engine.ts");
+} = require("../apps/admin/lib/database/services/approval-engine.ts");
+const engine = require("../apps/admin/lib/database/hr/payroll-engine.ts");
 
 const rollback = new Error("ROLLBACK_GOSI_TEST");
 const close = (actual, expected, message) =>
@@ -110,7 +110,7 @@ async function main() {
     46.2,
     "component wage can include a social allowance without changing the gross registered wage",
   );
-  const gratuity = require("../packages/database/src/hr/final-settlement.ts");
+  const gratuity = require("../apps/admin/lib/database/hr/final-settlement.ts");
   assert.ok(
     gratuity.leavingIndemnity({
       rules: { ...gratuity.DEFAULT_GRATUITY_RULES, enabled: true, appliesTo: ["expat"], serviceUntil: "2024-02-29" },
@@ -441,7 +441,7 @@ async function main() {
             "8% of the registered 1,000, unemployment waived",
           );
           const claims =
-            await require("../packages/database/src/queries/support-claims.ts").getSupportClaims();
+            await require("../apps/admin/lib/database/queries/support-claims.ts").getSupportClaims();
           assert.ok(
             claims.length === 0 || claims.every((c) => c.accrued >= 0),
             "support claims read the months' support lines",
@@ -758,7 +758,7 @@ async function main() {
             "the loan is closed",
           );
           const claimRows =
-            await require("../packages/database/src/queries/support-claims.ts").getSupportClaims();
+            await require("../apps/admin/lib/database/queries/support-claims.ts").getSupportClaims();
           const customClaim = claimRows.find(
             (c) =>
               c.employeeId === local.id &&

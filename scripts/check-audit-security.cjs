@@ -1,4 +1,4 @@
-require("ts-node").register({ moduleTypes: { "../packages/config/src/**/*.ts": "cjs", "packages/config/src/**/*.ts": "cjs" }, transpileOnly: true, skipProject: true, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true, resolveJsonModule: true } });
+require("ts-node").register({ moduleTypes: { "../apps/admin/lib/config/**/*.ts": "cjs", "../apps/admin/lib/config/**/*.ts": "cjs" }, transpileOnly: true, skipProject: true, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true, resolveJsonModule: true } });
 const { realConstants } = require("./lib/real-constants.cjs");
 // Exercise actual server-action boundaries without a network or database.
 const assert = require("node:assert/strict");
@@ -11,7 +11,7 @@ function load(file, mocks) {
   mocks["../../lib/action-input"] ??= require("../apps/admin/lib/action-input.ts");
   mocks["../services/uploads"] ??= { claimUpload: async () => ({ fileSize: 1, mimeType: "application/pdf" }) };
   // Modules come from the system service; by default every module follows its catalogue default.
-  if (mocks["../db"]) mocks["./features"] ??= { isFeatureEnabled: async (key) => require("../packages/database/src/constants/features.ts").moduleOnByDefault(key), getFeatureToggles: async () => [] };
+  if (mocks["../db"]) mocks["./features"] ??= { isFeatureEnabled: async (key) => require("../apps/admin/lib/database/constants/features.ts").moduleOnByDefault(key), getFeatureToggles: async () => [] };
 
   const module = { exports: {} };
   vm.runInNewContext(
@@ -196,9 +196,9 @@ async function main() {
     users.updateUserAction("t", { password: "short" }),
     /Password must/,
   );
-  const translations = require("../packages/locales/src/common.cjs").withCommonCopy(require("../packages/locales/src/en.json"), "web", require("../packages/locales/src/common.cjs").commonEn);
+  const translations = require("../apps/admin/locales/common.cjs").withCommonCopy(require("../apps/admin/locales/en.json"), "web", require("../apps/admin/locales/common.cjs").commonEn);
   const emailTemplates = load(
-    "packages/email/src/templates/html-templates.ts",
+    "../apps/admin/lib/email/templates/html-templates.ts",
     { "@platform/locales": { getTranslations: () => translations } },
   );
   const hostile = "<img src=x onerror=alert(1)>";
@@ -300,7 +300,7 @@ async function main() {
   for (const url of [null, "https://external.invalid/stamp.png", "/brand/configured.png", "/api/files/brand/../../secret.png", "/api/files/brand/escape.png", "/api/files/brand/logo.svg"])
     assert.equal(await asset.resolveConfiguredPdfAsset(url), undefined);
   assert.deepEqual(await asset.resolveConfiguredPdfAsset("/api/files/brand/configured.png"), configured);
-  const brokenReads = load("packages/database/src/queries/banners.ts", {
+  const brokenReads = load("../apps/admin/lib/database/queries/banners.ts", {
     "../db": {
       db: {
         heroBanner: {
@@ -314,7 +314,7 @@ async function main() {
   await assert.rejects(brokenReads.getActiveBanners(), /Database unavailable/);
   await assert.rejects(brokenReads.getAllBanners(), /Database unavailable/);
   const brokenPermissions = load(
-    "packages/database/src/queries/permissions.ts",
+    "../apps/admin/lib/database/queries/permissions.ts",
     {
       "../db": {
         db: {

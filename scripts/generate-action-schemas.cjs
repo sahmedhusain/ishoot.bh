@@ -21,7 +21,7 @@ function visitDirectory(directory) {
     }
   }
 }
-visitDirectory('packages/database/src'); visitDirectory('apps/admin/app/actions');
+visitDirectory('../apps/admin/lib/database'); visitDirectory('apps/admin/app/actions');
 function members(nodes) {
   const fields = {};
   for (const field of nodes) if (ts.isPropertySignature(field)) fields[field.name.getText().replaceAll('"', '')] = { ...schema(field.type), optional: !!field.questionToken };

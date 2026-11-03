@@ -1,10 +1,10 @@
 import { describe, expect, test } from "vitest";
 import { DEMO_PRESETS, demoPreset } from "../../../../company/seed/demo-presets";
-import { ACTIVITY_PRESETS, BUSINESS_ACTIVITIES } from "../../../../packages/database/src/website-presets";
-import { DEFAULT_FEATURE_MODULES } from "../../../../packages/database/src/constants/features";
-import { STYLE_PRESETS } from "../../../../packages/database/src/constants/theme";
-import { validateWebsiteConfig } from "../../../../packages/database/src/website-config";
-import { ACTIVITY_SAMPLES } from "../../../../packages/database/src/samples/activity-samples";
+import { ACTIVITY_PRESETS, BUSINESS_ACTIVITIES } from "@platform/database/website-presets";
+import { DEFAULT_FEATURE_MODULES } from "@platform/database/constants/features";
+import { STYLE_PRESETS } from "@platform/database/constants/theme";
+import { validateWebsiteConfig } from "@platform/database/website-config";
+import { ACTIVITY_SAMPLES } from "@platform/database/samples/activity-samples";
 
 describe("company demo presets", () => {
   test("every business preset has valid content, settings and recommended modules", () => {

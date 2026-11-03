@@ -22,12 +22,12 @@ require("ts-node").register({
     moduleResolution: "Node",
   },
 });
-const { db } = require("../packages/database/src/db.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
 const {
   getWebsiteEditor,
-} = require("../packages/database/src/queries/website.ts");
+} = require("../apps/admin/lib/database/queries/website.ts");
 const bcrypt = createRequire(
-  require.resolve("../packages/database/package.json"),
+  require.resolve("../apps/admin/package.json"),
 )("bcryptjs");
 const prefix = "http-followup-" + randomUUID();
 let user, company, banner, website, invoice;

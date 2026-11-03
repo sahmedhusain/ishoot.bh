@@ -1,8 +1,8 @@
 require('dotenv').config({ quiet: true });
 require('ts-node').register({ transpileOnly: true, skipProject: true, compilerOptions: { module: 'CommonJS', target: 'ES2022', moduleResolution: 'Node', esModuleInterop: true, resolveJsonModule: true } });
-const { db } = require('../packages/database/src/db.ts');
-const { processEmailJobs } = require('../packages/database/src/services/email-outbox.ts');
-const { sendEmail } = require('../packages/email/src/index.ts');
+const { db } = require('../apps/admin/lib/database/db.ts');
+const { processEmailJobs } = require('../apps/admin/lib/database/services/email-outbox.ts');
+const { sendEmail } = require('../apps/admin/lib/email/index.ts');
 let stopped = false;
 process.on('SIGINT', () => { stopped = true }); process.on('SIGTERM', () => { stopped = true });
 async function main() {

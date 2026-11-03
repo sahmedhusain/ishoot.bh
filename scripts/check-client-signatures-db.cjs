@@ -6,12 +6,12 @@ require("ts-node").register({ transpileOnly: true, skipProject: true, compilerOp
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const { db } = require("../packages/database/src/db.ts");
-const { transactionContext } = require("../packages/database/src/transaction-context.ts");
-const cs = require("../packages/database/src/queries/client-signatures.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
+const { transactionContext } = require("../apps/admin/lib/database/transaction-context.ts");
+const cs = require("../apps/admin/lib/database/queries/client-signatures.ts");
 const { fixtureUpload, removeFixtureUploads } = require("./lib/upload-fixtures.cjs");
-const { lookupFile } = require("../packages/api-client/src/files.ts");
-const { samplePdf } = require("../packages/database/src/services/sample-files.ts");
+const { lookupFile } = require("../apps/admin/lib/api/files.ts");
+const { samplePdf } = require("../apps/admin/lib/database/services/sample-files.ts");
 
 const rollback = new Error("ROLLBACK_CLIENT_SIGNATURE_TEST");
 const consent = (language, number, type) => `consent:${language}:${type}:${number}`;

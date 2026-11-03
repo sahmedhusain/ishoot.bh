@@ -4,11 +4,11 @@
 require("dotenv").config({ quiet: true });
 require("ts-node").register({ transpileOnly: true, skipProject: true, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true, resolveJsonModule: true } });
 const assert = require("node:assert/strict");
-const { db } = require("../packages/database/src/db.ts");
-const { transactionContext } = require("../packages/database/src/transaction-context.ts");
-const ec = require("../packages/database/src/queries/employee-credentials.ts");
-const { sendExpiryReminders } = require("../packages/database/src/services/expiry-reminders.ts");
-const { expiryStatus, monthlyCost, needsWorkVisa } = require("../packages/database/src/constants/employee-documents.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
+const { transactionContext } = require("../apps/admin/lib/database/transaction-context.ts");
+const ec = require("../apps/admin/lib/database/queries/employee-credentials.ts");
+const { sendExpiryReminders } = require("../apps/admin/lib/database/services/expiry-reminders.ts");
+const { expiryStatus, monthlyCost, needsWorkVisa } = require("../apps/admin/lib/database/constants/employee-documents.ts");
 
 const rollback = new Error("ROLLBACK_RESIDENCY_TEST");
 const rejects = (promise, message) => assert.rejects(promise, (error) => error.message === message);
@@ -30,7 +30,7 @@ async function main() {
       const employee = await tx.employee.findFirstOrThrow({ where: { status: "active" } });
 
       // ---- identity
-      await rejects(ec.updateEmployeeIdentity(employee.id, { cpr_number: "123$" }), require("../packages/locales/src/index.ts").serverMessages.aCPRNumberHas9Digits);
+      await rejects(ec.updateEmployeeIdentity(employee.id, { cpr_number: "123$" }), require("../apps/admin/locales/index.ts").serverMessages.aCPRNumberHas9Digits);
       await rejects(ec.updateEmployeeIdentity(employee.id, { nationality: "XX" }), "Choose a country from the list");
       await rejects(ec.updateEmployeeIdentity(employee.id, { date_of_birth: inDays(5) }), "Enter a valid date of birth");
       await ec.updateEmployeeIdentity(employee.id, {

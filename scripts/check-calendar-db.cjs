@@ -14,11 +14,11 @@ require("ts-node").register({
   },
 });
 const assert = require("node:assert/strict");
-const { db } = require("../packages/database/src/db.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
 const {
   transactionContext,
-} = require("../packages/database/src/transaction-context.ts");
-const cal = require("../packages/database/src/queries/calendar.ts");
+} = require("../apps/admin/lib/database/transaction-context.ts");
+const cal = require("../apps/admin/lib/database/queries/calendar.ts");
 
 const rollback = new Error("ROLLBACK_CALENDAR_TEST");
 const D = (s) => new Date(`${s}T00:00:00Z`);

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { getTranslations } from "../../packages/locales/src";
+import { getAdminTranslations } from "../../../admin/locales";
 import {
   ORDER_CHANNELS,
   ORDER_PAYMENT_METHODS,
@@ -8,11 +8,11 @@ import {
   canMoveOrder,
   couponProblem,
   priceOrder,
-} from "../../packages/database/src/constants/store";
+} from "@platform/database/constants/store";
 import {
   ALL_RESOURCES,
   RESOURCE_FEATURES,
-} from "../../packages/database/src/constants/permissions";
+} from "@platform/database/constants/permissions";
 
 describe("store", () => {
   test("an order is priced lines, coupon, delivery, then VAT on the discounted goods and delivery", () => {
@@ -122,7 +122,7 @@ describe("store", () => {
     expect(ALL_RESOURCES).toContain("orders");
     expect(RESOURCE_FEATURES.orders).toBe("store");
     for (const locale of ["en", "ar"] as const) {
-      const t = getTranslations(locale).admin as unknown as {
+      const t = getAdminTranslations(locale) as unknown as {
         orders: {
           statuses: Record<string, string>;
           channels: Record<string, string>;

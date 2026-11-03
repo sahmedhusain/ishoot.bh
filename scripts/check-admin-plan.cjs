@@ -30,8 +30,8 @@ function loadTs(file, mocks) {
     exports: mod.exports,
     require: (id) => {
       id = ((i, m) => i in m ? i : (i.startsWith('@platform/database/') && '@platform/database' in m ? '@platform/database' : i))(id, mocks);
-      if (id === "../finance/company-currency" && !(id in mocks)) return loadTs("packages/database/src/finance/company-currency.ts", { "../db": mocks["../db"] });
-      if (id === "./contact-validation" && !(id in mocks)) return loadTs("packages/database/src/queries/contact-validation.ts", { "../db": mocks["../db"] });
+      if (id === "../finance/company-currency" && !(id in mocks)) return loadTs("../apps/admin/lib/database/finance/company-currency.ts", { "../db": mocks["../db"] });
+      if (id === "./contact-validation" && !(id in mocks)) return loadTs("../apps/admin/lib/database/queries/contact-validation.ts", { "../db": mocks["../db"] });
       if (id in mocks) return mocks[id];
       if (id.startsWith("node:")) return require(id);
       const real = realConstants(file, id);
@@ -77,7 +77,7 @@ async function runTests() {
   const leaveStartDate = new Date("2026-10-10T00:00:00.000Z");
   const leaveEndDate = new Date("2026-10-20T23:59:59.999Z");
 
-  const leaveQueries = loadTs("packages/database/src/queries/leave.ts", {
+  const leaveQueries = loadTs("../apps/admin/lib/database/queries/leave.ts", {
     // Leave rules and balances are not used by the availability checks below.
     "./hr-settings": { getHrPolicy: async () => ({}), holidaySet: async () => new Set(), listLeaveTypeRules: async () => [], toLeaveTypeRules: (row) => row },
     "./leave-balances": { getLeaveBalance: async () => ({}), refreshLeaveBalanceCache: async () => { } },
@@ -203,7 +203,7 @@ async function runTests() {
       _sum: sumFields(rows.filter((row) => row[args.by[0]] === key), args._sum),
     }));
 
-  const reportQueries = loadTs("packages/database/src/queries/finance-reports.ts", {
+  const reportQueries = loadTs("../apps/admin/lib/database/queries/finance-reports.ts", {
     "../db": {
       db: {
         companySetting: { findUniqueOrThrow: async () => ({ defaultCurrency: "BHD" }) },
@@ -271,7 +271,7 @@ async function runTests() {
   let createdInvoice = null;
 
   let locks = 0;
-  const quotationConversionQueries = loadTs("packages/database/src/queries/quotations.ts", {
+  const quotationConversionQueries = loadTs("../apps/admin/lib/database/queries/quotations.ts", {
     "../db": {
       runAtomicMutation: async (fn) => fn(),
       db: {
@@ -341,7 +341,7 @@ async function runTests() {
     { id: "sa-1", role: "super_admin", is_active: true },
   ];
 
-  const userQueries = loadTs("packages/database/src/queries/users.ts", {
+  const userQueries = loadTs("../apps/admin/lib/database/queries/users.ts", {
     "../db": {
       db: {
         user: {

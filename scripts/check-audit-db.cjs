@@ -21,12 +21,12 @@ require("ts-node").register({
     esModuleInterop: true,
   },
 });
-const { db } = require("../packages/database/src/db.ts");
-const finance = require("../packages/database/src/queries/finance.ts");
-const permissions = require("../packages/database/src/queries/permissions.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
+const finance = require("../apps/admin/lib/database/queries/finance.ts");
+const permissions = require("../apps/admin/lib/database/queries/permissions.ts");
 const {
   getCompanySettings,
-} = require("../packages/database/src/queries/company-settings.ts");
+} = require("../apps/admin/lib/database/queries/company-settings.ts");
 const prefix = `audit-${randomUUID()}`;
 let sourceBytes = 0,
   reads = 0;
@@ -55,7 +55,7 @@ for (const [module, func] of [
   ["payments", "getAllPayments"],
   ["expenses", "getAllExpenses"],
 ]) {
-  const original = require(`../packages/database/src/queries/${module}.ts`)[
+  const original = require(`../apps/admin/lib/database/queries/${module}.ts`)[
     func
   ];
   boundary[`./${module}`] = {
@@ -72,7 +72,7 @@ const legacyCode = ts.transpileModule(
     "git",
     [
       "show",
-      "447326d282b186d7adc12cf7f0bfea5ed6e96c7c:packages/database/src/queries/finance.ts",
+      "447326d282b186d7adc12cf7f0bfea5ed6e96c7c:../apps/admin/lib/database/queries/finance.ts",
     ],
     { encoding: "utf8" },
   ),
@@ -93,7 +93,7 @@ vm.runInNewContext(legacyCode, {
 async function main() {
   await assert.rejects(getCompanySettings(), /settings are missing/);
   await db.companySetting.create({ data: { companyNameEn: prefix, companyNameAr: prefix, defaultCurrency: "BHD" } });
-  const { ALL_ROLES } = require("../packages/database/src/queries/permissions.ts");
+  const { ALL_ROLES } = require("../apps/admin/lib/database/queries/permissions.ts");
   await db.role.createMany({ data: [...ALL_ROLES, prefix].map(id => ({ id, nameEn: id, nameAr: id, isSystem: true })), skipDuplicates: true });
   // Compare against the previous algorithm using real Decimal/date/relation records.
   const invoices = [
@@ -234,7 +234,7 @@ async function main() {
   const {
     createMinuteOfMeeting,
     approveAndSignMom,
-  } = require("../packages/database/src/queries/moms.ts");
+  } = require("../apps/admin/lib/database/queries/moms.ts");
   const momInput = {
     title: prefix,
     meetingDate: "2026-10-04",
@@ -252,7 +252,7 @@ async function main() {
     meetings[1].mom_number,
     "simultaneous meeting numbers must be distinct",
   );
-  const { createUser } = require("../packages/database/src/queries/users.ts");
+  const { createUser } = require("../apps/admin/lib/database/queries/users.ts");
   const signer = await createUser({
     full_name: "Test signer",
     email: `${prefix.toUpperCase()}@EXAMPLE.INVALID`,
@@ -263,7 +263,7 @@ async function main() {
   const {
     getSessionByToken,
     createSession,
-  } = require("../packages/database/src/queries/sessions.ts");
+  } = require("../apps/admin/lib/database/queries/sessions.ts");
   await db.user.update({
     where: { id: signer.id },
     data: { signatureUrl: "/configured-signature.png" },

@@ -1,4 +1,4 @@
-import { serverMessages } from "@platform/locales";
+import { serverMessages } from "../locales";
 import { Webhook } from "svix";
 export function verifyResendWebhook(
   payload: string,

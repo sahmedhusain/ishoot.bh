@@ -14,26 +14,26 @@ require("ts-node").register({
   },
 });
 const assert = require("node:assert/strict");
-const { db } = require("../packages/database/src/db.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
 const {
   transactionContext,
-} = require("../packages/database/src/transaction-context.ts");
-const { createEmployee } = require("../packages/database/src/queries/hrms.ts");
+} = require("../apps/admin/lib/database/transaction-context.ts");
+const { createEmployee } = require("../apps/admin/lib/database/queries/hrms.ts");
 const {
   submitForApproval,
   decideApprovalRequest,
-} = require("../packages/database/src/services/approval-engine.ts");
+} = require("../apps/admin/lib/database/services/approval-engine.ts");
 const {
   APPROVAL_TARGET_TYPES,
-} = require("../packages/database/src/constants/approvals.ts");
-require("../packages/database/src/queries/assets.ts"); // registers the asset handover decision handler
-require("../packages/database/src/queries/employee-handovers.ts"); // and the employee handover one
+} = require("../apps/admin/lib/database/constants/approvals.ts");
+require("../apps/admin/lib/database/queries/assets.ts"); // registers the asset handover decision handler
+require("../apps/admin/lib/database/queries/employee-handovers.ts"); // and the employee handover one
 
-require("../packages/database/src/queries/final-settlements.ts");
-require("../packages/database/src/queries/announcements.ts");
-require("../packages/database/src/queries/official-letters.ts");
+require("../apps/admin/lib/database/queries/final-settlements.ts");
+require("../apps/admin/lib/database/queries/announcements.ts");
+require("../apps/admin/lib/database/queries/official-letters.ts");
 
-require("../packages/database/src/queries/procurement.ts");
+require("../apps/admin/lib/database/queries/procurement.ts");
 
 const rollback = new Error("ROLLBACK_APPROVAL_FLOWS_TEST");
 

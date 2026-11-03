@@ -95,7 +95,7 @@ for (const file of sources) {
   });
 }
 const schema = fs.readFileSync(
-  path.join(root, "packages/database/prisma/schema.prisma"),
+  path.join(root, "apps/admin/prisma/schema.prisma"),
   "utf8",
 );
 const models = [...schema.matchAll(/model\s+(\w+)\s*\{([\s\S]*?)\n\}/g)].map(

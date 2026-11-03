@@ -1,7 +1,7 @@
 process.env.DATABASE_URL ??= "postgresql://test:test@127.0.0.1:54322/test";
 require("ts-node").register({
   transpileOnly: true,
-  skipProject: true, moduleTypes: { "packages/config/src/**/*.ts": "cjs" },
+  skipProject: true, moduleTypes: { "../apps/admin/lib/config/**/*.ts": "cjs" },
   compilerOptions: {
     module: "CommonJS",
     target: "ES2022",
@@ -11,7 +11,7 @@ require("ts-node").register({
   },
 });
 const assert = require("node:assert/strict");
-const { formatMessage } = require("../packages/locales/src/format-message.ts");
+const { formatMessage } = require("../apps/admin/locales/format-message.ts");
 assert.equal(
   formatMessage("{companyName} / {companyName}", {
     companyName: "Alpha $& {number}",
@@ -36,7 +36,7 @@ assert.throws(
 const {
   generateFinancialSummaryCsv,
   generateFinancialDetailCsv,
-} = require("../packages/database/src/queries/finance-reports.ts");
+} = require("../apps/admin/lib/database/queries/finance-reports.ts");
 const report = {
   basis: "cash",
   reportingCurrency: "BHD",

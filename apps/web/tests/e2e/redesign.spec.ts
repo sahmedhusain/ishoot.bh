@@ -5,7 +5,7 @@ import { admin, testDatabase, watchErrors } from "../../helpers";
 import {
   defaultWebsiteCommerce,
   type PublicBranch,
-} from "../../../../packages/database/src/constants/website-commerce";
+} from "@platform/database/constants/website-commerce";
 import {
   enableStore,
   freshStockedProduct,
@@ -14,9 +14,9 @@ import {
 import {
   INDUSTRY_PAGES,
   industryPageBlocks,
-} from "../../../../packages/database/src/cms/industry-pages";
-import { newBlockData } from "../../../../packages/database/src/cms/blocks";
-import { defaultWebsiteDesign } from "../../../../packages/database/src/constants/website-design";
+} from "@platform/database/cms/industry-pages";
+import { newBlockData } from "@platform/database/cms/blocks";
+import { defaultWebsiteDesign } from "@platform/database/constants/website-design";
 import { getModule, setModule } from "../../modules";
 import { setIntegration } from "../../integrations";
 

@@ -82,8 +82,8 @@ async function main() {
   await confirm();
 
   // Drops every table in the schema and re-applies all migrations from scratch.
-  run(path.join(root, "node_modules/.bin/prisma"), ["migrate", "reset", "--force", "--skip-seed", "--skip-generate", "--schema", "packages/database/prisma/schema.prisma"]);
-  run(path.join(root, "node_modules/.bin/prisma"), ["generate", "--schema", "packages/database/prisma/schema.prisma"]);
+  run(path.join(root, "node_modules/.bin/prisma"), ["migrate", "reset", "--force", "--skip-seed", "--skip-generate", "--schema", "apps/admin/prisma/schema.prisma"]);
+  run(path.join(root, "node_modules/.bin/prisma"), ["generate", "--schema", "apps/admin/prisma/schema.prisma"]);
   resetFilesService();
 
   if (mode === "empty") {

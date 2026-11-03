@@ -41,7 +41,7 @@ function terms() {
       add(theme.primary, `${why} theme colour`);
       add(theme.accent, `${why} theme colour`);
       // A typeface the platform offers to every company (theme.ts LICENSED_FONTS) is not company identity.
-      const offered = fs.readFileSync(path.join(root, "packages/database/src/constants/theme.ts"), "utf8").split("export const LICENSED_FONTS")[1]?.split("] as const")[0] ?? "";
+      const offered = fs.readFileSync(path.join(root, "../apps/admin/lib/database/constants/theme.ts"), "utf8").split("export const LICENSED_FONTS")[1]?.split("] as const")[0] ?? "";
       for (const font of Object.values(theme.fonts ?? {})) if (font?.kind === "upload" && !offered.includes(`"${font.family}"`)) add(font.family.split(" ")[0], `${why} font`);
     }
   }

@@ -3,12 +3,12 @@
 require("dotenv").config({ quiet: true });
 require("ts-node").register({ transpileOnly: true, skipProject: true, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true, resolveJsonModule: true } });
 const assert = require("node:assert/strict");
-const { db } = require("../packages/database/src/db.ts");
-const { transactionContext } = require("../packages/database/src/transaction-context.ts");
-const sig = require("../packages/database/src/queries/signature-changes.ts");
-const { submitForApproval, decideApprovalRequest } = require("../packages/database/src/services/approval-engine.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
+const { transactionContext } = require("../apps/admin/lib/database/transaction-context.ts");
+const sig = require("../apps/admin/lib/database/queries/signature-changes.ts");
+const { submitForApproval, decideApprovalRequest } = require("../apps/admin/lib/database/services/approval-engine.ts");
 const { fixtureUpload, removeFixtureUploads } = require("./lib/upload-fixtures.cjs");
-const { SAMPLE_RECEIPT_JPEG } = require("../packages/database/src/services/sample-files.ts");
+const { SAMPLE_RECEIPT_JPEG } = require("../apps/admin/lib/database/services/sample-files.ts");
 // A real 1x1 PNG: uploads are checked against the stored bytes when claimed.
 const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==", "base64");
 

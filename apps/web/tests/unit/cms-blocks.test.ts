@@ -1,17 +1,17 @@
 import { describe, expect, test } from "vitest";
-import { getTranslations } from "../../packages/locales/src";
+import { getAdminTranslations } from "../../../admin/locales";
 import {
   BLOCK_TYPES,
   embedSource,
   newBlockData,
   videoSource,
-} from "../../packages/database/src/cms/blocks";
-import { validateBlocks } from "../../packages/database/src/queries/cms-pages";
+} from "@platform/database/cms/blocks";
+import { validateBlocks } from "@platform/database/queries/cms-pages";
 
 describe("website page blocks", () => {
   test("every block type has a name in both languages and starting data", () => {
     for (const locale of ["en", "ar"] as const) {
-      const names = getTranslations(locale).admin.cmsPages.types as Record<
+      const names = getAdminTranslations(locale).cmsPages.types as Record<
         string,
         string
       >;

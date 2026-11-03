@@ -17,26 +17,26 @@ require("ts-node").register({
     jsx: "react",
   },
 });
-const { db } = require("../packages/database/src/db.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
 const {
   resolveIncomingLead,
-} = require("../packages/database/src/services/lead-resolver.ts");
-const { getReviews } = require("../packages/database/src/queries/reviews.ts");
+} = require("../apps/admin/lib/database/services/lead-resolver.ts");
+const { getReviews } = require("../apps/admin/lib/database/queries/reviews.ts");
 const {
   getAllInquiries,
-} = require("../packages/database/src/queries/inquiries.ts");
+} = require("../apps/admin/lib/database/queries/inquiries.ts");
 const {
   getCustomerDossier,
-} = require("../packages/database/src/queries/crm.ts");
+} = require("../apps/admin/lib/database/queries/crm.ts");
 const {
   getWebsiteEditor,
   getWebsiteSnapshot,
-} = require("../packages/database/src/queries/website.ts");
+} = require("../apps/admin/lib/database/queries/website.ts");
 const {
   defaultWebsiteConfig,
   validateWebsiteConfig,
   safeWebsiteUrl,
-} = require("../packages/database/src/website-config.ts");
+} = require("../apps/admin/lib/database/website-config.ts");
 async function main() {
   const key = randomUUID();
   const email = `website-${key}@example.invalid`;
@@ -129,7 +129,7 @@ async function main() {
   const content = await getWebsiteEditor();
   if (!content.published) {
     await assert.rejects(getWebsiteSnapshot(), /setup is incomplete/);
-    const { collectWebsiteDraft } = require("../packages/database/src/queries/website.ts");
+    const { collectWebsiteDraft } = require("../apps/admin/lib/database/queries/website.ts");
     await db.websiteContent.update({ where: { id: "main" }, data: { published: JSON.parse(JSON.stringify(await collectWebsiteDraft(defaultWebsiteConfig))), publishedAt: new Date() } });
   }
   const old = await getWebsiteSnapshot();

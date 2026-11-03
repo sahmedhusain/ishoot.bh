@@ -19,16 +19,16 @@ const bcrypt = require(
     paths: [path.resolve(__dirname, "../packages/database")],
   }),
 );
-const { db } = require("../packages/database/src/db.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
 const {
   transactionContext,
-} = require("../packages/database/src/transaction-context.ts");
-const security = require("../packages/database/src/queries/account-security.ts");
-const mfa = require("../packages/database/src/services/mfa.ts");
+} = require("../apps/admin/lib/database/transaction-context.ts");
+const security = require("../apps/admin/lib/database/queries/account-security.ts");
+const mfa = require("../apps/admin/lib/database/services/mfa.ts");
 const {
   toNewNotification,
-} = require("../packages/database/src/services/notification-handover.ts");
-const profile = require("../packages/database/src/queries/profile-changes.ts");
+} = require("../apps/admin/lib/database/services/notification-handover.ts");
+const profile = require("../apps/admin/lib/database/queries/profile-changes.ts");
 const rollback = new Error("ROLLBACK_PROFILE_SECURITY");
 process.env.MFA_ENCRYPTION_KEY = crypto.randomBytes(32).toString("base64");
 function unbase32(value) {

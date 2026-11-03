@@ -4,7 +4,7 @@ import { describe, expect, test } from "vitest";
 import {
   normalizeTheme,
   themeWarnings,
-} from "../../../../packages/database/src/constants/theme";
+} from "@platform/database/constants/theme";
 import { detectFileType } from "../../../../contracts/src";
 
 const root = path.resolve(__dirname, "../../../../");
@@ -30,7 +30,7 @@ const schemaFields = new Set(
   [
     ...fs
       .readFileSync(
-        path.join(root, "packages/database/prisma/schema.prisma"),
+        path.join(root, "apps/admin/prisma/schema.prisma"),
         "utf8",
       )
       .match(/model CompanySetting \{([\s\S]*?)\n\}/)![1]

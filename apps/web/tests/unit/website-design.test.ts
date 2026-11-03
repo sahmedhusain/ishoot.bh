@@ -6,44 +6,44 @@ import {
   siteBaseTone,
   siteThemeBootstrap,
   validateWebsiteDesign,
-} from "../../packages/database/src/constants/website-design";
+} from "@platform/database/constants/website-design";
 import {
   defaultWebsiteConfig,
   resolveWebsiteConfig,
   validateWebsiteConfig,
-} from "../../packages/database/src/website-config";
+} from "@platform/database/website-config";
 import {
   defaultWebsiteCommerce,
   selectedPickupBranch,
   pickupAvailable,
   validateWebsiteCommerce,
   type PublicBranch,
-} from "../../packages/database/src/constants/website-commerce";
-import { newBlockData } from "../../packages/database/src/cms/blocks";
-import { validateBlocks } from "../../packages/database/src/queries/cms-pages";
+} from "@platform/database/constants/website-commerce";
+import { newBlockData } from "@platform/database/cms/blocks";
+import { validateBlocks } from "@platform/database/queries/cms-pages";
 import {
   DEFAULT_THEME,
   websiteThemeStylesheet,
-} from "../../packages/database/src/constants/theme";
+} from "@platform/database/constants/theme";
 import {
   INDUSTRY_PAGES,
   industryPageBlocks,
-} from "../../packages/database/src/cms/industry-pages";
-import { BUSINESS_ACTIVITIES } from "../../packages/database/src/website-presets";
-import { validateWebsiteDocuments } from "../../packages/database/src/constants/website-documents";
+} from "@platform/database/cms/industry-pages";
+import { BUSINESS_ACTIVITIES } from "@platform/database/website-presets";
+import { validateWebsiteDocuments } from "@platform/database/constants/website-documents";
 import {
   catalogueQuery,
   searchCatalogue,
-} from "../../packages/database/src/constants/catalogue-search";
-import type { PortfolioItem } from "../../packages/database/src/types";
+} from "@platform/database/constants/catalogue-search";
+import type { PortfolioItem } from "@platform/database/types";
 import {
   promotionVisible,
   validateWebsitePromotions,
-} from "../../packages/database/src/constants/website-promotions";
+} from "@platform/database/constants/website-promotions";
 import {
   inquiryUploadToken,
   inquiryFromUploadToken,
-} from "../../packages/database/src/services/inquiry-upload-token";
+} from "@platform/database/services/inquiry-upload-token";
 
 describe("website design and commerce snapshots", () => {
   test("category hierarchies reject loops and excessive depth", () => {

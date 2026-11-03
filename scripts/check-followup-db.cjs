@@ -15,12 +15,12 @@ require("ts-node").register({
     moduleResolution: "Node",
   },
 });
-const { db } = require("../packages/database/src/db.ts");
-const requests = require("../packages/database/src/queries/inquiries.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
+const requests = require("../apps/admin/lib/database/queries/inquiries.ts");
 const {
   getCRMDealOverview,
   getCustomerDossier,
-} = require("../packages/database/src/queries/crm.ts");
+} = require("../apps/admin/lib/database/queries/crm.ts");
 const prefix = "followup-" + randomUUID();
 let actor, request, contact, savedWebsite;
 const publicationJobs = [];
@@ -35,7 +35,7 @@ async function main() {
       role: "super_admin",
     },
   });
-  const sessions = require("../packages/database/src/queries/sessions.ts");
+  const sessions = require("../apps/admin/lib/database/queries/sessions.ts");
   const rawToken = prefix + "-opaque-token";
   await sessions.createSession({
     userId: actor.id,
@@ -229,7 +229,7 @@ async function main() {
   assert.equal(overview.activePipelineValue, 110);
   const {
     processRevalidationJobs,
-  } = require("../packages/database/src/services/revalidation-outbox.ts");
+  } = require("../apps/admin/lib/database/services/revalidation-outbox.ts");
   const createJob = (suffix) =>
     db.revalidationJob.create({
       data: {
@@ -305,7 +305,7 @@ async function main() {
   console.log(
     "PASS: outbox retains delivery failures, retries successfully, concurrent workers claim distinct jobs and exhausted leases terminate.",
   );
-  const websiteQueries = require("../packages/database/src/queries/website.ts");
+  const websiteQueries = require("../apps/admin/lib/database/queries/website.ts");
   savedWebsite = await websiteQueries.getWebsiteEditor();
   const moduleBox = { exports: {} };
   const compiled = require("typescript").transpileModule(
@@ -316,17 +316,17 @@ async function main() {
     { compilerOptions: { module: 1, target: 9 } },
   ).outputText;
   const dependencies = {
-    "@platform/api-client": require("../packages/api-client/src/index.ts"),
+    "@platform/api-client": require("../apps/admin/lib/api/index.ts"),
     "node:crypto": require("node:crypto"),
-    "@platform/database": { db, runAtomicMutation: require("../packages/database/src/db.ts").runAtomicMutation, ...websiteQueries, requireFeatureEnabled: async () => { }, measureOperation: async (_name, fn) => fn() },
+    "@platform/database": { db, runAtomicMutation: require("../apps/admin/lib/database/db.ts").runAtomicMutation, ...websiteQueries, requireFeatureEnabled: async () => { }, measureOperation: async (_name, fn) => fn() },
     "../../lib/action-input": require("../apps/admin/lib/action-input.ts"),
-    "@platform/database/website-config": require("../packages/database/src/website-config.ts"),
+    "@platform/database/website-config": require("../apps/admin/lib/database/website-config.ts"),
     "../../lib/auth": { hasPermission: async () => true, requirePermission: async () => ({ id: actor.id }) },
     "next/cache": { revalidatePath: () => { } },
     "../../lib/revalidate-web": { revalidatePublicSite: async () => false },
     "../../lib/public-paths": { publicSitePaths: async () => ["/"] },
-    "@platform/locales": require("../packages/locales/src/index.ts"),
-    "../../constants/routes": require("../packages/database/src/constants/routes.ts"),
+    "@platform/locales": require("../apps/admin/locales/index.ts"),
+    "../../constants/routes": require("../apps/admin/lib/database/constants/routes.ts"),
   };
   require("node:vm").runInNewContext(compiled, {
     module: moduleBox,

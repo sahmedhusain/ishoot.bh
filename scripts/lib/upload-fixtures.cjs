@@ -1,7 +1,7 @@
 // Test uploads for the check suites. They go through the files service exactly like a user's upload (reserve an
 // address, send the bytes as that user), so the code under test claims them the real way. The suites roll their
 // database rows back; removeFixtureUploads deletes the files too. Needs the backend stack (API_URL, ADMIN_SERVICE_KEY).
-const files = require("../../packages/api-client/src/files.ts");
+const files = require("../apps/admin/lib/api/files.ts");
 
 const created = [];
 

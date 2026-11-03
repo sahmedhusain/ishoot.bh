@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { LANGUAGES } from "../../packages/locales/src/registry";
-import { getAdminTranslations, getTranslations } from "../../packages/locales/src";
-import { additionalTranslations, getCommonTranslations, getUiTranslations } from "../../packages/locales/src/additional";
-import { commonAr, commonEn, withCommonCopy, type CommonTranslations } from "../../packages/locales/src/common.cjs";
-import bindings from "../../packages/locales/src/common-bindings.json";
-import rawAdmin from "../../packages/locales/src/admin/en.json";
-import uiEnglish from "../../packages/locales/src/ui/en";
+import { LANGUAGES } from "@platform/locales/registry";
+import { getTranslations } from "@platform/locales";
+import { getAdminTranslations } from "../../../admin/locales";
+import { additionalTranslations, getCommonTranslations, getUiTranslations } from "@platform/locales/additional";
+import { commonAr, commonEn, withCommonCopy, type CommonTranslations } from "@platform/locales/common.cjs";
+import bindings from "@platform/locales/common-bindings.json";
+import rawAdmin from "../../../admin/locales/admin/en.json";
+import uiEnglish from "@platform/locales/ui/en";
 
 type Bindings = { [key: string]: string | Bindings };
 function expectBindings(dictionary: unknown, map: Bindings, common: CommonTranslations) {

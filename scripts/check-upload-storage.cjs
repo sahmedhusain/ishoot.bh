@@ -6,7 +6,7 @@ function load(file, mocks) { const module = { exports: {} }; vm.runInNewContext(
 // of uploads: permission before any claim, pending uploads are only verified, a failed or second claim never creates
 // an attachment, and uploaded images reach PDFs.
 async function main() {
-  const { ApiError, isApiError } = require('../packages/api-client/src/errors.ts');
+  const { ApiError, isApiError } = require('../apps/admin/lib/api/errors.ts');
   const contracts = require('../contracts/src/index.ts');
   let creates = 0, claims = 0, verifies = 0, access = 0, failure = null;
   const upload = { fileUrl: '/api/files/invoices/test.pdf', isPublic: false, fileSize: 123, mimeType: 'application/pdf', ownerId: 'u', fileName: 'test.pdf' };
@@ -41,7 +41,7 @@ async function main() {
   assert.equal(await resolveConfiguredPdfAsset('/api/files/brand/manual.pdf'), undefined, 'only images are drawn into PDFs');
   assert.equal(await resolveConfiguredPdfAsset('/api/files/brand/missing.webp'), undefined);
 
-  const { encryptIntegrationCredentials, decryptIntegrationCredentials } = require('../packages/database/src/services/integration-credentials.ts');
+  const { encryptIntegrationCredentials, decryptIntegrationCredentials } = require('../apps/admin/lib/database/services/integration-credentials.ts');
   delete process.env.ENCRYPTION_KEY; assert.throws(() => encryptIntegrationCredentials({ token: 'test' }), /Configure/);
   process.env.ENCRYPTION_KEY = 'a'.repeat(32);
   const sealed = encryptIntegrationCredentials({ token: 'test' }); assert.equal(decryptIntegrationCredentials(sealed).token, 'test'); assert.equal(decryptIntegrationCredentials(sealed + 'ff'), null);

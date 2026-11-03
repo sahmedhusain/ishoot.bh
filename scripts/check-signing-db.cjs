@@ -3,12 +3,12 @@
 require("dotenv").config({ quiet: true });
 require("ts-node").register({ transpileOnly: true, skipProject: true, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true, resolveJsonModule: true } });
 const assert = require("node:assert/strict");
-const { db } = require("../packages/database/src/db.ts");
-const { transactionContext } = require("../packages/database/src/transaction-context.ts");
-const { createQuotation, issueQuotation } = require("../packages/database/src/queries/quotations.ts");
-const { createInvoice, updateInvoiceStatus } = require("../packages/database/src/queries/invoices.ts");
-const { createPayment } = require("../packages/database/src/queries/payments.ts");
-const signing = require("../packages/database/src/queries/document-signing.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
+const { transactionContext } = require("../apps/admin/lib/database/transaction-context.ts");
+const { createQuotation, issueQuotation } = require("../apps/admin/lib/database/queries/quotations.ts");
+const { createInvoice, updateInvoiceStatus } = require("../apps/admin/lib/database/queries/invoices.ts");
+const { createPayment } = require("../apps/admin/lib/database/queries/payments.ts");
+const signing = require("../apps/admin/lib/database/queries/document-signing.ts");
 
 const rollback = new Error("ROLLBACK_SIGNING_TEST");
 
@@ -43,7 +43,7 @@ async function main() {
       await assert.rejects(updateInvoiceStatus(inv.id, "sent"), /approved/);
       const policy = await tx.approvalPolicy.findUnique({ where: { targetType: "invoice" } });
       const outcome = await signing.requestInvoiceApproval(inv.id, seller.id);
-      if (policy && policy.enabled) await require("../packages/database/src/services/approval-engine.ts").decideApprovalRequest(outcome.approvalRequestId, owner.id, "approved");
+      if (policy && policy.enabled) await require("../apps/admin/lib/database/services/approval-engine.ts").decideApprovalRequest(outcome.approvalRequestId, owner.id, "approved");
       assert.equal((await signing.getSigningState("invoice", inv.id)).approved, true);
       await assert.rejects(signing.requestInvoiceApproval(inv.id, seller.id), /already approved/);
       await signing.signDocument("invoice", inv.id, seller.id);

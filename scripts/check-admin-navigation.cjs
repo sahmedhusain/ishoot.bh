@@ -67,7 +67,7 @@ assert.equal(
   undefined,
 );
 for (const locale of ["en", "ar"]) {
-  const t = require("../packages/locales/src/admin/" + locale + ".json");
+  const t = require("../apps/admin/locales/admin/" + locale + ".json");
   function render(role, can, disabled = [], pathname = ROUTES.hr.payroll()) {
     const { Sidebar } = load("apps/admin/components/layout/Sidebar.tsx", {
       "next/link": ({ children, ...props }) =>

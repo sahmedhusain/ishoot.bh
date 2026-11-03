@@ -17,7 +17,7 @@ require("ts-node").register({
     moduleResolution: "Node",
   },
 });
-const { db } = require("../packages/database/src/db.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
 const keys = [];
 const email = `http-${randomUUID()}@example.invalid`;
 async function post(path, body) {

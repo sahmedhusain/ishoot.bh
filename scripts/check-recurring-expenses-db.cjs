@@ -4,9 +4,9 @@
 require("dotenv").config({ quiet: true });
 require("ts-node").register({ transpileOnly: true, skipProject: true, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true, resolveJsonModule: true } });
 const assert = require("node:assert/strict");
-const { db } = require("../packages/database/src/db.ts");
-const { transactionContext } = require("../packages/database/src/transaction-context.ts");
-const rx = require("../packages/database/src/queries/recurring-expenses.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
+const { transactionContext } = require("../apps/admin/lib/database/transaction-context.ts");
+const rx = require("../apps/admin/lib/database/queries/recurring-expenses.ts");
 
 const rollback = new Error("ROLLBACK_RECURRING_EXPENSES_TEST");
 const rejects = (promise, message) => assert.rejects(promise, (error) => error.message === message);

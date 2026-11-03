@@ -1,4 +1,4 @@
-require("ts-node").register({ transpileOnly: true, skipProject: true, moduleTypes: { "packages/config/src/**/*.ts": "cjs" }, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true, resolveJsonModule: true } });
+require("ts-node").register({ transpileOnly: true, skipProject: true, moduleTypes: { "../apps/admin/lib/config/**/*.ts": "cjs" }, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true, resolveJsonModule: true } });
 const { realConstants } = require("./lib/real-constants.cjs");
 // Run: node scripts/check-platform.cjs
 // Exercise source modules with boundary mocks; no production database writes.
@@ -15,7 +15,7 @@ function load(file, mocks) {
   mocks["@platform/api-client"] ??= { lookupFile: async () => null, lookupFiles: async () => [] };
   mocks["@platform/contracts"] ??= require("../contracts/src/index.ts");
   // Modules come from the system service; by default every module follows its catalogue default.
-  if (mocks["../db"]) mocks["./features"] ??= { isFeatureEnabled: async (key) => require("../packages/database/src/constants/features.ts").moduleOnByDefault(key), getFeatureToggles: async () => [] };
+  if (mocks["../db"]) mocks["./features"] ??= { isFeatureEnabled: async (key) => require("../apps/admin/lib/database/constants/features.ts").moduleOnByDefault(key), getFeatureToggles: async () => [] };
 
   const module = { exports: {} };
   const code = ts.transpileModule(fs.readFileSync(file, "utf8"), {
@@ -31,7 +31,7 @@ function load(file, mocks) {
     exports: module.exports,
     require: (id) => {
       id = ((i, m) => i in m ? i : (i.startsWith('@platform/database/') && '@platform/database' in m ? '@platform/database' : i))(id, mocks);
-      if (id === "../finance/company-currency" && !(id in mocks)) return load("packages/database/src/finance/company-currency.ts", { "../db": mocks["../db"] });
+      if (id === "../finance/company-currency" && !(id in mocks)) return load("../apps/admin/lib/database/finance/company-currency.ts", { "../db": mocks["../db"] });
       if (!(id in mocks)) { const real = realConstants(file, id); if (real) return real; throw new Error(`Unmocked dependency: ${id}`); }
       return mocks[id];
     },
@@ -79,7 +79,7 @@ async function main() {
 
   // Super Admin must survive stale denials, user overrides and disabled module rows.
   let storedGrant;
-  const permissionsApi = load("packages/database/src/queries/permissions.ts", {
+  const permissionsApi = load("../apps/admin/lib/database/queries/permissions.ts", {
     "./features": { isFeatureEnabled: async () => false, getFeatureToggles: async () => [{ moduleKey: "invoicing", isEnabled: false }] },
     "../db": {
       db: {
@@ -155,7 +155,7 @@ async function main() {
   await assert.rejects(settings.createSocialLinkAction({ platform: "website", url: "https://example.invalid" }), /denied/);
   assert.equal(mutation, false);
 
-  const types = load("packages/database/src/types.ts", { "@platform/config/currency": require("../packages/config/src/constants/currency.cjs") });
+  const types = load("../apps/admin/lib/database/types.ts", { "@platform/config/currency": require("../apps/admin/lib/config/constants/currency.cjs") });
   let deleted = false,
     usedTransaction = false;
   const invoice = {
@@ -203,7 +203,7 @@ async function main() {
     },
   };
   const numbering = { allocateDocumentNumber: async (kind) => (kind === "invoice" ? "INV-2026-0001" : "RCT-2026-0001") };
-  const invoices = load("packages/database/src/queries/invoices.ts", {
+  const invoices = load("../apps/admin/lib/database/queries/invoices.ts", {
     "../db": { db },
     "../finance/numbering": numbering,
     "../types": types,
@@ -229,7 +229,7 @@ async function main() {
     totalAmount: 100,
     payments: [],
   };
-  const payments = load("packages/database/src/queries/payments.ts", {
+  const payments = load("../apps/admin/lib/database/queries/payments.ts", {
     "../finance/vat": { mapDocumentTaxLines: () => [] },
     "../db": {
       db: {
@@ -266,7 +266,7 @@ async function main() {
   );
 
   // Money is settled in minor units: 0.7 + 0.1 pays an invoice of 0.8 in full.
-  const money = require("./lib/real-constants.cjs").realConstants("packages/database/src/queries/x.ts", "../finance/money");
+  const money = require("./lib/real-constants.cjs").realConstants("../apps/admin/lib/database/queries/x.ts", "../finance/money");
   assert.equal(money.isFullyPaid(0.8, 0.7 + 0.1, "BHD"), true);
   assert.equal(money.amountDue(0.8, 0.7 + 0.1, "BHD"), 0);
   assert.equal(money.paymentStatusFor(10, 3.3335, "BHD"), "partially_paid");
@@ -310,7 +310,7 @@ async function main() {
     },
   };
   const crm = load("apps/admin/app/actions/crm.ts", {
-    "@platform/database/finance/company-currency": load("packages/database/src/finance/company-currency.ts", { "../db": { db: tx } }),
+    "@platform/database/finance/company-currency": load("../apps/admin/lib/database/finance/company-currency.ts", { "../db": { db: tx } }),
     "../../lib/inquiry-access": { requireInquiryAccess: async () => user },
     "@platform/database": { db: { $transaction: async (fn) => fn(tx) } },
     "next/cache": { revalidatePath() { } },
@@ -393,7 +393,7 @@ async function main() {
       ),
     /line items/,
   );
-  const financial = load("packages/database/src/queries/finance.ts", {
+  const financial = load("../apps/admin/lib/database/queries/finance.ts", {
     // Dashboard profit uses the financial report's definition (net of VAT, payroll and fees included).
     "./finance-reports": {
       getFinancialSummaryReport: async () => ({

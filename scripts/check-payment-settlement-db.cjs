@@ -3,10 +3,10 @@ require("dotenv").config({ quiet: true });
 require("ts-node").register({ transpileOnly: true, skipProject: true, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true, resolveJsonModule: true } });
 const assert = require("node:assert/strict");
 const crypto = require("node:crypto");
-const { db } = require("../packages/database/src/db.ts");
-const { transactionContext } = require("../packages/database/src/transaction-context.ts");
-const { encryptIntegrationCredentials } = require("../packages/database/src/services/integration-credentials.ts");
-const { settleAttempt, handlePaymentWebhook, startOrderPayment } = require("../packages/database/src/queries/online-payments.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
+const { transactionContext } = require("../apps/admin/lib/database/transaction-context.ts");
+const { encryptIntegrationCredentials } = require("../apps/admin/lib/database/services/integration-credentials.ts");
+const { settleAttempt, handlePaymentWebhook, startOrderPayment } = require("../apps/admin/lib/database/queries/online-payments.ts");
 const rollback = new Error("ROLLBACK_PAYMENT_SETTLEMENT_TEST");
 const webhookSecret = "audit-webhook-secret-not-a-real-key";
 const originalFetch = global.fetch;
@@ -27,7 +27,7 @@ async function main() {
   assert.ok(["localhost", "127.0.0.1", "::1"].includes(url.hostname) && /_test$/.test(url.pathname), "Use a local disposable *_test database");
   try {
     await db.$transaction(tx => transactionContext.run(tx, async () => {
-      await require("../packages/database/src/queries/integrations.ts").saveIntegrationSettings(
+      await require("../apps/admin/lib/database/queries/integrations.ts").saveIntegrationSettings(
         "stripe",
         {
           isActive: true,

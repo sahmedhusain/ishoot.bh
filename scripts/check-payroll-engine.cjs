@@ -2,7 +2,7 @@
 // Payroll, attendance and leave arithmetic (no database).
 require("ts-node").register({ transpileOnly: true, skipProject: true, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true } });
 const assert = require("node:assert/strict");
-const e = require("../packages/database/src/hr/payroll-engine.ts");
+const e = require("../apps/admin/lib/database/hr/payroll-engine.ts");
 
 const D = (s) => new Date(`${s}T00:00:00Z`);
 const key = (d) => d.toISOString().slice(0, 10);

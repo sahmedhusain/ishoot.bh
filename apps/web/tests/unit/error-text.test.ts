@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { errorMessage } from "../../apps/admin/lib/error-text";
 import { adminTranslations } from "../../apps/admin/lib/translations-bilingual";
-import { publicError } from "../../packages/database/src/errors";
+import { publicError } from "../../lib/database/errors";
 
 it.each(["en", "ar"] as const)(
   "localizes public stock refusals after production masks their text (%s)",

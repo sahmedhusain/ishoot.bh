@@ -84,7 +84,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec prisma generate --schema packages/database/prisma/schema.prisma
+      - run: npm --prefix apps/admin run db:generate
       - uses: ./.github/actions/backend-stack
       - name: Prepare a bare and a seeded database (full demo volume)
         run: |

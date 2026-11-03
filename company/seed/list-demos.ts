@@ -1,5 +1,5 @@
 import { DEMO_PRESETS, demoPreset } from "./demo-presets";
-import { STYLE_PRESETS } from "../../packages/database/src/constants/theme";
+import { STYLE_PRESETS } from "../../apps/admin/lib/database/constants/theme";
 
 console.table(
   DEMO_PRESETS.map((id) => {

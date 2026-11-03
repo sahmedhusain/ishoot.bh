@@ -1,6 +1,6 @@
 import { createHash, generateKeyPairSync, sign, verify } from "node:crypto";
 import { describe, expect, test } from "vitest";
-import { getWebsiteTranslations } from "../../packages/locales/src";
+import { getWebsiteTranslations } from "@platform/locales";
 import {
   appleClientSecret,
   checkIdClaims,
@@ -11,7 +11,7 @@ import {
   safeNextPath,
   sealSignInState,
   verifyIdToken,
-} from "../../packages/database/src/services/oauth-signin";
+} from "@platform/database/services/oauth-signin";
 
 const b64 = (value: unknown) =>
   Buffer.from(JSON.stringify(value)).toString("base64url");

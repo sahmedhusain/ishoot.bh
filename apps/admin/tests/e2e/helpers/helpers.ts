@@ -157,7 +157,7 @@ export function testDatabase() {
   const { createRequire } =
     require("node:module") as typeof import("node:module");
   const { PrismaClient } = createRequire(
-    path.join(root, "packages/database/package.json"),
+    path.join(__dirname, "../../../package.json"),
   )("@prisma/client");
   const url = new URL(
     process.env.DIRECT_URL ||

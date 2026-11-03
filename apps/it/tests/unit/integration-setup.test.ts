@@ -1,12 +1,12 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import en from "../../../../packages/locales/src/admin/en";
-import ar from "../../../../packages/locales/src/admin/ar";
+import en from "@platform/locales/admin/en";
+import ar from "@platform/locales/admin/ar";
 import {
   INTEGRATION_PROVIDERS,
   integrationSetupLinks,
-} from "../../../../packages/database/src/constants/integrations";
+} from "@platform/database/constants/integrations";
 
 const apiClient = vi.hoisted(() => ({
   getIntegration: vi.fn(),
@@ -16,15 +16,15 @@ vi.mock("@platform/api-client", () => ({
   getIntegration: apiClient.getIntegration,
   setIntegration: apiClient.setIntegration,
 }));
-vi.mock("../../../../packages/api-client", () => ({
+vi.mock("@platform/api-client", () => ({
   getIntegration: apiClient.getIntegration,
   setIntegration: apiClient.setIntegration,
 }));
-vi.mock("../../../../packages/api-client/src", () => ({
+vi.mock("@platform/api-client", () => ({
   getIntegration: apiClient.getIntegration,
   setIntegration: apiClient.setIntegration,
 }));
-import { saveIntegrationSettings } from "../../../../packages/database/src/queries/integrations";
+import { saveIntegrationSettings } from "@platform/database/queries/integrations";
 beforeEach(() => {
   vi.resetAllMocks();
   apiClient.getIntegration.mockResolvedValue(null);

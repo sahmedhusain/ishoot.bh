@@ -5,32 +5,32 @@ import {
   ALL_RESOURCES,
   ALL_ROLES,
   isDefaultAllowed,
-} from "../../../../packages/database/src/constants/permissions";
-import { DEFAULT_FEATURE_MODULES } from "../../../../packages/database/src/constants/features";
-import { DATA_SCOPE_AREAS } from "../../../../packages/database/src/constants/data-scope";
+} from "@platform/database/constants/permissions";
+import { DEFAULT_FEATURE_MODULES } from "@platform/database/constants/features";
+import { DATA_SCOPE_AREAS } from "@platform/database/constants/data-scope";
 
 const mocks = vi.hoisted(() => ({
   grants: vi.fn(),
   scopes: vi.fn(),
   modules: vi.fn(),
 }));
-vi.mock("../../../../packages/database/src/db", () => ({
+vi.mock("@platform/database/db", () => ({
   db: {
     permission: { findMany: mocks.grants },
     roleDataScope: { findMany: mocks.scopes },
   },
 }));
-vi.mock("../../../../packages/database/src/queries/features", () => ({
+vi.mock("@platform/database/queries/features", () => ({
   getFeatureToggles: mocks.modules,
   isFeatureEnabled: vi.fn(),
 }));
-vi.mock("../../../../packages/database/src/queries/departments", () => ({
+vi.mock("@platform/database/queries/departments", () => ({
   departmentSubtree: vi.fn(),
   userDepartmentId: vi.fn(),
 }));
 
-import { getEffectivePermissions } from "../../../../packages/database/src/queries/permissions";
-import { getRoleDataScopes } from "../../../../packages/database/src/queries/data-scope";
+import { getEffectivePermissions } from "@platform/database/queries/permissions";
+import { getRoleDataScopes } from "@platform/database/queries/data-scope";
 
 type Vector = {
   name: string;

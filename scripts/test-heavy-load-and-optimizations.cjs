@@ -21,17 +21,17 @@ require("ts-node").register({
   },
 });
 
-const { db, runAtomicMutation } = require("../packages/database/src/db.ts");
-const { transactionContext } = require("../packages/database/src/transaction-context.ts");
-const { allocateDocumentNumber } = require("../packages/database/src/finance/numbering.ts");
-const { createPayment } = require("../packages/database/src/queries/payments.ts");
-const { decideApprovalRequest, submitForApproval } = require("../packages/database/src/services/approval-engine.ts");
-const { consumeAbuseLimit } = require("../packages/database/src/services/abuse-limits.ts");
-const pureGosi = require("../packages/database/src/hr/social-insurance.ts");
-const payrollEngine = require("../packages/database/src/hr/payroll-engine.ts");
-const { resolveIncomingLead } = require("../packages/database/src/services/lead-resolver.ts");
-const { getClientsPage } = require("../packages/database/src/queries/client-profiles.ts");
-const { getCustomerDossier } = require("../packages/database/src/queries/crm.ts");
+const { db, runAtomicMutation } = require("../apps/admin/lib/database/db.ts");
+const { transactionContext } = require("../apps/admin/lib/database/transaction-context.ts");
+const { allocateDocumentNumber } = require("../apps/admin/lib/database/finance/numbering.ts");
+const { createPayment } = require("../apps/admin/lib/database/queries/payments.ts");
+const { decideApprovalRequest, submitForApproval } = require("../apps/admin/lib/database/services/approval-engine.ts");
+const { consumeAbuseLimit } = require("../apps/admin/lib/database/services/abuse-limits.ts");
+const pureGosi = require("../apps/admin/lib/database/hr/social-insurance.ts");
+const payrollEngine = require("../apps/admin/lib/database/hr/payroll-engine.ts");
+const { resolveIncomingLead } = require("../apps/admin/lib/database/services/lead-resolver.ts");
+const { getClientsPage } = require("../apps/admin/lib/database/queries/client-profiles.ts");
+const { getCustomerDossier } = require("../apps/admin/lib/database/queries/crm.ts");
 
 const prefix = `stress-${randomUUID().slice(0, 8)}`;
 const cleanupList = {

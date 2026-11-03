@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { Prisma, db as client } from "../../packages/database/src";
+import type { Prisma, db as client } from "@platform/database";
 import { admin } from "./helpers";
 
 /** Draft records let the layout audit render detail screens without changing existing records. */

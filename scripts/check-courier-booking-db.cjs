@@ -3,12 +3,12 @@ require("dotenv").config({ quiet: true });
 require("ts-node").register({ transpileOnly: true, skipProject: true, compilerOptions: { module: "CommonJS", target: "ES2022", moduleResolution: "Node", esModuleInterop: true, resolveJsonModule: true } });
 const assert = require("node:assert/strict");
 const crypto = require("node:crypto");
-const { db } = require("../packages/database/src/db.ts");
-const { transactionContext } = require("../packages/database/src/transaction-context.ts");
-const { encryptIntegrationCredentials } = require("../packages/database/src/services/integration-credentials.ts");
-const { handToAgency } = require("../packages/database/src/queries/couriers.ts");
-const { assignShipment } = require("../packages/database/src/queries/fleet.ts");
-const { moveShipment } = require("../packages/database/src/queries/shipments.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
+const { transactionContext } = require("../apps/admin/lib/database/transaction-context.ts");
+const { encryptIntegrationCredentials } = require("../apps/admin/lib/database/services/integration-credentials.ts");
+const { handToAgency } = require("../apps/admin/lib/database/queries/couriers.ts");
+const { assignShipment } = require("../apps/admin/lib/database/queries/fleet.ts");
+const { moveShipment } = require("../apps/admin/lib/database/queries/shipments.ts");
 const rollback = new Error("ROLLBACK_COURIER_BOOKING_TEST");
 const secret = "courier-test-secret-not-a-real-key";
 const originalFetch = global.fetch;
@@ -26,7 +26,7 @@ async function main() {
       const actor = await tx.user.findFirstOrThrow({ where: { role: "super_admin", isActive: true }, select: { id: true } });
       const company = await tx.companySetting.findFirstOrThrow();
       await tx.companySetting.update({ where: { id: company.id }, data: { companyNameEn: "Carrier test sender", phone: "+97317000000", addressEn: "Road 1", city: "Manama", country: "Bahrain" } });
-      await require("../packages/database/src/queries/integrations.ts").saveIntegrationSettings(
+      await require("../apps/admin/lib/database/queries/integrations.ts").saveIntegrationSettings(
         "dhl_express",
         {
           isActive: true,

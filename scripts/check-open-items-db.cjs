@@ -4,16 +4,16 @@ const { randomUUID, randomBytes } = require('node:crypto');
 const url = new URL(process.env.DATABASE_URL || 'file:///missing');
 if (!['localhost', '127.0.0.1'].includes(url.hostname) || !url.pathname.endsWith('_test')) throw Error('Use a disposable local *_test database');
 require('ts-node').register({ transpileOnly: true, skipProject: true, compilerOptions: { module: 'CommonJS', target: 'ES2022', moduleResolution: 'Node', esModuleInterop: true, resolveJsonModule: true } });
-const { db, runAtomicMutation } = require('../packages/database/src/db.ts');
+const { db, runAtomicMutation } = require('../apps/admin/lib/database/db.ts');
 // Modules live in the system service (backend/services/system); this check needs the backend stack.
-const modules = require('../packages/database/src/queries/features.ts');
-const mfa = require('../packages/database/src/services/mfa.ts');
-const { claimUpload } = require('../packages/database/src/services/uploads.ts');
-const { consumeAbuseLimit } = require('../packages/database/src/services/abuse-limits.ts');
-const { processEmailJobs } = require('../packages/database/src/services/email-outbox.ts');
-const { iterateListExport } = require('../packages/database/src/queries/list-pages.ts');
-const { getClientsPage } = require('../packages/database/src/queries/client-profiles.ts');
-const { hasPermission } = require('../packages/database/src/queries/permissions.ts');
+const modules = require('../apps/admin/lib/database/queries/features.ts');
+const mfa = require('../apps/admin/lib/database/services/mfa.ts');
+const { claimUpload } = require('../apps/admin/lib/database/services/uploads.ts');
+const { consumeAbuseLimit } = require('../apps/admin/lib/database/services/abuse-limits.ts');
+const { processEmailJobs } = require('../apps/admin/lib/database/services/email-outbox.ts');
+const { iterateListExport } = require('../apps/admin/lib/database/queries/list-pages.ts');
+const { getClientsPage } = require('../apps/admin/lib/database/queries/client-profiles.ts');
+const { hasPermission } = require('../apps/admin/lib/database/queries/permissions.ts');
 const prefix = 'open-' + randomUUID(); let actor, mom, toggle, toggleChanged = false, companyCreated = false;
 function decode32(value) { let bits = 0, n = 0, bytes = []; for (const c of value) { n = (n << 5) | 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'.indexOf(c); bits += 5; if (bits >= 8) { bits -= 8; bytes.push((n >>> bits) & 255); } } return Buffer.from(bytes); }
 async function main() {
@@ -32,7 +32,7 @@ async function main() {
   const movingExport = iterateListExport('contacts', { q: prefix }); const firstBatch = await movingExport.next(); await db.crmContact.delete({ where: { id: firstBatch.value.at(-1).id } }); assert.equal((await movingExport.next()).value.length, 5); await movingExport.return();
   console.log('PASS: all 505 records reachable, clamped pages, narrow DTOs and complete batched export');
   const contact = await db.crmContact.findFirstOrThrow({ where: { firstName: prefix } });
-  const lists = require('../packages/database/src/queries/list-pages.ts');
+  const lists = require('../apps/admin/lib/database/queries/list-pages.ts');
   const invoices = Array.from({ length: 105 }, (_, i) => ({ id: prefix + 'invoice' + i, invoiceNumber: prefix + '-' + i, clientId: contact.id, dueDate: new Date(), status: 'sent', currency: 'BHD', totalAmount: 100 }));
   await db.invoice.createMany({ data: invoices });
   await db.payment.createMany({ data: invoices.map((i, n) => ({ invoiceId: i.id, receiptNumber: prefix + '-' + n, amount: 50, currency: 'BHD', paymentMethod: 'cash' })) });
@@ -48,14 +48,14 @@ async function main() {
   await assert.rejects(db.crmDeal.update({ where: { id: scopedDeal.id }, data: { assignedTo: prefix + 'missing' } }), /Foreign key/);
   const invoicePage = await lists.getInvoicesPage({ q: prefix }); assert(invoicePage.items.every(i => i.amount_due === 50));
   const archiveIds = new Set(); for await (const batch of lists.iterateListExport('archive', { q: prefix })) batch.forEach(r => archiveIds.add(r.id)); assert.equal(archiveIds.size, 505);
-  const dossier = await require('../packages/database/src/queries/crm.ts').getCustomerDossier(contact.id, undefined, { pages: { invoices: '3', deals: '3' } }); assert.equal(dossier.pagination.invoices.total, 105); assert.equal(dossier.invoices.length, 5); assert.equal(dossier.metrics.totalOutstanding, 5250); assert.equal(dossier.metrics.activeDealsCount, 105);
-  const filtered = await require('../packages/database/src/queries/crm.ts').getCustomerDossier(contact.id, undefined, { q: 'no-matching-record' }); assert.equal(filtered.metrics.lastActivityDate, dossier.metrics.lastActivityDate);
+  const dossier = await require('../apps/admin/lib/database/queries/crm.ts').getCustomerDossier(contact.id, undefined, { pages: { invoices: '3', deals: '3' } }); assert.equal(dossier.pagination.invoices.total, 105); assert.equal(dossier.invoices.length, 5); assert.equal(dossier.metrics.totalOutstanding, 5250); assert.equal(dossier.metrics.activeDealsCount, 105);
+  const filtered = await require('../apps/admin/lib/database/queries/crm.ts').getCustomerDossier(contact.id, undefined, { q: 'no-matching-record' }); assert.equal(filtered.metrics.lastActivityDate, dossier.metrics.lastActivityDate);
   console.log('PASS: financial/archive page navigation, complete archive export, currency isolation and dossier metrics independent of pages/search');
   if (!(await db.companySetting.count())) { await db.companySetting.create({ data: { companyNameEn: prefix, companyNameAr: prefix } }); companyCreated = true; }
   await assert.rejects(db.companySetting.create({ data: { companyNameEn: prefix, companyNameAr: prefix } }), /Unique constraint/);
   await assert.rejects(db.companySetting.updateMany({ data: { companyNameEn: '' } }), /check constraint/);
   const email = prefix + 'shared@example.invalid'; await db.crmContact.createMany({ data: [{ firstName: prefix + 'a', email, emailNorm: email }, { firstName: prefix + 'b', email, emailNorm: email }] });
-  const resolution = await require('../packages/database/src/services/lead-resolver.ts').resolveIncomingLead({ name: 'Shared mailbox fixture', email, message: prefix, intent: 'inquiry' }); assert.equal(resolution.resolution, 'merge_conflict'); assert.equal(resolution.customerId, null);
+  const resolution = await require('../apps/admin/lib/database/services/lead-resolver.ts').resolveIncomingLead({ name: 'Shared mailbox fixture', email, message: prefix, intent: 'inquiry' }); assert.equal(resolution.resolution, 'merge_conflict'); assert.equal(resolution.customerId, null);
   console.log('PASS: singleton/required identity and ambiguous contacts flagged without arbitrary linking');
   // Upload expiry is covered by the files service's own tests (backend/services/files).
   const { fixtureUpload, removeFixtureUploads } = require('./lib/upload-fixtures.cjs');

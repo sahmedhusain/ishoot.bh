@@ -12,22 +12,22 @@ require("ts-node").register({
     esModuleInterop: true,
   },
 });
-const { db } = require("../packages/database/src/db.ts");
+const { db } = require("../apps/admin/lib/database/db.ts");
 const {
   ALL_ROLES,
   ALL_RESOURCES,
   ALL_ACTIONS,
   DEFAULT_ROLE_RULES,
-} = require("../packages/database/src/queries/permissions.ts");
+} = require("../apps/admin/lib/database/queries/permissions.ts");
 const {
   loadCompanyProfile,
   installCompanyProfile,
   remapLegacyPublicFiles,
 } = require("../company/tools/company-profile.ts");
-const roleNames = { en: require("../packages/locales/src/common.cjs").withCommonCopy(require("../packages/locales/src/admin/en.json"), "admin", require("../packages/locales/src/common.cjs").commonEn).roles, ar: require("../packages/locales/src/common.cjs").withCommonCopy(require("../packages/locales/src/admin/ar.json"), "admin", require("../packages/locales/src/common.cjs").commonAr).roles };
+const roleNames = { en: require("../apps/admin/locales/common.cjs").withCommonCopy(require("../apps/admin/locales/admin/en.json"), "admin", require("../apps/admin/locales/common.cjs").commonEn).roles, ar: require("../apps/admin/locales/common.cjs").withCommonCopy(require("../apps/admin/locales/admin/ar.json"), "admin", require("../apps/admin/locales/common.cjs").commonAr).roles };
 const { createRequire } = require("node:module");
 const bcrypt = createRequire(
-  require.resolve("../packages/database/package.json"),
+  require.resolve("../apps/admin/package.json"),
 )("bcryptjs");
 async function main() {
   const email = process.env.SUPER_ADMIN_EMAIL?.trim().toLowerCase();
