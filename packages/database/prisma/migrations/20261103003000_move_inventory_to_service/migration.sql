@@ -26,7 +26,9 @@ BEGIN
             id, slug, name_en, name_ar, description_en, description_ar, parent_id, sort_order, is_active
         )
         SELECT
-            id, slug, "nameEn", "nameAr", COALESCE("descriptionEn", ''), COALESCE("descriptionAr", ''), "parentId", "sortOrder", "isActive"
+            id,
+            LOWER(REGEXP_REPLACE("nameEn", '[^a-zA-Z0-9]+', '-', 'g')) || '-' || SUBSTRING(id FROM 1 FOR 8),
+            "nameEn", "nameAr", '', '', "parentId", "sortOrder", "isActive"
         FROM public."ProductCategory"
         ON CONFLICT (id) DO NOTHING;
     END IF;
@@ -39,7 +41,7 @@ BEGIN
         )
         SELECT
             id, sku, "nameEn", "nameAr", COALESCE("descriptionEn", ''), COALESCE("descriptionAr", ''), "categoryId",
-            "costPrice", "sellingPrice", currency, "taxRate", barcode, "isActive", "trackInventory", "reorderPoint",
+            cost, price, 'BHD', CASE WHEN "vatExempt" THEN 0.00 ELSE 10.00 END, barcode, "isActive", "trackStock", 0.00,
             "createdAt", "updatedAt"
         FROM public."Product"
         ON CONFLICT (id) DO NOTHING;
@@ -50,7 +52,7 @@ BEGIN
             id, product_id, sku, name_en, name_ar, barcode, cost_price, selling_price, is_active, attributes
         )
         SELECT
-            id, "productId", sku, "nameEn", "nameAr", barcode, "costPrice", "sellingPrice", "isActive", COALESCE(attributes::jsonb, '{}'::jsonb)
+            id, "productId", sku, sku, sku, barcode, COALESCE(cost, 0.0000), COALESCE(price, 0.0000), "isActive", to_jsonb("optionValues")
         FROM public."ProductVariant"
         ON CONFLICT (id) DO NOTHING;
     END IF;
@@ -60,7 +62,7 @@ BEGIN
             id, product_id, variant_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at
         )
         SELECT
-            id, "productId", "variantId", "locationId", "quantityOnHand", "quantityReserved", "quantityAvailable", "reorderPoint", "updatedAt"
+            id, "productId", CASE WHEN "variantKey" = '' THEN NULL ELSE "variantKey" END, "locationId", "onHand", "reserved", ("onHand" - "reserved"), 0.00, "updatedAt"
         FROM public."StockLevel"
         ON CONFLICT (id) DO NOTHING;
     END IF;
@@ -70,8 +72,10 @@ BEGIN
             id, batch_number, product_id, variant_id, location_id, initial_quantity, remaining_quantity, cost_per_unit, expiry_date, received_at
         )
         SELECT
-            id, "batchNumber", "productId", "variantId", "locationId", "initialQuantity", "remainingQuantity", "costPerUnit", "expiryDate", "receivedAt"
-        FROM public."StockBatch"
+            sb.id, sb."batchNumber", sb."productId", CASE WHEN sb."variantKey" = '' THEN NULL ELSE sb."variantKey" END,
+            COALESCE((SELECT sl.id FROM inventory.stock_location sl LIMIT 1), 'loc-default'),
+            0.00, 0.00, 0.00, sb."expiryDate", sb."createdAt"
+        FROM public."StockBatch" sb
         ON CONFLICT (id) DO NOTHING;
     END IF;
 
@@ -90,7 +94,7 @@ BEGIN
             id, count_number, warehouse_id, status, notes, counted_by_id, approved_by_id, counted_at, approved_at, created_at
         )
         SELECT
-            id, "countNumber", "warehouseId", status, notes, "countedById", "approvedById", "countedAt", "approvedAt", "createdAt"
+            id, number, "warehouseId", status, note, "createdById", "approvedById", "createdAt", "approvedAt", "createdAt"
         FROM public."StockCount"
         ON CONFLICT (id) DO NOTHING;
     END IF;
@@ -100,7 +104,7 @@ BEGIN
             id, count_id, product_id, variant_id, system_quantity, counted_quantity, variance, notes
         )
         SELECT
-            id, "countId", "productId", CASE WHEN "variantKey" = '' THEN NULL ELSE "variantKey" END, "systemQuantity", "countedQuantity", variance, notes
+            id, "countId", "productId", CASE WHEN "variantKey" = '' THEN NULL ELSE "variantKey" END, expected, COALESCE(counted, expected), (COALESCE(counted, expected) - expected), note
         FROM public."StockCountLine"
         ON CONFLICT (id) DO NOTHING;
     END IF;

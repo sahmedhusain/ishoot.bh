@@ -157,7 +157,9 @@ func (p *Providers) verify(ctx context.Context, provider, encoded, audience, non
 		return Identity{}, ErrRejected
 	}
 	header := message.Signatures()[0].ProtectedHeaders()
-	if header.Algorithm() != jwa.RS256() || header.KeyID() == "" {
+	alg, hasAlg := header.Algorithm()
+	kid, hasKid := header.KeyID()
+	if !hasAlg || alg != jwa.RS256() || !hasKid || kid == "" {
 		return Identity{}, ErrRejected
 	}
 	source := p.keys[provider]
@@ -165,14 +167,14 @@ func (p *Providers) verify(ctx context.Context, provider, encoded, audience, non
 	if err != nil {
 		return Identity{}, ErrRejected
 	}
-	key, ok := keys.LookupKeyID(header.KeyID())
+	key, ok := keys.LookupKeyID(kid)
 	if !ok {
 		source.Invalidate()
 		keys, err = source.Keys(ctx)
 		if err != nil {
 			return Identity{}, ErrRejected
 		}
-		key, ok = keys.LookupKeyID(header.KeyID())
+		key, ok = keys.LookupKeyID(kid)
 		if !ok {
 			return Identity{}, ErrRejected
 		}

@@ -129,7 +129,7 @@ func (s *Store) Create(ctx context.Context, n domain.NewTicket, actor Actor, now
 			_, _ = s.jobs.InsertTx(ctx, tx, domain.NotificationArgs{
 				TicketID:       ticket.ID,
 				EventID:        eventID,
-				Kind:           "created",
+				EventKind:      "created",
 				ActorID:        actor.ID,
 				ActorRealm:     actor.Realm,
 				RequesterID:    ticket.RequesterID,
@@ -276,7 +276,7 @@ func (s *Store) Transition(ctx context.Context, id string, actor Actor, name str
 			_, _ = s.jobs.InsertTx(ctx, tx, domain.NotificationArgs{
 				TicketID:       out.ID,
 				EventID:        eventID,
-				Kind:           "transition",
+				EventKind:      "transition",
 				Detail:         out.Status,
 				ActorID:        actor.ID,
 				ActorRealm:     actor.Realm,
@@ -353,7 +353,7 @@ func (s *Store) AddComment(ctx context.Context, id string, actor Actor, body str
 			_, _ = s.jobs.InsertTx(ctx, tx, domain.NotificationArgs{
 				TicketID:       current.ID,
 				EventID:        eventID,
-				Kind:           "comment",
+				EventKind:      "comment",
 				Detail:         body,
 				ActorID:        actor.ID,
 				ActorRealm:     actor.Realm,
@@ -421,7 +421,7 @@ func (s *Store) MarkBreached(ctx context.Context, now time.Time, batch int32) (i
 				_, _ = s.jobs.InsertTx(ctx, tx, domain.NotificationArgs{
 					TicketID:       r.ID,
 					EventID:        eventID,
-					Kind:           "breached",
+					EventKind:      "breached",
 					Detail:         breachType,
 					ActorID:        "system",
 					ActorRealm:     "system",
@@ -486,7 +486,7 @@ func (s *Store) CheckSLAReminders(ctx context.Context, now time.Time, window tim
 				_, _ = s.jobs.InsertTx(ctx, tx, domain.NotificationArgs{
 					TicketID:       r.ID,
 					EventID:        eventID,
-					Kind:           "reminder",
+					EventKind:      "reminder",
 					Detail:         reminderType,
 					ActorID:        "system",
 					ActorRealm:     "system",

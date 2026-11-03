@@ -1,10 +1,10 @@
 "use client";
 
-import type { Statistic } from "@platform/database/types";
+import type { WebsiteSnapshot } from "@platform/database";
 import { useTranslation } from "../../hooks/useTranslation";
 import { Reveal } from "../shared/Reveal";
 
-export function StatsSection({ stats }: { stats: Statistic[] }) {
+export function StatsSection({ stats }: { stats: WebsiteSnapshot["stats"] }) {
   const { t, isArabic: ar } = useTranslation();
   if (!stats || !stats.length) return null;
 

@@ -49,7 +49,7 @@ export async function syncSocialIntegration(providerId: string, now = new Date()
       healthStatus: "healthy",
       lastError: null,
       lastCheckedAt: now.toISOString(),
-      lastSyncAt: now.toISOString(),
+      lastSyncedAt: now.toISOString(),
       accountName: snapshot.accountName ?? record.accountName,
     });
     return { ok: true, snapshot };

@@ -518,7 +518,7 @@ services:
       SERVICE_NAME: gateway
       REDIS_URL: redis://:${VALKEY_PASSWORD}@valkey:6379/0
       GATEWAY_ROUTES_FILE: /config/routes.yaml
-      GATEWAY_UPSTREAMS: ${GATEWAY_UPSTREAMS:-files=http://files:8080,itsm=http://itsm:8080,identity=http://identity:8080,system=http://system:8080,audit=http://audit:8080,notify=http://notify:8080,realtime=http://realtime:8080}
+      GATEWAY_UPSTREAMS: ${GATEWAY_UPSTREAMS:-audit=http://audit:8080,cms=http://cms:8080,commerce=http://commerce:8080,delivery=http://delivery:8080,files=http://files:8080,finance=http://finance:8080,hr=http://hr:8080,identity=http://identity:8080,inventory=http://inventory:8080,itsm=http://itsm:8080,notify=http://notify:8080,realtime=http://realtime:8080,sales=http://sales:8080,system=http://system:8080,workflow=http://workflow:8080}
       GATEWAY_IDENTITY_STATUS_URL: ${GATEWAY_IDENTITY_STATUS_URL:-http://identity:8080/v1/identity/session}
       GATEWAY_IDENTITY_STATUS_TIMEOUT: ${GATEWAY_IDENTITY_STATUS_TIMEOUT:-3s}
       HTTP_CORS_ORIGINS: ${GATEWAY_CORS_ORIGINS:-}

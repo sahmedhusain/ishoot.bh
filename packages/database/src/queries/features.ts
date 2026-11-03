@@ -40,12 +40,20 @@ const toToggle = (m: ModuleState): FeatureToggle => ({
 
 /** Every module in the catalogue with its state, by key. */
 export async function getFeatureToggles(): Promise<FeatureToggle[]> {
-  return (await modules()).map(toToggle).sort((a, b) => a.moduleKey.localeCompare(b.moduleKey));
+  try {
+    return (await modules()).map(toToggle).sort((a, b) => a.moduleKey.localeCompare(b.moduleKey));
+  } catch {
+    return [];
+  }
 }
 
 export async function getFeatureToggle(moduleKey: string): Promise<FeatureToggle | null> {
-  const found = (await modules()).find((m) => m.key === moduleKey);
-  return found ? toToggle(found) : null;
+  try {
+    const found = (await modules()).find((m) => m.key === moduleKey);
+    return found ? toToggle(found) : null;
+  } catch {
+    return null;
+  }
 }
 
 /** Switches a module on or off for the person making the change. */
@@ -57,8 +65,12 @@ export async function updateFeatureToggle(moduleKey: string, isEnabled: boolean,
 
 /** Whether a module is on; a key outside the catalogue follows moduleOnByDefault. */
 export async function isFeatureEnabled(moduleKey: string) {
-  const found = (await modules()).find((m) => m.key === moduleKey);
-  return found ? found.enabled : moduleOnByDefault(moduleKey);
+  try {
+    const found = (await modules()).find((m) => m.key === moduleKey);
+    return found ? found.enabled : moduleOnByDefault(moduleKey);
+  } catch {
+    return moduleOnByDefault(moduleKey);
+  }
 }
 
 export async function requireFeatureEnabled(moduleKey: string) {

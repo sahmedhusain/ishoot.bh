@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { asUser, requireAllowed } from "../../../lib/session";
+import { requireAllowed } from "../../../lib/session";
 
 export async function retryJobAction(id: string) {
   await requireAllowed("jobs", "execute");

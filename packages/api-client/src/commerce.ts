@@ -114,7 +114,7 @@ export type SalesOrderEvent = {
 
 async function headers(token?: string): Promise<Record<string, string>> {
   const h: Record<string, string> = { "Content-Type": "application/json" };
-  const auth = token ?? (await serviceToken("commerce"));
+  const auth = token ?? (await serviceToken());
   if (auth) h.Authorization = `Bearer ${auth}`;
   return h;
 }

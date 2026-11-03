@@ -84,8 +84,9 @@ BEGIN
             id, sheet_id, driver_id, amount_collected, amount_settled, status, settled_at, created_at
         )
         SELECT
-            id, "sheetId", "driverId", "amountCollected", "amountSettled", status, "settledAt", "createdAt"
-        FROM public."CodSettlement"
+            cs.id, NULL, COALESCE(cs."driverId", (SELECT id FROM hr.employee LIMIT 1), 'emp-default'),
+            cs.expected, cs.received, 'settled', cs."settledAt", cs."settledAt"
+        FROM public."CodSettlement" cs
         ON CONFLICT (id) DO NOTHING;
     END IF;
 
@@ -94,7 +95,7 @@ BEGIN
             id, name, contact_name, email, phone, api_endpoint, is_active, created_at
         )
         SELECT
-            id, name, "contactName", email, phone, "apiEndpoint", "isActive", "createdAt"
+            id, name, NULL, email, phone, "trackingUrl", "isActive", "createdAt"
         FROM public."CourierAgency"
         ON CONFLICT (id) DO NOTHING;
     END IF;

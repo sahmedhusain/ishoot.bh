@@ -2,7 +2,7 @@
 -- and published by the relay; consumers record the events they handled.
 
 -- +goose Up
-CREATE TABLE IF NOT EXISTS itsm.outbox (
+CREATE TABLE IF NOT EXISTS "itsm".outbox (
     id           uuid        NOT NULL,
     subject      text        NOT NULL,
     payload      jsonb       NOT NULL,
@@ -15,9 +15,9 @@ CREATE TABLE IF NOT EXISTS itsm.outbox (
     CONSTRAINT outbox_pkey PRIMARY KEY (id),
     CONSTRAINT outbox_subject_check CHECK (subject ~ '^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$')
 );
-CREATE INDEX IF NOT EXISTS outbox_pending_idx ON itsm.outbox (next_try_at) WHERE published_at IS NULL;
-CREATE INDEX IF NOT EXISTS outbox_published_idx ON itsm.outbox (published_at) WHERE published_at IS NOT NULL;
-CREATE TABLE IF NOT EXISTS itsm.inbox (
+CREATE INDEX IF NOT EXISTS outbox_pending_idx ON "itsm".outbox (next_try_at) WHERE published_at IS NULL;
+CREATE INDEX IF NOT EXISTS outbox_published_idx ON "itsm".outbox (published_at) WHERE published_at IS NOT NULL;
+CREATE TABLE IF NOT EXISTS "itsm".inbox (
     consumer   text        NOT NULL,
     event_id   uuid        NOT NULL,
     handled_at timestamptz NOT NULL DEFAULT now(),
@@ -25,5 +25,5 @@ CREATE TABLE IF NOT EXISTS itsm.inbox (
 );
 
 -- +goose Down
-DROP TABLE IF EXISTS itsm.inbox;
-DROP TABLE IF EXISTS itsm.outbox;
+DROP TABLE IF EXISTS "itsm".inbox;
+DROP TABLE IF EXISTS "itsm".outbox;

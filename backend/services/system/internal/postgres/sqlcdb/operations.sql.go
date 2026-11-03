@@ -11,54 +11,24 @@ import (
 	"time"
 )
 
-const listAPIKeys = `-- name: ListAPIKeys :many
-SELECT id, name, key_prefix, scopes, rate_limit, last_used_at, expires_at, created_by, created_at, revoked_at
-FROM system.api_key
-ORDER BY created_at DESC
+const deleteDebugToggle = `-- name: DeleteDebugToggle :exec
+DELETE FROM system.debug_toggle
+WHERE service = $1
 `
 
-type ListAPIKeysRow struct {
-	ID         string
-	Name       string
-	KeyPrefix  string
-	Scopes     []string
-	RateLimit  int32
-	LastUsedAt *time.Time
-	ExpiresAt  *time.Time
-	CreatedBy  string
-	CreatedAt  time.Time
-	RevokedAt  *time.Time
+func (q *Queries) DeleteDebugToggle(ctx context.Context, service string) error {
+	_, err := q.db.Exec(ctx, deleteDebugToggle, service)
+	return err
 }
 
-func (q *Queries) ListAPIKeys(ctx context.Context) ([]ListAPIKeysRow, error) {
-	rows, err := q.db.Query(ctx, listAPIKeys)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []ListAPIKeysRow
-	for rows.Next() {
-		var i ListAPIKeysRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Name,
-			&i.KeyPrefix,
-			&i.Scopes,
-			&i.RateLimit,
-			&i.LastUsedAt,
-			&i.ExpiresAt,
-			&i.CreatedBy,
-			&i.CreatedAt,
-			&i.RevokedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+const deleteExpiredDebugToggles = `-- name: DeleteExpiredDebugToggles :exec
+DELETE FROM system.debug_toggle
+WHERE expires_at <= now()
+`
+
+func (q *Queries) DeleteExpiredDebugToggles(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, deleteExpiredDebugToggles)
+	return err
 }
 
 const getAPIKeyByHash = `-- name: GetAPIKeyByHash :one
@@ -126,36 +96,88 @@ func (q *Queries) InsertAPIKey(ctx context.Context, arg InsertAPIKeyParams) erro
 	return err
 }
 
-const revokeAPIKey = `-- name: RevokeAPIKey :exec
-UPDATE system.api_key
-SET revoked_at = $2
-WHERE id = $1 AND revoked_at IS NULL
+const insertBackupRecord = `-- name: InsertBackupRecord :exec
+INSERT INTO system.backup_record (id, kind, file_name, file_size, checksum, status, error_message, created_by, created_at, details)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 `
 
-type RevokeAPIKeyParams struct {
-	ID        string
-	RevokedAt *time.Time
+type InsertBackupRecordParams struct {
+	ID           string
+	Kind         string
+	FileName     string
+	FileSize     int64
+	Checksum     string
+	Status       string
+	ErrorMessage *string
+	CreatedBy    string
+	CreatedAt    time.Time
+	Details      json.RawMessage
 }
 
-func (q *Queries) RevokeAPIKey(ctx context.Context, arg RevokeAPIKeyParams) error {
-	_, err := q.db.Exec(ctx, revokeAPIKey, arg.ID, arg.RevokedAt)
+func (q *Queries) InsertBackupRecord(ctx context.Context, arg InsertBackupRecordParams) error {
+	_, err := q.db.Exec(ctx, insertBackupRecord,
+		arg.ID,
+		arg.Kind,
+		arg.FileName,
+		arg.FileSize,
+		arg.Checksum,
+		arg.Status,
+		arg.ErrorMessage,
+		arg.CreatedBy,
+		arg.CreatedAt,
+		arg.Details,
+	)
 	return err
 }
 
-const recordAPIKeyUse = `-- name: RecordAPIKeyUse :exec
-UPDATE system.api_key
-SET last_used_at = $2
-WHERE id = $1
+const listAPIKeys = `-- name: ListAPIKeys :many
+SELECT id, name, key_prefix, scopes, rate_limit, last_used_at, expires_at, created_by, created_at, revoked_at
+FROM system.api_key
+ORDER BY created_at DESC
 `
 
-type RecordAPIKeyUseParams struct {
+type ListAPIKeysRow struct {
 	ID         string
+	Name       string
+	KeyPrefix  string
+	Scopes     []string
+	RateLimit  int32
 	LastUsedAt *time.Time
+	ExpiresAt  *time.Time
+	CreatedBy  string
+	CreatedAt  time.Time
+	RevokedAt  *time.Time
 }
 
-func (q *Queries) RecordAPIKeyUse(ctx context.Context, arg RecordAPIKeyUseParams) error {
-	_, err := q.db.Exec(ctx, recordAPIKeyUse, arg.ID, arg.LastUsedAt)
-	return err
+func (q *Queries) ListAPIKeys(ctx context.Context) ([]ListAPIKeysRow, error) {
+	rows, err := q.db.Query(ctx, listAPIKeys)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListAPIKeysRow
+	for rows.Next() {
+		var i ListAPIKeysRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.KeyPrefix,
+			&i.Scopes,
+			&i.RateLimit,
+			&i.LastUsedAt,
+			&i.ExpiresAt,
+			&i.CreatedBy,
+			&i.CreatedAt,
+			&i.RevokedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listBackupRecords = `-- name: ListBackupRecords :many
@@ -197,65 +219,6 @@ func (q *Queries) ListBackupRecords(ctx context.Context, limit int32) ([]SystemB
 	return items, nil
 }
 
-const insertBackupRecord = `-- name: InsertBackupRecord :exec
-INSERT INTO system.backup_record (id, kind, file_name, file_size, checksum, status, error_message, created_by, created_at, details)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-`
-
-type InsertBackupRecordParams struct {
-	ID           string
-	Kind         string
-	FileName     string
-	FileSize     int64
-	Checksum     string
-	Status       string
-	ErrorMessage *string
-	CreatedBy    string
-	CreatedAt    time.Time
-	Details      json.RawMessage
-}
-
-func (q *Queries) InsertBackupRecord(ctx context.Context, arg InsertBackupRecordParams) error {
-	_, err := q.db.Exec(ctx, insertBackupRecord,
-		arg.ID,
-		arg.Kind,
-		arg.FileName,
-		arg.FileSize,
-		arg.Checksum,
-		arg.Status,
-		arg.ErrorMessage,
-		arg.CreatedBy,
-		arg.CreatedAt,
-		arg.Details,
-	)
-	return err
-}
-
-const updateBackupStatus = `-- name: UpdateBackupStatus :exec
-UPDATE system.backup_record
-SET status = $2, error_message = $3, verified_at = $4, details = $5
-WHERE id = $1
-`
-
-type UpdateBackupStatusParams struct {
-	ID           string
-	Status       string
-	ErrorMessage *string
-	VerifiedAt   *time.Time
-	Details      json.RawMessage
-}
-
-func (q *Queries) UpdateBackupStatus(ctx context.Context, arg UpdateBackupStatusParams) error {
-	_, err := q.db.Exec(ctx, updateBackupStatus,
-		arg.ID,
-		arg.Status,
-		arg.ErrorMessage,
-		arg.VerifiedAt,
-		arg.Details,
-	)
-	return err
-}
-
 const listDebugToggles = `-- name: ListDebugToggles :many
 SELECT id, service, log_level, enabled_by, enabled_at, expires_at
 FROM system.debug_toggle
@@ -289,6 +252,63 @@ func (q *Queries) ListDebugToggles(ctx context.Context) ([]SystemDebugToggle, er
 	return items, nil
 }
 
+const recordAPIKeyUse = `-- name: RecordAPIKeyUse :exec
+UPDATE system.api_key
+SET last_used_at = $2
+WHERE id = $1
+`
+
+type RecordAPIKeyUseParams struct {
+	ID         string
+	LastUsedAt *time.Time
+}
+
+func (q *Queries) RecordAPIKeyUse(ctx context.Context, arg RecordAPIKeyUseParams) error {
+	_, err := q.db.Exec(ctx, recordAPIKeyUse, arg.ID, arg.LastUsedAt)
+	return err
+}
+
+const revokeAPIKey = `-- name: RevokeAPIKey :exec
+UPDATE system.api_key
+SET revoked_at = $2
+WHERE id = $1 AND revoked_at IS NULL
+`
+
+type RevokeAPIKeyParams struct {
+	ID        string
+	RevokedAt *time.Time
+}
+
+func (q *Queries) RevokeAPIKey(ctx context.Context, arg RevokeAPIKeyParams) error {
+	_, err := q.db.Exec(ctx, revokeAPIKey, arg.ID, arg.RevokedAt)
+	return err
+}
+
+const updateBackupStatus = `-- name: UpdateBackupStatus :exec
+UPDATE system.backup_record
+SET status = $2, error_message = $3, verified_at = $4, details = $5
+WHERE id = $1
+`
+
+type UpdateBackupStatusParams struct {
+	ID           string
+	Status       string
+	ErrorMessage *string
+	VerifiedAt   *time.Time
+	Details      json.RawMessage
+}
+
+func (q *Queries) UpdateBackupStatus(ctx context.Context, arg UpdateBackupStatusParams) error {
+	_, err := q.db.Exec(ctx, updateBackupStatus,
+		arg.ID,
+		arg.Status,
+		arg.ErrorMessage,
+		arg.VerifiedAt,
+		arg.Details,
+	)
+	return err
+}
+
 const upsertDebugToggle = `-- name: UpsertDebugToggle :exec
 INSERT INTO system.debug_toggle (id, service, log_level, enabled_by, enabled_at, expires_at)
 VALUES ($1, $2, $3, $4, $5, $6)
@@ -314,25 +334,5 @@ func (q *Queries) UpsertDebugToggle(ctx context.Context, arg UpsertDebugTogglePa
 		arg.EnabledAt,
 		arg.ExpiresAt,
 	)
-	return err
-}
-
-const deleteDebugToggle = `-- name: DeleteDebugToggle :exec
-DELETE FROM system.debug_toggle
-WHERE service = $1
-`
-
-func (q *Queries) DeleteDebugToggle(ctx context.Context, service string) error {
-	_, err := q.db.Exec(ctx, deleteDebugToggle, service)
-	return err
-}
-
-const deleteExpiredDebugToggles = `-- name: DeleteExpiredDebugToggles :exec
-DELETE FROM system.debug_toggle
-WHERE expires_at <= now()
-`
-
-func (q *Queries) DeleteExpiredDebugToggles(ctx context.Context) error {
-	_, err := q.db.Exec(ctx, deleteExpiredDebugToggles)
 	return err
 }

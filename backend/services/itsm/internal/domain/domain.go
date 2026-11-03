@@ -120,7 +120,7 @@ func (c *NewComment) Normalize(limits Limits) error {
 	if !textLength(c.Body, 1, 10000) {
 		return invalid("body", "length")
 	}
-	if len(c.Attachments) > limits.MaxAttachments:
+	if len(c.Attachments) > limits.MaxAttachments {
 		return invalid("attachments", "max")
 	}
 	for _, a := range c.Attachments {
@@ -218,7 +218,7 @@ const Queue = "itsm"
 type NotificationArgs struct {
 	TicketID       string `json:"ticketId"`
 	EventID        string `json:"eventId"`
-	Kind           string `json:"kind"` // "created", "transition", "comment", "breached", "reminder"
+	EventKind      string `json:"kind"` // "created", "transition", "comment", "breached", "reminder"
 	Detail         string `json:"detail,omitempty"`
 	ActorID        string `json:"actorId,omitempty"`
 	ActorRealm     string `json:"actorRealm,omitempty"`

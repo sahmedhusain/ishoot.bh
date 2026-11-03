@@ -27,7 +27,8 @@ func TestManagedAccounts(t *testing.T) {
 	require.NoError(t, migrate.Run(ctx, pool, migrate.Options{Schema: "identity", Migrations: migrations.FS, Logger: slog.Default()}))
 	hasher, err := password.New(password.Config{Memory: 19456, Iterations: 2, Parallelism: 1, MaxMemory: 262144, MaxIterations: 10, MaxParallelism: 16, MaxBcryptCost: 16})
 	require.NoError(t, err)
-	svc := app.NewManagedAccounts(pool, hasher, 12, 15*time.Minute, 2)
+	noLimit := func(context.Context, authn.Realm, string, string, string) error { return nil }
+	svc := app.NewManagedAccounts(pool, hasher, 12, 15*time.Minute, 2, noLimit)
 	staff := authn.RealmStaff
 
 	session := func(id string) string {
@@ -93,12 +94,12 @@ func TestManagedAccounts(t *testing.T) {
 	require.NoError(t, err)
 
 	// A reset link works once, ends every session and replaces an earlier link.
-	_, err = svc.RequestReset(ctx, staff, "unknown@example.com")
+	_, err = svc.RequestReset(ctx, staff, "unknown@example.com", "127.0.0.1")
 	assert.ErrorIs(t, err, app.ErrNotFound)
-	stale, err := svc.RequestReset(ctx, staff, "SARA.K@example.com")
+	stale, err := svc.RequestReset(ctx, staff, "SARA.K@example.com", "127.0.0.1")
 	require.NoError(t, err)
 	assert.Equal(t, "u1", stale.SubjectID)
-	link, err := svc.RequestReset(ctx, staff, "sara.k@example.com")
+	link, err := svc.RequestReset(ctx, staff, "sara.k@example.com", "127.0.0.1")
 	require.NoError(t, err)
 	_, err = svc.ConfirmReset(ctx, staff, stale.Token, "another-long-password")
 	assert.ErrorIs(t, err, app.ErrResetInvalid, "a newer link replaces the older one")
@@ -108,7 +109,7 @@ func TestManagedAccounts(t *testing.T) {
 	assert.True(t, revoked(mine))
 	_, err = svc.ConfirmReset(ctx, staff, link.Token, "another-long-password")
 	assert.ErrorIs(t, err, app.ErrResetInvalid, "used once")
-	expired, err := svc.RequestReset(ctx, staff, "sara.k@example.com")
+	expired, err := svc.RequestReset(ctx, staff, "sara.k@example.com", "127.0.0.1")
 	require.NoError(t, err)
 	_, err = pool.Exec(ctx, `UPDATE identity.password_reset SET expires_at = now() - interval '1 second'`)
 	require.NoError(t, err)
@@ -120,7 +121,7 @@ func TestManagedAccounts(t *testing.T) {
 	_, err = svc.Sync(ctx, staff, "u1", app.AccountInput{Email: "sara.k@example.com", Roles: []string{"manager"}, Active: false}, "admin:boss")
 	require.NoError(t, err)
 	assert.True(t, revoked(last))
-	_, err = svc.RequestReset(ctx, staff, "sara.k@example.com")
+	_, err = svc.RequestReset(ctx, staff, "sara.k@example.com", "127.0.0.1")
 	assert.ErrorIs(t, err, app.ErrNotFound)
 
 	// MFA reset turns two-step sign-in off; repeating it records nothing more.
@@ -133,5 +134,5 @@ func TestManagedAccounts(t *testing.T) {
 	assert.False(t, mfa)
 	all := events()
 	assert.Equal(t, "identity.mfa.changed", all[len(all)-1])
-	assert.Len(t, all, 7)
+	assert.Len(t, all, 10)
 }

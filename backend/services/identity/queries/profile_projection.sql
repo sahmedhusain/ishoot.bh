@@ -6,5 +6,5 @@ LEFT JOIN identity.staff_access s ON s.realm=p.realm AND s.subject_id=p.subject_
 LEFT JOIN identity.staff_role r ON r.id=a.roles[1]
 WHERE p.delivered_version < p.version ORDER BY p.updated_at,p.realm,p.subject_id LIMIT $1;
 -- name: DeliveredProfileProjection :exec
-UPDATE identity.profile_projection SET delivered_version=GREATEST(delivered_version,@version::bigint)
-WHERE realm=@realm AND subject_id=@subject_id AND @version::bigint<=version;
+UPDATE identity.profile_projection SET delivered_version=GREATEST(delivered_version,sqlc.arg('version')::bigint)
+WHERE realm=sqlc.arg('realm') AND subject_id=sqlc.arg('subject_id') AND sqlc.arg('version')::bigint<=version;

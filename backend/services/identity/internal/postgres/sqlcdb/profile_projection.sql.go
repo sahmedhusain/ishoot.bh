@@ -11,11 +11,17 @@ import (
 
 const deliveredProfileProjection = `-- name: DeliveredProfileProjection :exec
 UPDATE identity.profile_projection SET delivered_version=GREATEST(delivered_version,$1::bigint)
-WHERE realm=@realm AND subject_id=@subject_id AND $1::bigint<=version
+WHERE realm=$2 AND subject_id=$3 AND $1::bigint<=version
 `
 
-func (q *Queries) DeliveredProfileProjection(ctx context.Context, version int64) error {
-	_, err := q.db.Exec(ctx, deliveredProfileProjection, version)
+type DeliveredProfileProjectionParams struct {
+	Version   int64
+	Realm     string
+	SubjectID string
+}
+
+func (q *Queries) DeliveredProfileProjection(ctx context.Context, arg DeliveredProfileProjectionParams) error {
+	_, err := q.db.Exec(ctx, deliveredProfileProjection, arg.Version, arg.Realm, arg.SubjectID)
 	return err
 }
 

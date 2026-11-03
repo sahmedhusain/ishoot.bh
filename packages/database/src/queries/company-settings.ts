@@ -121,8 +121,28 @@ async function mapSettings(s: any): Promise<CompanySettings> {
 }
 
 export async function getCompanySettings(): Promise<CompanySettings> {
-  const settings = await getCompanyConfiguration();
-  return mapSettings({ ...settings, updatedAt: new Date(settings.updatedAt) });
+  try {
+    const settings = await getCompanyConfiguration();
+    return mapSettings({ ...settings, updatedAt: new Date(settings.updatedAt) });
+  } catch (error) {
+    const row = await db.companySetting.findUnique({ where: { singleton: 1 } }).catch(() => null);
+    if (row) {
+      return mapSettings(row);
+    }
+    return mapSettings({
+      id: "default",
+      companyNameEn: "iShoot",
+      companyNameAr: "آي شوت",
+      defaultCurrency: "BHD",
+      currencyDecimals: 3,
+      vatPercentage: 10,
+      vatEnabled: false,
+      theme: {},
+      contentLanguages: ["en", "ar"],
+      primaryLanguage: "en",
+      updatedAt: new Date(),
+    });
+  }
 }
 
 async function updateCompanySettingsInTransaction(

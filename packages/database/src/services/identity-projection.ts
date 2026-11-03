@@ -93,7 +93,7 @@ async function receipt(id: string) {
       await db.$queryRaw<
         Array<{ version: bigint }>
       >`SELECT version FROM public."IdentityProjectionReceipt" WHERE id=${id}`
-    )[0]?.version ?? 0n
+    )[0]?.version ?? BigInt(0)
   );
 }
 async function received(id: string, version: bigint) {

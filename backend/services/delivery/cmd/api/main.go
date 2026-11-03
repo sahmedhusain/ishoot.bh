@@ -98,41 +98,56 @@ func serve(ctx context.Context, cfg settings.Config, logger *logx.Logger, pool *
 	if !cfg.Auth.Configured() {
 		return errors.New("set AUTH_SERVICE_KEYS_FILE (and AUTH_ISSUER/AUTH_JWKS_URL once identity runs)")
 	}
-	verifier, err := authn.NewVerifier(ctx, cfg.Auth, logger.Logger)
+	verifier, err := authn.NewVerifierFromConfig(cfg.Auth)
 	if err != nil {
 		return err
 	}
 
-	e := httpx.NewEcho(logger, httpx.EchoOptions{
-		ServiceName: cfg.ServiceName,
-		Metrics:     metrics,
-	})
+	e, err := httpx.New(cfg.Common, logger, metrics)
+	if err != nil {
+		return err
+	}
+	e.Use(telemetry.EchoMiddleware())
 	httpapi.Register(e, svc, httpapi.Options{
 		Verifier: verifier,
 		Readers:  cfg.Delivery.Readers,
 		Writers:  cfg.Delivery.Writers,
 	})
 
-	if cfg.NATS.URL != "" {
-		nc, nerr := natsx.Connect(ctx, cfg.NATS, logger.Logger)
-		if nerr != nil {
-			return nerr
-		}
-		defer nc.Close()
-		relay := outbox.NewRelay(pool, Schema, nc, logger.Logger, outbox.RelayOptions{
-			BatchSize:    cfg.Outbox.BatchSize,
-			PollInterval: cfg.Outbox.PollInterval,
-		})
-		go relay.Run(ctx)
+	relayDone, err := startRelay(ctx, cfg, logger, pool, metrics.Registry)
+	if err != nil {
+		return err
 	}
+	public, adminServer := httpx.Servers(cfg.Common, telemetry.Handler(cfg.ServiceName, e), admin)
+	logger.Info("delivery service starting")
+	runErr := httpx.Run(ctx, cfg.Common, logger, public, adminServer)
+	<-relayDone
+	return runErr
+}
 
-	servers := httpx.NewServerGroup()
-	servers.Add(cfg.HTTP.Addr, e, cfg.HTTP.ReadTimeout, cfg.HTTP.WriteTimeout)
-	servers.Add(cfg.Admin.Addr, admin, cfg.Admin.ReadTimeout, cfg.Admin.WriteTimeout)
-
-	reg := prometheus.DefaultRegisterer
-	db.RegisterMetrics(reg, pool, Schema)
-	outbox.RegisterMetrics(reg, pool, Schema)
-
-	return servers.Start(ctx)
+func startRelay(ctx context.Context, cfg settings.Config, logger *logx.Logger, pool *pgxpool.Pool, registry prometheus.Registerer) (<-chan struct{}, error) {
+	done := make(chan struct{})
+	if !cfg.NATS.Configured() {
+		logger.Warn("NATS_URL is not set: events stay in delivery.outbox until a relay publishes them")
+		close(done)
+		return done, nil
+	}
+	client, err := natsx.Connect(ctx, cfg.NATS, cfg.ServiceName, logger.Logger)
+	if err != nil {
+		return nil, err
+	}
+	relay, err := outbox.NewRelay(pool, outbox.RelayOptions{
+		Schema: Schema, Publisher: client, Logger: logger.Logger, Interval: cfg.Outbox.Interval,
+		Batch: cfg.Outbox.Batch, Retention: cfg.Outbox.Retention, Metrics: registry,
+	})
+	if err != nil {
+		client.Close()
+		return nil, err
+	}
+	go func() {
+		defer close(done)
+		defer client.Close()
+		_ = relay.Run(ctx)
+	}()
+	return done, nil
 }

@@ -6,8 +6,6 @@ import { toast } from "sonner";
 import {
   Archive,
   CheckCircle2,
-  AlertCircle,
-  Download,
   ShieldCheck,
   Plus,
   Loader2,

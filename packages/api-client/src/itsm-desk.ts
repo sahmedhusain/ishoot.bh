@@ -5,7 +5,7 @@ import { apiError } from "./errors";
 import { unwrap, unwrapEmpty, userClient } from "./http";
 
 export type SLAPolicy = components["schemas"]["SLAPolicy"];
-export type Attachment = components["schemas"]["Attachment"];
+type Attachment = components["schemas"]["Attachment"];
 export type QueueFilter = {
   status?: string;
   priority?: string;

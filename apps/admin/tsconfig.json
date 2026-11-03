@@ -32,6 +32,7 @@
       "@platform/config": ["../../packages/config/src/index.ts"],
       "@platform/config/*": ["../../packages/config/src/*"],
       "@platform/contracts": ["../../contracts/src/index.ts"],
+      "@platform/contracts/catalog/*": ["../../contracts/catalog/*"],
       "@platform/contracts/*": ["../../contracts/src/*"],
       "@platform/database": ["../../packages/database/src/index.ts"],
       "@platform/database/*": ["../../packages/database/src/*"],
@@ -52,6 +53,7 @@
     ".next-audit/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "tests"
   ]
 }

@@ -1,5 +1,11 @@
 // Generate runtime input contracts from server-action types; unresolved types fail generation.
-const fs = require('node:fs'), path = require('node:path'), ts = require('typescript');
+const fs = require('node:fs'), path = require('node:path');
+let ts;
+try {
+  ts = require('typescript');
+} catch {
+  ts = require(path.resolve(__dirname, '../packages/api-client/node_modules/typescript'));
+}
 const declarations = new Map(), functions = new Map(), actionFiles = [];
 function visitDirectory(directory) {
   for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {

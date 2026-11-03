@@ -27,6 +27,8 @@
       "@platform/config/*": ["../../packages/config/src/*"],
       "@platform/contracts": ["../../contracts/src/index.ts"],
       "@platform/contracts/*": ["../../contracts/src/*"],
+      "@platform/database": ["../../packages/database/src/index.ts"],
+      "@platform/database/*": ["../../packages/database/src/*"],
       "@platform/locales": ["../../packages/locales/src/index.ts"],
       "@platform/locales/*": ["../../packages/locales/src/*"],
       "@platform/ui": ["../../packages/ui/src/index.ts"],
@@ -34,5 +36,5 @@
     }
   },
   "include": ["**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "next-env.d.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "tests"]
 }

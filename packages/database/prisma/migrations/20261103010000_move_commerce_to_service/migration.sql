@@ -6,7 +6,10 @@ BEGIN
             id, email, phone, first_name, last_name, status, created_at, updated_at
         )
         SELECT
-            id, email, phone, "firstName", "lastName", status, "createdAt", "updatedAt"
+            id, email, phone,
+            SPLIT_PART(name, ' ', 1),
+            COALESCE(NULLIF(SUBSTRING(name FROM POSITION(' ' IN name) + 1), ''), SPLIT_PART(name, ' ', 1)),
+            'active', "createdAt", "updatedAt"
         FROM public."Customer"
         ON CONFLICT (id) DO NOTHING;
     END IF;
@@ -16,7 +19,7 @@ BEGIN
             id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default
         )
         SELECT
-            id, "customerId", type, label, line1, COALESCE(line2, ''), city, COALESCE(state, ''), COALESCE("postalCode", ''), country, "isDefault"
+            id, "customerId", 'shipping', COALESCE(label, 'Default'), line1, COALESCE(line2, ''), city, COALESCE(area, ''), COALESCE("postalCode", ''), country, "isDefault"
         FROM public."CustomerAddress"
         ON CONFLICT (id) DO NOTHING;
     END IF;
@@ -26,7 +29,7 @@ BEGIN
             id, currency, tax_inclusive, default_tax_rate, minimum_order_amount, free_shipping_threshold
         )
         SELECT
-            id, currency, "taxInclusive", "defaultTaxRate", "minimumOrderAmount", "freeShippingThreshold"
+            id, 'BHD', true, 10.00, 0.000, COALESCE("freeDeliveryOver", 0.000)
         FROM public."StoreSettings"
         ON CONFLICT (id) DO NOTHING;
     END IF;
@@ -36,7 +39,7 @@ BEGIN
             id, code, discount_type, discount_value, min_order_amount, max_discount_amount, starts_at, expires_at, usage_limit, usage_count, is_active, created_at
         )
         SELECT
-            id, code, "discountType", "discountValue", "minOrderAmount", "maxDiscountAmount", "startsAt", "expiresAt", "usageLimit", "usageCount", "isActive", "createdAt"
+            id, code, kind, value, COALESCE("minOrder", 0.000), NULL, "startsAt", "endsAt", "maxUses", "usedCount", "isActive", "createdAt"
         FROM public."Coupon"
         ON CONFLICT (id) DO NOTHING;
     END IF;
@@ -89,13 +92,13 @@ BEGIN
         ON CONFLICT (id) DO NOTHING;
     END IF;
 
-    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'RetailShift') THEN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'CashierSession') THEN
         INSERT INTO commerce.retail_shift (
             id, register_id, cashier_id, opened_at, starting_cash, closing_cash, expected_cash, status
         )
         SELECT
-            id, "registerId", "cashierId", "openedAt", "startingCash", "closingCash", "expectedCash", status
-        FROM public."RetailShift"
+            id, "registerId", "cashierId", "openedAt", "openingFloat", COALESCE("closingFloat", 0), "expectedCash", status
+        FROM public."CashierSession"
         ON CONFLICT (id) DO NOTHING;
     END IF;
 END $$;

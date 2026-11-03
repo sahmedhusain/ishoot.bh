@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, AlertTriangle, RefreshCw, Activity } from "lucide-react";
+import { CheckCircle2, AlertTriangle, RefreshCw } from "lucide-react";
 import { Button, Card } from "@platform/ui";
 import type { ServiceHealth } from "@platform/api-client";
 import { useCopy } from "./CopyProvider";

@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import {
   ExternalLink,
   Terminal,
-  ShieldAlert,
   Trash2,
   Plus,
   Loader2,

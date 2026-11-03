@@ -192,15 +192,12 @@ func (p *Repository) ChangeMFA(ctx context.Context, snapshot accounts.Account, p
 			if err := q.DeleteOpenPasswordResets(ctx, sqlcdb.DeleteOpenPasswordResetsParams{Realm: row.Realm, SubjectID: row.SubjectID}); err != nil {
 				return err
 			}
-			return outbox.Enqueue(ctx, tx, "identity", outbox.Event{Subject: "identity.user.changed", Payload: map[string]any{
-				"subjectId": row.SubjectID, "realm": row.Realm, "changedBy": row.Realm + ":" + row.SubjectID,
-			}})
-			if err := q.DeleteOpenPasswordResets(ctx, sqlcdb.DeleteOpenPasswordResetsParams{Realm: row.Realm, SubjectID: row.SubjectID}); err != nil {
-				return err
-			}
 			if err := q.CancelLegacyResetChallenges(ctx, sqlcdb.CancelLegacyResetChallengesParams{Realm: row.Realm, SubjectID: row.SubjectID}); err != nil {
 				return err
 			}
+			return outbox.Enqueue(ctx, tx, "identity", outbox.Event{Subject: "identity.user.changed", Payload: map[string]any{
+				"subjectId": row.SubjectID, "realm": row.Realm, "changedBy": row.Realm + ":" + row.SubjectID,
+			}})
 
 		default:
 			return accounts.ErrInvalid

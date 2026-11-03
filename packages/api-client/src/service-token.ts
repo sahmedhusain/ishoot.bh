@@ -1,4 +1,5 @@
 import { importJWK, SignJWT, type JWK } from "jose";
+import { generateKeyPairSync } from "node:crypto";
 import { serviceCaller, serviceTokenTtlSeconds } from "./config";
 
 /** The issuer prefix and audience the services expect (backend/pkg/authn). */
@@ -12,7 +13,15 @@ let cached: { token: string; renewAt: number } | undefined;
 function loadSigner(caller: string): Promise<Signer> {
   const name = `${caller.toUpperCase()}_SERVICE_KEY`;
   const encoded = process.env[name];
-  if (!encoded) throw new Error(`${name} is not set: run ./run.sh env secrets`);
+  if (!encoded) {
+    if (process.env.NODE_ENV !== "production" || process.env.NEXT_PHASE === "phase-production-build") {
+      const { privateKey } = generateKeyPairSync("ed25519");
+      const jwk = privateKey.export({ format: "jwk" }) as JWK;
+      const kid = `${caller}:build`;
+      return importJWK({ ...jwk, kid, alg: "EdDSA" }, "EdDSA").then((key) => ({ key, kid }));
+    }
+    throw new Error(`${name} is not set: run ./run.sh env secrets`);
+  }
   const jwk = JSON.parse(
     Buffer.from(encoded, "base64url").toString("utf8"),
   ) as JWK;

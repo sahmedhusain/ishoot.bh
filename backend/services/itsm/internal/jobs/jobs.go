@@ -89,7 +89,7 @@ func (w *NotificationWorker) Work(ctx context.Context, job *river.Job[domain.Not
 	args := job.Args
 	ticketRef := fmt.Sprintf("#%d", args.TicketNumber)
 
-	switch args.Kind {
+	switch args.EventKind {
 	case "created":
 		// Notify requester in-app
 		_ = w.Notifier.DeliverInApp(ctx, []notifyclient.InAppNotification{{

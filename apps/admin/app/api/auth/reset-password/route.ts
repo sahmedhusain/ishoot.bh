@@ -28,7 +28,6 @@ export async function POST(req: NextRequest) {
       await consumeAbuseLimit(
         "reset-password",
         String(email).trim().toLowerCase().slice(0, 254),
-        trustedClientIp(req.headers),
         5,
       ); // 5 per minute
 

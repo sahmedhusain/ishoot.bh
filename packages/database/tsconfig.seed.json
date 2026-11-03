@@ -6,6 +6,9 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
+      "@platform/contracts": ["../../contracts/src/index.ts"],
+      "@platform/contracts/catalog/*": ["../../contracts/catalog/*"],
+      "@platform/contracts/*": ["../../contracts/src/*"],
       "@platform/config/currency": ["../config/src/constants/currency.d.cts"],
       "@platform/config/phone": ["../config/src/phone.ts"],
       "@platform/config/constants": ["../config/src/constants/index.ts"],

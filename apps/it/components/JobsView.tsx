@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Cpu, RefreshCw, CheckCircle2, RotateCcw, XCircle } from "lucide-react";
+import { Cpu, RefreshCw } from "lucide-react";
 import { Button, Card } from "@platform/ui";
 import type { DatabaseStats } from "@platform/api-client";
 import { useCopy } from "./CopyProvider";

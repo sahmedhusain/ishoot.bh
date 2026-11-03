@@ -29,13 +29,16 @@
     "@material/material-color-utilities": "0.3.0",
     "@platform/api-client": "file:../api-client",
     "@platform/config": "file:../config",
+    "@platform/contracts": "file:../../contracts",
     "@platform/locales": "file:../locales",
     "@prisma/client": "5.22.0",
     "bcryptjs": "^3.0.3",
     "libphonenumber-js": "^1.13.14"
   },
   "devDependencies": {
+    "@types/dotenv": "^6.1.1",
     "@types/node": "^22.20.4",
+    "dotenv": "^18.0.9",
     "prisma": "5.22.0",
     "typescript": "^5.7.3"
   }

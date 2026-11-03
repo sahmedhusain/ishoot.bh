@@ -51,8 +51,9 @@ export function StatsManagementView({ initialStats, languages }: { initialStats:
     setIcon(item.icon || ""); setSortOrder(item.sortOrder);
     setSource(item.source === "preset" ? "preset" : "manual");
     setPreset((item.preset as StatisticPreset | null) ?? "projects_delivered");
-    setFoundingYear(item.presetParam?.toString() ?? "");
-    setRoundTo(item.roundTo?.toString() ?? ""); setSuffix(item.suffix ?? "");
+    const anyItem = item as any;
+    setFoundingYear(anyItem.presetParam?.toString() ?? "");
+    setRoundTo(anyItem.roundTo?.toString() ?? ""); setSuffix(anyItem.suffix ?? "");
     setError(null);
     setIsModalOpen(true);
   };

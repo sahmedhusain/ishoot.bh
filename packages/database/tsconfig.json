@@ -4,7 +4,17 @@
     "outDir": "./dist",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "target": "ES2022"
+    "target": "ES2022",
+    "baseUrl": ".",
+    "paths": {
+      "@platform/contracts": ["../../contracts/src/index.ts"],
+      "@platform/contracts/catalog/*": ["../../contracts/catalog/*"],
+      "@platform/contracts/*": ["../../contracts/src/*"],
+      "@platform/config": ["../config/src/index.ts"],
+      "@platform/config/*": ["../config/src/*"],
+      "@platform/locales": ["../locales/src/index.ts"],
+      "@platform/locales/*": ["../locales/src/*"]
+    }
   },
   "include": ["src/**/*"]
 }

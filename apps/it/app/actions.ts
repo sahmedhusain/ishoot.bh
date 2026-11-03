@@ -314,7 +314,7 @@ export async function syncIntegrationAction(provider: string) {
   try {
     const result = await syncSocialIntegration(provider);
     revalidatePath("/integrations");
-    return { ok: true as const, ...result, error: null };
+    return { ...result, ok: true as const, error: null };
   } catch (error) {
     revalidatePath("/integrations");
     return {

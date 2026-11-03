@@ -80,13 +80,13 @@ export type ApiKeyCreated = {
 
 export const getSystemHealthForIT = async (token: string): Promise<ServiceHealth[]> => {
   const res = await unwrap(
-    userClient<any>(token).GET("/v1/system/desk/health")
+    userClient<any>(token).GET("/v1/system/desk/health", {})
   );
   return res.items;
 };
 
 export const getRuntimeConfigForIT = (token: string): Promise<RuntimeConfig> =>
-  unwrap(userClient<any>(token).GET("/v1/system/desk/config"));
+  unwrap(userClient<any>(token).GET("/v1/system/desk/config", {}));
 
 export const setDebugToggleForIT = (
   token: string,
@@ -111,11 +111,11 @@ export const removeDebugToggleForIT = (token: string, service: string) =>
   );
 
 export const getDatabaseStatsForIT = (token: string): Promise<DatabaseStats> =>
-  unwrap(userClient<any>(token).GET("/v1/system/desk/database"));
+  unwrap(userClient<any>(token).GET("/v1/system/desk/database", {}));
 
 export const listBackupsForIT = async (token: string): Promise<BackupRecord[]> => {
   const res = await unwrap(
-    userClient<any>(token).GET("/v1/system/desk/backups")
+    userClient<any>(token).GET("/v1/system/desk/backups", {})
   );
   return res.items;
 };
@@ -139,7 +139,7 @@ export const verifyBackupForIT = (token: string, id: string) =>
 
 export const listAPIKeysForIT = async (token: string): Promise<ApiKeyRecord[]> => {
   const res = await unwrap(
-    userClient<any>(token).GET("/v1/system/desk/api-keys")
+    userClient<any>(token).GET("/v1/system/desk/api-keys", {})
   );
   return res.items;
 };

@@ -4,12 +4,10 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
-  Key,
   Plus,
   Trash2,
   Copy,
   Check,
-  AlertTriangle,
   Loader2,
 } from "lucide-react";
 import { Button, Card, Input } from "@platform/ui";

@@ -46,7 +46,7 @@ export function CompanyView({
   canEdit: boolean;
   canComplete: boolean;
 }) {
-  const { copy, locale, date } = useCopy();
+  const { copy, date } = useCopy();
   const c = copy.company;
   const router = useRouter();
 

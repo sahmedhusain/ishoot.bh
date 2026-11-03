@@ -9,11 +9,28 @@ BEGIN
             created_at, updated_at
         )
         SELECT
-            id, "invoiceNumber", "quotationId", "clientId", "dealId", status,
-            "issueDate", "dueDate", subtotal, discount, "vatRate", "vatAmount",
-            total, "amountPaid", "balanceDue", currency, notes, terms,
-            "createdAt", "updatedAt"
-        FROM public."Invoice"
+            i.id,
+            i."invoiceNumber",
+            q.id,
+            i."clientId",
+            i."dealId",
+            i.status,
+            i."issueDate",
+            i."dueDate",
+            i.subtotal,
+            i."discountAmount",
+            i."vatPercentage",
+            i."vatAmount",
+            i."totalAmount",
+            0.000,
+            i."totalAmount",
+            i.currency,
+            COALESCE(i."notesEn", i."notesAr"),
+            NULL,
+            i."createdAt",
+            i."updatedAt"
+        FROM public."Invoice" i
+        LEFT JOIN public."Quotation" q ON q."invoiceId" = i.id
         ON CONFLICT (id) DO NOTHING;
     END IF;
 
@@ -22,7 +39,7 @@ BEGIN
             id, invoice_id, description, quantity, unit_price, amount, sort_order
         )
         SELECT
-            id, "invoiceId", description, quantity, "unitPrice", amount, "sortOrder"
+            id, "invoiceId", "descriptionEn", quantity, "unitPrice", "lineTotal", "displayOrder"
         FROM public."InvoiceLineItem"
         ON CONFLICT (id) DO NOTHING;
     END IF;
@@ -33,9 +50,20 @@ BEGIN
             payment_method, payment_date, reference, status, notes, created_at
         )
         SELECT
-            id, "paymentNumber", "invoiceId", "clientId", amount, currency,
-            "paymentMethod", "paymentDate", reference, status, notes, "createdAt"
-        FROM public."Payment"
+            p.id,
+            p."receiptNumber",
+            p."invoiceId",
+            i."clientId",
+            p.amount,
+            p.currency,
+            p."paymentMethod",
+            p."paymentDate",
+            p."referenceNumber",
+            'completed',
+            p.notes,
+            p."createdAt"
+        FROM public."Payment" p
+        LEFT JOIN public."Invoice" i ON i.id = p."invoiceId"
         ON CONFLICT (id) DO NOTHING;
     END IF;
 
@@ -44,7 +72,7 @@ BEGIN
             id, name_en, name_ar, code, sort_order
         )
         SELECT
-            id, "nameEn", "nameAr", code, "sortOrder"
+            id, "nameEn", "nameAr", slug, "displayOrder"
         FROM public."ExpenseCategory"
         ON CONFLICT (id) DO NOTHING;
     END IF;
@@ -55,8 +83,8 @@ BEGIN
             notes, vendor, receipt_url, created_by, approved_by, created_at, updated_at
         )
         SELECT
-            id, title, "categoryId", amount, currency, "expenseDate", status,
-            notes, vendor, "receiptUrl", "createdBy", "approvedBy", "createdAt", "updatedAt"
+            id, "descriptionEn", "categoryId", amount, currency, "expenseDate", status,
+            notes, "vendorName", "receiptUrl", "createdById", NULL, "createdAt", "createdAt"
         FROM public."Expense"
         ON CONFLICT (id) DO NOTHING;
     END IF;
@@ -66,7 +94,7 @@ BEGIN
             id, settlement_number, bank_account, amount, currency, settled_at, status, notes, created_at
         )
         SELECT
-            id, "settlementNumber", "bankAccount", amount, currency, "settledAt", status, notes, "createdAt"
+            id, COALESCE("bankReference", id), 'main', "settledAmountBhd", 'BHD', "settlementDate"::timestamp with time zone, status, NULL, "createdAt"
         FROM public."BankSettlement"
         ON CONFLICT (id) DO NOTHING;
     END IF;

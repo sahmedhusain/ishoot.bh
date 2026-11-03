@@ -138,7 +138,7 @@ export async function withAccountSync<T>(
   try {
     result = await pendingAccountSync.run(pending, run);
   } catch (error) {
-    for (const id of pending.provisioned)
+    for (const id of Array.from(pending.provisioned))
       await syncAccount("staff", id, {
         email: `${id}@deleted.invalid`,
         roles: [],

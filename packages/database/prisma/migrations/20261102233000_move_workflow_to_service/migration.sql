@@ -6,7 +6,7 @@ BEGIN
             id, kind, entity_id, requester_id, status, priority, reason, created_at, updated_at
         )
         SELECT
-            id, kind, "entityId", "requesterId", status, priority, reason, "createdAt", "updatedAt"
+            id, "targetType", "targetId", "requestedById", status, 'normal', "discountReason", "createdAt", "updatedAt"
         FROM public."ApprovalRequest"
         ON CONFLICT (id) DO NOTHING;
     END IF;
@@ -16,7 +16,7 @@ BEGIN
             id, request_id, approver_id, decision, comments, decided_at
         )
         SELECT
-            id, "requestId", "approverId", decision, comments, "decidedAt"
+            id, "approvalRequestId", "decidedById", decision, reason, "decidedAt"
         FROM public."ApprovalDecision"
         ON CONFLICT (id) DO NOTHING;
     END IF;
@@ -26,7 +26,16 @@ BEGIN
             id, title, document_type, document_id, requested_from, status, signature_url, signed_at, expires_at, created_at
         )
         SELECT
-            id, title, "documentType", "documentId", "requestedFrom", status, "signatureUrl", "signedAt", "expiresAt", "createdAt"
+            id,
+            COALESCE("recipientEmail", "signerName", "documentType" || ' ' || "documentId"),
+            "documentType",
+            "documentId",
+            COALESCE("recipientEmail", "signerName", 'signer'),
+            status,
+            "signatureData",
+            "signedAt",
+            "expiresAt",
+            "createdAt"
         FROM public."SignatureRequest"
         ON CONFLICT (id) DO NOTHING;
     END IF;
@@ -36,7 +45,7 @@ BEGIN
             id, name_en, name_ar, template_body, sort_order
         )
         SELECT
-            id, "nameEn", "nameAr", "templateBody", "sortOrder"
+            id, "nameEn", "nameAr", COALESCE(NULLIF("bodyEn", ''), "bodyAr", ''), "displayOrder"
         FROM public."LetterTemplate"
         ON CONFLICT (id) DO NOTHING;
     END IF;
@@ -46,7 +55,15 @@ BEGIN
             id, letter_number, template_id, recipient_name, recipient_title, subject, body, status, created_at
         )
         SELECT
-            id, "letterNumber", "templateId", "recipientName", "recipientTitle", subject, body, status, "createdAt"
+            id,
+            reference,
+            "templateId",
+            COALESCE("recipientName", 'Recipient'),
+            "recipientTitle",
+            COALESCE(NULLIF("subjectEn", ''), "subjectAr", 'Official Letter'),
+            COALESCE(NULLIF("bodyEn", ''), "bodyAr", 'Body'),
+            status,
+            "createdAt"
         FROM public."OfficialLetter"
         ON CONFLICT (id) DO NOTHING;
     END IF;
@@ -56,8 +73,16 @@ BEGIN
             id, mom_number, title, meeting_date, attendees, discussion, action_items, status, created_at
         )
         SELECT
-            id, "momNumber", title, "meetingDate", attendees, discussion, "actionItems", status, "createdAt"
-        FROM public."MinuteOfMeeting"
+            m.id, m."momNumber", m.title, m."meetingDate",
+            COALESCE(att.arr, '{}'::text[]),
+            COALESCE(m.agenda, m.notes, 'Meeting'),
+            m."actionItems"::text,
+            m.status,
+            m."createdAt"
+        FROM public."MinuteOfMeeting" m
+        LEFT JOIN LATERAL (
+            SELECT ARRAY_AGG(elem) AS arr FROM jsonb_array_elements_text(m.attendees) elem
+        ) att ON true
         ON CONFLICT (id) DO NOTHING;
     END IF;
 
@@ -66,7 +91,7 @@ BEGIN
             id, title, description, assigned_to, due_date, status, priority, related_entity_type, related_entity_id, created_at, updated_at
         )
         SELECT
-            id, title, description, "assignedTo", "dueDate", status, priority, "relatedEntityType", "relatedEntityId", "createdAt", "updatedAt"
+            id, title, description, "assigneeId", "dueDate", status, priority, "linkType", "linkId", "createdAt", "updatedAt"
         FROM public."Task"
         ON CONFLICT (id) DO NOTHING;
     END IF;
@@ -76,7 +101,7 @@ BEGIN
             id, title, description, start_time, end_time, is_all_day, location, organizer_id, event_type, created_at
         )
         SELECT
-            id, title, description, "startTime", "endTime", "isAllDay", location, "organizerId", "eventType", "createdAt"
+            id, title, description, "startDate", "endDate", "allDay", location, COALESCE("createdById", 'system'), "eventType", "createdAt"
         FROM public."CalendarEvent"
         ON CONFLICT (id) DO NOTHING;
     END IF;

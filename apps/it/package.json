@@ -15,8 +15,10 @@
   "dependencies": {
     "@platform/api-client": "file:../../packages/api-client",
     "@platform/contracts": "file:../../packages/contracts",
+    "@platform/database": "file:../../packages/database",
     "@platform/locales": "file:../../packages/locales",
     "@platform/ui": "file:../../packages/ui",
+    "dotenv": "^18.0.9",
     "jose": "^6.2.12",
     "lucide-react": "^0.475.0",
     "next": "16.4.4",

@@ -4,16 +4,13 @@ package httpapi
 import (
 	"errors"
 	"net/http"
-	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/labstack/echo/v4"
 
 	"platform.local/backend/pkg/authn"
 	"platform.local/backend/pkg/problem"
 	"platform.local/backend/services/sales/api"
 	"platform.local/backend/services/sales/internal/app"
-	"platform.local/backend/services/sales/internal/postgres"
 	"platform.local/backend/services/sales/internal/postgres/sqlcdb"
 )
 

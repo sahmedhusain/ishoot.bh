@@ -11,6 +11,34 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type SystemApiKey struct {
+	ID         string
+	Name       string
+	KeyPrefix  string
+	KeyHash    string
+	Scopes     []string
+	RateLimit  int32
+	LastUsedAt *time.Time
+	ExpiresAt  *time.Time
+	CreatedBy  string
+	CreatedAt  time.Time
+	RevokedAt  *time.Time
+}
+
+type SystemBackupRecord struct {
+	ID           string
+	Kind         string
+	FileName     string
+	FileSize     int64
+	Checksum     string
+	Status       string
+	ErrorMessage *string
+	CreatedBy    string
+	CreatedAt    time.Time
+	VerifiedAt   *time.Time
+	Details      json.RawMessage
+}
+
 type SystemCompany struct {
 	ID             string
 	Singleton      bool
@@ -30,6 +58,15 @@ type SystemCompanyAsset struct {
 	FileSize  *int64
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+type SystemDebugToggle struct {
+	ID        string
+	Service   string
+	LogLevel  string
+	EnabledBy string
+	EnabledAt time.Time
+	ExpiresAt time.Time
 }
 
 type SystemDocumentSequence struct {
@@ -95,41 +132,4 @@ type SystemSiteSetting struct {
 	Code          json.RawMessage
 	UpdatedAt     time.Time
 	UpdatedBy     *string
-}
-
-type SystemApiKey struct {
-	ID         string
-	Name       string
-	KeyPrefix  string
-	KeyHash    string
-	Scopes     []string
-	RateLimit  int32
-	LastUsedAt *time.Time
-	ExpiresAt  *time.Time
-	CreatedBy  string
-	CreatedAt  time.Time
-	RevokedAt  *time.Time
-}
-
-type SystemBackupRecord struct {
-	ID           string
-	Kind         string
-	FileName     string
-	FileSize     int64
-	Checksum     string
-	Status       string
-	ErrorMessage *string
-	CreatedBy    string
-	CreatedAt    time.Time
-	VerifiedAt   *time.Time
-	Details      json.RawMessage
-}
-
-type SystemDebugToggle struct {
-	ID        string
-	Service   string
-	LogLevel  string
-	EnabledBy string
-	EnabledAt time.Time
-	ExpiresAt time.Time
 }

@@ -121,13 +121,13 @@ export type StockCountLine = {
 
 async function headers(token?: string): Promise<Record<string, string>> {
   const h: Record<string, string> = { "Content-Type": "application/json" };
-  const auth = token ?? (await serviceToken("inventory"));
+  const auth = token ?? (await serviceToken());
   if (auth) h.Authorization = `Bearer ${auth}`;
   return h;
 }
 
 export async function listWarehouses(token?: string): Promise<Warehouse[]> {
-  const res = await fetch(`${apiUrl("inventory")}/v1/inventory/warehouses`, {
+  const res = await fetch(`${apiUrl()}/v1/inventory/warehouses`, {
     headers: await headers(token),
     signal: AbortSignal.timeout(apiTimeoutMs()),
   });
@@ -136,7 +136,7 @@ export async function listWarehouses(token?: string): Promise<Warehouse[]> {
 }
 
 export async function getWarehouse(id: string, token?: string): Promise<Warehouse> {
-  const res = await fetch(`${apiUrl("inventory")}/v1/inventory/warehouses/${id}`, {
+  const res = await fetch(`${apiUrl()}/v1/inventory/warehouses/${id}`, {
     headers: await headers(token),
     signal: AbortSignal.timeout(apiTimeoutMs()),
   });
@@ -145,7 +145,7 @@ export async function getWarehouse(id: string, token?: string): Promise<Warehous
 }
 
 export async function createWarehouse(input: Partial<Warehouse>, token?: string): Promise<Warehouse> {
-  const res = await fetch(`${apiUrl("inventory")}/v1/inventory/warehouses`, {
+  const res = await fetch(`${apiUrl()}/v1/inventory/warehouses`, {
     method: "POST",
     headers: await headers(token),
     body: JSON.stringify(input),
@@ -156,7 +156,7 @@ export async function createWarehouse(input: Partial<Warehouse>, token?: string)
 }
 
 export async function listLocations(warehouseId: string, token?: string): Promise<StockLocation[]> {
-  const res = await fetch(`${apiUrl("inventory")}/v1/inventory/warehouses/${warehouseId}/locations`, {
+  const res = await fetch(`${apiUrl()}/v1/inventory/warehouses/${warehouseId}/locations`, {
     headers: await headers(token),
     signal: AbortSignal.timeout(apiTimeoutMs()),
   });
@@ -165,7 +165,7 @@ export async function listLocations(warehouseId: string, token?: string): Promis
 }
 
 export async function createLocation(warehouseId: string, input: Partial<StockLocation>, token?: string): Promise<StockLocation> {
-  const res = await fetch(`${apiUrl("inventory")}/v1/inventory/warehouses/${warehouseId}/locations`, {
+  const res = await fetch(`${apiUrl()}/v1/inventory/warehouses/${warehouseId}/locations`, {
     method: "POST",
     headers: await headers(token),
     body: JSON.stringify(input),
@@ -176,7 +176,7 @@ export async function createLocation(warehouseId: string, input: Partial<StockLo
 }
 
 export async function listCategories(token?: string): Promise<ProductCategory[]> {
-  const res = await fetch(`${apiUrl("inventory")}/v1/inventory/categories`, {
+  const res = await fetch(`${apiUrl()}/v1/inventory/categories`, {
     headers: await headers(token),
     signal: AbortSignal.timeout(apiTimeoutMs()),
   });
@@ -185,7 +185,7 @@ export async function listCategories(token?: string): Promise<ProductCategory[]>
 }
 
 export async function createCategory(input: Partial<ProductCategory>, token?: string): Promise<ProductCategory> {
-  const res = await fetch(`${apiUrl("inventory")}/v1/inventory/categories`, {
+  const res = await fetch(`${apiUrl()}/v1/inventory/categories`, {
     method: "POST",
     headers: await headers(token),
     body: JSON.stringify(input),
@@ -196,7 +196,7 @@ export async function createCategory(input: Partial<ProductCategory>, token?: st
 }
 
 export async function listProducts(token?: string): Promise<Product[]> {
-  const res = await fetch(`${apiUrl("inventory")}/v1/inventory/products`, {
+  const res = await fetch(`${apiUrl()}/v1/inventory/products`, {
     headers: await headers(token),
     signal: AbortSignal.timeout(apiTimeoutMs()),
   });
@@ -205,7 +205,7 @@ export async function listProducts(token?: string): Promise<Product[]> {
 }
 
 export async function getProduct(id: string, token?: string): Promise<Product> {
-  const res = await fetch(`${apiUrl("inventory")}/v1/inventory/products/${id}`, {
+  const res = await fetch(`${apiUrl()}/v1/inventory/products/${id}`, {
     headers: await headers(token),
     signal: AbortSignal.timeout(apiTimeoutMs()),
   });
@@ -214,7 +214,7 @@ export async function getProduct(id: string, token?: string): Promise<Product> {
 }
 
 export async function createProduct(input: Partial<Product>, token?: string): Promise<Product> {
-  const res = await fetch(`${apiUrl("inventory")}/v1/inventory/products`, {
+  const res = await fetch(`${apiUrl()}/v1/inventory/products`, {
     method: "POST",
     headers: await headers(token),
     body: JSON.stringify(input),
@@ -225,7 +225,7 @@ export async function createProduct(input: Partial<Product>, token?: string): Pr
 }
 
 export async function updateProduct(id: string, input: Partial<Product>, token?: string): Promise<Product> {
-  const res = await fetch(`${apiUrl("inventory")}/v1/inventory/products/${id}`, {
+  const res = await fetch(`${apiUrl()}/v1/inventory/products/${id}`, {
     method: "PUT",
     headers: await headers(token),
     body: JSON.stringify(input),
@@ -236,7 +236,7 @@ export async function updateProduct(id: string, input: Partial<Product>, token?:
 }
 
 export async function listVariants(productId: string, token?: string): Promise<ProductVariant[]> {
-  const res = await fetch(`${apiUrl("inventory")}/v1/inventory/products/${productId}/variants`, {
+  const res = await fetch(`${apiUrl()}/v1/inventory/products/${productId}/variants`, {
     headers: await headers(token),
     signal: AbortSignal.timeout(apiTimeoutMs()),
   });
@@ -245,7 +245,7 @@ export async function listVariants(productId: string, token?: string): Promise<P
 }
 
 export async function createVariant(productId: string, input: Partial<ProductVariant>, token?: string): Promise<ProductVariant> {
-  const res = await fetch(`${apiUrl("inventory")}/v1/inventory/products/${productId}/variants`, {
+  const res = await fetch(`${apiUrl()}/v1/inventory/products/${productId}/variants`, {
     method: "POST",
     headers: await headers(token),
     body: JSON.stringify(input),
@@ -256,7 +256,7 @@ export async function createVariant(productId: string, input: Partial<ProductVar
 }
 
 export async function listStockLevels(productId: string, token?: string): Promise<StockLevel[]> {
-  const res = await fetch(`${apiUrl("inventory")}/v1/inventory/stock/levels?productId=${encodeURIComponent(productId)}`, {
+  const res = await fetch(`${apiUrl()}/v1/inventory/stock/levels?productId=${encodeURIComponent(productId)}`, {
     headers: await headers(token),
     signal: AbortSignal.timeout(apiTimeoutMs()),
   });
@@ -271,7 +271,7 @@ export async function adjustStock(
   },
   token?: string,
 ): Promise<StockMovement> {
-  const res = await fetch(`${apiUrl("inventory")}/v1/inventory/stock/adjust`, {
+  const res = await fetch(`${apiUrl()}/v1/inventory/stock/adjust`, {
     method: "POST",
     headers: await headers(token),
     body: JSON.stringify(input),
@@ -282,7 +282,7 @@ export async function adjustStock(
 }
 
 export async function listStockCounts(token?: string): Promise<StockCount[]> {
-  const res = await fetch(`${apiUrl("inventory")}/v1/inventory/counts`, {
+  const res = await fetch(`${apiUrl()}/v1/inventory/counts`, {
     headers: await headers(token),
     signal: AbortSignal.timeout(apiTimeoutMs()),
   });
@@ -291,7 +291,7 @@ export async function listStockCounts(token?: string): Promise<StockCount[]> {
 }
 
 export async function createStockCount(input: Partial<StockCount>, token?: string): Promise<StockCount> {
-  const res = await fetch(`${apiUrl("inventory")}/v1/inventory/counts`, {
+  const res = await fetch(`${apiUrl()}/v1/inventory/counts`, {
     method: "POST",
     headers: await headers(token),
     body: JSON.stringify(input),
