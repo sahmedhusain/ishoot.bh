@@ -8,7 +8,7 @@ import { listModules, getCompanyConfiguration, listProducts } from "../../apps/a
 dotenv.config({ path: path.resolve(__dirname, "../../.env"), quiet: true });
 
 async function main() {
-  const preset = demoPreset(process.env.SEED_PRESET || "all", process.env.SEED_STYLE);
+  const preset = demoPreset(process.env.SEED_PRESET?.trim() || "media", process.env.SEED_STYLE?.trim());
   const company = await getCompanyConfiguration().catch(() => null);
   const profile = loadCompanyProfile(process.env.COMPANY_PROFILE || "demo");
 
@@ -24,8 +24,15 @@ async function main() {
     }
   }
 
-  const products = await listProducts().catch(() => []);
-  console.log(`✅ Demo check passed: ${products.length} products available via Go backend API`);
+  const inventoryEnabled = modules.get("inventory") ?? true;
+  if (inventoryEnabled) {
+    const productsList = await listProducts().catch(() => []);
+    const products = Array.isArray(productsList) ? productsList : [];
+    assert.equal(products.length > 0, true, "products");
+    console.log(`✅ Demo check passed: ${products.length} products available via Go backend API`);
+  } else {
+    console.log(`✅ Demo check passed for preset "${preset.id}" (${profile.display.nameEn})`);
+  }
 }
 
 main().catch((error) => {

@@ -65,14 +65,18 @@ type File struct {
 	MIMEType  string     `json:"mimeType"`
 	IsPublic  bool       `json:"isPublic"`
 	ClaimedAt *time.Time `json:"claimedAt,omitempty"`
-	ExpiresAt time.Time  `json:"expiresAt"`
+	ExpiresAt *time.Time `json:"expiresAt,omitempty"`
 	CreatedAt time.Time  `json:"createdAt"`
 }
 
 func toJSON(f domain.File) File {
+	var expires *time.Time
+	if !f.ExpiresAt.IsZero() {
+		expires = &f.ExpiresAt
+	}
 	return File{
 		ID: f.ID, FileURL: f.URL, OwnerID: f.OwnerID, FileName: f.FileName, FileSize: f.Size, MIMEType: f.MIMEType,
-		IsPublic: f.Public, ClaimedAt: f.ClaimedAt, ExpiresAt: f.ExpiresAt, CreatedAt: f.CreatedAt,
+		IsPublic: f.Public, ClaimedAt: f.ClaimedAt, ExpiresAt: expires, CreatedAt: f.CreatedAt,
 	}
 }
 

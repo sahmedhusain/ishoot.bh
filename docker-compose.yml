@@ -149,7 +149,7 @@ x-system: &system
     AUTH_SERVICE_KEYS_FILE: /config/service-keys.json
     AUTH_ISSUER: ${AUTH_ISSUER:-http://identity:8080}
     AUTH_JWKS_URL: ${AUTH_JWKS_URL:-http://identity:8080/.well-known/jwks.json}
-    SYSTEM_SERVICE_KEY: ${SYSTEM_SERVICE_KEY:-}
+    SYSTEM_SERVICE_KEY: ${SYSTEM_SERVICE_KEY:?Set SYSTEM_SERVICE_KEY in .env}
     SYSTEM_FILES_URL: ${SYSTEM_FILES_URL:-http://files:8080}
     SYSTEM_COMPANY_BODY_LIMIT: ${SYSTEM_COMPANY_BODY_LIMIT:-1048576}
     SYSTEM_READ_CALLERS: ${SYSTEM_READ_CALLERS:-admin,web,it,notify}
@@ -183,7 +183,7 @@ x-identity: &identity
     IDENTITY_CALLERS_STAFF: ${IDENTITY_CALLERS_STAFF:-admin,it}
     IDENTITY_CALLERS_CUSTOMER: ${IDENTITY_CALLERS_CUSTOMER:-web}
     IDENTITY_CALLERS_IT: ${IDENTITY_CALLERS_IT:-it}
-    IDENTITY_SERVICE_KEY: ${IDENTITY_SERVICE_KEY:-}
+    IDENTITY_SERVICE_KEY: ${IDENTITY_SERVICE_KEY:?Set IDENTITY_SERVICE_KEY in .env}
     IDENTITY_SYSTEM_URL: ${IDENTITY_SYSTEM_URL:-http://system:8080}
     IDENTITY_LOGIN_MFA_ENROLLMENT_TTL: ${IDENTITY_LOGIN_MFA_ENROLLMENT_TTL:-10m}
     IDENTITY_LOGIN_MFA_RECOVERY_COUNT: ${IDENTITY_LOGIN_MFA_RECOVERY_COUNT:-10}
@@ -219,6 +219,158 @@ x-identity: &identity
     IDENTITY_LOGIN_TOTP_WINDOW: ${IDENTITY_LOGIN_TOTP_WINDOW:-}
   volumes:
     - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/keys/service-keys.json:ro
+
+x-cms: &cms
+  <<: *service
+  build:
+    context: backend
+    args: { SERVICE: cms }
+  image: platform/cms:dev
+  environment:
+    <<: *service-env
+    SERVICE_NAME: cms
+    DATABASE_URL: postgres://svc_cms:${CMS_DB_PASSWORD}@pgbouncer:6432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_DIRECT_URL: postgres://svc_cms:${CMS_DB_PASSWORD:?Set CMS_DB_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_LOG_QUERIES: ${DATABASE_LOG_QUERIES:-false}
+    AUTH_SERVICE_KEYS_FILE: /config/service-keys.json
+    AUTH_ISSUER: ${AUTH_ISSUER:-http://identity:8080}
+    AUTH_JWKS_URL: ${AUTH_JWKS_URL:-http://identity:8080/.well-known/jwks.json}
+    NATS_URL: ${NATS_URL:-nats://nats:4222}
+  volumes:
+    - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/config/service-keys.json:ro
+
+x-commerce: &commerce
+  <<: *service
+  build:
+    context: backend
+    args: { SERVICE: commerce }
+  image: platform/commerce:dev
+  environment:
+    <<: *service-env
+    SERVICE_NAME: commerce
+    DATABASE_URL: postgres://svc_commerce:${COMMERCE_DB_PASSWORD}@pgbouncer:6432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_DIRECT_URL: postgres://svc_commerce:${COMMERCE_DB_PASSWORD:?Set COMMERCE_DB_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_LOG_QUERIES: ${DATABASE_LOG_QUERIES:-false}
+    AUTH_SERVICE_KEYS_FILE: /config/service-keys.json
+    AUTH_ISSUER: ${AUTH_ISSUER:-http://identity:8080}
+    AUTH_JWKS_URL: ${AUTH_JWKS_URL:-http://identity:8080/.well-known/jwks.json}
+    NATS_URL: ${NATS_URL:-nats://nats:4222}
+  volumes:
+    - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/config/service-keys.json:ro
+
+x-delivery: &delivery
+  <<: *service
+  build:
+    context: backend
+    args: { SERVICE: delivery }
+  image: platform/delivery:dev
+  environment:
+    <<: *service-env
+    SERVICE_NAME: delivery
+    DATABASE_URL: postgres://svc_delivery:${DELIVERY_DB_PASSWORD}@pgbouncer:6432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_DIRECT_URL: postgres://svc_delivery:${DELIVERY_DB_PASSWORD:?Set DELIVERY_DB_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_LOG_QUERIES: ${DATABASE_LOG_QUERIES:-false}
+    AUTH_SERVICE_KEYS_FILE: /config/service-keys.json
+    AUTH_ISSUER: ${AUTH_ISSUER:-http://identity:8080}
+    AUTH_JWKS_URL: ${AUTH_JWKS_URL:-http://identity:8080/.well-known/jwks.json}
+    NATS_URL: ${NATS_URL:-nats://nats:4222}
+  volumes:
+    - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/config/service-keys.json:ro
+
+x-finance: &finance
+  <<: *service
+  build:
+    context: backend
+    args: { SERVICE: finance }
+  image: platform/finance:dev
+  environment:
+    <<: *service-env
+    SERVICE_NAME: finance
+    DATABASE_URL: postgres://svc_finance:${FINANCE_DB_PASSWORD}@pgbouncer:6432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_DIRECT_URL: postgres://svc_finance:${FINANCE_DB_PASSWORD:?Set FINANCE_DB_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_LOG_QUERIES: ${DATABASE_LOG_QUERIES:-false}
+    AUTH_SERVICE_KEYS_FILE: /config/service-keys.json
+    AUTH_ISSUER: ${AUTH_ISSUER:-http://identity:8080}
+    AUTH_JWKS_URL: ${AUTH_JWKS_URL:-http://identity:8080/.well-known/jwks.json}
+    NATS_URL: ${NATS_URL:-nats://nats:4222}
+  volumes:
+    - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/config/service-keys.json:ro
+
+x-hr: &hr
+  <<: *service
+  build:
+    context: backend
+    args: { SERVICE: hr }
+  image: platform/hr:dev
+  environment:
+    <<: *service-env
+    SERVICE_NAME: hr
+    DATABASE_URL: postgres://svc_hr:${HR_DB_PASSWORD}@pgbouncer:6432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_DIRECT_URL: postgres://svc_hr:${HR_DB_PASSWORD:?Set HR_DB_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_LOG_QUERIES: ${DATABASE_LOG_QUERIES:-false}
+    AUTH_SERVICE_KEYS_FILE: /config/service-keys.json
+    AUTH_ISSUER: ${AUTH_ISSUER:-http://identity:8080}
+    AUTH_JWKS_URL: ${AUTH_JWKS_URL:-http://identity:8080/.well-known/jwks.json}
+    NATS_URL: ${NATS_URL:-nats://nats:4222}
+  volumes:
+    - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/config/service-keys.json:ro
+
+x-inventory: &inventory
+  <<: *service
+  build:
+    context: backend
+    args: { SERVICE: inventory }
+  image: platform/inventory:dev
+  environment:
+    <<: *service-env
+    SERVICE_NAME: inventory
+    DATABASE_URL: postgres://svc_inventory:${INVENTORY_DB_PASSWORD}@pgbouncer:6432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_DIRECT_URL: postgres://svc_inventory:${INVENTORY_DB_PASSWORD:?Set INVENTORY_DB_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_LOG_QUERIES: ${DATABASE_LOG_QUERIES:-false}
+    AUTH_SERVICE_KEYS_FILE: /config/service-keys.json
+    AUTH_ISSUER: ${AUTH_ISSUER:-http://identity:8080}
+    AUTH_JWKS_URL: ${AUTH_JWKS_URL:-http://identity:8080/.well-known/jwks.json}
+    NATS_URL: ${NATS_URL:-nats://nats:4222}
+  volumes:
+    - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/config/service-keys.json:ro
+
+x-sales: &sales
+  <<: *service
+  build:
+    context: backend
+    args: { SERVICE: sales }
+  image: platform/sales:dev
+  environment:
+    <<: *service-env
+    SERVICE_NAME: sales
+    DATABASE_URL: postgres://svc_sales:${SALES_DB_PASSWORD}@pgbouncer:6432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_DIRECT_URL: postgres://svc_sales:${SALES_DB_PASSWORD:?Set SALES_DB_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_LOG_QUERIES: ${DATABASE_LOG_QUERIES:-false}
+    AUTH_SERVICE_KEYS_FILE: /config/service-keys.json
+    AUTH_ISSUER: ${AUTH_ISSUER:-http://identity:8080}
+    AUTH_JWKS_URL: ${AUTH_JWKS_URL:-http://identity:8080/.well-known/jwks.json}
+    NATS_URL: ${NATS_URL:-nats://nats:4222}
+  volumes:
+    - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/config/service-keys.json:ro
+
+x-workflow: &workflow
+  <<: *service
+  build:
+    context: backend
+    args: { SERVICE: workflow }
+  image: platform/workflow:dev
+  environment:
+    <<: *service-env
+    SERVICE_NAME: workflow
+    DATABASE_URL: postgres://svc_workflow:${WORKFLOW_DB_PASSWORD}@pgbouncer:6432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_DIRECT_URL: postgres://svc_workflow:${WORKFLOW_DB_PASSWORD:?Set WORKFLOW_DB_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
+    DATABASE_LOG_QUERIES: ${DATABASE_LOG_QUERIES:-false}
+    AUTH_SERVICE_KEYS_FILE: /config/service-keys.json
+    AUTH_ISSUER: ${AUTH_ISSUER:-http://identity:8080}
+    AUTH_JWKS_URL: ${AUTH_JWKS_URL:-http://identity:8080/.well-known/jwks.json}
+    NATS_URL: ${NATS_URL:-nats://nats:4222}
+  volumes:
+    - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/config/service-keys.json:ro
 
 services:
   postgres:
@@ -285,7 +437,11 @@ services:
     volumes:
       - s3data:/data
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:9333/cluster/status"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O /dev/null http://127.0.0.1:9333/cluster/status",
+        ]
       interval: 5s
       timeout: 3s
       retries: 30
@@ -302,14 +458,22 @@ services:
       disable: true
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db}?sslmode=disable
-      DB_ROLES: files,identity,system,itsm,audit,notify,realtime
-      DB_ROLE_PASSWORD_FILES: ${FILES_DB_PASSWORD:?Set FILES_DB_PASSWORD in .env}
-      DB_ROLE_PASSWORD_IDENTITY: ${IDENTITY_DB_PASSWORD:?Set IDENTITY_DB_PASSWORD in .env}
-      DB_ROLE_PASSWORD_SYSTEM: ${SYSTEM_DB_PASSWORD:?Set SYSTEM_DB_PASSWORD in .env}
-      DB_ROLE_PASSWORD_ITSM: ${ITSM_DB_PASSWORD:?Set ITSM_DB_PASSWORD in .env}
+      DB_ROLES: audit,cms,commerce,delivery,files,finance,hr,identity,inventory,itsm,notify,realtime,sales,system,workflow
       DB_ROLE_PASSWORD_AUDIT: ${AUDIT_DB_PASSWORD:?Set AUDIT_DB_PASSWORD in .env}
+      DB_ROLE_PASSWORD_CMS: ${CMS_DB_PASSWORD:?Set CMS_DB_PASSWORD in .env}
+      DB_ROLE_PASSWORD_COMMERCE: ${COMMERCE_DB_PASSWORD:?Set COMMERCE_DB_PASSWORD in .env}
+      DB_ROLE_PASSWORD_DELIVERY: ${DELIVERY_DB_PASSWORD:?Set DELIVERY_DB_PASSWORD in .env}
+      DB_ROLE_PASSWORD_FILES: ${FILES_DB_PASSWORD:?Set FILES_DB_PASSWORD in .env}
+      DB_ROLE_PASSWORD_FINANCE: ${FINANCE_DB_PASSWORD:?Set FINANCE_DB_PASSWORD in .env}
+      DB_ROLE_PASSWORD_HR: ${HR_DB_PASSWORD:?Set HR_DB_PASSWORD in .env}
+      DB_ROLE_PASSWORD_IDENTITY: ${IDENTITY_DB_PASSWORD:?Set IDENTITY_DB_PASSWORD in .env}
+      DB_ROLE_PASSWORD_INVENTORY: ${INVENTORY_DB_PASSWORD:?Set INVENTORY_DB_PASSWORD in .env}
+      DB_ROLE_PASSWORD_ITSM: ${ITSM_DB_PASSWORD:?Set ITSM_DB_PASSWORD in .env}
       DB_ROLE_PASSWORD_NOTIFY: ${NOTIFY_DB_PASSWORD:?Set NOTIFY_DB_PASSWORD in .env}
       DB_ROLE_PASSWORD_REALTIME: ${REALTIME_DB_PASSWORD:?Set REALTIME_DB_PASSWORD in .env}
+      DB_ROLE_PASSWORD_SALES: ${SALES_DB_PASSWORD:?Set SALES_DB_PASSWORD in .env}
+      DB_ROLE_PASSWORD_SYSTEM: ${SYSTEM_DB_PASSWORD:?Set SYSTEM_DB_PASSWORD in .env}
+      DB_ROLE_PASSWORD_WORKFLOW: ${WORKFLOW_DB_PASSWORD:?Set WORKFLOW_DB_PASSWORD in .env}
       DB_ROLE_STATEMENT_TIMEOUT: ${DB_ROLE_STATEMENT_TIMEOUT:-15s}
     depends_on:
       postgres: { condition: service_healthy }
@@ -321,7 +485,7 @@ services:
     environment:
       AUTH_TYPE: scram-sha-256
       DATABASE_URLS: >-
-        postgres://svc_files:${FILES_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_identity:${IDENTITY_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_system:${SYSTEM_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_itsm:${ITSM_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_audit:${AUDIT_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_notify:${NOTIFY_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_realtime:${REALTIME_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db}
+        postgres://svc_audit:${AUDIT_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_cms:${CMS_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_commerce:${COMMERCE_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_delivery:${DELIVERY_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_files:${FILES_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_finance:${FINANCE_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_hr:${HR_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_identity:${IDENTITY_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_inventory:${INVENTORY_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_itsm:${ITSM_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_notify:${NOTIFY_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_realtime:${REALTIME_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_sales:${SALES_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_system:${SYSTEM_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_workflow:${WORKFLOW_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db}
     volumes:
       - ./deploy/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
     ports:
@@ -507,6 +671,134 @@ services:
     ports:
       - "127.0.0.1:${WHATSAPP_SANDBOX_PORT:-8095}:8080"
 
+  cms-migrate:
+    <<: *cms
+    restart: "no"
+    command: ["migrate"]
+    healthcheck: { disable: true }
+    ports: []
+    depends_on:
+      db-roles: { condition: service_completed_successfully }
+
+  cms:
+    <<: *cms
+    ports:
+      - "127.0.0.1:9088:9090"
+    depends_on:
+      cms-migrate: { condition: service_completed_successfully }
+
+  commerce-migrate:
+    <<: *commerce
+    restart: "no"
+    command: ["migrate"]
+    healthcheck: { disable: true }
+    ports: []
+    depends_on:
+      db-roles: { condition: service_completed_successfully }
+
+  commerce:
+    <<: *commerce
+    ports:
+      - "127.0.0.1:9089:9090"
+    depends_on:
+      commerce-migrate: { condition: service_completed_successfully }
+
+  delivery-migrate:
+    <<: *delivery
+    restart: "no"
+    command: ["migrate"]
+    healthcheck: { disable: true }
+    ports: []
+    depends_on:
+      db-roles: { condition: service_completed_successfully }
+
+  delivery:
+    <<: *delivery
+    ports:
+      - "127.0.0.1:9090:9090"
+    depends_on:
+      delivery-migrate: { condition: service_completed_successfully }
+
+  finance-migrate:
+    <<: *finance
+    restart: "no"
+    command: ["migrate"]
+    healthcheck: { disable: true }
+    ports: []
+    depends_on:
+      db-roles: { condition: service_completed_successfully }
+
+  finance:
+    <<: *finance
+    ports:
+      - "127.0.0.1:9091:9090"
+    depends_on:
+      finance-migrate: { condition: service_completed_successfully }
+
+  hr-migrate:
+    <<: *hr
+    restart: "no"
+    command: ["migrate"]
+    healthcheck: { disable: true }
+    ports: []
+    depends_on:
+      db-roles: { condition: service_completed_successfully }
+
+  hr:
+    <<: *hr
+    ports:
+      - "127.0.0.1:9092:9090"
+    depends_on:
+      hr-migrate: { condition: service_completed_successfully }
+
+  inventory-migrate:
+    <<: *inventory
+    restart: "no"
+    command: ["migrate"]
+    healthcheck: { disable: true }
+    ports: []
+    depends_on:
+      db-roles: { condition: service_completed_successfully }
+
+  inventory:
+    <<: *inventory
+    ports:
+      - "127.0.0.1:9093:9090"
+    depends_on:
+      inventory-migrate: { condition: service_completed_successfully }
+
+  sales-migrate:
+    <<: *sales
+    restart: "no"
+    command: ["migrate"]
+    healthcheck: { disable: true }
+    ports: []
+    depends_on:
+      db-roles: { condition: service_completed_successfully }
+
+  sales:
+    <<: *sales
+    ports:
+      - "127.0.0.1:9094:9090"
+    depends_on:
+      sales-migrate: { condition: service_completed_successfully }
+
+  workflow-migrate:
+    <<: *workflow
+    restart: "no"
+    command: ["migrate"]
+    healthcheck: { disable: true }
+    ports: []
+    depends_on:
+      db-roles: { condition: service_completed_successfully }
+
+  workflow:
+    <<: *workflow
+    ports:
+      - "127.0.0.1:9095:9090"
+    depends_on:
+      workflow-migrate: { condition: service_completed_successfully }
+
   gateway:
     <<: *service
     build:
@@ -590,7 +882,11 @@ services:
     volumes:
       - natsdata:/data
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O /dev/null 'http://127.0.0.1:8222/healthz?js-enabled-only=true'"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O /dev/null 'http://127.0.0.1:8222/healthz?js-enabled-only=true'",
+        ]
       interval: 5s
       timeout: 3s
       retries: 20

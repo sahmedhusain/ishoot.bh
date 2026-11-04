@@ -202,7 +202,7 @@ func (s *Service) Store(ctx context.Context, in StoreInput) (domain.File, error)
 	}
 	f, err := s.repo.Insert(ctx, domain.File{
 		ID: uuid.NewString(), URL: loc.URL(), OwnerID: in.OwnerID, FileName: name, Size: in.Size,
-		MIMEType: loc.Type.MIME, Public: loc.Folder.Public, ClaimedAt: &now, ExpiresAt: now,
+		MIMEType: loc.Type.MIME, Public: loc.Folder.Public, ClaimedAt: &now, ExpiresAt: time.Time{},
 	})
 	if err != nil {
 		return domain.File{}, err

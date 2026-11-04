@@ -2,6 +2,9 @@
   "name": "@platform/web",
   "version": "1.0.0",
   "private": true,
+  "allowScripts": {
+    "fsevents": true
+  },
   "scripts": {
     "dev": "next dev --turbopack -p 3000",
     "build": "next build --webpack",

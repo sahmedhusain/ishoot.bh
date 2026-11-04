@@ -2,6 +2,9 @@
   "name": "@platform/it",
   "version": "1.0.0",
   "private": true,
+  "allowScripts": {
+    "fsevents": true
+  },
   "description": "The IT department's dashboard: IT accounts (their own realm, MFA required), the ticket desk and system settings.",
   "scripts": {
     "dev": "next dev --turbopack -p 3002",

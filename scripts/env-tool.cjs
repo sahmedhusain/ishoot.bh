@@ -44,6 +44,7 @@ const SECRETS = {
   // Backend callers: notify reads integration credentials; identity reads module availability.
   NOTIFY_SERVICE_KEY: () => serviceKey("notify"),
   IDENTITY_SERVICE_KEY: () => serviceKey("identity"),
+  SYSTEM_SERVICE_KEY: () => serviceKey("system"),
   IDENTITY_SIGNING_JWK: () => serviceKey("identity"),
   IDENTITY_LOGIN_RATE_KEY: () => crypto.randomBytes(32).toString("base64url"),
   IDENTITY_LOGIN_MFA_KEYS: () => `primary:${crypto.randomBytes(32).toString("base64")}`,
@@ -209,8 +210,8 @@ function check() {
   const problems = [];
   const warnings = [];
   const need = (ok, message, list = problems) => ok || list.push(message);
-  for (const key of ["DATABASE_URL", "DIRECT_URL", "WEB_URL", "ADMIN_URL", "NEXT_PUBLIC_WEB_URL", "NEXT_PUBLIC_ADMIN_URL"]) need(!!env[key], `${key} is empty`);
-  for (const key of ["DATABASE_URL", "DIRECT_URL"]) {
+  for (const key of ["DATABASE_URL", "DATABASE_DIRECT_URL", "WEB_URL", "ADMIN_URL", "NEXT_PUBLIC_WEB_URL", "NEXT_PUBLIC_ADMIN_URL"]) need(!!env[key], `${key} is empty`);
+  for (const key of ["DATABASE_URL", "DATABASE_DIRECT_URL"]) {
     if (!env[key]) continue;
     try {
       need(["postgres:", "postgresql:"].includes(new URL(env[key]).protocol), `${key} is not a PostgreSQL URL`);
@@ -230,6 +231,7 @@ function check() {
   need(!!env.API_URL, "API_URL is empty: the apps cannot reach the backend gateway (files, and later every service)");
   need(!!env.NOTIFY_SERVICE_KEY, "NOTIFY_SERVICE_KEY is empty: notify cannot read integration credentials (run ./run.sh env secrets)", warnings);
   need(!!env.IDENTITY_SERVICE_KEY, "IDENTITY_SERVICE_KEY is empty: staff access policy cannot read module availability (run ./run.sh env secrets)", warnings);
+  need(!!env.SYSTEM_SERVICE_KEY, "SYSTEM_SERVICE_KEY is empty: system cannot verify uploaded company files (run ./run.sh env secrets)", warnings);
   for (const caller of ["ADMIN", "WEB"]) need(!!env[`${caller}_SERVICE_KEY`], `${caller}_SERVICE_KEY is empty: run ./run.sh env secrets`);
   if (env.IDENTITY_LOGIN_ENABLED === "true") need(!!env.IT_SERVICE_KEY, "IT_SERVICE_KEY is empty: run ./run.sh env secrets");
   need(!!env.CRON_SECRET, "CRON_SECRET is empty: /api/cron (reminders, payments, tracking, reports) cannot run", production ? problems : warnings);

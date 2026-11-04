@@ -33,7 +33,7 @@ async function assertEmpty() {
     request<RecordWithID[]>("GET", "/v1/inventory/products"),
     request<RecordWithID[]>("GET", "/v1/commerce/customers"),
   ]);
-  if ([contacts, pages, invoices, employees, products, customers].some((items) => items.length))
+  if ([contacts, pages, invoices, employees, products, customers].some((items) => (items?.length ?? 0) > 0))
     throw new Error("Demo seed requires an empty service database; existing records were preserved.");
 }
 
@@ -55,19 +55,19 @@ async function seedSalesAndFinance() {
     firstName: "Amina", lastName: "Hassan", email: "amina@harbor.example", phone: "+973 1700 0101", company: "Harbor Projects W.L.L.", contactType: "client", tags: ["demo", "production"],
   });
   const deal = await create<{ id: string }>("/v1/sales/deals", {
-    title: "Harbor brand film", contactId: contact.id, stage: "proposal", value: "4500.000", currency: "BHD", probability: 65, expectedCloseDate: today,
+    title: "Harbor brand film", contactId: contact.id, stage: "proposal", value: 4500.0, currency: "BHD", probability: 65, expectedCloseDate: `${today}T00:00:00Z`,
   });
   const quotation = await create<{ id: string }>("/v1/sales/quotations", {
-    quotationNumber: "DEMO-Q-0001", contactId: contact.id, dealId: deal.id, subtotal: "4500.000", vatRate: "10.00", vatAmount: "450.000", total: "4950.000", currency: "BHD", validUntil: today,
-    items: [{ description: "Brand film production", quantity: "1", unitPrice: "4500.000", amount: "4500.000", sortOrder: 0 }],
+    quotationNumber: "DEMO-Q-0001", contactId: contact.id, dealId: deal.id, subtotal: 4500.0, discount: 0, vatRate: 10.0, vatAmount: 450.0, total: 4950.0, currency: "BHD", validUntil: `${today}T00:00:00Z`,
+    items: [{ description: "Brand film production", quantity: 1, unitPrice: 4500.0, amount: 4500.0, sortOrder: 0 }],
   });
   const invoice = await create<{ id: string }>("/v1/finance/invoices", {
     invoiceNumber: "DEMO-INV-0001", contactId: contact.id, dealId: deal.id, quotationId: quotation.id, issueDate: today, dueDate: today,
-    subtotal: "4500.000", vatRate: "10.00", vatAmount: "450.000", total: "4950.000", currency: "BHD",
-    items: [{ description: "Brand film production", quantity: "1", unitPrice: "4500.000", amount: "4500.000", sortOrder: 0 }],
+    subtotal: 4500.0, discount: 0, vatRate: 10.0, vatAmount: 450.0, total: 4950.0, amountPaid: 0, balanceDue: 4950.0, currency: "BHD",
+    items: [{ description: "Brand film production", quantity: 1, unitPrice: 4500.0, amount: 4500.0, sortOrder: 0 }],
   });
-  await create("/v1/finance/payments", { paymentNumber: "DEMO-RCT-0001", invoiceId: invoice.id, contactId: contact.id, amount: "2475.000", currency: "BHD", paymentMethod: "bank_transfer", paymentDate: today, reference: "DEMO-PAY-0001" });
-  await create("/v1/finance/expenses", { title: "Demo location permit", amount: "180.000", currency: "BHD", expenseDate: today, vendor: "Example Authority", notes: "Fictional demo expense." });
+  await create("/v1/finance/payments", { paymentNumber: "DEMO-RCT-0001", invoiceId: invoice.id, contactId: contact.id, amount: 2475.0, currency: "BHD", paymentMethod: "bank_transfer", paymentDate: today, reference: "DEMO-PAY-0001" });
+  await create("/v1/finance/expenses", { title: "Demo location permit", amount: 180.0, currency: "BHD", expenseDate: today, vendor: "Example Authority", notes: "Fictional demo expense." });
   await create("/v1/sales/inquiries", { subject: "Campaign enquiry", message: "We would like a production proposal.", requesterName: "Mariam Ali", requesterEmail: "mariam@client.example", requesterPhone: "+973 1700 0202" });
   return { contact, deal };
 }
@@ -75,13 +75,13 @@ async function seedSalesAndFinance() {
 async function seedPeopleAndOperations(deal: RecordWithID) {
   const department = await create<{ id: string }>("/v1/hr/departments", { nameEn: "Production", nameAr: "الإنتاج", code: "PROD" });
   const employee = await create<{ id: string }>("/v1/hr/employees", {
-    employeeNumber: "DEMO-001", firstNameEn: "Noor", lastNameEn: "Rahman", firstNameAr: "نور", lastNameAr: "رحمن", email: "noor.rahman@example.invalid", phone: "+973 1700 0303", jobTitleEn: "Producer", jobTitleAr: "منتج", departmentId: department.id, hireDate: today, basicSalary: "1200.000", housingAllowance: "250.000", transportAllowance: "75.000",
+    employeeNumber: "DEMO-001", firstNameEn: "Noor", lastNameEn: "Rahman", firstNameAr: "نور", lastNameAr: "رحمن", email: "noor.rahman@example.invalid", phone: "+973 1700 0303", jobTitleEn: "Producer", jobTitleAr: "منتج", departmentId: department.id, hireDate: today, basicSalary: 1200.0, housingAllowance: 250.0, transportAllowance: 75.0, otherAllowances: 0,
   });
   await create<{ id: string }>("/v1/inventory/warehouses", { code: "DEMO", nameEn: "Demo Store", nameAr: "مخزن تجريبي", address: "Manama", isDefault: true });
-  await create<{ id: string }>("/v1/inventory/products", { sku: "DEMO-CAM-001", nameEn: "Demo camera package", nameAr: "حزمة كاميرا تجريبية", costPrice: "900.000", sellingPrice: "1250.000", currency: "BHD" });
+  await create<{ id: string }>("/v1/inventory/products", { sku: "DEMO-CAM-001", nameEn: "Demo camera package", nameAr: "حزمة كاميرا تجريبية", descriptionEn: "", descriptionAr: "", costPrice: 900.0, sellingPrice: 1250.0, taxRate: 0, currency: "BHD", reorderPoint: 0, isActive: true, trackInventory: true });
   const customer = await create<{ id: string }>("/v1/commerce/customers", { firstName: "Sami", lastName: "Saleh", email: "sami.saleh@example.invalid", phone: "+973 1700 0404" });
   await create("/v1/delivery/vehicles", { plate: "DEMO-1001", name: "Demo delivery van", kind: "van" });
-  await create("/v1/workflow/tasks", { title: "Prepare demo production", description: "Fictional task for the demo workspace.", assignedTo: employee.id, dueDate: today, priority: "high", relatedEntityType: "deal", relatedEntityId: deal.id });
+  await create("/v1/workflow/tasks", { title: "Prepare demo production", description: "Fictional task for the demo workspace.", assignedTo: employee.id, dueDate: `${today}T00:00:00Z`, priority: "high", relatedEntityType: "deal", relatedEntityId: deal.id });
   await create("/v1/workflow/calendar", { title: "Demo production day", description: "Fictional calendar fixture.", startTime: `${today}T09:00:00Z`, endTime: `${today}T17:00:00Z`, organizerId: employee.id, eventType: "production" });
   return customer;
 }

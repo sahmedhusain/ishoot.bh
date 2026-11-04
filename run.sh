@@ -44,9 +44,9 @@ load_env() {
 db_url_for() {
   node -e 'const u=new URL(process.argv[1]);u.pathname="/"+process.argv[2];console.log(u.toString())' "$1" "$2"
 }
-# DIRECT_URL without Prisma-only parameters, for psql and pg_dump.
+# DATABASE_DIRECT_URL without Prisma-only parameters, for psql and pg_dump.
 plain_db_url() {
-  node -e 'const u=new URL(process.argv[1]).hostname?process.argv[1]:"postgresql://platform:platform@127.0.0.1:5432/platform_db";const u2=new URL(u);for(const k of ["pgbouncer","connection_limit","pool_timeout","schema"])u2.searchParams.delete(k);console.log(u2.toString())' "${1:-${DIRECT_URL:-${DATABASE_URL:-postgresql://platform:platform@127.0.0.1:5432/platform_db}}}"
+  node -e 'const u=new URL(process.argv[1]).hostname?process.argv[1]:"postgresql://platform:platform@127.0.0.1:5432/platform_db";const u2=new URL(u);for(const k of ["pgbouncer","connection_limit","pool_timeout","schema"])u2.searchParams.delete(k);console.log(u2.toString())' "${1:-${DATABASE_DIRECT_URL:-${DATABASE_URL:-postgresql://platform:platform@127.0.0.1:5432/platform_db}}}"
 }
 is_local_db() {
   node -e 'try{const h=new URL(process.argv[1]).hostname;process.exit(["localhost","127.0.0.1","::1","[::1]"].includes(h)?0:1)}catch{process.exit(0)}' "${1:-}"
@@ -421,7 +421,7 @@ ${BOLD}Database${RESET}
   db seed                          Demo data into an empty database (SEED_VOLUME=off for less)
   db bootstrap [--profile <name>] [--overwrite]   Real installation: roles, modules, first admin
   db integrity                     Audit the data against the business rules
-  db psql                          Open psql on DIRECT_URL
+  db psql                          Open psql on DATABASE_DIRECT_URL
   db backup [file]                 pg_dump to backups/<db>-<time>.dump (or the file given)
   db restore <file> [--yes]        Restore a dump into the configured database (local only unless --force)
   db test-list                     List the disposable *_test databases

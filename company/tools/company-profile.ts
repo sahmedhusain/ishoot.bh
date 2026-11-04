@@ -90,10 +90,11 @@ async function systemRequest(pathname: string, body: unknown) {
 export async function installCompanyProfile(profile: CompanyProfile, actorId = "seed") {
   const urls: Partial<Record<string, string>> = {};
   for (const [slot, file] of Object.entries(profile.assets) as [BrandSlot, string][]) if (file) urls[BRAND_SLOTS[slot].field] = await importProfileFile(profile, file);
-  await systemRequest("/v1/system/company", { values: { ...profile.company, ...urls, theme: await profileTheme(profile) }, actorId });
   for (const [slot, config] of Object.entries(BRAND_SLOTS) as [BrandSlot, (typeof BRAND_SLOTS)[BrandSlot]][]) {
     const fileUrl = urls[config.field];
     if (!fileUrl) continue;
     for (const key of config.assetKeys) await systemRequest(`/v1/system/company/assets/${key}`, { title: config.title, fileUrl, actorId });
   }
+  const { currencyDecimals, ...companyValues } = profile.company;
+  await systemRequest("/v1/system/company", { values: { ...companyValues, ...urls, theme: await profileTheme(profile) }, actorId });
 }
