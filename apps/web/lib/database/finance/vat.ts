@@ -6,7 +6,7 @@ import type { DocumentTaxLine } from "../types";
  * and quotation carries it at the company rate; when it is disabled none does. Forms cannot override it.
  */
 export async function companyVat(
-  client: Pick<typeof db, "companySetting"> = db,
+  client: any = db,
 ): Promise<{ vatEnabled: boolean; vatPercentage: number }> {
   const company = await client.companySetting.findFirst({
     select: { vatEnabled: true, vatPercentage: true },
@@ -30,7 +30,7 @@ export interface ActiveTax {
 /** Active taxes besides VAT that apply to new invoices or quotations, in display order. */
 export async function companyTaxes(
   kind: "invoice" | "quotation",
-  client: Pick<typeof db, "taxRate"> = db,
+  client: any = db,
 ): Promise<ActiveTax[]> {
   const rows = await client.taxRate.findMany({
     where: {

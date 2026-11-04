@@ -16,7 +16,7 @@ export async function CmsPageView({ page, locale, contact }: { page: CmsPageReco
     types.has("equipment") && info.showEquipment ? getStudioEquipment() : Promise.resolve([]),
   ]);
   const prices = types.has("catalogue") && await storeEnabled() ? await catalogueProductPrices(website.portfolio.map(item => item.id)) : new Map<string, number>();
-  const content = { ...website, portfolio: website.portfolio.map(item => prices.has(item.id) ? { ...item, price: prices.get(item.id) } : item) };
+  const content = { ...website, portfolio: website.portfolio.map(item => prices.has(item.id) ? { ...item, price: prices.get(item.id) as number | undefined } : item) };
   const title = locale === "ar" ? page.title_ar || page.title_en : page.title_en || page.title_ar;
   const opensWithHero = page.blocks.find((block) => block.visible)?.type === "hero";
   return (

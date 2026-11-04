@@ -25,5 +25,5 @@ export async function consumeAbuseLimit(
     "expiresAt"=CASE WHEN "AbuseWindow"."expiresAt"<=CURRENT_TIMESTAMP THEN CURRENT_TIMESTAMP + ${seconds} * INTERVAL '1 second' ELSE "AbuseWindow"."expiresAt" END
     RETURNING count
   `;
-  if (state.count > limit) throw new Error(serverMessages.rateLimit);
+  if (state && state.count > limit) throw new Error(serverMessages.rateLimit);
 }

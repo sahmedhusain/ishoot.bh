@@ -975,9 +975,9 @@ else
       done
       ;;
     types | type-check)
-      for app in apps/admin apps/it apps/web company contracts scripts; do
+      for app in apps/admin apps/it apps/web company contracts; do
         if [ -f "$app/package.json" ]; then
-          npm --prefix "$app" run type-check || true
+          npm --prefix "$app" run type-check
         fi
       done
       ;;

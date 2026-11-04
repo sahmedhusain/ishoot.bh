@@ -31,7 +31,16 @@ const createDbStub = () => {
   });
 };
 
-export const db: any = createDbStub();
+export interface DbStub {
+  $transaction<T>(op: ((tx: any) => Promise<T>) | Promise<any>[] | any[], ...args: any[]): Promise<any>;
+  $queryRaw<T = any>(...args: any[]): Promise<T>;
+  $executeRaw(...args: any[]): Promise<number>;
+  $connect(): Promise<void>;
+  $disconnect(): Promise<void>;
+  [key: string]: any;
+}
+
+export const db: DbStub = createDbStub() as any;
 
 export async function runAtomicMutation<T>(
   operation: () => Promise<T>,

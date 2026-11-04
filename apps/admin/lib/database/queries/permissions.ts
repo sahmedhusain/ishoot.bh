@@ -158,7 +158,7 @@ export async function getEffectivePermissions(
         role,
         resource,
         action,
-        (res, act) => stored.get(`${res}:${act}`),
+        (res, act) => stored.get(`${res}:${act}`) as boolean | undefined,
       );
     }
   }

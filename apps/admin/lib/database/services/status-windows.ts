@@ -134,8 +134,8 @@ export async function syncAllStatusWindows(now = new Date()) {
       take: 5000,
     }),
   ]);
-  const meetingWindows = meetings.map(meetingWindow).filter((w): w is StatusWindowInput => !!w);
-  const leaveWindows = leave.map(leaveWindow).filter((w): w is StatusWindowInput => !!w);
+  const meetingWindows = (meetings || []).map(meetingWindow).filter((w): w is StatusWindowInput => !!w);
+  const leaveWindows = (leave || []).map(leaveWindow).filter((w): w is StatusWindowInput => !!w);
   await syncStatusWindows("staff", "calendar", from.toISOString(), meetingsUntil.toISOString(), meetingWindows);
   await syncStatusWindows("staff", "leave", from.toISOString(), leaveUntil.toISOString(), leaveWindows);
   return { meetings: meetingWindows.length, leave: leaveWindows.length };

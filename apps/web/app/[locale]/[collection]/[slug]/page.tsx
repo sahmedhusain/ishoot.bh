@@ -212,7 +212,7 @@ export default async function CollectionItemPage({
           ) : null}
         </aside>
       </div>
-      {relatedItems.length > 0 && <section className="space-y-6 border-t border-m3-outline-variant pt-10"><h2 className="text-2xl font-display font-bold">{t.portfolio.related}</h2><div className={collectionGridClass(layout)}>{relatedItems.map(entry => <CollectionCard key={entry.id} item={relatedPrices.has(entry.id) ? { ...entry, price: relatedPrices.get(entry.id) } : entry} layout={layout} />)}</div></section>}
+      {relatedItems.length > 0 && <section className="space-y-6 border-t border-m3-outline-variant pt-10"><h2 className="text-2xl font-display font-bold">{t.portfolio.related}</h2><div className={collectionGridClass(layout)}>{relatedItems.map(entry => <CollectionCard key={entry.id} item={relatedPrices.has(entry.id) ? { ...entry, price: relatedPrices.get(entry.id) as number | undefined } : entry} layout={layout} />)}</div></section>}
     </article>
   );
 }

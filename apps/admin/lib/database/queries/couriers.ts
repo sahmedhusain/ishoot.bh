@@ -10,6 +10,4 @@ export async function saveCourierAgency(input: any) {
   return { id: "agency-stub", name: input?.name || "Courier Agency" };
 }
 
-export async function handToAgency(shipmentId: string, agencyId: string, actorId: string) {
-  return { id: shipmentId };
-}
+

@@ -11,7 +11,7 @@ type Client = Pick<typeof db, "companySetting">;
 export async function allocateDocumentNumber(
   kind: "invoice" | "receipt",
   documentDate: Date,
-  client: Client = db,
+  client: any = db,
 ): Promise<string> {
   const company = await client.companySetting.findFirst({
     select: { id: true },

@@ -20,7 +20,7 @@ export async function getSocialLinks(onlyActive = true): Promise<SocialLink[]> {
       where: onlyActive ? { isActive: true } : undefined,
       orderBy: { displayOrder: "asc" },
     });
-    return links.map(mapSocialLink);
+    return (links || []).map(mapSocialLink);
   } catch (e) {
     console.error(
       "Error fetching social links from DB:",

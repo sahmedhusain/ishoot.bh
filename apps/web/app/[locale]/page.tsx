@@ -32,7 +32,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   if (page) return <CmsPageView page={page} locale={locale} />;
   const website = snapshot;
   const prices = await storeEnabled() ? await catalogueProductPrices(website.portfolio.map(item => item.id)) : new Map<string, number>();
-  const catalogueItems = website.portfolio.map(item => prices.has(item.id) ? { ...item, price: prices.get(item.id) } : item);
+  const catalogueItems = website.portfolio.map(item => prices.has(item.id) ? { ...item, price: prices.get(item.id) as number | undefined } : item);
   const name = pickText(company.company_name_en, company.company_name_ar, locale);
   const tagline = pickText(company.tagline_en, company.tagline_ar, locale);
   // Full-screen media needs a banner; without one the centred headline opens the page.

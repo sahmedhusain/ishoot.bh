@@ -41,7 +41,7 @@ export default async function CollectionPage({
   }
 
   const prices = await storeEnabled() ? await catalogueProductPrices(website.portfolio.map(item => item.id)) : new Map<string, number>();
-  const items = website.portfolio.map(item => prices.has(item.id) ? { ...item, price: prices.get(item.id) } : item);
+  const items = website.portfolio.map(item => prices.has(item.id) ? { ...item, price: prices.get(item.id) as number | undefined } : item);
   const categories = website.categories ?? Array.from(
     new Map(
       items

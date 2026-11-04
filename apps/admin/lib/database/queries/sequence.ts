@@ -6,7 +6,7 @@ type SequenceClient = Pick<typeof db, "referenceSequence">;
 export async function getNextSequenceNumber(
   prefix: string,
   year?: number,
-  client: SequenceClient = db,
+  client: any = db,
 ): Promise<string> {
   const currentYear = year || new Date().getFullYear();
   const sequenceId = `${prefix}_${currentYear}`;

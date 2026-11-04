@@ -71,7 +71,7 @@ export async function collectWebsiteDraft(config: WebsiteConfig) {
       pages,
       articles,
     };
-  }, "RepeatableRead");
+  });
 }
 export type WebsiteSnapshot = Awaited<ReturnType<typeof collectWebsiteDraft>>;
 export async function getWebsiteEditor() {
