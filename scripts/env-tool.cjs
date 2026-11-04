@@ -156,7 +156,9 @@ const localDatabaseUrl = (env) =>
   `postgresql://${env.POSTGRES_USER || "platform"}:${encodeURIComponent(env.POSTGRES_PASSWORD)}@127.0.0.1:${env.POSTGRES_PORT || "5432"}/${env.POSTGRES_DB || "platform_db"}`;
 const DERIVED = {
   DATABASE_URL: (env) => `${localDatabaseUrl(env)}?connection_limit=10`,
-  DIRECT_URL: localDatabaseUrl,
+  DATABASE_DIRECT_URL: localDatabaseUrl,
+  S3_ENDPOINT: (env) => `http://127.0.0.1:${env.S3_PORT || "8333"}`,
+  REDIS_URL: (env) => `redis://:${encodeURIComponent(env.VALKEY_PASSWORD)}@127.0.0.1:${env.VALKEY_PORT || "6379"}/1`,
   IDENTITY_LOGIN_MFA_LEGACY_KEY: (env) => env.MFA_ENCRYPTION_KEY,
 };
 

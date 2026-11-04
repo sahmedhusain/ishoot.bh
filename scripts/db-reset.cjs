@@ -9,7 +9,12 @@ const path = require("node:path");
 const readline = require("node:readline/promises");
 
 const root = path.resolve(__dirname, "..");
-require("dotenv").config({ path: path.join(root, ".env"), quiet: true });
+// Load .env if dotenv is available; otherwise assume environment is already loaded by shell
+try {
+  require("dotenv").config({ path: path.join(root, ".env"), quiet: true });
+} catch (e) {
+  // dotenv not installed; environment should be loaded by run.sh
+}
 
 const args = process.argv.slice(2);
 const flag = (name) => args.includes(`--${name}`);

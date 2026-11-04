@@ -2,3 +2,48 @@
 **/testdata
 load/
 *.md
+
+# Build artifacts & binaries
+bin/
+dist/
+build/
+*.o
+*.a
+*.so
+*.dylib
+
+# Dependencies
+node_modules/
+.npm/
+
+# Version control & CI/CD
+.git/
+.github/
+.env*
+.local/
+
+# Development
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.eslintcache
+coverage/
+
+# Large top-level directories (not needed in Docker build)
+apps/
+contracts/
+company/
+deploy/
+docs/
+graphify-out/
+scripts/
+
+# Media
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.gif
