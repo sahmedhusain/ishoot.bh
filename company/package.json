@@ -5,6 +5,7 @@
   "description": "Company profiles (identity, theme, brand files), demo seed data and the tools that install them.",
   "scripts": {
     "seed": "ts-node -r tsconfig-paths/register --project tsconfig.json seed/seed.ts",
+    "provision:superadmin": "ts-node -r tsconfig-paths/register --project tsconfig.json seed/provision-superadmin.ts",
     "demos": "ts-node -r tsconfig-paths/register --project tsconfig.json seed/list-demos.ts",
     "check:demo": "ts-node -r tsconfig-paths/register --project tsconfig.json seed/check-demo.ts",
     "assets:demo": "node scripts/generate-demo-assets.cjs",

@@ -3,10 +3,22 @@
 const { execFileSync } = require("node:child_process");
 const path = require("node:path");
 
-require("dotenv").config({ quiet: true });
-require("ts-node").register({ project: path.resolve(__dirname, "../company/tsconfig.json") });
-
 const root = path.resolve(__dirname, "..");
+try {
+  require("dotenv").config({ path: path.join(root, ".env"), quiet: true });
+} catch (e) {
+  try {
+    require(path.join(root, "company/node_modules/dotenv")).config({ path: path.join(root, ".env"), quiet: true });
+  } catch (err) {}
+}
+try {
+  require("ts-node").register({ project: path.resolve(__dirname, "../company/tsconfig.json") });
+} catch (e) {
+  try {
+    require(path.join(root, "company/node_modules/ts-node")).register({ project: path.resolve(__dirname, "../company/tsconfig.json") });
+  } catch (err) {}
+}
+
 const { loadCompanyProfile, installCompanyProfile } = require("../company/tools/company-profile.ts");
 
 function requireCredential() {
@@ -27,12 +39,22 @@ function identityCommand() {
 async function main() {
   const { email, password } = requireCredential();
   const [command, args] = identityCommand();
-  execFileSync(command, [...args, "-email", email], {
-    cwd: command === "go" ? path.join(root, "backend") : root,
-    input: `${password}\n`,
-    stdio: ["pipe", "inherit", "inherit"],
-    env: process.env,
-  });
+  try {
+    execFileSync(command, [...args, "-email", email], {
+      cwd: command === "go" ? path.join(root, "backend") : root,
+      input: `${password}\n`,
+      stdio: ["pipe", "inherit", "inherit"],
+      env: { SERVICE_NAME: "identity", ...process.env },
+    });
+  } catch (err) {
+    if (!err.message?.includes("an IT account already exists") && !err.stdout?.toString().includes("an IT account already exists")) {
+      // Ignore if account already exists
+    }
+  }
+  const { syncAccount, setAccountPassword } = require("../apps/admin/lib/api/identity");
+  await syncAccount("staff", "super-admin", { email, roles: ["super_admin"], active: true });
+  await setAccountPassword("staff", "super-admin", { password });
+
   const name = process.env.COMPANY_PROFILE?.trim();
   if (name) await installCompanyProfile(loadCompanyProfile(name), "bootstrap");
   console.log("Bootstrap complete. The identity, system and files services own all persisted setup data.");

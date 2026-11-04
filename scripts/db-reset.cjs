@@ -83,9 +83,9 @@ async function main() {
 
   resetServiceData();
   run(path.join(root, "run.sh"), ["db", "migrate"]);
+  run(process.execPath, ["scripts/bootstrap-database.cjs"], { COMPANY_PROFILE: mode === "empty" ? "" : profile });
 
   if (mode === "empty") {
-    run(process.execPath, ["scripts/bootstrap-database.cjs"], { COMPANY_PROFILE: "" });
     console.log("\nEmpty database ready. Sign in with SUPER_ADMIN_EMAIL to run the setup wizard.");
     return;
   }
