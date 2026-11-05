@@ -96,7 +96,7 @@ async function seedStaffAndHR() {
       firstNameAr: firstAr,
       lastNameAr: lastAr || "",
       email: member.email || `${member.key}@example.invalid`,
-      phone: member.phone || "+973 1700 0000",
+      phone: member.phone ? member.phone.replace(/\s+/g, "") : "+97317000000",
       jobTitleEn: member.role.replace(/_/g, " "),
       jobTitleAr: member.nameAr,
       departmentId: depts[member.department] || deptProduction.id,
@@ -113,12 +113,12 @@ async function seedStaffAndHR() {
 
 async function seedSalesAndFinance() {
   const createdContacts: Record<string, RecordWithID> = {};
-  for (const client of demoClients.slice(0, 6)) {
+  for (const [idx, client] of demoClients.slice(0, 6).entries()) {
     const contact = await create<{ id: string }>("/v1/sales/contacts", {
       firstName: client.name,
       lastName: "Representative",
       email: `contact@${client.slug}.example`,
-      phone: "+973 1700 0101",
+      phone: `+97317000${String(idx + 10).padStart(3, "0")}`,
       company: client.name,
       contactType: "client",
       tags: ["demo", "production"],
@@ -195,7 +195,7 @@ async function seedSalesAndFinance() {
     message: "We would like a production proposal.",
     requesterName: "Mariam Ali",
     requesterEmail: "mariam@client.example",
-    requesterPhone: "+973 1700 0202",
+    requesterPhone: "+97317000202",
   });
 
   return { deal };
@@ -231,7 +231,7 @@ async function seedOperations(deal: RecordWithID, employees: Record<string, Reco
     firstName: "Sami",
     lastName: "Saleh",
     email: "sami.saleh@example.invalid",
-    phone: "+973 1700 0404",
+    phone: "+97317000404",
   });
 
   await create("/v1/delivery/vehicles", { plate: "DEMO-1001", name: "Demo delivery van", kind: "van" });

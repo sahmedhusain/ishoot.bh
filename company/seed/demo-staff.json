@@ -15,7 +15,7 @@
     "role": "admin",
     "email": "director@example.com",
     "department": "executive",
-    "phone": "+973 3600 2200"
+    "phone": "+97336002200"
   },
   {
     "key": "layla-nasser",
@@ -24,7 +24,7 @@
     "role": "finance_manager",
     "email": "finance@example.com",
     "department": "finance",
-    "phone": "+973 3600 3300"
+    "phone": "+97336003300"
   },
   {
     "key": "karim-fawzi",
@@ -33,7 +33,7 @@
     "role": "operations_manager",
     "email": "production@example.com",
     "department": "production",
-    "phone": "+973 3600 4400"
+    "phone": "+97336004400"
   },
   {
     "key": "tariq-saleh",
@@ -42,7 +42,7 @@
     "role": "project_lead",
     "email": "producer@example.com",
     "department": "production",
-    "phone": "+973 3600 5500"
+    "phone": "+97336005500"
   },
   {
     "key": "noor-hamdan",
@@ -51,7 +51,7 @@
     "role": "editor",
     "email": "editor@example.com",
     "department": "post_production",
-    "phone": "+973 3600 6600"
+    "phone": "+97336006600"
   },
   {
     "key": "faisal-mansour",
@@ -60,7 +60,7 @@
     "role": "accountant",
     "email": "accountant@example.com",
     "department": "finance",
-    "phone": "+973 3600 7700"
+    "phone": "+97336007700"
   },
   {
     "key": "sami-khoury",
@@ -69,7 +69,7 @@
     "role": "sales",
     "email": "sales@example.com",
     "department": "sales",
-    "phone": "+973 3600 8811"
+    "phone": "+97336008811"
   },
   {
     "key": "hana-yousef",
@@ -78,7 +78,7 @@
     "role": "marketing",
     "email": "marketing@example.com",
     "department": "marketing",
-    "phone": "+973 3600 8822"
+    "phone": "+97336008822"
   },
   {
     "key": "guest",
@@ -87,6 +87,6 @@
     "role": "viewer",
     "email": "guest@example.com",
     "department": "operations",
-    "phone": "+973 3600 8800"
+    "phone": "+97336008800"
   }
 ]

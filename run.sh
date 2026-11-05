@@ -745,6 +745,7 @@ SQL
 # dev, build, start
 # ----------------------------------------------------------------------------------------------------------
 cmd_dev() {
+  node scripts/sanitize-turbopack-cache.cjs 2>/dev/null || true
   case "${1:-all}" in
     all)
       trap 'kill 0' INT TERM EXIT
