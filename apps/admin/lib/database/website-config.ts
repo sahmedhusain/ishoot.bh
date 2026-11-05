@@ -165,8 +165,8 @@ export const EMPTY_WEBSITE_CODE: WebsiteCode = {
 export function articlesForActivity(
   activity: BusinessActivity,
 ): WebsiteArticles {
-  const en = getWebsiteTranslations("en", activity);
-  const ar = getWebsiteTranslations("ar", activity);
+  const en = getWebsiteTranslations("en");
+  const ar = getWebsiteTranslations("ar");
   return {
     slug: en.articles.slug,
     navEn: en.nav.articles,
@@ -190,8 +190,8 @@ export function collectionForActivity(
   activity: BusinessActivity,
 ): WebsiteCollection {
   const preset = activityPreset(activity);
-  const en = getWebsiteTranslations("en", activity);
-  const ar = getWebsiteTranslations("ar", activity);
+  const en = getWebsiteTranslations("en");
+  const ar = getWebsiteTranslations("ar");
   return {
     slug: preset.collection.slug,
     layout: preset.collection.layout,

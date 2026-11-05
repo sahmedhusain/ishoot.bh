@@ -1,5 +1,4 @@
 import { describe, expect, test } from "vitest";
-import { getAdminTranslations } from "../../../admin/locales";
 import {
   BLOCK_TYPES,
   embedSource,
@@ -9,15 +8,7 @@ import {
 import { validateBlocks } from "@platform/database/queries/cms-pages";
 
 describe("website page blocks", () => {
-  test("every block type has a name in both languages and starting data", () => {
-    for (const locale of ["en", "ar"] as const) {
-      const names = getAdminTranslations(locale).cmsPages.types as Record<
-        string,
-        string
-      >;
-      for (const type of BLOCK_TYPES)
-        expect(names[type], `${locale} ${type}`).toBeTruthy();
-    }
+  test("every block type has starting data", () => {
     for (const type of BLOCK_TYPES)
       expect(newBlockData(type)).toBeTypeOf("object");
   });

@@ -89,7 +89,7 @@ export function SystemHealthView({ items }: { items: ServiceHealth[] }) {
               <div className="space-y-1 text-xs text-ink-muted">
                 <div className="flex justify-between">
                   <span>{h.latency}:</span>
-                  <span className="font-mono">{svc.latencyMs} ms</span>
+                  <span className="font-mono">{svc.latencyMs} {h.milliseconds}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>{h.checkedAt}:</span>

@@ -5,8 +5,22 @@ import {
   embedSource,
   type EmbedPreset,
 } from "@platform/database/cms/blocks";
+import enLocale from "../../locales/en.json";
+import arLocale from "../../locales/ar.json";
 
 const FRAME_HOSTS = Object.values(EMBED_HOSTS);
+type RenderLocale = "en" | "ar";
+
+const iframeTitles: Record<RenderLocale, { video: string; embed: string }> = {
+  en: {
+    video: enLocale.admin.richText.video,
+    embed: enLocale.admin.richText.embed,
+  },
+  ar: {
+    video: arLocale.admin.richText.video,
+    embed: arLocale.admin.richText.embed,
+  },
+};
 
 /** The website-safe HTML of an editor document: only formatting, links, images, tables and known embeds survive. */
 function cleanHtml(html: string) {
@@ -141,8 +155,9 @@ function marks(text: string, list: JsonNode["marks"] = []) {
 }
 
 /** Editor JSON to HTML, for exactly the nodes in richTextExtensions(); anything else is dropped. */
-function toHtml(node: JsonNode): string {
-  const inner = () => (node.content ?? []).map(toHtml).join("");
+function toHtml(node: JsonNode, locale: RenderLocale): string {
+  const inner = () =>
+    (node.content ?? []).map((child) => toHtml(child, locale)).join("");
   const attrs = node.attrs ?? {};
   switch (node.type) {
     case "doc":
@@ -180,7 +195,7 @@ function toHtml(node: JsonNode): string {
     case "youtube": {
       const src = embedSource("youtube", String(attrs.src ?? ""));
       return src
-        ? `<div class="rt-embed" data-preset="youtube"><iframe src="${escape(src)}" title="video" allowfullscreen="true"></iframe></div>`
+        ? `<div class="rt-embed" data-preset="youtube"><iframe src="${escape(src)}" title="${escape(iframeTitles[locale].video)}" allowfullscreen="true"></iframe></div>`
         : "";
     }
     case "embed": {
@@ -191,7 +206,7 @@ function toHtml(node: JsonNode): string {
         : "vimeo";
       const src = embedSource(preset, String(attrs.src ?? ""));
       return src
-        ? `<div class="rt-embed" data-preset="${preset}"><iframe src="${escape(src)}" title="${preset}" allowfullscreen="true"></iframe></div>`
+        ? `<div class="rt-embed" data-preset="${preset}"><iframe src="${escape(src)}" title="${escape(iframeTitles[locale].embed)}" allowfullscreen="true"></iframe></div>`
         : "";
     }
     case "table":
@@ -213,8 +228,11 @@ function toHtml(node: JsonNode): string {
 }
 
 /** Renders a stored editor document to website HTML; anything that is not a document renders as nothing. */
-export function renderRichText(doc: unknown): string {
+export function renderRichText(
+  doc: unknown,
+  locale: RenderLocale = "en",
+): string {
   if (!doc || typeof doc !== "object" || (doc as JsonNode).type !== "doc")
     return "";
-  return cleanHtml(toHtml(doc as JsonNode));
+  return cleanHtml(toHtml(doc as JsonNode, locale));
 }

@@ -46,7 +46,7 @@ export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
           <p className="text-xs text-ink-muted">{dbCopy.migrationsSubtitle}</p>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm rtl:text-right">
+            <table className="it-table text-left rtl:text-right">
               <thead>
                 <tr className="border-b border-outline-variant text-xs text-ink-muted">
                   <th className="pb-2 font-medium">{dbCopy.schema}</th>
@@ -80,7 +80,7 @@ export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
           <p className="text-xs text-ink-muted">{dbCopy.outboxSubtitle}</p>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm rtl:text-right">
+            <table className="it-table text-left rtl:text-right">
               <thead>
                 <tr className="border-b border-outline-variant text-xs text-ink-muted">
                   <th className="pb-2 font-medium">{dbCopy.schema}</th>

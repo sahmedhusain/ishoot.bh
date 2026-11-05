@@ -7,7 +7,6 @@ export default defineConfig({
       "@platform/contracts/catalog": path.resolve(__dirname, "./lib/contracts/catalog"),
       "@platform/contracts": path.resolve(__dirname, "./lib/contracts/src"),
       "@platform/database": path.resolve(__dirname, "./lib/database"),
-      "@platform/locales/admin": path.resolve(__dirname, "../admin/locales/admin"),
       "@platform/locales": path.resolve(__dirname, "./locales"),
       "@platform/config": path.resolve(__dirname, "./lib/config"),
       "@platform/api-client": path.resolve(__dirname, "./lib/api"),

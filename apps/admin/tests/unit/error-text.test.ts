@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
-import { errorMessage } from "../../apps/admin/lib/error-text";
-import { adminTranslations } from "../../apps/admin/lib/translations-bilingual";
+import { errorMessage } from "../../lib/error-text";
+import { adminTranslations } from "../../lib/translations-bilingual";
 import { publicError } from "../../lib/database/errors";
 
 it.each(["en", "ar"] as const)(

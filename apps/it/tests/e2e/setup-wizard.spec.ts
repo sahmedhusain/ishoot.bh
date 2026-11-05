@@ -7,7 +7,7 @@ import {
   themeVariable,
   watchErrors,
 } from "../../helpers";
-import { t } from "../../locale";
+import { t } from "../helpers/locale";
 import { selectOption } from "../../select-option";
 
 // One continuous first-run journey on a blank install: the database is prepared fresh for every run.

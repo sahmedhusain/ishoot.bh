@@ -1,7 +1,7 @@
 import { isValidEmail } from "../constants/validation";
 import crypto from "node:crypto";
 import { Prisma } from "@prisma/client";
-import { getWebsiteTranslations, serverMessages } from "@platform/locales";
+import { getTranslations, serverMessages } from "@platform/locales";
 import { db } from "../db";
 import {
   CAMPAIGN_CHANNELS,
@@ -503,7 +503,7 @@ export async function sendBroadcastBatch(
     for (const r of recipients) {
       if (!optedIn.has(r.customerId)) continue;
       const ar = r.locale !== "en";
-      const copy = getWebsiteTranslations(ar ? "ar" : "en").marketing;
+      const copy = getTranslations(ar ? "ar" : "en").admin.marketing;
       const link = `${siteUrl.replace(/\/$/, "")}/${ar ? "ar" : "en"}/unsubscribe/${unsubscribeToken(r.customerId)}`;
       const body = (ar ? broadcast.bodyAr : broadcast.bodyEn)
         .split(/\n{2,}/)

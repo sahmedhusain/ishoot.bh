@@ -1,4 +1,3 @@
-import { commonEn, commonAr, withCommonCopy } from "./common.cjs";
 export { getCommonTranslations, getUiTranslations } from "./additional";
 import { type Locale } from "./registry";
 export { LANGUAGES, isLocale, isRtlLocale, type Locale } from "./registry";
@@ -12,8 +11,8 @@ export { formatMessage, type MessageValues } from "./format-message";
 export const serverMessages = serverErrors.messages;
 export const serverTemplates = serverErrors.templates;
 
-const en = withCommonCopy(enBase, "web", commonEn);
-const ar: typeof en = withCommonCopy(arBase, "web", commonAr);
+const en = enBase;
+const ar: typeof en = arBase;
 
 export type TranslationKeys = typeof en;
 export { en, ar };

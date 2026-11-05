@@ -2,7 +2,7 @@ import { leavingIndemnity, partMonthPay } from "@platform/database/hr/final-sett
 import { describe, expect, it } from "vitest";
 const { CURRENCY_CODES, getCurrencyDecimals } = require("../../lib/config/constants/currency.cjs");
 import { LANGUAGES, isLocale, isRtlLocale } from "@platform/locales/registry";
-import { getTranslations, getWebsiteTranslations } from "../../../web/locales";
+import { getTranslations } from "../../locales";
 import { validMoneyAmount } from "@platform/database/finance/money";
 import { normalizeContactWrites, type ContactModels } from "@platform/database/services/contact-writes";
 import { priceOrder } from "@platform/database/constants/store";
@@ -53,10 +53,13 @@ describe("General company configuration", () => {
     expect(isRtlLocale("en")).toBe(false);
     expect(isRtlLocale("fr")).toBe(false);
     expect(isRtlLocale("ru")).toBe(false);
-    expect(getTranslations("en").nav.home).toBe("Home");
-    expect(getTranslations("ar").nav.home).toBe("الرئيسية");
-    expect((getTranslations("unknown" as any)).store.paymentMethods.online).toBe(getTranslations("en").store.paymentMethods.online);
-    expect(getWebsiteTranslations("en", "other").hero.headline).not.toMatch(/cinema/i);
+    expect(getTranslations("en").admin.nav.overview).toBe("Overview");
+    expect(getTranslations("ar").admin.nav.overview).toBe("نظرة عامة");
+    expect(getTranslations("unknown" as any).admin.nav.overview).toBe(
+      getTranslations("en").admin.nav.overview,
+    );
+    expect(getTranslations("en").shared.ui.cancel).toBe("Cancel");
+    expect(getTranslations("ar").shared.ui.cancel).toBe("إلغاء");
   });
   it("validates published motion and banner options", () => {
     expect(validateWebsiteDesign({ ...defaultWebsiteDesign(), motionScheme: "expressive", bannerIntervalSeconds: 12 }).bannerIntervalSeconds).toBe(12);

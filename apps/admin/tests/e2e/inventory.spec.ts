@@ -1,7 +1,7 @@
 import { acceptConfirmations } from "../../helpers";
 import { expect, test, type Page } from "@playwright/test";
 import { alertMessage, testDatabase, watchErrors } from "../../helpers";
-import { t } from "../../locale";
+import { t } from "../helpers/locale";
 import { setModule } from "../../modules";
 
 const copy = t.inventory;

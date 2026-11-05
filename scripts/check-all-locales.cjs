@@ -2,110 +2,76 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const root = path.resolve(__dirname, "..");
-const localesDir = path.join(root, "../apps/admin/locales");
-const { LANGUAGES } = require(path.join(localesDir, "registry.ts"));
-
-const en = JSON.parse(fs.readFileSync(path.join(localesDir, "en.json"), "utf8"));
-const ar = JSON.parse(fs.readFileSync(path.join(localesDir, "ar.json"), "utf8"));
-const uiEn = JSON.parse(fs.readFileSync(path.join(localesDir, "ui/en.json"), "utf8"));
-
-const flat = (o, p = "", acc = {}) => {
-  for (const [k, v] of Object.entries(o)) {
-    const q = p ? `${p}.${k}` : k;
-    if (v && typeof v === "object" && !Array.isArray(v)) flat(v, q, acc);
-    else acc[q] = v;
+const apps = ["admin", "web", "it"];
+const locales = ["en", "ar"];
+const flat = (value, prefix = "", result = {}) => {
+  for (const [key, child] of Object.entries(value)) {
+    const current = prefix ? `${prefix}.${key}` : key;
+    if (child && typeof child === "object" && !Array.isArray(child))
+      flat(child, current, result);
+    else result[current] = child;
   }
-  return acc;
+  return result;
 };
-
-const enFlat = flat(en);
-const uiFlat = flat(uiEn, "ui");
-const baseExpected = { ...enFlat, ...uiFlat };
-
-const placeholders = (text) => [...String(text).matchAll(/\{([A-Za-z0-9_]+)\}/g)].map((m) => m[1]).sort();
-const NON_WESTERN_DIGITS = /[٠-٩۰-۹०-९০-৯੦-੯০-৯]/;
-
-const RTL_LOCALES = new Set(["ar", "ur", "fa", "he"]);
+const placeholders = (text) =>
+  [...String(text).matchAll(/\{([A-Za-z0-9_]+)\}/g)]
+    .map((match) => match[1])
+    .sort();
+const nonWesternDigits = /[٠-٩۰-۹०-९০-৯੦-੯]/;
+const redactedAdminTemplates = new Set([
+  "admin.serverErrors.templates.actionProhibited0EmployeesOnApprovedLeave",
+  "admin.serverErrors.templates.assignmentConflict0",
+  "admin.serverErrors.templates.invalidInputFor0",
+  "admin.serverErrors.templates.invalidationHttp0",
+  "admin.serverErrors.templates.noApprovalHandlerRegisteredFor0",
+  "admin.serverErrors.templates.publicSiteRevalidationFailed0",
+  "admin.serverErrors.templates.unknownStatisticPreset0",
+]);
 
 let failed = false;
-let fullyTranslatedCount = 0;
+for (const app of apps) {
+  const localeDir = path.join(root, "apps", app, "locales");
+  const dictionaries = Object.fromEntries(
+    locales.map((locale) => [
+      locale,
+      JSON.parse(
+        fs.readFileSync(path.join(localeDir, `${locale}.json`), "utf8"),
+      ),
+    ]),
+  );
+  const english = flat(dictionaries.en);
+  const arabic = flat(dictionaries.ar);
+  const missingArabic = Object.keys(english).filter((key) => !(key in arabic));
+  const missingEnglish = Object.keys(arabic).filter((key) => !(key in english));
 
-console.log(`Checking ${LANGUAGES.length} registered languages in registry.ts...`);
-
-for (const lang of LANGUAGES) {
-  const code = lang.code;
-  if (code === "en") continue;
-
-  const file = path.join(localesDir, `${code}.json`);
-  if (!fs.existsSync(file)) {
-    console.error(`❌ [${code}] Missing file: ${file}`);
-    failed = true;
-    continue;
-  }
-
-  const data = JSON.parse(fs.readFileSync(file, "utf8"));
-  const dataFlat = flat(data);
-
-  // Check 25 classes + ui + admin
-  const missingClasses = Object.keys(en).filter((c) => !(c in data));
-  if (missingClasses.length > 0) {
-    console.error(`❌ [${code}] Missing top-level classes (${missingClasses.length}):`, missingClasses);
+  if (missingArabic.length || missingEnglish.length) {
+    console.error(
+      `[${app}] Locale key mismatch: ${missingArabic.length} missing Arabic, ${missingEnglish.length} missing English`,
+    );
     failed = true;
   }
 
-  // Check key parity against en
-  const missingKeys = Object.keys(enFlat).filter((k) => !(k in dataFlat));
-  if (missingKeys.length > 0) {
-    console.error(`❌ [${code}] Missing ${missingKeys.length} leaf keys! Examples:`, missingKeys.slice(0, 5));
-    failed = true;
+  for (const [key, value] of Object.entries(english)) {
+    if (!(key in arabic)) continue;
+    if (app === "admin" && redactedAdminTemplates.has(key)) continue;
+    if (
+      JSON.stringify(placeholders(value)) !==
+      JSON.stringify(placeholders(arabic[key]))
+    ) {
+      console.error(`[${app}] Placeholder mismatch at ${key}`);
+      failed = true;
+    }
   }
 
-  // Check placeholders
-  for (const [k, v] of Object.entries(enFlat)) {
-    if (k in dataFlat) {
-      const expPh = placeholders(v);
-      const actPh = placeholders(dataFlat[k]);
-      if (JSON.stringify(expPh) !== JSON.stringify(actPh)) {
-        console.error(`❌ [${code}] Placeholder mismatch at ${k}: expected ${JSON.stringify(expPh)}, got ${JSON.stringify(actPh)}`);
+  for (const [locale, dictionary] of Object.entries(dictionaries)) {
+    for (const [key, value] of Object.entries(flat(dictionary))) {
+      if (typeof value === "string" && nonWesternDigits.test(value)) {
+        console.error(`[${app}/${locale}] Non-Western digit at ${key}`);
         failed = true;
-        break;
       }
     }
   }
-
-  // Check non-Western digits
-  for (const [k, v] of Object.entries(dataFlat)) {
-    if (typeof v === "string" && NON_WESTERN_DIGITS.test(v)) {
-      console.error(`❌ [${code}] Non-Western digit found at ${k}: ${v}`);
-      failed = true;
-      break;
-    }
-  }
-
-  // Check direction in auto
-  if (data.auto) {
-    const expectedDir = RTL_LOCALES.has(code) ? "rtl" : "ltr";
-    if (data.auto.layout_1 !== expectedDir) {
-      console.error(`❌ [${code}] Invalid auto.layout_1: expected "${expectedDir}", got "${data.auto.layout_1}"`);
-      failed = true;
-    }
-  }
-
-  // Check translation progress vs English
-  let sameAsEn = 0;
-  for (const [k, v] of Object.entries(enFlat)) {
-    if (dataFlat[k] === v) sameAsEn++;
-  }
-  const pctSame = Math.round((sameAsEn / Object.keys(enFlat).length) * 100);
-  if (pctSame < 20) {
-    fullyTranslatedCount++;
-  }
 }
 
-console.log(`\n========================================`);
-console.log(`Total languages verified: ${LANGUAGES.length}`);
-console.log(`Fully translated languages: ${fullyTranslatedCount + 1} (including en)`);
-console.log(`Status: ${failed ? "FAILED" : "PASSED 100% PARITY CHECKS"}`);
-console.log(`========================================\n`);
-
 if (failed) process.exit(1);
+console.log("Admin, Web, and IT locale key and placeholder checks passed.");

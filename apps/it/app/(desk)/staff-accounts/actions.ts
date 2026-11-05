@@ -76,3 +76,31 @@ export async function resetStaffMFAAction(id: string) {
   revalidatePath("/staff-accounts");
   return result;
 }
+
+export async function suspendStaffAccountAction(
+  id: string,
+  currentDraft: StaffAccountDraft,
+) {
+  const user = await requireAllowed("staff_accounts", "edit");
+  const result = await asUser(() =>
+    staffCommand(() =>
+      updateStaffAccountForIT(user.token, id, { ...currentDraft, active: false }),
+    ),
+  );
+  revalidatePath("/staff-accounts");
+  return result;
+}
+
+export async function unsuspendStaffAccountAction(
+  id: string,
+  currentDraft: StaffAccountDraft,
+) {
+  const user = await requireAllowed("staff_accounts", "edit");
+  const result = await asUser(() =>
+    staffCommand(() =>
+      updateStaffAccountForIT(user.token, id, { ...currentDraft, active: true }),
+    ),
+  );
+  revalidatePath("/staff-accounts");
+  return result;
+}

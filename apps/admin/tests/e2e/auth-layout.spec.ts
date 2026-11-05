@@ -1,8 +1,10 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { alertMessage } from "../../helpers";
-import en from "../../locales/admin/en";
-import ar from "../../locales/admin/ar";
+import enLocale from "../../locales/en.json";
+import arLocale from "../../locales/ar.json";
+const en = enLocale.admin;
+const ar = arLocale.admin;
 
 test.use({ storageState: { cookies: [], origins: [] } });
 for (const locale of ["en", "ar"] as const)

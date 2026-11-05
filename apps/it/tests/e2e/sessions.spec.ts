@@ -8,8 +8,8 @@ import {
   listIdentitySessionsForIT,
   updateITAccountForIT,
 } from "@platform/api-client";
-import ar from "@platform/locales/it/ar.json";
-import en from "@platform/locales/it/en.json";
+import ar from "@platform/locales/ar.json";
+import en from "@platform/locales/en.json";
 import { ports } from "../../../../playwright.config";
 import { selectOption } from "../../select-option";
 import { totp } from "../../totp";

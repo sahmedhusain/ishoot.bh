@@ -1,5 +1,5 @@
 import users from "../../fixtures/users.json";
-import { t } from "../../locale";
+import { t } from "../helpers/locale";
 import { expect, test } from "@playwright/test";
 import { admin, alertMessage, demo, login, testDatabase } from "../../helpers";
 

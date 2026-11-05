@@ -6,7 +6,11 @@ import {
   listModules,
   setModule as save,
 } from "@platform/api-client/system";
-import { moduleOnByDefault } from "@platform/database/constants/features";
+import moduleCatalog from "../../../lib/contracts/catalog/modules.json";
+
+const moduleOnByDefault = (moduleKey: string) =>
+  moduleCatalog.modules.find((module) => module.key === moduleKey)
+    ?.enabledByDefault ?? true;
 
 require("dotenv").config({
   path: path.resolve(__dirname, "../../.env"),

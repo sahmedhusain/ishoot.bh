@@ -60,6 +60,8 @@ tests/.results/
 
 # Database dumps from ./run.sh db backup
 backups/
+!apps/it/app/(desk)/backups/
+!apps/it/app/(desk)/backups/**
 .next-material-check/
 .local/
 

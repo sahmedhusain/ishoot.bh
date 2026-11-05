@@ -1,7 +1,7 @@
 // The interface language: the person's choice (cookie), else the configured default. Arabic and English.
 import { cookies } from "next/headers";
-import en from "../locales/en";
-import ar from "../locales/ar";
+import en from "../locales/en.json";
+import ar from "../locales/ar.json";
 import { config } from "./config";
 
 export type Copy = typeof en;

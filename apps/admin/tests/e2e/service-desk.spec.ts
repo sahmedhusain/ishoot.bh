@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 import { en } from "../../locales";
 import { ports } from "../../../../playwright.config";
 import { testDatabase, watchErrors } from "../../helpers";
-import { t } from "../../locale";
+import { t } from "../helpers/locale";
 import { enableStore, freshStockedProduct } from "../../store-fixtures";
 
 const copy = t.serviceDesk;

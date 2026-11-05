@@ -44,8 +44,8 @@ async function main() {
     assert.equal(formatCurrencyValue(12, 'INR', ar), '12.00 ₹');
     assert.equal(formatCurrencyValue(12, 'jod', ar), ar ? '12.000 د.أ' : '12.000 JOD');
   }
-  const en = require('../apps/admin/locales/common.cjs').withCommonCopy(require('../apps/admin/locales/admin/en.json'), "admin", require('../apps/admin/locales/common.cjs').commonEn);
-  const ar = require('../apps/admin/locales/common.cjs').withCommonCopy(require('../apps/admin/locales/admin/ar.json'), "admin", require('../apps/admin/locales/common.cjs').commonAr);
+  const en = require('../apps/admin/locales/en.json').admin;
+  const ar = require('../apps/admin/locales/ar.json').admin;
   // Every admin string exists in both languages, at every depth.
   const paths = (node, prefix = '') => Object.entries(node).flatMap(([key, value]) => value && typeof value === 'object' ? paths(value, prefix + key + '.') : [prefix + key]);
   assert.deepEqual(paths(en).sort(), paths(ar).sort());

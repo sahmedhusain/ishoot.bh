@@ -44,9 +44,11 @@ function withRenderedText(blocks: Block[]): Block[] {
             html: {
               en: renderRichText(
                 (block.data as Block<"rich_text">["data"]).doc.en,
+                "en",
               ),
               ar: renderRichText(
                 (block.data as Block<"rich_text">["data"]).doc.ar,
+                "ar",
               ),
             },
           },

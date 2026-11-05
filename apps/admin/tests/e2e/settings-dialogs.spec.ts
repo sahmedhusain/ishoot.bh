@@ -1,7 +1,9 @@
 import { selectOption } from "../../select-option";
 import { expect, test } from "@playwright/test";
-import en from "../../locales/admin/en";
-import ar from "../../locales/admin/ar";
+import enLocale from "../../locales/en.json";
+import arLocale from "../../locales/ar.json";
+const en = enLocale.admin;
+const ar = arLocale.admin;
 
 for (const locale of ["en", "ar"] as const) {
   test(`shared service, payroll and settings dialogs preserve failed edits (${locale})`, async ({

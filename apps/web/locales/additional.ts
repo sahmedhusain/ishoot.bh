@@ -1,9 +1,6 @@
-import { commonEn, commonAr } from "./common.cjs";
 import { isLocale, type Locale } from "./registry";
-import enUi from "./ui/en";
-import arUi from "./ui/ar";
-
-export const additionalTranslations: Record<string, Record<string, unknown>> = {};
+import en from "./en.json";
+import ar from "./ar.json";
 
 function copyLocale(locale: string): Locale {
   const tag = locale.toLowerCase().replace(/_/g, "-");
@@ -12,12 +9,12 @@ function copyLocale(locale: string): Locale {
   return isLocale(language) ? language : "en";
 }
 
-export function getCommonTranslations(locale: string): typeof commonEn {
+export function getCommonTranslations(locale: string): typeof en.shared.common {
   const code = copyLocale(locale);
-  return code === "ar" ? commonAr : commonEn;
+  return code === "ar" ? ar.shared.common : en.shared.common;
 }
 
-export function getUiTranslations(locale: string): typeof enUi {
+export function getUiTranslations(locale: string): typeof en.shared.ui {
   const code = copyLocale(locale);
-  return code === "ar" ? arUi : enUi;
+  return code === "ar" ? ar.shared.ui : en.shared.ui;
 }

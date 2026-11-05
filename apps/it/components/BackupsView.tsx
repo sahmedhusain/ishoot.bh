@@ -23,7 +23,7 @@ export function BackupsView({
   backups,
   canExecute,
 }: {
-  backups: BackupRecord[];
+  backups: BackupRecord[] | null;
   canExecute: boolean;
 }) {
   const { copy, date } = useCopy();
@@ -75,7 +75,12 @@ export function BackupsView({
           <div className="flex items-center gap-2">
             <select
               value={kind}
-              onChange={(e) => setKind(e.target.value as any)}
+              onChange={(event) => {
+                const value = event.currentTarget.value;
+                if (value === "database" || value === "bucket" || value === "full") {
+                  setKind(value);
+                }
+              }}
               className="rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm"
             >
               <option value="database">{b.kindDatabase}</option>
@@ -102,11 +107,15 @@ export function BackupsView({
       <Card className="rounded-3xl border border-outline-variant p-6 space-y-4">
         <h2 className="text-base font-semibold">{b.historyTitle}</h2>
 
-        {!backups.length ? (
+        {backups === null ? (
+          <p role="alert" className="py-6 text-center text-xs text-ink-muted">
+            {b.unavailable}
+          </p>
+        ) : !backups.length ? (
           <p className="text-xs text-ink-muted py-6 text-center">{b.noBackups}</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm rtl:text-right">
+            <table className="it-table text-left rtl:text-right">
               <thead>
                 <tr className="border-b border-outline-variant text-xs text-ink-muted">
                   <th className="pb-2 font-medium">{b.fileName}</th>

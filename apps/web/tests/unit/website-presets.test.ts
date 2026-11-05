@@ -28,7 +28,7 @@ import {
   collectionHref,
   formatPrice,
   siteCopyOverrides,
-} from "../../apps/web/lib/site-copy";
+} from "../../lib/site-copy";
 
 describe("content languages", () => {
   test("languages are normalised to a non-empty canonical list", () => {

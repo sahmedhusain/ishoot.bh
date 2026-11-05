@@ -39,7 +39,7 @@ export function ApiKeysView({
 
   // Form states
   const [name, setName] = React.useState("");
-  const [scopesStr, setScopesStr] = React.useState("orders:read,products:read");
+  const [scopesStr, setScopesStr] = React.useState(k.defaultScopes);
   const [rateLimit, setRateLimit] = React.useState(60);
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -154,7 +154,7 @@ export function ApiKeysView({
                 <span>{k.name}</span>
                 <Input
                   required
-                  placeholder="e.g. ERP integration"
+                  placeholder={k.namePlaceholder}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
@@ -174,7 +174,6 @@ export function ApiKeysView({
               <label className="block space-y-1 text-sm sm:col-span-2">
                 <span>{k.scopes}</span>
                 <Input
-                  placeholder="orders:read, products:read"
                   value={scopesStr}
                   onChange={(e) => setScopesStr(e.target.value)}
                 />

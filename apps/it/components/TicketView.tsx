@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { formatMessage } from "@platform/locales";
 import { Button, Card } from "@platform/ui";
 import { ArrowLeft, ArrowRight, Lock, Paperclip, Send, UserPlus, X } from "lucide-react";
 import type { TicketDetail } from "@platform/api-client";
@@ -11,6 +12,9 @@ import { ticketCategory, transitionsFrom } from "@platform/contracts";
 import { commentAction, transitionAction, uploadAttachmentAction, type AttachmentInput, type Outcome } from "../app/actions";
 import { useCopy } from "./CopyProvider";
 import { OverdueBadge, RemindedBadge, StatusBadge } from "./ticket-ui";
+
+const MAX_TICKET_ATTACHMENTS = 10;
+const MAX_TICKET_ATTACHMENT_SIZE_MB = 10;
 
 interface TicketViewProps {
   detail: TicketDetail;
@@ -68,12 +72,18 @@ export function TicketView({
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (attachedFiles.length >= 10) {
-      toast.error(locale === "ar" ? "الحد الأقصى 10 مرفقات" : "Maximum 10 attachments");
+    if (attachedFiles.length >= MAX_TICKET_ATTACHMENTS) {
+      toast.error(
+        formatMessage(t.attachmentLimit, { count: MAX_TICKET_ATTACHMENTS }),
+      );
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error(locale === "ar" ? "حجم الملف يتجاوز 10 ميجابايت" : "File exceeds 10MB limit");
+    if (file.size > MAX_TICKET_ATTACHMENT_SIZE_MB * 1024 * 1024) {
+      toast.error(
+        formatMessage(t.attachmentSizeLimit, {
+          size: MAX_TICKET_ATTACHMENT_SIZE_MB,
+        }),
+      );
       return;
     }
     setUploadingFile(true);
@@ -83,12 +93,12 @@ export function TicketView({
       const res = await uploadAttachmentAction(form);
       if (res.ok && res.attachment) {
         setAttachedFiles((prev) => [...prev, res.attachment!]);
-        toast.success(locale === "ar" ? "تم رفع المرفق" : "Attachment uploaded");
+        toast.success(t.attachmentUploaded);
       } else {
-        toast.error(locale === "ar" ? "فشل رفع الملف" : "Failed to upload file");
+        toast.error(t.attachmentUploadFailed);
       }
     } catch {
-      toast.error(locale === "ar" ? "فشل رفع الملف" : "Failed to upload file");
+      toast.error(t.attachmentUploadFailed);
     } finally {
       setUploadingFile(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -152,7 +162,7 @@ export function TicketView({
   ];
   if (ticket.remindedAt) {
     facts.push([
-      locale === "ar" ? "تنبيه مستوى الخدمة" : "SLA Reminder",
+      t.slaReminder,
       date(ticket.remindedAt),
     ]);
   }
@@ -200,8 +210,8 @@ export function TicketView({
             >
               <UserPlus className="size-3.5" aria-hidden />
               {ticket.assigneeId
-                ? (locale === "ar" ? "إعادة التعيين" : "Reassign")
-                : (locale === "ar" ? "تعيين لموظف" : "Assign to staff")}
+                ? t.reassign
+                : t.assignToStaff}
             </Button>
           )}
           {actions.map((name) => (
@@ -230,32 +240,32 @@ export function TicketView({
           <h3 className="text-xs font-bold text-ink flex items-center gap-1.5">
             <UserPlus className="size-3.5" aria-hidden />
             {ticket.assigneeId
-              ? (locale === "ar" ? "إعادة تعيين التذكرة لموظف آخر" : "Reassign Ticket to Staff")
-              : (locale === "ar" ? "تعيين التذكرة لموظف آخر" : "Assign Ticket to Staff")}
+              ? t.reassignTicketToStaff
+              : t.assignTicketToStaff}
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-[11px] text-ink-muted block mb-1">
-                {locale === "ar" ? "معرّف الموظف (Subject / Email)" : "Staff ID or Email"}
+                {t.staffIdOrEmail}
               </label>
               <input
                 type="text"
                 required
                 value={targetAssigneeId}
                 onChange={(e) => setTargetAssigneeId(e.target.value)}
-                placeholder="it-user-1"
+                placeholder={t.assigneeIdPlaceholder}
                 className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-1.5 text-xs text-ink focus:outline-none focus:ring-2 focus:ring-accent/30"
               />
             </div>
             <div>
               <label className="text-[11px] text-ink-muted block mb-1">
-                {locale === "ar" ? "اسم الموظف" : "Staff Name"}
+                {t.staffName}
               </label>
               <input
                 type="text"
                 value={targetAssigneeName}
                 onChange={(e) => setTargetAssigneeName(e.target.value)}
-                placeholder="Alex"
+                placeholder={t.assigneeNamePlaceholder}
                 className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-1.5 text-xs text-ink focus:outline-none focus:ring-2 focus:ring-accent/30"
               />
             </div>
@@ -267,7 +277,7 @@ export function TicketView({
               variant="outline"
               onClick={() => setShowAssignInput(false)}
             >
-              {locale === "ar" ? "إلغاء" : "Cancel"}
+              {copy.shared.common.cancel}
             </Button>
             <Button
               type="button"
@@ -287,7 +297,7 @@ export function TicketView({
                 })
               }
             >
-              {locale === "ar" ? "تأكيد التعيين" : "Confirm Assignment"}
+              {t.confirmAssignment}
             </Button>
           </div>
         </Card>
@@ -423,7 +433,7 @@ export function TicketView({
                           type="button"
                           onClick={() => removeAttachment(idx)}
                           className="p-0.5 rounded-full hover:bg-surface-container text-ink-muted hover:text-ink"
-                          aria-label={locale === "ar" ? "إزالة المرفق" : "Remove attachment"}
+                          aria-label={t.removeAttachment}
                         >
                           <X className="size-3" aria-hidden />
                         </button>
@@ -436,14 +446,16 @@ export function TicketView({
                     type="button"
                     size="sm"
                     variant="outline"
-                    disabled={busy || uploadingFile || attachedFiles.length >= 10}
+                    disabled={
+                      busy || uploadingFile || attachedFiles.length >= MAX_TICKET_ATTACHMENTS
+                    }
                     onClick={() => fileInputRef.current?.click()}
                     className="gap-1.5"
                   >
                     <Paperclip className="size-3.5" aria-hidden />
                     {uploadingFile
-                      ? (locale === "ar" ? "جارٍ الرفع..." : "Uploading...")
-                      : (locale === "ar" ? "إرفاق ملف" : "Attach file")}
+                      ? t.uploading
+                      : t.attachFile}
                   </Button>
                   <Button
                     type="submit"

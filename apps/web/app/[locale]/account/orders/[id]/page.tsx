@@ -60,7 +60,7 @@ export default async function CustomerOrderPage({
           href={`/${locale}/account`}
           className="text-m3-primary underline min-h-11 py-2"
         >
-          {ar ? "العودة إلى الحساب" : "Back to account"}
+          {t.store.backToAccount}
         </Link>
         <PrintOrder locale={locale} />
       </div>
@@ -127,7 +127,7 @@ export default async function CustomerOrderPage({
         </section>
       </div>
       <section>
-        <h2 className="sr-only">{ar ? "الأصناف" : "Items"}</h2>
+        <h2 className="sr-only">{t.store.items}</h2>
         <ul className="divide-y divide-m3-outline-variant">
           {order.lines.map((line) => (
             <li
@@ -162,7 +162,7 @@ export default async function CustomerOrderPage({
         ))}
       </dl>
       <p className="text-sm text-ink-muted">
-        {ar ? "المبلغ المدفوع" : "Amount paid"}: {money(order.amountPaid)}
+        {t.store.amountPaid}: {money(order.amountPaid)}
       </p>
       {order.paymentMethod === "online" &&
         Number(order.total) > Number(order.amountPaid) &&

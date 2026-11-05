@@ -3,7 +3,7 @@
 // the change itself.
 import { deliverNotifications, publishHint } from "@platform/api-client";
 import { formatMessage } from "@platform/locales";
-import en from "../locales/en";
+import en from "../locales/en.json";
 
 type ChangedTicket = { id: string; number: number; requesterId: string };
 

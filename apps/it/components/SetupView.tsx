@@ -1,19 +1,29 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
+  Activity,
+  Archive,
+  Blocks,
   CheckCircle2,
   Building2,
+  Database,
+  FastForward,
+  Key,
+  Terminal,
   ToggleRight,
   Globe,
   Check,
   ChevronRight,
   ChevronLeft,
   Loader2,
+  Users,
 } from "lucide-react";
 import { Button, Card, Input } from "@platform/ui";
+import { itAllowed } from "@platform/contracts";
 import type {
   CompanyConfiguration,
   CompanyConfigurationPatch,
@@ -44,6 +54,7 @@ export function SetupView({
   domains,
   canEdit,
   canExecute,
+  roles,
 }: {
   company: CompanyConfiguration | null;
   setupStatus: { complete: boolean; missing: string[] } | null;
@@ -51,6 +62,7 @@ export function SetupView({
   domains: SiteDomains | null;
   canEdit: boolean;
   canExecute: boolean;
+  roles: string[];
 }) {
   const { copy, locale } = useCopy();
   const s = copy.setupWizard;
@@ -105,7 +117,11 @@ export function SetupView({
       for (const m of modules) {
         const next = moduleStates[m.key];
         if (next !== undefined && next !== m.enabled) {
-          await setModuleAction(m.key, next);
+          const result = await setModuleAction(m.key, next);
+          if (!result.ok) {
+            toast.error(s.stepFailed);
+            return false;
+          }
         }
       }
       return true;
@@ -147,6 +163,8 @@ export function SetupView({
       if (await saveStep2()) setStep(3);
     } else if (step === 3) {
       if (await saveStep3()) setStep(4);
+    } else if (step === 4) {
+      setStep(5);
     }
   };
 
@@ -160,7 +178,7 @@ export function SetupView({
         return;
       }
       toast.success(s.completed);
-      router.push("/company");
+      router.push("/");
       router.refresh();
     } catch {
       toast.error(s.stepFailed);
@@ -169,27 +187,53 @@ export function SetupView({
     }
   };
 
-  return (
-    <div className="mx-auto max-w-3xl space-y-8 py-4">
-      <PageTitle title={s.title} description={s.description} />
+  const operationalLinks = [
+    { href: "/integrations", label: "integrations", icon: Blocks, resource: "integrations" },
+    { href: "/it-accounts", label: "itAccounts", icon: Users, resource: "it_accounts" },
+    { href: "/system-health", label: "systemHealth", icon: Activity, resource: "system_health" },
+    { href: "/logs", label: "logs", icon: Terminal, resource: "logs" },
+    { href: "/database", label: "database", icon: Database, resource: "database" },
+    { href: "/backups", label: "backups", icon: Archive, resource: "backups" },
+    { href: "/api-keys", label: "apiKeys", icon: Key, resource: "api_keys" },
+  ] as const;
+  const visibleOperationalLinks = operationalLinks.filter(({ resource }) =>
+    itAllowed(roles, resource, "read"),
+  );
 
-      {/* Stepper bar */}
-      <div className="flex items-center justify-between border-b border-outline-variant pb-4">
+  return (
+    <div className="it-setup mx-auto max-w-4xl space-y-6 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <PageTitle title={s.title} description={s.description} />
+        <Link
+          href="/"
+          className="it-setup-skip inline-flex items-center gap-2 rounded border border-outline-variant px-3 py-2 text-sm font-medium text-ink hover:bg-surface-container"
+        >
+          <FastForward className="h-4 w-4" aria-hidden />
+          <span>{s.skipToDashboard}</span>
+        </Link>
+      </div>
+
+      <ol
+        aria-label={s.stepsLabel}
+        className="flex items-center justify-between overflow-x-auto border-b border-outline-variant pb-4"
+      >
         {[
           { num: 1, label: s.steps.company, icon: Building2 },
           { num: 2, label: s.steps.modules, icon: ToggleRight },
           { num: 3, label: s.steps.domains, icon: Globe },
-          { num: 4, label: s.steps.review, icon: CheckCircle2 },
+          { num: 4, label: s.steps.operations, icon: Blocks },
+          { num: 5, label: s.steps.review, icon: CheckCircle2 },
         ].map(({ num, label, icon: Icon }) => (
-          <div
+          <li
             key={num}
-            className={`flex items-center gap-2 text-sm font-medium ${
+            className={`flex shrink-0 items-center gap-2 text-sm font-medium ${
               step === num
                 ? "text-primary"
                 : step > num
-                ? "text-emerald-600"
-                : "text-ink-muted"
+                  ? "text-emerald-600"
+                  : "text-ink-muted"
             }`}
+            aria-current={step === num ? "step" : undefined}
           >
             <div
               className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold ${
@@ -202,13 +246,13 @@ export function SetupView({
             >
               {step > num ? <Check className="h-4 w-4" /> : num}
             </div>
-            <span className="hidden sm:inline">{label}</span>
-          </div>
+            <span className="hidden md:inline">{label}</span>
+          </li>
         ))}
-      </div>
+      </ol>
 
       {/* Step Content */}
-      <Card className="rounded-3xl border border-outline-variant p-6 space-y-6">
+      <Card className="it-setup-panel space-y-6 border border-outline-variant p-5 sm:p-6">
         {step === 1 && (
           <div className="space-y-4">
             <h2 className="text-base font-semibold">{s.step1Title}</h2>
@@ -288,7 +332,7 @@ export function SetupView({
                 <span>{s.websiteDomain}</span>
                 <Input
                   dir="ltr"
-                  placeholder="example.com"
+                  placeholder={s.websiteDomainPlaceholder}
                   value={webDomain}
                   onChange={(e) => setWebDomain(e.target.value)}
                 />
@@ -297,7 +341,7 @@ export function SetupView({
                 <span>{s.adminDomain}</span>
                 <Input
                   dir="ltr"
-                  placeholder="admin.example.com"
+                  placeholder={s.adminDomainPlaceholder}
                   value={adminDomain}
                   onChange={(e) => setAdminDomain(e.target.value)}
                 />
@@ -307,8 +351,30 @@ export function SetupView({
         )}
 
         {step === 4 && (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <h2 className="text-base font-semibold">{s.step4Title}</h2>
+            <p className="text-xs text-ink-muted">{s.step4Subtitle}</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {visibleOperationalLinks.map(({ href, label, icon: Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="it-setup-option flex items-center gap-3 rounded p-3 text-sm"
+                >
+                  <Icon className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+                  <span className="min-w-0 flex-1 font-medium">
+                    {copy.nav[label]}
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-ink-muted rtl:rotate-180" aria-hidden />
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {step === 5 && (
+          <div className="space-y-6">
+            <h2 className="text-base font-semibold">{s.step5Title}</h2>
             <div className="space-y-4 rounded-2xl bg-surface-variant p-4 text-sm">
               <div className="flex justify-between border-b border-outline-variant pb-2">
                 <span className="text-ink-muted">{s.companyNameEn}:</span>
@@ -321,6 +387,14 @@ export function SetupView({
               <div className="flex justify-between border-b border-outline-variant pb-2">
                 <span className="text-ink-muted">{s.currency}:</span>
                 <span className="font-medium">{currency}</span>
+              </div>
+              <div className="flex justify-between border-b border-outline-variant pb-2">
+                <span className="text-ink-muted">{s.enabledModules}:</span>
+                <span className="font-medium">
+                  {modules.filter((m) => moduleStates[m.key] ?? m.enabled).length}
+                  {" / "}
+                  {modules.length}
+                </span>
               </div>
               <div className="flex justify-between border-b border-outline-variant pb-2">
                 <span className="text-ink-muted">{s.websiteDomain}:</span>
@@ -362,7 +436,7 @@ export function SetupView({
             <div />
           )}
 
-          {step < 4 ? (
+          {step < 5 ? (
             <Button
               type="button"
               disabled={busy || !canEdit}

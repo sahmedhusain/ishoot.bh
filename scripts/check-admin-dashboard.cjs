@@ -26,7 +26,7 @@ function load(file, mocks, jsx = false) {
 }
 async function main() {
   for (const locale of ['en', 'ar']) {
-    const t = require('../apps/admin/locales/admin/' + locale + '.json');
+    const t = require('../apps/admin/locales/' + locale + '.json').admin;
     const node = (tag) => ({ children }) => React.createElement(tag, null, children);
     const link = ({ href, children }) => React.createElement('a', { href }, children);
     const { DashboardWidget } = load('apps/admin/components/dashboard/DashboardWidgets.tsx', {

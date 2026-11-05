@@ -2,7 +2,7 @@ import { selectOption } from "../../select-option";
 import { acceptConfirmations } from "../../helpers";
 import { expect, test } from "@playwright/test";
 import { testDatabase, watchErrors } from "../../helpers";
-import { t } from "../../locale";
+import { t } from "../helpers/locale";
 import {
   disableDelivery,
   enableDelivery,

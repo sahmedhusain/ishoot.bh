@@ -11,7 +11,7 @@ export async function saveCompanyAction(values:CompanyConfigurationPatch){
  const user=await requireAllowed("setup","edit");const result=await asUser(()=>command(()=>updateCompanyConfigurationForIT(user.token,values)));if(result.ok){revalidatePath("/company");revalidatePath("/setup")}return result;
 }
 export async function finishCompanySetupAction(){
- const user=await requireAllowed("setup","execute");const result=await asUser(()=>command(()=>completeCompanySetupForIT(user.token)));if(result.ok){revalidatePath("/company");revalidatePath("/setup")}return result;
+ const user=await requireAllowed("setup","execute");const result=await asUser(()=>command(()=>completeCompanySetupForIT(user.token)));if(result.ok){revalidatePath("/company");revalidatePath("/setup");revalidatePath("/")}return result;
 }
 export async function removeCompanyAssetAction(key:string){
  const user=await requireAllowed("setup","edit");const result=await asUser(()=>command(()=>deleteCompanyAssetForIT(user.token,key)));if(result.ok)revalidatePath("/company");return result;

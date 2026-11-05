@@ -1,10 +1,9 @@
-import en from "./en";
-import ar from "./ar";
+import en from "./en.json";
+import ar from "./ar.json";
 import serverErrors from "./server-errors.json";
 
-export { default as en } from "./en";
-export { default as ar } from "./ar";
-export type { ItTranslations } from "./en";
+export { en, ar };
+export type ItTranslations = typeof en;
 export { formatMessage, type MessageValues } from "./format-message";
 
 export type Locale = "en" | "ar";
@@ -28,33 +27,4 @@ const translations: Record<Locale, typeof en> = { en, ar };
 
 export function getTranslations(locale: Locale = "en"): typeof en {
   return translations[locale] ?? en;
-}
-
-const defaultWebsitePlaceholders: Record<string, Record<string, string>> = {
-  nav: { home: "Home", about: "About", works: "Catalogue", contact: "Contact" },
-  hero: { headline: "Headline", subheadline: "Intro", caption: "Caption", exploreWorks: "Explore", startProject: "Get in touch" },
-  contact: { title: "Contact Us", subtitle: "We would love to hear from you", submit: "Send message" },
-  portfolio: { title: "Portfolio", subtitle: "Our latest work" },
-};
-
-export function getWebsiteTranslations(locale: Locale = "en", _activity?: string | null): any {
-  return defaultWebsitePlaceholders;
-}
-
-export function getAdminTranslations(locale: Locale = "en", _activity?: string | null): any {
-  return (translations[locale] ?? en) as any;
-}
-
-export function getNestedTranslation(obj: any, path: string): string {
-  if (!obj || !path) return "";
-  const keys = path.split(".");
-  let current: any = obj;
-  for (const key of keys) {
-    if (current && typeof current === "object" && key in current) {
-      current = current[key];
-    } else {
-      return path;
-    }
-  }
-  return current !== undefined ? current : path;
 }

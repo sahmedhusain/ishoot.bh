@@ -6,9 +6,8 @@ import {
   themeStylesheet,
 } from "@platform/config/constants/theme";
 import { ConfirmationProvider, CurrencyLocaleProvider } from "@platform/ui";
-// The IT dashboard shares the admin's design system so both dashboards look and behave the same.
-import "../../admin/app/globals.css";
-import "../../admin/app/admin-design.css";
+import "./globals.css";
+import "./it-design.css";
 import { CopyProvider } from "../components/CopyProvider";
 import { copyFor, getLocale } from "../lib/i18n";
 
@@ -45,7 +44,7 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{ __html: themeStylesheet(theme) }}
         />
       </head>
-      <body className="min-h-screen bg-surface text-ink antialiased font-sans">
+      <body className="it-app-body min-h-screen antialiased">
         <CopyProvider copy={copyFor(locale)} locale={locale}>
           <CurrencyLocaleProvider value={locale}>
             <ConfirmationProvider>{children}</ConfirmationProvider>

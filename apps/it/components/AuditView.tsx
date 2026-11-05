@@ -75,7 +75,7 @@ export function AuditView({
               name="actor"
               defaultValue={filter.actor}
               dir="ltr"
-              placeholder="it:…"
+              placeholder={a.actorPlaceholder}
               className={field}
             />
           </label>

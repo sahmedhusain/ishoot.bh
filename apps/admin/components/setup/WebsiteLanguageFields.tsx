@@ -30,7 +30,7 @@ export function WebsiteLanguageFields({ config, onChange, languages }: { config:
     <label className="block space-y-1 text-sm"><span>{copy.primary}</span><Select value={primary} onChange={(event) => onChange({ ...config, interfaceLanguages: enabled, primaryInterfaceLanguage: event.target.value })}>{LANGUAGES.filter((language) => enabled.includes(language.code)).map((language) => <option key={language.code} value={language.code}>{language.name}</option>)}</Select></label>
     <p className="text-xs text-ink-muted">{copy.fallback}</p>
     {LANGUAGES.filter((language) => enabled.includes(language.code)).map((language) => {
-      const dictionary = getWebsiteTranslations(language.code, config.purpose);
+      const dictionary = getWebsiteTranslations(language.code);
       return <details key={language.code} className="rounded-xl border border-outline-variant p-3"><summary className="min-h-8 cursor-pointer text-sm font-medium">{language.name} · {copy.customize}</summary><div className="mt-4 grid gap-3 sm:grid-cols-2">
         {COPY_FIELDS.map(([group, key, label]) => {
           const values = config.interfaceCopy?.[language.code]?.[group] as Record<string, unknown> | undefined;

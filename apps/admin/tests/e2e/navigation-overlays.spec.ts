@@ -1,9 +1,11 @@
 import { expect, test } from "@playwright/test";
 import { randomUUID } from "node:crypto";
-import en from "../../locales/admin/en";
-import ar from "../../locales/admin/ar";
+import enLocale from "../../locales/en.json";
+import arLocale from "../../locales/ar.json";
 import users from "../../fixtures/users.json";
 import { admin, login, testDatabase } from "../../helpers";
+const en = enLocale.admin;
+const ar = arLocale.admin;
 
 const db = testDatabase();
 let contactId = "",

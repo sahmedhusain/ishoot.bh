@@ -165,10 +165,10 @@ export function LogsView({
                 onChange={(e) => setToggleLevel(e.target.value)}
                 className="block w-32 rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm"
               >
-                <option value="debug">debug</option>
-                <option value="info">info</option>
-                <option value="warn">warn</option>
-                <option value="error">error</option>
+                <option value="debug">{l.levels.debug}</option>
+                <option value="info">{l.levels.info}</option>
+                <option value="warn">{l.levels.warn}</option>
+                <option value="error">{l.levels.error}</option>
               </select>
             </label>
 

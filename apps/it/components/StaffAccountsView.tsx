@@ -16,6 +16,8 @@ import {
   saveStaffAccountAction,
   inviteStaffAccountAction,
   resetStaffMFAAction,
+  suspendStaffAccountAction,
+  unsuspendStaffAccountAction,
 } from "../app/(desk)/staff-accounts/actions";
 import { useCopy } from "./CopyProvider";
 import { PageTitle } from "./ticket-ui";
@@ -294,6 +296,49 @@ export function StaffAccountsView({
               >
                 {n.resetMfa}
               </Button>
+              {draft.active ? (
+                <Button
+                  disabled={busy}
+                  variant="outline"
+                  className="border-rose-300 text-rose-600 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-400 dark:hover:bg-rose-950/20"
+                  onClick={() => {
+                    if (window.confirm(n.suspendConfirm))
+                      void run(async () => {
+                        const result = await suspendStaffAccountAction(editId, draft);
+                        if (result.ok) {
+                          toast.success(n.suspended);
+                          change({ active: false });
+                          router.refresh();
+                        } else {
+                          toast.error(n[result.reason]);
+                        }
+                      });
+                  }}
+                >
+                  {n.suspend}
+                </Button>
+              ) : (
+                <Button
+                  disabled={busy}
+                  variant="outline"
+                  className="border-emerald-300 text-emerald-600 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950/20"
+                  onClick={() => {
+                    if (window.confirm(n.unsuspendConfirm))
+                      void run(async () => {
+                        const result = await unsuspendStaffAccountAction(editId, draft);
+                        if (result.ok) {
+                          toast.success(n.unsuspended);
+                          change({ active: true });
+                          router.refresh();
+                        } else {
+                          toast.error(n[result.reason]);
+                        }
+                      });
+                  }}
+                >
+                  {n.unsuspend}
+                </Button>
+              )}
             </div>
           )}
         </Card>

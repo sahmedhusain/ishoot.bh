@@ -3,6 +3,7 @@ import {
   adminActivityCopy,
   getAdminTranslations,
   getTranslations,
+  getWebsiteTranslations,
 } from "../../locales";
 import adminActivities from "../../locales/admin-activities.json";
 import { BUSINESS_ACTIVITIES } from "../../lib/database/website-presets";
@@ -29,6 +30,12 @@ const flat = (
 };
 
 describe("admin wording per business activity", () => {
+  test("website defaults come from the selected app-owned locale", () => {
+    expect(getWebsiteTranslations("en").nav.articles).toBe("News");
+    expect(getWebsiteTranslations("ar").nav.articles).toBe("الأخبار");
+    expect(getWebsiteTranslations("ar").hero.startProject).toBe("تواصل معنا");
+  });
+
   test("the base admin copy reads neutrally for any activity", () => {
     for (const locale of ["en", "ar"] as const) {
       const film = Object.entries(flat(getTranslations(locale).admin))

@@ -1,8 +1,6 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import en from "@platform/locales/admin/en";
-import ar from "@platform/locales/admin/ar";
 import {
   INTEGRATION_PROVIDERS,
   integrationSetupLinks,
@@ -16,14 +14,6 @@ vi.mock("@platform/api-client", () => ({
   getIntegration: apiClient.getIntegration,
   setIntegration: apiClient.setIntegration,
 }));
-vi.mock("@platform/api-client", () => ({
-  getIntegration: apiClient.getIntegration,
-  setIntegration: apiClient.setIntegration,
-}));
-vi.mock("@platform/api-client", () => ({
-  getIntegration: apiClient.getIntegration,
-  setIntegration: apiClient.setIntegration,
-}));
 import { saveIntegrationSettings } from "@platform/database/queries/integrations";
 beforeEach(() => {
   vi.resetAllMocks();
@@ -32,11 +22,15 @@ beforeEach(() => {
 });
 
 test("every kept provider has both setup guides and useful field formats", () => {
+  const localeDir = path.resolve(__dirname, "../../../../apps/it/locales");
+  const locales = ["en", "ar"].map((locale) =>
+    JSON.parse(readFileSync(path.join(localeDir, `${locale}.json`), "utf8")),
+  );
   const documentation = readFileSync(
     path.resolve(__dirname, "../../../../docs/INTEGRATIONS.md"),
     "utf8",
   );
-  for (const locale of [en, ar])
+  for (const locale of locales)
     for (const provider of INTEGRATION_PROVIDERS) {
       const guide = locale.integrations.providers[provider.id].guide;
       for (const value of Object.values(guide)) {

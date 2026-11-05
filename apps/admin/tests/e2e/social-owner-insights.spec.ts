@@ -1,13 +1,15 @@
 import { selectOption } from "../../select-option";
 import { expect, test } from "@playwright/test";
-import en from "../../locales/admin/en";
-import ar from "../../locales/admin/ar";
+import enLocale from "../../locales/en.json";
+import arLocale from "../../locales/ar.json";
 import { testDatabase } from "../../helpers";
 import {
   setIntegration,
   unlinkIntegration,
   updateIntegrationStatus,
 } from "../../integrations";
+const en = enLocale.admin;
+const ar = arLocale.admin;
 
 const db = testDatabase();
 const accountId = "e2e-owner-youtube";

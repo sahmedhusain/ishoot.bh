@@ -1,6 +1,6 @@
 // Run: node scripts/check-i18n.cjs
-// Language rules for the admin app and website:
-//  - English and Arabic locale files have the same keys (admin and website)
+// Language rules for the Admin, Web, and IT apps:
+//  - English and Arabic locale files have the same keys in each app
 //  - Arabic text uses Western digits (0-9), never Eastern Arabic digits, in locales and in formatting
 //  - interface text lives in the locale files, not inline `isAr ? "عربي" : "English"` pairs
 //  - every message the server can throw has an Arabic translation (shown through errorMessage)
@@ -28,14 +28,14 @@ const redactedTemplates = new Set([
   "actionProhibited0EmployeesOnApprovedLeave", "assignmentConflict0", "invalidInputFor0", "invalidationHttp0", "noApprovalHandlerRegisteredFor0", "publicSiteRevalidationFailed0", "unknownStatisticPreset0",
 ]);
 const placeholders = (text) => [...String(text).matchAll(/\{([A-Za-z0-9_]+)\}/g)].map((match) => match[1]).sort();
-for (const base of ["../apps/admin/locales", "../apps/admin/locales/admin", "../apps/admin/locales/ui", "../apps/admin/locales/common"]) {
+for (const base of ["apps/admin/locales", "apps/web/locales", "apps/it/locales"]) {
   const en = flat(JSON.parse(fs.readFileSync(path.join(root, base, "en.json"), "utf8")));
   const ar = flat(JSON.parse(fs.readFileSync(path.join(root, base, "ar.json"), "utf8")));
   for (const k of Object.keys(en)) if (!(k in ar)) fail("missing Arabic", `${base} ${k}`);
   for (const k of Object.keys(ar)) if (!(k in en)) fail("missing English", `${base} ${k}`);
   for (const [k, value] of Object.entries(en)) {
     const a = placeholders(value), b = placeholders(ar[k]);
-    if (base.endsWith("/admin") && k.startsWith("serverErrors.templates.") && redactedTemplates.has(k.split(".").pop())) {
+    if (base.endsWith("/admin/locales") && k.startsWith("admin.serverErrors.templates.") && redactedTemplates.has(k.split(".").pop())) {
       if (b.some((key) => !a.includes(key))) fail("unknown redacted placeholder", `${base} ${k}`);
     } else if (JSON.stringify(a) !== JSON.stringify(b)) fail("placeholder mismatch", `${base} ${k}`);
   }
@@ -74,12 +74,12 @@ for (const f of files) {
 }
 
 // ---- server error messages
-const adminEn = require("../apps/admin/locales/admin/en.ts").default;
+const adminEn = require("../apps/admin/locales/en.json").admin;
 const known = new Set(Object.values(adminEn.serverErrors.messages));
 const templates = Object.values(adminEn.serverErrors.templates).map((t) => new RegExp(`^${t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\\\{\d+\\\}/g, ".+")}$`));
 const serverFiles = [];
 const walkServer = (d) => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const f = path.join(d, e.name); if (e.isDirectory()) walkServer(f); else if (/\.tsx?$/.test(e.name)) serverFiles.push(f); } };
-["../apps/admin/lib/database", "apps/admin/app/actions", "apps/admin/lib"].forEach((d) => walkServer(path.join(root, d)));
+["apps/admin/lib/database", "apps/admin/app/actions", "apps/admin/lib"].forEach((d) => walkServer(path.join(root, d)));
 for (const f of serverFiles) {
   const text = fs.readFileSync(f, "utf8");
   for (const m of text.matchAll(/throw new Error\(("((?:[^"\\]|\\.)+)"|'((?:[^'\\]|\\.)+)'|`([^`]+)`)\)/g)) {

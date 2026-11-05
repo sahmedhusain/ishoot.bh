@@ -7,7 +7,7 @@ import { en } from "../../locales";
 import users from "../../fixtures/users.json";
 import { cronSecret, ports } from "../../../../playwright.config";
 import { testDatabase, watchErrors } from "../../helpers";
-import { t } from "../../locale";
+import { t } from "../helpers/locale";
 import { enableStore, freshStockedProduct } from "../../store-fixtures";
 import { setModule } from "../../modules";
 

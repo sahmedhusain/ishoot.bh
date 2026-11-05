@@ -399,28 +399,28 @@ export function CompanyView({
               </h2>
               <div className="grid gap-4 sm:grid-cols-3">
                 <label className="block space-y-1 text-sm">
-                  <span>Instagram</span>
+                  <span>{c.socialPlatforms.instagram}</span>
                   <Input
                     dir="ltr"
-                    placeholder="https://instagram.com/..."
+                    placeholder={c.socialPlaceholders.instagram}
                     value={formData.instagramUrl ?? ""}
                     onChange={(e) => update({ instagramUrl: e.target.value })}
                   />
                 </label>
                 <label className="block space-y-1 text-sm">
-                  <span>LinkedIn</span>
+                  <span>{c.socialPlatforms.linkedin}</span>
                   <Input
                     dir="ltr"
-                    placeholder="https://linkedin.com/company/..."
+                    placeholder={c.socialPlaceholders.linkedin}
                     value={formData.linkedinUrl ?? ""}
                     onChange={(e) => update({ linkedinUrl: e.target.value })}
                   />
                 </label>
                 <label className="block space-y-1 text-sm">
-                  <span>YouTube</span>
+                  <span>{c.socialPlatforms.youtube}</span>
                   <Input
                     dir="ltr"
-                    placeholder="https://youtube.com/@..."
+                    placeholder={c.socialPlaceholders.youtube}
                     value={formData.youtubeUrl ?? ""}
                     onChange={(e) => update({ youtubeUrl: e.target.value })}
                   />

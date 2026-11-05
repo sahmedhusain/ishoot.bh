@@ -1,0 +1,106 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--it-font-body, "Segoe UI", system-ui, sans-serif);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+.it-app-body {
+  --brand-primary: 29 95 134;
+  --brand-primary-light: 48 120 158;
+  --brand-primary-dark: 22 75 106;
+  --brand-primary-hover: 25 82 116;
+  --brand-on-primary: 255 255 255;
+  --brand-accent: 29 95 134;
+  --brand-accent-hover: 25 82 116;
+  --brand-accent-pressed: 22 75 106;
+  --brand-on-accent: 255 255 255;
+  --brand-mint: 29 95 134;
+  --brand-text-accent: 29 95 134;
+  --brand-bg-base: 243 245 247;
+  --brand-bg-surface: 255 255 255;
+  --brand-bg-elevated: 248 250 252;
+  --ui-surface: 255 255 255;
+  --ui-surface-raised: 248 250 252;
+  --ui-surface-sunken: 238 242 245;
+  --ui-ink: 28 42 55;
+  --ui-ink-muted: 93 107 120;
+  --motion-fast: 120ms;
+  --motion-base: 180ms;
+  --motion-slow: 260ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.3, 0, 1, 1);
+  --m3-color-primary: 29 95 134;
+  --m3-color-on-primary: 255 255 255;
+  --m3-color-primary-container: 220 235 245;
+  --m3-color-on-primary-container: 20 52 72;
+  --m3-color-surface: 243 245 247;
+  --m3-color-surface-container-lowest: 255 255 255;
+  --m3-color-surface-container-low: 255 255 255;
+  --m3-color-surface-container: 238 242 245;
+  --m3-color-surface-container-high: 230 235 239;
+  --m3-color-surface-container-highest: 222 229 234;
+  --m3-color-surface-dim: 232 237 240;
+  --m3-color-surface-bright: 255 255 255;
+  --m3-color-on-surface: 28 42 55;
+  --m3-color-on-surface-variant: 76 91 103;
+  --m3-color-outline: 109 124 136;
+  --m3-color-outline-variant: 205 214 221;
+  --md-sys-color-primary: #1d5f86;
+}
+
+.dark .it-app-body {
+  --brand-primary: 143 197 228;
+  --brand-primary-light: 165 211 235;
+  --brand-primary-dark: 115 178 213;
+  --brand-primary-hover: 165 211 235;
+  --brand-on-primary: 15 39 54;
+  --brand-accent: 143 197 228;
+  --brand-accent-hover: 165 211 235;
+  --brand-accent-pressed: 115 178 213;
+  --brand-on-accent: 15 39 54;
+  --brand-mint: 143 197 228;
+  --brand-text-accent: 143 197 228;
+  --brand-bg-base: 17 24 32;
+  --brand-bg-surface: 25 35 45;
+  --brand-bg-elevated: 31 43 54;
+  --ui-surface: 25 35 45;
+  --ui-surface-raised: 31 43 54;
+  --ui-surface-sunken: 17 24 32;
+  --ui-ink: 226 232 238;
+  --ui-ink-muted: 166 178 190;
+  --m3-color-primary: 143 197 228;
+  --m3-color-on-primary: 15 39 54;
+  --m3-color-primary-container: 37 67 86;
+  --m3-color-on-primary-container: 214 234 246;
+  --m3-color-surface: 17 24 32;
+  --m3-color-surface-container-lowest: 12 18 24;
+  --m3-color-surface-container-low: 25 35 45;
+  --m3-color-surface-container: 31 43 54;
+  --m3-color-surface-container-high: 39 52 64;
+  --m3-color-surface-container-highest: 48 62 75;
+  --m3-color-surface-dim: 17 24 32;
+  --m3-color-surface-bright: 57 70 82;
+  --m3-color-on-surface: 226 232 238;
+  --m3-color-on-surface-variant: 175 187 197;
+  --m3-color-outline: 145 160 172;
+  --m3-color-outline-variant: 60 74 87;
+  --md-sys-color-primary: #8fc5e4;
+}
+
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--it-accent-blue, #1d5f86);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: rgb(29 95 134 / 18%);
+}

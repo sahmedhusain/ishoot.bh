@@ -72,7 +72,7 @@ describe("admin page headers", () => {
   });
 
   test.each(["en", "ar"])("every page has a title and description in %s", (locale) => {
-    const copy = JSON.parse(read(path.resolve(__dirname, `../../locales/admin/${locale}.json`))).pages;
+    const copy = JSON.parse(read(path.resolve(__dirname, `../../locales/${locale}.json`))).admin.pages;
     for (const key of PAGE_KEYS) {
       const entry = copy[key || "home"];
       expect(entry?.title, key).toBeTruthy();

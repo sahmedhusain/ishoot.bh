@@ -45,11 +45,8 @@ export function QueueView({
   query: QueueQuery;
   page: TicketPage | null;
 }) {
-  const { copy, locale, status, priority, number, name, date } = useCopy();
+  const { copy, status, priority, number, name, date } = useCopy();
   const t = copy.tickets;
-  const categoryLabel =
-    (t as Record<string, string> | undefined)?.category ??
-    (locale === "ar" ? "الفئة" : "Category");
   return (
     <>
       <PageTitle title={t.title} description={t.description} />
@@ -74,7 +71,7 @@ export function QueueView({
             {t.everything}
           </Link>
         </div>
-        <div className="flex flex-wrap gap-2" aria-label={categoryLabel}>
+        <div className="flex flex-wrap gap-2" aria-label={t.category}>
           {TICKET_CATEGORIES.map((cat) => (
             <Link
               key={cat.key}

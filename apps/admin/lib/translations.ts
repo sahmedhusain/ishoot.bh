@@ -1,4 +1,4 @@
-import ar from "@platform/locales/admin/ar";
+import arLocale from "../locales/ar.json";
 import type { AdminTranslationKeys } from "@platform/locales";
 import { withAdminActivity } from "@platform/locales/admin-activity";
 
@@ -10,13 +10,13 @@ export type Translations = AdminTranslations;
 export const DEFAULT_ADMIN_LOCALE: AdminLocale = "ar";
 
 /** Default dictionary, bundled with the client. */
-export const defaultAdminTranslations: AdminTranslations = ar;
+export const defaultAdminTranslations: AdminTranslations = arLocale.admin;
 
 /** The default dictionary with the company's activity wording on top. */
 export function defaultTranslationsFor(
   activity: string | null | undefined,
 ): AdminTranslations {
-  return withAdminActivity(ar, "ar", activity);
+  return withAdminActivity(arLocale.admin, "ar", activity);
 }
 
 /** Loads a dictionary on demand so the client only ships the languages actually used. */
@@ -24,6 +24,9 @@ export async function loadAdminTranslations(
   locale: AdminLocale,
   activity?: string | null,
 ): Promise<AdminTranslations> {
-  const dictionary = locale === "ar" ? ar : (await import("@platform/locales/admin/en")).default;
+  const dictionary =
+    locale === "ar"
+      ? arLocale.admin
+      : (await import("../locales/en.json")).default.admin;
   return withAdminActivity(dictionary, locale === "ar" ? "ar" : "en", activity);
 }

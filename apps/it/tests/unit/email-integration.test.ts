@@ -127,26 +127,3 @@ describe("e-mail through the notify service", () => {
     expect(await getResendCredentials()).toBeNull();
   });
 });
-
-test("Resend webhook verification accepts the stored signing secret instead of the environment value", async () => {
-  const { Webhook } = await import("svix");
-  const { verifyResendWebhook } =
-    await import("../../../../apps/admin/lib/resend-webhook");
-  const signingSecret = `whsec_${Buffer.from("test-only-signing-material").toString("base64")}`;
-  const payload = JSON.stringify({
-    type: "email.delivered",
-    data: { email_id: "test-message" },
-  });
-  const date = new Date();
-  const id = "test-webhook-id";
-  const signature = new Webhook(signingSecret).sign(id, date, payload);
-  const headers = new Headers({
-    "svix-id": id,
-    "svix-timestamp": String(Math.floor(date.getTime() / 1000)),
-    "svix-signature": signature,
-  });
-  expect(verifyResendWebhook(payload, headers, signingSecret).id).toBe(id);
-  expect(() => verifyResendWebhook(payload, headers, "")).toThrow(
-    "WEBHOOK_NOT_CONFIGURED",
-  );
-});

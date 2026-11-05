@@ -30,8 +30,8 @@ export async function saveCmsArticleAction(input: CmsArticleInput) {
     const status =
       input.status === "published" && canPublish ? "published" : "draft";
     const html = {
-      en: renderRichText(input.body_en),
-      ar: renderRichText(input.body_ar),
+      en: renderRichText(input.body_en, "en"),
+      ar: renderRichText(input.body_ar, "ar"),
     };
     const article = await runAtomicMutation(async () => {
       const saved = await saveCmsArticle({ ...input, status }, html, user.id);

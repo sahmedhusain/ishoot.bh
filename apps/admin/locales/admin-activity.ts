@@ -1,11 +1,11 @@
 // The admin dictionary is activity-neutral; an activity whose own vocabulary reads better (a media studio's
 // shoots, gear and post-production) layers it on top. Kept apart from index.ts so the admin client can
 // import it without the website dictionaries.
-import type adminEn from "./admin/en";
+import type dictionary from "./en.json";
 import adminActivities from "./admin-activities.json";
 import { deepMerge, type DeepPartial } from "./merge";
 
-type AdminDictionary = typeof adminEn;
+type AdminDictionary = typeof dictionary.admin;
 type AdminLocale = "en" | "ar";
 export type AdminCopyOverlay = DeepPartial<AdminDictionary>;
 

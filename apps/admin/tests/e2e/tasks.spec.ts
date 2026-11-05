@@ -3,7 +3,7 @@ import { expect, test, type Browser } from "@playwright/test";
 import users from "../../fixtures/users.json";
 import { ports } from "../../../../playwright.config";
 import { login, testDatabase, watchErrors } from "../../helpers";
-import { t } from "../../locale";
+import { t } from "../helpers/locale";
 import { setModule } from "../../modules";
 
 const copy = t.tasks;

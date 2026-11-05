@@ -152,22 +152,6 @@ export async function visibleContent(page: Page) {
   );
 }
 
-/** Direct read access to the seeded test database, for asserting what the app stored. */
-export function testDatabase() {
-  const { createRequire } =
-    require("node:module") as typeof import("node:module");
-  const { PrismaClient } = createRequire(
-    path.join(root, "apps/admin/package.json"),
-  )("@prisma/client");
-  const url = new URL(
-    process.env.DIRECT_URL ||
-      process.env.DATABASE_URL ||
-      "postgresql://postgres@localhost:5432/postgres",
-  );
-  url.pathname = `/${process.env.E2E_SEEDED_DATABASE || "platform_e2e_test"}`;
-  return new PrismaClient({ datasources: { db: { url: url.toString() } } });
-}
-
 /** Accept only the shared confirmation dialog; ordinary forms remain under the spec's control. */
 export async function acceptConfirmations(page: Page) {
   await page.addLocatorHandler(

@@ -1,7 +1,7 @@
 import { expect, request as apiRequest, test } from "@playwright/test";
 import users from "../../fixtures/users.json";
 import { checkDownload, crawl } from "../../crawl";
-import { t } from "../../locale";
+import { t } from "../helpers/locale";
 import { login } from "../../helpers";
 
 // Pages that end the session or belong to people outside the company.

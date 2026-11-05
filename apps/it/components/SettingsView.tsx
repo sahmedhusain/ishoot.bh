@@ -122,6 +122,7 @@ export function SettingsView({
   const s = copy.settings;
   const sn = s.notifications;
   const sa = s.appearance;
+  const presenceStatusLabels = sa.presenceStatuses as Record<string, string>;
   const { preferences, mutes, status, reload, setPreferences } = useItLive();
 
   const [activeTab, setActiveTab] = React.useState<"notifications" | "appearance" | "account">("notifications");
@@ -634,7 +635,7 @@ export function SettingsView({
                   }`}
                 >
                   {locale === "en" && <Check className="size-4" aria-hidden />}
-                  English
+                  {sa.languageEnglish}
                 </button>
               </form>
               <form action={setLocaleAction.bind(null, "ar")}>
@@ -647,7 +648,7 @@ export function SettingsView({
                   }`}
                 >
                   {locale === "ar" && <Check className="size-4" aria-hidden />}
-                  العربية
+                  {sa.languageArabic}
                 </button>
               </form>
             </div>
@@ -659,7 +660,9 @@ export function SettingsView({
               {status && (
                 <div className="flex items-center gap-2 text-xs text-ink-muted">
                   <span>{copy.live.status}:</span>
-                  <span className="font-semibold text-ink">{status.presence.status}</span>
+                  <span className="font-semibold text-ink">
+                    {presenceStatusLabels[status.presence.status] ?? status.presence.status}
+                  </span>
                   {status.presence.message && <span>— {status.presence.message}</span>}
                 </div>
               )}
@@ -669,35 +672,35 @@ export function SettingsView({
                   onClick={() => handleSetStatus({ status: "available" })}
                   className="rounded-full border border-outline-variant px-3 py-1.5 text-xs font-semibold text-ink hover:bg-surface-container"
                 >
-                  🟢 {locale === "ar" ? "متاح" : "Available"}
+                  🟢 {presenceStatusLabels.available}
                 </button>
                 <button
                   type="button"
                   onClick={() => handleSetStatus({ status: "busy" })}
                   className="rounded-full border border-outline-variant px-3 py-1.5 text-xs font-semibold text-ink hover:bg-surface-container"
                 >
-                  🔴 {locale === "ar" ? "مشغول" : "Busy"}
+                  🔴 {presenceStatusLabels.busy}
                 </button>
                 <button
                   type="button"
                   onClick={() => handleSetStatus({ status: "do_not_disturb" })}
                   className="rounded-full border border-outline-variant px-3 py-1.5 text-xs font-semibold text-ink hover:bg-surface-container"
                 >
-                  ⛔ {locale === "ar" ? "عدم الإزعاج" : "Do not disturb"}
+                  ⛔ {presenceStatusLabels.do_not_disturb}
                 </button>
                 <button
                   type="button"
                   onClick={() => handleSetStatus({ status: "in_a_meeting" })}
                   className="rounded-full border border-outline-variant px-3 py-1.5 text-xs font-semibold text-ink hover:bg-surface-container"
                 >
-                  📅 {locale === "ar" ? "في اجتماع" : "In a meeting"}
+                  📅 {presenceStatusLabels.in_a_meeting}
                 </button>
                 <button
                   type="button"
                   onClick={() => handleSetStatus({ status: "away" })}
                   className="rounded-full border border-outline-variant px-3 py-1.5 text-xs font-semibold text-ink hover:bg-surface-container"
                 >
-                  🟡 {locale === "ar" ? "غير متواجد" : "Away"}
+                  🟡 {presenceStatusLabels.away}
                 </button>
                 <button
                   type="button"

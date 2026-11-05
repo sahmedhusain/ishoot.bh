@@ -33,71 +33,46 @@ import { ItLive } from "./live/ItLive";
 import { ItBell } from "./live/ItBell";
 import { ItStatus } from "./live/ItStatus";
 
-const NAV = [
-  { href: "/", icon: Gauge, label: "overview", resource: "tickets" },
-  { href: "/tickets", icon: ListChecks, label: "tickets", resource: "tickets" },
-  { href: "/sla", icon: Timer, label: "sla", resource: "ticket_settings" },
+const NAV_GROUPS = [
   {
-    href: "/modules",
-    icon: ToggleRight,
-    label: "modules",
-    resource: "modules",
+    label: "workspace",
+    items: [
+      { href: "/", icon: Gauge, label: "overview", resource: "tickets" },
+      { href: "/tickets", icon: ListChecks, label: "tickets", resource: "tickets" },
+      { href: "/sla", icon: Timer, label: "sla", resource: "ticket_settings" },
+    ],
   },
   {
-    href: "/integrations",
-    icon: Blocks,
-    label: "integrations",
-    resource: "integrations",
-  },
-  { href: "/site", icon: Globe, label: "site", resource: "domains" },
-  { href: "/company", icon: Building2, label: "company", resource: "setup" },
-  { href: "/setup", icon: Wrench, label: "setup", resource: "setup" },
-  {
-    href: "/notifications",
-    icon: Bell,
-    label: "notifications",
-    resource: "notifications",
-  },
-  { href: "/audit", icon: History, label: "audit", resource: "audit" },
-  {
-    href: "/staff-accounts",
-    icon: Users,
-    label: "staffAccounts",
-    resource: "staff_accounts",
+    label: "platform",
+    items: [
+      { href: "/modules", icon: ToggleRight, label: "modules", resource: "modules" },
+      { href: "/integrations", icon: Blocks, label: "integrations", resource: "integrations" },
+      { href: "/site", icon: Globe, label: "site", resource: "domains" },
+      { href: "/company", icon: Building2, label: "company", resource: "setup" },
+      { href: "/setup", icon: Wrench, label: "setup", resource: "setup" },
+    ],
   },
   {
-    href: "/staff-roles",
-    icon: ShieldCheck,
-    label: "staffRoles",
-    resource: "staff_roles",
-  },
-  { href: "/sessions", icon: Monitor, label: "sessions", resource: "sessions" },
-  {
-    href: "/it-accounts",
-    icon: Users,
-    label: "itAccounts",
-    resource: "it_accounts",
+    label: "access",
+    items: [
+      { href: "/staff-accounts", icon: Users, label: "staffAccounts", resource: "staff_accounts" },
+      { href: "/staff-roles", icon: ShieldCheck, label: "staffRoles", resource: "staff_roles" },
+      { href: "/it-accounts", icon: Users, label: "itAccounts", resource: "it_accounts" },
+      { href: "/sessions", icon: Monitor, label: "sessions", resource: "sessions" },
+      { href: "/audit", icon: History, label: "audit", resource: "audit" },
+    ],
   },
   {
-    href: "/system-health",
-    icon: Activity,
-    label: "systemHealth",
-    resource: "system_health",
-  },
-  { href: "/logs", icon: Terminal, label: "logs", resource: "logs" },
-  {
-    href: "/database",
-    icon: Database,
-    label: "database",
-    resource: "database",
-  },
-  { href: "/jobs", icon: Cpu, label: "jobs", resource: "jobs" },
-  { href: "/backups", icon: Archive, label: "backups", resource: "backups" },
-  { href: "/api-keys", icon: Key, label: "apiKeys", resource: "api_keys" },
-  {
-    href: "/settings",
-    icon: Settings,
-    label: "settings",
+    label: "operations",
+    items: [
+      { href: "/system-health", icon: Activity, label: "systemHealth", resource: "system_health" },
+      { href: "/logs", icon: Terminal, label: "logs", resource: "logs" },
+      { href: "/database", icon: Database, label: "database", resource: "database" },
+      { href: "/jobs", icon: Cpu, label: "jobs", resource: "jobs" },
+      { href: "/backups", icon: Archive, label: "backups", resource: "backups" },
+      { href: "/api-keys", icon: Key, label: "apiKeys", resource: "api_keys" },
+      { href: "/notifications", icon: Bell, label: "notifications", resource: "notifications" },
+    ],
   },
 ] as const;
 
@@ -117,41 +92,65 @@ export function Shell({
 
   return (
     <ItLive>
-      <div className="min-h-screen lg:grid lg:grid-cols-[260px_1fr]">
+      <div className="it-shell">
         <a
           href="#content"
-          className="sr-only focus:not-sr-only focus:absolute focus:m-2 focus:p-2 focus:bg-surface"
+          className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-2 focus:p-2 focus:bg-surface"
         >
           {copy.app.skipToContent}
         </a>
-        <aside className="border-b lg:border-b-0 lg:border-e border-outline-variant bg-surface-container-low p-4 lg:min-h-screen flex lg:flex-col gap-4">
-          <div className="flex items-center gap-2 px-2 py-1">
-            <ShieldCheck className="size-6 text-accent" aria-hidden />
-            <span className="font-bold text-ink">{copy.app.name}</span>
-          </div>
-          <nav
-            aria-label={copy.app.name}
-            className="flex lg:flex-col gap-1 overflow-x-auto"
+        <aside className="it-sidebar border-b p-3 lg:p-4">
+          <Link
+            href="/"
+            aria-label={copy.app.openDashboard}
+            className="it-brand flex items-center gap-2 px-2 py-2"
           >
-            {NAV.filter(
-              (item) =>
-                !("resource" in item) ||
+            <ShieldCheck className="size-6 text-accent" aria-hidden />
+            <span className="font-semibold">{copy.app.name}</span>
+          </Link>
+          <nav aria-label={copy.app.name} className="it-sidebar-nav">
+            {NAV_GROUPS.map((group) => {
+              const items = group.items.filter((item) =>
                 itAllowed(roles, item.resource, "read"),
-            ).map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={active(item.href) ? "page" : undefined}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-full text-sm whitespace-nowrap ${active(item.href) ? "bg-secondary-container text-on-secondary-container font-semibold" : "text-ink-muted hover:text-ink hover:bg-surface-container"}`}
-              >
-                <item.icon className="size-4" aria-hidden />
-                {copy.nav[item.label]}
-              </Link>
-            ))}
+              );
+              if (!items.length) return null;
+              return (
+                <section key={group.label} className="it-nav-group px-2 py-2">
+                  <h2 className="it-nav-heading px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.12em]">
+                    {copy.navGroups[group.label]}
+                  </h2>
+                  <div className="flex flex-col gap-0.5">
+                    {items.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        aria-current={active(item.href) ? "page" : undefined}
+                        className="it-nav-item flex items-center gap-2.5 rounded px-3 py-2 text-[13px] whitespace-nowrap"
+                      >
+                        <item.icon className="size-4 shrink-0" aria-hidden />
+                        {copy.nav[item.label]}
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              );
+            })}
+            <section className="it-nav-group px-2 py-2">
+              <div className="flex flex-col gap-0.5">
+                <Link
+                  href="/settings"
+                  aria-current={active("/settings") ? "page" : undefined}
+                  className="it-nav-item flex items-center gap-2.5 rounded px-3 py-2 text-[13px] whitespace-nowrap"
+                >
+                  <Settings className="size-4 shrink-0" aria-hidden />
+                  {copy.nav.settings}
+                </Link>
+              </div>
+            </section>
           </nav>
         </aside>
-        <div className="min-w-0">
-          <header className="flex items-center justify-end gap-3 px-6 py-4 border-b border-outline-variant">
+        <div className="it-workspace min-w-0">
+          <header className="it-topbar flex flex-wrap items-center justify-end gap-3 border-b px-4 py-3 sm:px-6">
             <ItStatus email={email} />
             <ItBell />
             <div className="text-end me-auto lg:me-0">
@@ -184,7 +183,7 @@ export function Shell({
               </button>
             </form>
           </header>
-          <main id="content" className="p-6 max-w-6xl mx-auto">
+          <main id="content" className="it-main">
             {children}
           </main>
         </div>

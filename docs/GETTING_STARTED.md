@@ -163,5 +163,5 @@ More detail: [DATABASE.md](DATABASE.md) (database and seeds), [TESTING.md](TESTI
 ## Rules that keep the system company-neutral
 
 - Company names, colours, fonts, logos, addresses and registration numbers go in `company/profiles/<name>/` or in the database, never in `apps/` or `packages/`. `./run.sh test brand` fails otherwise, and it runs in CI.
-- Interface text goes in the locale files (`packages/locales/src`), never inline (see [LOCALIZATION.md](LOCALIZATION.md)).
+- Interface text goes in the owning app's locale files under `apps/{admin,web,it}/locales`, never inline (see [LOCALIZATION.md](LOCALIZATION.md)).
 - Demo people and companies are fictional and use `example.com` or `.example` addresses.

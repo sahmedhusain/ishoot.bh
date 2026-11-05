@@ -1,4 +1,4 @@
-import ar from "../../../locales/admin/ar";
+import arLocale from "../../../locales/ar.json";
 
 /** The admin's default (Arabic) copy, so tests find controls by the text people actually see. */
-export const t = ar;
+export const t = arLocale.admin;

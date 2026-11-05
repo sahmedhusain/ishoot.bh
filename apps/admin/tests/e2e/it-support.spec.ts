@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { TICKET_CATEGORIES, ticketCategory } from "@platform/contracts";
 import { watchErrors } from "../../helpers";
 import { selectOption } from "../../select-option";
-import { t } from "../../locale";
+import { t } from "../helpers/locale";
 
 // An employee raises an IT request with a screenshot, talks to IT and cancels it. The tickets live in the itsm
 // service (backend/services/itsm), so the admin server must reach the backend stack (API_URL).

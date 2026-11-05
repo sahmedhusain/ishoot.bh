@@ -25,6 +25,7 @@ export default async function SetupPage() {
       domains={domains}
       canEdit={itAllowed(user.roles, "setup", "edit")}
       canExecute={itAllowed(user.roles, "setup", "execute")}
+      roles={user.roles}
     />
   );
 }

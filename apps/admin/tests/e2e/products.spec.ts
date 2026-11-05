@@ -1,7 +1,7 @@
 import { selectOption } from "../../select-option";
 import { expect, test } from "@playwright/test";
 import { alertMessage, testDatabase, watchErrors } from "../../helpers";
-import { t } from "../../locale";
+import { t } from "../helpers/locale";
 import { setModule } from "../../modules";
 
 const copy = t.products;

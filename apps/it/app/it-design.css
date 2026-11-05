@@ -1,0 +1,279 @@
+/*
+ * IT Super-Dashboard Enterprise Design System (SAP Fiori / Oracle Redwood Aesthetic)
+ * High information density, compact structured grids, crisp slate/neutral enterprise borders.
+ * Applied exclusively to the IT Portal (apps/it).
+ */
+
+:root {
+  --it-font-scale: 0.9375; /* Compact 15px base */
+  --it-radius: 6px;
+  --it-border-color: #E2E8F0;
+  --it-header-bg: #0F172A;
+  --it-sidebar-bg: #1E293B;
+  --it-accent-blue: #1D5F86;
+  --it-canvas: #f3f5f7;
+  --it-surface: #ffffff;
+  --it-ink: #1c2a37;
+  --it-muted: #5d6b78;
+  --it-font-body: "Segoe UI", system-ui, sans-serif;
+}
+
+html.dark {
+  --it-canvas: #111820;
+  --it-surface: #19232d;
+  --it-border-color: #34414d;
+  --it-ink: #e2e8ee;
+  --it-muted: #a6b2be;
+  --it-sidebar-bg: #19232d;
+}
+
+.it-app-body {
+  background: var(--it-canvas);
+  color: var(--it-ink);
+  font-family: var(--it-font-body);
+}
+
+.it-shell {
+  min-height: 100dvh;
+}
+
+.it-sidebar {
+  background: var(--it-surface);
+  border-color: var(--it-border-color);
+}
+
+.it-brand {
+  color: var(--it-ink);
+}
+
+.it-sidebar-nav {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.it-sidebar-nav:hover {
+  scrollbar-color: #aab5bf transparent;
+}
+
+.it-nav-group + .it-nav-group {
+  border-top: 1px solid var(--it-border-color);
+}
+
+.it-nav-heading {
+  color: var(--it-muted);
+}
+
+.it-nav-item {
+  color: var(--it-muted);
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.it-nav-item:hover {
+  background: color-mix(in srgb, var(--it-accent-blue) 7%, var(--it-surface));
+  color: var(--it-ink);
+}
+
+.it-nav-item[aria-current="page"] {
+  background: color-mix(in srgb, var(--it-accent-blue) 12%, var(--it-surface));
+  color: var(--it-accent-blue);
+  font-weight: 600;
+}
+
+.it-setup-skip {
+  border-color: var(--it-border-color);
+  color: var(--it-accent-blue);
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.it-setup-skip:hover {
+  border-color: color-mix(in srgb, var(--it-accent-blue) 40%, var(--it-border-color));
+  background: color-mix(in srgb, var(--it-accent-blue) 5%, var(--it-surface));
+}
+
+.dark .it-nav-item[aria-current="page"] {
+  color: #8fc5e4;
+}
+
+.it-topbar {
+  background: var(--it-surface);
+  border-color: var(--it-border-color);
+}
+
+.it-main {
+  width: min(100%, 1680px);
+  margin-inline: auto;
+  padding: 1.5rem clamp(1rem, 2.4vw, 2.25rem);
+}
+
+.it-workspace .rounded-3xl {
+  border-radius: var(--it-radius);
+}
+
+.it-workspace .rounded-2xl {
+  border-radius: 5px;
+}
+
+.it-workspace .rounded-xl {
+  border-radius: 4px;
+}
+
+.it-setup-panel {
+  border-radius: var(--it-radius) !important;
+}
+
+.it-setup-option {
+  border: 1px solid var(--it-border-color);
+  background: var(--it-surface);
+  color: var(--it-ink);
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.it-setup-option:hover {
+  border-color: color-mix(in srgb, var(--it-accent-blue) 45%, var(--it-border-color));
+  background: color-mix(in srgb, var(--it-accent-blue) 4%, var(--it-surface));
+}
+
+.it-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.it-table th {
+  padding: 0.65rem 0.75rem;
+  background: color-mix(in srgb, var(--it-canvas) 75%, var(--it-surface));
+  color: var(--it-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-align: start;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.it-table td {
+  padding: 0.65rem 0.75rem;
+  border-top: 1px solid var(--it-border-color);
+}
+
+.it-table tbody tr:hover {
+  background: color-mix(in srgb, var(--it-accent-blue) 3%, var(--it-surface));
+}
+
+@media (min-width: 1024px) {
+  .it-shell {
+    display: grid;
+    grid-template-columns: 248px minmax(0, 1fr);
+  }
+
+  .it-sidebar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    height: 100dvh;
+    min-height: 0;
+    flex-direction: column;
+    border-inline-end: 1px solid var(--it-border-color);
+  }
+
+  .it-sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .it-workspace {
+    min-width: 0;
+  }
+
+  .it-topbar {
+    position: sticky;
+    z-index: 20;
+    top: 0;
+  }
+}
+
+@media (max-width: 1023px) {
+  .it-sidebar-nav {
+    display: flex;
+    overflow-x: auto;
+  }
+
+  .it-nav-group > div {
+    flex-direction: row;
+  }
+
+  .it-nav-group {
+    display: flex;
+    flex: 0 0 auto;
+    gap: 0.25rem;
+    padding: 0 0.5rem;
+  }
+
+  .it-nav-group + .it-nav-group {
+    border-top: 0;
+    border-inline-start: 1px solid var(--it-border-color);
+  }
+
+  .it-nav-heading {
+    display: none;
+  }
+
+  .it-nav-item {
+    align-self: center;
+  }
+}
+
+/* Enterprise status badges */
+.it-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.it-badge-active {
+  background-color: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+
+.dark .it-badge-active {
+  background-color: #064E3B;
+  color: #A7F3D0;
+  border-color: #047857;
+}
+
+.it-badge-suspended {
+  background-color: #FEF2F2;
+  color: #991B1B;
+  border: 1px solid #FCA5A5;
+}
+
+.dark .it-badge-suspended {
+  background-color: #7F1D1D;
+  color: #FCA5A5;
+  border-color: #B91C1C;
+}
+
+/* Compact enterprise card container */
+.it-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.dark .it-card {
+  background-color: #0F172A;
+  border-color: #334155;
+  box-shadow: none;
+}
