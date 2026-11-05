@@ -4,7 +4,7 @@ WHERE realm='it' AND subject_id > @cursor::text ORDER BY subject_id LIMIT @row_l
 
 -- name: CountActiveITAdmins :one
 SELECT count(*) FROM identity.account
-WHERE realm='it' AND active AND mfa_enabled AND password_hash IS NOT NULL AND roles @> ARRAY['it_admin'];
+WHERE realm='it' AND active AND password_hash IS NOT NULL AND roles @> ARRAY['it_admin'];
 
 -- name: SetITAccountAccess :exec
 UPDATE identity.account SET roles = @roles::text[], active = @active, updated_at = @now

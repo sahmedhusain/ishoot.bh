@@ -14,7 +14,7 @@ const activeAccountSession = `-- name: ActiveAccountSession :one
 SELECT a.subject_id, a.roles FROM identity.account a
 JOIN identity.session_family s ON s.realm=a.realm AND s.subject_id=a.subject_id
 WHERE s.id=$1 AND s.realm=$2 AND s.revoked_at IS NULL AND s.expires_at>$3
- AND a.active AND (a.realm<>'it' OR a.mfa_enabled)
+ AND a.active
 `
 
 type ActiveAccountSessionParams struct {

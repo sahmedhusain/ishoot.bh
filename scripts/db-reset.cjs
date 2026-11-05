@@ -119,7 +119,14 @@ async function main() {
   await selectProfileInteractive();
 
   if (demo || style) {
-    require("ts-node").register({ project: path.join(root, "company/tsconfig.json") });
+    const tsNodePath = require.resolve("ts-node", { paths: [path.join(root, "company"), root] });
+    const tsconfigPaths = require(require.resolve("tsconfig-paths", { paths: [path.join(root, "company"), root] }));
+    const tsconfig = require(path.join(root, "company/tsconfig.json"));
+    require(tsNodePath).register({ project: path.join(root, "company/tsconfig.json") });
+    tsconfigPaths.register({
+      baseUrl: path.join(root, "company"),
+      paths: tsconfig.compilerOptions.paths,
+    });
     const { demoPreset } = require("../company/seed/demo-presets.ts");
     demoPreset(demo || "media", style);
   }

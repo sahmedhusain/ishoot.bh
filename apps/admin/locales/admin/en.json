@@ -1580,7 +1580,7 @@
     "subtitle": "Management Workspace",
     "emailLabel": "Staff Email",
     "emailPlaceholder": "name@example.com",
-    "passwordLabel": "Security Key",
+    "passwordLabel": "Password",
     "passwordPlaceholder": "••••••••",
     "submit": "Enter Workspace",
     "authenticating": "Authenticating...",

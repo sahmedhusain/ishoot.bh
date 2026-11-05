@@ -12,9 +12,28 @@ let cached: { token: string; renewAt: number } | undefined;
 
 function loadSigner(caller: string): Promise<Signer> {
   const name = `${caller.toUpperCase()}_SERVICE_KEY`;
+  if (!process.env[name]) {
+    try {
+      const fs = require("node:fs");
+      const path = require("node:path");
+      for (const p of ["../../.env", "../.env", "./.env"]) {
+        const full = path.resolve(process.cwd(), p);
+        if (fs.existsSync(full)) {
+          const content = fs.readFileSync(full, "utf8");
+          const match = content.match(new RegExp(`^${name}="(.*?)"`, "m"));
+          if (match && match[1]) {
+            process.env[name] = match[1];
+            break;
+          }
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
   const encoded = process.env[name];
   if (!encoded) {
-    if (process.env.NODE_ENV !== "production" || process.env.NEXT_PHASE === "phase-production-build") {
+    if (process.env.NEXT_PHASE === "phase-production-build") {
       const { privateKey } = generateKeyPairSync("ed25519");
       const jwk = privateKey.export({ format: "jwk" }) as JWK;
       const kid = `${caller}:build`;

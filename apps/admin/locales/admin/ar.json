@@ -1580,7 +1580,7 @@
     "subtitle": "مساحة عمل الإدارة",
     "emailLabel": "البريد الإلكتروني المهني",
     "emailPlaceholder": "name@example.com",
-    "passwordLabel": "مفتاح الأمان",
+    "passwordLabel": "كلمة المرور",
     "passwordPlaceholder": "••••••••",
     "submit": "دخول مساحة العمل",
     "authenticating": "جاري التحقق من الهوية...",

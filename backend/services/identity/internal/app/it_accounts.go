@@ -120,7 +120,7 @@ func (s *ITAccounts) Update(ctx context.Context, actor authn.Principal, id, role
 		if target.Active == active && slices.Equal(target.Roles, roles) {
 			return nil
 		}
-		if target.Active && target.MfaEnabled && target.PasswordHash != nil && slices.Contains(target.Roles, "it_admin") && (!active || role != "it_admin") {
+		if target.Active && target.PasswordHash != nil && slices.Contains(target.Roles, "it_admin") && (!active || role != "it_admin") {
 			n, err := q.CountActiveITAdmins(ctx)
 			if err != nil {
 				return err

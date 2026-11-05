@@ -112,7 +112,7 @@ export const updateITAccountForIT = (
   );
 
 /** Staff and customer accounts, whose profiles the apps own; identity owns their credentials. */
-export type ManagedRealm = "staff" | "customer";
+export type ManagedRealm = "staff" | "customer" | "it";
 
 /** Creates or updates an account as the app describes it; returns whether it was new. */
 export const syncAccount = (

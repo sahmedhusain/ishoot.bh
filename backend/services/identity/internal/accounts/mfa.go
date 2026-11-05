@@ -38,9 +38,6 @@ type Enrollment struct {
 
 // CheckFactor verifies a factor for a locked account; the caller must atomically consume recovery codes and persist the step.
 func (s *Service) CheckFactor(account Account, code string, now time.Time) (MFAResult, error) {
-	if account.Realm == authn.RealmIT && !account.MFAEnabled {
-		return MFAResult{}, ErrInvalid
-	}
 	if !account.MFAEnabled {
 		return MFAResult{}, nil
 	}

@@ -176,7 +176,7 @@ func provision(ctx context.Context, pool *pgxpool.Pool, hasher Hasher, sealer Se
 		if actorID == "" {
 			if err := q.InsertAccount(ctx, sqlcdb.InsertAccountParams{
 				Realm: string(authn.RealmIT), SubjectID: subject, Email: in.Email, PasswordHash: &hash,
-				Roles: []string{in.Role}, MfaEnabled: true, MfaSecretEncrypted: &sealed, Now: now,
+				Roles: []string{in.Role}, MfaEnabled: false, MfaSecretEncrypted: nil, Now: now,
 			}); err != nil {
 				return err
 			}

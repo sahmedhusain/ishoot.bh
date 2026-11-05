@@ -290,7 +290,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
           }
           value={query}
           placeholder={t.quickJump.universalSearch}
-          className={`${className ?? ""} !ps-10 !pe-20 transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)]`}
+          className={`${className ?? ""} !ps-10 !pe-20 transition-all duration-300 ease-&lsqb;cubic-bezier(0.2,0,0,1)&rsqb;`}
           onFocus={() => setIsOpen(true)}
           onChange={(event) => {
             setQuery(event.target.value);

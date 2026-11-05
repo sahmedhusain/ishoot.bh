@@ -144,6 +144,7 @@ const config: Omit<Config, "content"> = {
         standard: "var(--ease-standard)",
         emphasized: "var(--ease-emphasized)",
         exit: "var(--ease-exit)",
+        smooth: "cubic-bezier(0.23, 1, 0.32, 1)",
       },
       keyframes: {
         fadeUp: {

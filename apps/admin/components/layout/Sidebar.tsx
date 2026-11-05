@@ -866,7 +866,7 @@ export function Sidebar() {
                 </span>
                 <ChevronDown
                   aria-hidden
-                  className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ease-[cubic-bezier(0.2,0,0,1)] ${collapsed ? "-rotate-90 rtl:rotate-90" : ""}`}
+                  className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ease-&lsqb;cubic-bezier(0.2,0,0,1)&rsqb; ${collapsed ? "-rotate-90 rtl:rotate-90" : ""}`}
                 />
               </button>
               <div
@@ -885,7 +885,7 @@ export function Sidebar() {
                       title={item.label}
                       aria-label={item.label}
                       onClick={() => setIsMobileOpen(false)}
-                      className={`flex items-center gap-3.5 mx-3 px-4 h-10 rounded-full text-[13px] font-medium transition-all duration-150 ease-[cubic-bezier(0.2,0,0,1)] motion-safe:active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary m3-state-layer ${
+                      className={`flex items-center gap-3.5 mx-3 px-4 h-10 rounded-full text-[13px] font-medium transition-all duration-150 ease-&lsqb;cubic-bezier(0.2,0,0,1)&rsqb; motion-safe:active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary m3-state-layer ${
                         isActive
                           ? "bg-secondary-container text-on-secondary-container font-semibold shadow-m3-0"
                           : "text-on-surface-variant hover:text-on-surface hover:bg-on-surface/[0.08] active:bg-on-surface/[0.12]"

@@ -79,7 +79,7 @@ func (p *Repository) rotate(ctx context.Context, realm authn.Realm, oldHash, nex
 				return err
 			default:
 				account = toAccount(row)
-				accountInvalid = !row.Active || (realm == authn.RealmIT && !row.MfaEnabled)
+				accountInvalid = !row.Active
 			}
 		}
 		// Read consumed_at only after locking the family, so concurrent waiters see committed consumption.

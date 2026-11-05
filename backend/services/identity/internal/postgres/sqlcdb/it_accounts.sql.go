@@ -12,7 +12,7 @@ import (
 
 const countActiveITAdmins = `-- name: CountActiveITAdmins :one
 SELECT count(*) FROM identity.account
-WHERE realm='it' AND active AND mfa_enabled AND password_hash IS NOT NULL AND roles @> ARRAY['it_admin']
+WHERE realm='it' AND active AND password_hash IS NOT NULL AND roles @> ARRAY['it_admin']
 `
 
 func (q *Queries) CountActiveITAdmins(ctx context.Context) (int64, error) {

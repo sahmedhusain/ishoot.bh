@@ -3,7 +3,7 @@ package contact
 
 import (
 	"errors"
-	"github.com/nyaruka/phonenumbers/v2"
+	"github.com/nyaruka/phonenumbers"
 	"golang.org/x/text/language"
 	"golang.org/x/text/language/display"
 	"net/mail"

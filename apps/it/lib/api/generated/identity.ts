@@ -901,7 +901,7 @@ export interface components {
     };
     parameters: {
         Realm: "staff" | "customer" | "it";
-        ManagedRealm: "staff" | "customer";
+        ManagedRealm: "staff" | "customer" | "it";
     };
     requestBodies: {
         MFAPassword: {

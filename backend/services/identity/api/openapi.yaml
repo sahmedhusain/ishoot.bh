@@ -1354,7 +1354,7 @@ components:
       name: realm
       in: path
       required: true
-      schema: { type: string, enum: [staff, customer] }
+      schema: { type: string, enum: [staff, customer, it] }
   requestBodies:
     MFAPassword:
       required: true
