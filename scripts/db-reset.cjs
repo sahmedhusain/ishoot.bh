@@ -1,6 +1,6 @@
 // Run: pnpm db:reset [--profile <name> | --demo <preset>] [--style <style>] [--empty] [--light] [--yes]
 // Local development only: wipes the local service volumes, re-applies every service migration and fills it again.
-//   (default)  demo business data for COMPANY_PROFILE (or --profile, default "demo"), full volume
+//   (default)  demo business data for COMPANY_PROFILE (or --profile, default "ishoot"), full volume
 //   --light    the same without the large generated volume (faster)
 //   --empty    no demo data: roles, permissions and SUPER_ADMIN only; the admin then shows the setup wizard
 // Refuses to run against anything but a database on this machine, or with NODE_ENV=production.
@@ -9,7 +9,6 @@ const path = require("node:path");
 const readline = require("node:readline/promises");
 
 const root = path.resolve(__dirname, "..");
-// Load .env if dotenv is available; otherwise assume environment is already loaded by shell
 try {
   require("dotenv").config({ path: path.join(root, ".env"), quiet: true });
 } catch (e) {
@@ -42,30 +41,58 @@ if (profile === "all") {
   profile = "demo";
 }
 
+async function selectProfileInteractive() {
+  if (flag("yes") || option("profile") || option("demo") || flag("empty") || !process.stdin.isTTY) return;
+
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  console.log("\nSelect company profile or demo workspace:");
+  console.log("  1) ishoot   — iShoot Cinema Production S.P.C. (Default)");
+  console.log("  2) demo     — Northwind Traders / Harbor Projects W.L.L.");
+  console.log("  3) media    — Media & Production Preset");
+  console.log("  4) commerce — Store & Commerce Preset");
+  console.log("  5) services — Professional Services Preset");
+  console.log("  6) all      — All Business Modules Enabled");
+  console.log("  7) empty    — Empty Database (Setup Wizard)");
+
+  const choice = (await rl.question("\nEnter selection [1-7] (default 1): ")).trim();
+  rl.close();
+
+  switch (choice) {
+    case "2":
+      profile = "demo";
+      demo = undefined;
+      break;
+    case "3":
+      demo = "media";
+      profile = "demo";
+      break;
+    case "4":
+      demo = "commerce";
+      profile = "demo";
+      break;
+    case "5":
+      demo = "services";
+      profile = "demo";
+      break;
+    case "6":
+      demo = "all";
+      profile = "demo";
+      break;
+    case "7":
+      args.push("--empty");
+      break;
+    case "1":
+    default:
+      profile = "ishoot";
+      demo = undefined;
+      break;
+  }
+}
+
 if (flag("demo") && (!option("demo") || option("demo").startsWith("--"))) throw new Error("--demo needs a preset; run pnpm db:demo:list");
 if (flag("style") && (!option("style") || option("style").startsWith("--"))) throw new Error("--style needs a style; run pnpm db:demo:list");
 if (demo && flag("profile") && option("profile") !== "all") throw new Error("Choose --demo or --profile; demo presets use the shared demo company.");
 if (flag("empty") && (demo || style)) throw new Error("--empty cannot be combined with a demo preset or style.");
-// Validate before the destructive reset, including values inherited from .env.
-if (demo || style) {
-  require("ts-node").register({ project: path.join(root, "company/tsconfig.json") });
-  const { demoPreset } = require("../company/seed/demo-presets.ts");
-  demoPreset(demo || "media", style);
-}
-profile = demo ? "demo" : profile || "demo";
-const mode = flag("empty") ? "empty" : flag("light") ? "light" : "full";
-const target = `${url.hostname}:${url.port || 5432}${url.pathname}`;
-
-async function confirm() {
-  if (flag("yes")) return;
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  const answer = await rl.question(`This deletes every record and uploaded file in ${target}. Type "reset" to continue: `);
-  rl.close();
-  if (answer.trim() !== "reset") {
-    console.log("Cancelled; nothing was changed.");
-    process.exit(0);
-  }
-}
 
 const run = (command, commandArgs, extra = {}) =>
   execFileSync(command, commandArgs, { cwd: root, stdio: "inherit", env: { ...process.env, ...extra } });
@@ -77,9 +104,32 @@ function resetServiceData() {
   run("docker", [...compose, "up", "-d", "--build", "--wait"]);
 }
 
+async function confirm(target) {
+  if (flag("yes")) return;
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  const answer = await rl.question(`This deletes every record and uploaded file in ${target}. Type "reset" to continue: `);
+  rl.close();
+  if (answer.trim() !== "reset") {
+    console.log("Cancelled; nothing was changed.");
+    process.exit(0);
+  }
+}
+
 async function main() {
+  await selectProfileInteractive();
+
+  if (demo || style) {
+    require("ts-node").register({ project: path.join(root, "company/tsconfig.json") });
+    const { demoPreset } = require("../company/seed/demo-presets.ts");
+    demoPreset(demo || "media", style);
+  }
+
+  profile = demo ? "demo" : profile || "ishoot";
+  const mode = flag("empty") ? "empty" : flag("light") ? "light" : "full";
+  const target = `${url.hostname}:${url.port || 5432}${url.pathname}`;
+
   console.log(`Database: ${target}\nMode: ${mode}${mode === "empty" ? "" : ` (company profile "${profile}"${demo ? `, demo "${demo}"` : ""}${style ? `, style "${style}"` : ""})`}`);
-  await confirm();
+  await confirm(target);
 
   resetServiceData();
   run(path.join(root, "run.sh"), ["db", "migrate"]);
