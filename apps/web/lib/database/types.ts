@@ -1098,6 +1098,7 @@ export interface SocialLink {
 
 export type PublicCompanySettings = Pick<
   CompanySettings,
+  | "setup_completed"
   | "theme"
   | "content_languages"
   | "primary_language"

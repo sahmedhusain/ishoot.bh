@@ -96,5 +96,5 @@ export async function installCompanyProfile(profile: CompanyProfile, actorId = "
     for (const key of config.assetKeys) await systemRequest(`/v1/system/company/assets/${key}`, { title: config.title, fileUrl, actorId });
   }
   const { currencyDecimals, ...companyValues } = profile.company;
-  await systemRequest("/v1/system/company", { values: { ...companyValues, ...urls, theme: await profileTheme(profile) }, actorId });
+  await systemRequest("/v1/system/company", { values: { ...companyValues, ...urls, websitePublished: true, theme: await profileTheme(profile) }, actorId });
 }

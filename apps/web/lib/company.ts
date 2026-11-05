@@ -11,6 +11,7 @@ export const getPublicCompanySettings = cache(
   async (): Promise<PublicCompanySettings> => {
     const company = await getCachedCompany();
     return {
+      setup_completed: company.setup_completed,
       theme: company.theme,
       content_languages: company.content_languages,
       primary_language: company.primary_language,

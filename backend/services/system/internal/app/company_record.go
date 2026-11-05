@@ -147,4 +147,5 @@ var companyPatchFields = map[string]bool{
 	"city":                         true,
 	"country":                      true,
 	"mapUrl":                       true,
+	"websitePublished":             true,
 }
