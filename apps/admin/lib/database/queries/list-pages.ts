@@ -79,15 +79,15 @@ async function pageQuery<T>(
         })) ?? [];
         return { rows, total: 0, page: 1, pageSize: 500 };
       }
-      const total = (await model.count?.({ where })) ?? 0;
+      const total = typeof model?.count === "function" ? (await model.count({ where })) : 0;
       const page = Math.min(requestedPage, Math.max(1, Math.ceil(total / 50)));
-      const rows = (await model.findMany?.({
+      const rows = typeof model?.findMany === "function" ? ((await model.findMany({
         where,
         select,
         take: 50,
         skip: (page - 1) * 50,
         orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-      })) ?? [];
+      })) ?? []) : [];
       return { rows, total, page, pageSize: 50 };
     },
   );
@@ -314,7 +314,7 @@ export async function getPaymentsPage(
           db.$queryRaw<
             Array<{ count: bigint }>
           >`SELECT count(DISTINCT "invoiceId") count FROM "Payment"`.then((r) =>
-            Number(r[0].count),
+            Number(r?.[0]?.count ?? 0),
           ),
         ]);
     return {
@@ -322,9 +322,9 @@ export async function getPaymentsPage(
       items,
       rows: undefined,
       filters: f,
-      totals: totals.map((t) => ({
+      totals: (totals || []).map((t) => ({
         currency: t.currency,
-        amount: Number(t._sum.amount),
+        amount: Number(t._sum?.amount ?? 0),
       })),
       receiptCount,
       invoiceCount,
@@ -562,18 +562,18 @@ export async function getAttachmentsPage(
   const condition = Prisma.sql`WHERE (${f.q}='' OR a."fileName" ILIKE ${pattern} OR a."entityId" ILIKE ${pattern} OR u."fullName" ILIKE ${pattern} OR c."companyName" ILIKE ${pattern} OR concat(c."firstName",' ',c."lastName") ILIKE ${pattern} OR i."invoiceNumber" ILIKE ${pattern} OR d.title ILIKE ${pattern} OR p."receiptNumber" ILIKE ${pattern}) AND (${f.status}='all' OR a."entityType"=${f.status})`;
   const joins = Prisma.sql`FROM "Attachment" a LEFT JOIN "User" u ON u.id=a."uploadedById" LEFT JOIN "CrmContact" c ON c.id=a."entityId" AND a."entityType" IN ('contact','customer_vault') LEFT JOIN "Invoice" i ON i.id=a."entityId" AND a."entityType"='invoice' LEFT JOIN "CrmDeal" d ON d.id=a."entityId" AND a."entityType"='deal' LEFT JOIN "Payment" p ON p.id=a."entityId" AND a."entityType"='payment'`;
   return runAtomicMutation(async () => {
-    const [count] = batch
+    const countRows = batch
       ? [{ count: BigInt(0) }]
-      : await db.$queryRaw<Array<{ count: bigint }>>(
+      : (await db.$queryRaw<Array<{ count: bigint }>>(
           Prisma.sql`SELECT count(*) ${joins} ${condition}`,
-        );
-    const total = Number(count.count),
+        )) || [];
+    const total = Number(countRows[0]?.count ?? 0),
       page = Math.min(f.page, Math.max(1, Math.ceil(total / 50)));
-    const ids = await db.$queryRaw<Array<{ id: string }>>(
+    const ids = (await db.$queryRaw<Array<{ id: string }>>(
       batch
         ? Prisma.sql`SELECT a.id ${joins} ${condition} AND a.id > ${batch.after || ""} ORDER BY a.id ASC LIMIT ${Math.min(500, batch.batchSize)}`
         : Prisma.sql`SELECT a.id ${joins} ${condition} ORDER BY a."createdAt" DESC,a.id DESC LIMIT 50 OFFSET ${(page - 1) * 50}`,
-    );
+    )) || [];
     const fetched = await getAllAttachments({ ids: ids.map((r) => r.id) });
     const positions = new Map(ids.map((row, index) => [row.id, index]));
     const items = fetched.sort(
@@ -669,14 +669,14 @@ export async function getExpensesPage(
     return {
       ...result,
       scopeCounts: Object.fromEntries(
-        byScope.map((g) => [g.scope, g._count._all]),
+        (byScope || []).map((g) => [g.scope, g._count?._all ?? 0]),
       ) as Record<string, number>,
-      items: result.rows.map(mapExpense),
+      items: (result.rows || []).map(mapExpense),
       rows: undefined,
       filters: f,
-      totals: totals.map((t) => ({
+      totals: (totals || []).map((t) => ({
         currency: t.currency,
-        amount: Number(t._sum.amount),
+        amount: Number(t._sum?.amount ?? 0),
       })),
       count,
     };
