@@ -69,10 +69,10 @@ export function PaymentsManagementView({ initialPayments, totals, receiptCount, 
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant">
-              {initialPayments.map((p) => {
+              {initialPayments.map((p, idx) => {
                 const Icon = METHOD_ICONS[p.payment_method] ?? Banknote;
                 return (
-                  <tr key={p.id} className="group hover:bg-accent/5 transition-colors">
+                  <tr key={p.id ? `pay-${p.id}-${idx}` : `pay-idx-${idx}`} className="group hover:bg-accent/5 transition-colors">
                     <td className="px-5 py-3.5 whitespace-nowrap">
                       <Link href={ROUTES.payments.detail(p.id)} dir="ltr" className="font-mono text-xs font-semibold text-primary dark:text-mint hover:underline">{p.receipt_number}</Link>
                     </td>

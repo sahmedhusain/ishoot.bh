@@ -83,9 +83,9 @@ export function InvoicesListView({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
-            {acceptedQuotations.slice(0, 3).map((q) => (
+            {acceptedQuotations.slice(0, 3).map((q, idx) => (
               <div
-                key={q.id}
+                key={q.id ? `acc-q-${q.id}-${idx}` : `acc-q-idx-${idx}`}
                 className="p-3 bg-surface-raised rounded-xl border border-teal-100 dark:border-teal-900/30 flex items-center justify-between gap-3 shadow-xs hover:border-teal-300 dark:hover:border-teal-700 transition-colors"
               >
                 <div className="min-w-0">
@@ -166,9 +166,9 @@ export function InvoicesListView({
               </tr>
             </thead>
             <tbody className="divide-y divide-[#dadce0]/70 dark:divide-[#3c4043]/70">
-              {filteredInvoices.map((inv) => (
+              {filteredInvoices.map((inv, idx) => (
                 <tr
-                  key={inv.id}
+                  key={inv.id ? `inv-${inv.id}-${idx}` : `inv-idx-${idx}`}
                   className="hover:bg-surface-raised/70 dark:hover:bg-surface-raised/40 transition-colors"
                 >
                   <td className="p-3.5 font-bold text-ink">

@@ -180,7 +180,7 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
                   </td>
                 </tr>
               ) : (
-                quotations.map((q) => {
+                quotations.map((q, idx) => {
                   const clientDisplay =
                     q.client?.companyName ||
                     [q.client?.firstName, q.client?.lastName].filter(Boolean).join(" ") ||
@@ -188,7 +188,7 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
 
                   return (
                     <tr
-                      key={q.id}
+                      key={q.id ? `quotation-${q.id}-${idx}` : `quotation-idx-${idx}`}
                       className="hover:bg-surface-raised/50 dark:hover:bg-white/[0.02] transition-colors"
                     >
                       <td className="py-3.5 px-4 font-mono font-medium text-ink">
