@@ -102,8 +102,6 @@
     "description": "Requests raised by employees.",
     "status": "Status",
     "priority": "Priority",
-    "allStatuses": "All statuses",
-    "allPriorities": "All priorities",
     "openOnly": "Open only",
     "mine": "Assigned to me",
     "everything": "Everything",
@@ -153,7 +151,6 @@
     "sent": "Sent",
     "updated": "Ticket updated",
     "failed": "The change could not be saved.",
-    "notFound": "This ticket does not exist.",
     "readOnly": "Your role can read tickets but not change them."
   },
   "sla": {
@@ -184,7 +181,6 @@
   "errors": {
     "forbidden": "Your IT role does not allow this page.",
     "notFound": "Page not found.",
-    "generic": "Something went wrong.",
     "home": "Back to the overview"
   },
   "statuses": {
@@ -235,7 +231,6 @@
   },
   "integrations": {
     "title": "Integrations",
-    "subtitle": "Connect your social accounts, WhatsApp and e-mail delivery. Credentials are encrypted and never shown again after saving.",
     "kinds": {
       "social": "Social media",
       "messaging": "Messaging",
@@ -247,327 +242,79 @@
     "providers": {
       "meta": {
         "name": "Facebook & Instagram",
-        "description": "Page and Instagram Business followers, posts and engagement through the Meta Graph API.",
-        "guide": {
-          "prerequisites": "A Meta developer app, a Facebook Page you administer, and an Instagram professional account linked to that Page when Instagram is needed.",
-          "permissions": "Page access for the account being read. Request pages_show_list and pages_read_engagement; Instagram access also needs the applicable Instagram basic/insights permissions. Business access and app review depend on your Meta login product.",
-          "environment": "Use accounts assigned to app roles while the app is in development. Public customer accounts require the relevant approved access.",
-          "steps": [
-            "Obtain a Page access token through your Meta app and copy the Page ID.",
-            "Add the linked Instagram account ID if needed, save and enable this connection.",
-            "Run Test connection, then Sync now. Renew the token when reconnect is requested."
-          ],
-          "verify": "Test connection reads the Page identity. A successful sync is required to verify each configured account and its available metrics.",
-          "errors": "Error 190: renew the token. Permission errors: check Page role, token permissions and app access. Respect the retry time on rate limits.",
-          "limits": "Current sync reads public account/post counters. Owner-only reach, impressions and profile views are unavailable. Automatic token renewal and a social OAuth callback are not implemented."
-        }
+        "description": "Page and Instagram Business followers, posts and engagement through the Meta Graph API."
       },
       "whatsapp": {
         "name": "WhatsApp Business",
-        "description": "Check your WhatsApp Business phone and send a plain text test through the Cloud API.",
-        "guide": {
-          "prerequisites": "A WhatsApp Business account, a Cloud API phone number and a Meta business app.",
-          "permissions": "whatsapp_business_management for phone details and whatsapp_business_messaging for sending. Assign the phone number to the token owner.",
-          "environment": "Use the Meta test phone and permitted recipients first. Live requires the registered business phone and appropriate business approval.",
-          "steps": [
-            "Copy the phone number ID, optional business account ID and an authorized access token.",
-            "Save, enable and run Test connection.",
-            "Send a test only to an agreed recipient using the full international number."
-          ],
-          "verify": "Test connection reads phone identity and sends nothing. Send a test message is a separate action that sends real text.",
-          "errors": "Permission denied: check the phone assignment and token. Outside the customer-service window use an approved template through your messaging system.",
-          "limits": "This app currently sends plain test text. Inbound messages, delivery-status webhooks, approved templates and document sending are not implemented here."
-        }
+        "description": "Check your WhatsApp Business phone and send a plain text test through the Cloud API."
       },
       "youtube": {
         "name": "YouTube",
-        "description": "Channel subscribers, views and video performance through the YouTube Data API.",
-        "guide": {
-          "prerequisites": "A Google Cloud project with YouTube Data API v3 enabled, the public channel ID, and YouTube Analytics API enabled for owner activity.",
-          "permissions": "The public channel test uses a restricted Data API key. Private owner reports require the channel owner’s OAuth consent for youtube.readonly and yt-analytics.readonly. For automatic refresh, supply the OAuth client ID, client secret and offline refresh token together.",
-          "steps": [
-            "Create a restricted Data API key and find the channel ID beginning with UC.",
-            "For owner activity, authorize the channel owner through Google’s documented OAuth flow with both read scopes and offline access. A provider-issued owner access token works until it expires; the complete client ID/secret/refresh-token bundle refreshes during sync.",
-            "Save the channel ID and key, optionally add the owner credentials, enable and run Test connection. This connector accepts issued tokens; it does not provide a YouTube OAuth callback route.",
-            "Run Sync now. Check the separate owner-activity panel, its reported date range, timezone and last update. Owner consent must belong to the configured channel."
-          ],
-          "verify": "Test connection reads one public channel. Sync verifies private owner access when supplied. Hidden subscriber totals remain unavailable; public subscriber totals can be rounded by YouTube. Actual zeroes are kept; empty or invalid reports are not replaced with zeroes.",
-          "errors": "Invalid key: check Data API enablement and key restrictions. Owner 401/invalid_grant: check credentials or reconnect; 403 insufficientPermissions: enable Analytics API, grant both scopes and verify channel ownership. Google quotaExceeded can be HTTP 403; wait for the shown backoff and check project quota. Provider errors are redacted before display.",
-          "limits": "Owner reports collect views, likes, comments, shares and subscribers gained/lost for 7/30/90/365-day windows ending at the latest reported day. Dates use Pacific time and may lag. Daily observations and period snapshots are retained. Reach, channel impressions, profile views and watch time are not collected by this connector; ad/card impressions are not substitutes. Published-date post filters still use UTC and lifetime counters.",
-          "environment": "These APIs have no separate sandbox. Start with an owned test channel and a Google OAuth test user; public apps can require verification. Monitor the project quota."
-        }
+        "description": "Channel subscribers, views and video performance through the YouTube Data API."
       },
       "tiktok": {
         "name": "TikTok",
-        "description": "Followers and video performance through the TikTok Display API.",
-        "guide": {
-          "prerequisites": "A TikTok developer app approved for Display API and an account that authorized it.",
-          "permissions": "user.info.basic, user.info.stats and video.list for identity, counters and videos respectively.",
-          "environment": "Follow the TikTok app review and test-account rules. The account token must belong to the intended profile.",
-          "steps": [
-            "Complete TikTok authorization outside this app and obtain the user access token.",
-            "Save the token, enable and run Test connection.",
-            "Run Sync now; replace expired tokens when the connection requests reconnection."
-          ],
-          "verify": "Test connection reads account identity. Statistics and video permissions are exercised during sync.",
-          "errors": "401/invalid token: renew authorization. Missing scope: request the required approved scope. 429: wait for the displayed retry window.",
-          "limits": "Token refresh and an in-app TikTok OAuth callback are not implemented. Missing counters stay unavailable; a token alone does not grant every metric."
-        }
+        "description": "Followers and video performance through the TikTok Display API."
       },
       "x": {
         "name": "X (Twitter)",
-        "description": "Followers and post performance through the X API v2.",
-        "guide": {
-          "prerequisites": "An X developer project with API access that permits user lookup and user timeline reads.",
-          "permissions": "An authorized app bearer token and the intended username. Endpoint availability and limits depend on the subscribed access tier.",
-          "environment": "The same API serves test and live reads. Use an owned public profile first; reads consume the project allowance.",
-          "steps": [
-            "Copy the project bearer token and enter the username without @.",
-            "Save, enable and run Test connection.",
-            "Sync posts and available public metrics using Sync now."
-          ],
-          "verify": "Test connection looks up the username and reports the returned account identity.",
-          "errors": "403: confirm endpoint entitlement and account visibility. 401: replace the token. 429: wait for the provider reset time.",
-          "limits": "Public counters only; private impressions and account owner insights are unavailable. Large timelines can hit the displayed page limit."
-        }
+        "description": "Followers and post performance through the X API v2."
       },
       "linkedin": {
         "name": "LinkedIn",
-        "description": "Company page followers through the LinkedIn Community Management API.",
-        "guide": {
-          "prerequisites": "A LinkedIn developer app with the relevant Community Management product access and an organization administrator.",
-          "permissions": "Approved organization access for the networkSizes organization-follower endpoint. Confirm the current permissions for your granted product; older scopes alone may be insufficient.",
-          "environment": "Use an organization the authorizing administrator manages. Organization access may require LinkedIn product approval.",
-          "steps": [
-            "Obtain the organization ID and a user access token authorized for that organization.",
-            "Save, enable and run Test connection.",
-            "Run Sync now to store the available follower total."
-          ],
-          "verify": "The check reads organization identity; sync reads organization follower network size. Requests pin LinkedIn version 202609.",
-          "errors": "403: check organization administration, approved product and token scopes. 401: obtain a current token. Version errors require an adapter review.",
-          "limits": "The current adapter imports follower totals only. Post performance, impressions, reach, automatic renewal and an in-app authorization callback are not implemented."
-        }
+        "description": "Company page followers through the LinkedIn Community Management API."
       },
       "resend": {
         "name": "Resend e-mail",
-        "description": "Delivery of invoices, quotations and notifications. Checks that the sender domain is verified.",
-        "guide": {
-          "prerequisites": "A Resend account, verified sending domain and sender address on that domain.",
-          "permissions": "The delivery key needs email sending access. The current domain-verification check additionally needs domain-read access; a sending-only key cannot pass that check.",
-          "environment": "Use an owned test recipient before enabling live jobs. A connection test does not send an email.",
-          "steps": [
-            "Verify the domain DNS in Resend, then save the API key and sender email here.",
-            "Optionally register the admin webhook address below and save its signing secret for delivery events.",
-            "Enable and test. The notify service sends every e-mail with these credentials; send a test from IT dashboard → Notifications, then verify the signed webhook."
-          ],
-          "verify": "Test connection lists domains and verifies the sender domain. Actual delivery, idempotency and signed webhooks are separate checks.",
-          "errors": "403 with a sending-only key can mean the domain check is unauthorized, even if delivery works. Unverified domain: complete DNS verification. Signature errors: copy the webhook signing secret.",
-          "limits": "Only the saved integration sends e-mail; environment keys are no longer read. Disconnecting makes queued e-mail fail until it is reconnected and sent again from Notifications. The connection test does not prove delivery: send a test message for that."
-        }
+        "description": "Delivery of invoices, quotations and notifications. Checks that the sender domain is verified."
       },
       "google_signin": {
         "name": "Sign in with Google",
-        "description": "Lets customers sign in to the online store with their Google account. Add the website's /api/account/google/callback address as an authorised redirect URI.",
-        "guide": {
-          "prerequisites": "A Google Cloud OAuth web application, consent configuration and the website public domain.",
-          "permissions": "openid, email and profile. Add test users while the consent app is in testing.",
-          "environment": "Use a web OAuth client. Register the exact callback below for each environment; live needs a public HTTPS website.",
-          "steps": [
-            "Create the web client and register the displayed callback as an authorized redirect URI.",
-            "Copy client ID and client secret here, save and enable.",
-            "Run Test connection, then complete a real customer sign-in on the website in a private browser window."
-          ],
-          "verify": "The connection check validates credential format and provider availability. Only a completed sign-in proves the secret, consent and redirect configuration.",
-          "errors": "redirect_uri_mismatch: compare scheme, host and complete path. invalid_client: verify the web client secret. access_denied: check consent status/test users.",
-          "limits": "This connects customer website sign-in. It does not grant YouTube owner analytics, calendar access or an administrator login."
-        }
+        "description": "Lets customers sign in to the online store with their Google account. Add the website's /api/account/google/callback address as an authorised redirect URI."
       },
       "apple_signin": {
         "name": "Sign in with Apple",
-        "description": "Lets customers sign in to the online store with their Apple ID. Register the website's /api/account/apple/callback address as a return URL of the Services ID.",
-        "guide": {
-          "prerequisites": "An Apple Developer team, a primary App ID enabled for Sign in with Apple, and an associated Services ID for this website.",
-          "permissions": "Enable Sign in with Apple for the primary app and its key. Configure the website domains and exact return URL on the Services ID.",
-          "environment": "Use the website Services ID, not an app bundle ID. Apple web return URLs require the registered public HTTPS domain.",
-          "steps": [
-            "Register the website domain and displayed callback on the Services ID.",
-            "Enter Services ID, Team ID and Key ID; select the downloaded .p8 private key file, then save and enable.",
-            "Run Test connection, then complete an actual website sign-in to verify the team/domain association."
-          ],
-          "verify": "The check validates key signing/identifier format and provider availability. A real browser sign-in is required to verify Apple account configuration.",
-          "errors": "invalid_client: check all IDs and that the key belongs to the team/app. Invalid redirect: compare the registered HTTPS return URL. Relay email requires registered sending sources.",
-          "limits": "The private key is encrypted and never returned in full after saving. Apple app/team approval and private relay email setup remain external account tasks."
-        }
+        "description": "Lets customers sign in to the online store with their Apple ID. Register the website's /api/account/apple/callback address as a return URL of the Services ID."
       },
       "stripe": {
         "name": "Stripe",
-        "description": "Cards, Apple Pay and Google Pay on Stripe's hosted checkout. Test keys (sk_test_…) keep it in test mode. Add a webhook to the website's /api/store/payment/webhook/stripe address for the checkout.session events and paste its signing secret.",
-        "guide": {
-          "prerequisites": "A Stripe account with the intended currency and payment methods enabled.",
-          "permissions": "A server secret key and a signing secret for the website webhook endpoint. Restricted keys need checkout, payment reads and refund permissions.",
-          "environment": "Use sk_test_ keys and test webhooks first. Live keys create real charges; wallet availability depends on the merchant account and domain.",
-          "steps": [
-            "Create the webhook below for checkout.session.completed, checkout.session.async_payment_succeeded and checkout.session.async_payment_failed.",
-            "Save the server key and that endpoint signing secret, enable and test.",
-            "Choose Stripe in Store settings, then complete a test checkout, webhook replay and refund before going live."
-          ],
-          "verify": "Test connection reads account access without charging. Checkout, wallet presentation, event verification and refund acceptance need sandbox transactions. Orders with an unverified captured reference, amount or currency stay in review. Use Recheck payment after fixing the connection; do not charge again.",
-          "errors": "401: verify the server key/environment. Signature error: use the endpoint secret from the matching mode. Disabled payment methods need account activation.",
-          "limits": "Card details stay on Stripe hosted checkout. A healthy credential check does not prove Apple Pay, Google Pay or every settlement currency is enabled."
-        }
+        "description": "Cards, Apple Pay and Google Pay on Stripe's hosted checkout. Test keys (sk_test_…) keep it in test mode. Add a webhook to the website's /api/store/payment/webhook/stripe address for the checkout.session events and paste its signing secret."
       },
       "tap": {
         "name": "Tap Payments",
-        "description": "Cards, BenefitPay, mada, KNET and Apple Pay on Tap's hosted page. Test keys (sk_test_…) keep it in test mode. Tap posts each payment's result to the website by itself.",
-        "guide": {
-          "prerequisites": "A Tap merchant account with the required cards/wallets and currencies approved.",
-          "permissions": "The server secret key for the correct merchant environment. Never use a publishable key here.",
-          "environment": "sk_test_ identifies test credentials. Live credentials can charge real customers; available local methods depend on the approved account.",
-          "steps": [
-            "Save the merchant secret key, enable and run Test connection.",
-            "Select Tap in Store settings; the app supplies the notification URL for each charge.",
-            "Complete a sandbox checkout, signed notification and refund for each enabled method."
-          ],
-          "verify": "The connection check is a non-charging account request. Tap notifications are verified using the secret key. Orders with an unverified captured reference, amount or currency stay in review. Use Recheck payment after fixing the connection; do not charge again.",
-          "errors": "Unauthorized: confirm the secret key. Missing methods/currency: request merchant activation. Signature mismatch: use the key matching the charge.",
-          "limits": "BenefitPay, mada, KNET and wallets appear only when Tap enables them for the merchant. Browser return alone does not prove settlement."
-        }
+        "description": "Cards, BenefitPay, mada, KNET and Apple Pay on Tap's hosted page. Test keys (sk_test_…) keep it in test mode. Tap posts each payment's result to the website by itself."
       },
       "paypal": {
         "name": "PayPal",
-        "description": "PayPal and cards through PayPal. Environment: sandbox or live. Add a webhook to the website's /api/store/payment/webhook/paypal address for the payment capture and order approved events and paste its webhook ID. PayPal does not accept every currency; verify supported currencies before enabling.",
-        "guide": {
-          "prerequisites": "A PayPal REST app, sandbox business account and supported settlement currency.",
-          "permissions": "Client ID/secret for the selected environment and webhook ID for that app/environment.",
-          "environment": "Enter sandbox for test accounts, live for live. PayPal does not support every store currency; verify its current currency list before enabling.",
-          "steps": [
-            "Create a webhook at the URL below for CHECKOUT.ORDER.APPROVED and PAYMENT.CAPTURE completed/denied events.",
-            "Save the matching client credentials, environment and webhook ID, then test.",
-            "Select PayPal in Store settings and verify sandbox approval, capture, webhook replay and refund."
-          ],
-          "verify": "Test connection obtains an application access token. Payment settlement is recorded only after capture confirmation. Orders with an unverified captured reference, amount or currency stay in review. Use Recheck payment after fixing the connection; do not charge again.",
-          "errors": "invalid_client: match app keys and environment. Webhook verification failure: check webhook ID. Unsupported currency requires another gateway or store currency.",
-          "limits": "Supported currencies, cards and wallets depend on merchant region and gateway configuration."
-        }
+        "description": "PayPal and cards through PayPal. Environment: sandbox or live. Add a webhook to the website's /api/store/payment/webhook/paypal address for the payment capture and order approved events and paste its webhook ID. PayPal does not accept every currency; verify supported currencies before enabling."
       },
       "checkout_com": {
         "name": "Checkout.com",
-        "description": "Cards and wallets on Checkout.com's hosted payments page. Environment: sandbox or live; billing country is a two-letter code such as BH. Add a webhook to the website's /api/store/payment/webhook/checkout_com address and paste its signature key.",
-        "guide": {
-          "prerequisites": "A Checkout.com account, processing channel and the account API hostname from its dashboard.",
-          "permissions": "A server secret key authorized for hosted payments, reads and refunds, plus the webhook signing secret.",
-          "environment": "Use sandbox or live and its matching keys/channel. If the API host is account123.api.sandbox.checkout.com, API prefix is account123 only.",
-          "steps": [
-            "Configure the webhook below for payment_captured, payment_declined, payment_expired and payment_capture_declined.",
-            "Save environment, API prefix if assigned, key, channel, billing country and signing secret.",
-            "Test, select this gateway in Store settings, then verify sandbox checkout, notifications and refunds."
-          ],
-          "verify": "Test connection performs a read-only payment query. Billing country is an ISO two-letter code such as BH. Orders with an unverified captured reference, amount or currency stay in review. Use Recheck payment after fixing the connection; do not charge again.",
-          "errors": "401/403: check key permissions and processing channel. Host errors: copy only the account prefix. Signature mismatch: check the matching endpoint secret.",
-          "limits": "An omitted API prefix retains the legacy host for existing accounts. Merchant-specific wallet and payment-method activation still needs sandbox acceptance."
-        }
+        "description": "Cards and wallets on Checkout.com's hosted payments page. Environment: sandbox or live; billing country is a two-letter code such as BH. Add a webhook to the website's /api/store/payment/webhook/checkout_com address and paste its signature key."
       },
       "paytabs": {
         "name": "PayTabs",
-        "description": "Cards, mada and Apple Pay on PayTabs' hosted page. Region is the PayTabs account's region: ARE, SAU, OMN, JOR, EGY, IRQ or GLOBAL. PayTabs posts each payment's result to the website by itself.",
-        "guide": {
-          "prerequisites": "A PayTabs merchant profile and its regional endpoint/server key.",
-          "permissions": "The profile ID and server key issued for the same regional merchant profile.",
-          "environment": "The merchant profile controls test/live behavior. The app cannot infer a test profile from its key; verify the profile mode in PayTabs before charging.",
-          "steps": [
-            "Choose the regional code: SAU, ARE, EGY, OMN, JOR, IRQ, KWT, MAR, QAT or GLOBAL as appropriate for the issued endpoint.",
-            "Save region, profile ID and server key, enable and test.",
-            "Select PayTabs in Store settings. The app adds the callback per payment; verify a test-profile checkout and refund."
-          ],
-          "verify": "Test connection runs a transaction query without creating a charge. A no-record/provider error is reported as an error rather than a successful credential test. Orders with an unverified captured reference, amount or currency stay in review. Use Recheck payment after fixing the connection; do not charge again.",
-          "errors": "Unauthorized: verify regional host, profile and server key together. Signature mismatch: use the profile server key. No-record query results need account-backed verification.",
-          "limits": "Confirm test mode with PayTabs directly. Browser return signatures and raw callback signatures are distinct; callback verification is handled by the adapter."
-        }
+        "description": "Cards, mada and Apple Pay on PayTabs' hosted page. Region is the PayTabs account's region: ARE, SAU, OMN, JOR, EGY, IRQ or GLOBAL. PayTabs posts each payment's result to the website by itself."
       },
       "moyasar": {
         "name": "Moyasar",
-        "description": "mada, cards, Apple Pay and STC Pay on Moyasar's hosted invoice page. Test keys (sk_test_…) keep it in test mode. Add a webhook to the website's /api/store/payment/webhook/moyasar address and use the same secret token here.",
-        "guide": {
-          "prerequisites": "A Moyasar account with hosted invoices and the intended currency/method enabled.",
-          "permissions": "A server secret key and the webhook secret token configured in the dashboard.",
-          "environment": "sk_test_ identifies test keys. Verify the merchant-supported currency and invoice minimum before selecting this gateway.",
-          "steps": [
-            "Register the webhook below for payment success/failure events and save its secret token.",
-            "Save the server key, enable and run Test connection.",
-            "Select Moyasar in Store settings, then verify a test invoice, payment event and refund."
-          ],
-          "verify": "Test connection reads invoice access. The invoice success URL is a browser return; invoice callback_url is not pointed at that browser handler. Orders with an unverified captured reference, amount or currency stay in review. Use Recheck payment after fixing the connection; do not charge again.",
-          "errors": "401: verify the secret key. Secret-token mismatch: check the webhook setting. Small amounts/currency restrictions require an accepted amount or another gateway.",
-          "limits": "Invoice creation and payment notifications are separate contracts. The app relies on the configured verified payment webhook for settlement notifications."
-        }
+        "description": "mada, cards, Apple Pay and STC Pay on Moyasar's hosted invoice page. Test keys (sk_test_…) keep it in test mode. Add a webhook to the website's /api/store/payment/webhook/moyasar address and use the same secret token here."
       },
       "hyperpay": {
         "name": "HyperPay",
-        "description": "Cards and mada in HyperPay's card form, shown on the website's own payment page. Environment: test or live; brands such as VISA MASTER MADA. Add a webhook to the website's /api/store/payment/webhook/hyperpay address and paste its decryption key.",
-        "guide": {
-          "prerequisites": "A HyperPay entity, bearer token, approved brands and webhook encryption key.",
-          "permissions": "Entity access for checkout, payment status and refunds; the 64-character hexadecimal webhook key issued for this entity.",
-          "environment": "Use test with test entity credentials, then live with the approved live entity. Approved wallet/brand configuration is account-specific.",
-          "steps": [
-            "Register the website webhook below in HyperPay and obtain its encryption key.",
-            "Save environment, entity, token, space-separated brands and webhook key, then test.",
-            "Select HyperPay in Store settings and verify hosted widget, encrypted notification and refund in test mode."
-          ],
-          "verify": "The test performs a non-charging entity request. Status errors stay unavailable and do not cancel unresolved remote payments. Orders with an unverified captured reference, amount or currency stay in review. Use Recheck payment after fixing the connection; do not charge again.",
-          "errors": "Unauthorized: match entity/token/environment. Decryption errors: check the 32-byte hex key. Excess amount precision: choose another payment method.",
-          "limits": "The current COPYandPAY contract accepts two decimal places. Amounts exceeding accepted precision are rejected before checkout/refund, rather than rounded. Widget/wallet availability needs merchant acceptance."
-        }
+        "description": "Cards and mada in HyperPay's card form, shown on the website's own payment page. Environment: test or live; brands such as VISA MASTER MADA. Add a webhook to the website's /api/store/payment/webhook/hyperpay address and paste its decryption key."
       },
       "aramex": {
         "name": "Aramex",
-        "description": "Books shipments through Aramex's API with a label link, and reads their tracking. Environment: test or live; the account details are on your Aramex contract.",
-        "guide": {
-          "prerequisites": "An Aramex API-enabled shipping account with sender details and test/live credentials.",
-          "permissions": "API username/password, account number/PIN, account entity and account country for the same account.",
-          "environment": "Use test credentials with test and approved live credentials with live. A tracking check does not buy a label.",
-          "steps": [
-            "Obtain account credentials from Aramex and confirm the account entity/country.",
-            "Save all fields, enable and run Test connection.",
-            "Verify a controlled booking, returned tracking/label and tracking updates with Aramex before using live shipments."
-          ],
-          "verify": "The connection check sends a non-booking tracking query. Account and internal service errors are reported as failures.",
-          "errors": "ERR01: credentials. ERR02: account. ERR03: blocked account. ERR00: provider/internal failure; retry after resolving the service issue. If a booking outcome is uncertain, reconcile the shipment reference with the original carrier before recording tracking or approving a retry.",
-          "limits": "Automatic booking supports one measured parcel. For several parcels, book in the carrier portal and record its tracking number here. Account/product acceptance still needs Aramex verification. Tracking is polled; no inbound courier callback is implemented."
-        }
+        "description": "Books shipments through Aramex's API with a label link, and reads their tracking. Environment: test or live; the account details are on your Aramex contract."
       },
       "dhl_express": {
         "name": "DHL Express",
-        "description": "Books shipments through the MyDHL API with a PDF label, and reads their tracking. Environment: test or live.",
-        "guide": {
-          "prerequisites": "A DHL Express account, MyDHL API application and approved sender/product details.",
-          "permissions": "The API key/secret used for Basic authentication and the shipping account number.",
-          "environment": "Use test for the MyDHL test endpoint and live only after DHL live approval. Both key and secret are masked after saving.",
-          "steps": [
-            "Obtain the MyDHL key/secret and shipping account number.",
-            "Save the matching environment and credentials, enable and test.",
-            "Before live use, validate a measured parcel, address, product, label and tracking flow against your DHL contract."
-          ],
-          "verify": "Test connection calls a non-booking endpoint. It does not establish label purchase or product/country eligibility.",
-          "errors": "401: check key/secret and endpoint. Account/product errors: confirm the DHL account entitlement and shipping lane. If a booking outcome is uncertain, reconcile the shipment reference with the original carrier before recording tracking or approving a retry.",
-          "limits": "Automatic booking requires the measured weight, length, width and height of one parcel. For several parcels, use the DHL portal and record its tracking number. Account/product acceptance needs DHL verification. Tracking is polled; no inbound DHL webhook is implemented."
-        }
+        "description": "Books shipments through the MyDHL API with a PDF label, and reads their tracking. Environment: test or live."
       },
       "smsa": {
         "name": "SMSA Express",
-        "description": "Books shipments through SMSA's e-commerce API with a PDF waybill, and reads their tracking. Environment: test or live.",
-        "guide": {
-          "prerequisites": "An SMSA API-enabled merchant account and the API contract/credentials issued by SMSA.",
-          "permissions": "The account API key authorized for the implemented eCommerce endpoints.",
-          "environment": "Confirm the test/live endpoint and key with SMSA. Do not assume a live key is safe for test shipments.",
-          "steps": [
-            "Obtain the API key and confirm the eCommerce contract/version with SMSA.",
-            "Save the agreed environment and key, enable and test.",
-            "Verify controlled booking, tracking response and label behavior with SMSA before live use."
-          ],
-          "verify": "The test sends a non-booking tracking query and validates its response. Network errors and unsupported response shapes fail.",
-          "errors": "Unauthorized: check the key and environment. No-record errors do not prove authentication; confirm the account using an agreed test tracking number. If a booking outcome is uncertain, reconcile the shipment reference with the original carrier before recording tracking or approving a retry.",
-          "limits": "Automatic booking requires the measured weight of one parcel. For several parcels, use the carrier portal and record its tracking number. The issued SMSA contract and label flow still need account-backed acceptance. Tracking is polled; no inbound webhook is implemented."
-        }
+        "description": "Books shipments through SMSA's e-commerce API with a PDF waybill, and reads their tracking. Environment: test or live."
       }
     },
     "fields": {
@@ -636,96 +383,14 @@
     "account": "Account",
     "lastChecked": "Checked",
     "lastSynced": "Synced",
-    "never": "Never",
-    "docs": "Setup guide",
-    "whatsappTest": "Send a test message",
     "whatsappTo": "Number with country code",
     "send": "Send",
     "sent": "Message accepted by WhatsApp",
     "configure": "Set up",
-    "fieldPlaceholder": "Enter {label}",
-    "setup": {
-      "title": "Setup and verification",
-      "prerequisites": "Before you start",
-      "permissions": "Permissions",
-      "environment": "Test and live environments",
-      "steps": "Setup steps",
-      "verify": "What the test checks",
-      "errors": "Common errors",
-      "limits": "Current limits",
-      "addresses": "Addresses for this installation",
-      "callback": "Sign-in callback",
-      "webhook": "Webhook endpoint",
-      "return": "Browser return base",
-      "returnHelp": "The app adds payment-attempt parameters when it starts a checkout. Do not register this address as a payment notification endpoint.",
-      "noCallback": "No inbound callback is implemented for this connection.",
-      "missingOrigin": "Set a valid public website/admin domain in Company settings or deployment configuration before registering a callback.",
-      "copy": "Copy",
-      "copyAddress": "Copy {kind}",
-      "copied": "Address copied",
-      "copyFailed": "Could not copy. Select the address and copy it manually.",
-      "requiredField": "Enter {label}",
-      "keyUpload": "Choose Apple private key (.p8 or .pem)",
-      "keyReady": "New private key selected; it will be encrypted when saved.",
-      "keyInvalid": "Choose a valid PEM private key file no larger than 2000 bytes.",
-      "discardTitle": "Discard connection changes?",
-      "discardBody": "The changes to this connection have not been saved.",
-      "discard": "Discard changes",
-      "formatOk": "Credential format and provider availability checked. Complete a website sign-in to verify authentication.",
-      "environments": {
-        "test": "Test",
-        "sandbox": "Sandbox",
-        "live": "Live"
-      },
-      "readingKey": "Reading key…"
-    },
-    "placeholders": {
-      "pageId": "Numeric Facebook Page ID",
-      "instagramAccountId": "Numeric linked Instagram account ID",
-      "accessToken": "Paste the authorized account access token",
-      "phoneId": "WhatsApp phone number ID, not the phone number",
-      "businessId": "WhatsApp Business account ID (optional)",
-      "token": "Paste the authorized WhatsApp access token",
-      "channelId": "UC… channel ID, not a channel handle",
-      "apiKey": "Paste the server API key",
-      "username": "Account username; X: omit @",
-      "bearerToken": "Paste the X project bearer token",
-      "organizationId": "Numeric LinkedIn organization ID",
-      "fromEmail": "billing@example.com",
-      "webhookSecret": "Paste this endpoint’s signing secret/token",
-      "clientId": "OAuth web application client ID",
-      "clientSecret": "Paste the web client secret",
-      "serviceId": "com.example.website",
-      "teamId": "10-character Apple Team ID",
-      "keyId": "10-character Apple Key ID",
-      "privateKey": "Select the downloaded .p8 file",
-      "secretKey": "Server secret key for the intended environment",
-      "environment": "test / sandbox, or live",
-      "webhookId": "PayPal webhook ID for this app and mode",
-      "apiPrefix": "Account prefix only, such as account123",
-      "processingChannelId": "pc_… processing channel ID",
-      "billingCountry": "Two-letter country code, such as BH",
-      "region": "SAU / ARE / EGY / OMN / JOR / IRQ / KWT / MAR / QAT / GLOBAL",
-      "profileId": "Numeric PayTabs profile ID",
-      "serverKey": "Paste the profile’s server key",
-      "entityId": "HyperPay entity ID for this environment",
-      "brands": "VISA MASTER",
-      "webhookKey": "64 hexadecimal characters",
-      "password": "Paste the API account password",
-      "accountNumber": "Account number issued by the carrier",
-      "accountPin": "Paste the account PIN",
-      "accountEntity": "Account entity code issued by Aramex",
-      "accountCountryCode": "Two-letter account country code, such as BH",
-      "apiSecret": "Paste the MyDHL API secret",
-      "ownerAccessToken": "Owner OAuth token with youtube.readonly and yt-analytics.readonly",
-      "refreshToken": "Refresh token issued with offline owner consent"
-    },
     "description": "Connect your social accounts, WhatsApp and e-mail delivery. Credentials are encrypted and never shown again after saving.",
     "readOnly": "Your role can see integrations but not change them.",
     "failed": "The integration could not be changed.",
     "unavailable": "The system service is not reachable right now.",
-    "cannotExecute": "Your role cannot run tests or syncs.",
-    "cannotDelete": "Your role cannot disconnect integrations.",
     "cancel": "Cancel",
     "save": "Save",
     "saving": "Saving…",
@@ -1022,19 +687,6 @@
     }
   },
   "staffPermissionLabels": {
-    "groups": {
-      "finance": "Finance",
-      "crm": "CRM & Operations",
-      "hr": "Human Resources",
-      "cms": "Website Content",
-      "operations": "Scheduling",
-      "administration": "Administration",
-      "communications": "Communications",
-      "commerce": "Products & stock",
-      "work": "Tasks and projects",
-      "outreach": "Marketing and PR",
-      "legal": "Legal"
-    },
     "actions": {
       "approve": "Approve",
       "export": "Export",
@@ -1113,7 +765,6 @@
     "previewHint": "Preview edited access before creating or saving the account.",
     "effective": "Effective access",
     "save": "Save account",
-    "cancel": "Cancel",
     "invite": "Send invitation",
     "suspend": "Suspend account",
     "suspendConfirm": "Are you sure you want to suspend this staff account?",
@@ -1129,7 +780,6 @@
     "none": "No staff accounts yet.",
     "next": "Next page",
     "first": "First page",
-    "read": "Allowed",
     "denied": "Denied",
     "own": "Own records",
     "department": "Department records",
@@ -1423,80 +1073,6 @@
     "failed": "Could not complete API key action."
   },
   "itSupport": {
-    "title": "IT support",
-    "subtitle": "Ask the IT team for devices, access, software or network help, and follow your requests.",
-    "newTicket": "New request",
-    "empty": "You have no IT requests yet.",
-    "loadMore": "Load more",
-    "unavailable": "IT support is not reachable right now. Try again shortly.",
-    "number": "Request #{number}",
-    "category": "Category",
-    "subcategory": "Type",
-    "priority": "Priority",
-    "ticketTitle": "Subject",
-    "titlePlaceholder": "A short summary of what you need",
-    "description": "Details",
-    "descriptionPlaceholder": "What happened, what you need, and anything you have already tried.",
-    "assetRef": "Asset tag (optional)",
-    "assetRefHint": "The tag on the device or licence, if you know it.",
-    "attachments": "Attachments",
-    "addAttachment": "Add a screenshot or file",
-    "attachmentsHint": "Images or PDF files.",
-    "uploading": "Uploading…",
-    "removeAttachment": "Remove attachment",
-    "submit": "Send request",
-    "submitting": "Sending…",
-    "submitFailed": "The request could not be sent.",
-    "uploadFailed": "The file could not be uploaded.",
-    "actionFailed": "The change could not be saved.",
-    "respondBy": "Response due",
-    "resolveBy": "Resolution due",
-    "overdue": "Past due",
-    "assignee": "Handled by",
-    "unassigned": "Not assigned yet",
-    "conversation": "Conversation",
-    "noComments": "No messages yet.",
-    "commentPlaceholder": "Write a message to the IT team",
-    "sendComment": "Send",
-    "commentSent": "Message sent",
-    "closedNoComments": "This request is closed. Reopen it or raise a new one.",
-    "history": "History",
-    "updated": "Request updated",
-    "statuses": {
-      "new": "New",
-      "triaged": "Triaged",
-      "assigned": "Assigned",
-      "in_progress": "In progress",
-      "waiting_on_requester": "Waiting for you",
-      "resolved": "Resolved",
-      "closed": "Closed",
-      "cancelled": "Cancelled"
-    },
-    "priorities": {
-      "critical": "Critical",
-      "high": "High",
-      "normal": "Normal",
-      "low": "Low"
-    },
-    "transitions": {
-      "provide_info": "I have sent the information",
-      "reopen": "Reopen",
-      "close": "Confirm and close",
-      "cancel": "Cancel request"
-    },
-    "events": {
-      "created": "Request raised",
-      "comment": "Message",
-      "triage": "Reviewed by IT",
-      "assign": "Assigned",
-      "start": "Work started",
-      "request_info": "IT asked for information",
-      "provide_info": "Information sent",
-      "resolve": "Resolved",
-      "reopen": "Reopened",
-      "close": "Closed",
-      "cancel": "Cancelled"
-    },
     "notifications": {
       "updated": {
         "title": "Ticket #{number} was updated",
@@ -1510,100 +1086,14 @@
   },
   "shared": {
     "common": {
-      "save": "Save",
-      "saved": "Saved successfully",
-      "saveChanges": "Save Changes",
-      "saving": "Saving…",
-      "cancel": "Cancel",
-      "close": "Close",
-      "confirm": "Confirm",
-      "confirmAction": "Confirm Action",
-      "delete": "Delete",
-      "edit": "Edit",
-      "create": "Create",
-      "update": "Update",
-      "add": "Add",
-      "remove": "Remove",
-      "view": "View",
-      "download": "Download",
-      "downloadPdf": "Download PDF",
-      "print": "Print",
-      "printDocument": "Print Document",
-      "search": "Search",
-      "searchPlaceholder": "Search…",
-      "quickSearch": "Quick search…",
-      "filter": "Filter",
-      "all": "All",
-      "status": "Status",
-      "actions": "Actions",
-      "date": "Date",
-      "notes": "Notes",
-      "yes": "Yes",
-      "no": "No",
-      "loading": "Loading…",
-      "back": "Back",
-      "next": "Next",
-      "previous": "Previous",
-      "retry": "Retry",
-      "tryAgain": "Try again",
-      "refresh": "Refresh",
-      "none": "None",
-      "email": "Email",
-      "phoneNumber": "Phone Number",
-      "language": "Language",
-      "submitting": "Submitting…",
-      "url": "Link",
-      "currency": "Currency",
-      "sendEmail": "Send via Email",
-      "sendWhatsApp": "Send via WhatsApp"
+      "cancel": "Cancel"
     },
     "ui": {
-      "save": "Save",
-      "saved": "Saved successfully",
-      "saveChanges": "Save Changes",
-      "saving": "Saving…",
       "cancel": "Cancel",
       "close": "Close",
       "confirm": "Confirm",
-      "confirmAction": "Confirm Action",
-      "delete": "Delete",
-      "edit": "Edit",
-      "create": "Create",
-      "update": "Update",
-      "add": "Add",
       "remove": "Remove",
-      "view": "View",
-      "download": "Download",
-      "downloadPdf": "Download PDF",
-      "print": "Print",
-      "printDocument": "Print Document",
-      "search": "Search",
-      "searchPlaceholder": "Search…",
-      "quickSearch": "Quick search…",
-      "filter": "Filter",
-      "all": "All",
-      "status": "Status",
-      "actions": "Actions",
-      "date": "Date",
-      "notes": "Notes",
-      "yes": "Yes",
-      "no": "No",
       "loading": "Loading…",
-      "back": "Back",
-      "next": "Next",
-      "previous": "Previous",
-      "retry": "Retry",
-      "tryAgain": "Try again",
-      "refresh": "Refresh",
-      "none": "None",
-      "email": "Email",
-      "phoneNumber": "Phone Number",
-      "language": "Language",
-      "submitting": "Submitting…",
-      "url": "Link",
-      "currency": "Currency",
-      "sendEmail": "Send via Email",
-      "sendWhatsApp": "Send via WhatsApp",
       "clickToUpload": "Click to upload",
       "dropFiles": "or drag and drop files",
       "kilobytes": "KB",
@@ -1620,7 +1110,6 @@
       "countryCode": "Country code",
       "phoneNational": "National phone number",
       "invalidPhone": "Enter a valid phone number and choose its country code.",
-      "invalidEmail": "Enter a valid email address (e.g. name@domain.com).",
       "avatarTitle": "Profile photo",
       "avatarDescription": "Your photo appears next to your name across the workspace. Without one, your initials show.",
       "avatarCurrent": "Current photo",
@@ -1658,10 +1147,7 @@
       "avatarUnsupported": "Choose a PNG, JPEG or WebP image.",
       "avatarTooLarge": "The photo is larger than {size} MB.",
       "avatarUnreadable": "This image could not be opened. Try another file.",
-      "avatarFailed": "The photo could not be saved. Please try again.",
-      "presenceStatus": "Status",
-      "presenceUntil": "Until {time}",
-      "presenceLastSeen": "Last seen {time}"
+      "avatarFailed": "The photo could not be saved. Please try again."
     }
   }
 }

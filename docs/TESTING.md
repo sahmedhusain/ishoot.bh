@@ -91,7 +91,7 @@ These need running servers and are not part of CI:
 
 | Script                                               | Purpose                                                                                                                   |
 | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `node scripts/check-website-http.cjs`                | Website HTTP behaviour against a preview server on a `_test` database (fixtures: `node company/seed/website-preview.cjs`) |
+| `node apps/web/scripts/check-website-http.cjs`       | Website HTTP behaviour against a preview server on a `_test` database (fixtures: `node company/seed/website-preview.cjs`) |
 | `node scripts/check-admin-followup-http.cjs`         | Admin HTTP follow-up checks against a running server                                                                      |
 | `node scripts/profile-local-http.cjs`                | Local response-time baseline (not a production benchmark)                                                                 |
 | `node scripts/test-heavy-load-and-optimizations.cjs` | Stress and edge-case scenarios on a `_test` database                                                                      |

@@ -125,16 +125,16 @@ export function mapDeal(d: any): CRMDeal {
     stage: (d.dealStage as DealStage) || "lead",
     probability: d.probability,
     target_close_date: d.expectedCloseDate
-      ? d.expectedCloseDate.toISOString().split("T")[0]
+      ? (typeof d.expectedCloseDate === "string" ? d.expectedCloseDate : d.expectedCloseDate.toISOString()).split("T")[0]
       : undefined,
     shoot_date: d.shootDate
-      ? d.shootDate.toISOString().split("T")[0]
+      ? (typeof d.shootDate === "string" ? d.shootDate : d.shootDate.toISOString()).split("T")[0]
       : undefined,
     lost_reason: d.lostReason || undefined,
     assigned_to: d.assignedTo || undefined,
     notes: d.notes || undefined,
-    created_at: d.createdAt.toISOString(),
-    updated_at: d.updatedAt.toISOString(),
+    created_at: typeof d.createdAt === "string" ? d.createdAt : d.createdAt?.toISOString?.() ?? new Date().toISOString(),
+    updated_at: typeof d.updatedAt === "string" ? d.updatedAt : d.updatedAt?.toISOString?.() ?? new Date().toISOString(),
   };
 }
 
@@ -432,9 +432,29 @@ export async function getCustomerDossier(
 export async function advanceDealForEvent(
   tx: any,
   dealId: string | null | undefined,
-  event: string,
-) {
-  if (!dealId) return;
+  event: DealProgressEvent,
+): Promise<boolean> {
+  if (!dealId) return false;
+  const target = DEAL_STAGE_ON_EVENT[event];
+  if (!target) return false;
+  const stages = await tx.dealPipelineStage.findMany({
+    select: { id: true, sortOrder: true, kind: true, probability: true },
+  });
+  const goal = stages.find((stage: any) => stage.id === target);
+  if (!goal) return false;
+  const before = stages
+    .filter(
+      (stage: any) => stage.kind === "open" && stage.sortOrder < goal.sortOrder,
+    )
+    .map((stage: any) => stage.id);
+  const { count } = await tx.crmDeal.updateMany({
+    where: { id: dealId, dealStage: { in: before } },
+    data: {
+      dealStage: target,
+      probability: goal.probability ?? DEAL_STAGE_DEFAULTS[target].probability,
+    },
+  });
+  return count > 0;
 }
 
 export async function createCRMContact(

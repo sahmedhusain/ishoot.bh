@@ -2,15 +2,25 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const vm = require("node:vm");
-const { createRequire } = require("node:module");
+const path = require("node:path");
 const ts = require("typescript");
+
+const adminRoot = path.resolve(__dirname, "..");
 const { realConstants } = require("./lib/real-constants.cjs");
-const appRequire = createRequire(require.resolve("../apps/admin/package.json"));
-const React = appRequire("react");
-const { renderToStaticMarkup } = appRequire("react-dom/server");
+const React = require("react");
+const { renderToStaticMarkup } = require("react-dom/server");
+
+function resolveAdmin(file) {
+  if (path.isAbsolute(file)) return file;
+  if (file.startsWith("apps/admin/")) return path.join(adminRoot, file.slice("apps/admin/".length));
+  if (file.startsWith("../apps/admin/")) return path.join(adminRoot, file.slice("../apps/admin/".length));
+  return path.resolve(adminRoot, file);
+}
+
 function load(file, mocks = {}) {
+  const filePath = resolveAdmin(file);
   const module = { exports: {} };
-  const code = ts.transpileModule(fs.readFileSync(file, "utf8"), {
+  const code = ts.transpileModule(fs.readFileSync(filePath, "utf8"), {
     compilerOptions: {
       module: ts.ModuleKind.CommonJS,
       target: ts.ScriptTarget.ES2022,
@@ -22,9 +32,9 @@ function load(file, mocks = {}) {
     module,
     exports: module.exports,
     require(id) {
-      if (id === "react" || id === "react/jsx-runtime") return appRequire(id);
+      if (id === "react" || id === "react/jsx-runtime") return require(id);
       if (id in mocks) return mocks[id];
-      const real = realConstants(file, id);
+      const real = realConstants(filePath, id);
       if (real) return real;
       throw new Error("Unmocked dependency: " + id);
     },
@@ -35,9 +45,10 @@ function load(file, mocks = {}) {
   });
   return module.exports;
 }
-const nav = load("apps/admin/lib/sidebar-navigation.ts");
+
+const nav = load("lib/sidebar-navigation.ts");
 const { ROUTES } = realConstants(
-  "apps/admin/x.ts",
+  path.join(adminRoot, "x.ts"),
   "@platform/database/constants/routes",
 );
 for (const [role, group] of Object.entries({
@@ -67,9 +78,9 @@ assert.equal(
   undefined,
 );
 for (const locale of ["en", "ar"]) {
-  const t = require("../apps/admin/locales/" + locale + ".json").admin;
+  const t = require(path.join(adminRoot, "locales", locale + ".json")).admin;
   function render(role, can, disabled = [], pathname = ROUTES.hr.payroll()) {
-    const { Sidebar } = load("apps/admin/components/layout/Sidebar.tsx", {
+    const { Sidebar } = load("components/layout/Sidebar.tsx", {
       "next/link": ({ children, ...props }) =>
         React.createElement("a", props, children),
       "next/navigation": { usePathname: () => pathname },

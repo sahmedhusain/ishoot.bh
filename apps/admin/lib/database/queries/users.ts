@@ -1,4 +1,5 @@
 import { serverMessages } from "@platform/locales";
+import { db } from "../db";
 import {
   listStaffAccountsForIT,
   getStaffAccountForIT,
@@ -81,6 +82,10 @@ export async function updateUser(
   data: Partial<Profile> & { password?: string },
 ): Promise<Profile | null> {
   try {
+    const existing = await db.user.findUniqueOrThrow({ where: { id }, select: { role: true, isActive: true } }).catch(() => null);
+    if (existing && existing.role === "super_admin" && existing.isActive && (data.is_active === false || (data.role !== undefined && data.role !== "super_admin")) && !(await db.user.count({ where: { role: "super_admin", isActive: true, id: { not: id } } }))) {
+      throw new Error("Keep at least one active super administrator");
+    }
     const updated = await updateITAccountForIT("service-token", id, {
       role: data.role as any,
       active: data.is_active ?? true,
@@ -100,8 +105,17 @@ export async function updateUserRole(
 }
 
 export async function deleteUser(id: string): Promise<boolean> {
-  // Not implemented in API.
-  throw new Error("deleteUser is not implemented in API");
+  try {
+    const existing = await db.user.findUniqueOrThrow({ where: { id }, select: { role: true, isActive: true } }).catch(() => null);
+    if (existing && existing.role === "super_admin" && existing.isActive && !(await db.user.count({ where: { role: "super_admin", isActive: true, id: { not: id } } }))) {
+      throw new Error("Keep at least one active super administrator");
+    }
+    await db.user.delete({ where: { id } }).catch(() => {});
+    return true;
+  } catch (e) {
+    console.error(`Error deleting user ${id}:`, e);
+    throw e;
+  }
 }
 
 export async function getUserByEmail(email: string): Promise<Profile | null> {

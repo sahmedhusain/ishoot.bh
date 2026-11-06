@@ -21,17 +21,12 @@ backend/
   services/     16 Go microservices (identity, system, files, notify, realtime, itsm, audit,
                 gateway, cms, sales, finance, workflow, hr, inventory, commerce, delivery)
   pkg/          Shared Go libraries (httpx, outbox, authn, db, catalog, telemetry, logx)
-packages/
-  api-client/   Typed TypeScript API client generated from OpenAPI specs
-  ui/           Shared React components
-  locales/      Arabic and English copy
-  email/        Email delivery and templates
-  config/       Tailwind preset (reads the company theme), currency and shared constants
+contracts/      Canonical event schemas, catalog definitions, and test fixtures
 company/
   profiles/     One folder per company: identity, theme, logos, fonts, media (demo = neutral example)
   seed/         Demo business data
   tools/        Installs a profile into the database and file storage
-scripts/        Check suites, workers, bootstrap, reset and the .env tool
+scripts/        Workspace check suites, workers, bootstrap, reset and the .env tool
 docs/           Guides and architecture documentation
 run.sh          One entry point for setup, services, databases, development, tests and deployment
 ```
@@ -78,7 +73,7 @@ This installs dependencies, creates `.env` from [`.env.example`](.env.example) w
 | Deployment      | `deploy check` · `deploy prepare` (check, migrate, build) · `deploy migrate` · `deploy vercel <admin\|web\|all> [--prod]` · `deploy self`                                                                                                                    |
 | Other           | `docs` (API reference) · `company list\|demo-assets` · `audit` · `urls`                                                                                                                                                                                      |
 
-Each frontend application (`apps/admin`, `apps/it`, `apps/web`) is an independent npm application and can also be run or tested directly within its directory (`npm run dev`, `npm run test:unit`, `npm run test:e2e`).
+Each frontend application (`apps/admin`, `apps/it`, `apps/web`) is a strictly decoupled, independent npm application containing its own libraries, contracts, components, localized copy, scripts, and tests. They can be executed independently (e.g. `npm run dev`, `npm run type-check`, `npm test`, `npm run test:e2e`), or orchestrated centrally via the root `package.json` (`npm run test:admin`, `npm run check:admin`, etc.) and `./run.sh`.
 
 ## Guides
 

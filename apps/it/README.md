@@ -37,17 +37,26 @@ The IT department's operational dashboard (see [docs/ARCHITECTURE.md](../../docs
 ## Running
 
 ```bash
-# Standalone run
+## Development, Checks & Testing
+
+```bash
+# Standalone run (port 3002)
 npm run dev
 
 # Or via run.sh
 ./run.sh dev it
+
+# Type check
+npm run type-check
+
+# Vitest unit tests
+npm test
+
+# Playwright journey covering IT login, ticket workflows, modules, staff access management, and session revocation
+npm run test:e2e
+
+# Domain-specific check suites
+npm run check:support      # Support claims and HR support checks
+npm run check:security     # Security action boundaries audit
+npm run check:deployment   # Deployment environment configuration validation
 ```
-
-The app runs on port 3002.
-
-## Testing
-
-Standalone tests are located in `apps/it/tests/`:
-- `npm run test:unit`: Vitest unit tests for IT components and helpers.
-- `npm run test:e2e`: Playwright journey covering IT login, ticket workflows, modules, staff access management, and session revocation.

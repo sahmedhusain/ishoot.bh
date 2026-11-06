@@ -1,5 +1,15 @@
 import { defineConfig, devices } from "@playwright/test";
 
+export const ports = {
+  admin: Number(process.env.ADMIN_PORT) || 3012,
+  web: Number(process.env.WEB_PORT) || 3013,
+  setup: 3014,
+  it: Number(process.env.IT_PORT) || 3015,
+  stripe: 3199,
+};
+
+export const cronSecret = process.env.CRON_SECRET || "e2e-cron-secret";
+
 export default defineConfig({
   testDir: "./tests/e2e",
   outputDir: "./tests/.results/playwright",

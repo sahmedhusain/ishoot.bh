@@ -32,6 +32,5 @@
     "paymentRegionInvalid": "The region must be one of {0}.",
     "providerMissingField": "Missing {field}",
     "providerSyncWaiting": "Wait until {time} before retrying the sync."
-  },
-  "generic": "Something went wrong. Please try again."
+  }
 }

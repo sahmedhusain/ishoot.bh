@@ -22,10 +22,13 @@ beforeEach(() => {
 });
 
 test("every kept provider has both setup guides and useful field formats", () => {
-  const localeDir = path.resolve(__dirname, "../../../../apps/it/locales");
-  const locales = ["en", "ar"].map((locale) =>
-    JSON.parse(readFileSync(path.join(localeDir, `${locale}.json`), "utf8")),
-  );
+  const localeDir = path.resolve(__dirname, "../../locales");
+  const locales = ["en", "ar"].map((locale) => {
+    const json = JSON.parse(
+      readFileSync(path.join(localeDir, `${locale}.json`), "utf8"),
+    );
+    return json.admin ?? json;
+  });
   const documentation = readFileSync(
     path.resolve(__dirname, "../../../../docs/INTEGRATIONS.md"),
     "utf8",
@@ -41,8 +44,8 @@ test("every kept provider has both setup guides and useful field formats", () =>
       expect(guide.steps.length).toBeGreaterThanOrEqual(3);
       for (const field of provider.fields)
         expect(
-          locale.integrations.placeholders[
-            field.key as keyof typeof locale.integrations.placeholders
+          locale.integrations.fields[
+            field.key as keyof typeof locale.integrations.fields
           ],
         ).toBeTruthy();
     }

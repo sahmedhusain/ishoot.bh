@@ -22,7 +22,7 @@ Browser ──▶ apps/web · apps/admin · apps/it   (Next.js: UI, cookies, Ser
 - **`apps/it`**: The IT operational dashboard. Operates against its own `identity` realm with mandatory TOTP MFA. Manages ticket queues, SLA configuration, system health probes, module switches, company branding, database maintenance, staff access, and audit trail inspection.
 - **`apps/web`**: The public-facing website and customer storefront in Arabic (`/ar`) and English (`/en`). Renders published CMS blocks, product catalog, customer accounts, shopping cart, checkout, payment webhooks, and shipment tracking.
 
-The frontends are standalone npm applications referencing shared packages (`@platform/ui`, `@platform/config`, `@platform/locales`, `@platform/api-client`, `@platform/email`) via local file dependencies without requiring a monorepo workspace tool.
+The frontends are completely decoupled, standalone npm applications. Each application owns its dedicated `lib/`, `contracts/`, `components/`, `locales/`, `scripts/`, and `tests/`, without shared package dependencies or monorepo workspace requirements. Inter-application communication is strictly bounded through backend APIs, gateways, or the database.
 
 ## Go Microservices Backend
 

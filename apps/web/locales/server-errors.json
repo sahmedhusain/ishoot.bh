@@ -124,6 +124,5 @@
     "unknownStatisticPreset0": "Unknown statistic preset: {0}",
     "unsupportedCurrencyUseOneOf0": "Unsupported currency. Use one of {0}",
     "paymentRegionInvalid": "The region must be one of {0}."
-  },
-  "generic": "Something went wrong. Please try again."
+  }
 }

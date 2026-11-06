@@ -6,7 +6,7 @@ import { en as webEn } from "../../locales";
 import { ar as webAr } from "../../locales";
 import { paymentLinkToken } from "../../lib/database/services/payment-links";
 import { serverMessages } from "../../locales";
-import { ports } from "../../../../playwright.config";
+import { ports } from "../../playwright.config";
 import { testDatabase } from "../../helpers";
 const en = enLocale.admin;
 const ar = arLocale.admin;

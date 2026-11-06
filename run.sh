@@ -866,7 +866,7 @@ cmd_deploy() {
       step "Checking .env for production"
       node scripts/env-tool.cjs check --production || true
       step "Deployment configuration"
-      node scripts/check-deployment-config.cjs
+      node apps/it/scripts/check-deployment-config.cjs
       ;;
     prepare)
       cmd_deploy check
@@ -921,7 +921,7 @@ cmd_audit() {
   case "${1:-inventory}" in
     inventory) node scripts/inventory-platform.cjs ;;
     identities) node scripts/check-customer-identities.cjs ;;
-    security) node scripts/check-audit-security.cjs ;;
+    security) node apps/it/scripts/check-audit-security.cjs ;;
     *) die "audit [inventory|identities|security]" ;;
   esac
 }

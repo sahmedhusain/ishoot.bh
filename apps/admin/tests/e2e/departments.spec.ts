@@ -5,7 +5,7 @@ import path from "node:path";
 import { expect, test } from "@playwright/test";
 import { en } from "../../locales";
 import users from "../../fixtures/users.json";
-import { cronSecret, ports } from "../../../../playwright.config";
+import { cronSecret, ports } from "../../playwright.config";
 import { testDatabase, watchErrors } from "../../helpers";
 import { t } from "../helpers/locale";
 import { enableStore, freshStockedProduct } from "../../store-fixtures";

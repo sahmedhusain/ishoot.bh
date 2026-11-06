@@ -15,18 +15,22 @@ The public-facing website, e-commerce storefront, and customer account portal. B
 - Customer session management through the Go `identity` and `commerce` services.
 - Automatic website revalidation when content changes in CMS via revalidation tokens.
 
-## Development & Testing
+## Development, Checks & Testing
 
 ```bash
 # Start standalone dev server (port 3000)
 npm run dev
 
 # Type check
-npm run types
+npm run type-check
 
 # Run unit tests
-npm run test:unit
+npm test
 
 # Run Playwright end-to-end tests
 npm run test:e2e
+
+# Domain-specific check suites
+npm run check:website       # Website database integrity checks
+npm run check:website-http  # Website HTTP endpoints and preview checks
 ```

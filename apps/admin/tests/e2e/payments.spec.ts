@@ -1,6 +1,6 @@
 import { selectOption } from "../../select-option";
 import { expect, test } from "@playwright/test";
-import { ports } from "../../../../playwright.config";
+import { ports } from "../../playwright.config";
 import { testDatabase, watchErrors } from "../../helpers";
 import { t } from "../helpers/locale";
 import { enableStore, freshStockedProduct } from "../../store-fixtures";

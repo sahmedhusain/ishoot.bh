@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { en } from "@platform/locales";
-import { cronSecret, ports } from "../../../../playwright.config";
+import { cronSecret, ports } from "../../playwright.config";
 import { testDatabase, watchErrors } from "../../helpers";
 import {
   enableStore,

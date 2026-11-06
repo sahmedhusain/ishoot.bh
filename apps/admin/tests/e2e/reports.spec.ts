@@ -1,7 +1,7 @@
 import { selectOption } from "../../select-option";
 import { expect, test } from "@playwright/test";
 import users from "../../fixtures/users.json";
-import { cronSecret, ports } from "../../../../playwright.config";
+import { cronSecret, ports } from "../../playwright.config";
 import { login, testDatabase, watchErrors } from "../../helpers";
 import { t } from "../helpers/locale";
 import {

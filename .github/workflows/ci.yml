@@ -17,8 +17,8 @@ permissions:
 # compose stack, which also runs the backend services the apps call).
 env:
   NODE_VERSION: 22
-  DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/postgres?schema=public
-  DIRECT_URL: postgresql://postgres:disposable_ci_only@localhost:5432/postgres?schema=public
+  DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/postgres?sslmode=disable
+  DIRECT_URL: postgresql://postgres:disposable_ci_only@localhost:5432/postgres?sslmode=disable
   REVALIDATION_SECRET: ci-only-revalidation-secret
   MFA_ENCRYPTION_KEY: ci-only-mfa-key-with-at-least-thirty-two-chars
   ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef"
@@ -71,69 +71,65 @@ jobs:
           if-no-files-found: ignore
 
   database:
-    name: Business rules on Postgres
+    name: Go migrations, bootstrap and company profiles
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: npm --prefix apps/admin run db:generate
-      - uses: ./.github/actions/backend-stack
-      - name: Prepare a bare and a seeded database (full demo volume)
+          cache: npm
+          cache-dependency-path: |
+            apps/admin/package-lock.json
+            company/package-lock.json
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - name: Install seeding dependencies and initialize the disposable stack
         run: |
-          node tests/e2e/prepare-db.cjs bare platform_bare_test
-          SEED_VOLUME=on node tests/e2e/prepare-db.cjs seeded platform_seeded_test
-      - name: Seeded data satisfies every integrity rule
-        run: pnpm db:check-integrity
+          npm --prefix apps/admin ci
+          npm --prefix company ci
+          node scripts/env-tool.cjs init
+      - name: Empty schema bootstraps cleanly and idempotently
         env:
-          DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_seeded_test?schema=public
-          DIRECT_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_seeded_test?schema=public
-      - name: Database checks
-        run: pnpm test:checks:db
+          SUPER_ADMIN_EMAIL: seed@example.test
+          SUPER_ADMIN_PASSWORD: disposable-seed-password
+        run: |
+          ./run.sh db reset --empty --yes
+          ./run.sh db bootstrap
+      - name: Migrate, seed and verify the demo profile
         env:
-          CI: true
-          CHECKS_BARE_DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_bare_test?schema=public
-          CHECKS_SEEDED_DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_seeded_test?schema=public
-      - name: Every company profile seeds and passes the integrity rules
+          SUPER_ADMIN_EMAIL: seed@example.test
+          SUPER_ADMIN_PASSWORD: disposable-seed-password
+          COMPANY_PROFILE: demo
+          SEED_VOLUME: "off"
+        run: ./run.sh db reset --light --profile demo --yes
+      - name: Go backend tests
+        run: make -C backend test
+      - name: Every company profile migrates, seeds and passes its demo checks
         env:
-          DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_profile_test?schema=public
-          DIRECT_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_profile_test?schema=public
           SUPER_ADMIN_EMAIL: seed@example.test
           SUPER_ADMIN_PASSWORD: disposable-seed-password
           SEED_VOLUME: "off"
         run: |
           for dir in company/profiles/*/; do
-            profile="$(basename "$dir")"
+            [ -f "${dir}company.json" ] || continue
+            profile="${dir%/}"
+            profile="${profile##*/}"
             echo "::group::$profile"
-            node tests/e2e/prepare-db.cjs bare platform_profile_test
-            COMPANY_PROFILE=$profile pnpm db:seed
-            pnpm db:check-integrity
+            ./run.sh db reset --light --profile "$profile" --yes
             echo "::endgroup::"
           done
-      - name: Bootstrap a new company from a profile
+      - name: Bootstrap a company profile repeatedly
         env:
-          DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_profile_test?schema=public
-          DIRECT_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_profile_test?schema=public
-          COMPANY_PROFILE: demo
           SUPER_ADMIN_EMAIL: bootstrap@example.test
           SUPER_ADMIN_PASSWORD: disposable-bootstrap-password
         run: |
-          node tests/e2e/prepare-db.cjs bare platform_profile_test
-          pnpm db:bootstrap
-          pnpm db:bootstrap # running it again must be harmless
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: database-results
-          path: tests/.results/
-          if-no-files-found: ignore
+          ./run.sh db reset --empty --yes
+          ./run.sh db bootstrap --profile demo
+          ./run.sh db bootstrap --profile demo
 
   e2e:
     name: End-to-end (admin, setup wizard, website, IT dashboard)
@@ -155,8 +151,8 @@ jobs:
       - uses: ./.github/actions/backend-stack
       - name: Production builds of the apps
         env:
-          DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_e2e_test?schema=public
-          DIRECT_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_e2e_test?schema=public
+          DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_e2e_test?sslmode=disable
+          DIRECT_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_e2e_test?sslmode=disable
           NEXT_DIST_DIR: .next-e2e
           NEXT_PUBLIC_WEB_URL: http://localhost:3013
           NEXT_PUBLIC_ADMIN_URL: http://localhost:3012

@@ -1,3 +1,11 @@
+const path = require("node:path");
+const adminRoot = path.resolve(__dirname, "..");
+function resolveAdmin(file) {
+  if (path.isAbsolute(file)) return file;
+  if (file.startsWith("../apps/admin/")) return path.join(adminRoot, file.slice("../apps/admin/".length));
+  if (file.startsWith("apps/admin/")) return path.join(adminRoot, file.slice("apps/admin/".length));
+  return path.resolve(adminRoot, file);
+}
 /**
  * Comprehensive verification script for Admin Dashboard Plan requirements.
  * Covers:
@@ -16,7 +24,7 @@ const vm = require("node:vm");
 const ts = require("typescript");
 
 function loadTs(file, mocks) {
-  const code = ts.transpileModule(fs.readFileSync(file, "utf8"), {
+  const code = ts.transpileModule(fs.readFileSync(resolveAdmin(file), "utf8"), {
     compilerOptions: {
       module: ts.ModuleKind.CommonJS,
       target: ts.ScriptTarget.ES2022,
@@ -30,11 +38,12 @@ function loadTs(file, mocks) {
     exports: mod.exports,
     require: (id) => {
       id = ((i, m) => i in m ? i : (i.startsWith('@platform/database/') && '@platform/database' in m ? '@platform/database' : i))(id, mocks);
+      if (id === "@platform/api-client" && !(id in mocks)) return new Proxy({}, { get: () => async () => [] });
       if (id === "../finance/company-currency" && !(id in mocks)) return loadTs("../apps/admin/lib/database/finance/company-currency.ts", { "../db": mocks["../db"] });
       if (id === "./contact-validation" && !(id in mocks)) return loadTs("../apps/admin/lib/database/queries/contact-validation.ts", { "../db": mocks["../db"] });
       if (id in mocks) return mocks[id];
       if (id.startsWith("node:")) return require(id);
-      const real = realConstants(file, id);
+      const real = realConstants(resolveAdmin(file), id);
       if (real) return real;
       throw new Error(`Unmocked dependency in ${file}: ${id}`);
     },

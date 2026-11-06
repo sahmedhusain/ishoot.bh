@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import http from "node:http";
 import path from "node:path";
 import type { PrismaClient } from "@prisma/client";
-import { ports } from "../../playwright.config";
+import { ports } from "../../../playwright.config";
 
 // A local stand-in for the few Stripe API calls the store makes (Checkout Sessions, refunds, balance), with a hosted
 // "payment page" that, like Stripe, sends a signed webhook to the website and then returns the customer. The test

@@ -19,18 +19,28 @@ The internal enterprise business system for staff and management. Built with Nex
 - Staff authentication is managed via the `identity` service using JWT session cookies and optional TOTP MFA.
 - Authorization is enforced by `requirePermission(resource, action)` before every privileged server action.
 
-## Development & Testing
+## Development, Checks & Testing
 
 ```bash
 # Start standalone dev server (port 3001)
 npm run dev
 
 # Type check
-npm run types
+npm run type-check
 
 # Run unit tests
-npm run test:unit
+npm test
 
 # Run Playwright end-to-end tests
 npm run test:e2e
+
+# Domain-specific check suites
+npm run check:dashboard    # Dashboard layout and widgets verification
+npm run check:navigation   # Bilingual navigation & permission gates
+npm run check:plan         # Comprehensive Admin Dashboard plan verification
+npm run check:approvals    # Approvals engine verification
+npm run check:gosi         # GOSI settlement database checks
+npm run check:payroll      # Payroll calculation and item lines
+npm run check:finance      # Financial purity and accounting checks
+npm run check:operations   # Core operations integrity checks
 ```

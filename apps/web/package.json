@@ -12,7 +12,10 @@
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "check:website": "node scripts/check-website.cjs",
+    "check:website-http": "node scripts/check-website-http.cjs",
+    "check:revalidation": "node ../../scripts/revalidation-worker.cjs"
   },
   "dependencies": {
     "@floating-ui/react-dom": "^2.1.9",

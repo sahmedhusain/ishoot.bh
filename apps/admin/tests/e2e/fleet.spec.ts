@@ -3,7 +3,7 @@ import { acceptConfirmations } from "../../helpers";
 import zlib from "node:zlib";
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import users from "../../fixtures/users.json";
-import { ports } from "../../../../playwright.config";
+import { ports } from "../../playwright.config";
 import { login, testDatabase, watchErrors } from "../../helpers";
 import { t } from "../helpers/locale";
 import {
