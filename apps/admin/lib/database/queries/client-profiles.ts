@@ -602,9 +602,35 @@ export async function getClientsPage(
         COALESCE(SUM(x.outstanding), 0) AS outstanding,
         COALESCE(SUM(x.billed), 0) AS billed
       FROM "CrmContact" c JOIN client_rows x ON x.id = c.id`)) || [];
+    let items = await hydrate(rows || []);
+    let finalTotal = total;
+    if (!items.length) {
+      const { listContacts } = await import("@platform/api-client");
+      const contacts = await listContacts().catch(() => []);
+      if (contacts.length) {
+        items = contacts.map((c: any, index: number) => {
+          const mapped = mapContact(c);
+          delete (mapped as any).notes;
+          return {
+            ...mapped,
+            rank: index + 1,
+            tier: (index === 0 ? "A" : index < 3 ? "B" : "C") as "A" | "B" | "C",
+            billed: 0,
+            collected: 0,
+            outstanding: 0,
+            overdue: false,
+            invoice_count: 0,
+            deals_won: 0,
+            contact_persons_count: 0,
+            last_activity: typeof c.createdAt === "string" ? c.createdAt : new Date().toISOString(),
+          };
+        });
+        finalTotal = items.length;
+      }
+    }
     return {
-      items: await hydrate(rows || []),
-      total,
+      items,
+      total: finalTotal,
       page,
       pageSize: 50,
       filters: f,

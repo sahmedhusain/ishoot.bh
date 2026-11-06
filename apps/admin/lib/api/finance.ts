@@ -1,6 +1,7 @@
 import { apiUrl, apiTimeoutMs } from "./config";
 import { apiError } from "./errors";
 import { serviceToken } from "./service-token";
+import { normalizeApiRecord } from "./normalize";
 
 export type Invoice = {
   id: string;
@@ -126,7 +127,8 @@ async function financeFetch<T>(
   if (res.status === 204) {
     return undefined as unknown as T;
   }
-  return res.json() as Promise<T>;
+  const body = await res.json();
+  return normalizeApiRecord(body) as T;
 }
 
 // Invoices

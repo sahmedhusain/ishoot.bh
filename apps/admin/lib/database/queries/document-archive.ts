@@ -220,22 +220,25 @@ function ownerLink(kind: string, ownerId: string | null): string | undefined {
 
 function mapRow(r: Row): ArchiveDocument {
   const kind = (r.kind in ARCHIVE_KINDS ? r.kind : "general") as ArchiveKind;
+  const fileUrl = r.file_url || "";
   return {
     id: `${r.source}:${r.id}`,
     source: r.source,
     kind,
     group: ARCHIVE_KINDS[kind].group,
-    file_name: r.file_name || r.file_url.split("/").pop() || "",
-    file_url: r.file_url,
+    file_name: r.file_name || (fileUrl ? fileUrl.split("/").pop() || "" : ""),
+    file_url: fileUrl,
     mime_type: r.mime_type ?? undefined,
     file_size: r.file_size ?? undefined,
     owner_en: r.owner_en ?? undefined,
     owner_ar: r.owner_ar ?? undefined,
     owner_link: ownerLink(kind, r.owner_id),
     uploaded_by: r.uploaded_by ?? undefined,
-    created_at: r.created_at.toISOString(),
+    created_at: r.created_at
+      ? (typeof r.created_at === "string" ? r.created_at : r.created_at.toISOString())
+      : new Date().toISOString(),
     expires_on: r.expires_on
-      ? r.expires_on.toISOString().slice(0, 10)
+      ? (typeof r.expires_on === "string" ? r.expires_on.slice(0, 10) : r.expires_on.toISOString().slice(0, 10))
       : undefined,
     deletable: r.source === "attachment",
   };

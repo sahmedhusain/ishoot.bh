@@ -1,6 +1,7 @@
 import { apiUrl, apiTimeoutMs } from "./config";
 import { apiError } from "./errors";
 import { serviceToken } from "./service-token";
+import { normalizeApiRecord } from "./normalize";
 
 export type Warehouse = {
   id: string;
@@ -126,142 +127,91 @@ async function headers(token?: string): Promise<Record<string, string>> {
   return h;
 }
 
-export async function listWarehouses(token?: string): Promise<Warehouse[]> {
-  const res = await fetch(`${apiUrl()}/v1/inventory/warehouses`, {
-    headers: await headers(token),
+async function invFetch<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
+  const h = await headers(token);
+  const res = await fetch(`${apiUrl()}${path}`, {
+    ...options,
+    headers: { ...h, ...(options.headers as any) },
     signal: AbortSignal.timeout(apiTimeoutMs()),
   });
   if (!res.ok) throw await apiError(res);
-  return res.json();
+  if (res.status === 204) return undefined as unknown as T;
+  const data = await res.json();
+  return normalizeApiRecord(data) as T;
+}
+
+export async function listWarehouses(token?: string): Promise<Warehouse[]> {
+  return invFetch<Warehouse[]>("/v1/inventory/warehouses", {}, token);
 }
 
 export async function getWarehouse(id: string, token?: string): Promise<Warehouse> {
-  const res = await fetch(`${apiUrl()}/v1/inventory/warehouses/${id}`, {
-    headers: await headers(token),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  return invFetch<Warehouse>(`/v1/inventory/warehouses/${encodeURIComponent(id)}`, {}, token);
 }
 
 export async function createWarehouse(input: Partial<Warehouse>, token?: string): Promise<Warehouse> {
-  const res = await fetch(`${apiUrl()}/v1/inventory/warehouses`, {
+  return invFetch<Warehouse>("/v1/inventory/warehouses", {
     method: "POST",
-    headers: await headers(token),
     body: JSON.stringify(input),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  }, token);
 }
 
 export async function listLocations(warehouseId: string, token?: string): Promise<StockLocation[]> {
-  const res = await fetch(`${apiUrl()}/v1/inventory/warehouses/${warehouseId}/locations`, {
-    headers: await headers(token),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  return invFetch<StockLocation[]>(`/v1/inventory/warehouses/${encodeURIComponent(warehouseId)}/locations`, {}, token);
 }
 
 export async function createLocation(warehouseId: string, input: Partial<StockLocation>, token?: string): Promise<StockLocation> {
-  const res = await fetch(`${apiUrl()}/v1/inventory/warehouses/${warehouseId}/locations`, {
+  return invFetch<StockLocation>(`/v1/inventory/warehouses/${encodeURIComponent(warehouseId)}/locations`, {
     method: "POST",
-    headers: await headers(token),
     body: JSON.stringify(input),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  }, token);
 }
 
 export async function listCategories(token?: string): Promise<ProductCategory[]> {
-  const res = await fetch(`${apiUrl()}/v1/inventory/categories`, {
-    headers: await headers(token),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  return invFetch<ProductCategory[]>("/v1/inventory/categories", {}, token);
 }
 
 export async function createCategory(input: Partial<ProductCategory>, token?: string): Promise<ProductCategory> {
-  const res = await fetch(`${apiUrl()}/v1/inventory/categories`, {
+  return invFetch<ProductCategory>("/v1/inventory/categories", {
     method: "POST",
-    headers: await headers(token),
     body: JSON.stringify(input),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  }, token);
 }
 
 export async function listProducts(token?: string): Promise<Product[]> {
-  const res = await fetch(`${apiUrl()}/v1/inventory/products`, {
-    headers: await headers(token),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  return invFetch<Product[]>("/v1/inventory/products", {}, token);
 }
 
 export async function getProduct(id: string, token?: string): Promise<Product> {
-  const res = await fetch(`${apiUrl()}/v1/inventory/products/${id}`, {
-    headers: await headers(token),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  return invFetch<Product>(`/v1/inventory/products/${encodeURIComponent(id)}`, {}, token);
 }
 
 export async function createProduct(input: Partial<Product>, token?: string): Promise<Product> {
-  const res = await fetch(`${apiUrl()}/v1/inventory/products`, {
+  return invFetch<Product>("/v1/inventory/products", {
     method: "POST",
-    headers: await headers(token),
     body: JSON.stringify(input),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  }, token);
 }
 
 export async function updateProduct(id: string, input: Partial<Product>, token?: string): Promise<Product> {
-  const res = await fetch(`${apiUrl()}/v1/inventory/products/${id}`, {
+  return invFetch<Product>(`/v1/inventory/products/${encodeURIComponent(id)}`, {
     method: "PUT",
-    headers: await headers(token),
     body: JSON.stringify(input),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  }, token);
 }
 
 export async function listVariants(productId: string, token?: string): Promise<ProductVariant[]> {
-  const res = await fetch(`${apiUrl()}/v1/inventory/products/${productId}/variants`, {
-    headers: await headers(token),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  return invFetch<ProductVariant[]>(`/v1/inventory/products/${encodeURIComponent(productId)}/variants`, {}, token);
 }
 
 export async function createVariant(productId: string, input: Partial<ProductVariant>, token?: string): Promise<ProductVariant> {
-  const res = await fetch(`${apiUrl()}/v1/inventory/products/${productId}/variants`, {
+  return invFetch<ProductVariant>(`/v1/inventory/products/${encodeURIComponent(productId)}/variants`, {
     method: "POST",
-    headers: await headers(token),
     body: JSON.stringify(input),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  }, token);
 }
 
 export async function listStockLevels(productId: string, token?: string): Promise<StockLevel[]> {
-  const res = await fetch(`${apiUrl()}/v1/inventory/stock/levels?productId=${encodeURIComponent(productId)}`, {
-    headers: await headers(token),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  return invFetch<StockLevel[]>(`/v1/inventory/stock/levels?productId=${encodeURIComponent(productId)}`, {}, token);
 }
 
 export async function adjustStock(
@@ -271,32 +221,19 @@ export async function adjustStock(
   },
   token?: string,
 ): Promise<StockMovement> {
-  const res = await fetch(`${apiUrl()}/v1/inventory/stock/adjust`, {
+  return invFetch<StockMovement>("/v1/inventory/stock/adjust", {
     method: "POST",
-    headers: await headers(token),
     body: JSON.stringify(input),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  }, token);
 }
 
 export async function listStockCounts(token?: string): Promise<StockCount[]> {
-  const res = await fetch(`${apiUrl()}/v1/inventory/counts`, {
-    headers: await headers(token),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  return invFetch<StockCount[]>("/v1/inventory/counts", {}, token);
 }
 
 export async function createStockCount(input: Partial<StockCount>, token?: string): Promise<StockCount> {
-  const res = await fetch(`${apiUrl()}/v1/inventory/counts`, {
+  return invFetch<StockCount>("/v1/inventory/counts", {
     method: "POST",
-    headers: await headers(token),
     body: JSON.stringify(input),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  }, token);
 }

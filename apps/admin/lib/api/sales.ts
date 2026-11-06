@@ -1,6 +1,7 @@
 import { apiUrl, apiTimeoutMs } from "./config";
 import { apiError } from "./errors";
 import { serviceToken } from "./service-token";
+import { normalizeApiRecord } from "./normalize";
 
 export type Contact = {
   id: string;
@@ -135,7 +136,8 @@ async function salesFetch<T>(
   if (res.status === 204) {
     return undefined as unknown as T;
   }
-  return res.json() as Promise<T>;
+  const body = await res.json();
+  return normalizeApiRecord(body) as T;
 }
 
 // Contacts
@@ -198,8 +200,39 @@ export const listQuotations = (token?: string) =>
 export const getQuotation = (id: string, token?: string) =>
   salesFetch<QuotationWithItems>(`/v1/sales/quotations/${encodeURIComponent(id)}`, {}, token);
 
-export const createQuotation = (input: any, token?: string) =>
-  salesFetch<QuotationWithItems>("/v1/sales/quotations", { method: "POST", body: JSON.stringify(input) }, token);
+export const createQuotation = (input: any, token?: string) => {
+  let validUntil = input.validUntil || input.validUntilDate;
+  if (validUntil instanceof Date) {
+    validUntil = validUntil.toISOString();
+  } else if (typeof validUntil === "string" && !validUntil.includes("T")) {
+    validUntil = `${validUntil}T00:00:00Z`;
+  } else if (!validUntil) {
+    validUntil = new Date(Date.now() + 30 * 86400000).toISOString();
+  }
+
+  const payload: any = {
+    ...input,
+    quotationNumber: input.quotationNumber || `QTE-${Date.now()}`,
+    contactId: input.contactId || input.contact_id || input.clientId || input.client_id || null,
+    dealId: input.dealId || input.deal_id || null,
+    status: input.status || "draft",
+    subtotal: Number(input.subtotal ?? 0),
+    discount: Number(input.discount ?? input.discountAmount ?? input.discountValue ?? 0),
+    vatRate: Number(input.vatRate ?? input.vatPercentage ?? 0),
+    vatAmount: Number(input.vatAmount ?? 0),
+    total: Number(input.total ?? input.totalAmount ?? input.subtotal ?? 0),
+    currency: input.currency || "BHD",
+    validUntil,
+    items: (input.items || input.lineItems || []).map((item: any, idx: number) => ({
+      description: item.description || item.descriptionEn || item.description_en || "",
+      quantity: Number(item.quantity ?? 1),
+      unitPrice: Number(item.unitPrice ?? item.unit_price ?? 0),
+      amount: Number(item.amount ?? item.lineTotal ?? item.line_total ?? (Number(item.quantity ?? 1) * Number(item.unitPrice ?? item.unit_price ?? 0))),
+      sortOrder: item.sortOrder ?? item.orderIndex ?? idx,
+    })),
+  };
+  return salesFetch<QuotationWithItems>("/v1/sales/quotations", { method: "POST", body: JSON.stringify(payload) }, token);
+};
 
 export const updateQuotationStatus = (id: string, status: string, token?: string) =>
   salesFetch<Quotation>(`/v1/sales/quotations/${encodeURIComponent(id)}/status`, { method: "PUT", body: JSON.stringify({ status }) }, token);

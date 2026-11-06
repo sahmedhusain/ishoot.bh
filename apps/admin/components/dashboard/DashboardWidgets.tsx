@@ -319,7 +319,7 @@ export function DashboardWidget({
     case "low_stock":
       return data.lowStock && (
         <Panel title={title} icon={<Package className="w-3.5 h-3.5" />} href={`${ROUTES.inventory.stock}?filter=low`}>
-          {data.lowStock.rows.length ? (
+          {data.lowStock.rows && data.lowStock.rows.length > 0 ? (
             <>
               <ul className="divide-y divide-outline-variant stagger-children">
                 {data.lowStock.rows.map((row) => (

@@ -118,7 +118,7 @@ export type ManagedRealm = "staff" | "customer" | "it";
 export const syncAccount = (
   realm: ManagedRealm,
   id: string,
-  body: { email: string; roles?: string[]; active: boolean; actorId?: string },
+  body: { email: string; username?: string; roles?: string[]; active: boolean; actorId?: string },
 ) =>
   unwrap(
     identity().PUT("/v1/identity/{realm}/accounts/{id}", {

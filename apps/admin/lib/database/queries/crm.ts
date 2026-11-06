@@ -68,12 +68,13 @@ export function mapContact(c: any): CRMContact {
     full_name:
       `${c.firstName || ""} ${c.lastName || ""}`.trim() ||
       c.companyName ||
+      c.company ||
       "Contact",
     first_name: c.firstName,
     last_name: c.lastName || undefined,
     email: c.email || "",
     phone: c.phone || undefined,
-    company: c.companyName || undefined,
+    company: c.companyName || c.company || undefined,
     vat_number: c.vatNumber || undefined,
     job_title: c.jobTitle || undefined,
     contact_type: c.contactType as any,
@@ -109,21 +110,21 @@ export function mapContact(c: any): CRMContact {
           notes: p.notes || undefined,
         }))
       : undefined,
-    created_at: c.createdAt.toISOString(),
-    updated_at: c.updatedAt.toISOString(),
+    created_at: typeof c.createdAt === "string" ? c.createdAt : c.createdAt?.toISOString?.() ?? new Date().toISOString(),
+    updated_at: typeof c.updatedAt === "string" ? c.updatedAt : c.updatedAt?.toISOString?.() ?? new Date().toISOString(),
   };
 }
 
 export function mapDeal(d: any): CRMDeal {
   return {
-    id: d.id,
-    contact_id: d.contactId || undefined,
+    id: d.id || d.ID,
+    contact_id: d.contactId || d.ContactID || undefined,
     contact: d.contact ? mapContact(d.contact) : undefined,
-    title: d.title,
-    value: Number(d.dealValue),
-    currency: String(d.currency ?? ""),
-    stage: (d.dealStage as DealStage) || "lead",
-    probability: d.probability,
+    title: d.title || d.Title || "",
+    value: Number(d.dealValue ?? d.value ?? d.Value ?? 0),
+    currency: String(d.currency || d.Currency || "BHD"),
+    stage: ((d.dealStage || d.stage || d.Stage || "lead") as DealStage),
+    probability: Number(d.probability ?? d.Probability ?? 50),
     target_close_date: d.expectedCloseDate
       ? (typeof d.expectedCloseDate === "string" ? d.expectedCloseDate : d.expectedCloseDate.toISOString()).split("T")[0]
       : undefined,

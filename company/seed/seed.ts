@@ -16,6 +16,15 @@ type RecordWithID = { id: string };
 const today = new Date().toISOString().slice(0, 10);
 const DEFAULT_PASSWORD = process.env.SEED_PASSWORD || "Admin12345678!";
 
+function normalizeSeedRecord(obj: any): any {
+  if (!obj || typeof obj !== "object") return obj;
+  if (Array.isArray(obj)) return obj.map(normalizeSeedRecord);
+  const anyObj = { ...obj };
+  if (anyObj.ID && !anyObj.id) anyObj.id = anyObj.ID;
+  if (anyObj.id && !anyObj.ID) anyObj.ID = anyObj.id;
+  return anyObj;
+}
+
 async function request<T>(method: string, pathname: string, body?: unknown): Promise<T> {
   const response = await fetch(`${apiUrl()}${pathname}`, {
     method,
@@ -27,7 +36,9 @@ async function request<T>(method: string, pathname: string, body?: unknown): Pro
     signal: AbortSignal.timeout(apiTimeoutMs()),
   });
   if (!response.ok) throw new Error(`${method} ${pathname} failed (${response.status}): ${await response.text()}`);
-  return response.status === 204 ? (undefined as T) : (response.json() as Promise<T>);
+  if (response.status === 204) return undefined as T;
+  const raw = await response.json();
+  return normalizeSeedRecord(raw) as T;
 }
 
 const create = <T extends RecordWithID>(pathname: string, body: unknown) => request<T>("POST", pathname, body);

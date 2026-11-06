@@ -1,6 +1,7 @@
 import { apiUrl, apiTimeoutMs } from "./config";
 import { apiError } from "./errors";
 import { serviceToken } from "./service-token";
+import { normalizeApiRecord } from "./normalize";
 
 export type Customer = {
   id: string;
@@ -119,109 +120,70 @@ async function headers(token?: string): Promise<Record<string, string>> {
   return h;
 }
 
-export async function listCustomers(token?: string): Promise<Customer[]> {
-  const res = await fetch(`${apiUrl()}/v1/commerce/customers`, {
-    headers: await headers(token),
+async function commFetch<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
+  const h = await headers(token);
+  const res = await fetch(`${apiUrl()}${path}`, {
+    ...options,
+    headers: { ...h, ...(options.headers as any) },
     signal: AbortSignal.timeout(apiTimeoutMs()),
   });
   if (!res.ok) throw await apiError(res);
-  return res.json();
+  if (res.status === 204) return undefined as unknown as T;
+  const data = await res.json();
+  return normalizeApiRecord(data) as T;
+}
+
+export async function listCustomers(token?: string): Promise<Customer[]> {
+  return commFetch<Customer[]>("/v1/commerce/customers", {}, token);
 }
 
 export async function getCustomer(id: string, token?: string): Promise<Customer> {
-  const res = await fetch(`${apiUrl()}/v1/commerce/customers/${id}`, {
-    headers: await headers(token),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  return commFetch<Customer>(`/v1/commerce/customers/${encodeURIComponent(id)}`, {}, token);
 }
 
 export async function createCustomer(input: Partial<Customer>, token?: string): Promise<Customer> {
-  const res = await fetch(`${apiUrl()}/v1/commerce/customers`, {
+  return commFetch<Customer>("/v1/commerce/customers", {
     method: "POST",
-    headers: await headers(token),
     body: JSON.stringify(input),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  }, token);
 }
 
 export async function listCustomerAddresses(customerId: string, token?: string): Promise<CustomerAddress[]> {
-  const res = await fetch(`${apiUrl()}/v1/commerce/customers/${customerId}/addresses`, {
-    headers: await headers(token),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  return commFetch<CustomerAddress[]>(`/v1/commerce/customers/${encodeURIComponent(customerId)}/addresses`, {}, token);
 }
 
 export async function getStoreSettings(token?: string): Promise<StoreSettings> {
-  const res = await fetch(`${apiUrl()}/v1/commerce/settings`, {
-    headers: await headers(token),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  return commFetch<StoreSettings>("/v1/commerce/settings", {}, token);
 }
 
 export async function upsertStoreSettings(input: Partial<StoreSettings>, token?: string): Promise<StoreSettings> {
-  const res = await fetch(`${apiUrl()}/v1/commerce/settings`, {
+  return commFetch<StoreSettings>("/v1/commerce/settings", {
     method: "PUT",
-    headers: await headers(token),
     body: JSON.stringify(input),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  }, token);
 }
 
 export async function listCoupons(token?: string): Promise<Coupon[]> {
-  const res = await fetch(`${apiUrl()}/v1/commerce/coupons`, {
-    headers: await headers(token),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  return commFetch<Coupon[]>("/v1/commerce/coupons", {}, token);
 }
 
 export async function getCoupon(code: string, token?: string): Promise<Coupon> {
-  const res = await fetch(`${apiUrl()}/v1/commerce/coupons/${code}`, {
-    headers: await headers(token),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  return commFetch<Coupon>(`/v1/commerce/coupons/${encodeURIComponent(code)}`, {}, token);
 }
 
 export async function createCoupon(input: Partial<Coupon>, token?: string): Promise<Coupon> {
-  const res = await fetch(`${apiUrl()}/v1/commerce/coupons`, {
+  return commFetch<Coupon>("/v1/commerce/coupons", {
     method: "POST",
-    headers: await headers(token),
     body: JSON.stringify(input),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  }, token);
 }
 
 export async function listOrders(token?: string): Promise<SalesOrder[]> {
-  const res = await fetch(`${apiUrl()}/v1/commerce/orders`, {
-    headers: await headers(token),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  return commFetch<SalesOrder[]>("/v1/commerce/orders", {}, token);
 }
 
 export async function getOrder(id: string, token?: string): Promise<SalesOrder> {
-  const res = await fetch(`${apiUrl()}/v1/commerce/orders/${id}`, {
-    headers: await headers(token),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  return commFetch<SalesOrder>(`/v1/commerce/orders/${encodeURIComponent(id)}`, {}, token);
 }
 
 export async function placeOrder(
@@ -231,14 +193,10 @@ export async function placeOrder(
   },
   token?: string,
 ): Promise<SalesOrder> {
-  const res = await fetch(`${apiUrl()}/v1/commerce/orders`, {
+  return commFetch<SalesOrder>("/v1/commerce/orders", {
     method: "POST",
-    headers: await headers(token),
     body: JSON.stringify(input),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  }, token);
 }
 
 export async function recordOrderPayment(
@@ -246,14 +204,10 @@ export async function recordOrderPayment(
   input: { paymentStatus: string; amountPaid: string },
   token?: string,
 ): Promise<SalesOrder> {
-  const res = await fetch(`${apiUrl()}/v1/commerce/orders/${orderId}/pay`, {
+  return commFetch<SalesOrder>(`/v1/commerce/orders/${encodeURIComponent(orderId)}/pay`, {
     method: "POST",
-    headers: await headers(token),
     body: JSON.stringify(input),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  }, token);
 }
 
 export async function updateOrderStatus(
@@ -261,30 +215,16 @@ export async function updateOrderStatus(
   input: { status: string },
   token?: string,
 ): Promise<SalesOrder> {
-  const res = await fetch(`${apiUrl()}/v1/commerce/orders/${orderId}/status`, {
+  return commFetch<SalesOrder>(`/v1/commerce/orders/${encodeURIComponent(orderId)}/status`, {
     method: "PUT",
-    headers: await headers(token),
     body: JSON.stringify(input),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  }, token);
 }
 
 export async function listOrderLines(orderId: string, token?: string): Promise<SalesOrderLine[]> {
-  const res = await fetch(`${apiUrl()}/v1/commerce/orders/${orderId}/lines`, {
-    headers: await headers(token),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  return commFetch<SalesOrderLine[]>(`/v1/commerce/orders/${encodeURIComponent(orderId)}/lines`, {}, token);
 }
 
 export async function listOrderEvents(orderId: string, token?: string): Promise<SalesOrderEvent[]> {
-  const res = await fetch(`${apiUrl()}/v1/commerce/orders/${orderId}/events`, {
-    headers: await headers(token),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  return commFetch<SalesOrderEvent[]>(`/v1/commerce/orders/${encodeURIComponent(orderId)}/events`, {}, token);
 }

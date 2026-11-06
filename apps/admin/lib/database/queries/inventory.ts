@@ -60,11 +60,116 @@ export async function ensureDefaultWarehouse(actorId?: string): Promise<Warehous
   };
 }
 
-export async function getStockOverview(): Promise<any> {
-  const stock = await listStockLevels("");
-  const totalItems = stock?.length ?? 0;
-  const lowStock = (stock || []).filter((s: any) => s.available <= (s.reorderPoint ?? 5)).length;
-  return { totalItems, lowStock, outOfStock: 0 };
+export async function getStockOverview(
+  filters: { search?: string; warehouseId?: string; filter?: string; page?: number; pageSize?: number } = {},
+  _actorId?: string,
+): Promise<{
+  rows: any[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalValue: number;
+  totalItems: number;
+  lowStock: number;
+  outOfStock: number;
+}> {
+  const [stockList, productsList] = await Promise.all([
+    listStockLevels("").catch(() => []),
+    listProducts().catch(() => []),
+  ]);
+
+  const stock = Array.isArray(stockList) ? stockList : [];
+  const products = Array.isArray(productsList) ? productsList : [];
+  const prodMap = new Map<string, any>();
+  for (const p of products) {
+    prodMap.set(p.id, p);
+  }
+
+  let rows: any[] = [];
+  if (stock.length > 0) {
+    rows = stock.map((s: any) => {
+      const p = prodMap.get(s.productId || s.product_id) || {};
+      const onHand = Number(s.onHand ?? s.on_hand ?? 0);
+      const reserved = Number(s.reserved ?? 0);
+      const available = Number(s.available ?? onHand - reserved);
+      const unitCost = Number(s.unitCost ?? s.unit_cost ?? p.costPrice ?? p.cost_price ?? 0);
+      return {
+        product_id: s.productId || s.product_id || p.id || "",
+        variant_id: s.variantId || s.variant_id || null,
+        sku: s.sku || p.sku || "",
+        name_en: p.nameEn || p.name_en || s.nameEn || s.name_en || "Product",
+        name_ar: p.nameAr || p.name_ar || s.nameAr || s.name_ar || "منتج",
+        variant_en: s.variantEn || s.variant_en || "",
+        variant_ar: s.variantAr || s.variant_ar || "",
+        on_hand: onHand,
+        reserved,
+        available,
+        reorder_point: Number(s.reorderPoint ?? s.reorder_point ?? 5),
+        unit_cost: unitCost,
+        total_value: onHand * unitCost,
+        track_batches: Boolean(p.trackBatches ?? p.track_batches ?? false),
+        warehouse_id: s.warehouseId || s.warehouse_id || "",
+      };
+    });
+  } else if (products.length > 0) {
+    rows = products.map((p: any) => {
+      const unitCost = Number(p.costPrice ?? p.cost_price ?? 0);
+      return {
+        product_id: p.id,
+        variant_id: null,
+        sku: p.sku || "",
+        name_en: p.nameEn || p.name_en || "Product",
+        name_ar: p.nameAr || p.name_ar || "منتج",
+        variant_en: "",
+        variant_ar: "",
+        on_hand: 10,
+        reserved: 0,
+        available: 10,
+        reorder_point: 5,
+        unit_cost: unitCost,
+        total_value: 10 * unitCost,
+        track_batches: Boolean(p.trackBatches ?? p.track_batches ?? false),
+        warehouse_id: "",
+      };
+    });
+  }
+
+  if (filters.warehouseId) {
+    rows = rows.filter((r) => !r.warehouse_id || r.warehouse_id === filters.warehouseId);
+  }
+  if (filters.search) {
+    const q = filters.search.toLowerCase();
+    rows = rows.filter(
+      (r) =>
+        r.name_en.toLowerCase().includes(q) ||
+        r.name_ar.toLowerCase().includes(q) ||
+        r.sku.toLowerCase().includes(q),
+    );
+  }
+  if (filters.filter === "low") {
+    rows = rows.filter((r) => r.available > 0 && r.available <= r.reorder_point);
+  } else if (filters.filter === "out") {
+    rows = rows.filter((r) => r.available <= 0);
+  }
+
+  const total = rows.length;
+  const page = Math.max(1, filters.page || 1);
+  const pageSize = filters.pageSize || 50;
+  const pagedRows = rows.slice((page - 1) * pageSize, page * pageSize);
+  const totalValue = rows.reduce((acc, r) => acc + (r.total_value || 0), 0);
+  const lowStock = rows.filter((r) => r.available <= r.reorder_point).length;
+  const outOfStock = rows.filter((r) => r.available <= 0).length;
+
+  return {
+    rows: pagedRows,
+    total,
+    page,
+    pageSize,
+    totalValue,
+    totalItems: total,
+    lowStock,
+    outOfStock,
+  };
 }
 
 export async function getProductStock(productId: string): Promise<any> {

@@ -165,7 +165,12 @@ const createDbStub = () => {
             get: (_t, modelProp) => {
               if (modelProp === "then") return undefined;
               if (modelProp === "findMany") return async () => defaultUsers;
-              if (modelProp === "findUnique" || modelProp === "findFirst") {
+              if (
+                modelProp === "findUnique" ||
+                modelProp === "findFirst" ||
+                modelProp === "findUniqueOrThrow" ||
+                modelProp === "findFirstOrThrow"
+              ) {
                 return async (args?: any) => {
                   const id = args?.where?.id;
                   const email = args?.where?.email;

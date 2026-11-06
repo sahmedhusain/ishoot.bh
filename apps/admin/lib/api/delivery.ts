@@ -1,6 +1,7 @@
 import { apiUrl, apiTimeoutMs } from "./config";
 import { apiError } from "./errors";
 import { serviceToken } from "./service-token";
+import { normalizeApiRecord } from "./normalize";
 
 export type DeliverySettings = {
   id: string;
@@ -101,122 +102,80 @@ async function headers(token?: string): Promise<Record<string, string>> {
   return h;
 }
 
-export async function getDeliverySettings(token?: string): Promise<DeliverySettings> {
-  const res = await fetch(`${apiUrl()}/v1/delivery/settings`, {
-    headers: await headers(token),
+async function delivFetch<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
+  const h = await headers(token);
+  const res = await fetch(`${apiUrl()}${path}`, {
+    ...options,
+    headers: { ...h, ...(options.headers as any) },
     signal: AbortSignal.timeout(apiTimeoutMs()),
   });
   if (!res.ok) throw await apiError(res);
-  return res.json();
+  if (res.status === 204) return undefined as unknown as T;
+  const data = await res.json();
+  return normalizeApiRecord(data) as T;
+}
+
+export async function getDeliverySettings(token?: string): Promise<DeliverySettings> {
+  return delivFetch<DeliverySettings>("/v1/delivery/settings", {}, token);
 }
 
 export async function upsertDeliverySettings(input: Partial<DeliverySettings>, token?: string): Promise<DeliverySettings> {
-  const res = await fetch(`${apiUrl()}/v1/delivery/settings`, {
+  return delivFetch<DeliverySettings>("/v1/delivery/settings", {
     method: "PUT",
-    headers: await headers(token),
     body: JSON.stringify(input),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  }, token);
 }
 
 export async function listDeliveryZones(token?: string): Promise<DeliveryZone[]> {
-  const res = await fetch(`${apiUrl()}/v1/delivery/zones`, {
-    headers: await headers(token),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  return delivFetch<DeliveryZone[]>("/v1/delivery/zones", {}, token);
 }
 
 export async function createDeliveryZone(input: Partial<DeliveryZone>, token?: string): Promise<DeliveryZone> {
-  const res = await fetch(`${apiUrl()}/v1/delivery/zones`, {
+  return delivFetch<DeliveryZone>("/v1/delivery/zones", {
     method: "POST",
-    headers: await headers(token),
     body: JSON.stringify(input),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  }, token);
 }
 
 export async function listDeliverySlots(zoneId: string, token?: string): Promise<DeliverySlot[]> {
-  const res = await fetch(`${apiUrl()}/v1/delivery/zones/${zoneId}/slots`, {
-    headers: await headers(token),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  return delivFetch<DeliverySlot[]>(`/v1/delivery/zones/${encodeURIComponent(zoneId)}/slots`, {}, token);
 }
 
 export async function listVehicles(token?: string): Promise<Vehicle[]> {
-  const res = await fetch(`${apiUrl()}/v1/delivery/vehicles`, {
-    headers: await headers(token),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  return delivFetch<Vehicle[]>("/v1/delivery/vehicles", {}, token);
 }
 
 export async function createVehicle(input: Partial<Vehicle>, token?: string): Promise<Vehicle> {
-  const res = await fetch(`${apiUrl()}/v1/delivery/vehicles`, {
+  return delivFetch<Vehicle>("/v1/delivery/vehicles", {
     method: "POST",
-    headers: await headers(token),
     body: JSON.stringify(input),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  }, token);
 }
 
 export async function listRouteSheets(token?: string): Promise<RouteSheet[]> {
-  const res = await fetch(`${apiUrl()}/v1/delivery/routes`, {
-    headers: await headers(token),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  return delivFetch<RouteSheet[]>("/v1/delivery/routes", {}, token);
 }
 
 export async function createRouteSheet(input: Partial<RouteSheet>, token?: string): Promise<RouteSheet> {
-  const res = await fetch(`${apiUrl()}/v1/delivery/routes`, {
+  return delivFetch<RouteSheet>("/v1/delivery/routes", {
     method: "POST",
-    headers: await headers(token),
     body: JSON.stringify(input),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  }, token);
 }
 
 export async function listShipments(token?: string): Promise<Shipment[]> {
-  const res = await fetch(`${apiUrl()}/v1/delivery/shipments`, {
-    headers: await headers(token),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  return delivFetch<Shipment[]>("/v1/delivery/shipments", {}, token);
 }
 
 export async function getShipment(id: string, token?: string): Promise<Shipment> {
-  const res = await fetch(`${apiUrl()}/v1/delivery/shipments/${id}`, {
-    headers: await headers(token),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  return delivFetch<Shipment>(`/v1/delivery/shipments/${encodeURIComponent(id)}`, {}, token);
 }
 
 export async function createShipment(input: Partial<Shipment>, token?: string): Promise<Shipment> {
-  const res = await fetch(`${apiUrl()}/v1/delivery/shipments`, {
+  return delivFetch<Shipment>("/v1/delivery/shipments", {
     method: "POST",
-    headers: await headers(token),
     body: JSON.stringify(input),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  }, token);
 }
 
 export async function assignShipmentDriver(
@@ -224,14 +183,10 @@ export async function assignShipmentDriver(
   input: { driverId: string; vehicleId?: string; routeSheetId?: string; routeStop?: number },
   token?: string,
 ): Promise<Shipment> {
-  const res = await fetch(`${apiUrl()}/v1/delivery/shipments/${id}/assign`, {
+  return delivFetch<Shipment>(`/v1/delivery/shipments/${encodeURIComponent(id)}/assign`, {
     method: "POST",
-    headers: await headers(token),
     body: JSON.stringify(input),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  }, token);
 }
 
 export async function recordProofOfDelivery(
@@ -239,20 +194,12 @@ export async function recordProofOfDelivery(
   input: { proofPhotoUrl?: string; proofSignature?: string; codCollected?: string },
   token?: string,
 ): Promise<Shipment> {
-  const res = await fetch(`${apiUrl()}/v1/delivery/shipments/${id}/proof`, {
+  return delivFetch<Shipment>(`/v1/delivery/shipments/${encodeURIComponent(id)}/proof`, {
     method: "POST",
-    headers: await headers(token),
     body: JSON.stringify(input),
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  }, token);
 }
 
 export async function trackShipment(token: string): Promise<Shipment> {
-  const res = await fetch(`${apiUrl()}/v1/delivery/track/${token}`, {
-    signal: AbortSignal.timeout(apiTimeoutMs()),
-  });
-  if (!res.ok) throw await apiError(res);
-  return res.json();
+  return delivFetch<Shipment>(`/v1/delivery/track/${encodeURIComponent(token)}`);
 }

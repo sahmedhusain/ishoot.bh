@@ -23,3 +23,4 @@ export * from "./hr";
 export * from "./inventory";
 export * from "./commerce";
 export * from "./delivery";
+export * from "./normalize";
