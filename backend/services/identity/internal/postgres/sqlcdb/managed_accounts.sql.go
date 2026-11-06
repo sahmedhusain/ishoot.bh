@@ -219,15 +219,16 @@ func (q *Queries) RevokeOtherSubjectSessions(ctx context.Context, arg RevokeOthe
 }
 
 const upsertManagedAccount = `-- name: UpsertManagedAccount :exec
-INSERT INTO identity.account (realm,subject_id,email,roles,active,created_at,updated_at)
-VALUES ($1,$2,$3,$4::text[],$5,$6,$6)
-ON CONFLICT (realm,subject_id) DO UPDATE SET email=EXCLUDED.email,roles=EXCLUDED.roles,active=EXCLUDED.active,updated_at=EXCLUDED.updated_at
+INSERT INTO identity.account (realm,subject_id,email,username,roles,active,created_at,updated_at)
+VALUES ($1,$2,$3,$4,$5::text[],$6,$7,$7)
+ON CONFLICT (realm,subject_id) DO UPDATE SET email=EXCLUDED.email,username=COALESCE(EXCLUDED.username, identity.account.username),roles=EXCLUDED.roles,active=EXCLUDED.active,updated_at=EXCLUDED.updated_at
 `
 
 type UpsertManagedAccountParams struct {
 	Realm     string
 	SubjectID string
 	Email     string
+	Username  *string
 	Roles     []string
 	Active    bool
 	Now       time.Time
@@ -238,6 +239,7 @@ func (q *Queries) UpsertManagedAccount(ctx context.Context, arg UpsertManagedAcc
 		arg.Realm,
 		arg.SubjectID,
 		arg.Email,
+		arg.Username,
 		arg.Roles,
 		arg.Active,
 		arg.Now,

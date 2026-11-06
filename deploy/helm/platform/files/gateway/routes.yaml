@@ -65,7 +65,7 @@ routes:
   - name: cms
     prefix: /v1/cms/
     upstream: cms
-    realms: [service, staff, customer, it]
+    realms: [public]
     rateLimit: services
     bodyLimit: 5M
   # Sales: CRM contacts, deals, inquiries, quotations, campaigns.

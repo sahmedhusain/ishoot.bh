@@ -1,15 +1,8 @@
-import { requirePagePermission } from "../../../../lib/auth";
-import { getActivityLogs } from "@platform/database";
-import { AuditSessionsView } from "../../../../components/settings/AuditSessionsView";
-import { pageMetadata } from "../../../../lib/company-metadata";
-
-export const generateMetadata = () => pageMetadata("settings/audit");
+import { redirect } from "next/navigation";
+import { ROUTES } from "../../../../constants/routes";
 
 export const dynamic = "force-dynamic";
 
-export default async function AuditSettingsPage() {
-  await requirePagePermission("audit_logs", "read");
-  const logs = await getActivityLogs(100);
-
-  return <AuditSessionsView initialLogs={logs} />;
+export default function AuditSettingsPage() {
+  redirect(ROUTES.settings.preferences);
 }

@@ -24,7 +24,7 @@ func RegisterManagedAccounts(e *echo.Echo, verifier *authn.Verifier, svc *app.Ma
 	}, authn.Require(verifier, authn.RealmService))
 	realmOf := func(c echo.Context) (authn.Realm, string, error) {
 		r, err := authn.ParseRealm(c.Param("realm"))
-		if err != nil || (r != authn.RealmStaff && r != authn.RealmCustomer) {
+		if err != nil || (r != authn.RealmStaff && r != authn.RealmCustomer && r != authn.RealmIT) {
 			return "", "", problem.NotFound("")
 		}
 		p, ok := authn.PrincipalFrom(c.Request().Context())
@@ -77,15 +77,16 @@ func RegisterManagedAccounts(e *echo.Echo, verifier *authn.Verifier, svc *app.Ma
 			return err
 		}
 		var in struct {
-			Email   string   `json:"email" validate:"required,max=254"`
-			Roles   []string `json:"roles" validate:"max=20,dive,required,max=100"`
-			Active  *bool    `json:"active" validate:"required"`
-			ActorID string   `json:"actorId" validate:"max=64"`
+			Email    string   `json:"email" validate:"required,max=254"`
+			Username string   `json:"username" validate:"max=64"`
+			Roles    []string `json:"roles" validate:"max=20,dive,required,max=100"`
+			Active   *bool    `json:"active" validate:"required"`
+			ActorID  string   `json:"actorId" validate:"max=64"`
 		}
 		if err := httpx.BindJSON(c, &in, bodyLimit); err != nil {
 			return err
 		}
-		created, err := svc.Sync(c.Request().Context(), r, c.Param("id"), app.AccountInput{Email: in.Email, Roles: in.Roles, Active: *in.Active}, actor(caller, in.ActorID))
+		created, err := svc.Sync(c.Request().Context(), r, c.Param("id"), app.AccountInput{Email: in.Email, Username: in.Username, Roles: in.Roles, Active: *in.Active}, actor(caller, in.ActorID))
 		if err != nil {
 			return managedError(c, err)
 		}

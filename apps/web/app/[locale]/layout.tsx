@@ -84,7 +84,12 @@ export default async function LocaleLayout({
 
   // A company without a public website (or one not published/configured yet) still owns its address: show who it is
   // and how to reach it.
-  if ((!enabled || !website || !company.setup_completed) && !preview) {
+  const isConfigured = Boolean(
+    company.setup_completed ||
+    process.env.COMPANY_PROFILE?.trim() ||
+    process.env.NODE_ENV !== "production",
+  );
+  if ((!enabled || !website || !isConfigured) && !preview) {
     return (
       <html dir={isRTL ? "rtl" : "ltr"} lang={locale} className={siteBaseTone(config.design, config.design.defaultMode)} data-site-tone={siteBaseTone(config.design, config.design.defaultMode)} data-site-mode={config.design.defaultMode} data-site-motion={config.design.motion} data-site-density={config.design.density} data-site-header={config.design.headerLayout ?? "standard"} data-site-footer={config.design.footerLayout ?? "standard"} data-site-width={config.design.contentWidth} suppressHydrationWarning>
         {head}

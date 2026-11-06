@@ -66,23 +66,26 @@ export async function signInAction(
   _: SignInState,
   form: FormData,
 ): Promise<SignInState> {
-  const email = text(form, "email", 254).trim().toLowerCase();
+  const identifier = (
+    text(form, "username", 254) ||
+    text(form, "email", 254)
+  ).trim().toLowerCase();
   const password = text(form, "password", 1024);
   const otp = text(form, "otp", 64).replace(/\s+/g, "");
   const step = otp ? "otp" : "password";
-  if (!email || !password) return { step, error: "invalid" };
+  if (!identifier || !password) return { step, error: "invalid" };
   const header = config.clientIpHeader();
   const clientIp = header
     ? (await headers()).get(header)?.split(",")[0]?.trim().slice(0, 45)
     : undefined;
   try {
     const credential = await signIn(REALM, {
-      email,
+      email: identifier,
       password,
       otp: otp || undefined,
       clientIp: clientIp || undefined,
     });
-    await setCookies(sessionCookies(credential, email));
+    await setCookies(sessionCookies(credential, identifier));
   } catch (error) {
     if (isApiError(error, "mfa_required")) return { step: "otp" };
     if (isApiError(error) && (error.status === 401 || error.status === 422))

@@ -17,7 +17,7 @@ import (
 )
 
 func toAccount(row sqlcdb.IdentityAccount) accounts.Account {
-	return accounts.Account{Realm: authn.Realm(row.Realm), SubjectID: row.SubjectID, Email: row.Email, PasswordHash: row.PasswordHash, Roles: row.Roles, Active: row.Active, MFAEnabled: row.MfaEnabled, MFASecret: row.MfaSecretEncrypted, LastStep: row.MfaLastStep, PendingSecret: row.MfaPendingSecretEncrypted, PendingExpires: row.MfaPendingExpiresAt}
+	return accounts.Account{Realm: authn.Realm(row.Realm), SubjectID: row.SubjectID, Email: row.Email, Username: row.Username, PasswordHash: row.PasswordHash, Roles: row.Roles, Active: row.Active, MFAEnabled: row.MfaEnabled, MFASecret: row.MfaSecretEncrypted, LastStep: row.MfaLastStep, PendingSecret: row.MfaPendingSecretEncrypted, PendingExpires: row.MfaPendingExpiresAt}
 }
 
 func (p *Repository) FindByEmail(ctx context.Context, realm authn.Realm, email string) (accounts.Account, error) {

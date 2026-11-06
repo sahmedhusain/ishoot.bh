@@ -5,3 +5,4 @@ export * from "./itsm";
 export * from "./notifications";
 export * from "./presence";
 export * from "./staff-access";
+export * from "./username";

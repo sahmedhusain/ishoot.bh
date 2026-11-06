@@ -74,6 +74,7 @@
   "login": {
     "title": "IT dashboard",
     "subtitle": "For the IT team only. Sign in with your IT account and your authenticator.",
+    "username": "Username",
     "email": "Work e-mail",
     "password": "Password",
     "otp": "Authenticator code",

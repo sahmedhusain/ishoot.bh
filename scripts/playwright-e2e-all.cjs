@@ -10,6 +10,7 @@ const IT_BASE = process.env.IT_URL || "http://localhost:3002";
 const NAV_TIMEOUT = 60000;
 
 const CREDENTIALS = {
+  username: "BA0001",
   email: "admin@example.com",
   password: "Admin12345678!",
 };
@@ -182,24 +183,24 @@ async function runAdminTests(browser) {
     console.log("\n  Testing Admin Login Validation...");
     await page.goto(`${ADMIN_BASE}/login`, { waitUntil: "networkidle", timeout: NAV_TIMEOUT });
 
-    const emailInput = page.locator('input[type="email"]');
-    const passInput = page.locator('input[type="password"]');
-    const submitBtn = page.locator('button[type="submit"]');
+    const usernameInput = page.locator('input[name="username"], input[type="text"], input[type="email"]').first();
+    const passInput = page.locator('input[type="password"]').first();
+    const submitBtn = page.locator('button[type="submit"]').first();
 
     // Test empty submit
     await submitBtn.click();
     await page.waitForTimeout(500);
     recordSuccess("admin", "Login handles empty form submission cleanly");
 
-    // Test invalid email format
-    await emailInput.fill("not-an-email");
+    // Test invalid username format
+    await usernameInput.fill("inv");
     await passInput.fill("short");
     await submitBtn.click();
     await page.waitForTimeout(500);
-    recordSuccess("admin", "Login handles invalid email input cleanly");
+    recordSuccess("admin", "Login handles invalid username input cleanly");
 
     // Test wrong credentials
-    await emailInput.fill("wrong@example.com");
+    await usernameInput.fill("wrong-user");
     await passInput.fill("WrongPassword123!");
     await submitBtn.click();
     await page.waitForTimeout(1500);
@@ -207,20 +208,23 @@ async function runAdminTests(browser) {
 
     // Test Forgot Password page
     await page.goto(`${ADMIN_BASE}/login/forgot`, { waitUntil: "networkidle", timeout: NAV_TIMEOUT });
-    const forgotEmail = page.locator('input[type="email"]');
-    const forgotBtn = page.locator('button[type="submit"]');
+    const forgotEmail = page.locator('input[type="email"], input[type="text"]').first();
+    const forgotBtn = page.locator('button[type="submit"]').first();
     await forgotEmail.fill("test@example.com");
     await forgotBtn.click();
     await page.waitForTimeout(1500);
     recordSuccess("admin", "Forgot Password page loads and submits cleanly");
 
-    // Perform real valid login
+    // Perform real valid login using Username (e.g. BA0001)
     await page.goto(`${ADMIN_BASE}/login`, { waitUntil: "networkidle", timeout: NAV_TIMEOUT });
-    await emailInput.fill(CREDENTIALS.email);
-    await passInput.fill(CREDENTIALS.password);
-    await submitBtn.click();
+    const realUserInput = page.locator('input[name="username"], input[type="text"], input[type="email"]').first();
+    const realPassInput = page.locator('input[type="password"]').first();
+    const realSubmitBtn = page.locator('button[type="submit"]').first();
+    await realUserInput.fill(CREDENTIALS.username);
+    await realPassInput.fill(CREDENTIALS.password);
+    await realSubmitBtn.click();
     await page.waitForURL("**/dashboard**", { timeout: NAV_TIMEOUT });
-    recordSuccess("admin", "Successful Admin login redirected to /dashboard");
+    recordSuccess("admin", `Successful Admin login with username ${CREDENTIALS.username} redirected to /dashboard`);
   } catch (e) {
     recordFailure("admin", "Admin Login & Auth flow", e);
   }
@@ -332,9 +336,9 @@ async function runItTests(browser) {
     console.log("\n  Testing IT Login Validation...");
     await page.goto(`${IT_BASE}/login`, { waitUntil: "networkidle", timeout: NAV_TIMEOUT });
 
-    const emailInput = page.locator('input[type="email"]');
-    const passInput = page.locator('input[type="password"]');
-    const submitBtn = page.locator('button[type="submit"]');
+    const usernameInput = page.locator('input[name="username"], input[type="text"], input[type="email"]').first();
+    const passInput = page.locator('input[type="password"]').first();
+    const submitBtn = page.locator('button[type="submit"]').first();
 
     // Empty fields
     await submitBtn.click();
@@ -342,19 +346,19 @@ async function runItTests(browser) {
     recordSuccess("it", "IT login handles empty submission");
 
     // Invalid credentials
-    await emailInput.fill("wrong-it@example.com");
+    await usernameInput.fill("wrong-it");
     await passInput.fill("BadPassword123!");
     await submitBtn.click();
     await page.waitForTimeout(1500);
     const alert = await page.locator('[role="alert"]').count();
     recordSuccess("it", `IT login displays error alert on bad credentials (found: ${alert > 0})`);
 
-    // Valid login
-    await emailInput.fill(CREDENTIALS.email);
+    // Valid login using Username (e.g. BA0001)
+    await usernameInput.fill(CREDENTIALS.username);
     await passInput.fill(CREDENTIALS.password);
     await submitBtn.click();
     await page.waitForURL(`${IT_BASE}/`, { timeout: NAV_TIMEOUT });
-    recordSuccess("it", "Successful IT login redirected to /");
+    recordSuccess("it", `Successful IT login with username ${CREDENTIALS.username} redirected to /`);
   } catch (e) {
     recordFailure("it", "IT Login & Auth flow", e);
   }

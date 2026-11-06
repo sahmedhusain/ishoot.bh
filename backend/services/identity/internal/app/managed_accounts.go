@@ -54,9 +54,10 @@ func NewManagedAccounts(pool *pgxpool.Pool, hasher bootstrap.Hasher, minPassword
 
 // AccountInput is what the app owns about an account.
 type AccountInput struct {
-	Email  string
-	Roles  []string
-	Active bool
+	Email    string
+	Username string
+	Roles    []string
+	Active   bool
 }
 
 func managedRealm(r authn.Realm) bool { return r == authn.RealmStaff || r == authn.RealmCustomer || r == authn.RealmIT }
@@ -108,14 +109,20 @@ func (s *ManagedAccounts) Sync(ctx context.Context, realm authn.Realm, id string
 				return ErrLastStaffAdmin
 			}
 		}
-		if !created && before.Email == email && before.Active == in.Active && slices.Equal(before.Roles, roles) {
+		var u *string
+		if in.Username != "" {
+			trimmed := strings.ToUpper(strings.TrimSpace(in.Username))
+			u = &trimmed
+		}
+		sameUsername := (u == nil && before.Username == nil) || (u != nil && before.Username != nil && *u == *before.Username)
+		if !created && before.Email == email && before.Active == in.Active && slices.Equal(before.Roles, roles) && sameUsername {
 			if realm == authn.RealmStaff {
 				return q.EnsureStaffAccess(ctx, id)
 			}
 			return nil
 		}
 		if err := q.UpsertManagedAccount(ctx, sqlcdb.UpsertManagedAccountParams{Realm: string(realm), SubjectID: id,
-			Email: email, Roles: roles, Active: in.Active, Now: now}); err != nil {
+			Email: email, Username: u, Roles: roles, Active: in.Active, Now: now}); err != nil {
 			if uniqueViolation(err) {
 				return ErrEmailTaken
 			}

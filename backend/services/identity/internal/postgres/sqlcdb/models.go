@@ -23,6 +23,7 @@ type IdentityAccount struct {
 	UpdatedAt                 time.Time
 	MfaPendingSecretEncrypted *string
 	MfaPendingExpiresAt       *time.Time
+	Username                  *string
 }
 
 type IdentityCustomerCode struct {

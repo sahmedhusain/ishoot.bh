@@ -106,7 +106,7 @@ func (q *Queries) DeleteAccountRecovery(ctx context.Context, arg DeleteAccountRe
 }
 
 const findAccountByEmail = `-- name: FindAccountByEmail :one
-SELECT realm, subject_id, email, password_hash, roles, active, mfa_enabled, mfa_secret_encrypted, mfa_last_step, last_login_at, created_at, updated_at, mfa_pending_secret_encrypted, mfa_pending_expires_at FROM identity.account WHERE realm=$1 AND email=$2
+SELECT realm, subject_id, email, password_hash, roles, active, mfa_enabled, mfa_secret_encrypted, mfa_last_step, last_login_at, created_at, updated_at, mfa_pending_secret_encrypted, mfa_pending_expires_at, username FROM identity.account WHERE realm=$1 AND (email=$2 OR lower(email)=lower($2) OR (username IS NOT NULL AND lower(username)=lower($2)))
 `
 
 type FindAccountByEmailParams struct {
@@ -132,12 +132,13 @@ func (q *Queries) FindAccountByEmail(ctx context.Context, arg FindAccountByEmail
 		&i.UpdatedAt,
 		&i.MfaPendingSecretEncrypted,
 		&i.MfaPendingExpiresAt,
+		&i.Username,
 	)
 	return i, err
 }
 
 const findAccountBySubject = `-- name: FindAccountBySubject :one
-SELECT realm, subject_id, email, password_hash, roles, active, mfa_enabled, mfa_secret_encrypted, mfa_last_step, last_login_at, created_at, updated_at, mfa_pending_secret_encrypted, mfa_pending_expires_at FROM identity.account WHERE realm=$1 AND subject_id=$2
+SELECT realm, subject_id, email, password_hash, roles, active, mfa_enabled, mfa_secret_encrypted, mfa_last_step, last_login_at, created_at, updated_at, mfa_pending_secret_encrypted, mfa_pending_expires_at, username FROM identity.account WHERE realm=$1 AND subject_id=$2
 `
 
 type FindAccountBySubjectParams struct {
@@ -163,6 +164,7 @@ func (q *Queries) FindAccountBySubject(ctx context.Context, arg FindAccountBySub
 		&i.UpdatedAt,
 		&i.MfaPendingSecretEncrypted,
 		&i.MfaPendingExpiresAt,
+		&i.Username,
 	)
 	return i, err
 }
@@ -213,7 +215,7 @@ func (q *Queries) InsertAccountRecovery(ctx context.Context, arg InsertAccountRe
 }
 
 const lockAccount = `-- name: LockAccount :one
-SELECT realm, subject_id, email, password_hash, roles, active, mfa_enabled, mfa_secret_encrypted, mfa_last_step, last_login_at, created_at, updated_at, mfa_pending_secret_encrypted, mfa_pending_expires_at FROM identity.account WHERE realm=$1 AND subject_id=$2 FOR UPDATE
+SELECT realm, subject_id, email, password_hash, roles, active, mfa_enabled, mfa_secret_encrypted, mfa_last_step, last_login_at, created_at, updated_at, mfa_pending_secret_encrypted, mfa_pending_expires_at, username FROM identity.account WHERE realm=$1 AND subject_id=$2 FOR UPDATE
 `
 
 type LockAccountParams struct {
@@ -239,6 +241,7 @@ func (q *Queries) LockAccount(ctx context.Context, arg LockAccountParams) (Ident
 		&i.UpdatedAt,
 		&i.MfaPendingSecretEncrypted,
 		&i.MfaPendingExpiresAt,
+		&i.Username,
 	)
 	return i, err
 }

@@ -34,11 +34,6 @@ export function SettingsNavTabs() {
       label: t.settingsTabs.web,
       icon: Globe,
     },
-    {
-      href: ROUTES.settings.audit,
-      label: t.settingsTabs.audit,
-      icon: History,
-    },
     ...(role === "super_admin" && can("settings", "read")
       ? [
           {
@@ -52,10 +47,7 @@ export function SettingsNavTabs() {
 
   const visibleTabs = tabs.filter(
     (tab) =>
-      tab.href === ROUTES.settings.preferences ||
-      (tab.href === ROUTES.settings.audit
-        ? can("audit_logs", "read")
-        : can("settings", "read")),
+      tab.href === ROUTES.settings.preferences || can("settings", "read"),
   );
 
   return (

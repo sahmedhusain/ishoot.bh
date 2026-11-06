@@ -22,8 +22,6 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { updateCompanySettingsAction } from "../../app/actions/settings";
 import { SettingsNavTabs } from "./SettingsNavTabs";
 import { GeneralInfoTab } from "./company/GeneralInfoTab";
-import { CustomTaxesPanel } from "./company/CustomTaxesPanel";
-import { TaxVatSettingsTab } from "./company/TaxVatSettingsTab";
 import { BankCoordinatesTab } from "./company/BankCoordinatesTab";
 import { InvoiceReceiptSequencesTab } from "./company/InvoiceReceiptSequencesTab";
 import { BrandAssetsTab } from "./company/BrandAssetsTab";
@@ -45,7 +43,7 @@ interface ChangeDiff {
   isVat?: boolean;
 }
 
-type TabKey = "general" | "taxVat" | "banking" | "sequences" | "sales" | "brandAssets" | "theme";
+type TabKey = "general" | "banking" | "sequences" | "sales" | "brandAssets" | "theme";
 
 function calculateDiff(
   oldSettings: CompanySettings,
@@ -239,11 +237,6 @@ export function CompanySettingsView({
       icon: Building2,
     },
     {
-      key: "taxVat",
-      label: t.companySettingsTabs.taxVat,
-      icon: Percent,
-    },
-    {
       key: "banking",
       label: t.companySettingsTabs.banking,
       icon: Landmark,
@@ -340,19 +333,6 @@ export function CompanySettingsView({
             locale={locale}
             isRTL={isRTL}
           />
-        )}
-
-        {activeTab === "taxVat" && (
-          <>
-            <TaxVatSettingsTab
-              settings={settings}
-              setSettings={setSettings}
-              t={t}
-              locale={locale}
-              isRTL={isRTL}
-            />
-            <CustomTaxesPanel initialTaxes={taxes} canEdit={canEditTaxes} />
-          </>
         )}
 
         {activeTab === "banking" && (

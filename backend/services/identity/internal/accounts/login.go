@@ -25,6 +25,7 @@ var (
 type Account struct {
 	Realm              authn.Realm
 	SubjectID, Email   string
+	Username           *string
 	PasswordHash       *string
 	Roles              []string
 	Active, MFAEnabled bool

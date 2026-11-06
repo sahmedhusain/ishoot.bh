@@ -1,5 +1,5 @@
 -- name: FindAccountByEmail :one
-SELECT * FROM identity.account WHERE realm=$1 AND email=$2;
+SELECT * FROM identity.account WHERE realm=$1 AND (email=$2 OR lower(email)=lower($2) OR (username IS NOT NULL AND lower(username)=lower($2)));
 -- name: LockAccount :one
 SELECT * FROM identity.account WHERE realm=$1 AND subject_id=$2 FOR UPDATE;
 -- name: UpdateAccountHash :exec

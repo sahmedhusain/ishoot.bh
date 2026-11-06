@@ -38,11 +38,14 @@ export function LoginForm() {
         )}
         <div className={otpStep ? "hidden" : "space-y-4"}>
           <label className="block space-y-1.5">
-            <span className="text-xs font-semibold text-ink">{c.email}</span>
+            <span className="text-xs font-semibold text-ink">
+              {c.username || "Username"}
+            </span>
             <Input
-              name="email"
-              type="email"
+              name="username"
+              type="text"
               autoComplete="username"
+              placeholder="e.g. BA0001"
               dir="ltr"
               required
               value={email}

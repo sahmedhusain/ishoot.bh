@@ -6,6 +6,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../.env"), quiet: true });
 import { apiTimeoutMs, apiUrl } from "../../apps/admin/lib/api/config";
 import { serviceToken } from "../../apps/admin/lib/api/service-token";
 import { setAccountPassword, syncAccount } from "../../apps/admin/lib/api/identity";
+import { formatUsername } from "../../contracts/src/username";
 import { installCompanyProfile, loadCompanyProfile } from "../tools/company-profile";
 import { demoPreset } from "./demo-presets";
 import demoStaff from "./demo-staff.json";
@@ -168,10 +169,12 @@ async function seedIdentityAndHR() {
 
   const superAdminEmail = (process.env.SUPER_ADMIN_EMAIL || "admin@example.com").trim().toLowerCase();
   const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD || DEFAULT_PASSWORD;
+  const superAdminUsername = (process.env.SUPER_ADMIN_USERNAME || "BA0001").trim().toUpperCase();
 
   // Create IT realm admin account for IT app access with MFA disabled by default
   await syncAccount("it", "it-admin", {
     email: superAdminEmail,
+    username: superAdminUsername,
     roles: ["it_admin"],
     active: true,
   }).catch((e) => console.warn("Sync IT admin warning:", e?.message || e));
@@ -182,6 +185,7 @@ async function seedIdentityAndHR() {
   // Create staff realm super-admin account for Admin app access with MFA disabled by default
   await syncAccount("staff", "super-admin", {
     email: superAdminEmail,
+    username: superAdminUsername,
     roles: ["super_admin"],
     active: true,
   }).catch((e) => console.warn("Sync staff super-admin warning:", e?.message || e));
@@ -207,9 +211,14 @@ async function seedIdentityAndHR() {
   const employees: Record<string, RecordWithID> = {};
   for (const [idx, member] of demoStaff.entries()) {
     const email = member.email || `${member.key}@example.com`;
+    // Format username according to: <FirstInitial><LastInitial><4-digit-incremental>
+    // Since super-admin is employee #1 (BA0001), demoStaff starts from #2 (e.g. OH0002)
+    const staffUsername = formatUsername(member.nameEn, idx + 2);
+
     // 1. Create Identity staff account with regular email and password (MFA disabled by default)
     await syncAccount("staff", member.key, {
       email,
+      username: staffUsername,
       roles: [member.role],
       active: true,
     }).catch((e) => console.warn(`Sync staff ${member.key} warning:`, e?.message || e));
@@ -221,7 +230,7 @@ async function seedIdentityAndHR() {
     const [firstEn, lastEn] = member.nameEn.split(" ");
     const [firstAr, lastAr] = member.nameAr.split(" ");
     const emp = await create<{ id: string }>("/v1/hr/employees", {
-      employeeNumber: `DEMO-${String(idx + 1).padStart(3, "0")}`,
+      employeeNumber: staffUsername,
       firstNameEn: firstEn,
       lastNameEn: lastEn || "",
       firstNameAr: firstAr,

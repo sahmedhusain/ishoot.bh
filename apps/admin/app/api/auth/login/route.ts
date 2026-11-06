@@ -18,13 +18,16 @@ export async function POST(req: NextRequest) {
     const trans = getTranslations("en");
     try {
       const body = await readLoginInput(req);
-      const { email, password } = body;
+      const identifier = (
+        (typeof body.username === "string" && body.username.trim()) ||
+        (typeof body.email === "string" && body.email.trim()) ||
+        ""
+      );
+      const password = typeof body.password === "string" ? body.password : "";
       if (
-        typeof email !== "string" ||
-        typeof password !== "string" ||
-        !email.trim() ||
+        !identifier ||
         !password ||
-        email.length > 254 ||
+        identifier.length > 254 ||
         password.length > 1024
       ) {
         return NextResponse.json({ error: trans.api.auth.requiredFields }, { status: 400 });
@@ -34,7 +37,7 @@ export async function POST(req: NextRequest) {
       let credential: LoginCredential;
       try {
         credential = await signIn(REALM, {
-          email: email.trim().toLowerCase(),
+          email: identifier.toLowerCase(),
           password,
           otp: typeof body.otp === "string" && body.otp ? body.otp.replace(/\s+/g, "").slice(0, 64) : undefined,
           clientIp: ipAddress?.slice(0, 45),
@@ -62,8 +65,9 @@ export async function POST(req: NextRequest) {
           id: credential.subjectId,
           full_name: credential.subjectId === "super-admin"
             ? (process.env.SUPER_ADMIN_NAME || "Super Admin")
-            : email.split("@")[0],
-          email: email.trim().toLowerCase(),
+            : identifier.split("@")[0],
+          email: identifier.includes("@") ? identifier.toLowerCase() : `${identifier.toLowerCase()}@example.com`,
+          username: credential.subjectId === "super-admin" ? "BA0001" : identifier,
           role: primaryRole as any,
           is_active: true,
           department: "executive",

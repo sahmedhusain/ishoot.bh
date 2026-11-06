@@ -255,7 +255,7 @@ func (s *DeskStaff) Save(ctx context.Context, actor authn.Principal, id string, 
 			}
 		}
 		now := time.Now().UTC()
-		if err := q.UpsertManagedAccount(ctx, sqlcdb.UpsertManagedAccountParams{Realm: "staff", SubjectID: id, Email: email, Roles: []string{in.Role}, Active: in.Active, Now: now}); err != nil {
+		if err := q.UpsertManagedAccount(ctx, sqlcdb.UpsertManagedAccountParams{Realm: "staff", SubjectID: id, Email: email, Username: nil, Roles: []string{in.Role}, Active: in.Active, Now: now}); err != nil {
 			if uniqueViolation(err) {
 				return ErrEmailTaken
 			}

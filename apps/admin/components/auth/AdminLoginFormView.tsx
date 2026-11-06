@@ -42,7 +42,12 @@ export function AdminLoginFormView(brand: AuthBrandingProps) {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), password, otp }),
+        body: JSON.stringify({
+          username: email.trim(),
+          email: email.trim(),
+          password,
+          otp,
+        }),
       });
 
       const data = await res.json();
@@ -115,19 +120,20 @@ export function AdminLoginFormView(brand: AuthBrandingProps) {
         <form onSubmit={handleLogin} className="space-y-5">
           <div className="space-y-1.5">
             <label
-              htmlFor="login-email"
+              htmlFor="login-username"
               className="text-sm font-medium text-ink-muted"
             >
-              {t.loginView.emailLabel}
+              {locale === "ar" ? "اسم المستخدم" : "Username"}
             </label>
             <div className="relative" dir="ltr">
               <Mail className="pointer-events-none w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted" />
               <Input
-                id="login-email"
-                type="email"
+                id="login-username"
+                name="username"
+                type="text"
                 required
-                autoComplete="email"
-                placeholder={t.loginView.emailPlaceholder}
+                autoComplete="username"
+                placeholder={locale === "ar" ? "اسم المستخدم (مثال: BA0001)" : "Username (e.g. BA0001)"}
                 className="pl-10 pr-3.5"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}

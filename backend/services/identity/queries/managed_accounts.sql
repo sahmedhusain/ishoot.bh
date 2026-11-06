@@ -1,7 +1,7 @@
 -- name: UpsertManagedAccount :exec
-INSERT INTO identity.account (realm,subject_id,email,roles,active,created_at,updated_at)
-VALUES (@realm,@subject_id,@email,@roles::text[],@active,@now,@now)
-ON CONFLICT (realm,subject_id) DO UPDATE SET email=EXCLUDED.email,roles=EXCLUDED.roles,active=EXCLUDED.active,updated_at=EXCLUDED.updated_at;
+INSERT INTO identity.account (realm,subject_id,email,username,roles,active,created_at,updated_at)
+VALUES (@realm,@subject_id,@email,@username,@roles::text[],@active,@now,@now)
+ON CONFLICT (realm,subject_id) DO UPDATE SET email=EXCLUDED.email,username=COALESCE(EXCLUDED.username, identity.account.username),roles=EXCLUDED.roles,active=EXCLUDED.active,updated_at=EXCLUDED.updated_at;
 -- name: FindActiveAccountByEmail :one
 SELECT subject_id FROM identity.account WHERE realm=$1 AND email=$2 AND active;
 -- name: RevokeOtherSubjectSessions :exec

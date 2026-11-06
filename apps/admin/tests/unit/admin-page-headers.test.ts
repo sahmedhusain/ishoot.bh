@@ -11,7 +11,7 @@ const dashboard = path.join(admin, "app/dashboard");
 const read = (file: string) => fs.readFileSync(file, "utf8");
 
 // Pages that only send the visitor elsewhere.
-const REDIRECT_ONLY = new Set(["crm/leads", "hr", "hr/gosi", "settings", "settings/security"]);
+const REDIRECT_ONLY = new Set(["crm/leads", "hr", "hr/gosi", "settings", "settings/security", "settings/audit"]);
 // The calendar's workbench has its own top app bar with the page title.
 const OWN_HEADER = new Set(["calendar"]);
 

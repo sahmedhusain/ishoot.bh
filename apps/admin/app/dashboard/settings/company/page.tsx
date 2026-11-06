@@ -1,5 +1,5 @@
-import { hasPermission, requirePagePermission } from "../../../../lib/auth";
-import { getCompanyAssets, listTaxRates } from "@platform/database";
+import { requirePagePermission } from "../../../../lib/auth";
+import { getCompanyAssets } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { CompanySettingsView } from "../../../../components/settings/CompanySettingsView";
 import { pageMetadata } from "../../../../lib/company-metadata";
@@ -10,14 +10,12 @@ export const dynamic = "force-dynamic";
 
 export default async function CompanySettingsPage() {
   await requirePagePermission("settings", "read");
-  const [settings, assets, taxes, canEditTaxes] = await Promise.all([
+  const [settings, assets] = await Promise.all([
     getCachedCompanySettings(),
     getCompanyAssets(),
-    listTaxRates(),
-    hasPermission("settings", "write"),
   ]);
 
   return (
-    <CompanySettingsView initialSettings={settings} initialAssets={assets} taxes={taxes} canEditTaxes={canEditTaxes} />
+    <CompanySettingsView initialSettings={settings} initialAssets={assets} />
   );
 }
