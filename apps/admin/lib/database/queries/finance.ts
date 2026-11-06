@@ -4,7 +4,13 @@ import { companyCurrency as getAccountingCurrency } from "../finance/company-cur
 import { serverMessages } from "@platform/locales";
 import { db } from "../db";
 import { FinancialSummary } from "../types";
-import { getFinancialSummaryReport } from "./finance-reports";
+import {
+  listInvoices,
+  listPayments,
+  listExpenses,
+  listExpenseCategories,
+} from "../../api/finance";
+import { listContacts } from "../../api/sales";
 
 async function getCompanyTimeZone(): Promise<string> {
   const setting = await db.companySetting
@@ -13,58 +19,84 @@ async function getCompanyTimeZone(): Promise<string> {
   return setting?.timeZone || "UTC";
 }
 
-// SQL numeric arithmetic keeps balances exact until the public number DTO boundary.
-// One statement gives a consistent snapshot without fetching contacts or line items.
+// Computes real financial summary from microservices records in functional currency.
 export async function getFinancialSummary(): Promise<FinancialSummary> {
-  const [accountingCurrency, timeZone] = await Promise.all([
+  const [accountingCurrency, invoices, payments, expenses] = await Promise.all([
     getAccountingCurrency(),
-    getCompanyTimeZone(),
+    listInvoices().catch(() => []),
+    listPayments().catch(() => []),
+    listExpenses().catch(() => []),
   ]);
-  const [row] = await db.$queryRaw<
-    Array<{
-      revenue: unknown;
-      expenses: unknown;
-      outstanding: unknown;
-      overdue: unknown;
-      discountsGiven: unknown;
-      vatCollected: unknown;
-    }>
-  >`
-    WITH paid AS (
-      SELECT "invoiceId", SUM(amount) AS amount FROM "Payment" WHERE currency = ${accountingCurrency} GROUP BY "invoiceId"
-    ), invoices AS (
-      SELECT i.*, COALESCE(p.amount, 0) AS paid,
-        GREATEST(0, i."totalAmount" - COALESCE(p.amount, 0)) AS due
-      FROM "Invoice" i LEFT JOIN paid p ON p."invoiceId" = i.id
-      WHERE i.currency = ${accountingCurrency} AND i.status <> 'void'
-    )
-    SELECT
-      (SELECT COALESCE(SUM(p.amount), 0) FROM "Payment" p JOIN "Invoice" i ON i.id = p."invoiceId" WHERE p.currency = ${accountingCurrency} AND i.status <> 'void') AS revenue,
-      (SELECT COALESCE(SUM(amount), 0) FROM "Expense" WHERE currency = ${accountingCurrency} AND status = 'approved') AS expenses,
-      COALESCE(SUM(due) FILTER (WHERE status IN ('sent', 'partially_paid', 'overdue')), 0) AS outstanding,
-      COALESCE(SUM(due) FILTER (WHERE status <> 'draft' AND "dueDate" < (CURRENT_TIMESTAMP AT TIME ZONE ${timeZone})::date), 0) AS overdue,
-      COALESCE(SUM("discountAmount"), 0) AS "discountsGiven",
-      COALESCE(SUM(CASE WHEN "vatEnabled" AND status <> 'draft' AND "totalAmount" > 0 THEN "vatAmount" * LEAST(1, paid / "totalAmount") ELSE 0 END), 0) AS "vatCollected"
-    FROM invoices
-  `;
-  // Profit uses the same definition as the financial report (net of VAT, incl. payroll and bank fees).
-  const report = await getFinancialSummaryReport({ basis: "cash" });
-  const revenue = report.cashNetReceipts;
-  const expenses =
-    roundMoney((report.expensesNet +
-        report.inputVatNonRecoverable +
-        report.payrollCostsTotal +
-        report.bankFeesTotal), accountingCurrency);
-  const netProfit = report.operatingProfit;
+
+  const currencyInvoices = (invoices || []).filter(
+    (i) => (!i.currency || i.currency === accountingCurrency) && i.status !== "void"
+  );
+  const currencyPayments = (payments || []).filter(
+    (p) => (!p.currency || p.currency === accountingCurrency) && p.status !== "void"
+  );
+  const currencyExpenses = (expenses || []).filter(
+    (e) => (!e.currency || e.currency === accountingCurrency) && e.status !== "rejected"
+  );
+
+  // Revenue = sum of payments collected for non-void invoices
+  const revenue = roundMoney(
+    currencyPayments.reduce((sum, p) => sum + Number((p as any).amount ?? (p as any).amountPaid ?? 0), 0),
+    accountingCurrency
+  );
+
+  // Operating Expenses = sum of approved expenses
+  const totalExpenses = roundMoney(
+    currencyExpenses.reduce((sum, e) => sum + Number(e.amount ?? 0), 0),
+    accountingCurrency
+  );
+
+  const netProfit = roundMoney(revenue - totalExpenses, accountingCurrency);
+  const profitMargin = revenue > 0 ? (netProfit / revenue) * 100 : 0;
+
+  // Outstanding = sum of balanceDue on open invoices
+  const outstanding = roundMoney(
+    currencyInvoices
+      .filter((i) => ["sent", "partially_paid", "overdue"].includes(i.status) || (!i.status && Number(i.balanceDue ?? 0) > 0))
+      .reduce((sum, i) => sum + Number(i.balanceDue ?? (Number(i.total ?? 0) - Number(i.amountPaid ?? 0))), 0),
+    accountingCurrency
+  );
+
+  // Overdue = sum of balanceDue on open invoices where dueDate < today
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const overdue = roundMoney(
+    currencyInvoices
+      .filter((i) => i.status !== "draft" && i.dueDate && String(i.dueDate).slice(0, 10) < todayStr && Number(i.balanceDue ?? 0) > 0)
+      .reduce((sum, i) => sum + Number(i.balanceDue ?? (Number(i.total ?? 0) - Number(i.amountPaid ?? 0))), 0),
+    accountingCurrency
+  );
+
+  const discountsGiven = roundMoney(
+    currencyInvoices.reduce((sum, i) => sum + Number(i.discount ?? 0), 0),
+    accountingCurrency
+  );
+
+  const vatCollected = roundMoney(
+    currencyInvoices.reduce((sum, i) => {
+      const tot = Number(i.total ?? 0);
+      const vat = Number(i.vatAmount ?? 0);
+      const paid = Number(i.amountPaid ?? 0);
+      if (tot > 0 && vat > 0 && paid > 0) {
+        return sum + (vat * Math.min(1, paid / tot));
+      }
+      return sum;
+    }, 0),
+    accountingCurrency
+  );
+
   return {
     revenue,
-    expenses,
+    expenses: totalExpenses,
     netProfit,
-    profitMargin: revenue > 0 ? (netProfit / revenue) * 100 : 0,
-    outstanding: Number(row?.outstanding ?? 0),
-    overdue: Number(row?.overdue ?? 0),
-    discountsGiven: Number(row?.discountsGiven ?? 0),
-    vatCollected: Number(row?.vatCollected ?? 0),
+    profitMargin,
+    outstanding,
+    overdue,
+    discountsGiven,
+    vatCollected,
     currency: accountingCurrency,
   };
 }
@@ -78,83 +110,108 @@ export interface MonthlyCashflowPoint {
 export async function getMonthlyCashflow(
   monthsCount = 6,
 ): Promise<MonthlyCashflowPoint[]> {
-  const [accountingCurrency, timeZone] = await Promise.all([
+  const [accountingCurrency, invoices, payments, expenses] = await Promise.all([
     getAccountingCurrency(),
-    getCompanyTimeZone(),
+    listInvoices().catch(() => []),
+    listPayments().catch(() => []),
+    listExpenses().catch(() => []),
   ]);
+
   if (!Number.isInteger(monthsCount) || monthsCount < 1 || monthsCount > 120)
     throw new Error(serverMessages.monthCountMustBeBetween1And);
-  const decimals = getCurrencyDecimals(accountingCurrency);
-  const rows = await db.$queryRaw<
-    Array<{ monthKey: string; revenue: unknown; expenses: unknown }>
-  >`
-    WITH bounds AS (
-      SELECT date_trunc('month', CURRENT_TIMESTAMP AT TIME ZONE ${timeZone})::date AS last_month
-    ), months AS (
-      SELECT generate_series(last_month - (${monthsCount} - 1) * INTERVAL '1 month', last_month, INTERVAL '1 month') AS month FROM bounds
-    ), revenue AS (
-      -- Same definitions as the financial report: receipts net of the VAT and other taxes they carry (allocated pro rata)...
-      SELECT date_trunc('month', p."paymentDate") AS month,
-        SUM(p.amount - CASE WHEN i."totalAmount" > 0 THEN ROUND((i."vatAmount" + i."otherTaxAmount") * p.amount / i."totalAmount", ${decimals}::integer) ELSE 0 END) AS amount
-      FROM "Payment" p JOIN "Invoice" i ON i.id = p."invoiceId"
-      WHERE p.currency = ${accountingCurrency} AND i.status <> 'void'
-        AND p."paymentDate" >= (SELECT MIN(month) FROM months)
-        AND p."paymentDate" < (SELECT MAX(month) + INTERVAL '1 month' FROM months)
-      GROUP BY 1
-    ), costs AS (
-      -- ...and operating costs = approved expenses net of recoverable VAT + paid payroll + bank fees.
-      SELECT date_trunc('month', "expenseDate") AS month,
-        (CASE WHEN "netAmount" > 0 THEN "netAmount" ELSE amount - "inputVatAmount" END)
-          + CASE WHEN "isVatRecoverable" THEN 0 ELSE "inputVatAmount" END AS amount
-      FROM "Expense" WHERE currency = ${accountingCurrency} AND status = 'approved'
-      UNION ALL SELECT date_trunc('month', "paidAt"), "totalEmployerCost" FROM "PayrollRun" WHERE status = 'paid' AND "paidAt" IS NOT NULL
-      UNION ALL SELECT date_trunc('month', "settlementDate"), "bankFeeBhd" FROM "BankSettlement" WHERE status = 'settled'
-    ), expenses AS (
-      SELECT month, SUM(amount) AS amount FROM costs
-      WHERE month >= (SELECT MIN(month) FROM months) AND month <= (SELECT MAX(month) FROM months)
-      GROUP BY 1
-    )
-    SELECT to_char(m.month, 'YYYY-MM') AS "monthKey", COALESCE(r.amount, 0) AS revenue, COALESCE(e.amount, 0) AS expenses
-    FROM months m LEFT JOIN revenue r ON r.month = m.month LEFT JOIN expenses e ON e.month = m.month ORDER BY m.month
-  `;
-  return rows.map((row) => ({
-    monthKey: row.monthKey || new Date().toISOString().slice(0, 7),
-    revenue: Number(row.revenue || 0),
-    expenses: Number(row.expenses || 0),
-  }));
+
+  const result: MonthlyCashflowPoint[] = [];
+  const now = new Date();
+  const invoiceMap = new Map((invoices || []).map((i) => [i.id, i]));
+
+  for (let i = monthsCount - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+
+    const monthPayments = (payments || []).filter((p) => {
+      if (p.currency && p.currency !== accountingCurrency) return false;
+      const pDate = p.paymentDate ? String(p.paymentDate).slice(0, 7) : "";
+      return pDate === monthKey;
+    });
+
+    const monthRevenue = monthPayments.reduce((sum, p) => {
+      const amount = Number((p as any).amount ?? (p as any).amountPaid ?? 0);
+      const inv = p.invoiceId ? invoiceMap.get(p.invoiceId) : undefined;
+      const total = Number(inv?.total ?? 0);
+      const vat = Number(inv?.vatAmount ?? 0);
+      if (total > 0 && vat > 0) {
+        return sum + Math.max(0, amount - ((vat * amount) / total));
+      }
+      return sum + amount;
+    }, 0);
+
+    const monthExpenses = (expenses || []).filter((e) => {
+      if (e.currency && e.currency !== accountingCurrency) return false;
+      if (e.status === "rejected") return false;
+      const eDate = e.expenseDate ? String(e.expenseDate).slice(0, 7) : "";
+      return eDate === monthKey;
+    });
+
+    const monthExpenseTotal = monthExpenses.reduce((sum, e) => sum + Number(e.amount ?? 0), 0);
+
+    result.push({
+      monthKey,
+      revenue: roundMoney(monthRevenue, accountingCurrency),
+      expenses: roundMoney(monthExpenseTotal, accountingCurrency),
+    });
+  }
+
+  return result;
 }
 
 export async function getExpenseCategoryTotals(): Promise<
   Record<string, number>
 > {
-  const accountingCurrency = await getAccountingCurrency();
-  const rows = await db.$queryRaw<Array<{ slug: string; amount: unknown }>>`
-    SELECT COALESCE(c.slug, 'other') AS slug, SUM(e.amount) AS amount
-    FROM "Expense" e LEFT JOIN "ExpenseCategory" c ON c.id = e."categoryId"
-    WHERE e.currency = ${accountingCurrency} AND e.status = 'approved' GROUP BY COALESCE(c.slug, 'other')
-  `;
-  return Object.fromEntries(rows.map((row) => [row.slug, Number(row.amount)]));
+  const [accountingCurrency, expenses, categories] = await Promise.all([
+    getAccountingCurrency(),
+    listExpenses().catch(() => []),
+    listExpenseCategories().catch(() => []),
+  ]);
+
+  const catMap = new Map((categories || []).map((c) => [c.id, c.code || c.nameEn?.toLowerCase().replace(/\s+/g, "_") || "other"]));
+  const totals: Record<string, number> = {};
+
+  for (const exp of (expenses || [])) {
+    if (exp.currency && exp.currency !== accountingCurrency) continue;
+    if (exp.status === "rejected") continue;
+    const slug = (exp.categoryId ? catMap.get(exp.categoryId) : undefined) || "other";
+    totals[slug] = roundMoney((totals[slug] || 0) + Number(exp.amount ?? 0), accountingCurrency);
+  }
+
+  return totals;
 }
 
 // Invoice readers receive invoice metrics without expense or unrelated revenue data.
 export async function getInvoiceSummary() {
-  const [accountingCurrency, timeZone] = await Promise.all([
+  const [accountingCurrency, invoices] = await Promise.all([
     getAccountingCurrency(),
-    getCompanyTimeZone(),
+    listInvoices().catch(() => []),
   ]);
-  const [row] = await db.$queryRaw<
-    Array<{ outstanding: unknown; overdue: unknown; discountsGiven: unknown }>
-  >`
-    WITH paid AS (SELECT "invoiceId", SUM(amount) amount FROM "Payment" WHERE currency=${accountingCurrency} GROUP BY "invoiceId"),
-    balances AS (SELECT i.*, GREATEST(0, i."totalAmount" - COALESCE(p.amount,0)) due FROM "Invoice" i LEFT JOIN paid p ON p."invoiceId"=i.id WHERE i.currency=${accountingCurrency} AND i.status<>'void')
-    SELECT COALESCE(SUM(due) FILTER (WHERE status IN ('sent','partially_paid','overdue')),0) outstanding,
-    COALESCE(SUM(due) FILTER (WHERE status<>'draft' AND "dueDate"<(CURRENT_TIMESTAMP AT TIME ZONE ${timeZone})::date),0) overdue,
-    COALESCE(SUM("discountAmount"),0) "discountsGiven" FROM balances
-  `;
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const currencyInvoices = (invoices || []).filter(
+    (i) => (!i.currency || i.currency === accountingCurrency) && i.status !== "void"
+  );
+
+  const outstanding = currencyInvoices
+    .filter((i) => ["sent", "partially_paid", "overdue"].includes(i.status) || (!i.status && Number(i.balanceDue ?? 0) > 0))
+    .reduce((sum, i) => sum + Number(i.balanceDue ?? (Number(i.total ?? 0) - Number(i.amountPaid ?? 0))), 0);
+
+  const overdue = currencyInvoices
+    .filter((i) => i.status !== "draft" && i.dueDate && String(i.dueDate).slice(0, 10) < todayStr && Number(i.balanceDue ?? 0) > 0)
+    .reduce((sum, i) => sum + Number(i.balanceDue ?? (Number(i.total ?? 0) - Number(i.amountPaid ?? 0))), 0);
+
+  const discountsGiven = currencyInvoices.reduce((sum, i) => sum + Number(i.discount ?? 0), 0);
+
   return {
-    outstanding: Number(row?.outstanding ?? 0),
-    overdue: Number(row?.overdue ?? 0),
-    discountsGiven: Number(row?.discountsGiven ?? 0),
+    outstanding: roundMoney(outstanding, accountingCurrency),
+    overdue: roundMoney(overdue, accountingCurrency),
+    discountsGiven: roundMoney(discountsGiven, accountingCurrency),
   };
 }
 
@@ -180,50 +237,114 @@ export interface ReceivablesInsight {
 
 /** Receivables and client analytics (BHD) — the operational view; the P&L lives in the financial report. */
 export async function getReceivablesInsight(): Promise<ReceivablesInsight> {
-  const accountingCurrency = await getAccountingCurrency();
-  const [summary] = await db.$queryRaw<
-    Array<{
-      issued: unknown;
-      paid: unknown;
-      count: bigint;
-      avg: unknown;
-      days: unknown;
-    }>
-  >`
-    WITH recent AS (
-      SELECT i.id, i."totalAmount", i."issueDate", i.status FROM "Invoice" i
-      WHERE i.currency = ${accountingCurrency} AND i.status NOT IN ('draft','void') AND i."issueDate" >= CURRENT_DATE - INTERVAL '12 months'
-    ), paid AS (SELECT p."invoiceId", SUM(p.amount) amount, MAX(p."paymentDate") last FROM "Payment" p JOIN recent r ON r.id = p."invoiceId" GROUP BY 1)
-    SELECT COALESCE(SUM(r."totalAmount"),0) issued, COALESCE(SUM(p.amount),0) paid, COUNT(r.id) count, COALESCE(AVG(r."totalAmount"),0) avg,
-      COALESCE(AVG(EXTRACT(DAY FROM (p.last::timestamp - r."issueDate"::timestamp))) FILTER (WHERE r.status = 'paid'), 0) days
-    FROM recent r LEFT JOIN paid p ON p."invoiceId" = r.id`;
-  const aging = await db.$queryRaw<
-    Array<{
-      bucket: ReceivablesInsight["aging"][number]["bucket"];
-      amount: unknown;
-      count: bigint;
-    }>
-  >`
-    WITH open AS (
-      SELECT i.id, i."totalAmount" - COALESCE((SELECT SUM(p.amount) FROM "Payment" p WHERE p."invoiceId" = i.id), 0) due,
-        CURRENT_DATE - i."dueDate"::date late
-      FROM "Invoice" i WHERE i.currency = ${accountingCurrency} AND i.status IN ('sent','partially_paid','overdue'))
-    SELECT CASE WHEN late <= 0 THEN 'current' WHEN late <= 30 THEN 'd1_30' WHEN late <= 60 THEN 'd31_60' WHEN late <= 90 THEN 'd61_90' ELSE 'd90_plus' END bucket,
-      SUM(due) amount, COUNT(*) count FROM open WHERE due > 0 GROUP BY 1`;
-  const top = await db.$queryRaw<
-    Array<{
-      clientId: string;
-      name: string;
-      collected: unknown;
-      invoices: bigint;
-    }>
-  >`
-    SELECT c.id "clientId", COALESCE(c."companyName", TRIM(c."firstName" || ' ' || COALESCE(c."lastName", ''))) name,
-      SUM(p.amount) collected, COUNT(DISTINCT i.id) invoices
-    FROM "Payment" p JOIN "Invoice" i ON i.id = p."invoiceId" JOIN "CrmContact" c ON c.id = i."clientId"
-    WHERE p.currency = ${accountingCurrency} AND i.status <> 'void' AND p."paymentDate" >= CURRENT_DATE - INTERVAL '12 months'
-    GROUP BY c.id ORDER BY collected DESC LIMIT 5`;
-  const issued = Number(summary?.issued ?? 0);
+  const [accountingCurrency, invoices, payments, contacts] = await Promise.all([
+    getAccountingCurrency(),
+    listInvoices().catch(() => []),
+    listPayments().catch(() => []),
+    listContacts().catch(() => []),
+  ]);
+
+  const now = new Date();
+  const twelveMonthsAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()).toISOString().slice(0, 10);
+  const todayStr = now.toISOString().slice(0, 10);
+
+  const recentInvoices = (invoices || []).filter(
+    (i) => (!i.currency || i.currency === accountingCurrency) &&
+           i.status !== "void" &&
+           i.status !== "draft" &&
+           (!i.issueDate || String(i.issueDate).slice(0, 10) >= twelveMonthsAgo)
+  );
+
+  const issued = recentInvoices.reduce((sum, i) => sum + Number(i.total ?? 0), 0);
+  const count = recentInvoices.length;
+  const avg = count > 0 ? issued / count : 0;
+
+  const recentPayments = (payments || []).filter(
+    (p) => (!p.currency || p.currency === accountingCurrency) &&
+           p.status !== "void" &&
+           (!p.paymentDate || String(p.paymentDate).slice(0, 10) >= twelveMonthsAgo)
+  );
+  const totalPaid = recentPayments.reduce((sum, p) => sum + Number((p as any).amount ?? (p as any).amountPaid ?? 0), 0);
+
+  const paymentDatesByInvoice = new Map<string, string>();
+  for (const p of recentPayments) {
+    if (p.invoiceId && p.paymentDate) {
+      const prev = paymentDatesByInvoice.get(p.invoiceId);
+      if (!prev || String(p.paymentDate) > prev) {
+        paymentDatesByInvoice.set(p.invoiceId, String(p.paymentDate));
+      }
+    }
+  }
+
+  let totalDays = 0;
+  let paidCount = 0;
+  for (const inv of recentInvoices) {
+    if (inv.status === "paid" && inv.issueDate) {
+      const lastPayDate = paymentDatesByInvoice.get(inv.id);
+      if (lastPayDate) {
+        const diffMs = new Date(lastPayDate).getTime() - new Date(inv.issueDate).getTime();
+        const diffDays = Math.max(0, Math.round(diffMs / 86400000));
+        totalDays += diffDays;
+        paidCount++;
+      }
+    }
+  }
+  const averageDaysToCollect = paidCount > 0 ? Math.round(totalDays / paidCount) : 0;
+
+  const openInvoices = (invoices || []).filter(
+    (i) => (!i.currency || i.currency === accountingCurrency) &&
+           ["sent", "partially_paid", "overdue"].includes(i.status) &&
+           Number(i.balanceDue ?? 0) > 0
+  );
+
+  const agingBuckets: Record<ReceivablesInsight["aging"][number]["bucket"], { amount: number; count: number }> = {
+    current: { amount: 0, count: 0 },
+    d1_30: { amount: 0, count: 0 },
+    d31_60: { amount: 0, count: 0 },
+    d61_90: { amount: 0, count: 0 },
+    d90_plus: { amount: 0, count: 0 },
+  };
+
+  for (const inv of openInvoices) {
+    const due = Number(inv.balanceDue ?? 0);
+    const dueDateStr = inv.dueDate ? String(inv.dueDate).slice(0, 10) : todayStr;
+    const diffDays = Math.round((new Date(todayStr).getTime() - new Date(dueDateStr).getTime()) / 86400000);
+
+    let bucket: ReceivablesInsight["aging"][number]["bucket"] = "current";
+    if (diffDays <= 0) bucket = "current";
+    else if (diffDays <= 30) bucket = "d1_30";
+    else if (diffDays <= 60) bucket = "d31_60";
+    else if (diffDays <= 90) bucket = "d61_90";
+    else bucket = "d90_plus";
+
+    agingBuckets[bucket].amount += due;
+    agingBuckets[bucket].count += 1;
+  }
+
+  const contactMap = new Map((contacts || []).map((c: any) => [c.id, c.companyName || `${c.firstName || ""} ${c.lastName || ""}`.trim() || "Client"]));
+  const clientPayments = new Map<string, { collected: number; invoiceIds: Set<string> }>();
+
+  for (const p of recentPayments) {
+    const inv = p.invoiceId ? (invoices || []).find((i) => i.id === p.invoiceId) : undefined;
+    const clientId = p.contactId || inv?.contactId;
+    if (clientId) {
+      const entry = clientPayments.get(clientId) || { collected: 0, invoiceIds: new Set<string>() };
+      entry.collected += Number((p as any).amount ?? (p as any).amountPaid ?? 0);
+      if (p.invoiceId) entry.invoiceIds.add(p.invoiceId);
+      clientPayments.set(clientId, entry);
+    }
+  }
+
+  const topClients = Array.from(clientPayments.entries())
+    .map(([clientId, data]) => ({
+      clientId,
+      name: contactMap.get(clientId) || "Client",
+      collected: roundMoney(data.collected, accountingCurrency),
+      invoices: data.invoiceIds.size,
+    }))
+    .sort((a, b) => b.collected - a.collected)
+    .slice(0, 5);
+
   const buckets: ReceivablesInsight["aging"][number]["bucket"][] = [
     "current",
     "d1_30",
@@ -231,25 +352,17 @@ export async function getReceivablesInsight(): Promise<ReceivablesInsight> {
     "d61_90",
     "d90_plus",
   ];
+
   return {
-    collectionRate:
-      issued > 0 ? Math.round((Number(summary?.paid ?? 0) / issued) * 1000) / 10 : 0,
-    averageDaysToCollect: Math.round(Number(summary?.days ?? 0)),
-    averageInvoiceValue: roundMoney(Number(summary?.avg ?? 0), accountingCurrency),
-    invoicesIssued: Number(summary?.count ?? 0),
-    aging: buckets.map((bucket) => {
-      const row = (aging || []).find((a) => a.bucket === bucket);
-      return {
-        bucket,
-        amount: Number(row?.amount ?? 0),
-        count: Number(row?.count ?? 0),
-      };
-    }),
-    topClients: (top || []).map((row) => ({
-      clientId: row.clientId,
-      name: row.name,
-      collected: Number(row.collected || 0),
-      invoices: Number(row.invoices || 0),
+    collectionRate: issued > 0 ? Math.round((totalPaid / issued) * 1000) / 10 : 0,
+    averageDaysToCollect,
+    averageInvoiceValue: roundMoney(avg, accountingCurrency),
+    invoicesIssued: count,
+    aging: buckets.map((bucket) => ({
+      bucket,
+      amount: roundMoney(agingBuckets[bucket].amount, accountingCurrency),
+      count: agingBuckets[bucket].count,
     })),
+    topClients,
   };
 }

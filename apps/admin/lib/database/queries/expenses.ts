@@ -4,18 +4,19 @@ import { serverMessages } from "@platform/locales";
 import { db, runAtomicMutation } from "../db";
 import { claimUploadOrLink } from "../services/uploads";
 import { Expense, ExpenseCategory, SupportedCurrency } from "../types";
+import { listExpenseCategories } from "@platform/api-client";
 
 
 function mapCategory(c: any): ExpenseCategory {
   return {
     id: c.id,
-    slug: c.slug,
-    name_en: c.nameEn,
-    name_ar: c.nameAr,
-    color: c.color,
-    display_order: c.displayOrder,
+    slug: c.slug || c.code || "",
+    name_en: c.nameEn || c.name_en || "",
+    name_ar: c.nameAr || c.name_ar || "",
+    color: c.color || "#09937F",
+    display_order: c.displayOrder || c.sortOrder || 0,
     kind: c.kind ?? "operating",
-    is_system: Boolean(c.isSystem),
+    is_system: Boolean(c.isSystem ?? true),
     is_active: c.isActive ?? true,
   };
 }
@@ -70,6 +71,10 @@ export function mapExpense(e: any): Expense {
 export async function getExpenseCategories(
   options: { includeInactive?: boolean } = {},
 ): Promise<ExpenseCategory[]> {
+  const apiCats = await listExpenseCategories().catch(() => null);
+  if (apiCats && apiCats.length > 0) {
+    return apiCats.map(mapCategory);
+  }
   const categories = await db.expenseCategory.findMany({
     where: options.includeInactive ? undefined : { isActive: true },
     orderBy: [{ displayOrder: "asc" }, { nameEn: "asc" }],

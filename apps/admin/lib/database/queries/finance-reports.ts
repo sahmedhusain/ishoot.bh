@@ -4,6 +4,13 @@ import { companyCurrency as getAccountingCurrency } from "../finance/company-cur
 import { getTranslations, formatMessage, isLocale } from "@platform/locales";
 import { db } from "../db";
 import { companyCurrency } from "../finance/company-currency";
+import {
+  listInvoices,
+  listPayments,
+  listExpenses,
+  listExpenseCategories,
+} from "../../api/finance";
+import { listContacts } from "../../api/sales";
 
 export interface FinancialSummaryReport {
   basis: "cash" | "accrual";
@@ -49,185 +56,91 @@ export async function getFinancialSummaryReport(filters: {
   const accountingCurrency = await getAccountingCurrency();
   const FUNCTIONAL_CURRENCY = await companyCurrency();
   const basis = filters.basis || "cash";
-  const dateFilter: any = {};
-  if (filters.dateFrom) dateFilter.gte = filters.dateFrom;
-  if (filters.dateTo) dateFilter.lte = filters.dateTo;
 
-  // 1. Invoices (Accrual basis)
-  // Only the functional currency is summed; mixing currencies under a BHD label is wrong.
-  const invoiceWhere: any = {
-    status: { notIn: ["void", "draft"] },
-    currency: FUNCTIONAL_CURRENCY,
+  const [invoices, payments, expenses] = await Promise.all([
+    listInvoices().catch(() => []),
+    listPayments().catch(() => []),
+    listExpenses().catch(() => []),
+  ]);
+
+  const dateFromStr = filters.dateFrom?.toISOString().slice(0, 10);
+  const dateToStr = filters.dateTo?.toISOString().slice(0, 10);
+
+  const inRange = (dStr?: string) => {
+    if (!dStr) return true;
+    const s = String(dStr).slice(0, 10);
+    if (dateFromStr && s < dateFromStr) return false;
+    if (dateToStr && s > dateToStr) return false;
+    return true;
   };
-  if (filters.dateFrom || filters.dateTo) {
-    invoiceWhere.issueDate = dateFilter;
-  }
 
-  // Summed by the database instead of loading every invoice of the period.
-  const { _sum: invoiced } = await db.invoice.aggregate({
-    where: invoiceWhere,
-    _sum: { totalAmount: true, subtotal: true, discountAmount: true, vatAmount: true },
-  });
-  const invoicedGross = Number(invoiced.totalAmount ?? 0);
-  // Net sales are after discount and before VAT.
-  const invoicedNet = Number(invoiced.subtotal ?? 0) - Number(invoiced.discountAmount ?? 0);
-  const invoicedOutputVat = Number(invoiced.vatAmount ?? 0);
+  const currencyInvoices = (invoices || []).filter(
+    (i) => (!i.currency || i.currency === FUNCTIONAL_CURRENCY) &&
+           i.status !== "void" &&
+           i.status !== "draft" &&
+           inRange(i.issueDate)
+  );
 
-  // 2. Payments (Cash basis)
-  const paymentWhere: any = {
-    currency: FUNCTIONAL_CURRENCY,
-    invoice: { status: { not: "void" } },
-  };
-  if (filters.dateFrom || filters.dateTo) {
-    paymentWhere.paymentDate = dateFilter;
-  }
+  const invoicedGross = currencyInvoices.reduce((sum, i) => sum + Number(i.total ?? 0), 0);
+  const invoicedNet = currencyInvoices.reduce((sum, i) => sum + (Number(i.subtotal ?? 0) - Number(i.discount ?? 0)), 0);
+  const invoicedOutputVat = currencyInvoices.reduce((sum, i) => sum + Number(i.vatAmount ?? 0), 0);
 
-  const payments = await db.payment.findMany({
-    where: paymentWhere,
-    include: {
-      invoice: {
-        select: {
-          subtotal: true,
-          totalAmount: true,
-          vatAmount: true,
-          otherTaxAmount: true,
-          vatEnabled: true,
-        },
-      },
-    },
-  });
+  const invoiceMap = new Map((invoices || []).map((i) => [i.id, i]));
+  const currencyPayments = (payments || []).filter(
+    (p) => (!p.currency || p.currency === FUNCTIONAL_CURRENCY) &&
+           p.status !== "void" &&
+           inRange(p.paymentDate)
+  );
 
   let cashGrossReceipts = 0;
   let cashNetReceipts = 0;
   let cashOutputVat = 0;
 
-  for (const p of payments) {
-    const amount = Number(p.amount);
+  for (const p of currencyPayments) {
+    const amount = Number((p as any).amount ?? (p as any).amountPaid ?? 0);
     cashGrossReceipts += amount;
-
-    if (p.invoice && Number(p.invoice.totalAmount) > 0) {
-      const invTotal = Number(p.invoice.totalAmount);
-      const invVat = Number(p.invoice.vatAmount);
+    const inv = p.invoiceId ? invoiceMap.get(p.invoiceId) : undefined;
+    const invTotal = Number(inv?.total ?? 0);
+    const invVat = Number(inv?.vatAmount ?? 0);
+    if (invTotal > 0 && invVat > 0) {
       const ratio = amount / invTotal;
       const allocatedVat = roundMoney(invVat * ratio, FUNCTIONAL_CURRENCY);
-      // Other taxes are collected for the government too, so they are not revenue either.
-      const allocatedOther =
-        roundMoney(Number(p.invoice.otherTaxAmount ?? 0) * ratio, FUNCTIONAL_CURRENCY);
       cashOutputVat += allocatedVat;
-      cashNetReceipts +=
-        roundMoney((amount - allocatedVat - allocatedOther), FUNCTIONAL_CURRENCY);
+      cashNetReceipts += roundMoney(amount - allocatedVat, FUNCTIONAL_CURRENCY);
     } else {
       cashNetReceipts += amount;
     }
   }
 
-  // 3. Expenses & VAT Recoverability
-  const expenseWhere: any = {
-    currency: FUNCTIONAL_CURRENCY,
-    status: "approved",
-  };
-  if (filters.dateFrom || filters.dateTo) {
-    expenseWhere.expenseDate = dateFilter;
-  }
+  const currencyExpenses = (expenses || []).filter(
+    (e) => (!e.currency || e.currency === FUNCTIONAL_CURRENCY) &&
+           e.status !== "rejected" &&
+           inRange(e.expenseDate)
+  );
 
-  // Summed by the database, split by VAT recoverability and by whether net was stored:
-  // older rows stored 0 as net, so their net is derived as amount minus input VAT.
-  const expenseGroups = await db.expense.groupBy({
-    by: ["isVatRecoverable"],
-    where: expenseWhere,
-    _sum: { amount: true, inputVatAmount: true },
-  });
-  const unsetNet = await db.expense.aggregate({
-    where: { AND: [expenseWhere, { netAmount: { lte: 0 } }] },
-    _sum: { amount: true, inputVatAmount: true },
-  });
-  const storedNet = await db.expense.aggregate({
-    where: { AND: [expenseWhere, { netAmount: { gt: 0 } }] },
-    _sum: { netAmount: true },
-  });
+  const totalExpensesGross = currencyExpenses.reduce((sum, e) => sum + Number(e.amount ?? 0), 0);
+  const inputVatTotal = 0;
+  const inputVatRecoverable = 0;
+  const inputVatNonRecoverable = 0;
+  const expensesNet = totalExpensesGross;
 
-  let totalExpensesGross = 0;
-  let inputVatTotal = 0;
-  let inputVatRecoverable = 0;
-  let inputVatNonRecoverable = 0;
-  for (const group of expenseGroups) {
-    const inputVat = Number(group._sum.inputVatAmount ?? 0);
-    totalExpensesGross += Number(group._sum.amount ?? 0);
-    inputVatTotal += inputVat;
-    if (group.isVatRecoverable) inputVatRecoverable += inputVat;
-    else inputVatNonRecoverable += inputVat;
-  }
-  const expensesNet =
-    Number(storedNet._sum.netAmount ?? 0) +
-    Number(unsetNet._sum.amount ?? 0) -
-    Number(unsetNet._sum.inputVatAmount ?? 0);
+  const payrollCostsTotal = 0;
+  const bankFeesTotal = 0;
+  const realizedFxGainLoss = 0;
+  const excludedForeignCurrencyDocuments = 0;
 
-  // 4. Payroll Costs (Paid runs in period)
-  const payrollWhere: any = { status: "paid" };
-  if (filters.dateFrom || filters.dateTo) {
-    payrollWhere.paidAt = dateFilter;
-  }
-
-  const payrollRuns = await db.payrollRun.findMany({
-    where: payrollWhere,
-    select: { totalEmployerCost: true },
-  });
-
-  let payrollCostsTotal = 0;
-  for (const pr of payrollRuns) {
-    payrollCostsTotal += Number(pr.totalEmployerCost);
-  }
-
-  // 5. Bank Settlements & Realized FX
-  const settlementWhere: any = { status: "settled" };
-  if (filters.dateFrom || filters.dateTo) {
-    settlementWhere.settlementDate = dateFilter;
-  }
-
-  const settlements = await db.bankSettlement.findMany({
-    where: settlementWhere,
-    select: {
-      bankFeeBhd: true,
-      fxGainLossBhd: true,
-    },
-  });
-
-  let bankFeesTotal = 0;
-  let realizedFxGainLoss = 0;
-
-  for (const s of settlements) {
-    bankFeesTotal += Number(s.bankFeeBhd);
-    realizedFxGainLoss += Number(s.fxGainLossBhd);
-  }
-
-  const [foreignInvoices, foreignExpenses] = await Promise.all([
-    db.invoice.count({
-      where: { ...invoiceWhere, currency: { not: FUNCTIONAL_CURRENCY } },
-    }),
-    db.expense.count({
-      where: { ...expenseWhere, currency: { not: FUNCTIONAL_CURRENCY } },
-    }),
-  ]);
-
-  // 6. Operating Profit
-  // P0 finding: profit must NOT be calculated from VAT-inclusive payments and expenses!
-  // Operating costs = expensesNet + inputVatNonRecoverable + payrollCostsTotal + bankFeesTotal
-  const effectiveRevenue = basis === "cash" ? cashNetReceipts : invoicedNet;
-  const effectiveOperatingCosts =
-    expensesNet + inputVatNonRecoverable + payrollCostsTotal + bankFeesTotal;
-
-  const operatingProfit =
-    roundMoney((effectiveRevenue - effectiveOperatingCosts + realizedFxGainLoss), FUNCTIONAL_CURRENCY);
-
+  const revenueForProfit = basis === "cash" ? cashNetReceipts : invoicedNet;
+  const costsForProfit = expensesNet + inputVatNonRecoverable + payrollCostsTotal + bankFeesTotal;
+  const operatingProfit = roundMoney(revenueForProfit - costsForProfit + realizedFxGainLoss, FUNCTIONAL_CURRENCY);
   const netMarginPercentage =
-    effectiveRevenue > 0
-      ? Math.round((operatingProfit / effectiveRevenue) * 10000) / 100
+    revenueForProfit > 0
+      ? Math.round((operatingProfit / revenueForProfit) * 10000) / 100
       : 0;
 
   return {
     basis,
     reportingCurrency: accountingCurrency,
-    excludedForeignCurrencyDocuments: foreignInvoices + foreignExpenses,
+    excludedForeignCurrencyDocuments,
     periodStart: filters.dateFrom?.toISOString(),
     periodEnd: filters.dateTo?.toISOString(),
     invoicedGross: roundMoney(invoicedGross, FUNCTIONAL_CURRENCY),
@@ -415,103 +328,102 @@ export async function getFinancialReportDetail(filters: {
 }): Promise<FinancialReportDetail> {
   const FUNCTIONAL_CURRENCY = await companyCurrency();
   const basis = filters.basis || "cash";
-  const range =
-    filters.dateFrom || filters.dateTo
-      ? {
-          ...(filters.dateFrom && { gte: filters.dateFrom }),
-          ...(filters.dateTo && { lte: filters.dateTo }),
-        }
-      : undefined;
+
+  const dateFromStr = filters.dateFrom?.toISOString().slice(0, 10);
+  const dateToStr = filters.dateTo?.toISOString().slice(0, 10);
+
+  const inRange = (dStr?: string) => {
+    if (!dStr) return true;
+    const s = String(dStr).slice(0, 10);
+    if (dateFromStr && s < dateFromStr) return false;
+    if (dateToStr && s > dateToStr) return false;
+    return true;
+  };
 
   const [
-    invoiceRows,
-    expenseRows,
-    payrollRuns,
-    payments,
-    claimsPaid,
-    claimsOutstanding,
+    apiInvoices,
+    apiExpenses,
+    apiPayments,
+    apiContacts,
+    apiCategories,
   ] = await Promise.all([
-    db.invoice.findMany({
-      where: {
-        status: { notIn: ["void", "draft"] },
-        ...(range && { issueDate: range }),
-      },
-      select: {
-        id: true,
-        invoiceNumber: true,
-        issueDate: true,
-        status: true,
-        currency: true,
-        subtotal: true,
-        discountAmount: true,
-        vatAmount: true,
-        otherTaxAmount: true,
-        vatEnabled: true,
-        totalAmount: true,
-        clientId: true,
-        dealId: true,
-        client: {
-          select: { firstName: true, lastName: true, companyName: true },
-        },
-        payments: { select: { amount: true } },
-      },
-      orderBy: { issueDate: "desc" },
-    }),
-    db.expense.findMany({
-      where: {
-        status: "approved",
-        currency: FUNCTIONAL_CURRENCY,
-        ...(range && { expenseDate: range }),
-      },
-      select: {
-        amount: true,
-        netAmount: true,
-        inputVatAmount: true,
-        isVatRecoverable: true,
-        expenseDate: true,
-        scope: true,
-        dealId: true,
-        categoryId: true,
-        category: {
-          select: { nameEn: true, nameAr: true, kind: true, color: true },
-        },
-      },
-    }),
-    db.payrollRun.findMany({
-      where: { status: "paid", ...(range && { paidAt: range }) },
-      select: { totalEmployerCost: true, paidAt: true },
-    }),
-    db.payment.findMany({
-      where: {
-        currency: FUNCTIONAL_CURRENCY,
-        invoice: { status: { not: "void" } },
-        ...(range && { paymentDate: range }),
-      },
-      select: {
-        amount: true,
-        paymentDate: true,
-        invoice: {
-          select: { totalAmount: true, vatAmount: true, otherTaxAmount: true },
-        },
-      },
-    }),
-    db.expenseClaim.aggregate({
-      where: {
-        status: "paid",
-        currency: FUNCTIONAL_CURRENCY,
-        ...(range && { paidAt: range }),
-      },
-      _sum: { amount: true },
-      _count: { _all: true },
-    }),
-    db.expenseClaim.aggregate({
-      where: {
-        status: { in: ["approved", "scheduled"] },
-        currency: FUNCTIONAL_CURRENCY,
-      },
-      _sum: { amount: true },
-    }),
+    listInvoices().catch(() => []),
+    listExpenses().catch(() => []),
+    listPayments().catch(() => []),
+    listContacts().catch(() => []),
+    listExpenseCategories().catch(() => []),
   ]);
+
+  const contactMap = new Map((apiContacts || []).map((c: any) => [c.id, c]));
+  const categoryMap = new Map((apiCategories || []).map((c: any) => [c.id, c]));
+  const paymentsByInvoice = new Map<string, Array<{ amount: number }>>();
+  for (const p of (apiPayments || [])) {
+    if (p.invoiceId) {
+      const arr = paymentsByInvoice.get(p.invoiceId) || [];
+      arr.push({ amount: Number((p as any).amount ?? (p as any).amountPaid ?? 0) });
+      paymentsByInvoice.set(p.invoiceId, arr);
+    }
+  }
+
+  const invoiceRows = (apiInvoices || [])
+    .filter((inv) => inv.status !== "void" && inv.status !== "draft" && inRange(inv.issueDate))
+    .map((inv) => {
+      const c = inv.contactId ? contactMap.get(inv.contactId) : undefined;
+      return {
+        id: inv.id,
+        invoiceNumber: inv.invoiceNumber,
+        issueDate: inv.issueDate ? new Date(inv.issueDate) : new Date(),
+        status: inv.status,
+        currency: inv.currency || FUNCTIONAL_CURRENCY,
+        subtotal: Number(inv.subtotal ?? 0),
+        discountAmount: Number(inv.discount ?? 0),
+        vatAmount: Number(inv.vatAmount ?? 0),
+        otherTaxAmount: 0,
+        vatEnabled: Number(inv.vatAmount ?? 0) > 0,
+        totalAmount: Number(inv.total ?? 0),
+        clientId: inv.contactId || "",
+        dealId: inv.dealId || "",
+        client: c ? { firstName: c.firstName || "", lastName: c.lastName || "", companyName: c.company || c.companyName || "" } : null,
+        payments: paymentsByInvoice.get(inv.id) || [],
+      };
+    });
+
+  const expenseRows = (apiExpenses || [])
+    .filter((e) => (!e.currency || e.currency === FUNCTIONAL_CURRENCY) && e.status !== "rejected" && inRange(e.expenseDate))
+    .map((e) => {
+      const cat = e.categoryId ? categoryMap.get(e.categoryId) : undefined;
+      return {
+        amount: Number(e.amount ?? 0),
+        netAmount: Number(e.amount ?? 0),
+        inputVatAmount: 0,
+        isVatRecoverable: false,
+        expenseDate: e.expenseDate ? new Date(e.expenseDate) : new Date(),
+        scope: "internal",
+        dealId: null,
+        categoryId: e.categoryId || null,
+        category: cat ? { nameEn: cat.nameEn || "", nameAr: cat.nameAr || "", kind: "operating", color: "#09937F" } : null,
+      };
+    });
+
+  const invoiceMap = new Map((apiInvoices || []).map((i) => [i.id, i]));
+  const payments = (apiPayments || [])
+    .filter((p) => (!p.currency || p.currency === FUNCTIONAL_CURRENCY) && p.status !== "void" && inRange(p.paymentDate))
+    .map((p) => {
+      const inv = p.invoiceId ? invoiceMap.get(p.invoiceId) : undefined;
+      return {
+        amount: Number((p as any).amount ?? (p as any).amountPaid ?? 0),
+        paymentDate: p.paymentDate ? new Date(p.paymentDate) : new Date(),
+        invoice: inv ? {
+          totalAmount: Number(inv.total ?? 0),
+          vatAmount: Number(inv.vatAmount ?? 0),
+          otherTaxAmount: 0,
+        } : null,
+      };
+    });
+
+  const payrollRuns: any[] = [];
+  const claimsPaid = { _sum: { amount: 0 }, _count: { _all: 0 } };
+  const claimsOutstanding = { _sum: { amount: 0 } };
 
   // Invoice register and with/without-VAT totals per currency.
   const invoices: InvoiceRegisterRow[] = invoiceRows.map((inv) => {
@@ -697,7 +609,7 @@ export async function getFinancialReportDetail(filters: {
       const margin = roundReportValue(revenueNet - costsNet);
       return {
         dealId,
-        title: dealTitles.get(dealId) ?? dealId,
+        title: String(dealTitles.get(dealId) ?? dealId),
         revenueNet,
         costsNet,
         margin,

@@ -405,21 +405,250 @@ async function seedSalesAndFinance() {
     ],
   });
 
-  // Invoices across different payment statuses (Partially Paid, Paid, Unpaid/Sent, Overdue)
+  // Helper date generators for realistic historical and overdue ranges
+  const pastDate = (daysAgo: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() - daysAgo);
+    return d.toISOString().slice(0, 10);
+  };
+  const futureDate = (daysAhead: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() + daysAhead);
+    return d.toISOString().slice(0, 10);
+  };
+
+  // -------------------------------------------------------------
+  // Historical Invoices & Closed Cashflow (Months -5 through -2)
+  // -------------------------------------------------------------
+  const invHist1 = await create<{ id: string }>("/v1/finance/invoices", {
+    invoiceNumber: "INV-HIST-0001",
+    contactId: circuitContact.id,
+    dealId: deal5.id,
+    status: "paid",
+    issueDate: pastDate(150),
+    dueDate: pastDate(120),
+    subtotal: 4000.0,
+    discount: 0,
+    vatRate: 10.0,
+    vatAmount: 400.0,
+    total: 4400.0,
+    amountPaid: 0.0,
+    balanceDue: 4400.0,
+    currency: "BHD",
+    items: [{ description: "Bahrain Circuit F1 Pre-Season Cinematography & FPV Drone", quantity: 1, unitPrice: 4000.0, amount: 4000.0, sortOrder: 0 }],
+  });
+
+  await create("/v1/finance/payments", {
+    paymentNumber: "RCT-HIST-0001",
+    invoiceId: invHist1.id,
+    contactId: circuitContact.id,
+    amount: 4400.0,
+    currency: "BHD",
+    paymentMethod: "bank_transfer",
+    paymentDate: pastDate(135),
+    reference: "PAY-F1-0001",
+    status: "completed",
+  });
+
+  const invHist2 = await create<{ id: string }>("/v1/finance/invoices", {
+    invoiceNumber: "INV-HIST-0002",
+    contactId: secondaryContact.id,
+    dealId: deal2.id,
+    status: "paid",
+    issueDate: pastDate(120),
+    dueDate: pastDate(90),
+    subtotal: 9000.0,
+    discount: 0,
+    vatRate: 10.0,
+    vatAmount: 900.0,
+    total: 9900.0,
+    amountPaid: 0.0,
+    balanceDue: 9900.0,
+    currency: "BHD",
+    items: [{ description: "Falcon Airways In-Flight Entertainment Brand Story (4K Master)", quantity: 1, unitPrice: 9000.0, amount: 9000.0, sortOrder: 0 }],
+  });
+
+  await create("/v1/finance/payments", {
+    paymentNumber: "RCT-HIST-0002",
+    invoiceId: invHist2.id,
+    contactId: secondaryContact.id,
+    amount: 9900.0,
+    currency: "BHD",
+    paymentMethod: "bank_transfer",
+    paymentDate: pastDate(105),
+    reference: "PAY-FLC-0002",
+    status: "completed",
+  });
+
+  const invHist3 = await create<{ id: string }>("/v1/finance/invoices", {
+    invoiceNumber: "INV-HIST-0003",
+    contactId: tourismContact.id,
+    dealId: deal3.id,
+    status: "paid",
+    issueDate: pastDate(90),
+    dueDate: pastDate(60),
+    subtotal: 6000.0,
+    discount: 0,
+    vatRate: 10.0,
+    vatAmount: 600.0,
+    total: 6600.0,
+    amountPaid: 0.0,
+    balanceDue: 6600.0,
+    currency: "BHD",
+    items: [{ description: "Bahrain Bay Sunset Hyperlapse & Drone Photography Package", quantity: 1, unitPrice: 6000.0, amount: 6000.0, sortOrder: 0 }],
+  });
+
+  await create("/v1/finance/payments", {
+    paymentNumber: "RCT-HIST-0003",
+    invoiceId: invHist3.id,
+    contactId: tourismContact.id,
+    amount: 6600.0,
+    currency: "BHD",
+    paymentMethod: "bank_transfer",
+    paymentDate: pastDate(75),
+    reference: "PAY-BHT-0003",
+    status: "completed",
+  });
+
+  const invHist4 = await create<{ id: string }>("/v1/finance/invoices", {
+    invoiceNumber: "INV-HIST-0004",
+    contactId: bankContact.id,
+    dealId: deal4.id,
+    status: "paid",
+    issueDate: pastDate(60),
+    dueDate: pastDate(30),
+    subtotal: 7000.0,
+    discount: 0,
+    vatRate: 10.0,
+    vatAmount: 700.0,
+    total: 7700.0,
+    amountPaid: 0.0,
+    balanceDue: 7700.0,
+    currency: "BHD",
+    items: [{ description: "Digital Banking Mobile Experience Campaign (Teaser & Cutdowns)", quantity: 1, unitPrice: 7000.0, amount: 7000.0, sortOrder: 0 }],
+  });
+
+  await create("/v1/finance/payments", {
+    paymentNumber: "RCT-HIST-0004",
+    invoiceId: invHist4.id,
+    contactId: bankContact.id,
+    amount: 7700.0,
+    currency: "BHD",
+    paymentMethod: "bank_transfer",
+    paymentDate: pastDate(45),
+    reference: "PAY-HNB-0004",
+    status: "completed",
+  });
+
+  // -------------------------------------------------------------
+  // Overdue Invoices for Receivables Aging Buckets
+  // -------------------------------------------------------------
+  // d1_30 aging bucket (overdue by 8 days)
+  const invAging1 = await create<{ id: string }>("/v1/finance/invoices", {
+    invoiceNumber: "INV-AGING-0001",
+    contactId: primaryContact.id,
+    dealId: deal1.id,
+    status: "partially_paid",
+    issueDate: pastDate(38),
+    dueDate: pastDate(8),
+    subtotal: 5000.0,
+    discount: 0,
+    vatRate: 10.0,
+    vatAmount: 500.0,
+    total: 5500.0,
+    amountPaid: 0.0,
+    balanceDue: 5500.0,
+    currency: "BHD",
+    items: [{ description: "Corporate Identity Documentary Series (Phase 1 Delivered)", quantity: 1, unitPrice: 5000.0, amount: 5000.0, sortOrder: 0 }],
+  });
+
+  await create("/v1/finance/payments", {
+    paymentNumber: "RCT-AGING-0001",
+    invoiceId: invAging1.id,
+    contactId: primaryContact.id,
+    amount: 2750.0,
+    currency: "BHD",
+    paymentMethod: "benefit_pay",
+    paymentDate: pastDate(35),
+    reference: "BENEFIT-331201",
+    status: "completed",
+  });
+
+  // d31_60 aging bucket (overdue by 45 days)
+  await create<{ id: string }>("/v1/finance/invoices", {
+    invoiceNumber: "INV-AGING-0002",
+    contactId: circuitContact.id,
+    dealId: deal5.id,
+    status: "overdue",
+    issueDate: pastDate(75),
+    dueDate: pastDate(45),
+    subtotal: 2000.0,
+    discount: 0,
+    vatRate: 10.0,
+    vatAmount: 200.0,
+    total: 2200.0,
+    amountPaid: 0.0,
+    balanceDue: 2200.0,
+    currency: "BHD",
+    items: [{ description: "Speedway Track-Day Cinema Rigging & Wireless Video Feed", quantity: 1, unitPrice: 2000.0, amount: 2000.0, sortOrder: 0 }],
+  });
+
+  // d61_90 aging bucket (overdue by 75 days)
+  await create<{ id: string }>("/v1/finance/invoices", {
+    invoiceNumber: "INV-AGING-0003",
+    contactId: secondaryContact.id,
+    dealId: deal2.id,
+    status: "overdue",
+    issueDate: pastDate(105),
+    dueDate: pastDate(75),
+    subtotal: 1500.0,
+    discount: 0,
+    vatRate: 10.0,
+    vatAmount: 150.0,
+    total: 1650.0,
+    amountPaid: 0.0,
+    balanceDue: 1650.0,
+    currency: "BHD",
+    items: [{ description: "Aviation Safety Briefing Animated Graphics & Sound Design", quantity: 1, unitPrice: 1500.0, amount: 1500.0, sortOrder: 0 }],
+  });
+
+  // d90_plus aging bucket (overdue by 110 days)
+  await create<{ id: string }>("/v1/finance/invoices", {
+    invoiceNumber: "INV-AGING-0004",
+    contactId: bankContact.id,
+    dealId: deal4.id,
+    status: "overdue",
+    issueDate: pastDate(140),
+    dueDate: pastDate(110),
+    subtotal: 1200.0,
+    discount: 0,
+    vatRate: 10.0,
+    vatAmount: 120.0,
+    total: 1320.0,
+    amountPaid: 0.0,
+    balanceDue: 1320.0,
+    currency: "BHD",
+    items: [{ description: "Archival Footage Licensing & 4K Digital Restoration", quantity: 1, unitPrice: 1200.0, amount: 1200.0, sortOrder: 0 }],
+  });
+
+  // -------------------------------------------------------------
+  // Current Month Invoices & Payments (Current aging bucket)
+  // -------------------------------------------------------------
   const invoice1 = await create<{ id: string }>("/v1/finance/invoices", {
     invoiceNumber: "DEMO-INV-0001",
     contactId: primaryContact.id,
     dealId: deal1.id,
     quotationId: quotation1.id,
+    status: "partially_paid",
     issueDate: today,
-    dueDate: today,
+    dueDate: futureDate(25),
     subtotal: 3500.0,
     discount: 0,
     vatRate: 10.0,
     vatAmount: 350.0,
     total: 3850.0,
-    amountPaid: 1925.0,
-    balanceDue: 1925.0,
+    amountPaid: 0.0,
+    balanceDue: 3850.0,
     currency: "BHD",
     items: [{ description: "Gulfwave 5G Commercial Production (50% Deposit)", quantity: 1, unitPrice: 3500.0, amount: 3500.0, sortOrder: 0 }],
   });
@@ -429,15 +658,16 @@ async function seedSalesAndFinance() {
     contactId: tourismContact.id,
     dealId: deal3.id,
     quotationId: quotation3.id,
-    issueDate: today,
-    dueDate: today,
+    status: "paid",
+    issueDate: pastDate(10),
+    dueDate: futureDate(20),
     subtotal: 10800.0,
     discount: 0,
     vatRate: 10.0,
     vatAmount: 1080.0,
     total: 11880.0,
-    amountPaid: 11880.0,
-    balanceDue: 0.0,
+    amountPaid: 0.0,
+    balanceDue: 11880.0,
     currency: "BHD",
     items: [{ description: "Exhibition World Inauguration Film (100% Paid)", quantity: 1, unitPrice: 10800.0, amount: 10800.0, sortOrder: 0 }],
   });
@@ -447,8 +677,9 @@ async function seedSalesAndFinance() {
     contactId: bankContact.id,
     dealId: deal4.id,
     quotationId: quotation4.id,
-    issueDate: today,
-    dueDate: today,
+    status: "sent",
+    issueDate: pastDate(5),
+    dueDate: futureDate(28),
     subtotal: 8000.0,
     discount: 0,
     vatRate: 10.0,
@@ -460,7 +691,7 @@ async function seedSalesAndFinance() {
     items: [{ description: "Digital Banking TVC Principal Photography & Post", quantity: 1, unitPrice: 8000.0, amount: 8000.0, sortOrder: 0 }],
   });
 
-  // Payments & Receipts
+  // Current Month Payments
   await create("/v1/finance/payments", {
     paymentNumber: "DEMO-RCT-0001",
     invoiceId: invoice1.id,
@@ -470,6 +701,7 @@ async function seedSalesAndFinance() {
     paymentMethod: "bank_transfer",
     paymentDate: today,
     reference: "DEMO-PAY-0001",
+    status: "completed",
   });
 
   await create("/v1/finance/payments", {
@@ -481,26 +713,87 @@ async function seedSalesAndFinance() {
     paymentMethod: "bank_transfer",
     paymentDate: today,
     reference: "PAY-BAT-2026-9921",
+    status: "completed",
   });
 
-  await create("/v1/finance/payments", {
-    paymentNumber: "RCT-2026-0002",
-    invoiceId: invoice1.id,
-    contactId: primaryContact.id,
-    amount: 1925.0,
+
+  // -------------------------------------------------------------
+  // Historical & Operational Expenses across Categories
+  // -------------------------------------------------------------
+  await create("/v1/finance/expenses", {
+    title: "Location scouting, generator fuel & transport",
+    amount: 320.0,
     currency: "BHD",
-    paymentMethod: "benefit_pay",
-    paymentDate: today,
-    reference: "BENEFIT-992812",
+    categoryId: "expcat-03",
+    expenseDate: pastDate(145),
+    vendor: "Manama Transport Co.",
+    status: "approved",
+    notes: "Scouting and transport across Southern Governorate locations.",
   });
 
-  // Expenses across different operational areas
+  await create("/v1/finance/expenses", {
+    title: "High-Output HMI & Astera Lighting Package Sub-Lease",
+    amount: 650.0,
+    currency: "BHD",
+    categoryId: "expcat-01",
+    expenseDate: pastDate(115),
+    vendor: "Gulf Optics & Grip",
+    status: "approved",
+    notes: "Astera Titan tubes and Arri M18 lights for night airport shoot.",
+  });
+
+  await create("/v1/finance/expenses", {
+    title: "Sound design & 7.1 surround mixing engineer wage",
+    amount: 480.0,
+    currency: "BHD",
+    categoryId: "expcat-02",
+    expenseDate: pastDate(85),
+    vendor: "Bahrain Sound Labs",
+    status: "approved",
+    notes: "Master audio engineer session for cinema release.",
+  });
+
+  await create("/v1/finance/expenses", {
+    title: "Aerial drone airspace clearance fee",
+    amount: 550.0,
+    currency: "BHD",
+    categoryId: "expcat-01",
+    expenseDate: pastDate(55),
+    vendor: "Civil Aviation Affairs (CAA)",
+    status: "approved",
+    notes: "Restricted zone permit for drone operations.",
+  });
+
+  await create("/v1/finance/expenses", {
+    title: "Production crew catering & craft services",
+    amount: 450.0,
+    currency: "BHD",
+    categoryId: "expcat-03",
+    expenseDate: pastDate(32),
+    vendor: "Gourmet Catering Co.",
+    status: "approved",
+    notes: "Full day catering for 35 crew members.",
+  });
+
+  await create("/v1/finance/expenses", {
+    title: "DaVinci Resolve cloud collaboration server",
+    amount: 120.0,
+    currency: "BHD",
+    categoryId: "expcat-05",
+    expenseDate: pastDate(25),
+    vendor: "Blackmagic Cloud Services",
+    status: "approved",
+    notes: "Monthly team project library and remote color grading server.",
+  });
+
   await create("/v1/finance/expenses", {
     title: "Filming permit — Bahrain Bay Coastal Sequence",
     amount: 180.0,
     currency: "BHD",
-    expenseDate: today,
+    categoryId: "expcat-06",
+    expenseDate: pastDate(5),
     vendor: "Information Affairs Authority",
+    status: "approved",
     notes: "Production filming permit for Bahrain Bay coastal sequence.",
   });
 
@@ -508,8 +801,10 @@ async function seedSalesAndFinance() {
     title: "Location Catering — 40-Person Crew & Cast",
     amount: 450.0,
     currency: "BHD",
-    expenseDate: today,
+    categoryId: "expcat-03",
+    expenseDate: pastDate(3),
     vendor: "Bahrain Gourmet Catering Services",
+    status: "approved",
     notes: "Full day catering for Gulfwave 5G commercial shoot.",
   });
 
@@ -517,8 +812,10 @@ async function seedSalesAndFinance() {
     title: "Heavy-Lifter Drone Flight Airspace License",
     amount: 250.0,
     currency: "BHD",
-    expenseDate: today,
+    categoryId: "expcat-01",
+    expenseDate: pastDate(2),
     vendor: "Civil Aviation Affairs (CAA)",
+    status: "approved",
     notes: "Restricted airspace clearance for Exhibition World aerial passes.",
   });
 
@@ -526,9 +823,22 @@ async function seedSalesAndFinance() {
     title: "Specialized Anamorphic Lens Sub-Lease",
     amount: 350.0,
     currency: "BHD",
+    categoryId: "expcat-01",
     expenseDate: today,
     vendor: "Regional Optics Sub-Lease Co.",
+    status: "approved",
     notes: "Macro anamorphic specialty lens for extreme close-up shots.",
+  });
+
+  await create("/v1/finance/expenses", {
+    title: "Studio Soundstage Electrical Power & High-Capacity AC",
+    amount: 420.0,
+    currency: "BHD",
+    categoryId: "expcat-04",
+    expenseDate: today,
+    vendor: "Electricity & Water Authority",
+    status: "approved",
+    notes: "Soundstage high-draw power connection for 18KW lights.",
   });
 
   // Sales Inquiries / Leads
