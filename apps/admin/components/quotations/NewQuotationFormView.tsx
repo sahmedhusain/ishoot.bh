@@ -180,11 +180,13 @@ export function NewQuotationFormView({
   const vatAmount = vatEnabled
     ? Math.round(taxableAmount * (vatPercentage / 100) * 1000) / 1000
     : 0;
-  // Taxes besides VAT from the company registry, charged on the same amount (the server applies the same list).
+  // Taxes besides VAT from the company registry when VAT is enabled.
   const { taxes: registeredTaxes } = useCompanyVat();
-  const otherTaxes = registeredTaxes
-    .filter((tax) => tax.quotations)
-    .map((tax) => ({ ...tax, amount: Math.round(taxableAmount * (tax.rate / 100) * 1000) / 1000 }));
+  const otherTaxes = vatEnabled
+    ? registeredTaxes
+        .filter((tax) => tax.quotations)
+        .map((tax) => ({ ...tax, amount: Math.round(taxableAmount * (tax.rate / 100) * 1000) / 1000 }))
+    : [];
   const otherTaxAmount = otherTaxes.reduce((sum, tax) => sum + tax.amount, 0);
   const totalAmount = Math.round((taxableAmount + vatAmount + otherTaxAmount) * 1000) / 1000;
 

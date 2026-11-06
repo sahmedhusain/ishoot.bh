@@ -45,7 +45,13 @@ export default async function DashboardLayout({
       }}
     >
       <FeatureTogglesProvider initialFeatures={toggles}>
-        <CompanyVatProvider value={{ enabled: !!company.vat_enabled, rate: company.vat_enabled ? Number(company.vat_percentage ?? 10) : 0, taxes }}>
+        <CompanyVatProvider
+          value={{
+            enabled: Boolean(company.vat_enabled),
+            rate: company.vat_enabled ? Number(company.vat_percentage ?? 10) : 0,
+            taxes: company.vat_enabled ? (taxes || []) : [],
+          }}
+        >
           <SidebarProvider>
             <LiveProvider userId={user.id}>
             <NotificationAlerts />

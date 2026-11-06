@@ -8,14 +8,24 @@ import type { DocumentTaxLine } from "../types";
 export async function companyVat(
   client: any = db,
 ): Promise<{ vatEnabled: boolean; vatPercentage: number }> {
-  const company = await client.companySetting.findFirst({
-    select: { vatEnabled: true, vatPercentage: true },
-  });
-  const vatEnabled = company?.vatEnabled ?? false;
-  return {
-    vatEnabled,
-    vatPercentage: vatEnabled ? Number(company?.vatPercentage ?? 10) : 0,
-  };
+  try {
+    const { getCompanySettings } = await import("../queries/company-settings");
+    const settings = await getCompanySettings();
+    const vatEnabled = Boolean(settings.vat_enabled);
+    return {
+      vatEnabled,
+      vatPercentage: vatEnabled ? Number(settings.vat_percentage ?? 10) : 0,
+    };
+  } catch {
+    const company = await client.companySetting?.findFirst?.({
+      select: { vatEnabled: true, vatPercentage: true },
+    });
+    const vatEnabled = company?.vatEnabled ?? false;
+    return {
+      vatEnabled,
+      vatPercentage: vatEnabled ? Number(company?.vatPercentage ?? 10) : 0,
+    };
+  }
 }
 
 export interface ActiveTax {
@@ -32,16 +42,17 @@ export async function companyTaxes(
   kind: "invoice" | "quotation",
   client: any = db,
 ): Promise<ActiveTax[]> {
-  const rows = await client.taxRate.findMany({
-    where: {
-      isActive: true,
-      ...(kind === "invoice"
-        ? { appliesToInvoices: true }
-        : { appliesToQuotations: true }),
-    },
-    orderBy: [{ displayOrder: "asc" }, { createdAt: "asc" }],
-  });
-  return rows.map((r) => ({
+  const rows =
+    (await client.taxRate?.findMany?.({
+      where: {
+        isActive: true,
+        ...(kind === "invoice"
+          ? { appliesToInvoices: true }
+          : { appliesToQuotations: true }),
+      },
+      orderBy: [{ displayOrder: "asc" }, { createdAt: "asc" }],
+    })) || [];
+  return rows.map((r: any) => ({
     id: r.id,
     code: r.code,
     nameEn: r.nameEn,

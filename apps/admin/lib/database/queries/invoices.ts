@@ -414,18 +414,25 @@ export async function updateInvoice(
           unit_price: Number(li.unitPrice),
         }));
 
-      // Drafts follow the company VAT rule; an issued invoice keeps the VAT it was issued with.
+      // Preserve existing invoice VAT status: historical invoices never have VAT retroactively forced.
+      // An issued invoice always keeps the VAT it was issued with.
       const vat =
         existing.status === "draft"
-          ? await companyVat(tx)
+          ? (data.vat_enabled !== undefined
+              ? { vatEnabled: Boolean(data.vat_enabled), vatPercentage: Number(data.vat_percentage ?? existing.vatPercentage ?? 10) }
+              : (existing.vatEnabled !== undefined && existing.vatEnabled !== null
+                  ? { vatEnabled: Boolean(existing.vatEnabled), vatPercentage: Number(existing.vatPercentage) }
+                  : await companyVat(tx)))
           : {
-              vatEnabled: existing.vatEnabled,
+              vatEnabled: Boolean(existing.vatEnabled),
               vatPercentage: Number(existing.vatPercentage),
             };
-      // Likewise for the other taxes: drafts follow the registry, issued invoices keep their frozen taxes.
+      // Likewise for other taxes: historical drafts keep their taxes; issued invoices keep their frozen taxes.
       const otherTaxes =
         existing.status === "draft"
-          ? await companyTaxes("invoice", tx)
+          ? (existing.taxes && existing.taxes.length > 0
+              ? frozenTaxes(existing.taxes)
+              : (vat.vatEnabled ? await companyTaxes("invoice", tx) : []))
           : frozenTaxes(existing.taxes);
       const totals = calculateInvoiceTotals(
         lineItemsToCalc.map((li) => ({

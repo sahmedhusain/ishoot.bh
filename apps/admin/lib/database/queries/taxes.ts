@@ -56,11 +56,12 @@ function slug(text: string) {
 }
 
 export async function listTaxRates(): Promise<TaxRateRecord[]> {
-  const rows = await db.taxRate.findMany({
-    orderBy: [{ displayOrder: "asc" }, { createdAt: "asc" }],
-    include: { _count: { select: { documentTaxes: true } } },
-  });
-  return rows.map((r) => ({
+  const rows =
+    (await db.taxRate.findMany({
+      orderBy: [{ displayOrder: "asc" }, { createdAt: "asc" }],
+      include: { _count: { select: { documentTaxes: true } } },
+    })) || [];
+  return rows.map((r: any) => ({
     id: r.id,
     code: r.code,
     name_en: r.nameEn,
@@ -74,7 +75,7 @@ export async function listTaxRates(): Promise<TaxRateRecord[]> {
     applies_to_invoices: r.appliesToInvoices,
     applies_to_quotations: r.appliesToQuotations,
     is_active: r.isActive,
-    documents: r._count.documentTaxes,
+    documents: r._count?.documentTaxes ?? 0,
   }));
 }
 
@@ -173,11 +174,12 @@ export async function getTaxCertificate(
 
 /** Active taxes for the forms' live totals. */
 export async function getActiveTaxSummary() {
-  const rows = await db.taxRate.findMany({
-    where: { isActive: true },
-    orderBy: [{ displayOrder: "asc" }, { createdAt: "asc" }],
-  });
-  return rows.map((r) => ({
+  const rows =
+    (await db.taxRate.findMany({
+      where: { isActive: true },
+      orderBy: [{ displayOrder: "asc" }, { createdAt: "asc" }],
+    })) || [];
+  return rows.map((r: any) => ({
     code: r.code,
     name_en: r.nameEn,
     name_ar: r.nameAr,

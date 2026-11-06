@@ -121,7 +121,7 @@ export function NewInvoiceFormView({
     company?.vat_enabled ?? false,
   );
   const [vatPercentage] = React.useState<number>(
-    company?.vat_percentage ? Number(company.vat_percentage) : 10,
+    company?.vat_enabled ? Number(company?.vat_percentage ?? 10) : 0,
   );
 
   const [lineItems, setLineItems] = React.useState<InvoiceLineItem[]>([
@@ -266,9 +266,12 @@ export function NewInvoiceFormView({
     setLineItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Taxes besides VAT that the company registry adds to new invoices (the server applies the same list).
+  // Taxes besides VAT that the company registry adds to new invoices when VAT is enabled.
   const { taxes: registeredTaxes } = useCompanyVat();
-  const otherTaxes = React.useMemo(() => registeredTaxes.filter((tax) => tax.invoices), [registeredTaxes]);
+  const otherTaxes = React.useMemo(
+    () => (vatEnabled ? registeredTaxes.filter((tax) => tax.invoices) : []),
+    [registeredTaxes, vatEnabled],
+  );
   const totals = React.useMemo(() => {
     return calculateInvoiceTotals(
       lineItems,

@@ -116,23 +116,27 @@ export function InvoiceEditFormView({
   const [discountValue, setDiscountValue] = React.useState<number>(
     Number(invoice.discount_value) || 0,
   );
-  // VAT follows the company registration only; saving re-applies the current company rule.
+  // VAT follows the invoice snapshot first; old invoices without VAT never have VAT retroactively forced.
   const [vatEnabled] = React.useState<boolean>(
-    company?.vat_enabled ?? false,
+    invoice.vat_enabled ?? (company?.vat_enabled ?? false),
   );
   const [vatPercentage] = React.useState<number>(
-    company?.vat_enabled ? Number(company.vat_percentage ?? 10) : 0,
+    invoice.vat_percentage != null
+      ? Number(invoice.vat_percentage)
+      : (company?.vat_enabled ? Number(company.vat_percentage ?? 10) : 0),
   );
 
   const markSaved = useUnsavedChanges({ selectedContactId, currency, language, issueDate, dueDate, notesEn, notesAr, lineItems, discountType, discountValue });
 
   const isLocked = invoice.status === "void";
 
-  // Drafts follow the company tax registry; an issued invoice keeps the taxes it was issued with.
+  // Drafts follow the company tax registry when VAT is enabled; an existing invoice keeps its frozen taxes.
   const { taxes: registeredTaxes } = useCompanyVat();
   const otherTaxes =
     invoice.status === "draft"
-      ? registeredTaxes.filter((tax) => tax.invoices)
+      ? (invoice.other_taxes && invoice.other_taxes.length > 0
+          ? invoice.other_taxes.map((tax) => ({ ...tax, invoices: true, quotations: false }))
+          : (vatEnabled ? registeredTaxes.filter((tax) => tax.invoices) : []))
       : (invoice.other_taxes ?? []).map((tax) => ({ ...tax, invoices: true, quotations: false }));
   const totals = calculateInvoiceTotals(
     lineItems,

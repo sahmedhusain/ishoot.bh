@@ -5,6 +5,11 @@ const createModelStub = () =>
     {
       get: (_target, prop) => {
         if (prop === "then") return undefined;
+        if (typeof prop === "string") {
+          if (prop === "findMany") return async () => [];
+          if (prop === "count") return async () => 0;
+          if (prop === "updateMany" || prop === "deleteMany" || prop === "createMany") return async () => ({ count: 0 });
+        }
         return async () => null;
       },
     },
