@@ -224,8 +224,8 @@ export function DashboardWidget({
         <Panel title={title} icon={<CheckSquare className="w-3.5 h-3.5" />} href={ROUTES.tasks.list}>
           {data.tasks.tasks.length ? (
             <ul className="divide-y divide-outline-variant stagger-children">
-              {data.tasks.tasks.map((task) => (
-                <li key={task.id} className="py-2 flex items-center justify-between gap-3 text-xs">
+              {data.tasks.tasks.map((task, idx) => (
+                <li key={task.id ? `task-${task.id}-${idx}` : `task-idx-${idx}`} className="py-2 flex items-center justify-between gap-3 text-xs">
                   <Link href={ROUTES.tasks.detail(task.id)} className="min-w-0 hover:text-accent">
                     <span className="block font-semibold text-ink truncate"><bdi dir="auto">{task.title}</bdi></span>
                     <span className="block text-[11px] text-ink-muted truncate">
@@ -250,8 +250,8 @@ export function DashboardWidget({
         <Panel title={title} icon={<Briefcase className="w-3.5 h-3.5" />} href={ROUTES.crm.deals}>
           {data.deals.recent.length ? (
             <ul className="divide-y divide-outline-variant stagger-children">
-              {data.deals.recent.slice(0, 5).map((deal) => (
-                <li key={deal.id} className="py-2.5 flex items-center justify-between gap-3">
+              {data.deals.recent.slice(0, 5).map((deal, idx) => (
+                <li key={deal.id ? `deal-${deal.id}-${idx}` : `deal-idx-${idx}`} className="py-2.5 flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <Link href={ROUTES.crm.deal(deal.id)} className="text-xs font-bold text-ink hover:text-accent truncate block">{deal.title}</Link>
                     <span className="text-[11px] text-ink-muted truncate block">{deal.contact ? deal.contact.company || deal.contact.full_name : t.dashboardView.directLead}</span>
@@ -274,8 +274,8 @@ export function DashboardWidget({
         <Panel title={title} icon={<CalendarDays className="w-3.5 h-3.5" />} href={ROUTES.calendar}>
           {data.events.length ? (
             <ul className="space-y-2 stagger-children">
-              {data.events.map((event) => (
-                <li key={event.id} className="p-2.5 rounded-lg bg-surface-raised dark:bg-surface-raised/40 border border-outline-variant space-y-1">
+              {data.events.map((event, idx) => (
+                <li key={event.id ? `event-${event.id}-${idx}` : `event-idx-${idx}`} className="p-2.5 rounded-lg bg-surface-raised dark:bg-surface-raised/40 border border-outline-variant space-y-1">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase" style={{ backgroundColor: `${event.color || "rgb(var(--brand-accent))"}20`, color: event.color || "rgb(var(--brand-accent))" }}>
                       {(t.calendarView as Record<string, unknown>)[event.event_type] as string ?? event.event_type}
@@ -297,8 +297,8 @@ export function DashboardWidget({
         <Panel title={title} icon={<ShoppingBag className="w-3.5 h-3.5" />} href={ROUTES.orders.list}>
           {data.recentOrders.length ? (
             <ul className="divide-y divide-outline-variant stagger-children">
-              {data.recentOrders.map((order) => (
-                <li key={order.id} className="py-2 flex items-center justify-between gap-3 text-xs">
+              {data.recentOrders.map((order, idx) => (
+                <li key={order.id ? `order-${order.id}-${idx}` : `order-idx-${idx}`} className="py-2 flex items-center justify-between gap-3 text-xs">
                   <Link href={ROUTES.orders.detail(order.id)} className="min-w-0 hover:text-accent">
                     <span className="block font-semibold text-ink truncate">{order.number}</span>
                     <span className="block text-[11px] text-ink-muted truncate"><bdi dir="auto">{order.name}</bdi></span>
@@ -348,8 +348,8 @@ export function DashboardWidget({
         <Panel title={title} icon={<Megaphone className="w-3.5 h-3.5" />} href={ROUTES.marketing.campaigns}>
           {data.campaigns.length ? (
             <ul className="divide-y divide-outline-variant stagger-children">
-              {data.campaigns.map((c) => (
-                <li key={c.id} className="py-2 flex items-center justify-between gap-3 text-xs">
+              {data.campaigns.map((c, idx) => (
+                <li key={c.id ? `camp-${c.id}-${idx}` : `camp-idx-${idx}`} className="py-2 flex items-center justify-between gap-3 text-xs">
                   <span className="min-w-0">
                     <span className="block font-semibold text-ink truncate">{c.name}</span>
                     <span className="block text-[11px] text-ink-muted">{(t.marketing.campaigns.statuses as Record<string, string>)[c.status] ?? c.status}</span>
@@ -369,8 +369,8 @@ export function DashboardWidget({
         <Panel title={title} icon={<Gavel className="w-3.5 h-3.5" />} href={ROUTES.legal.matters}>
           {data.legal.length ? (
             <ul className="divide-y divide-outline-variant stagger-children">
-              {data.legal.map((m) => (
-                <li key={m.id} className="py-2 flex items-center justify-between gap-3 text-xs">
+              {data.legal.map((m, idx) => (
+                <li key={m.id ? `legal-${m.id}-${idx}` : `legal-idx-${idx}`} className="py-2 flex items-center justify-between gap-3 text-xs">
                   <Link href={ROUTES.legal.matter(m.id)} className="min-w-0 hover:text-accent">
                     <span className="block font-semibold text-ink truncate"><bdi dir="auto">{m.title}</bdi></span>
                     <span className="block text-[11px] text-ink-muted">{(t.legal.kinds as Record<string, string>)[m.kind] ?? m.kind}</span>
@@ -435,13 +435,13 @@ export function DashboardWidget({
         <Panel title={title} icon={<Activity className="w-3.5 h-3.5" />}>
           {data.activity.length ? (
             <ol className="space-y-2.5 stagger-children">
-              {data.activity.map((entry) => {
+              {data.activity.map((entry, idx) => {
                 const entity = (t.auditDetails.entities as Record<string, string>)[entry.entity_type] ?? entry.entity_type.replaceAll("_", " ");
                 const action = (t.auditDetails.actions as Record<string, string>)[entry.action] ?? entry.action.replaceAll("_", " ");
                 const link = entry.entity_id ? ENTITY_LINKS[entry.entity_type]?.(entry.entity_id) : undefined;
                 const line = formatMessage(b.activityLine, { user: entry.user, action, entity });
                 return (
-                  <li key={entry.id} className="flex items-start justify-between gap-3 text-xs">
+                  <li key={entry.id ? `act-${entry.id}-${idx}` : `act-idx-${idx}`} className="flex items-start justify-between gap-3 text-xs">
                     {link ? <Link href={link} className="min-w-0 text-ink hover:text-accent">{line}</Link> : <span className="min-w-0 text-ink">{line}</span>}
                     <DateDisplay date={entry.at} locale={locale} className="shrink-0 text-[10px] text-ink-muted" />
                   </li>

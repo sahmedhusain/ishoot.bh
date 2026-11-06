@@ -25,7 +25,7 @@ export default async function ProfilePage() {
   // The profile shows the user's own details and requests only; requests they approve open in the Approvals Center.
   const [manager, employeeRecord, myRequests] = await Promise.all([
     db.user
-      .findUniqueOrThrow({
+      .findUnique({
         where: { id: user.id },
         select: {
           manager: {
@@ -33,7 +33,8 @@ export default async function ProfilePage() {
           },
         },
       })
-      .then((record) => record.manager),
+      .then((record) => record?.manager ?? null)
+      .catch(() => null),
     db.employee
       .findFirst({
         where: { userId: user.id },
