@@ -13,7 +13,9 @@ export type FeatureToggle = {
 };
 
 const cacheMs = () => {
-  const n = Number(process.env.SYSTEM_MODULES_CACHE_MS);
+  const raw = process.env.SYSTEM_MODULES_CACHE_MS;
+  if (!raw) return 5000;
+  const n = Number(raw);
   return Number.isFinite(n) && n >= 0 ? n : 5000;
 };
 let cached: { until: number; modules: Promise<ModuleState[]> } | undefined;

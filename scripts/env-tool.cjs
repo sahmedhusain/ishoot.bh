@@ -65,7 +65,6 @@ const RETIRED = {
   UPLOAD_ROOT: "files are kept by the files service in S3-compatible storage",
   RESEND_API_KEY: "the notify service sends e-mail with the Resend integration (IT dashboard → Integrations)",
   FROM_EMAIL: "the sender is part of the Resend integration (IT dashboard → Integrations)",
-  CRON_SECRET: "scheduled maintenance and background tasks run via River jobs in Go services",
 };
 
 // Service keys (docs/adr/0011): each app signs its calls to the backend with its own Ed25519 key, stored in .env as

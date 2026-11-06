@@ -6,7 +6,8 @@ import { flushNotifications } from "@platform/database/services/notification-han
 const state = globalThis as { __notificationHandover?: ReturnType<typeof setTimeout> };
 
 export function startNotificationHandover() {
-  const every = Number(process.env.NOTIFICATION_HANDOVER_MS ?? 1000);
+  const raw = process.env.NOTIFICATION_HANDOVER_MS;
+  const every = Number(!raw ? 1000 : raw);
   if (state.__notificationHandover || !Number.isFinite(every) || every <= 0) return;
   if (!process.env.API_URL || !process.env.DATABASE_URL) return;
   let failures = 0;

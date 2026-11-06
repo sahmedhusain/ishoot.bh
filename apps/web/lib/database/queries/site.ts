@@ -5,7 +5,9 @@ import { getSite, setSiteDomains, type Site } from "@platform/api-client";
 import { EMPTY_WEBSITE_CODE, type WebsiteCode } from "../website-config";
 
 const cacheMs = () => {
-  const n = Number(process.env.SYSTEM_SITE_CACHE_MS);
+  const raw = process.env.SYSTEM_SITE_CACHE_MS;
+  if (!raw) return 5000;
+  const n = Number(raw);
   return Number.isFinite(n) && n >= 0 ? n : 5000;
 };
 let cached: { until: number; site: Promise<Site> } | undefined;
