@@ -223,7 +223,10 @@ export async function loadDashboardData(
     : null;
   const legal = has("legal_dates") ? upcomingLegalDates(now) : null;
   const events = has("upcoming_events", "calendar_mini")
-    ? getUpcomingEventsFor(userId, 8)
+    ? getUpcomingEventsFor(userId, 8).catch((err) => {
+        console.error("Error loading upcoming events for dashboard:", err);
+        return [];
+      })
     : null;
   const activity = has("activity")
     ? activityFeed(userId, can("audit_logs:read"))

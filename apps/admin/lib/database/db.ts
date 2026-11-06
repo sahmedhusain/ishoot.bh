@@ -31,6 +31,29 @@ const defaultCompanySetting = {
   timeZone: "Asia/Bahrain",
 };
 
+const defaultUsers = [
+  {
+    id: "super-admin",
+    fullName: "Super Admin",
+    email: "admin@ishoot.bh",
+    role: "super_admin",
+    managerId: null,
+    permissions: {},
+    departmentId: null,
+    isActive: true,
+  },
+  {
+    id: "usr_super_admin",
+    fullName: "Super Admin",
+    email: "admin@ishoot.bh",
+    role: "super_admin",
+    managerId: null,
+    permissions: {},
+    departmentId: null,
+    isActive: true,
+  },
+];
+
 const createDbStub = () => {
   const base = {
     $transaction: async <T>(op: (tx: any) => Promise<T>): Promise<T> => {
@@ -58,6 +81,30 @@ const createDbStub = () => {
             get: (_t, modelProp) => {
               if (modelProp === "then") return undefined;
               return async () => defaultCompanySetting;
+            },
+          },
+        );
+      }
+      if (prop === "user") {
+        return new Proxy(
+          {},
+          {
+            get: (_t, modelProp) => {
+              if (modelProp === "then") return undefined;
+              if (modelProp === "findMany") return async () => defaultUsers;
+              if (modelProp === "findUnique" || modelProp === "findFirst") {
+                return async (args?: any) => {
+                  const id = args?.where?.id;
+                  const email = args?.where?.email;
+                  return (
+                    defaultUsers.find(
+                      (u) => (id && u.id === id) || (email && u.email === email),
+                    ) ?? defaultUsers[0]
+                  );
+                };
+              }
+              if (modelProp === "count") return async () => defaultUsers.length;
+              return async () => null;
             },
           },
         );
