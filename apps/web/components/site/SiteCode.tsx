@@ -1,3 +1,4 @@
+import Script from "next/script";
 import type { WebsiteCode } from "@platform/database/website-config";
 
 /**
@@ -14,7 +15,7 @@ export function SiteAnalytics({ code }: { code: WebsiteCode }) {
   if (code.tiktokPixelId)
     scripts.push(`!function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"];ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.load=function(e){var s=d.createElement("script");s.async=!0;s.src="https://analytics.tiktok.com/i18n/pixel/events.js?sdkid="+e;d.head.appendChild(s)};ttq.load(${JSON.stringify(code.tiktokPixelId)});ttq.page()}(window,document,"ttq");`);
   if (!scripts.length) return null;
-  return <script id="site-analytics" dangerouslySetInnerHTML={{ __html: scripts.join("\n") }} />;
+  return <Script id="site-analytics" strategy="afterInteractive" dangerouslySetInnerHTML={{ __html: scripts.join("\n") }} />;
 }
 
 export function SiteCustomCode({ code }: { code: WebsiteCode }) {

@@ -1,4 +1,5 @@
 import { isWebsitePreview, websiteExample } from "../../lib/website";
+import Script from "next/script";
 import { PreviewBridge } from "../../components/site/PreviewBridge";
 import { storeEnabled, orderingEnabled } from "../../lib/customer";
 import * as React from "react";
@@ -76,7 +77,7 @@ export default async function LocaleLayout({
         </>
       ) : null}
       <style id="company-theme" dangerouslySetInnerHTML={{ __html: themeStylesheet(company.theme) + websiteThemeStylesheet(company.theme) }} />
-      <script id="site-theme-init" dangerouslySetInnerHTML={{ __html: siteThemeBootstrap(config.design) }} />
+      <Script id="site-theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: siteThemeBootstrap(config.design) }} />
       {enabled && website && !preview && code ? <SiteAnalytics code={code} /> : null}
     </head>
   );

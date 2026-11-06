@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import Script from "next/script";
 import { getAdminTranslations, isLocale, isRtlLocale } from "@platform/locales";
 import "./globals.css";
 import "./admin-design.css";
@@ -40,7 +41,9 @@ export default async function RootLayout({
       className={theme.defaultMode === "light" ? "light" : "dark"}
     >
       <head>
-        <script
+        <Script
+          id="admin-theme-bootstrap"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: appearanceBootstrapScript() + `try{var m=localStorage.getItem("platform_admin_theme");if(!["light","dark","system"].includes(m))m=${JSON.stringify(theme.defaultMode)};var d=m==="dark"||(m==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.classList.toggle("light",!d)}catch{}`,
           }}
