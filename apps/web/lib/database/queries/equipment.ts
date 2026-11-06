@@ -21,16 +21,17 @@ function mapEquipment(i: any): StudioEquipment {
 
 export async function getStudioEquipment(): Promise<StudioEquipment[]> {
   try {
-    const items = await db.studioEquipment.findMany({
-      orderBy: { displayOrder: "asc" },
-    });
+    const items =
+      (await db.studioEquipment.findMany({
+        orderBy: { displayOrder: "asc" },
+      })) || [];
     return items.map(mapEquipment);
   } catch (e) {
     console.error(
       "Error fetching studio equipment from DB:",
       e instanceof Error ? e.message : e,
     );
-    throw e;
+    return [];
   }
 }
 

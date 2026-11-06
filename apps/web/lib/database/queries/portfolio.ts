@@ -48,16 +48,17 @@ function mapItem(item: any): PortfolioItem {
 
 export async function getPortfolioCategories(): Promise<PortfolioCategory[]> {
   try {
-    const cats = await db.portfolioCategory.findMany({
-      orderBy: { displayOrder: "asc" },
-    });
+    const cats =
+      (await db.portfolioCategory.findMany({
+        orderBy: { displayOrder: "asc" },
+      })) || [];
     return cats.map(mapCategory);
   } catch (e) {
     console.error(
       "Error fetching portfolio categories:",
       e instanceof Error ? e.message : e,
     );
-    throw e;
+    return [];
   }
 }
 
@@ -131,18 +132,19 @@ export async function getPortfolioItems(
       }
     }
 
-    const items = await db.portfolioItem.findMany({
-      where: whereCondition,
-      include: { category: true },
-      orderBy: { displayOrder: "asc" },
-    });
+    const items =
+      (await db.portfolioItem.findMany({
+        where: whereCondition,
+        include: { category: true },
+        orderBy: { displayOrder: "asc" },
+      })) || [];
     return items.map(mapItem);
   } catch (e) {
     console.error(
       "Error fetching portfolio items:",
       e instanceof Error ? e.message : e,
     );
-    throw e;
+    return [];
   }
 }
 

@@ -15,32 +15,34 @@ function mapClient(l: any): ClientLogo {
 
 export async function getActiveClientLogos(): Promise<ClientLogo[]> {
   try {
-    const logos = await db.clientLogo.findMany({
-      where: { isActive: true },
-      orderBy: { displayOrder: "asc" },
-    });
+    const logos =
+      (await db.clientLogo.findMany({
+        where: { isActive: true },
+        orderBy: { displayOrder: "asc" },
+      })) || [];
     return logos.map(mapClient);
   } catch (e) {
     console.error(
       "Error fetching active client logos from DB:",
       e instanceof Error ? e.message : e,
     );
-    throw e;
+    return [];
   }
 }
 
 export async function getAllClientLogos(): Promise<ClientLogo[]> {
   try {
-    const logos = await db.clientLogo.findMany({
-      orderBy: { displayOrder: "asc" },
-    });
+    const logos =
+      (await db.clientLogo.findMany({
+        orderBy: { displayOrder: "asc" },
+      })) || [];
     return logos.map(mapClient);
   } catch (e) {
     console.error(
       "Error fetching all client logos from DB:",
       e instanceof Error ? e.message : e,
     );
-    throw e;
+    return [];
   }
 }
 

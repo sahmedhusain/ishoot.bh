@@ -22,32 +22,34 @@ function mapBanner(b: any): HeroBanner {
 
 export async function getActiveBanners(): Promise<HeroBanner[]> {
   try {
-    const banners = await db.heroBanner.findMany({
-      where: { isActive: true },
-      orderBy: { displayOrder: "asc" },
-    });
+    const banners =
+      (await db.heroBanner.findMany({
+        where: { isActive: true },
+        orderBy: { displayOrder: "asc" },
+      })) || [];
     return banners.map(mapBanner);
   } catch (e) {
     console.error(
       "Error fetching active banners from DB:",
       e instanceof Error ? e.message : e,
     );
-    throw e;
+    return [];
   }
 }
 
 export async function getAllBanners(): Promise<HeroBanner[]> {
   try {
-    const banners = await db.heroBanner.findMany({
-      orderBy: { displayOrder: "asc" },
-    });
+    const banners =
+      (await db.heroBanner.findMany({
+        orderBy: { displayOrder: "asc" },
+      })) || [];
     return banners.map(mapBanner);
   } catch (e) {
     console.error(
       "Error fetching all banners from DB:",
       e instanceof Error ? e.message : e,
     );
-    throw e;
+    return [];
   }
 }
 
