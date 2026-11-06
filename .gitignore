@@ -45,6 +45,8 @@ apps/*/.next-verify/
 # IDE & Editor Settings
 .idea/
 .vscode/
+.claude/
+skills-lock.json
 
 # Raw design source files kept next to a company profile (never committed)
 company/profiles/*/raw/
