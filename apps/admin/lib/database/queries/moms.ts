@@ -111,11 +111,11 @@ export async function getNextMomNumber(
   client: Prisma.TransactionClient = db,
 ): Promise<string> {
   const prefix = `MOM-${new Date().getFullYear()}-`;
-  const [row] = await client.$queryRaw<Array<{ next: number }>>`
+  const [row] = (await client.$queryRaw<Array<{ next: number }>>`
     SELECT COALESCE(MAX(CAST(substring("momNumber" FROM '[0-9]+$') AS integer)), 0) + 1 AS next
     FROM "MinuteOfMeeting" WHERE "momNumber" LIKE ${`${prefix}%`}
-  `;
-  return `${prefix}${String(row.next).padStart(3, "0")}`;
+  `) || [];
+  return `${prefix}${String(row?.next ?? 1).padStart(3, "0")}`;
 }
 
 export async function createMinuteOfMeeting(data: {

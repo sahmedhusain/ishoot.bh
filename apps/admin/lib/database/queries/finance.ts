@@ -152,9 +152,9 @@ export async function getInvoiceSummary() {
     COALESCE(SUM("discountAmount"),0) "discountsGiven" FROM balances
   `;
   return {
-    outstanding: Number(row.outstanding),
-    overdue: Number(row.overdue),
-    discountsGiven: Number(row.discountsGiven),
+    outstanding: Number(row?.outstanding ?? 0),
+    overdue: Number(row?.overdue ?? 0),
+    discountsGiven: Number(row?.discountsGiven ?? 0),
   };
 }
 
@@ -223,7 +223,7 @@ export async function getReceivablesInsight(): Promise<ReceivablesInsight> {
     FROM "Payment" p JOIN "Invoice" i ON i.id = p."invoiceId" JOIN "CrmContact" c ON c.id = i."clientId"
     WHERE p.currency = ${accountingCurrency} AND i.status <> 'void' AND p."paymentDate" >= CURRENT_DATE - INTERVAL '12 months'
     GROUP BY c.id ORDER BY collected DESC LIMIT 5`;
-  const issued = Number(summary.issued);
+  const issued = Number(summary?.issued ?? 0);
   const buckets: ReceivablesInsight["aging"][number]["bucket"][] = [
     "current",
     "d1_30",
@@ -233,23 +233,23 @@ export async function getReceivablesInsight(): Promise<ReceivablesInsight> {
   ];
   return {
     collectionRate:
-      issued > 0 ? Math.round((Number(summary.paid) / issued) * 1000) / 10 : 0,
-    averageDaysToCollect: Math.round(Number(summary.days)),
-    averageInvoiceValue: roundMoney(Number(summary.avg), accountingCurrency),
-    invoicesIssued: Number(summary.count),
+      issued > 0 ? Math.round((Number(summary?.paid ?? 0) / issued) * 1000) / 10 : 0,
+    averageDaysToCollect: Math.round(Number(summary?.days ?? 0)),
+    averageInvoiceValue: roundMoney(Number(summary?.avg ?? 0), accountingCurrency),
+    invoicesIssued: Number(summary?.count ?? 0),
     aging: buckets.map((bucket) => {
-      const row = aging.find((a) => a.bucket === bucket);
+      const row = (aging || []).find((a) => a.bucket === bucket);
       return {
         bucket,
         amount: Number(row?.amount ?? 0),
         count: Number(row?.count ?? 0),
       };
     }),
-    topClients: top.map((row) => ({
+    topClients: (top || []).map((row) => ({
       clientId: row.clientId,
       name: row.name,
-      collected: Number(row.collected),
-      invoices: Number(row.invoices),
+      collected: Number(row.collected || 0),
+      invoices: Number(row.invoices || 0),
     })),
   };
 }

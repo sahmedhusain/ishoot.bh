@@ -96,7 +96,9 @@ const createDbStub = () => {
         (q.includes("outstanding") ||
           q.includes("revenue") ||
           q.includes("discountsGiven") ||
-          q.includes("vatCollected"))
+          q.includes("vatCollected") ||
+          q.includes("issued") ||
+          q.includes("paid"))
       ) {
         return [
           {
@@ -106,8 +108,22 @@ const createDbStub = () => {
             overdue: 0,
             discountsGiven: 0,
             vatCollected: 0,
+            issued: 0,
+            paid: 0,
+            count: 0,
+            avg: 0,
+            days: 0,
           },
         ];
+      }
+      if (q && (q.includes("count") || q.includes("COUNT"))) {
+        return [{ count: 0, ranked: 0, total: 0, expired: 0, expiring: 0 }];
+      }
+      if (q && q.includes("ranked")) {
+        return [{ ranked: 0 }];
+      }
+      if (q && q.includes("next")) {
+        return [{ next: 1 }];
       }
       return [];
     },

@@ -583,14 +583,14 @@ export async function getClientsPage(
         currency,
       };
     }
-    const [{ count }] = await db.$queryRaw<Array<{ count: bigint }>>(
+    const countRows = await db.$queryRaw<Array<{ count: bigint }>>(
       Prisma.sql`${withSql} SELECT COUNT(*) AS count ${from}`,
     );
-    const total = Number(count);
+    const total = Number(countRows?.[0]?.count ?? 0);
     const page = Math.min(f.page, Math.max(1, Math.ceil(total / 50)));
     const rows = await db.$queryRaw<StandingRow[]>(Prisma.sql`${withSql}
       SELECT x.* ${from} ORDER BY ${SORT_SQL[f.sort]} LIMIT 50 OFFSET ${(page - 1) * 50}`);
-    const [summary] = await db.$queryRaw<
+    const [summary] = (await db.$queryRaw<
       Array<Record<string, bigint | unknown>>
     >(Prisma.sql`${withSql}
       SELECT COUNT(*) AS total,
@@ -601,16 +601,16 @@ export async function getClientsPage(
         COUNT(*) FILTER (WHERE x.outstanding > 0) AS with_balance,
         COALESCE(SUM(x.outstanding), 0) AS outstanding,
         COALESCE(SUM(x.billed), 0) AS billed
-      FROM "CrmContact" c JOIN client_rows x ON x.id = c.id`);
+      FROM "CrmContact" c JOIN client_rows x ON x.id = c.id`)) || [];
     return {
-      items: await hydrate(rows),
+      items: await hydrate(rows || []),
       total,
       page,
       pageSize: 50,
       filters: f,
       currency,
       summary: Object.fromEntries(
-        Object.entries(summary).map(([key, value]) => [key, Number(value)]),
+        Object.entries(summary || {}).map(([key, value]) => [key, Number(value)]),
       ) as Record<
         | "total"
         | "companies"
@@ -634,12 +634,12 @@ export async function getClientStanding(id: string) {
   );
   const r = rows[0];
   if (!r) return null;
-  const [{ ranked }] = await db.$queryRaw<Array<{ ranked: bigint }>>(
+  const rankedRows = await db.$queryRaw<Array<{ ranked: bigint }>>(
     Prisma.sql`WITH ${standingSql(currency)} SELECT COUNT(*) AS ranked FROM ranked`,
   );
   return {
     rank: r.rank === null ? null : Number(r.rank),
-    rankedClients: Number(ranked),
+    rankedClients: Number(rankedRows?.[0]?.ranked ?? 0),
     tier: r.tier,
     billed: Number(r.billed),
     outstanding: Number(r.outstanding),
