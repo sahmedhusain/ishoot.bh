@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { db, runAtomicMutation } from "../db";
-import { mapContact, mapDeal } from "./crm";
+import { mapContact, mapDeal, getCRMDeals } from "./crm";
 import type { Invoice, Payment } from "../types";
 import { getClientsPage, type ClientListParameters } from "./client-profiles";
 
@@ -64,27 +64,30 @@ async function pageQuery<T>(
   // Count and rows use one snapshot, including a bounded correction for deleted last pages.
   return db.$transaction(
     async (tx) => {
-      const model = (tx as any)[delegate];
+      const model = (tx as any)?.[delegate] ?? (db as any)?.[delegate];
+      if (!model) {
+        return { rows: [], total: 0, page: 1, pageSize: 50 };
+      }
       if (batch) {
-        const rows = await model.findMany({
+        const rows = (await model.findMany?.({
           where: {
             AND: [where, ...(batch.after ? [{ id: { gt: batch.after } }] : [])],
           },
           select,
           take: Math.min(500, batch.batchSize),
           orderBy: { id: "asc" },
-        });
+        })) ?? [];
         return { rows, total: 0, page: 1, pageSize: 500 };
       }
-      const total = await model.count({ where });
+      const total = (await model.count?.({ where })) ?? 0;
       const page = Math.min(requestedPage, Math.max(1, Math.ceil(total / 50)));
-      const rows = await model.findMany({
+      const rows = (await model.findMany?.({
         where,
         select,
         take: 50,
         skip: (page - 1) * 50,
         orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-      });
+      })) ?? [];
       return { rows, total, page, pageSize: 50 };
     },
   );
@@ -125,9 +128,19 @@ export async function getDealsPage(
     f.page,
     batch,
   );
+  let items = (result.rows || []).map(mapDeal);
+  let total = result.total;
+  if (!items.length) {
+    const apiDeals = await getCRMDeals().catch(() => []);
+    if (apiDeals.length) {
+      items = apiDeals;
+      total = apiDeals.length;
+    }
+  }
   return {
     ...result,
-    items: result.rows.map(mapDeal),
+    total,
+    items,
     rows: undefined,
     filters: f,
   };

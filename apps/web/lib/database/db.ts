@@ -45,9 +45,10 @@ const defaultCompanySetting = {
 };
 
 const createDbStub = () => {
+  let proxy: any;
   const base = {
     $transaction: async <T>(op: (tx: any) => Promise<T>): Promise<T> => {
-      if (typeof op === "function") return op(base as any);
+      if (typeof op === "function") return op(proxy);
       return Promise.all(op as any) as any;
     },
     $queryRaw: async (...args: any[]) => {
@@ -84,7 +85,7 @@ const createDbStub = () => {
     $disconnect: async () => {},
   };
 
-  return new Proxy(base, {
+  proxy = new Proxy(base, {
     get: (target: any, prop: string | symbol) => {
       if (prop in target) return target[prop];
       if (typeof prop === "symbol") return undefined;
@@ -102,6 +103,7 @@ const createDbStub = () => {
       return createModelStub();
     },
   });
+  return proxy;
 };
 
 export interface DbStub {
