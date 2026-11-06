@@ -110,6 +110,9 @@ function writeServiceKeys(env) {
     }
   const target = path.resolve(root, env.SERVICE_KEYS_FILE || "./.local/service-keys.json");
   fs.mkdirSync(path.dirname(target), { recursive: true });
+  if (fs.existsSync(target) && fs.statSync(target).isDirectory()) {
+    fs.rmSync(target, { recursive: true, force: true });
+  }
   fs.writeFileSync(target, `${JSON.stringify({ keys }, null, 2)}\n`);
   console.log(`Wrote ${keys.length} service key(s) to ${shown(target)}.`);
 }
