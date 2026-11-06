@@ -20,15 +20,17 @@ const escape = (value: string) =>
 // ─── Settings ────────────────────────────────────────────────────────────────────────────────────────────────────
 
 export async function getServiceSettings() {
-  const s = await db.serviceSettings.upsert({
-    where: { id: "default" },
-    update: {},
-    create: { id: "default" },
-  });
+  const s = await db.serviceSettings
+    .upsert({
+      where: { id: "default" },
+      update: {},
+      create: { id: "default" },
+    })
+    .catch(() => null);
   return {
-    sla_urgent_hours: s.slaUrgentHours,
-    sla_high_hours: s.slaHighHours,
-    sla_normal_hours: s.slaNormalHours,
+    sla_urgent_hours: s?.slaUrgentHours ?? 4,
+    sla_high_hours: s?.slaHighHours ?? 24,
+    sla_normal_hours: s?.slaNormalHours ?? 72,
   };
 }
 export type ServiceSettingsRecord = Awaited<

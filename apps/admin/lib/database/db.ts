@@ -44,6 +44,14 @@ const defaultCompanySetting = {
   timeZone: "Asia/Bahrain",
 };
 
+const defaultServiceSettings = {
+  id: "default",
+  slaUrgentHours: 4,
+  slaHighHours: 24,
+  slaNormalHours: 72,
+  updatedAt: new Date(),
+};
+
 const defaultUsers = [
   {
     id: "super-admin",
@@ -119,6 +127,17 @@ const createDbStub = () => {
             get: (_t, modelProp) => {
               if (modelProp === "then") return undefined;
               return async () => defaultCompanySetting;
+            },
+          },
+        );
+      }
+      if (prop === "serviceSettings") {
+        return new Proxy(
+          {},
+          {
+            get: (_t, modelProp) => {
+              if (modelProp === "then") return undefined;
+              return async () => defaultServiceSettings;
             },
           },
         );
