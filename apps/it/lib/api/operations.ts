@@ -141,7 +141,7 @@ export const listAPIKeysForIT = async (token: string): Promise<ApiKeyRecord[]> =
   const res = await unwrap(
     userClient<any>(token).GET("/v1/system/desk/api-keys", {})
   );
-  return res.items;
+  return (res && Array.isArray(res.items) ? res.items : Array.isArray(res) ? res : []) as ApiKeyRecord[];
 };
 
 export const createAPIKeyForIT = (

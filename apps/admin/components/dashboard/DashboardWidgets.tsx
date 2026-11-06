@@ -152,7 +152,9 @@ export function DashboardWidget({
     case "cashflow": {
       if (!data.cashflow) return null;
       const points = data.cashflow.map((pt) => {
-        const [year, month] = pt.monthKey.split("-").map(Number);
+        const parts = (pt.monthKey || new Date().toISOString().slice(0, 7)).split("-").map(Number);
+        const year = parts[0] || new Date().getFullYear();
+        const month = parts[1] || 1;
         return { month: new Intl.DateTimeFormat(locale === "ar" ? "ar-u-nu-latn" : "en-US", { month: "short" }).format(new Date(year, month - 1, 1)), revenue: pt.revenue, expenses: pt.expenses };
       });
       return (

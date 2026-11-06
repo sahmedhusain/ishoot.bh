@@ -1092,7 +1092,7 @@ export function DashboardBoard({
 
             return (
               <div
-                key={item.id}
+                key={`${item.id}-${index}`}
                 draggable={customizing && !isBeingResized}
                 onDragStart={() => setDragIndex(index)}
                 onDragOver={(e) => {

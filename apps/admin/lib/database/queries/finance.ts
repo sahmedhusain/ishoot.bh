@@ -61,10 +61,10 @@ export async function getFinancialSummary(): Promise<FinancialSummary> {
     expenses,
     netProfit,
     profitMargin: revenue > 0 ? (netProfit / revenue) * 100 : 0,
-    outstanding: Number(row.outstanding),
-    overdue: Number(row.overdue),
-    discountsGiven: Number(row.discountsGiven),
-    vatCollected: Number(row.vatCollected),
+    outstanding: Number(row?.outstanding ?? 0),
+    overdue: Number(row?.overdue ?? 0),
+    discountsGiven: Number(row?.discountsGiven ?? 0),
+    vatCollected: Number(row?.vatCollected ?? 0),
     currency: accountingCurrency,
   };
 }
@@ -118,9 +118,9 @@ export async function getMonthlyCashflow(
     FROM months m LEFT JOIN revenue r ON r.month = m.month LEFT JOIN expenses e ON e.month = m.month ORDER BY m.month
   `;
   return rows.map((row) => ({
-    monthKey: row.monthKey,
-    revenue: Number(row.revenue),
-    expenses: Number(row.expenses),
+    monthKey: row.monthKey || new Date().toISOString().slice(0, 7),
+    revenue: Number(row.revenue || 0),
+    expenses: Number(row.expenses || 0),
   }));
 }
 

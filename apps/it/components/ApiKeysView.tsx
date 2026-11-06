@@ -20,14 +20,15 @@ import { useCopy } from "./CopyProvider";
 import { PageTitle } from "./ticket-ui";
 
 export function ApiKeysView({
-  keys,
+  keys = [],
   canCreate,
   canDelete,
 }: {
-  keys: ApiKeyRecord[];
+  keys?: ApiKeyRecord[] | null;
   canCreate: boolean;
   canDelete: boolean;
 }) {
+  const list = Array.isArray(keys) ? keys : [];
   const { copy, date } = useCopy();
   const k = copy.apiKeys;
   const router = useRouter();
@@ -203,7 +204,7 @@ export function ApiKeysView({
       <Card className="rounded-3xl border border-outline-variant p-6 space-y-4">
         <h2 className="text-base font-semibold">{k.existingKeys}</h2>
 
-        {!keys.length ? (
+        {!list.length ? (
           <p className="text-xs text-ink-muted py-6 text-center">{k.noKeys}</p>
         ) : (
           <div className="overflow-x-auto">
@@ -220,7 +221,7 @@ export function ApiKeysView({
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant">
-                {keys.map((item) => {
+                {list.map((item) => {
                   const isRevoked = Boolean(item.revokedAt);
                   return (
                     <tr key={item.id}>

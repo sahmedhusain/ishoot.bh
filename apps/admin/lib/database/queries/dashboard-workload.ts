@@ -358,32 +358,32 @@ export async function getRequestWorkload(
   const byKind: Record<string, number> = Object.fromEntries(
     REQUEST_KINDS.map((k) => [k, 0]),
   );
-  for (const g of kindGroups) byKind[requestKindOf(g)] += g._count._all;
+  for (const g of (kindGroups || [])) byKind[requestKindOf(g)] = (byKind[requestKindOf(g)] || 0) + (g._count?._all ?? 0);
   return {
     open: Object.values(byKind).reduce((a, b) => a + b, 0),
-    overdue,
-    unassigned,
-    awaitingApproval,
-    newLast7,
+    overdue: overdue || 0,
+    unassigned: unassigned || 0,
+    awaitingApproval: awaitingApproval || 0,
+    newLast7: newLast7 || 0,
     ...resolution,
     byKind,
     byTeam: countBy(
-      teamGroups.map((g) => ({ key: g.team, count: g._count._all })),
+      (teamGroups || []).map((g) => ({ key: g.team, count: g._count?._all ?? 0 })),
     ),
     byPriority: countBy(
-      priorityGroups.map((g) => ({ key: g.priority, count: g._count._all })),
+      (priorityGroups || []).map((g) => ({ key: g.priority, count: g._count?._all ?? 0 })),
       ["urgent", "high", "normal"],
     ),
     byStatus: countBy(
-      statusGroups.map((g) => ({
+      (statusGroups || []).map((g) => ({
         key: g.workflowStatus,
-        count: g._count._all,
+        count: g._count?._all ?? 0,
       })),
     ),
     mine: {
-      open: mineOpen,
-      overdue: mineOverdue,
-      items: mineItems.map((r) => toRow(r, now)),
+      open: mineOpen || 0,
+      overdue: mineOverdue || 0,
+      items: (mineItems || []).map((r) => toRow(r, now)),
     },
   };
 }
@@ -452,10 +452,10 @@ export async function getComplaintWorkload(
     newPrevious7,
     ...resolution,
     byPriority: countBy(
-      priorityGroups.map((g) => ({ key: g.priority, count: g._count._all })),
+      (priorityGroups || []).map((g) => ({ key: g.priority, count: g._count?._all ?? 0 })),
       ["urgent", "high", "normal"],
     ),
-    latest: latest.map((r) => ({
+    latest: (latest || []).map((r) => ({
       ...toRow(r, now),
       assignee: r.assignedTo?.fullName ?? null,
     })),

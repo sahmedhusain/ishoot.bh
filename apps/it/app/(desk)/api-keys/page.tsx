@@ -5,9 +5,8 @@ import { ApiKeysView } from "../../../components/ApiKeysView";
 
 export default async function ApiKeysPage() {
   const user = await requireAllowed("api_keys", "read");
-  const keys = await asUser(() => listAPIKeysForIT(user.token)).catch(
-    () => []
-  );
+  const keys =
+    (await asUser(() => listAPIKeysForIT(user.token)).catch(() => [])) || [];
 
   return (
     <ApiKeysView

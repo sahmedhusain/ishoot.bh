@@ -6,9 +6,22 @@ const createModelStub = () =>
       get: (_target, prop) => {
         if (prop === "then") return undefined;
         if (typeof prop === "string") {
-          if (prop === "findMany") return async () => [];
+          if (prop === "findMany" || prop === "groupBy") return async () => [];
           if (prop === "count") return async () => 0;
-          if (prop === "updateMany" || prop === "deleteMany" || prop === "createMany") return async () => ({ count: 0 });
+          if (prop === "aggregate")
+            return async () => ({
+              _count: { _all: 0 },
+              _sum: {},
+              _avg: {},
+              _min: {},
+              _max: {},
+            });
+          if (
+            prop === "updateMany" ||
+            prop === "deleteMany" ||
+            prop === "createMany"
+          )
+            return async () => ({ count: 0 });
         }
         return async () => null;
       },
@@ -63,6 +76,30 @@ const createDbStub = () => {
     $queryRaw: async (...args: any[]) => {
       const q = typeof args[0] === "string" ? args[0] : JSON.stringify(args[0]);
       if (q && q.includes("defaultCurrency")) return [{ defaultCurrency: "BHD" }];
+      if (q && (q.includes("monthKey") || q.includes("generate_series"))) {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        return [{ monthKey: `${year}-${month}`, revenue: 0, expenses: 0 }];
+      }
+      if (
+        q &&
+        (q.includes("outstanding") ||
+          q.includes("revenue") ||
+          q.includes("discountsGiven") ||
+          q.includes("vatCollected"))
+      ) {
+        return [
+          {
+            revenue: 0,
+            expenses: 0,
+            outstanding: 0,
+            overdue: 0,
+            discountsGiven: 0,
+            vatCollected: 0,
+          },
+        ];
+      }
       return [];
     },
     $executeRaw: async (...args: any[]) => 0,
