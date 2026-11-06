@@ -166,14 +166,27 @@ async function seedCMS(profileName: string) {
 async function seedIdentityAndHR() {
   console.log("🔑 Seeding Identity staff and IT accounts (email & password authentication)...");
 
+  const superAdminEmail = (process.env.SUPER_ADMIN_EMAIL || "admin@example.com").trim().toLowerCase();
+  const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD || DEFAULT_PASSWORD;
+
   // Create IT realm admin account for IT app access with MFA disabled by default
   await syncAccount("it", "it-admin", {
-    email: "admin@example.com",
+    email: superAdminEmail,
     roles: ["it_admin"],
     active: true,
   }).catch((e) => console.warn("Sync IT admin warning:", e?.message || e));
-  await setAccountPassword("it", "it-admin", { password: DEFAULT_PASSWORD }).catch((e) =>
+  await setAccountPassword("it", "it-admin", { password: superAdminPassword }).catch((e) =>
     console.warn("Set IT admin password warning:", e?.message || e),
+  );
+
+  // Create staff realm super-admin account for Admin app access with MFA disabled by default
+  await syncAccount("staff", "super-admin", {
+    email: superAdminEmail,
+    roles: ["super_admin"],
+    active: true,
+  }).catch((e) => console.warn("Sync staff super-admin warning:", e?.message || e));
+  await setAccountPassword("staff", "super-admin", { password: superAdminPassword }).catch((e) =>
+    console.warn("Set staff super-admin password warning:", e?.message || e),
   );
 
   const deptExecutive = await create<{ id: string }>("/v1/hr/departments", { nameEn: "Executive", nameAr: "الإدارة التنفيذية", code: "EXEC" });
@@ -658,63 +671,29 @@ async function main() {
   const employees = await seedIdentityAndHR();
   const { deal } = await seedSalesAndFinance();
   await seedOperations(deal, employees);
-  await publishDemoWebsite(preset.website);
+  await publishDemoWebsite(preset.activity);
 
   console.log(`Seeded ${profile.display.nameEn} demo through backend service APIs (MFA disabled by default, regular password/email authentication enabled).`);
 }
 
-async function publishDemoWebsite(websiteConfig?: any) {
-  const configToPublish = websiteConfig || {
-    purpose: "media",
-    contentWidth: "standard",
-    headerLayout: "standard",
-    footerLayout: "standard",
-    defaultMode: "light",
-    motion: "standard",
-    density: "comfortable",
-    sections: [
-      { id: "hero", visible: true },
-      { id: "about", visible: true },
-      { id: "services", visible: true },
-      { id: "portfolio", visible: true },
-      { id: "stats", visible: true },
-      { id: "reviews", visible: true },
-      { id: "faq", visible: true },
-      { id: "cta", visible: true }
-    ],
-    pages: [],
-    interfaceLanguages: ["en", "ar"],
-    primaryInterfaceLanguage: "en",
-    commerce: { capabilities: { accounts: true, store: true, ordering: true } }
-  };
-
-  await request<void>("PUT", "/v1/cms/snapshots/main/draft", { draft: configToPublish }).catch(() => null);
-  await request<void>("POST", "/v1/cms/snapshots/main/publish").catch(() => null);
-
+async function publishDemoWebsite(activity: string = "media") {
   try {
-    const { db, getWebsiteEditor, collectWebsiteDraft, validateWebsiteConfig } = require("@platform/database");
-    const content = await getWebsiteEditor().catch(() => null);
-    if (content) {
-      const snapshot = await collectWebsiteDraft(validateWebsiteConfig(content.draft)).catch(() => null);
-      if (snapshot) {
-        await db.websiteContent.update({
-          where: { id: "main" },
-          data: {
-            published: JSON.parse(JSON.stringify(snapshot)),
-            publishedAt: new Date(),
-          },
-        }).catch(() => null);
-      }
-    }
-    await db.companySetting.update({
-      where: { singleton: 1 },
-      data: { setupCompletedAt: new Date() },
-    }).catch(() => null);
+    const { exampleSnapshot } = require("../../apps/admin/lib/database/queries/samples");
+    const snapshot = exampleSnapshot(activity as any);
+
+    await request<void>("PUT", "/v1/cms/snapshots/main/draft", snapshot).catch((e) =>
+      console.warn("CMS save draft warning:", e?.message || e),
+    );
+    await request<void>("POST", "/v1/cms/snapshots/main/publish").catch((e) =>
+      console.warn("CMS publish warning:", e?.message || e),
+    );
   } catch (e) {
-    // Database client fallback optional
+    console.warn("CMS snapshot generation warning:", e);
   }
 
-  await request<void>("POST", "/v1/system/desk/setup/complete").catch(() => null);
+  await request<void>("POST", "/v1/system/setup/complete", { actorId: "seed" }).catch((e) =>
+    console.warn("System complete setup warning:", e?.message || e),
+  );
 }
 
 main().catch((error) => {

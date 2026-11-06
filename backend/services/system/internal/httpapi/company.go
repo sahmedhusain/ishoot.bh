@@ -47,6 +47,25 @@ func (h *handler) companyRoutes(e *echo.Echo) {
 		}
 		return c.JSON(http.StatusOK, out)
 	})
+	service.POST("/setup/complete", func(c echo.Context) error {
+		p, err := allowed(c, h.opts.CompanyWriters)
+		if err != nil {
+			return err
+		}
+		var in struct {
+			ActorID string `json:"actorId"`
+		}
+		_ = httpx.BindJSON(c, &in, h.opts.JSONBodyLimit)
+		actor := "service:" + p.Subject
+		if in.ActorID != "" {
+			actor += ":" + in.ActorID
+		}
+		out, err := h.svc.CompleteSetup(c.Request().Context(), actor)
+		if err != nil {
+			return companyError(err)
+		}
+		return c.JSON(http.StatusOK, out)
+	})
 	service.PUT("/company/assets/:key", func(c echo.Context) error {
 		p, err := allowed(c, h.opts.CompanyWriters)
 		if err != nil {

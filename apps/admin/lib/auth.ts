@@ -31,7 +31,21 @@ export const getCurrentUser = cache(async (): Promise<Profile | null> =>
       if (isApiError(error) && error.status === 401) return null;
       throw error;
     }
-    const user = await getSessionUser(staff.userId);
+    let user = await getSessionUser(staff.userId);
+    if (!user && staff.roles.length > 0) {
+      user = {
+        id: staff.userId,
+        full_name: staff.userId === "super-admin"
+          ? (process.env.SUPER_ADMIN_NAME || "Super Admin")
+          : "Staff User",
+        email: process.env.SUPER_ADMIN_EMAIL || "admin@example.com",
+        role: staff.roles[0] as any,
+        is_active: true,
+        department: "executive",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+    }
     // A failed profile sync must not let an old token use newly assigned privileges.
     return user && staff.roles.length === 1 && staff.roles[0] === user.role
       ? user

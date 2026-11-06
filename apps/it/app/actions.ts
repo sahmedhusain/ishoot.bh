@@ -4,8 +4,13 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
+  beginMFAEnrollment,
+  cancelMFAEnrollment,
   claimUpload,
   commentOnQueueTicket,
+  confirmMFAEnrollment,
+  disableMFA,
+  getOwnAccount,
   getQueueTicket,
   isApiError,
   registerUpload,
@@ -38,7 +43,7 @@ import {
   type CookieSpec,
 } from "../lib/credentials";
 import { revalidatePublicSite } from "../lib/revalidate-web";
-import { asUser, requireAllowed } from "../lib/session";
+import { asUser, requireAllowed, requireUser } from "../lib/session";
 import { announceTicketChange } from "../lib/live";
 
 export type SignInState = {
@@ -435,4 +440,70 @@ export async function saveSiteCodeAction(code: SiteCode) {
   );
   if (outcome.ok) revalidatePath("/site");
   return outcome;
+}
+
+/** Starts setting up an authenticator for the signed-in IT administrator. */
+export async function beginItMFAAction(password: string) {
+  const user = await requireUser();
+  if (!password || typeof password !== "string") return { ok: false, error: "Password required" };
+  try {
+    const setup = await beginMFAEnrollment(user.token, password);
+    const issuer = "iShoot IT";
+    const uri = `otpauth://totp/${encodeURIComponent(issuer + ":" + user.email)}?${new URLSearchParams({
+      secret: setup.secret,
+      issuer,
+      algorithm: "SHA1",
+      digits: String(setup.digits),
+      period: String(setup.periodSeconds),
+    })}`;
+    return { ok: true, secret: setup.secret, uri };
+  } catch (err: any) {
+    return { ok: false, error: isApiError(err) && err.status === 401 ? "invalid_password" : "error" };
+  }
+}
+
+/** Cancels a pending authenticator setup. */
+export async function cancelItMFAAction(password: string) {
+  const user = await requireUser();
+  try {
+    await cancelMFAEnrollment(user.token, password);
+    return { ok: true };
+  } catch {
+    return { ok: false };
+  }
+}
+
+/** Confirms authenticator enrollment with OTP code. */
+export async function confirmItMFAAction(password: string, code: string) {
+  const user = await requireUser();
+  if (!password || !code) return { ok: false, error: "Missing fields" };
+  try {
+    const res = await confirmMFAEnrollment(user.token, password, code.replace(/\s+/g, ""));
+    return { ok: true, recoveryCodes: res.recoveryCodes };
+  } catch (err: any) {
+    return { ok: false, error: isApiError(err) && err.status === 401 ? "invalid_code" : "error" };
+  }
+}
+
+/** Disables two-factor authentication for the IT administrator. */
+export async function disableItMFAAction(password: string, code: string) {
+  const user = await requireUser();
+  if (!password || !code) return { ok: false, error: "Missing fields" };
+  try {
+    await disableMFA(user.token, password, code.replace(/\s+/g, ""));
+    return { ok: true };
+  } catch (err: any) {
+    return { ok: false, error: isApiError(err) && err.status === 401 ? "invalid_credentials" : "error" };
+  }
+}
+
+/** Checks the IT user's current security and MFA status. */
+export async function getItSecurityStatusAction() {
+  const user = await requireUser();
+  try {
+    const acc = await getOwnAccount(user.token);
+    return { ok: true, mfaEnabled: Boolean(acc.mfaEnabled), email: acc.email };
+  } catch {
+    return { ok: false, mfaEnabled: false, email: user.email };
+  }
 }

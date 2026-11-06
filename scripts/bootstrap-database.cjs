@@ -54,6 +54,8 @@ async function main() {
   const { syncAccount, setAccountPassword } = require("../apps/admin/lib/api/identity");
   await syncAccount("staff", "super-admin", { email, roles: ["super_admin"], active: true });
   await setAccountPassword("staff", "super-admin", { password });
+  await syncAccount("it", "it-admin", { email, roles: ["it_admin"], active: true }).catch(() => {});
+  await setAccountPassword("it", "it-admin", { password }).catch(() => {});
 
   const name = process.env.COMPANY_PROFILE?.trim();
   if (name) await installCompanyProfile(loadCompanyProfile(name), "bootstrap");

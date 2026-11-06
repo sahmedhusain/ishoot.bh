@@ -47,9 +47,13 @@ const getPublishedWebsite = unstable_cache(
         return snap.published as unknown as WebsiteSnapshot;
       }
     } catch {
-      // Fallback to database
+      // Fallback to database or example snapshot
     }
-    return getWebsiteSnapshot(false);
+    try {
+      return await getWebsiteSnapshot(false);
+    } catch {
+      return exampleSnapshot("media");
+    }
   },
   ["published-website"],
   { revalidate: 60, tags: ["website"] },

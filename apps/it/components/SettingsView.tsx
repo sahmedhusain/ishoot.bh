@@ -30,7 +30,7 @@ import {
 import { formatMessage } from "@platform/locales";
 import { NOTIFICATION_SOUNDS, notificationCategory } from "@platform/contracts";
 import type { NotificationPreferences, StatusChoice } from "@platform/api-client";
-import { setLocaleAction, signOutAction } from "../app/actions";
+import { setLocaleAction, signOutAction, beginItMFAAction, cancelItMFAAction, confirmItMFAAction, disableItMFAAction, getItSecurityStatusAction } from "../app/actions";
 import { savePreferencesAction, unmuteRecordAction, setStatusAction, clearStatusAction } from "../app/live-actions";
 import { useCopy } from "./CopyProvider";
 import { useItLive } from "./live/ItLive";
@@ -105,6 +105,234 @@ function Section({
       </div>
       {children}
     </section>
+  );
+}
+
+function TwoFactorSettings() {
+  const [loading, setLoading] = React.useState(false);
+  const [mfaEnabled, setMfaEnabled] = React.useState(false);
+  const [step, setStep] = React.useState<"idle" | "enrolling" | "confirming" | "disabling">("idle");
+  const [password, setPassword] = React.useState("");
+  const [code, setCode] = React.useState("");
+  const [setupData, setSetupData] = React.useState<{ secret: string; uri: string } | null>(null);
+  const [recoveryCodes, setRecoveryCodes] = React.useState<string[]>([]);
+
+  React.useEffect(() => {
+    getItSecurityStatusAction().then((res) => {
+      if (res.ok) setMfaEnabled(res.mfaEnabled);
+    });
+  }, []);
+
+  const handleStartEnroll = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const res = await beginItMFAAction(password);
+    setLoading(false);
+    if (!res.ok) {
+      toast.error(res.error === "invalid_password" ? "Invalid current password" : "Failed to start 2FA setup");
+      return;
+    }
+    setSetupData({ secret: res.secret!, uri: res.uri! });
+    setStep("confirming");
+  };
+
+  const handleConfirm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const res = await confirmItMFAAction(password, code);
+    setLoading(false);
+    if (!res.ok) {
+      toast.error(res.error === "invalid_code" ? "Invalid authenticator code" : "Failed to confirm 2FA");
+      return;
+    }
+    setMfaEnabled(true);
+    setRecoveryCodes(res.recoveryCodes || []);
+    setStep("idle");
+    setPassword("");
+    setCode("");
+    toast.success("Two-Factor Authentication enabled successfully!");
+  };
+
+  const handleDisable = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const res = await disableItMFAAction(password, code);
+    setLoading(false);
+    if (!res.ok) {
+      toast.error("Failed to disable 2FA. Check password and code.");
+      return;
+    }
+    setMfaEnabled(false);
+    setStep("idle");
+    setPassword("");
+    setCode("");
+    toast.success("Two-Factor Authentication disabled. Password-only access restored.");
+  };
+
+  return (
+    <div className="space-y-4 pt-1">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-ink">Two-Factor Authentication (MFA / TOTP)</p>
+          <p className="text-xs text-ink-muted">
+            {mfaEnabled
+              ? "Enabled — Authenticator app (TOTP) code required at sign-in."
+              : "Disabled by default — You can sign in using your password only."}
+          </p>
+        </div>
+        <span
+          className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+            mfaEnabled ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" : "bg-surface-container text-ink-muted"
+          }`}
+        >
+          {mfaEnabled ? "Active" : "Disabled (Password Only)"}
+        </span>
+      </div>
+
+      {recoveryCodes.length > 0 && (
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 space-y-2">
+          <p className="text-xs font-bold text-emerald-800 dark:text-emerald-200">
+            Save your one-time recovery codes in a secure location:
+          </p>
+          <div className="grid grid-cols-2 gap-2 font-mono text-xs text-emerald-900 dark:text-emerald-100">
+            {recoveryCodes.map((rc, idx) => (
+              <span key={idx} className="bg-white/40 dark:bg-black/20 p-1.5 rounded">{rc}</span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {step === "idle" && (
+        <div>
+          {mfaEnabled ? (
+            <button
+              type="button"
+              onClick={() => setStep("disabling")}
+              className="rounded-full border border-rose-500/30 bg-rose-500/10 px-4 py-2 text-xs font-semibold text-rose-700 dark:text-rose-300 hover:bg-rose-500/20"
+            >
+              Disable Two-Factor Authentication
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setStep("enrolling")}
+              className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-on-primary hover:opacity-90"
+            >
+              Set Up Authenticator (MFA)
+            </button>
+          )}
+        </div>
+      )}
+
+      {step === "enrolling" && (
+        <form onSubmit={handleStartEnroll} className="space-y-3 max-w-sm">
+          <p className="text-xs text-ink-muted">Enter your current password to begin authenticator setup:</p>
+          <input
+            type="password"
+            placeholder="Current Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-xs text-ink focus:outline-none focus:ring-1 focus:ring-primary"
+          />
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={loading || !password}
+              className="rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-on-primary disabled:opacity-50"
+            >
+              {loading ? "Verifying..." : "Continue"}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setStep("idle"); setPassword(""); }}
+              className="rounded-full border border-outline-variant px-3 py-1.5 text-xs font-semibold text-ink"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+
+      {step === "confirming" && setupData && (
+        <form onSubmit={handleConfirm} className="space-y-3 max-w-sm">
+          <p className="text-xs text-ink-muted">
+            Add this secret key to your authenticator app (Google Authenticator, 1Password, etc.):
+          </p>
+          <div className="rounded-xl border border-outline-variant bg-surface-container p-2 text-center font-mono text-xs select-all">
+            {setupData.secret}
+          </div>
+          <input
+            type="text"
+            placeholder="6-digit code from app"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            maxLength={8}
+            required
+            className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-xs text-ink focus:outline-none focus:ring-1 focus:ring-primary"
+          />
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={loading || !code}
+              className="rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-on-primary disabled:opacity-50"
+            >
+              {loading ? "Confirming..." : "Activate 2FA"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                cancelItMFAAction(password);
+                setStep("idle");
+                setPassword("");
+                setCode("");
+              }}
+              className="rounded-full border border-outline-variant px-3 py-1.5 text-xs font-semibold text-ink"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+
+      {step === "disabling" && (
+        <form onSubmit={handleDisable} className="space-y-3 max-w-sm">
+          <p className="text-xs text-ink-muted">Enter your password and current 6-digit code to turn off 2FA:</p>
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-xs text-ink"
+          />
+          <input
+            type="text"
+            placeholder="Current 6-digit code"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            required
+            className="w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-xs text-ink"
+          />
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={loading || !password || !code}
+              className="rounded-full bg-rose-600 px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+            >
+              {loading ? "Disabling..." : "Confirm Disable"}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setStep("idle"); setPassword(""); setCode(""); }}
+              className="rounded-full border border-outline-variant px-3 py-1.5 text-xs font-semibold text-ink"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+    </div>
   );
 }
 
@@ -740,6 +968,10 @@ export function SettingsView({
                     </span>
                   ))}
                 </div>
+              </div>
+
+              <div className="border-t border-outline-variant/60 pt-4">
+                <TwoFactorSettings />
               </div>
 
               <div className="border-t border-outline-variant/60 pt-4">
