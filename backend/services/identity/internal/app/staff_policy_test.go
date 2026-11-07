@@ -11,7 +11,7 @@ import (
 )
 
 func TestStaffPolicyParity(t *testing.T) {
-	raw, err := os.ReadFile("../../../../../contracts/fixtures/staff-access.v1.json")
+	raw, err := os.ReadFile("../../../../contracts/fixtures/staff-access.v1.json")
 	require.NoError(t, err)
 	var cases []struct {
 		Name         string

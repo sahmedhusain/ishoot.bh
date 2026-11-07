@@ -80,7 +80,11 @@ func TestParseRejectsMistakes(t *testing.T) {
 
 // The table shipped for Compose and Helm must load with the upstreams both of them configure.
 func TestShippedTableLoads(t *testing.T) {
-	values, err := os.ReadFile("../../../../../deploy/helm/platform/values.yaml")
+	valuesPath := "../../../../deploy/helm/platform/values.yaml"
+	if _, err := os.Stat(valuesPath); os.IsNotExist(err) {
+		valuesPath = "../../../../../deploy/helm/platform/values.yaml"
+	}
+	values, err := os.ReadFile(valuesPath)
 	require.NoError(t, err)
 	match := regexp.MustCompile(`GATEWAY_UPSTREAMS: "([^"]+)"`).FindSubmatch(values)
 	require.NotNil(t, match, "values.yaml sets GATEWAY_UPSTREAMS")
@@ -90,6 +94,10 @@ func TestShippedTableLoads(t *testing.T) {
 		require.True(t, ok, pair)
 		upstreams[name] = target
 	}
-	_, err = Load("../../../../../deploy/helm/platform/files/gateway/routes.yaml", upstreams)
+	routesPath := "../../../../deploy/helm/platform/files/gateway/routes.yaml"
+	if _, err := os.Stat(routesPath); os.IsNotExist(err) {
+		routesPath = "../../../../../deploy/helm/platform/files/gateway/routes.yaml"
+	}
+	_, err = Load(routesPath, upstreams)
 	require.NoError(t, err)
 }

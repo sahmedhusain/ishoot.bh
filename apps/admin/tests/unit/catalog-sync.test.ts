@@ -19,7 +19,7 @@ import {
   DEFAULT_DATA_SCOPES,
 } from "@platform/database/constants/data-scope";
 
-const CATALOG_DIR = join(__dirname, "../../../../contracts/catalog");
+const CATALOG_DIR = join(__dirname, "../../lib/contracts/catalog");
 const WRITE = process.env.CATALOG_WRITE === "1";
 
 const fromTypeScript: Record<string, unknown> = {

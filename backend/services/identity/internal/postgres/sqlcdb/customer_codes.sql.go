@@ -92,7 +92,7 @@ func (q *Queries) FailCustomerCode(ctx context.Context, email string) error {
 }
 
 const lockCustomerByEmail = `-- name: LockCustomerByEmail :one
-SELECT realm, subject_id, email, password_hash, roles, active, mfa_enabled, mfa_secret_encrypted, mfa_last_step, last_login_at, created_at, updated_at, mfa_pending_secret_encrypted, mfa_pending_expires_at FROM identity.account WHERE realm='customer' AND email=$1 FOR UPDATE
+SELECT realm, subject_id, email, password_hash, roles, active, mfa_enabled, mfa_secret_encrypted, mfa_last_step, last_login_at, created_at, updated_at, mfa_pending_secret_encrypted, mfa_pending_expires_at, username FROM identity.account WHERE realm='customer' AND email=$1 FOR UPDATE
 `
 
 func (q *Queries) LockCustomerByEmail(ctx context.Context, email string) (IdentityAccount, error) {
@@ -113,6 +113,7 @@ func (q *Queries) LockCustomerByEmail(ctx context.Context, email string) (Identi
 		&i.UpdatedAt,
 		&i.MfaPendingSecretEncrypted,
 		&i.MfaPendingExpiresAt,
+		&i.Username,
 	)
 	return i, err
 }

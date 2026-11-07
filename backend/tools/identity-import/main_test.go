@@ -103,7 +103,7 @@ func TestImportValidatesPreservesAndCanBeRerun(t *testing.T) {
 	var payload map[string]any
 	require.NoError(t, pool.QueryRow(ctx, `SELECT payload FROM identity.outbox WHERE subject='identity.snapshot.imported'`).Scan(&payload))
 	require.Equal(t, map[string]any{"changedBy": "operator:test-operator", "accountsInserted": float64(2), "recoveryInserted": float64(1), "rolesInserted": float64(2), "permissionsInserted": float64(2), "scopesInserted": float64(1), "accessInserted": float64(1)}, payload)
-	rawSchema, err := os.ReadFile("../../../contracts/events/identity.snapshot.imported.v1.json")
+	rawSchema, err := os.ReadFile("../../contracts/events/identity.snapshot.imported.v1.json")
 	require.NoError(t, err)
 	var schemaDoc any
 	require.NoError(t, json.Unmarshal(rawSchema, &schemaDoc))

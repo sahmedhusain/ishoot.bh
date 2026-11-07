@@ -6,7 +6,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../.env"), quiet: true });
 import { apiTimeoutMs, apiUrl } from "../../apps/admin/lib/api/config";
 import { serviceToken } from "../../apps/admin/lib/api/service-token";
 import { setAccountPassword, syncAccount } from "../../apps/admin/lib/api/identity";
-import { formatUsername } from "../../contracts/src/username";
+import { formatUsername } from "../../backend/contracts/src/username";
 import { installCompanyProfile, loadCompanyProfile } from "../tools/company-profile";
 import { demoPreset } from "./demo-presets";
 import demoStaff from "./demo-staff.json";

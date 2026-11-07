@@ -1,5 +1,5 @@
 import { expect, test, vi } from "vitest";
-import vectors from "../../../../contracts/fixtures/staff-access.v1.json";
+import vectors from "../fixtures/staff-access.v1.json";
 import {
   ALL_ACTIONS,
   ALL_RESOURCES,

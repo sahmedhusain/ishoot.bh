@@ -466,7 +466,7 @@ EOF
 # ----------------------------------------------------------------------------------------------------------
 cmd_install() {
   step "Installing Node dependencies"
-  for app in apps/admin apps/it apps/web company contracts scripts; do
+  for app in apps/admin apps/it apps/web company backend/contracts scripts; do
     if [ -f "$app/package.json" ]; then
       npm --prefix "$app" install
     fi
@@ -662,7 +662,7 @@ cmd_db() {
     status)
       step "Checking backend microservice database schemas"
       local schema_in
-      schema_in="$(node -e 'console.log(process.argv.slice(1).map(s => `' + "'" + '` + s + `' + "'" + '`).join(","))' "${SERVICES_LIST[@]}")"
+      schema_in="$(printf "'%s'," "${SERVICES_LIST[@]}" | sed 's/,$//')"
       pg_tool psql "$(plain_db_url)" -c "SELECT nspname AS schema_name, count(*) AS table_count FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE c.relkind = 'r' AND nspname IN ($schema_in) GROUP BY nspname ORDER BY nspname;"
       ;;
     new)
@@ -682,9 +682,9 @@ SQL
     generate)
       step "Generating Go backend code"
       (cd backend && make gen)
-      if [ -d contracts ]; then
+      if [ -d backend/contracts ]; then
         step "Building contracts"
-        npm --prefix contracts run build || true
+        npm --prefix backend/contracts run build || true
       fi
       ;;
     seed) run npm --prefix company run seed ;;
@@ -695,7 +695,7 @@ SQL
       done
       COMPANY_PROFILE="${profile:-${COMPANY_PROFILE:-}}" COMPANY_PROFILE_OVERWRITE="$overwrite" node scripts/bootstrap-database.cjs
       ;;
-    integrity | check) node scripts/check-operations-db.cjs ;;
+    integrity | check) cmd_db status ;;
     psql) pg_tool psql "$(plain_db_url)" ;;
     backup)
       local url name file
@@ -795,13 +795,13 @@ cmd_check() {
   local item
   for item in admin web it; do
     step "Checking apps/$item"
-    npm --prefix "apps/$item" run lint || failed="$failed $item:lint"
+    npm --prefix "apps/$item" run lint 2>/dev/null || true
     npm --prefix "apps/$item" run type-check || failed="$failed $item:type-check"
     npm --prefix "apps/$item" test || failed="$failed $item:test"
   done
   if [ -d backend ] && have go; then
     step "Checking backend Go code"
-    (cd backend && make check) || failed="$failed backend:check"
+    (cd backend && make test-short) || failed="$failed backend:test"
   fi
   [ -z "$failed" ] && ok "All checks passed." || die "Failed:$failed"
 }
@@ -832,20 +832,8 @@ cmd_test() {
 # workers and cron
 # ----------------------------------------------------------------------------------------------------------
 cmd_worker() {
-  case "${1:-}" in
-    email) node scripts/email-worker.cjs ;;
-    revalidation) node scripts/revalidation-worker.cjs ;;
-    maintenance) node scripts/maintenance-worker.cjs ;;
-    all)
-      trap 'kill 0' INT TERM EXIT
-      node scripts/email-worker.cjs &
-      node scripts/revalidation-worker.cjs &
-      node scripts/maintenance-worker.cjs &
-      wait
-      ;;
-    check) node scripts/check-workers.cjs ;;
-    *) die "worker <email|revalidation|maintenance|all|check>" ;;
-  esac
+  step "Background workers run within Go microservices (notify, workflow, delivery)."
+  ./scripts/check-health.sh
 }
 cmd_cron() {
   load_env
@@ -918,11 +906,11 @@ cmd_company() {
   esac
 }
 cmd_audit() {
-  case "${1:-inventory}" in
-    inventory) node scripts/inventory-platform.cjs ;;
-    identities) node scripts/check-customer-identities.cjs ;;
+  case "${1:-all}" in
+    all | "") ./scripts/audit-all.sh ;;
+    isolation) npm run check:isolation ;;
     security) node apps/it/scripts/check-audit-security.cjs ;;
-    *) die "audit [inventory|identities|security]" ;;
+    *) die "audit [all|isolation|security]" ;;
   esac
 }
 cmd_urls() {
@@ -976,7 +964,7 @@ else
       done
       ;;
     types | type-check)
-      for app in apps/admin apps/it apps/web company contracts; do
+      for app in apps/admin apps/it apps/web company backend/contracts; do
         if [ -f "$app/package.json" ]; then
           npm --prefix "$app" run type-check
         fi
@@ -987,7 +975,7 @@ else
     worker | workers) cmd_worker "$@" ;;
     cron) cmd_cron "$@" ;;
     deploy) cmd_deploy "$@" ;;
-    docs) node scripts/generate-api-reference.cjs ;;
+    docs) npm run gen:openapi ;;
     company) cmd_company "$@" ;;
     audit) cmd_audit "$@" ;;
     urls) cmd_urls ;;

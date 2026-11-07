@@ -276,7 +276,7 @@ func TestModules(t *testing.T) {
 // match.
 func checkEvent(t *testing.T, subject string, payload []byte) {
 	t.Helper()
-	raw, err := os.ReadFile("../../../../../contracts/events/" + subject + ".v1.json")
+	raw, err := os.ReadFile("../../../../contracts/events/" + subject + ".v1.json")
 	require.NoError(t, err, "no schema for %s", subject)
 	var schema struct {
 		Required   []string

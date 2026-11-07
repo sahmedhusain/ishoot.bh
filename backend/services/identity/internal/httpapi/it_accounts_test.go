@@ -185,7 +185,7 @@ func TestITAccountAdministration(t *testing.T) {
 	require.Equal(t, 1, admins)
 	var payload []byte
 	require.NoError(t, pool.QueryRow(ctx, `SELECT payload FROM identity.outbox WHERE subject='identity.user.changed' LIMIT 1`).Scan(&payload))
-	rawSchema, err := os.ReadFile("../../../../../contracts/events/identity.user.changed.v1.json")
+	rawSchema, err := os.ReadFile("../../../../contracts/events/identity.user.changed.v1.json")
 	require.NoError(t, err)
 	var schemaDoc, event any
 	require.NoError(t, json.Unmarshal(rawSchema, &schemaDoc))

@@ -146,7 +146,7 @@ func TestDeskSessions(t *testing.T) {
 	require.Equal(t, 1, count)
 	require.NoError(t, pool.QueryRow(ctx, `SELECT payload FROM identity.outbox WHERE subject='identity.session.revoked' AND payload->>'sessionId'=$1`, target.Family.ID).Scan(&event))
 	require.Equal(t, map[string]any{"subjectId": "staff-user", "realm": "staff", "changedBy": "it:operator", "sessionId": target.Family.ID, "reason": "it_revocation"}, event)
-	raw, err := os.ReadFile("../../../../../contracts/events/identity.session.revoked.v1.json")
+	raw, err := os.ReadFile("../../../../contracts/events/identity.session.revoked.v1.json")
 	require.NoError(t, err)
 	var schemaDoc any
 	require.NoError(t, json.Unmarshal(raw, &schemaDoc))

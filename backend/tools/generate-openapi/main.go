@@ -104,7 +104,10 @@ func main() {
 		"description":  "User access token",
 	}
 
-	servicesDir := "backend/services"
+	servicesDir := "services"
+	if _, err := os.Stat(servicesDir); os.IsNotExist(err) {
+		servicesDir = "backend/services"
+	}
 	entries, err := os.ReadDir(servicesDir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading services directory: %v\n", err)

@@ -16,11 +16,7 @@
     "check:dashboard": "node scripts/check-dashboard.cjs",
     "check:navigation": "node scripts/check-navigation.cjs",
     "check:plan": "node scripts/check-plan.cjs",
-    "check:approvals": "node ../../scripts/check-approvals.cjs",
-    "check:gosi": "node ../../scripts/check-gosi-settlement-db.cjs",
-    "check:payroll": "node ../../scripts/check-payroll-db.cjs",
-    "check:finance": "node ../../scripts/check-finance-db.cjs",
-    "check:operations": "node ../../scripts/check-operations-db.cjs"
+    "check:approvals": "node scripts/check-approvals.cjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

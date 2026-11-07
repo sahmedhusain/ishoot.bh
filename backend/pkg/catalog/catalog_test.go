@@ -11,7 +11,7 @@ import (
 
 // TestDataMatchesContracts fails when contracts/catalog changed but `go generate ./pkg/catalog` was not run.
 func TestDataMatchesContracts(t *testing.T) {
-	sources, err := filepath.Glob("../../../contracts/catalog/*.json")
+	sources, err := filepath.Glob("../../contracts/catalog/*.json")
 	require.NoError(t, err)
 	require.NotEmpty(t, sources)
 	copies, err := filepath.Glob("data/*.json")

@@ -5,7 +5,7 @@ import { isFontMimeType, normalizeTheme, type BrandTheme, type FontChoice } from
 import { apiTimeoutMs, apiUrl } from "../../apps/admin/lib/api/config";
 import { serviceToken } from "../../apps/admin/lib/api/service-token";
 import { storeFile } from "../../apps/admin/lib/api/files";
-import { detectFileType, extensionFor } from "../../contracts/src";
+import { detectFileType, extensionFor } from "../../backend/contracts/src";
 
 const BRAND_SLOTS = {
   logo: { field: "logoUrl", assetKeys: ["logo_light"], title: "Logo for light backgrounds" },

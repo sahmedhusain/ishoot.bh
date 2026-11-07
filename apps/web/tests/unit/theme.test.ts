@@ -18,7 +18,7 @@ import {
   fontMimeFromName,
   weightFromFileName,
 } from "@platform/database/constants/theme";
-import { detectFileType } from "../../contracts/src";
+import { detectFileType } from "../../lib/contracts/src";
 
 describe("normalizeTheme", () => {
   test("missing or broken input falls back to the default theme", () => {

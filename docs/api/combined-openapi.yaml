@@ -28,38 +28,38 @@ tags:
     description: reviews
   - name: faqs
     description: faqs
-  - name: pages
-    description: pages
-  - name: snapshots
-    description: snapshots
   - name: statistics
     description: statistics
+  - name: snapshots
+    description: snapshots
+  - name: pages
+    description: pages
   - name: Commerce
     description: Commerce micro-service endpoints
+  - name: coupons
+    description: coupons
   - name: orders
     description: orders
   - name: customers
     description: customers
-  - name: coupons
-    description: coupons
   - name: Delivery
     description: Delivery micro-service endpoints
+  - name: zones
+    description: zones
+  - name: vehicles
+    description: vehicles
   - name: routes
     description: routes
   - name: shipments
     description: shipments
   - name: settings
     description: settings
-  - name: zones
-    description: zones
-  - name: vehicles
-    description: vehicles
   - name: Files
     description: Files micro-service endpoints
-  - name: uploads
-    description: uploads
   - name: files
     description: files
+  - name: uploads
+    description: uploads
   - name: Finance
     description: Finance micro-service endpoints
   - name: invoices
@@ -72,64 +72,64 @@ tags:
     description: settlements
   - name: HR
     description: HR micro-service endpoints
-  - name: leave
-    description: leave
   - name: payroll
     description: payroll
   - name: departments
     description: departments
   - name: employees
     description: employees
+  - name: leave
+    description: leave
   - name: Identity
     description: Identity micro-service endpoints
   - name: Inventory
     description: Inventory micro-service endpoints
-  - name: warehouses
-    description: warehouses
-  - name: categories
-    description: categories
   - name: products
     description: products
   - name: stock
     description: stock
   - name: counts
     description: counts
+  - name: warehouses
+    description: warehouses
+  - name: categories
+    description: categories
   - name: ITSM
     description: ITSM micro-service endpoints
   - name: requests
     description: requests
   - name: Notify
     description: Notify micro-service endpoints
-  - name: inbox
-    description: inbox
-  - name: me
-    description: me
   - name: services
     description: services
+  - name: me
+    description: me
+  - name: inbox
+    description: inbox
   - name: Realtime
     description: Realtime micro-service endpoints
   - name: Sales
     description: Sales micro-service endpoints
+  - name: deals
+    description: deals
   - name: inquiries
     description: inquiries
   - name: quotations
     description: quotations
   - name: contacts
     description: contacts
-  - name: deals
-    description: deals
   - name: System
     description: System micro-service endpoints
   - name: Workflow
     description: Workflow micro-service endpoints
-  - name: tasks
-    description: tasks
   - name: calendar
     description: calendar
   - name: approvals
     description: approvals
   - name: signatures
     description: signatures
+  - name: tasks
+    description: tasks
 paths:
   /.well-known/jwks.json:
     get:
@@ -2727,7 +2727,8 @@ paths:
           headers:
             Cache-Control:
               schema:
-                const: no-store
+                enum:
+                  - no-store
                 type: string
         "401":
           content:
@@ -2782,7 +2783,8 @@ paths:
           headers:
             Cache-Control:
               schema:
-                const: no-store
+                enum:
+                  - no-store
                 type: string
         "401":
           content:
@@ -9673,9 +9675,8 @@ components:
           type: string
         email:
           format: email
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         expiresAt:
           format: date-time
           type: string
@@ -9690,9 +9691,8 @@ components:
           type: string
         revokedAt:
           format: date-time
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         subjectId:
           minLength: 1
           type: string
@@ -9917,9 +9917,8 @@ components:
           type: string
         lastLoginAt:
           format: date-time
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         mfaEnabled:
           type: boolean
         roles:
@@ -10537,9 +10536,8 @@ components:
     OwnSession:
       properties:
         clientIp:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         createdAt:
           format: date-time
           type: string
@@ -10552,9 +10550,8 @@ components:
           format: uuid
           type: string
         userAgent:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
       required:
         - id
         - createdAt
@@ -11638,9 +11635,8 @@ components:
           type: string
         lastLoginAt:
           format: date-time
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         mfaEnabled:
           type: boolean
         roles:

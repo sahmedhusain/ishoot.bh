@@ -190,7 +190,7 @@ func TestCreateITAdminSignsInWithTheEnrolledFactor(t *testing.T) {
 		require.NoError(t, rows.Scan(&subject, &raw))
 		counts[subject]++
 		var doc, body any
-		schemaFile := "../../../../../contracts/events/" + subject + ".v1.json"
+		schemaFile := "../../../../contracts/events/" + subject + ".v1.json"
 		schemaBytes, err := os.ReadFile(schemaFile)
 		require.NoError(t, err)
 		require.NoError(t, json.Unmarshal(schemaBytes, &doc))

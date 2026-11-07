@@ -520,7 +520,7 @@ the environment. A service refuses to start when a value is missing or fails its
 | `IDENTITY_SYSTEM_URL` | `http://system:8080` | `url` |
 | `IDENTITY_CALLERS_STAFF` | `admin,it` | `min=1,dive,required` |
 | `IDENTITY_CALLERS_CUSTOMER` | `web` | `min=1,dive,required` |
-| `IDENTITY_CALLERS_IT` | `it` | `min=1,dive,required` |
+| `IDENTITY_CALLERS_IT` | `it,admin` | `min=1,dive,required` |
 | `NATS_URL` |  |  |
 | `NATS_STREAM` | `EVENTS` | `required` |
 | `NATS_SUBJECTS` | `files.>,identity.>,system.>,audit.>,notify.>,itsm.>,cms.>,sales.>,finance.>,workflow.>,hr.>,inventory.>,commerce.>,delivery.>` | `min=1,dive,required` |
@@ -903,6 +903,7 @@ the environment. A service refuses to start when a value is missing or fails its
 | `SYSTEM_FILES_URL` | `http://files:8080` | `http_url` |
 | `SYSTEM_COMPANY_BODY_LIMIT` | `1048576` | `gt=0` |
 | `SYSTEM_COMPANY_READERS` | `admin,web,it,sales,finance,hr,workflow,inventory,commerce,delivery,cms` | `min=1,dive,required` |
+| `SYSTEM_COMPANY_WRITERS` | `admin` | `min=1,dive,required` |
 | `SYSTEM_CURRENCY_CALLERS` | `admin,web,sales,finance,workflow,hr,inventory,commerce,delivery` | `min=1,dive,required` |
 | `SYSTEM_SEQUENCE_CALLERS` | `admin,finance` | `min=1,dive,required` |
 | `SYSTEM_READ_CALLERS` | `admin,web,it,notify` | `min=1,dive,required` |

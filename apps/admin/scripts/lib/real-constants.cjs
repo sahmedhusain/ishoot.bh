@@ -74,7 +74,10 @@ function realConstants(fromFile, id) {
   else if (id === "@platform/config/currency") target = path.join(adminRoot, "lib/config/constants/currency.cjs");
   else if (id === "@platform/config/phone") target = path.join(adminRoot, "lib/config/phone");
   else if (id.startsWith("@platform/database/constants/")) target = path.join(constantsDir, id.slice("@platform/database/constants/".length));
-  else if (id.startsWith(".")) target = path.resolve(adminRoot, path.dirname(fromFile), id);
+  else if (id.startsWith(".")) {
+    const cleanFrom = fromFile.replace(/^\.\.\/apps\/admin\//, "").replace(/^apps\/admin\//, "");
+    target = path.resolve(adminRoot, path.dirname(cleanFrom), id);
+  }
   if (!target || !(constantsDirs.some((dir) => target.startsWith(dir)) || pureFiles.includes(target.replace(/\.ts$/, "")))) return null;
   return require(target);
 }

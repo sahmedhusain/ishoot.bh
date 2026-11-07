@@ -25,9 +25,14 @@ func TestSMTP(t *testing.T) {
 		t.Skip("integration test: needs Docker")
 	}
 	ctx := context.Background()
-	mailpit, err := testcontainers.Run(ctx, "axllent/mailpit:v1.27",
-		testcontainers.WithExposedPorts("1025/tcp", "8025/tcp"),
-		testcontainers.WithWaitStrategy(wait.ForHTTP("/livez").WithPort("8025/tcp")))
+	mailpit, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: testcontainers.ContainerRequest{
+			Image:        "axllent/mailpit:v1.27",
+			ExposedPorts: []string{"1025/tcp", "8025/tcp"},
+			WaitingFor:   wait.ForHTTP("/livez").WithPort("8025/tcp"),
+		},
+		Started: true,
+	})
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = mailpit.Terminate(context.Background()) })
 	host, err := mailpit.Host(ctx)

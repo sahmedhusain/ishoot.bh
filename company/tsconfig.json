@@ -43,13 +43,13 @@
         "../apps/admin/lib/api/*"
       ],
       "@platform/contracts": [
-        "../contracts/src/index.ts"
+        "../backend/contracts/src/index.ts"
       ],
       "@platform/contracts/catalog/*": [
-        "../contracts/catalog/*"
+        "../backend/contracts/catalog/*"
       ],
       "@platform/contracts/*": [
-        "../contracts/*"
+        "../backend/contracts/*"
       ]
     }
   },

@@ -59,7 +59,7 @@ func (q *Queries) DeleteExpiredOAuthStates(ctx context.Context, arg DeleteExpire
 }
 
 const findProviderCustomer = `-- name: FindProviderCustomer :one
-SELECT a.realm, a.subject_id, a.email, a.password_hash, a.roles, a.active, a.mfa_enabled, a.mfa_secret_encrypted, a.mfa_last_step, a.last_login_at, a.created_at, a.updated_at, a.mfa_pending_secret_encrypted, a.mfa_pending_expires_at FROM identity.customer_provider p JOIN identity.account a ON a.realm=p.realm AND a.subject_id=p.subject_id
+SELECT a.realm, a.subject_id, a.email, a.password_hash, a.roles, a.active, a.mfa_enabled, a.mfa_secret_encrypted, a.mfa_last_step, a.last_login_at, a.created_at, a.updated_at, a.mfa_pending_secret_encrypted, a.mfa_pending_expires_at, a.username FROM identity.customer_provider p JOIN identity.account a ON a.realm=p.realm AND a.subject_id=p.subject_id
 WHERE p.provider=$1 AND p.provider_subject=$2
 `
 
@@ -86,6 +86,7 @@ func (q *Queries) FindProviderCustomer(ctx context.Context, arg FindProviderCust
 		&i.UpdatedAt,
 		&i.MfaPendingSecretEncrypted,
 		&i.MfaPendingExpiresAt,
+		&i.Username,
 	)
 	return i, err
 }

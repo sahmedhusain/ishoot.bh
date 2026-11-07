@@ -6,9 +6,19 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 const ts = require("typescript");
 
+const path = require("node:path");
+const adminRoot = path.resolve(__dirname, "..");
+function resolveAdmin(file) {
+  if (path.isAbsolute(file)) return file;
+  if (file.startsWith("apps/admin/")) return path.join(adminRoot, file.slice("apps/admin/".length));
+  if (file.startsWith("../apps/admin/")) return path.join(adminRoot, file.slice("../apps/admin/".length));
+  return path.resolve(adminRoot, file);
+}
+
 function load(file, mocks) {
+  const filePath = resolveAdmin(file);
   const module = { exports: {} };
-  const code = ts.transpileModule(fs.readFileSync(file, "utf8"), {
+  const code = ts.transpileModule(fs.readFileSync(filePath, "utf8"), {
     compilerOptions: {
       module: ts.ModuleKind.CommonJS,
       target: ts.ScriptTarget.ES2022,
@@ -20,6 +30,8 @@ function load(file, mocks) {
     exports: module.exports,
     require: (id) => {
       if (id in mocks) return mocks[id];
+      if ((id === "../atomic" || id.endsWith("/atomic")) && ("../db" in mocks || "../atomic" in mocks))
+        return mocks["../atomic"] || mocks["../db"];
       if (id.startsWith("node:")) return require(id);
       const real = realConstants(file, id);
       if (real) return real;

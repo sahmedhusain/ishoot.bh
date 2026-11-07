@@ -3,7 +3,7 @@
 // copied into data/ by `go generate`; it is decoded strictly and checked for consistency when the package loads.
 package catalog
 
-//go:generate go run ../../tools/catalog-sync -in ../../../contracts/catalog -out data
+//go:generate go run ../../tools/catalog-sync -in ../../contracts/catalog -out data
 
 import (
 	"bytes"

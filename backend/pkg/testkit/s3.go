@@ -29,19 +29,25 @@ func S3(t testing.TB) S3Server {
 	}
 	ctx := context.Background()
 	server := S3Server{AccessKeyID: "testkit", SecretAccessKey: "testkit-secret"}
-	container, err := testcontainers.Run(ctx, SeaweedFSImage,
-		testcontainers.WithCmd("server", "-s3", "-dir=/data", "-master.volumeSizeLimitMB=64"),
-		testcontainers.WithEnv(map[string]string{
-			"AWS_ACCESS_KEY_ID": server.AccessKeyID, "AWS_SECRET_ACCESS_KEY": server.SecretAccessKey,
-		}),
-		testcontainers.WithExposedPorts("8333/tcp"),
-		testcontainers.WithWaitStrategy(wait.ForHTTP("/healthz").WithPort("8333/tcp").
-			WithStatusCodeMatcher(func(int) bool { return true }).WithStartupTimeout(time.Minute)),
-	)
+	req := testcontainers.GenericContainerRequest{
+		ContainerRequest: testcontainers.ContainerRequest{
+			Image: SeaweedFSImage,
+			Cmd:   []string{"server", "-s3", "-dir=/data", "-master.volumeSizeLimitMB=64"},
+			Env: map[string]string{
+				"AWS_ACCESS_KEY_ID":     server.AccessKeyID,
+				"AWS_SECRET_ACCESS_KEY": server.SecretAccessKey,
+			},
+			ExposedPorts: []string{"8333/tcp"},
+			WaitingFor: wait.ForHTTP("/healthz").WithPort("8333/tcp").
+				WithStatusCodeMatcher(func(int) bool { return true }).WithStartupTimeout(time.Minute),
+		},
+		Started: true,
+	}
+	container, err := testcontainers.GenericContainer(ctx, req)
 	if err != nil {
 		t.Fatalf("testkit: starting seaweedfs: %v", err)
 	}
-	t.Cleanup(func() { _ = testcontainers.TerminateContainer(container) })
+	t.Cleanup(func() { _ = container.Terminate(ctx) })
 	host, err := container.Host(ctx)
 	if err != nil {
 		t.Fatal(err)
