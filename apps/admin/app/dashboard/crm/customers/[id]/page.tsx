@@ -75,7 +75,7 @@ export default async function CustomerDossierPage({
   ]);
   return (
     <>
-      <Customer360DossierView dossier={dossier} actions={actions} standing={standing} />
+      <Customer360DossierView dossier={dossier as any} actions={actions} standing={standing} />
       {expenses && <RelatedExpensesPanel clientId={id} items={expenses.items} totals={expenses.totals} canWrite={grants["expenses:write"] === true} />}
     </>
   );

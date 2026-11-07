@@ -7,7 +7,6 @@ import {
   closeRouteSheet,
   createActivityLog,
   createRouteSheet,
-  db,
   saveDeliveryProof,
   saveVehicle,
   settleCash,
@@ -174,20 +173,7 @@ export async function completeDeliveryAction(
     if (!input.photoUrl && !input.signature)
       throw new Error(serverMessages.deliveryProofRequired);
     if (input.photoUrl) {
-      await db.$transaction(async (tx) => {
-        const upload = await claimUpload(input.photoUrl!, user.id);
-        await tx.attachment.create({
-          data: {
-            fileName: "delivery-photo",
-            fileUrl: upload.fileUrl,
-            fileSize: upload.fileSize,
-            mimeType: upload.mimeType,
-            entityType: "shipment",
-            entityId: id,
-            uploadedById: user.id,
-          },
-        });
-      });
+      await claimUpload(input.photoUrl, user.id);
     }
     await saveDeliveryProof(id, {
       photoUrl: input.photoUrl || null,
@@ -346,7 +332,13 @@ export async function saveCourierAgencyAction(input: CourierAgencyInput) {
 }
 
 /** Gives a shipment to a courier agency: booked through its API when it has one, else with the tracking number given. */
-export async function handToAgencyAction(id: string, input: HandToAgencyInput) {
+export async function handToAgencyAction(id: string, input: HandToAgencyInput): Promise<{
+  success: boolean;
+  trackingNumber: string;
+  needsAttention?: boolean;
+  labelUnavailable?: boolean;
+  [key: string]: any;
+}> {
   return measureOperation("action:handToAgencyAction", async () => {
     await requireFeatureEnabled("delivery");
     const user = await requirePermission("deliveries", "assign");

@@ -73,7 +73,7 @@ export function FinancialAnalyticsView({ finance, insight, categoryTotals, categ
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="p-6 rounded-3xl space-y-4" data-page-section>
+        <Card className="p-6 rounded-3xl space-y-4" data-page-section data-test="aging-card" data-testid="aging-card">
           <h2 className="text-sm font-bold text-ink uppercase tracking-wider">{copy.aging}</h2>
           {agingTotal === 0 ? (
             <p className="text-sm text-ink-muted">{copy.noData}</p>
@@ -86,7 +86,7 @@ export function FinancialAnalyticsView({ finance, insight, categoryTotals, categ
               </div>
               <ul className="divide-y divide-outline-variant text-sm">
                 {insight.aging.map((bucket, i) => (
-                  <li key={bucket.bucket} className="flex items-center justify-between py-2.5">
+                  <li key={bucket.bucket} data-test={`aging-${bucket.bucket}`} data-testid={`aging-${bucket.bucket}`} className="flex items-center justify-between py-2.5">
                     <span className="flex items-center gap-2 text-ink">
                       <span className={`h-2.5 w-2.5 rounded-full ${AGING_COLORS[i]}`} />
                       {copy.agingBuckets[bucket.bucket]}

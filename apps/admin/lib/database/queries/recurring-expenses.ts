@@ -1,7 +1,7 @@
 import { validMoneyAmount } from "../finance/money";
 import { assertCompanyCurrency } from "../finance/company-currency";
 import { serverMessages } from "@platform/locales";
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import { ROUTES } from "../constants/routes";
 import { hasPermission } from "./permissions";
 import { createExpense } from "./expenses";

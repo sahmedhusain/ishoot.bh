@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "../atomic";
 
 /** When a request should be resolved, from the service settings' hours for its priority. */
 export async function slaDueFor(

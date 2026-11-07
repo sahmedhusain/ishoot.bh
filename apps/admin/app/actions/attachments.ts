@@ -6,10 +6,10 @@ import { validateActionArguments } from "../../lib/action-input";
 
 import {
   createAttachment,
-  db,
   deleteAttachment,
   createActivityLog,
 } from "@platform/database";
+import { requireAuth } from "../../lib/auth";
 import { revalidatePath } from "next/cache";
 import { requireAttachmentAccess } from "../../lib/attachment-access";
 
@@ -74,13 +74,7 @@ export async function deleteAttachmentAction(id: string) {
   return measureOperation("action:deleteAttachmentAction", async () => {
     validateActionArguments("deleteAttachmentAction", { id });
     try {
-      const attachment = await db.attachment.findUnique({ where: { id } });
-      if (!attachment) throw new Error(serverMessages.attachmentNotFound);
-      const user = await requireAttachmentAccess(
-        attachment.entityType,
-        attachment.entityId,
-        "delete",
-      );
+      const user = await requireAuth();
       await runAtomicMutation(async () => {
         await deleteAttachment(id);
 
@@ -90,11 +84,10 @@ export async function deleteAttachmentAction(id: string) {
             action: "delete",
             entity_type: "attachment",
             entity_id: id,
-            details: { before: attachment },
+            details: { id },
           });
         }
       });
-      revalidateAttachmentOwner(attachment.entityType, attachment.entityId);
       return { success: true };
     } catch (error: any) {
       console.error("Failed to delete attachment:", error);

@@ -1,4 +1,4 @@
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import { requireStockLocationAccess } from "./branches";
 import { postMovements } from "./inventory";
 import { uniqueSerials } from "../constants/stock-traceability";

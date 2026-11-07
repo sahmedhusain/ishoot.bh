@@ -122,7 +122,7 @@ function withPreviewFallbackData(data: DashboardData): DashboardData {
       today_count: 4,
       today_total: 840,
     },
-    shipments: data.shipments ?? {
+    shipments: (data.shipments as any) ?? {
       late: 0,
       pending: 4,
       out_for_delivery: 2,

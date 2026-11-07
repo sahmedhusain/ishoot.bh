@@ -89,10 +89,10 @@
         "./components/ui/*"
       ],
       "@prisma/client": [
-        "./lib/database/prisma-stub.ts"
+        "./lib/database/decimal.ts"
       ],
       "@prisma/client/*": [
-        "./lib/database/prisma-stub.ts"
+        "./lib/database/decimal.ts"
       ]
     }
   },

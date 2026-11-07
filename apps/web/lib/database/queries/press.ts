@@ -1,6 +1,6 @@
 import { isValidEmail } from "../constants/validation";
 import { serverMessages } from "@platform/locales";
-import { db } from "../db";
+import { db } from "../atomic";
 import { COVERAGE_SENTIMENTS } from "../constants/outreach";
 
 // ─── Media contacts ──────────────────────────────────────────────────────────────────────────────────────────────

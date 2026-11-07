@@ -1,5 +1,5 @@
 import { getTranslations } from "@platform/locales";
-import { db } from "../db";
+import { db } from "../atomic";
 import { moduleOnByDefault } from "../constants/features";
 import { getFeatureToggles, isFeatureEnabled } from "./features";
 import { Permission, UserRole } from "../types";

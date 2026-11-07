@@ -1,7 +1,7 @@
 import { serverMessages } from "@platform/locales";
 import crypto from "crypto";
 import { resolveSigningSignature } from "./signature-policies";
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import { LETTER_CLASSIFICATIONS } from "../constants/communications";
 import {
   registerApprovalFinalizer,

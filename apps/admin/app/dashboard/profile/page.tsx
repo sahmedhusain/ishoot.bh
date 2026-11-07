@@ -1,10 +1,9 @@
-import { getOwnAccount, listOwnSessions } from "@platform/api-client";
+import { getOwnAccount, listOwnSessions, listEmployees } from "@platform/api-client";
 import { getStaffToken } from "../../../lib/auth";
 import { ProfileSecurityView } from "../../../components/profile/ProfileSecurityView";
 import { ProfileWorkspace } from "../../../components/profile/ProfileWorkspace";
 import { requireAuth } from "../../../lib/auth";
 import {
-  db,
   getProfileChangeRequestsForUser,
   listSignatureChanges,
   getEmployeeAssets,
@@ -23,32 +22,21 @@ export default async function ProfilePage() {
   const user = await requireAuth();
 
   // The profile shows the user's own details and requests only; requests they approve open in the Approvals Center.
-  const [manager, employeeRecord, myRequests] = await Promise.all([
-    db.user
-      .findUnique({
-        where: { id: user.id },
-        select: {
-          manager: {
-            select: { id: true, fullName: true, email: true, role: true },
-          },
-        },
-      })
-      .then((record) => record?.manager ?? null)
-      .catch(() => null),
-    db.employee
-      .findFirst({
-        where: { userId: user.id },
-        include: { department: true },
-      })
-      // Decimals cannot cross to client components.
-      .then((employee) =>
-        employee
-          ? { ...employee, leaveBalanceDays: Number(employee.leaveBalanceDays) }
-          : null,
-      )
-      .catch(() => null),
+  const [rawEmployees, myRequests] = await Promise.all([
+    listEmployees().catch(() => []),
     getProfileChangeRequestsForUser(user.id).catch(() => []),
   ]);
+  const matchedEmp = rawEmployees.find((e) => e.email === user.email || e.id === user.id);
+  const employeeRecord = matchedEmp
+    ? {
+        ...matchedEmp,
+        firstNameEn: matchedEmp.firstNameEn || (matchedEmp as any).first_name_en || "",
+        lastNameEn: matchedEmp.lastNameEn || (matchedEmp as any).last_name_en || "",
+        leaveBalanceDays: Number((matchedEmp as any).leaveBalanceDays ?? (matchedEmp as any).leave_balance_days ?? 0),
+        department: null,
+      }
+    : null;
+  const manager = null;
 
   // Sign-in security (two-step status, recovery codes and sessions) lives in identity.
   const staff = await getStaffToken();

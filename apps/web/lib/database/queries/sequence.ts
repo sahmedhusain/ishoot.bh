@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "../atomic";
 
 type SequenceClient = Pick<typeof db, "referenceSequence">;
 

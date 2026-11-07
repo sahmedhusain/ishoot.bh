@@ -2,7 +2,6 @@ import { serverMessages } from "@platform/locales";
 
 import { NextResponse } from "next/server";
 import {
-  db,
   syncDueSocialIntegrations,
   expireOnlinePayments,
   remindDueTasks,
@@ -32,10 +31,7 @@ export async function GET(req: Request) {
         webUrl: process.env.WEB_URL,
         secret: process.env.REVALIDATION_SECRET,
       });
-    await db.abuseWindow.deleteMany({
-      where: { expiresAt: { lt: new Date(Date.now() - 86400000) } },
-    });
-    await db.session.deleteMany({ where: { expiresAt: { lt: new Date() } } });
+
     const invoicesMarkedOverdue = await markOverdueInvoices();
     const expiryReminders = await sendExpiryReminders();
     const recurringExpenses = await processRecurringExpenses();

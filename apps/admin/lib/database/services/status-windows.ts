@@ -8,7 +8,7 @@ import {
   syncStatusWindows,
   type StatusWindowInput,
 } from "@platform/api-client";
-import { db } from "../db";
+import { db } from "../atomic";
 
 const DAY = 86_400_000;
 /** How far ahead the full sync covers meetings, and leave. */

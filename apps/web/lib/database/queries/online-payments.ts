@@ -4,7 +4,7 @@ import {
   getTranslations,
   serverMessages,
 } from "@platform/locales";
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import { getCurrencyDecimals } from "@platform/config/currency";
 import {
   ONLINE_PAYMENT_TIMEOUT_MINUTES,

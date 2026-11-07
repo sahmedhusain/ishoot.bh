@@ -1,6 +1,6 @@
 import { serverMessages } from "@platform/locales";
 import { getCompanySettings } from "./company-settings";
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import {
   defaultWebsiteConfig,
   validateWebsiteConfig,

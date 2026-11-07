@@ -9,7 +9,7 @@ export function startNotificationHandover() {
   const raw = process.env.NOTIFICATION_HANDOVER_MS;
   const every = Number(!raw ? 1000 : raw);
   if (state.__notificationHandover || !Number.isFinite(every) || every <= 0) return;
-  if (!process.env.API_URL || !process.env.DATABASE_URL) return;
+  if (!process.env.API_URL) return;
   let failures = 0;
   const tick = async () => {
     try {

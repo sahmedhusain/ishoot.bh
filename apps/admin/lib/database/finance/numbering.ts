@@ -1,5 +1,5 @@
 import { serverMessages } from "@platform/locales";
-import { db } from "../db";
+import { db } from "../atomic";
 import { formatDocumentNumber } from "../constants/finance";
 
 type Client = Pick<typeof db, "companySetting">;

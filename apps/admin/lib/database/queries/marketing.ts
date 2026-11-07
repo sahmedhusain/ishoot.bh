@@ -2,7 +2,7 @@ import { isValidEmail } from "../constants/validation";
 import crypto from "node:crypto";
 import { Prisma } from "@prisma/client";
 import { getTranslations, serverMessages } from "@platform/locales";
-import { db } from "../db";
+import { db } from "../atomic";
 import {
   CAMPAIGN_CHANNELS,
   CAMPAIGN_STATUSES,
@@ -224,8 +224,8 @@ async function segmentMembers(rules: SegmentRules, now = new Date()) {
         String((o.shippingAddress as { city?: string } | null)?.city ?? ""),
       ),
     ].filter(Boolean);
-    const lastOrderAt = c.orders.reduce<Date | null>(
-      (latest, o) => (!latest || o.placedAt > latest ? o.placedAt : latest),
+    const lastOrderAt: Date | null = (c.orders || []).reduce(
+      (latest: any, o: any) => (!latest || o.placedAt > latest ? o.placedAt : latest),
       null,
     );
     return matchesSegment(

@@ -1,9 +1,11 @@
 import {
-  db,
   getCalendarFeedInfo,
   getCalendarFor,
   isCalendarSyncEnabled,
+  getDepartmentTree,
+  ALL_ROLES,
 } from "@platform/database";
+import { listEmployees } from "@platform/api-client";
 import { requirePagePermission } from "../../../lib/auth";
 import { CalendarView } from "../../../components/calendar/CalendarView";
 import { pageMetadata } from "../../../lib/company-metadata";
@@ -23,25 +25,30 @@ export default async function CalendarPage() {
   const end = new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0) + 8 * 86_400_000,
   );
-  const [events, people, departments, roles, feed, syncEnabled] =
+  const [events, rawEmployees, departmentTree, feed, syncEnabled] =
     await Promise.all([
       getCalendarFor(user.id, start, end),
-      db.user.findMany({
-        where: { isActive: true, id: { not: user.id } },
-        select: { id: true, fullName: true },
-        orderBy: { fullName: "asc" },
-      }),
-      db.department.findMany({
-        select: { id: true, nameEn: true, nameAr: true },
-        orderBy: { nameEn: "asc" },
-      }),
-      db.role.findMany({
-        select: { id: true, nameEn: true, nameAr: true },
-        orderBy: { nameEn: "asc" },
-      }),
+      listEmployees().catch(() => []),
+      getDepartmentTree(),
       getCalendarFeedInfo(user.id),
       isCalendarSyncEnabled(),
     ]);
+  const people = rawEmployees
+    .filter((e) => e.id !== user.id)
+    .map((e: any) => ({
+      id: e.id,
+      fullName: `${e.firstNameEn || e.first_name_en || ""} ${e.lastNameEn || e.last_name_en || ""}`.trim() || e.id,
+    }));
+  const departments = departmentTree.map((d) => ({
+    id: d.id,
+    nameEn: d.name_en,
+    nameAr: d.name_ar,
+  }));
+  const roles = ALL_ROLES.map((r) => ({
+    id: r,
+    nameEn: r.split("_").map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(" "),
+    nameAr: r,
+  }));
   return (
     <>
       <LiveRefresh resources={["calendar"]} notificationCategories={["calendar"]} />

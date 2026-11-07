@@ -1,6 +1,6 @@
 import { slaDueFor } from "./service-sla";
 import { serverMessages } from "@platform/locales";
-import { db } from "../db";
+import { db } from "../atomic";
 import { referencePrefixFor } from "../constants/requests";
 import { getNextSequenceNumber } from "../queries/sequence";
 import { formatPhoneE164 } from "../constants/phone";

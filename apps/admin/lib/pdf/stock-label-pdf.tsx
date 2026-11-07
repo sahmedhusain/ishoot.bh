@@ -46,7 +46,7 @@ export async function generateStockLabelsPdf(
   const copies = Math.min(10, Math.max(1, job.template.copies || 1));
   const isAr = locale === "ar";
 
-  const pages = [];
+  const pages: any[] = [];
   for (const label of job.labels) {
     for (let copyIdx = 0; copyIdx < copies; copyIdx++) {
       pages.push(

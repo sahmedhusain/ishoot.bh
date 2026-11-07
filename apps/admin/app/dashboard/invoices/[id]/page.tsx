@@ -1,6 +1,7 @@
 import { requirePagePermission, hasPermission } from "../../../../lib/auth";
 import { notFound } from "next/navigation";
-import { db, getInvoiceById, getAllPayments, getAttribution, listSalesPeople, getSigningState, canSignDocument, listClientSignatures, SIGNABLE_STATUSES } from "@platform/database";
+import { getInvoiceById, getAllPayments, getAttribution, listSalesPeople, getSigningState, canSignDocument, listClientSignatures, SIGNABLE_STATUSES } from "@platform/database";
+import { getQuotation, getDeal } from "@platform/api-client";
 import { ClientSignaturePanel } from "../../../../components/shared/ClientSignaturePanel";
 import { SigningPanel } from "../../../../components/sales/SigningPanel";
 import { AttributionPanel } from "../../../../components/sales/AttributionPanel";
@@ -49,13 +50,15 @@ export default async function InvoiceDetailPage({
     hasPermission("deals", "read"),
   ]);
   // Links card: the quotation this invoice came from and its deal, each shown only to those who can open it.
+  const quotationId = (invoice as any).quotationId || (invoice as any).quotation_id;
+  const dealId = (invoice as any).dealId || (invoice as any).deal_id;
   const [quotation, deal] = await Promise.all([
-    canReadQuotations
-      ? db.quotation.findUnique({ where: { invoiceId: invoice.id }, select: { id: true, quotationNumber: true } })
-      : null,
-    canReadDeals && invoice.deal_id
-      ? db.crmDeal.findUnique({ where: { id: invoice.deal_id }, select: { id: true, title: true } })
-      : null,
+    canReadQuotations && quotationId
+      ? getQuotation(quotationId).then((q: any) => (q ? { id: q.id, quotationNumber: q.quotationNumber || q.quotation_number } : null)).catch(() => null)
+      : Promise.resolve(null),
+    canReadDeals && dealId
+      ? getDeal(dealId).then((d: any) => (d ? { id: d.id, title: d.title } : null)).catch(() => null)
+      : Promise.resolve(null),
   ]);
 
   const invoicePayments = allPayments;

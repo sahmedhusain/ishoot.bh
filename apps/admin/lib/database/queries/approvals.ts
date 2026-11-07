@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "../atomic";
 import type { ApprovalRequest } from "../types";
 import { decideApprovalRequest } from "../services/approval-engine";
 

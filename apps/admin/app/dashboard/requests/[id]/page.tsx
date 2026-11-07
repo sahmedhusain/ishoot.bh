@@ -2,7 +2,8 @@ import { RequestAttachments } from "../../../../components/requests/RequestAttac
 import { notFound } from "next/navigation";
 import { requireRecordInScope } from "../../../../lib/data-scope";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
-import { getConsolidatedRequestById, db, findPendingApproval, canDecideApproval, listCannedReplies, requestReplies } from "@platform/database";
+import { getConsolidatedRequestById, findPendingApproval, canDecideApproval, listCannedReplies, requestReplies } from "@platform/database";
+import { listEmployees } from "@platform/api-client";
 import { ServiceReplyPanel } from "../../../../components/requests/ServiceReplyPanel";
 import { RequestDetailView } from "../../../../components/requests/RequestDetailView";
 import { pageMetadata } from "../../../../lib/company-metadata";
@@ -19,13 +20,9 @@ export default async function RequestDetailPage({
   const currentUser = await requirePagePermission("requests", "read");
   const { id } = await params;
 
-  const [request, users, pendingApproval, leadsWrite, contactsWrite, dealsWrite] = await Promise.all([
+  const [request, rawEmployees, pendingApproval, leadsWrite, contactsWrite, dealsWrite] = await Promise.all([
     getConsolidatedRequestById(id),
-    db.user.findMany({
-      where: { isActive: true },
-      select: { id: true, fullName: true, role: true, department: true },
-      orderBy: { fullName: "asc" },
-    }),
+    listEmployees().catch(() => []),
     findPendingApproval("service_request", id),
     hasPermission("leads", "write"),
     hasPermission("contacts", "write"),
@@ -37,21 +34,27 @@ export default async function RequestDetailPage({
   }
   await requireRecordInScope("requests", request.assignedToId);
 
-  const userList = users.map((u) => ({
+  const userList = rawEmployees.map((u) => ({
     id: u.id,
-    name: u.fullName,
-    role: u.role,
-    department: u.department,
+    name: `${u.first_name_en || ""} ${u.last_name_en || ""}`.trim() || u.id,
+    role: u.job_title_en || "Staff",
+    department: null,
   }));
 
   // Replying to the customer, and the order the request is about.
-  const [contact, replies, cannedReplies, canReply, files] = await Promise.all([
-    db.inquiry.findUnique({ where: { id }, select: { email: true, phone: true, phoneE164: true, locale: true, order: { select: { id: true, number: true } } } }),
+  const [replies, cannedReplies, canReply] = await Promise.all([
     requestReplies(id),
     listCannedReplies(true),
     hasPermission("requests", "edit"),
-    db.attachment.findMany({ where: { entityType: "inquiry", entityId: id }, select: { id: true, fileName: true, fileUrl: true }, orderBy: { createdAt: "asc" } }),
   ]);
+  const contact = {
+    email: request.email,
+    phone: request.phone,
+    phoneE164: request.phone,
+    locale: "en",
+    order: null,
+  };
+  const files: { id: string; fileName: string; fileUrl: string }[] = [];
 
   return (
     <div className="space-y-6">

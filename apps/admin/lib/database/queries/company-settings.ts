@@ -267,9 +267,8 @@ async function updateCompanySettingsInTransaction(
     throw new Error(serverMessages.vatRegistrationIsRequiredWhenVatIs);
 
   const updated = await updateCompanyConfigurationForIT("service-token", {
-    values: {
-      companyNameEn: updates.company_name_en,
-      companyNameAr: updates.company_name_ar,
+    companyNameEn: updates.company_name_en,
+    companyNameAr: updates.company_name_ar,
       crNumber: updates.cr_number,
       vatId: updates.vat_id,
       vatEnabled: updates.vat_enabled,
@@ -337,8 +336,8 @@ async function updateCompanySettingsInTransaction(
       city: updates.city,
       country: updates.country,
       mapUrl: updates.map_url,
-    },
-  });
+    } as any,
+  );
   return mapSettings(updated);
 }
 

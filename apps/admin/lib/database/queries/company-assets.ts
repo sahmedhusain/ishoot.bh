@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "../atomic";
 
 export interface CompanyAssetItem {
   id: string;

@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import type { Prisma } from "@prisma/client";
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import { requireStockLocationAccess } from "./branches";
 import { validateSignatureImage } from "../services/signature-image";
 

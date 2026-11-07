@@ -26,7 +26,7 @@ export default async function NewInvoicePage({
     listSalesPeople(),
   ]);
 
-  let preselectedQuotation = null;
+  let preselectedQuotation: any = null;
   if (params?.quotationId) {
     preselectedQuotation =
       acceptedQuotations.find((q) => q.id === params.quotationId) ||

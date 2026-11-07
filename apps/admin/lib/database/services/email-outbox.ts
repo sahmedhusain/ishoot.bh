@@ -1,5 +1,5 @@
 import { serverMessages } from "@platform/locales";
-import { db } from "../db";
+import { db } from "../atomic";
 type Sender = (input: {
   to: string;
   subject: string;

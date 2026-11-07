@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { serverMessages } from "@platform/locales";
-import { db } from "../db";
+import { db } from "../atomic";
 import {
   DELIVERY_MODES,
   defaultTimeZone,

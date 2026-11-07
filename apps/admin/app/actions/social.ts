@@ -10,7 +10,6 @@ import {
   deleteSocialPlan,
   syncSocialIntegration,
   INTEGRATION_PROVIDERS,
-  db,
 } from "@platform/database";
 import { requirePermission } from "../../lib/auth";
 import { revalidatePath } from "next/cache";
@@ -68,13 +67,6 @@ export async function saveSocialPlanAction(
   validateActionArguments("saveSocialPlanAction", { id, input });
   return measureOperation("admin:saveSocialPlan", async () => {
     const user = await requirePermission("social", id ? "edit" : "create");
-    if (input.assigneeId) {
-      const assignee = await db.user.findFirst({
-        where: { id: input.assigneeId, isActive: true },
-        select: { id: true },
-      });
-      if (!assignee) throw new Error(serverMessages.chooseAnActiveTeamMember);
-    }
     const plan = id
       ? await updateSocialPlan(id, input)
       : await createSocialPlan(input, user.id);

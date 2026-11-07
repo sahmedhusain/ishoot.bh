@@ -1,5 +1,5 @@
 import { serverMessages } from "@platform/locales";
-import { db } from "../db";
+import { db } from "../atomic";
 import { getNextSequenceNumber } from "./sequence";
 import { moveShipment } from "./shipments";
 import { recordOrderPayment, type OrderAddress } from "./store";
@@ -646,13 +646,13 @@ export async function settleCash(
     return created;
   });
   // The money is the company's now: each order takes what was collected on it (up to what it still owes).
-  const owed = new Map(
+  const owed = new Map<string, number>(
     (
       await db.salesOrder.findMany({
         where: { id: { in: Array.from(new Set(shipments.map((s) => s.orderId))) } },
         select: { id: true, total: true, amountPaid: true },
       })
-    ).map((order) => [order.id, num(order.total) - num(order.amountPaid)]),
+    ).map((order: any) => [order.id, num(order.total) - num(order.amountPaid)]),
   );
   for (const s of shipments) {
     if (!owed.has(s.orderId)) throw new Error(serverMessages.codSettlementInvalid);

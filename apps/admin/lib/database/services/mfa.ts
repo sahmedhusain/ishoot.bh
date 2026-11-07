@@ -7,7 +7,7 @@ import {
   createDecipheriv,
   timingSafeEqual,
 } from "node:crypto";
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 export function base32(bytes: Buffer) {
   let value = 0,

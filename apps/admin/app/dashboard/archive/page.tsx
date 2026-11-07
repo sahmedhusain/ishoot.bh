@@ -1,4 +1,4 @@
-import { db, getDocumentArchivePage, listCustomFoldersForUser } from "@platform/database";
+import { getDocumentArchivePage, listCustomFoldersForUser } from "@platform/database";
 import { hasPermission, requireAuth } from "../../../lib/auth";
 import { archiveKindsForCurrentUser } from "../../../lib/archive-access";
 import { CompanyArchiveView } from "../../../components/archive/CompanyArchiveView";
@@ -14,10 +14,6 @@ export default async function ArchiveVaultPage({ searchParams }: { searchParams:
   const user = await requireAuth();
   const kinds = await archiveKindsForCurrentUser();
   if (!kinds.length) return <ForbiddenView />;
-  const u = await db.user.findUnique({
-    where: { id: user.id },
-    select: { departmentId: true },
-  });
   const [result, exportKinds, canUpload, customFolders] = await Promise.all([
     getDocumentArchivePage(await searchParams, kinds),
     archiveKindsForCurrentUser(["read", "export"]),
@@ -25,7 +21,7 @@ export default async function ArchiveVaultPage({ searchParams }: { searchParams:
     listCustomFoldersForUser({
       userId: user.id,
       role: user.role,
-      departmentId: u?.departmentId ?? null,
+      departmentId: (user as any).department_id ?? null,
     }),
   ]);
   return (

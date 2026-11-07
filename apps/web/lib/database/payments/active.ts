@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "../atomic";
 import { isPaymentGateway, type PaymentGatewayId } from "../constants/payments";
 import { getActiveIntegrationCredentials } from "../queries/integrations";
 import { paymentGateway } from "./gateways";

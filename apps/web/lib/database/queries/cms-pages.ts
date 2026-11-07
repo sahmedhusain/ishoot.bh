@@ -1,7 +1,7 @@
 import { SITE_TONES, type SiteTone } from "../constants/website-design";
 import { randomUUID } from "node:crypto";
 import { getTranslations, serverMessages } from "@platform/locales";
-import { db } from "../db";
+import { db } from "../atomic";
 import {
   BLOCK_TYPES,
   CODE_BLOCKS,

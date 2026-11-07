@@ -38,7 +38,8 @@ function loadTs(file, mocks) {
     exports: mod.exports,
     require: (id) => {
       id = ((i, m) => i in m ? i : (i.startsWith('@platform/database/') && '@platform/database' in m ? '@platform/database' : i))(id, mocks);
-      if (id === "@platform/api-client" && !(id in mocks)) return new Proxy({}, { get: () => async () => [] });
+      if (id === "../atomic" || id === "../db") return mocks["../atomic"] || mocks["../db"] || { db: {}, runAtomicMutation: (fn) => fn() };
+      if ((id === "@platform/api-client" || id.includes("/api/")) && !(id in mocks)) return new Proxy({}, { get: () => async () => [] });
       if (id === "../finance/company-currency" && !(id in mocks)) return loadTs("../apps/admin/lib/database/finance/company-currency.ts", { "../db": mocks["../db"] });
       if (id === "./contact-validation" && !(id in mocks)) return loadTs("../apps/admin/lib/database/queries/contact-validation.ts", { "../db": mocks["../db"] });
       if (id in mocks) return mocks[id];

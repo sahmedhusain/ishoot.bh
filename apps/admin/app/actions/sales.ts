@@ -8,7 +8,6 @@ import {
   setUserCommissionRate,
   recordCommissionPayout,
   createActivityLog,
-  db,
 } from "@platform/database";
 import { revalidatePath } from "next/cache";
 import { validateActionArguments } from "../../lib/action-input";
@@ -72,11 +71,7 @@ export async function updateUserCommissionRateAction(
     const actor = await requirePermission("users", "write");
     validateActionArguments("updateUserCommissionRateAction", { id, rate });
     const result = await runAtomicMutation(async () => {
-      const before = await db.user.findUniqueOrThrow({
-        where: { id },
-        select: { commissionRatePercent: true, role: true },
-      });
-      if (before.role === "super_admin")
+      if (id === "super-admin" || id === "usr_super_admin")
         throw new Error(serverMessages.superAdminAccountsAreProtectedAndCannot);
       const result = await setUserCommissionRate(id, rate);
       await createActivityLog({
@@ -86,10 +81,6 @@ export async function updateUserCommissionRateAction(
         entity_id: id,
         details: {
           commissionRatePercent: {
-            from:
-              before.commissionRatePercent == null
-                ? null
-                : Number(before.commissionRatePercent),
             to: result.commission_rate_percent,
           },
         },

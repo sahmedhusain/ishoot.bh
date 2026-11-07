@@ -1,6 +1,6 @@
 import { listVehicles } from "@platform/api-client";
 
-export async function listCourierAgencies() {
+export async function listCourierAgencies(): Promise<any[]> {
   // Not available in API.
   return [];
 }

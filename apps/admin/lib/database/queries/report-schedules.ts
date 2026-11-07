@@ -1,6 +1,6 @@
 import { isValidEmail } from "../constants/validation";
 import { serverMessages } from "@platform/locales";
-import { db } from "../db";
+import { db } from "../atomic";
 import {
   REPORT_FORMATS,
   REPORT_FREQUENCIES,

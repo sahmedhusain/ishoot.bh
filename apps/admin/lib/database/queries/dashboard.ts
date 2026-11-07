@@ -1,6 +1,6 @@
 import { phoneSearchVariants } from "../constants/phone";
 import { Prisma } from "@prisma/client";
-import { db } from "../db";
+import { db } from "../atomic";
 import { ROUTES } from "../constants/routes";
 import { OPEN_TASK_STATUSES } from "../constants/tasks";
 import type {

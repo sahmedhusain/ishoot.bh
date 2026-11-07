@@ -12,7 +12,6 @@ import {
   createActivityLog,
   upsertCompanyAsset,
   deleteCompanyAsset,
-  db,
   claimUpload,
   CompanySettings,
   WebSettingsInput,
@@ -69,28 +68,7 @@ export async function saveCompanyAssetAction(
         ].includes(assetKey);
         if (!upload || (publicKey && !upload.isPublic))
           throw new Error(serverMessages.chooseARegisteredPublicBrandImage);
-        const attached = await db.attachment.findFirst({
-          where: {
-            fileUrl: data.fileUrl,
-            entityType: "company_asset",
-            entityId: assetKey,
-          },
-          select: { id: true },
-        });
-        if (!attached) {
-          await claimUpload(data.fileUrl, user.id);
-          await db.attachment.create({
-            data: {
-              fileName: upload.fileName,
-              fileUrl: upload.fileUrl,
-              fileSize: upload.fileSize,
-              mimeType: upload.mimeType,
-              entityType: "company_asset",
-              entityId: assetKey,
-              uploadedById: user.id,
-            },
-          });
-        }
+        await claimUpload(data.fileUrl, user.id);
         verified = {
           ...data,
           mimeType: upload.mimeType,

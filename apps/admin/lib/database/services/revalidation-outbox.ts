@@ -4,7 +4,7 @@ import {
   serverMessages,
 } from "@platform/locales";
 
-import { db } from "../db";
+import { db } from "../atomic";
 
 export async function processRevalidationJobs(options: {
   webUrl: string;
@@ -37,7 +37,7 @@ export async function processRevalidationJobs(options: {
       WHERE "status" IN ('pending', 'processing') AND "nextAttemptAt" <= ${now} AND "attempts" < 8
       ORDER BY "nextAttemptAt", "id" LIMIT ${size} FOR UPDATE SKIP LOCKED
     `;
-    const claimed = [];
+    const claimed: any[] = [];
     for (const job of picked)
       claimed.push(
         await tx.revalidationJob.update({
@@ -93,7 +93,7 @@ export async function processRevalidationJobs(options: {
 async function txResult(
   id: string,
   attempts: number,
-  data: Parameters<typeof db.revalidationJob.updateMany>[0]["data"],
+  data: any,
 ) {
   // The attempt acts as a lease fence: a late worker cannot overwrite a newer attempt.
   await db.revalidationJob.updateMany({

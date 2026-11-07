@@ -78,7 +78,7 @@ export function PurchaseOrderView({ order, fromRequisition, suppliers, warehouse
   };
   const whatsapp = () => {
     if (!order) return;
-    const phone = order.supplier.phone.replace(/[^\d]/g, "");
+    const phone = (order.supplier.phone || "").replace(/[^\d]/g, "");
     const text = formatMessage(copy.whatsappText, { number: order.number, company: company.name, total: formatCurrencyValue(order.total, company.currency, locale === "ar"), date: order.expected_date ? formatDate(order.expected_date, locale) : "—" });
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
     void run(() => markPurchaseOrderSentAction(order.id, "whatsapp"));

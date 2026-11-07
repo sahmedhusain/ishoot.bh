@@ -20,6 +20,9 @@ func AdminHandler(cfg config.Common, logger *logx.Logger, checker *health.Checke
 	mux.HandleFunc("GET /livez", func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]string{"status": health.StatusUp})
 	})
+	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, http.StatusOK, map[string]string{"status": health.StatusUp})
+	})
 	mux.HandleFunc("GET /readyz", func(w http.ResponseWriter, r *http.Request) {
 		report := checker.Run(r.Context())
 		status := http.StatusOK

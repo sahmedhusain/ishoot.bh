@@ -10,7 +10,7 @@ import {
   updateQuotationStatus as updateSalesQuotationStatus,
 } from "@platform/api-client";
 
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import { Quotation, calculateInvoiceTotals } from "../types";
 import { getNextSequenceNumber } from "./sequence";
 import { allocateDocumentNumber } from "../finance/numbering";

@@ -2,7 +2,7 @@ import { companyCurrency } from "../finance/company-currency";
 import { roundMoney, validMoneyAmount } from "../finance/money";
 import { serverMessages } from "@platform/locales";
 import { claimUploadOrLink } from "../services/uploads";
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import { isCountryCode } from "../constants/clients";
 import {
   COST_FREQUENCIES,

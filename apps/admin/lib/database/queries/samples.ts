@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { db } from "../db";
+import { db } from "../atomic";
 import {
   ACTIVITY_SAMPLES,
   SAMPLE_ARTICLE,

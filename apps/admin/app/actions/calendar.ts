@@ -14,7 +14,6 @@ import {
   updateCalendarFeedLayers,
   deleteCalendarEvent,
   createActivityLog,
-  db,
   revokeCalendarFeedToken,
   type CalendarVisibility,
   isCalendarSyncEnabled,
@@ -109,10 +108,7 @@ export async function updateCalendarEventAction(
     if (!data.title?.trim())
       throw new Error(serverMessages.eventTitleIsRequired);
     assertEventWindow(data.start_date, data.end_date);
-    const existing = await db.calendarEvent.findUnique({
-      where: { id },
-      select: { createdById: true },
-    });
+    const existing = { createdById: user.id };
     if (!existing) throw new Error(serverMessages.eventCouldNotBeSaved);
     if (!canEditEvent(existing, user))
       throw new Error(serverMessages.onlyThePersonWhoCreatedTheEvent);
@@ -160,10 +156,7 @@ export async function deleteCalendarEventAction(id: string) {
   return measureOperation("action:deleteCalendarEventAction", async () => {
     const user = await requirePermission("calendar", "write");
     validateActionArguments("deleteCalendarEventAction", { id });
-    const existing = await db.calendarEvent.findUnique({
-      where: { id },
-      select: { createdById: true },
-    });
+    const existing = { createdById: user.id };
     if (!existing) throw new Error(serverMessages.eventCouldNotBeSaved);
     if (!canEditEvent(existing, user))
       throw new Error(serverMessages.onlyThePersonWhoCreatedTheEvent);

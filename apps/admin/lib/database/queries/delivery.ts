@@ -20,33 +20,42 @@ const roundStoredAmount = (value: number) => Math.round(value * 1_000_000) / 1_0
 
 export interface AgencyInvoiceInput {
   agencyId: string;
-  invoiceNumber: string;
-  amount: number;
+  invoiceNumber?: string;
+  reference?: string;
+  amount: number | string;
   invoiceDate: string;
   dueDate?: string;
   notes?: string;
+  shipmentIds?: string[];
+  [key: string]: any;
 }
 
 export interface CourierAgencyInput {
   id?: string;
   name: string;
-  code: string;
+  code?: string;
   contactName?: string;
   email?: string;
   phone?: string;
   isActive: boolean;
+  kind?: string;
+  trackingUrl?: string;
+  fee?: number | string;
+  [key: string]: any;
 }
 
 export interface HandToAgencyInput {
-  shipmentIds: string[];
+  shipmentIds?: string[];
   agencyId: string;
   trackingNumber?: string;
   notes?: string;
-  weightKg?: number;
-  lengthCm?: number;
-  widthCm?: number;
-  heightCm?: number;
-  confirmNoBooking?: boolean;
+  weightKg?: number | string;
+  lengthCm?: number | string;
+  widthCm?: number | string;
+  heightCm?: number | string;
+  confirmNoBooking?: boolean | string;
+  fee?: number | string;
+  [key: string]: any;
 }
 
 export interface MoveShipmentInput {

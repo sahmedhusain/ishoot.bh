@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { db, getAsset, listAssetCategories } from "@platform/database";
+import { getAsset, listAssetCategories } from "@platform/database";
+import { listEmployees } from "@platform/api-client";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { AssetDetailView } from "../../../../components/assets/AssetDetailView";
 import { pageMetadata } from "../../../../lib/company-metadata";
@@ -11,19 +12,24 @@ export const dynamic = "force-dynamic";
 export default async function AssetPage({ params }: { params: Promise<{ id: string }> }) {
   await requirePagePermission("assets", "read");
   const { id } = await params;
-  const [found, categories, employees, canEdit] = await Promise.all([
+  const [found, categories, rawEmployees, canEdit] = await Promise.all([
     getAsset(id),
     listAssetCategories(),
-    db.employee.findMany({ where: { status: { not: "terminated" } }, select: { id: true, firstNameEn: true, lastNameEn: true, firstNameAr: true, lastNameAr: true }, orderBy: { firstNameEn: "asc" } }),
+    listEmployees().catch(() => []),
     hasPermission("assets", "edit"),
   ]);
   if (!found) notFound();
+  const employees = rawEmployees.map((e) => ({
+    id: e.id,
+    name_en: `${e.first_name_en || ""} ${e.last_name_en || ""}`.trim() || e.id,
+    name_ar: `${e.first_name_ar || e.first_name_en || ""} ${e.last_name_ar || e.last_name_en || ""}`.trim() || e.id,
+  }));
   return (
     <AssetDetailView
       asset={found.asset}
       handovers={found.handovers}
       categories={categories}
-      employees={employees.map((e) => ({ id: e.id, name_en: `${e.firstNameEn} ${e.lastNameEn}`, name_ar: `${e.firstNameAr} ${e.lastNameAr}` }))}
+      employees={employees}
       canEdit={canEdit}
     />
   );

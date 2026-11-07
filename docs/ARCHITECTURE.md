@@ -2,6 +2,54 @@
 
 The platform combines three independent Next.js App Router frontend applications with a decoupled Go microservices backend.
 
+```mermaid
+flowchart LR
+    %% Front‑ends
+    subgraph Frontends["Frontend Apps (Next.js)"]
+        direction LR
+        Web["Web (http://localhost:3000)"]:::app
+        Admin["Admin (http://localhost:3001)"]:::app
+        IT["IT (http://localhost:3002)"]:::app
+    end
+
+    %% Gateway
+    G["Gateway (http://127.0.0.1:8080)"]:::gateway
+
+    %% Go Services
+    subgraph Services["Go Micro‑services (Docker)"]
+        direction TB
+        Identity["Identity (8082)"]:::svc
+        Finance["Finance"]:::svc
+        CRM["CRM / Sales"]:::svc
+        Inventory["Inventory"]:::svc
+        ITSM["ITSM"]:::svc
+        Payments["Commerce"]:::svc
+        Orders["Delivery"]:::svc
+        Others["(9 more)"]:::svc
+    end
+
+    %% Seed data
+    Seed["Seed & Presets<br/>company/seed"]:::seed
+
+    %% Connections
+    Web -->|REST| G
+    Admin -->|REST| G
+    IT -->|REST| G
+    G -->|gRPC/HTTP| Identity
+    G -->|gRPC/HTTP| Finance
+    G -->|gRPC/HTTP| CRM
+    G -->|gRPC/HTTP| Inventory
+    G -->|gRPC/HTTP| ITSM
+    G -->|gRPC/HTTP| Payments
+    G -->|gRPC/HTTP| Orders
+    G -->|gRPC/HTTP| Others
+    Seed -->|populate| Identity & Finance & CRM & Inventory & ITSM & Payments & Orders
+    classDef app fill:#F9F9F9,stroke:#0070F3,stroke-width:2px;
+    classDef gateway fill:#FFF8E1,stroke:#E91E63,stroke-width:2px;
+    classDef svc fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px;
+    classDef seed fill:#E3F2FD,stroke:#2196F3,stroke-width:2px;
+```
+
 ```
 Browser ──▶ apps/web · apps/admin · apps/it   (Next.js: UI, cookies, Server Components, Server Actions)
                  │ server-side only: Bearer token + X-Request-ID, typed @platform/api-client

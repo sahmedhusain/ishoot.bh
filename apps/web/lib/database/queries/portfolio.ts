@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "../atomic";
 import { PortfolioCategory, PortfolioItem } from "../types";
 
 function mapCategory(c: any): PortfolioCategory {

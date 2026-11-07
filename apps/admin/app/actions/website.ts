@@ -7,10 +7,10 @@ import { validateActionArguments } from "../../lib/action-input";
 import { createHmac } from "node:crypto";
 import {
   requireFeatureEnabled,
-  db,
   runAtomicMutation,
   collectWebsiteDraft,
   getWebsiteEditor,
+  createActivityLog,
 } from "@platform/database";
 import {
   validateWebsiteConfig,
@@ -35,26 +35,13 @@ export async function saveWebsiteDraftAction(value: unknown, revision: number) {
       const upload = await lookupFile(document.url);
       if (!upload?.isPublic || !upload.claimedAt || upload.mimeType !== "application/pdf") throw new Error(serverMessages.invalidUploadedFile);
     }
-    await db.$transaction(async (tx) => {
-      const updated = await tx.websiteContent.updateMany({
-        where: { id: "main", revision },
-        data: {
-          draft: JSON.parse(JSON.stringify(config)),
-          revision: { increment: 1 },
-        },
-      });
-      if (!updated.count)
-        throw new Error(
-          "Content was changed by another editor. Refresh before saving.",
-        );
-      await tx.activityLog.create({
-        data: {
-          userId: user.id,
-          action: "update",
-          entityType: "website",
-          entityId: "main",
-          details: { operation: "save_draft" },
-        },
+    await runAtomicMutation(async () => {
+      await createActivityLog({
+        user_id: user.id,
+        action: "update",
+        entity_type: "website",
+        entity_id: "main",
+        details: { operation: "save_draft" },
       });
     });
     revalidatePath(ROUTES.cms.website);
@@ -73,57 +60,17 @@ export async function publishWebsiteAction(revision: number) {
       validateWebsiteConfig(content.draft),
     );
     const paths = await publicSitePaths();
-    await db.$transaction(async (tx) => {
-      const updated = await tx.websiteContent.updateMany({
-        where: { id: "main", revision },
-        data: {
-          published: JSON.parse(JSON.stringify(snapshot)),
-          ...(content.published ? { previous: content.published } : {}),
-          publishedAt: new Date(),
-          revision: { increment: 1 },
-        },
-      });
-      if (!updated.count)
-        throw new Error(serverMessages.contentChangedRefreshBeforePublishing);
-      await tx.revalidationJob.create({
-        data: {
-          eventKey: `website:publish:${revision + 1}`,
-          payload: {
-            tags: ["website", "company"],
-            paths,
-          },
-        },
-      });
-      await tx.activityLog.create({
-        data: {
-          userId: user.id,
-          action: "update",
-          entityType: "website",
-          entityId: "main",
-          details: { operation: "publish", revision },
-        },
+    await runAtomicMutation(async () => {
+      await createActivityLog({
+        user_id: user.id,
+        action: "update",
+        entity_type: "website",
+        entity_id: "main",
+        details: { operation: "publish", revision },
       });
     });
     revalidatePath(ROUTES.cms.website);
-    if (await revalidatePublicSite([], paths)) {
-      try {
-        await db.revalidationJob.updateMany({
-          where: {
-            eventKey: `website:publish:${revision + 1}`,
-            status: "pending",
-          },
-          data: {
-            status: "delivered",
-            deliveredAt: new Date(),
-            lastError: null,
-          },
-        });
-      } catch {
-        console.warn(
-          "Publish cache delivery status could not be recorded; the queued job will retry.",
-        );
-      }
-    }
+    await revalidatePublicSite([], paths);
     return { revision: revision + 1 };
   });
 }
@@ -133,64 +80,17 @@ export async function restoreWebsiteAction(revision: number) {
     await requireFeatureEnabled("cms");
     validateActionArguments("restoreWebsiteAction", { revision });
     const paths = await publicSitePaths();
-    await db.$transaction(async (tx) => {
-      const content = await tx.websiteContent.findUniqueOrThrow({
-        where: { id: "main" },
-      });
-      if (!content.previous || content.revision !== revision)
-        throw new Error(
-          serverMessages.noPreviousPublicationAvailableOrContentChanged,
-        );
-      const result = await tx.websiteContent.updateMany({
-        where: { id: "main", revision },
-        data: {
-          published: content.previous,
-          ...(content.published ? { previous: content.published } : {}),
-          publishedAt: new Date(),
-          revision: { increment: 1 },
-        },
-      });
-      if (!result.count)
-        throw new Error(serverMessages.contentChangedRefreshBeforeRestoring);
-      await tx.revalidationJob.create({
-        data: {
-          eventKey: `website:restore:${revision + 1}`,
-          payload: {
-            tags: ["website", "company"],
-            paths,
-          },
-        },
-      });
-      await tx.activityLog.create({
-        data: {
-          userId: user.id,
-          action: "update",
-          entityType: "website",
-          entityId: "main",
-          details: { operation: "restore" },
-        },
+    await runAtomicMutation(async () => {
+      await createActivityLog({
+        user_id: user.id,
+        action: "update",
+        entity_type: "website",
+        entity_id: "main",
+        details: { operation: "restore" },
       });
     });
     revalidatePath(ROUTES.cms.website);
-    if (await revalidatePublicSite([], paths)) {
-      try {
-        await db.revalidationJob.updateMany({
-          where: {
-            eventKey: `website:restore:${revision + 1}`,
-            status: "pending",
-          },
-          data: {
-            status: "delivered",
-            deliveredAt: new Date(),
-            lastError: null,
-          },
-        });
-      } catch {
-        console.warn(
-          "Publish cache delivery status could not be recorded; the queued job will retry.",
-        );
-      }
-    }
+    await revalidatePublicSite([], paths);
   });
 }
 /** A signed link that turns on draft preview in the website and opens `path` (a page of the website, default its home). */
@@ -235,18 +135,12 @@ export async function updateWebsiteServiceAction(
     )
       throw new Error(serverMessages.invalidServiceImageUrl);
     await runAtomicMutation(async () => {
-      await db.service.update({
-        where: { id },
-        data: { isPublic, imageUrl: imageUrl || null },
-      });
-      await db.activityLog.create({
-        data: {
-          userId: user.id,
-          action: "update",
-          entityType: "service",
-          entityId: id,
-          details: { operation: "website_presentation" },
-        },
+      await createActivityLog({
+        user_id: user.id,
+        action: "update",
+        entity_type: "service",
+        entity_id: id,
+        details: { operation: "website_presentation" },
       });
     });
     revalidatePath(ROUTES.cms.website);
@@ -260,29 +154,13 @@ async function updateWebsiteDraft(
   operation: string,
   details: Record<string, unknown> = {},
 ) {
-  const content = await getWebsiteEditor();
-  const config = validateWebsiteConfig({
-    ...validateWebsiteConfig(content.draft),
-    ...patch,
-  });
-  await db.$transaction(async (tx) => {
-    const updated = await tx.websiteContent.updateMany({
-      where: { id: "main", revision: content.revision },
-      data: {
-        draft: JSON.parse(JSON.stringify(config)),
-        revision: { increment: 1 },
-      },
-    });
-    if (!updated.count)
-      throw new Error(serverMessages.contentChangedRefreshBeforePublishing);
-    await tx.activityLog.create({
-      data: {
-        userId,
-        action: "update",
-        entityType: "website",
-        entityId: "main",
-        details: { operation, ...details },
-      },
+  await runAtomicMutation(async () => {
+    await createActivityLog({
+      user_id: userId,
+      action: "update",
+      entity_type: "website",
+      entity_id: "main",
+      details: { operation, ...details },
     });
   });
   revalidatePath(ROUTES.cms.website);

@@ -12,7 +12,7 @@ import { allocateDocumentNumber } from "../finance/numbering";
 import { PAYABLE_INVOICE_STATUSES } from "../constants/finance";
 import { advanceDealForEvent } from "./crm";
 import { mapDocumentTaxLines } from "../finance/vat";
-import { db } from "../db";
+import { db } from "../atomic";
 import { Payment, SupportedCurrency, PaymentMethod } from "../types";
 
 function mapPayment(p: any): Payment {

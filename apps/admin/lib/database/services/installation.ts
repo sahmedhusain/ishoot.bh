@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { db } from "../db";
+import { db } from "../atomic";
 
 /**
  * A short, stable fingerprint of this installation (a hash of the company record's id, which reveals nothing).

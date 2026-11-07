@@ -1,0 +1,77 @@
+name: Audit & Architecture Guardrails
+
+on:
+  pull_request:
+  push:
+    branches: [main, "feat/**"]
+  workflow_dispatch:
+
+concurrency:
+  group: audit-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  audit-guardrails:
+    name: Full Audit & Repair Guardrails
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+          cache: true
+
+      - name: Install Monorepo & App Dependencies
+        run: |
+          npm install
+          npm --prefix apps/admin install
+          npm --prefix apps/it install
+          npm --prefix apps/web install
+
+      - name: Pillar 1 – Seed & Preset Parity Verification
+        run: |
+          node scripts/verify-seed-dates.js
+
+      - name: Pillar 2 – Codebase & Directory Isolation Scan
+        run: |
+          npm run check:isolation
+
+      - name: Pillar 3 – OpenAPI Generation & Spectral Lint
+        run: |
+          npm run gen:openapi
+          npx @stoplight/spectral-cli lint docs/api/combined-openapi.yaml
+
+      - name: Pillar 3 – API Contract Freshness Verification
+        run: |
+          npm run gen:contracts
+          git diff --exit-code apps/web/contracts apps/admin/contracts apps/it/contracts
+
+      - name: Pillar 4 – Monorepo Type Check (Web, Admin, IT)
+        run: |
+          npm run type-check
+
+      - name: Start Platform Infrastructure & Services
+        run: |
+          docker compose up -d --wait
+          ./scripts/check-health.sh
+
+      - name: Pillar 3 – Newman API Contract Smoke Tests
+        run: |
+          node scripts/generate-postman-artifacts.cjs
+          npx newman run docs/api/combined-openapi.postman_collection.json -e docs/api/gateway.env.json --bail

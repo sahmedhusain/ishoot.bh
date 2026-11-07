@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { resolveIncomingLead } from "../services/lead-resolver";
 import { isLocale } from "@platform/locales/registry";
 import { serverMessages } from "@platform/locales";
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import { isValidEmail, normalizeEmail } from "../constants/validation";
 import { isValidPhone, formatPhoneE164 } from "../constants/phone";
 

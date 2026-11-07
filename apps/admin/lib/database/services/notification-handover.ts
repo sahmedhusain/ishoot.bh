@@ -8,7 +8,7 @@ import {
   type NewNotification,
 } from "@platform/api-client";
 import { Prisma } from "@prisma/client";
-import { db } from "../db";
+import { db } from "../atomic";
 
 type PendingRow = {
   id: string;

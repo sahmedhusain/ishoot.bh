@@ -12,16 +12,14 @@ async function main() {
   // 1. Create a Contact
   console.log("\n1. Creating test contact...");
   const contact = await createContact({
-    companyName: "Al Jasmi Media Production",
-    companyNameAr: "مجموعة الجاسم للإنتاج الإعلامي",
+    company: "Al Jasmi Media Production",
     firstName: "Ali",
     lastName: "Jassim",
     email: `ali.jassim.${Date.now()}@example.bh`,
     phone: "+97339123456",
-    address: "Manama, Kingdom of Bahrain",
     tags: ["vip", "commercial"],
   });
-  console.log("   ✅ Contact created:", contact.id, "-", contact.companyName || `${contact.firstName} ${contact.lastName}`);
+  console.log("   ✅ Contact created:", contact.id, "-", contact.company || `${contact.firstName} ${contact.lastName}`);
 
   if (!contact.id) {
     throw new Error("Contact ID is missing!");
@@ -32,17 +30,16 @@ async function main() {
   const deal = await createDeal({
     contactId: contact.id,
     title: "National Day 2026 Commercial Production",
-    value: 5200.0,
+    value: "5200.0",
     stage: "lead",
     currency: "BHD",
-    description: "Full production package including drone shots and 4K editing.",
   });
   console.log("   ✅ Deal created:", deal.id, "-", deal.title, `(Value: ${deal.value} BHD, Stage: ${deal.stage})`);
 
   if (!deal.id) {
     throw new Error("Deal ID is missing!");
   }
-  if (isNaN(deal.value) || deal.value !== 5200) {
+  if (isNaN(Number(deal.value)) || Number(deal.value) !== 5200) {
     throw new Error(`Deal value is invalid: ${deal.value}`);
   }
 
@@ -53,29 +50,28 @@ async function main() {
   const quotation = await createQuotation({
     contactId: contact.id,
     dealId: deal.id,
-    issueDate: today,
-    validUntilDate: nextMonth,
     currency: "BHD",
-    subtotal: 5000.0,
-    total: 5000.0,
-    discountAmount: 0,
-    vatAmount: 0,
+    subtotal: "5000.0",
+    total: "5000.0",
+    discount: "0",
+    vatAmount: "0",
+    vatRate: "0",
     status: "draft",
     notes: "Official quotation for National Day commercial",
-    lineItems: [
+    items: [
       {
-        descriptionEn: "4K Cinema Camera Crew (3 Days)",
-        descriptionAr: "طاقم تصوير سينمائي 4K (3 أيام)",
+        description: "4K Cinema Camera Crew (3 Days)",
         quantity: 3,
         unitPrice: 1000.0,
-        lineTotal: 3000.0,
+        amount: 3000.0,
+        sortOrder: 0,
       },
       {
-        descriptionEn: "Aerial Drone Coverage & Licensing",
-        descriptionAr: "تصوير درون جوي مع التراخيص",
+        description: "Aerial Drone Coverage & Licensing",
         quantity: 1,
         unitPrice: 2000.0,
-        lineTotal: 2000.0,
+        amount: 2000.0,
+        sortOrder: 1,
       },
     ],
   });
@@ -95,7 +91,7 @@ async function main() {
     dealId: fetchedQuotation.dealId,
     total: fetchedQuotation.total,
     status: fetchedQuotation.status,
-    lineItemsCount: fetchedQuotation.lineItems?.length,
+    itemsCount: fetchedQuotation.items?.length,
   });
 
   if (fetchedQuotation.contactId !== contact.id) {
@@ -104,7 +100,7 @@ async function main() {
   if (fetchedQuotation.dealId !== deal.id) {
     throw new Error(`Quotation dealId mismatch! Expected ${deal.id}, got ${fetchedQuotation.dealId}`);
   }
-  if (isNaN(fetchedQuotation.total) || fetchedQuotation.total <= 0) {
+  if (isNaN(Number(fetchedQuotation.total)) || Number(fetchedQuotation.total) <= 0) {
     throw new Error(`Quotation total is NaN or zero: ${fetchedQuotation.total}`);
   }
   console.log("   ✅ Quotation fields and relationships verified successfully!");
@@ -127,7 +123,7 @@ async function main() {
 
   // Ensure no deal has NaN value
   for (const d of allDeals) {
-    if (isNaN(d.value)) {
+    if (isNaN(Number(d.value))) {
       throw new Error(`Deal ${d.id} has NaN value!`);
     }
     if (d.value === undefined) {
@@ -137,7 +133,7 @@ async function main() {
 
   // Ensure no quotation has NaN total
   for (const q of allQuotations) {
-    if (isNaN(q.total)) {
+    if (isNaN(Number(q.total))) {
       throw new Error(`Quotation ${q.id} has NaN total!`);
     }
     if (q.total === undefined) {

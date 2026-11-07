@@ -1,4 +1,5 @@
-import { db, listEmployeeHandovers } from "@platform/database";
+import { listEmployeeHandovers } from "@platform/database";
+import { listEmployees } from "@platform/api-client";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { HandoversListView } from "../../../../components/handovers/HandoversListView";
 import { pageMetadata } from "../../../../lib/company-metadata";
@@ -13,11 +14,16 @@ export default async function EmployeeHandoversPage({ searchParams }: { searchPa
   const pick = (key: string) => (typeof query[key] === "string" ? (query[key] as string) : undefined);
   const status = pick("status") ?? "active";
   const kind = pick("kind") ?? "all";
-  const [all, employees, canEdit] = await Promise.all([
+  const [all, rawEmployees, canEdit] = await Promise.all([
     listEmployeeHandovers({ kind, status: status === "active" ? undefined : status }),
-    db.employee.findMany({ where: { status: { not: "terminated" } }, select: { id: true, firstNameEn: true, lastNameEn: true, firstNameAr: true, lastNameAr: true }, orderBy: { firstNameEn: "asc" } }),
+    listEmployees().catch(() => []),
     hasPermission("employees", "edit"),
   ]);
+  const employees = rawEmployees.map((e) => ({
+    id: e.id,
+    name_en: `${e.first_name_en || ""} ${e.last_name_en || ""}`.trim() || e.id,
+    name_ar: `${e.first_name_ar || e.first_name_en || ""} ${e.last_name_ar || e.last_name_en || ""}`.trim() || e.id,
+  }));
   const items = status === "active" ? all.filter((h) => h.status === "open" || h.status === "pending_approval") : all;
   return (
     <HandoversListView
@@ -25,7 +31,7 @@ export default async function EmployeeHandoversPage({ searchParams }: { searchPa
       status={status}
       kind={kind}
       startFor={pick("employeeId")}
-      employees={employees.map((e) => ({ id: e.id, name_en: `${e.firstNameEn} ${e.lastNameEn}`, name_ar: `${e.firstNameAr} ${e.lastNameAr}` }))}
+      employees={employees}
       canEdit={canEdit}
     />
   );

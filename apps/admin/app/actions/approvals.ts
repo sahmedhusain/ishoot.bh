@@ -2,7 +2,7 @@
 import { ROUTES } from "../../constants/routes";
 import { measureOperation, runAtomicMutation } from "@platform/database";
 import { validateActionArguments } from "../../lib/action-input";
-import { decideApprovalRequest, createActivityLog, db } from "@platform/database";
+import { decideApprovalRequest, createActivityLog } from "@platform/database";
 import { syncLeaveStatus } from "@platform/database/services/status-windows";
 import { revalidatePath } from "next/cache";
 import { requireAuth } from "../../lib/auth";
@@ -48,12 +48,6 @@ export async function decideApprovalAction(
 
       return { decisionResult: res };
     });
-    // A decided leave request changes the person's status (on leave) for its dates.
-    const target = await db.approvalRequest.findUnique({
-      where: { id: approvalRequestId },
-      select: { targetType: true, targetId: true },
-    });
-    if (target?.targetType === "leave_request") await syncLeaveStatus(target.targetId);
     void announceChange("approvals", approvalRequestId, { everyone: true });
 
     revalidatePath("/dashboard", "layout");

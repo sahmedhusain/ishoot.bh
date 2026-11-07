@@ -11,7 +11,6 @@ import {
   createDepartment,
   updateDepartment,
   createActivityLog,
-  db,
   saveEmployeeCredential,
   updateEmployeeIdentity,
   type EmployeeCredentialInput,
@@ -72,16 +71,6 @@ export async function createEmployeeAction(data: {
     await requirePayAccessFor(data);
 
     const { employee } = await runAtomicMutation(async () => {
-      if (data.userId) {
-        const user = await db.user.findUnique({
-          where: { id: data.userId },
-          select: { isActive: true, employee: { select: { id: true } } },
-        });
-        if (!user || !user.isActive)
-          throw new Error(serverMessages.userAccountNotFound);
-        if (user.employee)
-          throw new Error(serverMessages.thisUserAlreadyHasAnEmployeeRecord);
-      }
       const { identity, credentials, ...employeeData } = data;
       const employee = await createEmployee(
         {

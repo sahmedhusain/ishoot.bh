@@ -1,5 +1,5 @@
 import { serverMessages } from "@platform/locales";
-import { db } from "../db";
+import { db } from "../atomic";
 import { safeWebsiteUrl } from "../website-config";
 
 /** Built-in article categories; a company may also use its own keys. PR uses press_release. */

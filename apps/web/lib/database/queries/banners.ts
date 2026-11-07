@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "../atomic";
 import { HeroBanner } from "../types";
 
 function mapBanner(b: any): HeroBanner {

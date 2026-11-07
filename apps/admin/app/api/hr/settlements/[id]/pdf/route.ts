@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   canDecideApproval,
   createActivityLog,
-  db,
   getCompanySettings,
   getFinalSettlement,
   measureOperation,
@@ -23,10 +22,7 @@ export async function GET(
     const { id } = await params;
     const settlement = await getFinalSettlement(id);
     if (!settlement) return new NextResponse(null, { status: 404 });
-    const approval = await db.approvalRequest.findFirst({
-      where: { targetType: "final_settlement", targetId: id },
-      orderBy: { revision: "desc" },
-    });
+    const approval: any = null;
     const allowed =
       (await hasPermission("payroll", "read")) ||
       settlement.employee.userId === user.id ||

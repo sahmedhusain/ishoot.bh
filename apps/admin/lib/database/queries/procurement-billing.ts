@@ -1,7 +1,7 @@
 import { assertCompanyCurrency } from "../finance/company-currency";
 import { companyCurrency as getAccountingCurrency } from "../finance/company-currency";
 import { getTranslations, serverMessages } from "@platform/locales";
-import { db } from "../db";
+import { db } from "../atomic";
 import {
   REJECT_REASONS,
   RECEIVABLE_ORDER_STATUSES,

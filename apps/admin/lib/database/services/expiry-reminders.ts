@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "../atomic";
 import { ROUTES } from "../constants/routes";
 import { hasPermission } from "../queries/permissions";
 import { listExpiringEmployeeDocuments } from "../queries/employee-credentials";

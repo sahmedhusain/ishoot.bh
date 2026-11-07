@@ -1,5 +1,5 @@
 import { listReviews } from "@platform/api-client";
-import { db } from "../db";
+import { db } from "../atomic";
 
 export async function getReviews(adminOnly = true) {
   try {

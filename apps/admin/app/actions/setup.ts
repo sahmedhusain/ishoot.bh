@@ -8,7 +8,6 @@ import {
   applyActivityDepartments,
   completeCompanySetup,
   createActivityLog,
-  db,
   getFeatureToggles,
   getCompanySettings,
   getWebsiteEditor,
@@ -266,13 +265,6 @@ export async function saveSetupWebsiteAction(input: SetupWebsiteInput) {
       await updateFeatureToggle("cms", input.enabled, user.id);
       if (config) {
         await getWebsiteEditor();
-        await db.websiteContent.update({
-          where: { id: "main" },
-          data: {
-            draft: JSON.parse(JSON.stringify(config)),
-            revision: { increment: 1 },
-          },
-        });
       }
       await createActivityLog({
         user_id: user.id,
@@ -299,12 +291,6 @@ export async function completeSetupAction(options: {
     const user = await requirePermission("settings", "write");
     validateActionArguments("completeSetupAction", { options });
     await runAtomicMutation(async () => {
-      const company = await db.companySetting.findUniqueOrThrow({
-        where: { singleton: 1 },
-        select: { logoUrl: true, darkLogoUrl: true },
-      });
-      if (!company.logoUrl && !company.darkLogoUrl)
-        throw new Error(serverMessages.setupLogoRequired);
       await completeCompanySetup();
       await createActivityLog({
         user_id: user.id,
@@ -352,13 +338,6 @@ export async function saveSetupWebsiteDraftAction(config: unknown) {
       mirrorBilingual(config as WebsiteConfig, company.content_languages),
     );
     await getWebsiteEditor();
-    await db.websiteContent.update({
-      where: { id: "main" },
-      data: {
-        draft: JSON.parse(JSON.stringify(draft)),
-        revision: { increment: 1 },
-      },
-    });
     return { success: true };
   });
 }

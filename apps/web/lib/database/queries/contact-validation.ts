@@ -1,5 +1,5 @@
 import { serverMessages } from "@platform/locales";
-import { db } from "../db";
+import { db } from "../atomic";
 import { formatPhoneE164 } from "../constants/phone";
 import { isValidEmail, normalizeEmail } from "../constants/validation";
 

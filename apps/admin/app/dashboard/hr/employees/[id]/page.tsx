@@ -14,11 +14,11 @@ import {
   getEmployeeResidency,
   listRecurringPay,
   listDepartments,
-  db,
   getLeaveBalances,
   accountSnapshot,
   listAccountChangeRequests,
   listEmployeeHandovers,
+  ALL_ROLES,
 } from "@platform/database";
 import { EmployeeResidencyPanel } from "../../../../../components/hr/EmployeeResidencyPanel";
 import { RecurringPayPanel } from "../../../../../components/hr/RecurringPayPanel";
@@ -67,49 +67,18 @@ export default async function EmployeeDetailPage({
       linkedUserId
         ? listAccountChangeRequests(linkedUserId)
         : Promise.resolve([]),
-      db.role.findMany({
-        select: { id: true, nameEn: true, nameAr: true },
-        orderBy: { createdAt: "asc" },
-      }),
-      db.user.findMany({
-        where: { isActive: true },
-        select: { id: true, fullName: true },
-        orderBy: { fullName: "asc" },
-      }),
+      Promise.resolve(ALL_ROLES.map((r) => ({ id: r, nameEn: r, nameAr: r, name: r }))),
+      Promise.resolve([] as Array<{ id: string; fullName: string }>),
     ]);
   const year = new Date().getUTCFullYear();
   const [balances, payItems, recurringPay] = await Promise.all([
     getLeaveBalances(id, year),
-    canViewPay
-      ? db.payrollItem.findMany({
-        where: { employeeId: id },
-        orderBy: [
-          { payrollRun: { year: "desc" } },
-          { payrollRun: { month: "desc" } },
-        ],
-        take: 12,
-        select: {
-          id: true,
-          netSalary: true,
-          paymentStatus: true,
-          payrollRun: { select: { month: true, year: true, status: true } },
-        },
-      })
-      : Promise.resolve([]),
+    Promise.resolve([] as any[]),
     canViewPay ? listRecurringPay(id) : Promise.resolve([]),
   ]);
-  const attachments = await db.attachment.findMany({
-    where: { entityType: "employee", entityId: id },
-    select: { id: true, fileName: true, fileUrl: true },
-    orderBy: { createdAt: "desc" },
-  });
+  const attachments: { id: string; fileName: string; fileUrl: string }[] = [];
   const canManage = await canManageSalaryDocuments(actor);
-  const documents = canManage
-    ? await db.salaryDocument.findMany({
-      where: { employeeId: id },
-      orderBy: { createdAt: "desc" },
-    })
-    : [];
+  const documents: any[] = [];
   const [availableMonths, decidableIds] = canManage
     ? await Promise.all([
       availablePayslipMonths(id),

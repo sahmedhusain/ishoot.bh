@@ -6,7 +6,7 @@ import {
 } from "@platform/locales";
 
 import crypto from "crypto";
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import { SIGNING_REQUEST_DAYS } from "../constants/signatures";
 import { validateSignatureImage } from "../services/signature-image";
 import { getAssetHandover, signAssetHandover } from "./assets";

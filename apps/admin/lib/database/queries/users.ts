@@ -1,5 +1,5 @@
 import { serverMessages } from "@platform/locales";
-import { db } from "../db";
+import { db } from "../atomic";
 import {
   listStaffAccountsForIT,
   getStaffAccountForIT,
@@ -148,7 +148,7 @@ async function validateManager(managerId: string, userId?: string) {
 export async function setUserDiscountLimit(
   userId: string,
   limit: number | null,
-) {
+): Promise<{ discount_limit_percent: number | null; [key: string]: any }> {
   // Not implemented in API.
   throw new Error("setUserDiscountLimit is not implemented in API");
 }

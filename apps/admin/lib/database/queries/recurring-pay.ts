@@ -1,5 +1,5 @@
 import { serverMessages } from "@platform/locales";
-import { db } from "../db";
+import { db } from "../atomic";
 import { PAY_LINE_CATEGORIES } from "../constants/hr";
 
 export interface RecurringPayInput {

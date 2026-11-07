@@ -11,7 +11,7 @@ import {
   parsePayrollSettings,
 } from "../payroll-calculation";
 import { MAX_PAY_LINES, PAY_LINE_CATEGORIES } from "../constants/hr";
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import { PayrollRun } from "../types";
 import { submitForApproval } from "../services/approval-engine";
 import { assertActorNotOnLeave } from "./leave";

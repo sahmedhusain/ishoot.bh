@@ -1,4 +1,5 @@
-import { db, getRequestList } from "@platform/database";
+import { getRequestList } from "@platform/database";
+import { listEmployees } from "@platform/api-client";
 import { REQUEST_DUE_FILTERS, REQUEST_KINDS, REQUEST_SORTS, REQUEST_SOURCES, type RequestKind } from "@platform/database/constants/requests";
 import { hasPermission, requirePagePermission } from "../../../lib/auth";
 import { RequestsInboxView } from "../../../components/requests/RequestsInboxView";
@@ -41,7 +42,7 @@ export default async function RequestsPage({
     getRequestList(filters, user.id, Math.max(1, Math.floor(Number(value("page"))) || 1), await dataScope("requests")),
     hasPermission("requests", "write"),
     hasPermission("requests", "export"),
-    db.user.findMany({ where: { isActive: true }, select: { id: true, fullName: true }, orderBy: { fullName: "asc" } }),
+    listEmployees().catch(() => []),
   ]);
   return (
     <RequestsInboxView
@@ -52,7 +53,7 @@ export default async function RequestsPage({
       filters={filters}
       canCreate={canCreate}
       canExport={canExport}
-      staff={staff.map((s) => ({ id: s.id, name: s.fullName }))}
+      staff={staff.map((s) => ({ id: s.id, name: `${s.first_name_en || ""} ${s.last_name_en || ""}`.trim() || s.id }))}
     />
   );
 }

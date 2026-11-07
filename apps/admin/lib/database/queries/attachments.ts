@@ -1,6 +1,6 @@
 import { ROUTES } from "../constants/routes";
 import { claimUploadOrLink } from "../services/uploads";
-import { db } from "../db";
+import { db } from "../atomic";
 import type { Attachment } from "../types";
 
 export interface EnrichedAttachment extends Attachment {

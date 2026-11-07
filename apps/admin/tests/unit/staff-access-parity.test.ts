@@ -14,6 +14,12 @@ const mocks = vi.hoisted(() => ({
   scopes: vi.fn(),
   modules: vi.fn(),
 }));
+vi.mock("@platform/database/atomic", () => ({
+  db: {
+    permission: { findMany: mocks.grants },
+    roleDataScope: { findMany: mocks.scopes },
+  },
+}));
 vi.mock("@platform/database/db", () => ({
   db: {
     permission: { findMany: mocks.grants },

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { customerOrder, db, formatDocumentPhone, paymentLinkToken } from "@platform/database";
+import { customerOrder, formatDocumentPhone, paymentLinkToken } from "@platform/database";
 import type { OrderAddress } from "@platform/database/queries/store";
 import { accountsEnabled, currentCustomer } from "../../../../../lib/customer";
 import {
@@ -35,16 +35,7 @@ export default async function CustomerOrderPage({
   const [site, t, files] = await Promise.all([
     getSite(),
     siteTranslations(locale),
-    db.attachment.findMany({
-      where: {
-        entityType: "sales_order",
-        entityId: id,
-        uploadedById: null,
-        fileUrl: { startsWith: "/api/files/general/customer_" },
-      },
-      select: { id: true, fileName: true },
-      orderBy: { createdAt: "asc" },
-    }),
+    Promise.resolve([]) as Promise<{ id: string; fileName: string }[]>,
   ]);
   const ar = locale === "ar";
   const money = (value: { toString(): string }) =>

@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "../atomic";
 import { ClientLogo } from "../types";
 
 function mapClient(l: any): ClientLogo {

@@ -1,5 +1,5 @@
 import { serverMessages } from "@platform/locales";
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import { parsePayrollSettings, supportBreakdown } from "../payroll-calculation";
 import { SUPPORT_CLAIM_MONTHS, addMonths } from "../constants/hr-support";
 

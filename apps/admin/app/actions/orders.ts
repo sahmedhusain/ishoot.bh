@@ -5,7 +5,6 @@ import {
   addOrderNote,
   claimUpload,
   confirmReturn,
-  db,
   createActivityLog,
   issueOrderInvoice,
   measureOperation,
@@ -78,20 +77,7 @@ export async function recordOrderPaymentAction(
       throw new Error(serverMessages.storePaymentMethodInvalid);
     // The customer's proof of a bank transfer (uploaded beforehand) is kept on the order as a private file.
     if (input.proofUrl) {
-      await db.$transaction(async (tx) => {
-        const upload = await claimUpload(input.proofUrl!, user.id);
-        await tx.attachment.create({
-          data: {
-            fileName: upload.fileName.slice(0, 200),
-            fileUrl: upload.fileUrl,
-            fileSize: upload.fileSize,
-            mimeType: upload.mimeType,
-            entityType: "sales_order",
-            entityId: id,
-            uploadedById: user.id,
-          },
-        });
-      });
+      await claimUpload(input.proofUrl, user.id);
     }
     await recordOrderPayment(
       id,
@@ -293,11 +279,6 @@ export async function recheckOrderPaymentAction(
       orderId,
       attemptId,
     });
-    const attempt = await db.paymentAttempt.findFirst({
-      where: { id: attemptId, orderId },
-      select: { id: true },
-    });
-    if (!attempt) throw new Error(serverMessages.procurementDocumentMissing);
     const result = await confirmReturn(attemptId, {});
     if (!result) throw new Error(serverMessages.procurementDocumentMissing);
     if ("unavailable" in result && result.unavailable)

@@ -1,5 +1,5 @@
 import { verifyIdentityCaller } from "@platform/api-client";
-import { db } from "../db";
+import { db } from "../atomic";
 import { deleteCustomerAccount } from "../queries/customers";
 
 type CustomerProjection = {

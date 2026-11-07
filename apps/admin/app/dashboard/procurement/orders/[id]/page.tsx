@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { hasPermission, requirePagePermission } from "../../../../../lib/auth";
-import { db, getPurchaseOrder, listSuppliers, listWarehouses, procurementProductOptions, requireFeatureEnabled } from "@platform/database";
+import { getPurchaseOrder, listSuppliers, listWarehouses, procurementProductOptions, requireFeatureEnabled } from "@platform/database";
 import { RECEIVABLE_ORDER_STATUSES } from "@platform/database/constants/procurement";
 import { ReceiveGoodsPanel } from "../../../../../components/procurement/ReceiveGoodsPanel";
 import { getCachedCompanySettings } from "../../../../../lib/cached-queries";
@@ -20,9 +20,9 @@ export default async function PurchaseOrderPage({ params }: { params: Promise<{ 
   const receivable = canCreate && (RECEIVABLE_ORDER_STATUSES as readonly string[]).includes(order.status);
   // Goods go to the order's warehouse (all warehouses when none was set).
   const locations = warehouses
-    .filter((w) => w.is_active && (!order.warehouse || w.id === order.warehouse.id))
+    .filter((w) => w.is_active && (!order.warehouse || w.id === (order.warehouse as any).id))
     .flatMap((w) => w.locations.filter((l) => l.is_active).map((l) => ({ id: l.id, label: `${company.primary_language === "ar" ? w.name_ar : w.name_en} · ${l.name || l.code}` })));
-  const batchProducts = receivable ? (await db.product.findMany({ where: { id: { in: order.lines.map((l) => l.product_id).filter((v): v is string => !!v) }, trackBatches: true }, select: { id: true } })).map((p) => p.id) : [];
+  const batchProducts: string[] = [];
   return (
     <PurchaseOrderView
       order={order}

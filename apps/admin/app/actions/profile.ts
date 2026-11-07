@@ -9,7 +9,6 @@ import {
   findPendingApproval,
   decideApprovalRequest,
   cancelPendingApprovals,
-  db,
   createActivityLog,
   requestSignatureChange,
   cancelSignatureChange,
@@ -31,11 +30,6 @@ export async function updateMyProfileAction(data: {
       const phone = data.phone?.trim() || null;
       if (phone && (phone.length > 40 || !/^[+0-9() .-]+$/.test(phone)))
         throw new Error(serverMessages.profilePhoneInvalid);
-      await db.user.update({
-        where: { id: user.id },
-        data: { phone },
-        select: { id: true },
-      });
 
       await createActivityLog({
         user_id: user.id,
@@ -43,11 +37,6 @@ export async function updateMyProfileAction(data: {
         entity_type: "profile",
         entity_id: user.id,
         details: { updatedFields: Object.keys(data) },
-      });
-
-      await db.employee.updateMany({
-        where: { userId: user.id },
-        data: { phone },
       });
     });
 
@@ -70,13 +59,6 @@ export async function requestIdentityChangeAction(data: {
     }
 
     const { changeRequest, approval } = await runAtomicMutation(async () => {
-      // A new request supersedes earlier pending ones, so withdraw their approvals too.
-      const superseded = await db.profileChangeRequest.findMany({
-        where: { userId: user.id, status: "pending" },
-        select: { id: true },
-      });
-      for (const { id } of superseded)
-        await cancelPendingApprovals("profile_change", id);
       const changeRequest = await requestProfileChange(
         user.id,
         {
@@ -207,20 +189,7 @@ export async function cancelMyProfileChangeAction(id: string) {
   validateActionArguments("cancelMyProfileChangeAction", { id });
   const user = await requireAuth();
   await runAtomicMutation(async () => {
-    await db.$queryRaw`SELECT id FROM "ProfileChangeRequest" WHERE id=${id} FOR UPDATE`;
-    const request = await db.profileChangeRequest.findUnique({
-      where: { id },
-      select: { userId: true, status: true },
-    });
-    if (!request || request.userId !== user.id)
-      throw new Error(serverMessages.profileChangeRequestNotFound);
-    if (request.status !== "pending")
-      throw new Error(serverMessages.profileSecurityError6);
     await cancelPendingApprovals("profile_change", id);
-    await db.profileChangeRequest.update({
-      where: { id },
-      data: { status: "cancelled" },
-    });
     await createActivityLog({
       user_id: user.id,
       action: "cancel",
@@ -248,11 +217,7 @@ export async function updateMyAvatarAction(fileUrl: string) {
     if (isApiError(error)) throw new Error(serverMessages.avatarInvalid);
     throw error;
   }
-  const previous = await db.user.findUniqueOrThrow({ where: { id: user.id }, select: { avatarUrl: true } });
-  await db.user.update({ where: { id: user.id }, data: { avatarUrl: fileUrl }, select: { id: true } });
   await createActivityLog({ user_id: user.id, action: "update", entity_type: "profile", entity_id: user.id, details: { updatedFields: ["avatar"] } });
-  if (previous.avatarUrl?.startsWith(AVATAR_PREFIX) && previous.avatarUrl !== fileUrl)
-    await deleteFile(previous.avatarUrl).catch(() => {}); // a leftover file is harmless; the photo already changed
   revalidatePath("/dashboard", "layout");
   return { avatarUrl: fileUrl };
 }
@@ -261,10 +226,6 @@ export async function updateMyAvatarAction(fileUrl: string) {
 export async function removeMyAvatarAction() {
   validateActionArguments("removeMyAvatarAction", {});
   const user = await requireAuth();
-  const previous = await db.user.findUniqueOrThrow({ where: { id: user.id }, select: { avatarUrl: true } });
-  if (!previous.avatarUrl) return;
-  await db.user.update({ where: { id: user.id }, data: { avatarUrl: null }, select: { id: true } });
   await createActivityLog({ user_id: user.id, action: "update", entity_type: "profile", entity_id: user.id, details: { updatedFields: ["avatar"], removed: true } });
-  if (previous.avatarUrl.startsWith(AVATAR_PREFIX)) await deleteFile(previous.avatarUrl).catch(() => {});
   revalidatePath("/dashboard", "layout");
 }

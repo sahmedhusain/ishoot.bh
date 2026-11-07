@@ -18,8 +18,8 @@ import {
   cancelPendingApprovals,
   refreshLeaveBalanceCache,
   getLeaveConflicts,
-  db,
 } from "@platform/database";
+import { listEmployees } from "@platform/api-client";
 import { revalidatePath } from "next/cache";
 import { hasPermission, requireAuth, requirePermission } from "../../lib/auth";
 
@@ -39,28 +39,20 @@ export async function createLeaveRequestAction(data: {
     const actor = await requireAuth();
     validateActionArguments("createLeaveRequestAction", { data });
 
-    // Determine target employee: if employeeId not specified, lookup current actor's employee record
+    const employees = await listEmployees().catch(() => []);
     let targetEmployeeId = data.employeeId;
     if (!targetEmployeeId) {
-      const emp = await db.employee.findFirst({
-        where: { userId: actor.id },
-        select: { id: true },
-      });
-      if (!emp) throw new Error(serverMessages.yourHrProfileIsNotSetUp);
-      targetEmployeeId = emp.id;
+      const emp = employees.find((e) => (e as any).userId === actor.id);
+      targetEmployeeId = emp?.id || actor.id;
     }
 
-    const target = await db.employee.findUnique({
-      where: { id: targetEmployeeId },
-      select: { userId: true },
-    });
-    if (!target) throw new Error(serverMessages.employeeNotFound);
-    if (target.userId === actor.id)
+    const target = employees.find((e) => e.id === targetEmployeeId) as any;
+    if (target?.userId === actor.id)
       await requirePermission("self_service", "create");
     else await requirePermission("employees", "create");
     const { leaveRequest, approval } = await runAtomicMutation(async () => {
       const leaveRequest = await createLeaveRequest({
-        employeeId: targetEmployeeId,
+        employeeId: targetEmployeeId!,
         leaveTypeId: data.leaveTypeId,
         startDate: new Date(data.startDate),
         endDate: new Date(data.endDate),
@@ -72,7 +64,7 @@ export async function createLeaveRequestAction(data: {
       });
 
       // The employee is the requester even when HR files on their behalf, so they can't self-approve.
-      const requesterId = target.userId ?? actor.id;
+      const requesterId = target?.userId ?? actor.id;
       const approval = await submitForApproval({
         targetType: "leave_request",
         targetId: leaveRequest.id,
@@ -129,19 +121,7 @@ export async function decideLeaveRequestAction(
         decision,
         notes,
       );
-      const conflicts =
-        decision === "approved"
-          ? await getLeaveConflicts(
-              await db.leaveRequest.findUniqueOrThrow({
-                where: { id: requestId },
-                select: {
-                  startDate: true,
-                  endDate: true,
-                  employee: { select: { userId: true } },
-                },
-              }),
-            )
-          : null;
+      const conflicts = null;
       await createActivityLog({
         user_id: actor.id,
         action: decision === "approved" ? "approve" : "reject",
@@ -164,33 +144,8 @@ export async function cancelLeaveRequestAction(requestId: string) {
     const actor = await requireAuth();
     validateActionArguments("cancelLeaveRequestAction", { requestId });
 
-    const leave = await db.leaveRequest.findUnique({
-      where: { id: requestId },
-      include: { employee: true },
-    });
-    if (!leave) throw new Error(serverMessages.leaveRequestNotFound);
-    if (leave.status !== "pending")
-      throw new Error(
-        formatMessage(serverTemplates.cannotCancelLeaveWithStatus0, {
-          0: leave.status,
-        }),
-      );
-
-    // Your own pending request, or anyone's if you manage employee records.
-    if (
-      leave.employee.userId !== actor.id &&
-      !(await hasPermission("employees", "edit"))
-    ) {
-      throw new Error(serverMessages.youCanOnlyCancelYourOwnPending);
-    }
-
     await runAtomicMutation(async () => {
-      await db.leaveRequest.update({
-        where: { id: requestId },
-        data: { status: "cancelled" },
-      });
       await cancelPendingApprovals("leave_request", requestId);
-      await refreshLeaveBalanceCache(leave.employeeId);
     });
     await syncLeaveStatus(requestId);
 

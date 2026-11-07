@@ -1,7 +1,7 @@
 import { serverMessages } from "@platform/locales";
 import type { Prisma } from "@prisma/client";
 import { resolveSigningSignature } from "./signature-policies";
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import { ROUTES } from "../constants/routes";
 import {
   ANNOUNCEMENT_AUDIENCES,

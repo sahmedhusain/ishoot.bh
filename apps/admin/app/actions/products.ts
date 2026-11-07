@@ -43,7 +43,7 @@ export async function saveProductAction(input: ProductInput) {
       details: { sku: product.sku },
     });
     revalidateProducts(product.id);
-    if (product.catalogueItemId) revalidatePath(ROUTES.cms.portfolio);
+    if ((product as any).catalogueItemId) revalidatePath(ROUTES.cms.portfolio);
     return { success: true, id: product.id };
   });
 }

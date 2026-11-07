@@ -1,6 +1,6 @@
 import { phoneSearchVariants } from "../constants/phone";
 import { serverMessages } from "@platform/locales";
-import { db } from "../db";
+import { db } from "../atomic";
 import {
   UNRESOLVED_COURIER_BOOKINGS,
   FAILURE_REASONS,

@@ -4,7 +4,7 @@ import {
   serverMessages,
 } from "@platform/locales";
 
-import { db } from "../db";
+import { db } from "../atomic";
 import {
   dayKey,
   eachDay,
@@ -174,7 +174,7 @@ export async function getAttendanceSheet(
     listShiftTypes(),
     attendanceLockedThrough(),
   ]);
-  const holidayNames = new Map(holidayRows.map((h) => [h.date, h.nameEn]));
+  const holidayNames = new Map<string, string>(holidayRows.map((h: any) => [h.date, h.nameEn]));
   return {
     year,
     month,
@@ -182,7 +182,7 @@ export async function getAttendanceSheet(
       date: dayKey(d),
       weekday: d.getUTCDay(),
       working: isWorkingDay(d, policy, holidays),
-      holiday: holidayNames.get(dayKey(d)) ?? null,
+      holiday: (holidayNames.get(dayKey(d)) ?? null) as string | null,
     })),
     employees: employees.map((e) => {
       const cells: Record<string, AttendanceCell> = {};

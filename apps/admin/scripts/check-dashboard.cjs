@@ -27,6 +27,7 @@ function load(file, mocks, jsx = false) {
     module, exports: module.exports, require(id) {
       if (jsx && id === "react/jsx-runtime") return require("react/jsx-runtime");
       id = ((i, m) => i in m ? i : (i.startsWith("@platform/database/") && "@platform/database" in m ? "@platform/database" : i))(id, mocks);
+      if (id === "../atomic" || id === "../db") return mocks["../atomic"] || mocks["../db"] || { db: {}, runAtomicMutation: (fn) => fn() };
       if (id === "../finance/company-currency" && !(id in mocks)) return load("lib/database/finance/company-currency.ts", { "../db": mocks["../db"] });
       if (!(id in mocks)) { const real = realConstants(filePath, id); if (real) return real; throw Error("Unmocked dependency: " + id); }
       return mocks[id];
@@ -119,6 +120,7 @@ async function main() {
   const { getCRMDealOverview } = load("lib/database/queries/crm.ts", {
     "./company-settings": {}, "../services/lead-resolver": {},
     "@platform/api-client": {
+      listContacts: async () => [],
       listDeals: async () => {
         listReads++;
         return [{ id: "deal-1", stage: "qualified", dealStage: "qualified", dealValue: 300, currency: "BHD", value: 300, assignedTo: "owner-1", createdAt: new Date(), updatedAt: new Date() }];

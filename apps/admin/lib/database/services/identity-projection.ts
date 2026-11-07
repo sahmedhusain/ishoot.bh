@@ -1,6 +1,6 @@
 import { verifyIdentityCaller } from "@platform/api-client";
 import { STAFF_RESOURCES, STAFF_ACTIONS } from "@platform/contracts";
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import { withStaffProjection } from "./identity-sync";
 import { deleteCustomerAccount } from "../queries/customers";
 

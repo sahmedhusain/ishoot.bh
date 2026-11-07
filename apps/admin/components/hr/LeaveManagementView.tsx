@@ -164,10 +164,11 @@ export function LeaveManagementView({
       const res = await decideLeaveRequestAction(requestId, decision, notes);
       if (res.success) {
         if (decision === "approved" && res.conflicts) {
+          const conflicts = res.conflicts as any;
           const totalConflicts =
-            (res.conflicts.assignedInquiriesCount || 0) +
-            (res.conflicts.assignedDealsCount || 0) +
-            (res.conflicts.calendarEventsCount || 0);
+            (conflicts.assignedInquiriesCount || 0) +
+            (conflicts.assignedDealsCount || 0) +
+            (conflicts.calendarEventsCount || 0);
 
           if (totalConflicts > 0) {
             toast.warning(

@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { listIntegrations } from "@platform/api-client";
-import { db } from "../db";
+import { db } from "../atomic";
 
 export interface LatestSocialMetric {
   id: string;

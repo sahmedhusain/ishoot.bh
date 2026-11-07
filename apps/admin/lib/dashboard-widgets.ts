@@ -4,7 +4,6 @@ import {
   activityFeed,
   archiveKindsFor,
   availableDashboardWidgets,
-  db,
   defaultDashboardLayout,
   employeeIdForUser,
   getActiveDealStages,
@@ -34,6 +33,7 @@ import {
   type DashboardLayoutItem,
   type PermissionResource,
 } from "@platform/database";
+import { listInquiries } from "@platform/api-client";
 import { ROUTES } from "../constants/routes";
 import { readableApprovalTypes } from "./approval-access";
 import { getCurrentPermissions, requireAuth } from "./auth";
@@ -184,12 +184,15 @@ export async function loadDashboardData(
     ? getActiveDealStages()
     : null;
   const leads = has("kpi_leads")
-    ? db.inquiry.count({
-        where: {
-          intent: { not: "complaint" },
-          createdAt: { gte: new Date(now.getTime() - 7 * 86400000) },
-        },
-      })
+    ? listInquiries()
+        .then((inqs) =>
+          (inqs || []).filter(
+            (i) =>
+              i.inquiryType !== "complaint" &&
+              new Date(i.createdAt).getTime() >= now.getTime() - 7 * 86400000,
+          ).length,
+        )
+        .catch(() => 0)
     : null;
   const orders = has("kpi_orders") ? orderSummary(now) : null;
   const recentOrders = has("recent_orders")
@@ -281,40 +284,25 @@ export async function loadDashboardData(
     : null;
   const customFolders = has("custom_folders")
     ? (async () => {
-        const u = await db.user.findUnique({
-          where: { id: userId },
-          select: { departmentId: true },
-        });
         return listCustomFoldersForUser({
           userId,
           role: ctx.user.role,
-          departmentId: u?.departmentId ?? null,
+          departmentId: (ctx.user as any).department_id ?? null,
         });
       })()
     : null;
   const userProfile = has("welcome_profile", "custom_folders")
     ? (async () => {
-        const u = await db.user.findUnique({
-          where: { id: userId },
-          select: {
-            fullName: true,
-            email: true,
-            role: true,
-            departmentId: true,
-            departmentRecord: { select: { nameEn: true, nameAr: true } },
-            employee: { select: { jobTitleEn: true, jobTitleAr: true } },
-          },
-        });
         return {
           id: userId,
-          fullName: u?.fullName ?? ctx.user.full_name,
-          email: u?.email ?? ctx.user.email,
-          role: u?.role ?? ctx.user.role,
-          departmentId: u?.departmentId ?? null,
-          departmentNameEn: u?.departmentRecord?.nameEn ?? "",
-          departmentNameAr: u?.departmentRecord?.nameAr ?? "",
-          jobTitleEn: u?.employee?.jobTitleEn ?? "",
-          jobTitleAr: u?.employee?.jobTitleAr ?? "",
+          fullName: ctx.user.full_name,
+          email: ctx.user.email,
+          role: ctx.user.role,
+          departmentId: (ctx.user as any).department_id ?? null,
+          departmentNameEn: "",
+          departmentNameAr: "",
+          jobTitleEn: "",
+          jobTitleAr: "",
         };
       })()
     : null;

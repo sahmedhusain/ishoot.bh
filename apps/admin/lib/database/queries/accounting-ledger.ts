@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import { assertCompanyCurrency } from "../finance/company-currency";
 import {
   validateJournalLines,

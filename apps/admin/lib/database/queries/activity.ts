@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "../atomic";
 import { ActivityLog } from "../types";
 
 const ACTIVITY_USER_SELECT = {

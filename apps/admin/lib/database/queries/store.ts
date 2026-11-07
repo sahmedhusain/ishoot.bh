@@ -7,7 +7,7 @@ import { phoneSearchVariants, isValidPhone, formatPhoneE164 } from "../constants
 import { isValidEmail, normalizeEmail } from "../constants/validation";
 import { defaultWebsiteCommerce, selectedPickupBranch, validateWebsiteCommerce, type PublicBranch } from "../constants/website-commerce";
 import { serverMessages } from "@platform/locales";
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import { allocateDocumentNumber } from "../finance/numbering";
 import { normalizeProductOptions, variantLabel } from "../constants/products";
 import { roundQuantity } from "../constants/inventory";
@@ -251,8 +251,8 @@ async function availableByItem(
     },
     _sum: { onHand: true, reserved: true },
   });
-  return new Map(
-    levels.map((l) => [
+  return new Map<string, number>(
+    levels.map((l: any) => [
       `${l.productId}|${l.variantKey}`,
       roundQuantity(num(l._sum.onHand) - num(l._sum.reserved)),
     ]),
@@ -418,7 +418,7 @@ export async function quoteCart(
   const delivery = input.fulfilment === "delivery";
   // Delivery zones, when the company uses them, set the fee, minimum order and free-delivery threshold by address.
   // Without an address yet (the cart), the zone that covers everywhere else, or the cheapest, gives the estimate.
-  const zones = delivery ? await activeZoneTerms(client) : [];
+  const zones = delivery ? await activeZoneTerms() : [];
   const hasAddress = !!(
     input.address?.area?.trim() || input.address?.city?.trim()
   );
@@ -991,7 +991,7 @@ export async function moveOrderIn(
     if (!order) throw new Error(serverMessages.procurementDocumentMissing);
     if (!canMoveOrder(order.status, to))
       throw new Error(serverMessages.orderStatusInvalid);
-    let low: Awaited<ReturnType<typeof postMovements>> = [];
+    let low: any = [];
     const held = (RESERVED_STATUSES as string[]).includes(order.status);
     if (to === "cancelled" && held) await releaseReservations(tx, order);
     if (to === "shipped") {

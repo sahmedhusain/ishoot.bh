@@ -6,6 +6,7 @@ const db = vi.hoisted(() => ({
   companySetting: { findFirst: vi.fn() },
   requestComment: { create: vi.fn() },
 }));
+vi.mock("../../lib/database/atomic", () => ({ db }));
 vi.mock("../../lib/database/db", () => ({ db }));
 const api = vi.hoisted(() => ({
   queueMessage: vi.fn(),

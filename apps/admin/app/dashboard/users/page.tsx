@@ -1,5 +1,6 @@
 import { requirePagePermission, hasPermission } from "../../../lib/auth";
-import { getUsersPage, getDepartmentTree, db, ALL_RESOURCES, ALL_ACTIONS, ensureRoleTemplates, resolveGrant } from "@platform/database";
+import { getUsersPage, getDepartmentTree, ALL_RESOURCES, ALL_ACTIONS, ALL_ROLES, isDefaultAllowed } from "@platform/database";
+import { listEmployees } from "@platform/api-client";
 import { UsersManagementView } from "../../../components/users/UsersManagementView";
 import { pageMetadata } from "../../../lib/company-metadata";
 
@@ -14,43 +15,39 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
     hasPermission("users", "delete"),
     hasPermission("employees", "create"),
   ]);
-  await ensureRoleTemplates();
   const query = await searchParams;
   const text = (key: string) => (typeof query[key] === "string" ? (query[key] as string) : undefined);
-  const [result, roles, grants, departments, people] = await Promise.all([
+  const [result, departments, rawEmployees] = await Promise.all([
     getUsersPage({ q: text("q"), role: text("role"), departmentId: text("departmentId"), status: text("status"), page: Number(text("page")) || 1 }),
-    db.role.findMany({
-      select: { id: true, nameEn: true, nameAr: true },
-      orderBy: { createdAt: "asc" },
-    }),
-    db.permission.findMany({
-      select: { role: true, resource: true, action: true, allowed: true },
-    }),
     getDepartmentTree(),
-    db.user.findMany({ where: { isActive: true, archivedAt: null }, select: { id: true, fullName: true }, orderBy: { fullName: "asc" }, take: 5000 }),
+    listEmployees().catch(() => []),
   ]);
-  const stored = new Map(grants.map((g) => [`${g.role}|${g.resource}:${g.action}`, g.allowed]));
+  const roles = ALL_ROLES.map((id) => ({
+    id,
+    nameEn: id.split("_").map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(" "),
+    nameAr: id,
+  }));
+  const people = rawEmployees.map((e) => ({
+    id: e.id,
+    fullName: `${e.first_name_en || ""} ${e.last_name_en || ""}`.trim() || e.id,
+  }));
   const rolePermissions: Record<string, Record<string, boolean>> = Object.fromEntries(
     roles.map((role) => [
       role.id,
       Object.fromEntries(
         ALL_RESOURCES.flatMap((resource) =>
-          ALL_ACTIONS.map((action) => [`${resource}:${action}`, resolveGrant(role.id, resource, action, (res, act) => stored.get(`${role.id}|${res}:${act}`))]),
+          ALL_ACTIONS.map((action) => [`${resource}:${action}`, isDefaultAllowed(role.id as any, resource as any, action as any)]),
         ),
       ),
     ]),
   );
-  const employees = await db.employee.findMany({
-    where: { userId: null, status: { in: ["active", "on_leave"] } },
-    select: {
-      id: true,
-      employeeNumber: true,
-      firstNameEn: true,
-      lastNameEn: true,
-      email: true,
-    },
-    orderBy: { employeeNumber: "asc" },
-  });
+  const employees = rawEmployees.map((e) => ({
+    id: e.id,
+    employeeNumber: e.employee_number || e.id,
+    firstNameEn: e.first_name_en || "",
+    lastNameEn: e.last_name_en || "",
+    email: e.email || "",
+  }));
   return (
     <UsersManagementView
       canWrite={canWrite}

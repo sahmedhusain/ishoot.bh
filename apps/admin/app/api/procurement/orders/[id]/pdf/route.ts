@@ -64,7 +64,7 @@ export async function GET(
     return new NextResponse(new Uint8Array(buffer), {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `${download ? "attachment" : "inline"}; filename="PurchaseOrder-${order.number.replace(/[^A-Za-z0-9_-]/g, "_")}.pdf"`,
+        "Content-Disposition": `${download ? "attachment" : "inline"}; filename="PurchaseOrder-${((order as any).number || (order as any).id || "doc").replace(/[^A-Za-z0-9_-]/g, "_")}.pdf"`,
         "Cache-Control": "no-cache, no-store, must-revalidate",
       },
     });

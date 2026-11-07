@@ -4,7 +4,7 @@ import {
   getTranslations,
   serverMessages,
 } from "@platform/locales";
-import { db } from "../db";
+import { db } from "../atomic";
 import { LEGAL_KINDS, LEGAL_STATUSES } from "../constants/outreach";
 import { createNotification } from "./notifications";
 import { getNextSequenceNumber } from "./sequence";
@@ -22,7 +22,7 @@ async function names(ids: (string | null)[]) {
         select: { id: true, fullName: true },
       })
     : [];
-  return new Map(rows.map((u) => [u.id, u.fullName]));
+  return new Map<string, string>(rows.map((u: any) => [u.id, u.fullName]));
 }
 
 export async function listLegalMatters(

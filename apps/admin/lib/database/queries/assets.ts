@@ -2,7 +2,7 @@ import { validMoneyAmount } from "../finance/money";
 import { companyCurrency as getAccountingCurrency, assertCompanyCurrency } from "../finance/company-currency";
 import { serverMessages } from "@platform/locales";
 import type { Prisma } from "@prisma/client";
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import { ROUTES } from "../constants/routes";
 import { getNextSequenceNumber } from "./sequence";
 import { validateSignatureImage } from "../services/signature-image";

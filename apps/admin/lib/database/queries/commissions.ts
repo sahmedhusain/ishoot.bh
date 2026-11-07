@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 
 export interface CommissionRuleInput {
   code: string;

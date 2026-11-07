@@ -1,7 +1,7 @@
 import { serverMessages } from "@platform/locales";
 import { createHash } from "node:crypto";
 import { isIP } from "node:net";
-import { db } from "../db";
+import { db } from "../atomic";
 export function trustedClientIp(headers: Headers): string | undefined {
   // Only configure a header that a private ingress overwrites and cannot be bypassed.
   const header = process.env.TRUSTED_CLIENT_IP_HEADER;

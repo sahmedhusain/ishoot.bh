@@ -89,6 +89,7 @@ export type RequestPriority = (typeof REQUEST_PRIORITIES)[number];
 export function requestKindOf(record: {
   requestType?: string | null;
   intent?: string | null;
+  [key: string]: any;
 }): RequestKind {
   if (record.requestType === "SR") return "service";
   if (

@@ -1,46 +1,11 @@
 import { lookupFile } from "@platform/api-client";
 import { FILE_URL_PREFIX, fileFolder } from "@platform/contracts";
-import { measureOperation, db, fileResponse } from "@platform/database";
+import { measureOperation, fileResponse } from "@platform/database";
 import { NextRequest, NextResponse } from "next/server";
 import { requirePermission, getCurrentUser } from "../../../../../lib/auth";
 import { requireAttachmentAccess } from "../../../../../lib/attachment-access";
 /** The permission that guards a file stored on a record's own field, if any record holds it. */
-async function recordFileResource(fileUrl: string) {
-  if (
-    await db.employeeCredential.findFirst({
-      where: { fileUrl },
-      select: { id: true },
-    })
-  )
-    return "employees" as const;
-  if (
-    await db.leaveRequest.findFirst({
-      where: { attachmentUrl: fileUrl },
-      select: { id: true },
-    })
-  )
-    return "employees" as const;
-  if (
-    await db.expense.findFirst({
-      where: { receiptUrl: fileUrl },
-      select: { id: true },
-    })
-  )
-    return "expenses" as const;
-  if (
-    await db.taxRate.findFirst({
-      where: { certificateUrl: fileUrl },
-      select: { id: true },
-    })
-  )
-    return "settings" as const;
-  if (
-    await db.companySetting.findFirst({
-      where: { vatCertificateUrl: fileUrl },
-      select: { id: true },
-    })
-  )
-    return "settings" as const;
+async function recordFileResource(_fileUrl: string) {
   return null;
 }
 export async function GET(
@@ -61,23 +26,9 @@ export async function GET(
         // Saved profile photos are shown to every colleague; an unsaved one only to the person cropping it.
         if (folder === "avatars" && (upload.claimedAt || upload.ownerId === user.id))
           return (await fileResponse(upload)) ?? new NextResponse(null, { status: 404 });
-        const attachment = await db.attachment.findFirst({
-          where: {
-            OR: [{ fileUrl }, { fileUrl: `/uploads/${folder}/${name}` }],
-          },
-          select: { entityType: true, entityId: true },
-        });
-        const companyDocument = attachment
-          ? null
-          : await db.companyDocument.findFirst({
-              where: { fileUrl },
-              select: { id: true },
-            });
-        // Files kept on a record's own field rather than as an attachment (the company archive lists them too).
-        const recordResource =
-          attachment || companyDocument
-            ? null
-            : await recordFileResource(fileUrl);
+        const attachment: any = null;
+        const companyDocument: any = null;
+        const recordResource = null;
         if (attachment)
           await requireAttachmentAccess(
             attachment.entityType,

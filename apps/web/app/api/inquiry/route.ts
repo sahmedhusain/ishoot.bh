@@ -15,7 +15,6 @@ import {
   resolveIncomingLead,
   getCompanySettings,
   getWebsiteSnapshot,
-  db,
   isValidEmail,
   isValidPhone,
   formatPhoneE164,
@@ -185,30 +184,8 @@ export async function POST(req: NextRequest) {
           const notification = result(1);
           // Queued with the notify service, which delivers and retries; IT sees each outcome.
           confirmationSent = !!confirmation?.success;
-          await db.inquiry.update({
-            where: { id: resolved.inquiryId },
-            data: {
-              confirmationStatus: !email
-                ? "not_requested"
-                : confirmationSent
-                  ? "sent"
-                  : "failed",
-              notificationStatus: notification?.success ? "sent" : "failed",
-              confirmationProviderId: confirmation?.id,
-              notificationProviderId: notification?.id,
-            },
-          });
         } catch (error) {
           console.error("Request saved; notification processing failed", error);
-          await db.inquiry
-            .update({
-              where: { id: resolved.inquiryId },
-              data: {
-                confirmationStatus: email ? "failed" : "not_requested",
-                notificationStatus: "failed",
-              },
-            })
-            .catch(() => {});
         }
       }
       let uploadToken: string | undefined;

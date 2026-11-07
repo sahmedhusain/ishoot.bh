@@ -37,7 +37,7 @@ export async function pushStaffAccounts(
     where: { id: { in: Array.from(users.keys()) } },
     select: { id: true, email: true, role: true, isActive: true },
   });
-  const stored = new Map(rows.map((row) => [row.id, row]));
+  const stored = new Map<string, any>(rows.map((row: any) => [row.id, row]));
   for (const [id, deleted] of Array.from(users)) {
     const row = stored.get(id);
     if (row)

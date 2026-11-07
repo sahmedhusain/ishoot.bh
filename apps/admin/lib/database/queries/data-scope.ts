@@ -1,6 +1,6 @@
 import { getStaffAccessForAccount } from "@platform/api-client";
 import { serverMessages } from "@platform/locales";
-import { db } from "../db";
+import { db } from "../atomic";
 import {
   DATA_SCOPE_AREAS,
   defaultDataScope,

@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { db } from "../db";
+import { db } from "../atomic";
 import { createEmployee } from "./hrms";
 import { createUser } from "./users";
 
@@ -171,9 +171,9 @@ export async function importPeople(
 ) {
   const checks = await checkPeopleImport(input, options);
   const rows = input.slice(0, PEOPLE_IMPORT_LIMIT).map(clean);
-  const departments = new Map(
+  const departments = new Map<string, string>(
     (await db.department.findMany({ select: { id: true, code: true } })).map(
-      (d) => [d.code.toUpperCase(), d.id],
+      (d: any) => [d.code.toUpperCase(), d.id],
     ),
   );
   let employees = 0;

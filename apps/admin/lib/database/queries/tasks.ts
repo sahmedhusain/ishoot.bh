@@ -4,7 +4,7 @@ import {
   getTranslations,
   serverMessages,
 } from "@platform/locales";
-import { db } from "../db";
+import { db } from "../atomic";
 import {
   OPEN_TASK_STATUSES,
   PROJECT_STATUSES,
@@ -56,7 +56,7 @@ async function userNames(ids: (string | null | undefined)[]) {
         select: { id: true, fullName: true },
       })
     : [];
-  return new Map(users.map((u) => [u.id, u.fullName]));
+  return new Map<string, string>(users.map((u: any) => [u.id, u.fullName]));
 }
 
 // ─── Tasks ───────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -117,6 +117,35 @@ export async function listTasks(scope: TaskScope, filters: TaskFilters = {}) {
           (t) =>
             t.status !== "done" || (t.completedAt?.getTime() ?? 0) >= cutoff,
         );
+  if (!visible.length) {
+    const { listTasks: listWorkflowTasks } = await import("../../api/workflow");
+    const { listEmployees } = await import("../../api/hr");
+    const [apiTasks, employees] = await Promise.all([
+      listWorkflowTasks().catch(() => []),
+      listEmployees().catch(() => []),
+    ]);
+    if (apiTasks && apiTasks.length) {
+      const empMap = new Map<string, any>((employees || []).map((e: any) => [e.id || e.ID, e] as [string, any]));
+      return apiTasks.map((t: any, idx: number) => {
+        const emp: any = t.assignedTo ? empMap.get(t.assignedTo) : undefined;
+        const assigneeName = emp ? `${emp.firstNameEn || emp.firstName || ""} ${emp.lastNameEn || emp.lastName || ""}`.trim() : (t.assignee || "");
+        return {
+          id: t.id || t.ID || "",
+          number: t.number || `TSK-${String(idx + 1).padStart(4, "0")}`,
+          title: t.title || t.Title || "",
+          status: t.status || t.Status || "todo",
+          priority: t.priority || t.Priority || "normal",
+          assignee_id: t.assignedTo || t.AssignedTo || "",
+          assignee: assigneeName,
+          department_id: t.departmentId || emp?.departmentId || "",
+          project: null,
+          due_date: t.dueDate ? String(t.dueDate).slice(0, 10) : null,
+          comments: 0,
+          link: t.relatedEntityType && t.relatedEntityId ? { type: t.relatedEntityType, id: t.relatedEntityId } : null,
+        };
+      });
+    }
+  }
   const names = await userNames(visible.map((t) => t.assigneeId));
   return visible.map((t) => ({
     id: t.id,
@@ -518,7 +547,7 @@ export async function saveProject(input: ProjectInput, userId: string) {
 
 /** People, departments and projects for the task form's choices. */
 export async function taskChoices(scope: TaskScope) {
-  const [users, departments, projects] = await Promise.all([
+  let [users, departments, projects] = await Promise.all([
     db.user.findMany({
       where: { isActive: true, archivedAt: null, role: { not: "viewer" } },
       orderBy: { fullName: "asc" },
@@ -532,13 +561,34 @@ export async function taskChoices(scope: TaskScope) {
     }),
     listProjects(scope),
   ]);
+  if (!departments.length || !users.length) {
+    const { listDepartments, listEmployees } = await import("../../api/hr");
+    const [apiDepts, apiEmps] = await Promise.all([
+      listDepartments().catch(() => []),
+      listEmployees().catch(() => []),
+    ]);
+    if (!departments.length && apiDepts.length) {
+      departments = apiDepts.map((d: any) => ({
+        id: d.id || d.ID,
+        nameEn: d.nameEn || d.NameEn || "",
+        nameAr: d.nameAr || d.NameAr || "",
+      }));
+    }
+    if (apiEmps.length) {
+      users = apiEmps.map((e: any) => ({
+        id: e.id || e.ID,
+        fullName: `${e.firstNameEn || e.firstName || ""} ${e.lastNameEn || e.lastName || ""}`.trim() || e.nameEn || "Staff",
+        departmentId: e.departmentId || e.DepartmentID || null,
+      }));
+    }
+  }
   return {
-    users: users.map((u) => ({
+    users: users.map((u: any) => ({
       id: u.id,
       name: u.fullName,
       department_id: u.departmentId ?? "",
     })),
-    departments: departments.map((d) => ({
+    departments: departments.map((d: any) => ({
       id: d.id,
       name_en: d.nameEn,
       name_ar: d.nameAr,

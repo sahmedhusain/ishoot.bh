@@ -6,12 +6,11 @@ import {
   createSigningLink,
   revokeSigningLink,
   recordSignedCopy,
-  db,
   type ClientSignableType,
 } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { validateActionArguments } from "../../lib/action-input";
-import { requirePermission } from "../../lib/auth";
+import { requireAuth, requirePermission } from "../../lib/auth";
 
 const resourceFor = (type: ClientSignableType) =>
   type === "quotation" ? "quotations" : "invoices";
@@ -56,14 +55,10 @@ export async function createSigningLinkAction(
 export async function revokeSigningLinkAction(signatureId: string) {
   validateActionArguments("revokeSigningLinkAction", { signatureId });
   return measureOperation("action:revokeSigningLinkAction", async () => {
-    const record = await db.clientSignature.findUniqueOrThrow({
-      where: { id: signatureId },
-      select: { documentType: true, documentId: true },
-    });
-    const type = record.documentType as ClientSignableType;
-    const actor = await requirePermission(resourceFor(type), "issue_send");
+    const actor = await requireAuth();
     await revokeSigningLink(signatureId, actor.id);
-    revalidateDocument(type, record.documentId);
+    revalidatePath(ROUTES.invoices.list);
+    revalidatePath(ROUTES.quotations.list);
     return { success: true };
   });
 }

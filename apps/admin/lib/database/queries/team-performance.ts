@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "../atomic";
 import { companyCurrency } from "../finance/company-currency";
 import { leaveDaysRequested } from "../constants/hr";
 

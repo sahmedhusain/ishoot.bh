@@ -19,5 +19,5 @@ export default async function StockMovementsPage({ searchParams }: { searchParam
     listWarehouses(actor.id),
     getCachedCompanySettings(),
   ]);
-  return <StockMovementsView {...result} filters={filters} warehouses={warehouses} currency={company.default_currency} />;
+  return <StockMovementsView page={Number(text("page")) || 1} pageSize={25} {...result} filters={filters} warehouses={warehouses} currency={company.default_currency} />;
 }

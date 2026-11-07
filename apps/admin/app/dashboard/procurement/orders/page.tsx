@@ -15,5 +15,5 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
   const text = (key: string) => (typeof query[key] === "string" ? (query[key] as string) : "");
   const filters = { q: text("q"), status: text("status") };
   const [result, company, canCreate] = await Promise.all([listPurchaseOrders({ search: filters.q, status: filters.status, page: Number(text("page")) || 1 }), getCachedCompanySettings(), hasPermission("procurement", "create")]);
-  return <PurchaseOrdersListView {...result} filters={filters} currency={company.default_currency} canCreate={canCreate} />;
+  return <PurchaseOrdersListView page={Number(text("page")) || 1} pageSize={25} {...(result as any)} filters={filters} currency={company.default_currency} canCreate={canCreate} />;
 }

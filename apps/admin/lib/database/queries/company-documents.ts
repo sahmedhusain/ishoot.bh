@@ -1,4 +1,4 @@
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import { claimUploadOrLink } from "../services/uploads";
 import { CompanyDocument, DocumentCategory } from "../types";
 

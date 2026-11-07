@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { requireAuth } from "../../../lib/auth";
-import { db, getMemberHistory, getTeamMembers, getTeamPerformance } from "@platform/database";
+import { getMemberHistory, getTeamMembers, getTeamPerformance } from "@platform/database";
+import { listEmployees } from "@platform/api-client";
 import { ROUTES } from "../../../constants/routes";
 import { TeamPerformanceView } from "../../../components/team/TeamPerformanceView";
 import { pageMetadata } from "../../../lib/company-metadata";
@@ -30,13 +31,15 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
   const period = params.period === "quarter" || params.period === "year" ? params.period : "month";
   const { from, to } = periodRange(period);
   const ids = members.map((m) => m.id);
-  const [kpis, histories, managers] = await Promise.all([
+  const [kpis, histories, rawEmployees] = await Promise.all([
     getTeamPerformance(ids, from, to),
     Promise.all(ids.map(async (id) => [id, await getMemberHistory(id, 8)] as const)),
-    seesAll
-      ? db.user.findMany({ where: { isActive: true, OR: [{ subordinates: { some: {} } }, { role: { in: ["operations_manager", "finance_manager"] } }] }, select: { id: true, fullName: true }, orderBy: { fullName: "asc" } })
-      : Promise.resolve([]),
+    seesAll ? listEmployees().catch(() => []) : Promise.resolve([]),
   ]);
+  const managers = rawEmployees.map((e) => ({
+    id: e.id,
+    fullName: `${e.first_name_en || ""} ${e.last_name_en || ""}`.trim() || e.id,
+  }));
   return (
     <TeamPerformanceView
       period={period}

@@ -1,5 +1,5 @@
 import { serverMessages } from "@platform/locales";
-import { db } from "../db";
+import { db } from "../atomic";
 import { StudioEquipment } from "../types";
 
 function mapEquipment(i: any): StudioEquipment {
@@ -25,7 +25,29 @@ export async function getStudioEquipment(): Promise<StudioEquipment[]> {
       (await db.studioEquipment.findMany({
         orderBy: { displayOrder: "asc" },
       })) || [];
-    return items.map(mapEquipment);
+    if (items.length) {
+      return items.map(mapEquipment);
+    }
+    const { listProducts, listCategories } = await import("@platform/api-client");
+    const [products, categories] = await Promise.all([
+      listProducts().catch(() => []),
+      listCategories().catch(() => []),
+    ]);
+    const catMap = new Map<string, any>((categories || []).map((c: any) => [c.id, c.nameEn || c.name || "Equipment"] as [string, any]));
+    return (products || []).map((p: any, idx: number) => ({
+      id: p.id || p.ID || `eq-${idx + 1}`,
+      category: (p.categoryId ? catMap.get(p.categoryId) : undefined) || "Equipment",
+      model_name: p.nameEn || p.NameEn || p.name || "",
+      name_ar: p.nameAr || p.NameAr || p.nameEn || "",
+      brand: "Cinema Gear",
+      specification: p.descriptionEn || p.DescriptionEn || "",
+      description_en: p.descriptionEn || p.DescriptionEn || undefined,
+      description_ar: p.descriptionAr || p.DescriptionAr || undefined,
+      quantity: 1,
+      image_url: undefined,
+      display_order: idx + 1,
+      created_at: p.createdAt || new Date().toISOString(),
+    }));
   } catch (e) {
     console.error(
       "Error fetching studio equipment from DB:",

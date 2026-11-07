@@ -60,16 +60,16 @@ const ENTITY_LINKS: Record<string, (id: string) => string> = {
   legal_matter: (id) => ROUTES.legal.matter(id),
 };
 
-function Kpi({ title, icon, tone, value, sub, href, settings }: { title: string; icon: ReactNode; tone: string; value: ReactNode; sub?: ReactNode; href?: string; settings?: Record<string, unknown> }) {
+function Kpi({ title, icon, tone, value, sub, href, settings, testId }: { title: string; icon: ReactNode; tone: string; value: ReactNode; sub?: ReactNode; href?: string; settings?: Record<string, unknown>; testId?: string }) {
   const wTheme = typeof settings?.theme === "string" ? settings.theme : "default";
   const wSurface = typeof settings?.surface === "string" ? settings.surface : "tonal";
   const body = (
-    <div data-widget-theme={wTheme} data-widget-surface={wSurface} className={`${widgetCard} admin-kpi ${href ? "transition-[border-color,box-shadow,transform] duration-base ease-standard hover:border-accent/50 hover:shadow-sm hover:-translate-y-0.5" : ""}`}>
+    <div data-testid={testId} data-test={testId} data-widget-theme={wTheme} data-widget-surface={wSurface} className={`${widgetCard} admin-kpi ${href ? "transition-[border-color,box-shadow,transform] duration-base ease-standard hover:border-accent/50 hover:shadow-sm hover:-translate-y-0.5" : ""}`}>
       <div className="flex items-center justify-between gap-2">
         <span className="admin-kpi-label truncate font-semibold">{title}</span>
         <span className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${tone}`} aria-hidden="true">{icon}</span>
       </div>
-      <div className="admin-kpi-value text-ink">{value}</div>
+      <div className="admin-kpi-value text-ink" data-test={testId ? `${testId.replace(/-card$/, "")}-value` : undefined} data-testid={testId ? `${testId.replace(/-card$/, "")}-value` : undefined}>{value}</div>
       {sub ? <div className="admin-kpi-note">{sub}</div> : null}
     </div>
   );
@@ -127,11 +127,11 @@ export function DashboardWidget({
 
   switch (id) {
     case "kpi_revenue":
-      return data.finance && <Kpi settings={settings} title={title} icon={<DollarSign className="w-3.5 h-3.5" />} tone="bg-emerald-500/15 text-emerald-600" value={countMoney(data.finance.revenue)} sub={b.widgetHints.kpi_revenue} href={ROUTES.finance.overview} />;
+      return data.finance && <Kpi testId="revenue-card" settings={settings} title={title} icon={<DollarSign className="w-3.5 h-3.5" />} tone="bg-emerald-500/15 text-emerald-600" value={countMoney(data.finance.revenue)} sub={b.widgetHints.kpi_revenue} href={ROUTES.finance.overview} />;
     case "kpi_receivables":
-      return data.finance && <Kpi settings={settings} title={title} icon={<TrendingUp className="w-3.5 h-3.5" />} tone="bg-amber-500/15 text-amber-500" value={countMoney(data.finance.outstanding)} sub={data.finance.overdue > 0 ? <>{money(data.finance.overdue)} {t.kpi.overdueAlert}</> : t.kpi.allOnTrack} href={ROUTES.invoices.list} />;
+      return data.finance && <Kpi testId="receivables-card" settings={settings} title={title} icon={<TrendingUp className="w-3.5 h-3.5" />} tone="bg-amber-500/15 text-amber-500" value={countMoney(data.finance.outstanding)} sub={data.finance.overdue > 0 ? <>{money(data.finance.overdue)} {t.kpi.overdueAlert}</> : t.kpi.allOnTrack} href={ROUTES.invoices.list} />;
     case "kpi_expenses":
-      return data.finance && <Kpi settings={settings} title={title} icon={<TrendingDown className="w-3.5 h-3.5" />} tone="bg-rose-500/15 text-rose-500" value={countMoney(data.finance.expenses)} sub={t.kpi.expensesDesc} href={ROUTES.expenses.list()} />;
+      return data.finance && <Kpi testId="expenses-card" settings={settings} title={title} icon={<TrendingDown className="w-3.5 h-3.5" />} tone="bg-rose-500/15 text-rose-500" value={countMoney(data.finance.expenses)} sub={t.kpi.expensesDesc} href={ROUTES.expenses.list()} />;
     case "kpi_profit":
       return data.finance && <Kpi settings={settings} title={title} icon={<span className="text-[10px] font-bold">%</span>} tone="bg-accent/15 text-accent" value={<span className={data.finance.netProfit >= 0 ? "text-primary dark:text-mint" : "text-rose-500"}><CountUp value={data.finance.profitMargin} decimals={1} render={(v) => `${v.toFixed(1)}%`} /></span>} sub={<>{money(data.finance.netProfit)} {t.kpi.netProfit}</>} />;
     case "kpi_pipeline":
@@ -143,7 +143,7 @@ export function DashboardWidget({
     case "kpi_shipments": {
       if (!data.shipments) return null;
       const { late, ...byStatus } = data.shipments;
-      const open = Object.values(byStatus).reduce((sum: number, n) => sum + (n ?? 0), 0);
+      const open = Object.values(byStatus).reduce((sum: number, n: any) => sum + (Number(n) || 0), 0);
       return <Kpi settings={settings} title={title} icon={<Truck className="w-3.5 h-3.5" />} tone="bg-sky-500/15 text-sky-500" value={count(open, b.openShipments)} sub={late ? <span className="text-rose-500">{formatMessage(b.lateShipments, { n: String(late) })}</span> : b.noLate} href={ROUTES.delivery.shipments} />;
     }
     case "kpi_tasks":
@@ -159,7 +159,7 @@ export function DashboardWidget({
       });
       return (
         <Panel settings={settings} title={title} icon={<TrendingUp className="w-3.5 h-3.5" />} href={ROUTES.finance.overview}>
-          <div className="h-72 w-full pt-2">
+          <div className="h-72 w-full pt-2" data-test="cashflow-bar" data-testid="cashflow-bar">
             <DeferredCashflowChart kind="dashboard" data={points} />
           </div>
         </Panel>

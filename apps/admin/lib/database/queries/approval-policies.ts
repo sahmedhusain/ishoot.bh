@@ -1,5 +1,5 @@
 import { serverMessages } from "@platform/locales";
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import {
   APPROVAL_CONDITION_FIELDS,
   APPROVAL_TARGET_TYPES,
@@ -45,7 +45,7 @@ export async function listApprovalPolicies(): Promise<ApprovalPolicyView[]> {
   const stored = await db.approvalPolicy.findMany({
     include: { steps: { orderBy: { order: "asc" } } },
   });
-  const byType = new Map(stored.map((policy) => [policy.targetType, policy]));
+  const byType = new Map<string, any>(stored.map((policy: any) => [policy.targetType, policy]));
   return APPROVAL_TARGET_TYPES.map((targetType) => {
     const policy = byType.get(targetType);
     return {

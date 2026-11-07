@@ -89,9 +89,9 @@ export async function shipmentCounts(
 
 export async function moveShipment(
   id: string,
-  input: { to: string; note?: string; reason?: string },
+  input: { to: string; note?: string; reason?: string; codCollected?: number; [key: string]: any },
   byId: string | null,
-) {
+): Promise<any> {
   // This requires a backend API call to update shipment status.
   // Not available in the current API client.
   throw new Error("moveShipment is not implemented in API");
@@ -101,7 +101,7 @@ export async function handToAgency(
   shipmentId: string,
   input: any,
   byId: string,
-) {
+): Promise<{ trackingNumber: string; [key: string]: any }> {
   // This is a complex process. Must be a single API call.
   throw new Error("handToAgency must be implemented as a single API call in Go backend");
 }
@@ -111,7 +111,7 @@ export async function syncAgencyTracking(limit = 100) {
   throw new Error("syncAgencyTracking is handled by the Go backend");
 }
 
-export async function unbilledAgencyShipments(agencyId: string) {
+export async function unbilledAgencyShipments(agencyId: string): Promise<any[]> {
   // Not available in API.
   return [];
 }
@@ -119,12 +119,12 @@ export async function unbilledAgencyShipments(agencyId: string) {
 export async function recordAgencyInvoice(
   input: any,
   userId: string,
-) {
+): Promise<{ id: string; reference: string; [key: string]: any }> {
   // Must be a single API call.
   throw new Error("recordAgencyInvoice must be implemented as a single API call in Go backend");
 }
 
-export async function listAgencyInvoices() {
+export async function listAgencyInvoices(): Promise<any[]> {
   // Not available in API.
   return [];
 }

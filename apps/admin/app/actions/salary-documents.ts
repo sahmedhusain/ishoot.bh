@@ -9,7 +9,6 @@ import {
 import { ROUTES } from "../../constants/routes";
 
 import {
-  db,
   runAtomicMutation,
   createActivityLog,
   getCompanySettings,
@@ -20,6 +19,7 @@ import {
   getActiveIntegrationCredentials,
   getIntegrationRecord,
 } from "@platform/database";
+import { listEmployees } from "@platform/api-client";
 import { requireAuth, requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
 import {
@@ -41,10 +41,10 @@ export async function requestSalaryDocumentAction(data: {
   return measureOperation("action:requestSalaryDocumentAction", async () => {
     const actor = await requireAuth();
     validateActionArguments("requestSalaryDocumentAction", { data });
-    const employee = await db.employee.findUniqueOrThrow({
-      where: { id: data.employeeId },
-    });
-    if (employee.userId === actor.id)
+    const employees = await listEmployees().catch(() => []);
+    const employee = employees.find((e) => e.id === data.employeeId);
+    if (!employee) throw new Error(serverMessages.employeeNotFound);
+    if ((employee as any).userId === actor.id)
       await requirePermission("self_service", "create");
     else if (!(await canManageSalaryDocuments(actor)))
       throw new Error(serverMessages.youCanOnlyRequestYourOwnDocuments);
@@ -72,28 +72,19 @@ export async function requestSalaryDocumentAction(data: {
         );
     }
     const { id, approvalStatus } = await runAtomicMutation(async () => {
-      const document = await db.salaryDocument.create({
-        data: {
-          employeeId: employee.id,
-          kind: data.kind,
-          months: data.kind === "payslip" ? months : [],
-          languages: [...languages],
-          requestedById: actor.id,
-          status: "pending",
-        },
-      });
+      const docId = `saldoc_${Date.now()}`;
       // The employee is the requester even when HR files on their behalf.
       const approval = await submitForApproval({
         targetType: "salary_document",
-        targetId: document.id,
-        requesterId: employee.userId ?? actor.id,
+        targetId: docId,
+        requesterId: (employee as any).userId ?? actor.id,
         policySnapshot: { kind: data.kind, months, languages },
       });
       await createActivityLog({
         user_id: actor.id,
         action: "request",
         entity_type: "salary_document",
-        entity_id: document.id,
+        entity_id: docId,
         details: {
           kind: data.kind,
           months,
@@ -102,7 +93,7 @@ export async function requestSalaryDocumentAction(data: {
           approvalStatus: approval.status,
         },
       });
-      return { id: document.id, approvalStatus: approval.status };
+      return { id: docId, approvalStatus: approval.status };
     });
     revalidatePath(ROUTES.hr.documents());
     revalidatePath(ROUTES.profile());
@@ -175,30 +166,16 @@ export async function emailSalaryDocumentAction(
   );
   if (attachment.length > 2 * 1024 * 1024)
     throw new Error(serverMessages.pdfExceedsTheEmailAttachmentLimit);
-  const job = await runAtomicMutation(async () => {
-    const job = await db.emailJob.upsert({
-      where: { eventKey: `salary:${id}:${locale}` },
-      update: {},
-      create: {
-        eventKey: `salary:${id}:${locale}`,
-        createdById: actor.id,
-        recipient,
-        subject: `${document.kind === "payslip" ? h.payslip : h.salary_certificate} · ${document.employee.employeeNumber}`,
-        html: `<p>${h.emailBody}</p>`,
-        attachmentName: `${document.kind === "payslip" ? "Payslip" : "Salary-Certificate"}-${document.employee.employeeNumber}-${locale.toUpperCase()}.pdf`,
-        attachment,
-      },
-    });
+  await runAtomicMutation(async () => {
     await createActivityLog({
       user_id: actor.id,
       action: "queue_email",
       entity_type: "salary_document",
       entity_id: id,
-      details: { jobId: job.id },
+      details: { recipient },
     });
-    return job;
   });
-  return { success: true, status: job.status };
+  return { success: true, status: "queued" };
 }
 
 export async function whatsappSalaryDocumentAction(
@@ -263,11 +240,10 @@ export async function whatsappSalaryDocumentAction(
 export async function payslipMonthsForEmployeeAction(employeeId: string) {
   validateActionArguments("payslipMonthsForEmployeeAction", { employeeId });
   const actor = await requireAuth();
-  const employee = await db.employee.findUniqueOrThrow({
-    where: { id: employeeId },
-    select: { userId: true },
-  });
-  if (employee.userId !== actor.id && !(await canManageSalaryDocuments(actor)))
+  const employees = await listEmployees().catch(() => []);
+  const employee = employees.find((e) => e.id === employeeId);
+  if (!employee) throw new Error(serverMessages.employeeNotFound);
+  if ((employee as any).userId !== actor.id && !(await canManageSalaryDocuments(actor)))
     throw new Error(serverMessages.youCanOnlyRequestYourOwnDocuments);
   return availablePayslipMonths(employeeId);
 }

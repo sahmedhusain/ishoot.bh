@@ -6,7 +6,7 @@ import { Topbar } from "../../components/layout/Topbar";
 import { SidebarProvider } from "../../components/layout/SidebarContext";
 import { getCachedCompanySettings, getCachedFeatureToggles } from "../../lib/cached-queries";
 import { getCurrentPermissions, requireAuth } from "../../lib/auth";
-import { db, getActiveTaxSummary } from "@platform/database";
+import { getActiveTaxSummary } from "@platform/database";
 import { PermissionsProvider } from "../../hooks/usePermissions";
 import { FeatureTogglesProvider } from "../../hooks/useFeatureToggles";
 import { CompanyVatProvider } from "../../hooks/useCompanyVat";
@@ -25,8 +25,8 @@ export default async function DashboardLayout({
     getCachedCompanySettings(),
     getCachedFeatureToggles(),
     getCurrentPermissions(),
-    db.user.count({ where: { managerId: user.id, isActive: true } }),
-    db.department.count({ where: { managerId: user.id } }),
+    Promise.resolve(0),
+    Promise.resolve(0),
     getActiveTaxSummary(),
   ]);
   // A new company is configured through the first-run setup wizard before anyone uses the dashboard.

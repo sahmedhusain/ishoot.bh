@@ -1,6 +1,6 @@
 import { roundMoney } from "../finance/money";
 import { serverMessages } from "@platform/locales";
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import { companyCurrency } from "../finance/company-currency";
 
 export type AttributedDocument = "quotation" | "invoice";

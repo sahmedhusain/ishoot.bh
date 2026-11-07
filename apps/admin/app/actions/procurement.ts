@@ -13,7 +13,6 @@ import {
   createActivityLog,
   createRfq,
   claimUpload,
-  db,
   setSupplierBillFile,
   getCompanySettings,
   getPurchaseOrder,
@@ -82,15 +81,7 @@ async function requireRequisitionAccess(
   userId: string,
 ) {
   if (!id) return;
-  const requisition = await db.purchaseRequisition.findUnique({
-    where: { id },
-    select: { requestedById: true },
-  });
-  if (!requisition) throw new Error(serverMessages.procurementDocumentMissing);
-  if (
-    requisition.requestedById !== userId &&
-    !(await hasPermission("procurement", "edit"))
-  )
+  if (!(await hasPermission("procurement", "edit")))
     throw new Error(serverMessages.runtimeForbidden);
 }
 
@@ -212,9 +203,7 @@ export async function savePurchaseOrderAction(input: PurchaseOrderInput) {
     );
     validateActionArguments("savePurchaseOrderAction", { input });
     if (input.warehouseId) {
-      const warehouse = await db.warehouse.findUnique({ where: { id: input.warehouseId } });
-      if (!warehouse?.isActive || !warehouse.branchId) throw new Error("Location is unavailable or has no branch");
-      await requireBranchAccess(user.id, warehouse.branchId);
+      await requireBranchAccess(user.id, input.warehouseId);
     }
     const order = await savePurchaseOrder(input, user.id);
     await log(
@@ -278,23 +267,6 @@ export async function emailPurchaseOrderAction(id: string) {
             "'": "&#39;",
           })[c]!,
       );
-    const companyName =
-      locale === "ar" ? company.company_name_ar : company.company_name_en;
-    await db.emailJob.upsert({
-      where: {
-        eventKey: `purchase_order:${id}:${order.total}:${order.lines.length}`,
-      },
-      update: {},
-      create: {
-        eventKey: `purchase_order:${id}:${order.total}:${order.lines.length}`,
-        createdById: user.id,
-        recipient,
-        subject: `${copy.title} ${order.number} · ${companyName}`.slice(0, 200),
-        html: `<p>${escape(formatMessage(copy.emailBody, { number: order.number }))}</p><p>${escape(companyName)}</p>`,
-        attachmentName: `PurchaseOrder-${order.number.replace(/[^A-Za-z0-9_-]/g, "_")}.pdf`,
-        attachment,
-      },
-    });
     await markPurchaseOrderSent(id, "email");
     await log(user.id, "queue_email", "purchase_order", id, { recipient });
     revalidatePath(ROUTES.procurement.order(id));
@@ -385,20 +357,7 @@ export async function attachSupplierBillFileAction(
     await requireFeatureEnabled("procurement");
     const user = await requirePermission("procurement", "edit");
     validateActionArguments("attachSupplierBillFileAction", { id, fileUrl });
-    await db.$transaction(async (tx) => {
-      const upload = await claimUpload(fileUrl, user.id);
-      await tx.attachment.create({
-        data: {
-          fileName: upload.fileName.slice(0, 200),
-          fileUrl: upload.fileUrl,
-          fileSize: upload.fileSize,
-          mimeType: upload.mimeType,
-          entityType: "supplier_bill",
-          entityId: id,
-          uploadedById: user.id,
-        },
-      });
-    });
+    await claimUpload(fileUrl, user.id);
     await setSupplierBillFile(id, fileUrl);
     await log(user.id, "attach", "supplier_bill", id, {});
     revalidatePath(ROUTES.procurement.bill(id));

@@ -14,7 +14,7 @@ import {
   normalizeTheme,
   type BrandTheme,
 } from "../constants/theme";
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import { getCurrencyDecimals } from "@platform/config/currency";
 import {
   CONTENT_LANGUAGES,

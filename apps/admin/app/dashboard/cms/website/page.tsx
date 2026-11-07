@@ -1,5 +1,5 @@
 import { requirePagePermission } from "../../../../lib/auth";
-import { requireFeatureEnabled, db, getWebsiteEditor, getWebsitePublicationStatus, getCompanySettings, sampleContentCount, getPortfolioCategories } from "@platform/database";
+import { requireFeatureEnabled, getWebsiteEditor, getWebsitePublicationStatus, getCompanySettings, sampleContentCount, getPortfolioCategories, getAllServices } from "@platform/database";
 import { resolveWebsiteConfig, validateWebsiteConfig } from "@platform/database/website-config";
 import { WebsiteEditor } from "../../../../components/cms/WebsiteEditor";
 import { pageMetadata } from "../../../../lib/company-metadata";
@@ -10,33 +10,26 @@ export const dynamic = "force-dynamic";
 export default async function WebsitePage() {
   await requirePagePermission("settings", "read");
   await requireFeatureEnabled("cms");
-  const [content, services, delivery, publication, company, sampleCount, categories] = await Promise.all([
+  const [content, rawServices, delivery, publication, company, sampleCount, categories] = await Promise.all([
     getWebsiteEditor(),
-    db.service.findMany({
-      where: { isActive: true },
-      orderBy: { displayOrder: "asc" },
-      select: {
-        id: true,
-        nameEn: true,
-        nameAr: true,
-        isPublic: true,
-        imageUrl: true,
-      },
-    }),
-    db.revalidationJob.findFirst({
-      where: { eventKey: { startsWith: "website:" } },
-      orderBy: { createdAt: "desc" },
-      select: { status: true },
-    }),
+    getAllServices({ isActive: true }).catch(() => []),
+    Promise.resolve(null),
     getWebsitePublicationStatus(),
     getCompanySettings(),
     sampleContentCount(),
     getPortfolioCategories(),
   ]);
+  const services = rawServices.map((s) => ({
+    id: s.id,
+    nameEn: s.name_en || s.nameEn || "",
+    nameAr: s.name_ar || s.nameAr || "",
+    isPublic: s.is_public ?? s.isPublic ?? true,
+    imageUrl: s.image_url ?? s.imageUrl ?? null,
+  }));
   return (
     <WebsiteEditor
       categories={categories}
-      deliveryStatus={delivery?.status}
+      deliveryStatus={(delivery as any)?.status}
       publication={publication}
       config={resolveWebsiteConfig(validateWebsiteConfig(content.draft), company.theme.websiteMode)}
       company={{

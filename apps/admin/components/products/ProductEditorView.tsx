@@ -215,9 +215,9 @@ export function ProductEditorView({ product, categories, currency, languages, ca
               {(id) => <Input id={id} name="cost" type="number" min={0} step="any" inputMode="decimal" value={form.cost} onChange={(e) => set("cost", e.target.value)} className="rounded-lg" />}
             </Field>
             <div className="space-y-2 pt-6">
-              {([["vatExempt", copy.vatExempt, copy.vatExemptHint], ["trackStock", copy.trackStock, copy.trackStockHint], ...(form.trackStock ? ([["trackBatches", t.inventory.product.trackBatches, t.inventory.product.trackBatchesHint]] as const) : []), ["isActive", copy.isActive, ""]] as const).map(([key, label, hint]) => (
+              {([["vatExempt", copy.vatExempt, copy.vatExemptHint], ["trackStock", copy.trackStock, copy.trackStockHint], ...(form.trackStock ? [["trackBatches", t.inventory.product.trackBatches, t.inventory.product.trackBatchesHint]] : []), ["isActive", copy.isActive, ""]] as any[]).map(([key, label, hint]) => (
                 <label key={key} className="flex items-start gap-2.5 text-sm text-ink">
-                  <input type="checkbox" className="mt-0.5 h-4 w-4 accent-accent" checked={form[key]} onChange={(e) => set(key, e.target.checked)} />
+                  <input type="checkbox" className="mt-0.5 h-4 w-4 accent-accent" checked={(form as any)[key]} onChange={(e) => set(key, e.target.checked)} />
                   <span>
                     <span className="block font-medium">{label}</span>
                     {hint && <span className="block text-xs text-ink-muted">{hint}</span>}

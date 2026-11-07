@@ -4,7 +4,7 @@ import {
   getTranslations,
   serverMessages,
 } from "@platform/locales";
-import { db } from "../db";
+import { db } from "../atomic";
 import { getMessageStatus, queueMessage } from "@platform/api-client";
 import { resolveIncomingLead } from "../services/lead-resolver";
 

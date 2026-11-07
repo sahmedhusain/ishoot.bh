@@ -2,7 +2,7 @@ import { getCurrencyDecimals } from "@platform/config/currency";
 import { roundMoney } from "../finance/money";
 import { companyCurrency as getAccountingCurrency } from "../finance/company-currency";
 import { serverMessages } from "@platform/locales";
-import { db } from "../db";
+import { db } from "../atomic";
 import { FinancialSummary } from "../types";
 import {
   listInvoices,
@@ -122,7 +122,7 @@ export async function getMonthlyCashflow(
 
   const result: MonthlyCashflowPoint[] = [];
   const now = new Date();
-  const invoiceMap = new Map((invoices || []).map((i) => [i.id, i]));
+  const invoiceMap = new Map<string, any>((invoices || []).map((i: any): [string, any] => [i.id, i]));
 
   for (let i = monthsCount - 1; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -173,7 +173,7 @@ export async function getExpenseCategoryTotals(): Promise<
     listExpenseCategories().catch(() => []),
   ]);
 
-  const catMap = new Map((categories || []).map((c) => [c.id, c.code || c.nameEn?.toLowerCase().replace(/\s+/g, "_") || "other"]));
+  const catMap = new Map<string, string>((categories || []).map((c: any): [string, string] => [c.id, c.code || c.nameEn?.toLowerCase().replace(/\s+/g, "_") || "other"]));
   const totals: Record<string, number> = {};
 
   for (const exp of (expenses || [])) {
@@ -321,7 +321,7 @@ export async function getReceivablesInsight(): Promise<ReceivablesInsight> {
     agingBuckets[bucket].count += 1;
   }
 
-  const contactMap = new Map((contacts || []).map((c: any) => [c.id, c.companyName || `${c.firstName || ""} ${c.lastName || ""}`.trim() || "Client"]));
+  const contactMap = new Map<string, string>((contacts || []).map((c: any): [string, string] => [c.id, (c.companyName || `${c.firstName || ""} ${c.lastName || ""}`.trim() || "Client") as string]));
   const clientPayments = new Map<string, { collected: number; invoiceIds: Set<string> }>();
 
   for (const p of recentPayments) {
@@ -338,7 +338,7 @@ export async function getReceivablesInsight(): Promise<ReceivablesInsight> {
   const topClients = Array.from(clientPayments.entries())
     .map(([clientId, data]) => ({
       clientId,
-      name: contactMap.get(clientId) || "Client",
+      name: (contactMap.get(clientId) || "Client") as string,
       collected: roundMoney(data.collected, accountingCurrency),
       invoices: data.invoiceIds.size,
     }))

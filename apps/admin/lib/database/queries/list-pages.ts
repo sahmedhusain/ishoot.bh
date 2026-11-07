@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import { mapContact, mapDeal, getCRMDeals } from "./crm";
 import type { Invoice, Payment } from "../types";
 import { getClientsPage, type ClientListParameters } from "./client-profiles";
@@ -131,10 +131,21 @@ export async function getDealsPage(
   let items = (result.rows || []).map(mapDeal);
   let total = result.total;
   if (!items.length) {
-    const apiDeals = await getCRMDeals().catch(() => []);
+    const { listContacts } = await import("@platform/api-client");
+    const [apiDeals, apiContacts] = await Promise.all([
+      getCRMDeals().catch(() => []),
+      listContacts().catch(() => []),
+    ]);
     if (apiDeals.length) {
-      items = apiDeals;
-      total = apiDeals.length;
+      const contactMap = new Map<string, any>((apiContacts || []).map((c: any) => [c.id || c.ID, c] as [string, any]));
+      items = apiDeals.map((d: any) => {
+        const contactObj = d.contact_id ? contactMap.get(d.contact_id) : undefined;
+        return {
+          ...d,
+          contact: d.contact ? d.contact : (contactObj ? mapContact(contactObj) : undefined),
+        };
+      });
+      total = items.length;
     }
   }
   return {
@@ -225,23 +236,31 @@ export async function getInvoicesPage(
     });
     let total = result.total;
     if (!items.length) {
-      const { listInvoices } = await import("@platform/api-client");
-      const apiInvoices = await listInvoices().catch(() => []);
+      const { listInvoices, listContacts } = await import("@platform/api-client");
+      const [apiInvoices, apiContacts] = await Promise.all([
+        listInvoices().catch(() => []),
+        listContacts().catch(() => []),
+      ]);
       if (apiInvoices.length) {
         const todayStr = new Date().toISOString().slice(0, 10);
-        items = apiInvoices.map((inv: any) => ({
-          id: inv.id || inv.ID || "",
-          contact_id: inv.contactId || inv.ContactID || "",
-          invoice_number: inv.invoiceNumber || inv.InvoiceNumber || "",
-          issue_date: (inv.issueDate || inv.IssueDate || todayStr).slice(0, 10),
-          due_date: (inv.dueDate || inv.DueDate || todayStr).slice(0, 10),
-          status: inv.status || inv.Status || "sent",
-          currency: inv.currency || inv.Currency || "BHD",
-          total_amount: Number(inv.total || inv.Total || inv.totalAmount || 0),
-          amount_paid: Number(inv.amountPaid || inv.AmountPaid || 0),
-          amount_due: Number(inv.balanceDue || inv.BalanceDue || Math.max(0, Number(inv.total || inv.Total || 0) - Number(inv.amountPaid || 0))),
-          contact: inv.contact ? mapContact(inv.contact) : undefined,
-        }));
+        const contactMap = new Map<string, any>((apiContacts || []).map((c: any) => [c.id || c.ID, c] as [string, any]));
+        items = apiInvoices.map((inv: any) => {
+          const cid = inv.contactId || inv.ContactID || "";
+          const cObj = cid ? contactMap.get(cid) : undefined;
+          return {
+            id: inv.id || inv.ID || "",
+            contact_id: cid,
+            invoice_number: inv.invoiceNumber || inv.InvoiceNumber || "",
+            issue_date: (inv.issueDate || inv.IssueDate || todayStr).slice(0, 10),
+            due_date: (inv.dueDate || inv.DueDate || todayStr).slice(0, 10),
+            status: inv.status || inv.Status || "sent",
+            currency: inv.currency || inv.Currency || "BHD",
+            total_amount: Number(inv.total || inv.Total || inv.totalAmount || 0),
+            amount_paid: Number(inv.amountPaid || inv.AmountPaid || 0),
+            amount_due: Number(inv.balanceDue || inv.BalanceDue || Math.max(0, Number(inv.total || inv.Total || 0) - Number(inv.amountPaid || 0))),
+            contact: inv.contact ? mapContact(inv.contact) : (cObj ? mapContact(cObj) : undefined),
+          };
+        });
         total = items.length;
       }
     }
@@ -330,20 +349,37 @@ export async function getPaymentsPage(
     });
     let total = result.total;
     if (!items.length) {
-      const { listPayments } = await import("@platform/api-client");
-      const apiPayments = await listPayments().catch(() => []);
+      const { listPayments, listInvoices, listContacts } = await import("@platform/api-client");
+      const [apiPayments, apiInvoices, apiContacts] = await Promise.all([
+        listPayments().catch(() => []),
+        listInvoices().catch(() => []),
+        listContacts().catch(() => []),
+      ]);
       if (apiPayments.length) {
-        items = apiPayments.map((p: any) => ({
-          id: p.id || p.ID || "",
-          invoice_id: p.invoiceId || p.InvoiceID || "",
-          receipt_number: p.receiptNumber || p.paymentNumber || p.PaymentNumber || "",
-          payment_date: (p.paymentDate || p.PaymentDate || new Date().toISOString()).slice(0, 10),
-          amount: Number(p.amount || p.Amount || 0),
-          currency: p.currency || p.Currency || "BHD",
-          payment_method: p.paymentMethod || p.PaymentMethod || "bank_transfer",
-          invoiceNumber: p.invoiceNumber || p.InvoiceNumber || "INV-DEMO",
-          customerName: p.customerName || p.contact?.company || p.contact?.firstName || "Customer",
-        }));
+        const invoiceMap = new Map<string, any>((apiInvoices || []).map((i: any) => [i.id || i.ID, i] as [string, any]));
+        const contactMap = new Map<string, any>((apiContacts || []).map((c: any) => [c.id || c.ID, c] as [string, any]));
+        items = apiPayments.map((p: any) => {
+          const invId = p.invoiceId || p.InvoiceID;
+          const inv = invId ? invoiceMap.get(invId) : undefined;
+          const cid = p.contactId || p.ContactID || inv?.contactId || inv?.ContactID;
+          const contact = cid ? contactMap.get(cid) : undefined;
+          return {
+            id: p.id || p.ID || "",
+            invoice_id: invId || "",
+            receipt_number: p.receiptNumber || p.paymentNumber || p.PaymentNumber || "",
+            payment_date: (p.paymentDate || p.PaymentDate || new Date().toISOString()).slice(0, 10),
+            amount: Number(p.amount || p.Amount || 0),
+            currency: p.currency || p.Currency || "BHD",
+            payment_method: p.paymentMethod || p.PaymentMethod || "bank_transfer",
+            invoiceNumber: inv?.invoiceNumber || inv?.InvoiceNumber || p.invoiceNumber || p.InvoiceNumber || "INV",
+            customerName:
+              contact?.companyName ||
+              contact?.company ||
+              (contact?.firstName ? `${contact.firstName} ${contact.lastName || ""}`.trim() : undefined) ||
+              p.customerName ||
+              "Customer",
+          };
+        });
         total = items.length;
       }
     }
@@ -599,7 +635,7 @@ export async function getAttachmentsPage(
   const f = listParameters(input);
   const { Prisma } = await import("@prisma/client");
   const { getAllAttachments } = await import("./attachments");
-  const { runAtomicMutation } = await import("../db");
+  const { runAtomicMutation } = await import("../atomic");
   const pattern = `%${f.q.replace(/[\\%_]/g, "\\$&")}%`;
   const condition = Prisma.sql`WHERE (${f.q}='' OR a."fileName" ILIKE ${pattern} OR a."entityId" ILIKE ${pattern} OR u."fullName" ILIKE ${pattern} OR c."companyName" ILIKE ${pattern} OR concat(c."firstName",' ',c."lastName") ILIKE ${pattern} OR i."invoiceNumber" ILIKE ${pattern} OR d.title ILIKE ${pattern} OR p."receiptNumber" ILIKE ${pattern}) AND (${f.status}='all' OR a."entityType"=${f.status})`;
   const joins = Prisma.sql`FROM "Attachment" a LEFT JOIN "User" u ON u.id=a."uploadedById" LEFT JOIN "CrmContact" c ON c.id=a."entityId" AND a."entityType" IN ('contact','customer_vault') LEFT JOIN "Invoice" i ON i.id=a."entityId" AND a."entityType"='invoice' LEFT JOIN "CrmDeal" d ON d.id=a."entityId" AND a."entityType"='deal' LEFT JOIN "Payment" p ON p.id=a."entityId" AND a."entityType"='payment'`;
@@ -619,7 +655,7 @@ export async function getAttachmentsPage(
     const fetched = await getAllAttachments({ ids: ids.map((r) => r.id) });
     const positions = new Map(ids.map((row, index) => [row.id, index]));
     const items = fetched.sort(
-      (a, b) => positions.get(a.id)! - positions.get(b.id)!,
+      (a, b) => (positions.get(a.id) ?? 0) - (positions.get(b.id) ?? 0),
     );
     const groups = batch
       ? []
@@ -708,19 +744,54 @@ export async function getExpensesPage(
           db.expense.count(),
           db.expense.groupBy({ by: ["scope"], _count: { _all: true } }),
         ]);
+    let items = (result.rows || []).map(mapExpense);
+    let totalCount = count;
+    let finalTotals = (totals || []).map((t) => ({
+      currency: t.currency,
+      amount: Number(t._sum?.amount ?? 0),
+    }));
+    if (!items.length) {
+      const { listExpenses, listExpenseCategories } = await import("@platform/api-client");
+      const [apiExpenses, apiCategories] = await Promise.all([
+        listExpenses().catch(() => []),
+        listExpenseCategories().catch(() => []),
+      ]);
+      if (apiExpenses.length) {
+        const catMap = new Map<string, any>((apiCategories || []).map((c: any) => [c.id, c] as [string, any]));
+        items = apiExpenses.map((e: any) => {
+          const cat = e.categoryId ? catMap.get(e.categoryId) : undefined;
+          return mapExpense({
+            ...e,
+            category: cat,
+            descriptionEn: e.descriptionEn || e.title || "Expense",
+            descriptionAr: e.descriptionAr || undefined,
+            vendorName: e.vendorName || e.vendor || undefined,
+            expenseDate: e.expenseDate
+              ? (typeof e.expenseDate === "string" ? new Date(e.expenseDate) : e.expenseDate)
+              : new Date(),
+            createdAt: e.createdAt
+              ? (typeof e.createdAt === "string" ? new Date(e.createdAt) : e.createdAt)
+              : new Date(),
+            updatedAt: e.updatedAt
+              ? (typeof e.updatedAt === "string" ? new Date(e.updatedAt) : e.updatedAt)
+              : new Date(),
+          });
+        });
+        totalCount = items.length;
+        const sum = items.reduce((acc, exp) => acc + (exp.amount || 0), 0);
+        finalTotals = [{ currency: "BHD", amount: sum }];
+      }
+    }
     return {
       ...result,
       scopeCounts: Object.fromEntries(
         (byScope || []).map((g) => [g.scope, g._count?._all ?? 0]),
       ) as Record<string, number>,
-      items: (result.rows || []).map(mapExpense),
+      items,
       rows: undefined,
       filters: f,
-      totals: (totals || []).map((t) => ({
-        currency: t.currency,
-        amount: Number(t._sum?.amount ?? 0),
-      })),
-      count,
+      totals: finalTotals,
+      count: totalCount,
     };
   });
 }

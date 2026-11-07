@@ -4,8 +4,8 @@ import { serverMessages } from "@platform/locales";
 
 import { requireFeatureEnabled, measureOperation } from "@platform/database";
 import { NextRequest, NextResponse } from "next/server";
-import { createHash } from "node:crypto";
-import { db } from "@platform/database";
+import { createReview } from "../../../lib/api/cms";
+import { serviceToken } from "../../../lib/api/service-token";
 import {
   readSubmission,
   textField,
@@ -38,37 +38,16 @@ export async function POST(req: NextRequest) {
         !["ar", "en"].includes(locale)
       )
         throw new Error(serverMessages.invalidInput);
-      const key = submissionKey(body);
-      const requestHash = createHash("sha256")
-        .update(
-          JSON.stringify({ authorName, companyName, quote, locale, rating }),
-        )
-        .digest("hex");
-      await db.$transaction(async (tx) => {
-        await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${key}, 0))::text`;
-        const prior = await tx.review.findUnique({
-          where: { submissionKey: key },
-        });
-        if (prior) {
-          if (prior.requestHash !== requestHash)
-            throw new Error(serverMessages.invalidInput);
-          return;
-        }
-        await tx.review.create({
-          data: {
-            authorEn: authorName,
-            authorAr: authorName,
-            companyEn: companyName,
-            companyAr: companyName,
-            quoteEn: locale === "en" ? quote : "",
-            quoteAr: locale === "ar" ? quote : "",
-            originalLocale: locale,
-            rating,
-            isApproved: false,
-            submissionKey: key,
-            requestHash,
-          },
-        });
+      const token = await serviceToken().catch(() => "");
+      await createReview(token, {
+        authorEn: authorName,
+        authorAr: authorName,
+        companyEn: companyName || authorName,
+        companyAr: companyName || authorName,
+        quoteEn: locale === "en" ? quote : "",
+        quoteAr: locale === "ar" ? quote : "",
+        rating,
+        isApproved: false,
       });
       return NextResponse.json({ success: true });
     } catch (error) {

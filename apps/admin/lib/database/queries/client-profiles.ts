@@ -3,7 +3,7 @@ import { countryIso } from "../constants/phone";
 import { companyCurrency as getAccountingCurrency } from "../finance/company-currency";
 import { serverMessages } from "@platform/locales";
 import { Prisma } from "@prisma/client";
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import { isValidEmail, normalizeEmail } from "../constants/validation";
 import { isValidPhone, formatPhoneE164, phoneSearchVariants } from "../constants/phone";
 import {
@@ -549,7 +549,7 @@ async function hydrate(rows: StandingRow[]): Promise<ClientListRow[]> {
         invoice_count: r.invoice_count,
         deals_won: r.deals_won,
         contact_persons_count: r.persons,
-        last_activity: (r.last_activity ?? contact.createdAt).toISOString(),
+        last_activity: (r.last_activity ?? (contact as any).createdAt ?? new Date()).toISOString(),
       },
     ];
   });
@@ -605,21 +605,46 @@ export async function getClientsPage(
     let items = await hydrate(rows || []);
     let finalTotal = total;
     if (!items.length) {
-      const { listContacts } = await import("@platform/api-client");
-      const contacts = await listContacts().catch(() => []);
+      const { listContacts, listInvoices } = await import("@platform/api-client");
+      const [contacts, apiInvoices] = await Promise.all([
+        listContacts().catch(() => []),
+        listInvoices().catch(() => []),
+      ]);
       if (contacts.length) {
+        const todayStr = new Date().toISOString().slice(0, 10);
         items = contacts.map((c: any, index: number) => {
           const mapped = mapContact(c);
           delete (mapped as any).notes;
+          const clientInvoices = (apiInvoices || []).filter(
+            (inv: any) => (inv.contactId || inv.ContactID) === c.id,
+          );
+          const billed = clientInvoices.reduce(
+            (sum: number, inv: any) => sum + Number(inv.total || inv.Total || inv.totalAmount || 0),
+            0,
+          );
+          const collected = clientInvoices.reduce(
+            (sum: number, inv: any) => sum + Number(inv.amountPaid || inv.AmountPaid || 0),
+            0,
+          );
+          const outstanding = clientInvoices.reduce(
+            (sum: number, inv: any) => sum + Number(inv.balanceDue || inv.BalanceDue || 0),
+            0,
+          );
+          const isOverdue = clientInvoices.some(
+            (inv: any) =>
+              inv.status === "overdue" ||
+              (Number(inv.balanceDue || inv.BalanceDue || 0) > 0 &&
+                (inv.dueDate || inv.DueDate || todayStr).slice(0, 10) < todayStr),
+          );
           return {
             ...mapped,
             rank: index + 1,
             tier: (index === 0 ? "A" : index < 3 ? "B" : "C") as "A" | "B" | "C",
-            billed: 0,
-            collected: 0,
-            outstanding: 0,
-            overdue: false,
-            invoice_count: 0,
+            billed,
+            collected,
+            outstanding,
+            overdue: isOverdue,
+            invoice_count: clientInvoices.length,
             deals_won: 0,
             contact_persons_count: 0,
             last_activity: typeof c.createdAt === "string" ? c.createdAt : new Date().toISOString(),
@@ -628,6 +653,23 @@ export async function getClientsPage(
         finalTotal = items.length;
       }
     }
+    const computedSummary = {
+      total: finalTotal,
+      companies: items.filter((i) => i.client_kind === "company" || i.company).length,
+      government: items.filter((i) => i.client_kind === "government").length,
+      individuals: items.filter((i) => i.client_kind === "individual" && !i.company).length,
+      tier_a: items.filter((i) => i.tier === "A").length,
+      with_balance: items.filter((i) => (i.outstanding || 0) > 0).length,
+      outstanding: items.reduce((acc, i) => acc + (i.outstanding || 0), 0),
+      billed: items.reduce((acc, i) => acc + (i.billed || 0), 0),
+    };
+    const summaryEntries = Object.entries(summary || {})
+      .filter(([_, v]) => v != null && !isNaN(Number(v)))
+      .map(([k, v]) => [k, Number(v)]);
+    const finalSummary = {
+      ...computedSummary,
+      ...Object.fromEntries(summaryEntries),
+    };
     return {
       items,
       total: finalTotal,
@@ -635,9 +677,7 @@ export async function getClientsPage(
       pageSize: 50,
       filters: f,
       currency,
-      summary: Object.fromEntries(
-        Object.entries(summary || {}).map(([key, value]) => [key, Number(value)]),
-      ) as Record<
+      summary: finalSummary as Record<
         | "total"
         | "companies"
         | "government"

@@ -1,5 +1,5 @@
 import { getCurrentPermissions, requirePagePermission } from "../../../../lib/auth";
-import { db, getExpenseCategories } from "@platform/database";
+import { getExpenseCategories } from "@platform/database";
 import { NewClaimFormView } from "../../../../components/claims/NewClaimFormView";
 import { pageMetadata } from "../../../../lib/company-metadata";
 
@@ -9,22 +9,12 @@ export const dynamic = "force-dynamic";
 
 export default async function NewClaimPage() {
   const user = await requirePagePermission("self_service", "create");
-  const since = new Date(Date.now() - 90 * 86400000);
   const [categories, grants] = await Promise.all([getExpenseCategories(), getCurrentPermissions()]);
-  const meetings = await db.calendarEvent.findMany({
-    // Recent meetings: the claimant's own, or all of them for people who can see the calendar.
-    where: {
-      startDate: { gte: since, lte: new Date(Date.now() + 86400000) },
-      ...(grants["calendar:read"] === true ? {} : { createdById: user.id }),
-    },
-    select: { id: true, title: true, startDate: true },
-    orderBy: { startDate: "desc" },
-    take: 60,
-  });
+  const meetings: { id: string; title: string; startDate: string }[] = [];
   return (
     <NewClaimFormView
       categories={categories}
-      meetings={meetings.map((m) => ({ id: m.id, title: m.title, startDate: m.startDate.toISOString() }))}
+      meetings={meetings}
       canLinkDeals={grants["deals:read"] === true}
       canLinkInvoices={grants["invoices:read"] === true}
     />

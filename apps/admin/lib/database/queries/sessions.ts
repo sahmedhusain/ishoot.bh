@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "../atomic";
 // Staff sessions belong to identity (backend/services/identity); this loads the staff profile a verified session
 // belongs to.
 import { Profile, UserRole } from "../types";

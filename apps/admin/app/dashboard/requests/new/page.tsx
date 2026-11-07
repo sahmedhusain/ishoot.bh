@@ -1,5 +1,6 @@
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
-import { db, getAllServices, getFeatureToggle } from "@platform/database";
+import { getAllServices, getFeatureToggle } from "@platform/database";
+import { listEmployees } from "@platform/api-client";
 import { NewRequestFormView } from "../../../../components/requests/NewRequestFormView";
 import { pageMetadata } from "../../../../lib/company-metadata";
 
@@ -10,22 +11,18 @@ export const dynamic = "force-dynamic";
 export default async function NewRequestPage() {
   await requirePagePermission("requests", "write");
 
-  const [users, canReadContacts, crmFeature, services] = await Promise.all([
-    db.user.findMany({
-      where: { isActive: true },
-      select: { id: true, fullName: true, role: true, department: true },
-      orderBy: { fullName: "asc" },
-    }),
+  const [rawEmployees, canReadContacts, crmFeature, services] = await Promise.all([
+    listEmployees().catch(() => []),
     hasPermission("contacts", "read"),
     getFeatureToggle("crm_deals"),
     getAllServices({ isActive: true }).catch(() => []),
   ]);
 
-  const userList = users.map((u) => ({
+  const userList = rawEmployees.map((u) => ({
     id: u.id,
-    name: u.fullName,
-    role: u.role,
-    department: u.department,
+    name: `${u.first_name_en || ""} ${u.last_name_en || ""}`.trim() || u.id,
+    role: u.job_title_en || "Staff",
+    department: null,
   }));
 
   return (

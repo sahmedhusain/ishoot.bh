@@ -35,7 +35,7 @@ export async function createItTicketAction(data: {
   return measureOperation("action:createItTicketAction", async () => {
     const user = await requirePermission("it_support", "create");
     validateActionArguments("createItTicketAction", { data });
-    const attachments = [];
+    const attachments: any[] = [];
     for (const url of data.attachmentUrls) {
       const file = await claimUpload(url, user.id, { requirePrivate: true });
       attachments.push({

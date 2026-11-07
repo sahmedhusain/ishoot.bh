@@ -6,7 +6,6 @@ import {
   changeStock,
   createActivityLog,
   createStockCount,
-  db,
   findByCode,
   measureOperation,
   recordCountedQuantities,
@@ -217,22 +216,13 @@ export async function scanCountItemAction(
     if (location.warehouseId !== count.warehouseId) throw new Error("Inventory access denied");
     const found = await findByCode(code);
     if (!found) return { success: false as const };
-    const lines = await db.stockCountLine.findMany({
-      where: {
-        countId,
-        productId: found.productId,
-        variantKey: found.variantId ?? "",
-      },
-      select: { id: true },
-    });
-    if (lines.length)
-      return { success: true as const, lineIds: lines.map((l) => l.id) };
     const line = await addCountLine(countId, {
       productId: found.productId,
       variantId: found.variantId,
       locationId,
     });
     revalidatePath(ROUTES.inventory.count(countId));
+    return { success: true as const, lineIds: [line.id] };
     return { success: true as const, lineIds: [line.id] };
   });
 }

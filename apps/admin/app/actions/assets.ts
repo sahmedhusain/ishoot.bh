@@ -3,7 +3,6 @@ import { revalidatePath } from "next/cache";
 import {
   cancelAssetHandover,
   createActivityLog,
-  db,
   measureOperation,
   runAtomicMutation,
   saveAsset,
@@ -185,7 +184,7 @@ export async function cancelAssetHandoverAction(handoverId: string) {
   return measureOperation("action:cancelAssetHandoverAction", async () => {
     const user = await requirePermission("assets", "edit");
     validateActionArguments("cancelAssetHandoverAction", { handoverId });
-    const assetId = await runAtomicMutation(async () => {
+    await runAtomicMutation(async () => {
       await cancelAssetHandover(handoverId);
       await createActivityLog({
         user_id: user.id,
@@ -194,14 +193,8 @@ export async function cancelAssetHandoverAction(handoverId: string) {
         entity_id: handoverId,
         details: {},
       });
-      return (
-        await db.assetHandover.findUniqueOrThrow({
-          where: { id: handoverId },
-          select: { assetId: true },
-        })
-      ).assetId;
     });
-    refresh(assetId, handoverId);
+    refresh(undefined, handoverId);
     return { success: true };
   });
 }

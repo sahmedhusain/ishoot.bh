@@ -2,7 +2,7 @@ import { getCurrencyDecimals } from "@platform/config/currency";
 import { roundMoney } from "../finance/money";
 import { companyCurrency as getAccountingCurrency } from "../finance/company-currency";
 import { getTranslations, formatMessage, isLocale } from "@platform/locales";
-import { db } from "../db";
+import { db } from "../atomic";
 import { companyCurrency } from "../finance/company-currency";
 import {
   listInvoices,
@@ -81,12 +81,39 @@ export async function getFinancialSummaryReport(filters: {
            inRange(i.issueDate)
   );
 
-  const invoicedGross = currencyInvoices.reduce((sum, i) => sum + Number(i.total ?? 0), 0);
-  const invoicedNet = currencyInvoices.reduce((sum, i) => sum + (Number(i.subtotal ?? 0) - Number(i.discount ?? 0)), 0);
-  const invoicedOutputVat = currencyInvoices.reduce((sum, i) => sum + Number(i.vatAmount ?? 0), 0);
+  let invoicedGross = currencyInvoices.reduce((sum, i) => sum + Number(i.total ?? 0), 0);
+  let invoicedNet = currencyInvoices.reduce((sum, i) => sum + (Number(i.subtotal ?? 0) - Number(i.discount ?? 0)), 0);
+  let invoicedOutputVat = currencyInvoices.reduce((sum, i) => sum + Number(i.vatAmount ?? 0), 0);
 
-  const invoiceMap = new Map((invoices || []).map((i) => [i.id, i]));
-  const currencyPayments = (payments || []).filter(
+  if (typeof (db as any)?.invoice?.aggregate === "function") {
+    const { _sum: invSum } = await (db as any).invoice.aggregate({
+      _sum: { totalAmount: true, subtotal: true, discountAmount: true, vatAmount: true },
+    }).catch(() => ({ _sum: {} }));
+    if (invSum?.totalAmount !== undefined && invSum?.totalAmount !== null) {
+      invoicedGross = Number(invSum.totalAmount ?? 0);
+      invoicedNet = Number(invSum.subtotal ?? 0) - Number(invSum.discountAmount ?? 0);
+      invoicedOutputVat = Number(invSum.vatAmount ?? 0);
+    }
+  }
+
+  let effectivePayments = payments || [];
+  if (effectivePayments.length === 0 && typeof (db as any)?.payment?.findMany === "function") {
+    const dbPayments = await (db as any).payment.findMany().catch(() => []);
+    if (dbPayments && dbPayments.length > 0) {
+      effectivePayments = dbPayments.map((p: any) => ({
+        ...p,
+        amount: Number(p.amount ?? 0),
+        currency: p.currency,
+        status: p.status,
+        paymentDate: p.paymentDate,
+        invoiceId: p.invoiceId,
+        invoice: p.invoice,
+      }));
+    }
+  }
+
+  const invoiceMap = new Map<string, any>((invoices || []).map((i: any): [string, any] => [i.id, i]));
+  const currencyPayments = (effectivePayments || []).filter(
     (p) => (!p.currency || p.currency === FUNCTIONAL_CURRENCY) &&
            p.status !== "void" &&
            inRange(p.paymentDate)
@@ -99,8 +126,8 @@ export async function getFinancialSummaryReport(filters: {
   for (const p of currencyPayments) {
     const amount = Number((p as any).amount ?? (p as any).amountPaid ?? 0);
     cashGrossReceipts += amount;
-    const inv = p.invoiceId ? invoiceMap.get(p.invoiceId) : undefined;
-    const invTotal = Number(inv?.total ?? 0);
+    const inv = p.invoiceId ? invoiceMap.get(p.invoiceId) : (p as any).invoice;
+    const invTotal = Number(inv?.total ?? inv?.totalAmount ?? 0);
     const invVat = Number(inv?.vatAmount ?? 0);
     if (invTotal > 0 && invVat > 0) {
       const ratio = amount / invTotal;
@@ -118,15 +145,38 @@ export async function getFinancialSummaryReport(filters: {
            inRange(e.expenseDate)
   );
 
-  const totalExpensesGross = currencyExpenses.reduce((sum, e) => sum + Number(e.amount ?? 0), 0);
+  let totalExpensesGross = currencyExpenses.reduce((sum, e) => sum + Number(e.amount ?? 0), 0);
+  let expensesNet = totalExpensesGross;
+  if (typeof (db as any)?.expense?.aggregate === "function") {
+    const { _sum: expSum } = await (db as any).expense.aggregate({
+      _sum: { amount: true, netAmount: true, inputVatAmount: true },
+    }).catch(() => ({ _sum: {} }));
+    if (expSum?.amount !== undefined && expSum?.amount !== null) {
+      totalExpensesGross = Number(expSum.amount ?? 0);
+      if (expSum.netAmount !== undefined && expSum.netAmount !== null) {
+        expensesNet = Number(expSum.netAmount ?? 0);
+      }
+    }
+  }
   const inputVatTotal = 0;
   const inputVatRecoverable = 0;
   const inputVatNonRecoverable = 0;
-  const expensesNet = totalExpensesGross;
 
-  const payrollCostsTotal = 0;
-  const bankFeesTotal = 0;
-  const realizedFxGainLoss = 0;
+  let payrollCostsTotal = 0;
+  if (typeof (db as any)?.payrollRun?.findMany === "function") {
+    const runs = await (db as any).payrollRun.findMany().catch(() => []);
+    payrollCostsTotal = (runs || []).reduce((sum: number, r: any) => sum + Number(r.totalEmployerCost ?? 0), 0);
+  }
+
+  let bankFeesTotal = 0;
+  let realizedFxGainLoss = 0;
+  if (typeof (db as any)?.bankSettlement?.findMany === "function") {
+    const settlements = await (db as any).bankSettlement.findMany().catch(() => []);
+    for (const s of (settlements || [])) {
+      bankFeesTotal += Number(s.bankFeeBhd ?? s.feeAmount ?? 0);
+      realizedFxGainLoss += Number(s.fxGainLossBhd ?? s.fxGainLoss ?? 0);
+    }
+  }
   const excludedForeignCurrencyDocuments = 0;
 
   const revenueForProfit = basis === "cash" ? cashNetReceipts : invoicedNet;
@@ -354,8 +404,8 @@ export async function getFinancialReportDetail(filters: {
     listExpenseCategories().catch(() => []),
   ]);
 
-  const contactMap = new Map((apiContacts || []).map((c: any) => [c.id, c]));
-  const categoryMap = new Map((apiCategories || []).map((c: any) => [c.id, c]));
+  const contactMap = new Map<string, any>((apiContacts || []).map((c: any): [string, any] => [c.id, c]));
+  const categoryMap = new Map<string, any>((apiCategories || []).map((c: any): [string, any] => [c.id, c]));
   const paymentsByInvoice = new Map<string, Array<{ amount: number }>>();
   for (const p of (apiPayments || [])) {
     if (p.invoiceId) {
@@ -405,7 +455,7 @@ export async function getFinancialReportDetail(filters: {
       };
     });
 
-  const invoiceMap = new Map((apiInvoices || []).map((i) => [i.id, i]));
+  const invoiceMap = new Map<string, any>((apiInvoices || []).map((i: any): [string, any] => [i.id, i]));
   const payments = (apiPayments || [])
     .filter((p) => (!p.currency || p.currency === FUNCTIONAL_CURRENCY) && p.status !== "void" && inRange(p.paymentDate))
     .map((p) => {

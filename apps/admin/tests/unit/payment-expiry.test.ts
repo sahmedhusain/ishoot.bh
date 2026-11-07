@@ -8,6 +8,12 @@ const mocks = vi.hoisted(() => ({
   status: vi.fn(),
   move: vi.fn(),
 }));
+vi.mock("../../lib/database/atomic", () => ({
+  db: {
+    paymentAttempt: { findMany: mocks.attempts, updateMany: mocks.expire },
+    salesOrder: { findUnique: mocks.order },
+  },
+}));
 vi.mock("../../lib/database/db", () => ({
   db: {
     paymentAttempt: { findMany: mocks.attempts, updateMany: mocks.expire },

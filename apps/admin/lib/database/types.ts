@@ -1646,3 +1646,14 @@ export interface EmployeePayrollSettings {
   employer: ContributionSetting;
   supports: EmployeeSupport[];
 }
+
+export type CourierAgencyRecord = any;
+export type ShipmentRecord = any;
+export type OrgChartNode = any;
+export type StockRow = any;
+export type StockCountLineRecord = any;
+export type MovementRecord = any;
+export type ProcurementProductOption = any;
+export type ProcurementLineRecord = any;
+export type SupplierRecord = any;
+

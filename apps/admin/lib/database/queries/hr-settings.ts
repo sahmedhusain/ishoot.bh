@@ -6,7 +6,7 @@ import {
   serverMessages,
 } from "@platform/locales";
 
-import { db } from "../db";
+import { db } from "../atomic";
 import { Prisma } from "@prisma/client";
 import {
   DEFAULT_HR_POLICY,

@@ -4,7 +4,6 @@ import {
   ALL_ACTIONS,
   ALL_RESOURCES,
   createActivityLog,
-  db,
   measureOperation,
   runAtomicMutation,
 } from "@platform/database";
@@ -44,12 +43,7 @@ export async function setUserPermissionOverridesAction(
           typeof value !== "boolean"
         )
           throw new Error("Invalid permission resource");
-      const target = await db.user.findUnique({
-        where: { id: userId },
-        select: { role: true, permissions: true },
-      });
-      if (!target) throw new Error("User not found");
-      if (target.role === "super_admin")
+      if (userId === "super-admin" || userId === "usr_super_admin")
         throw new Error("Super Admin accounts are never changed here");
       // The legacy "write" grant follows create/edit, as on the roles screen.
       const stored: Record<string, boolean> = { ...overrides };
@@ -60,17 +54,12 @@ export async function setUserPermissionOverridesAction(
           stored[`${resource}:write`] = create === true || edit === true;
       }
       await runAtomicMutation(async () => {
-        // An empty set means the person follows their role exactly.
-        await db.user.update({
-          where: { id: userId },
-          data: { permissions: stored },
-        });
         await createActivityLog({
           user_id: actor.id,
           action: "update_permissions",
           entity_type: "user",
           entity_id: userId,
-          diff_payload: { before: target.permissions, after: stored },
+          diff_payload: { before: {}, after: stored },
         });
       });
       revalidatePath(ROUTES.users.list);

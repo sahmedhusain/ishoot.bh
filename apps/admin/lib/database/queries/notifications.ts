@@ -1,7 +1,7 @@
 // Notifications are written here by the domains still in Prisma, inside their own transactions; the admin hands each
 // row to the notify service, which owns the inbox (read state, settings, live delivery; docs/adr/0012). Reading and
 // changing notifications goes through notify (@platform/api-client).
-import { db } from "../db";
+import { db } from "../atomic";
 import { Notification } from "../types";
 
 function mapNotification(n: any): Notification {

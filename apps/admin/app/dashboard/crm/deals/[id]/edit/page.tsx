@@ -1,5 +1,6 @@
 import { requirePagePermission } from "../../../../../../lib/auth";
-import { getActiveDealStages, getCRMDealById, getCRMContactById, db } from "@platform/database";
+import { getActiveDealStages, getCRMDealById, getCRMContactById } from "@platform/database";
+import { listEmployees } from "@platform/api-client";
 import { notFound } from "next/navigation";
 import { DealEditFormView } from "../../../../../../components/crm/DealEditFormView";
 import { pageMetadata } from "../../../../../../lib/company-metadata";
@@ -21,7 +22,7 @@ export default async function DealEditPage({ params }: DealEditPageProps) {
   const [deal, contacts, owners, stages] = await Promise.all([
     dealPromise,
     dealPromise.then(d => d?.contact_id ? getCRMContactById(d.contact_id).then(c => c ? [c] : []) : []),
-    db.user.findMany({ where: { isActive: true }, select: { id: true, fullName: true }, orderBy: { fullName: "asc" } }),
+    listEmployees().then((list) => list.map((e: any) => ({ id: e.id, fullName: `${e.firstNameEn || e.first_name_en || ""} ${e.lastNameEn || e.last_name_en || ""}`.trim() || e.id }))).catch(() => []),
     getActiveDealStages(),
   ]);
 

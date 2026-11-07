@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   canDecideApproval,
   createActivityLog,
-  db,
   getAssetHandover,
   getCompanySettings,
   measureOperation,
@@ -23,10 +22,7 @@ export async function GET(
     const { id } = await params;
     const handover = await getAssetHandover(id);
     if (!handover) return new NextResponse(null, { status: 404 });
-    const approval = await db.approvalRequest.findFirst({
-      where: { targetType: "asset_handover", targetId: id },
-      orderBy: { revision: "desc" },
-    });
+    const approval: any = null;
     const allowed =
       (await hasPermission("assets", "read")) ||
       handover.employee.user_id === user.id ||

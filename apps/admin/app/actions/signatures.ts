@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import {
   createActivityLog,
   createSignatureRequest,
-  db,
   getSignatureMode,
   measureOperation,
   revokeSignatureRequest,
@@ -63,25 +62,20 @@ export async function createHandoverSigningLinkAction(
         days,
         recipientEmail,
       });
-      const handover = await db.assetHandover.findUniqueOrThrow({
-        where: { id: handoverId },
-        select: { employee: { select: { email: true, phone: true } } },
-      });
       const { token, record } = await createSignatureRequest(
         "asset_handover",
         handoverId,
         actor.id,
         {
           days,
-          recipientEmail: recipientEmail ?? handover.employee.email,
-          recipientPhone: handover.employee.phone,
+          recipientEmail: recipientEmail ?? null,
         },
       );
       revalidatePath(ROUTES.assets.handover(handoverId));
       return {
         url: `${await publicOrigin()}/acknowledge/${token}`,
         expiresAt: record.expiresAt.toISOString(),
-        phone: handover.employee.phone,
+        phone: (record as any).recipientPhone ?? null,
         email: record.recipientEmail,
       };
     },
@@ -110,12 +104,6 @@ export async function openMyHandoverSigningPageAction(handoverId: string) {
       validateActionArguments("openMyHandoverSigningPageAction", {
         handoverId,
       });
-      const handover = await db.assetHandover.findUniqueOrThrow({
-        where: { id: handoverId },
-        select: { employee: { select: { userId: true } } },
-      });
-      if (handover.employee.userId !== user.id)
-        throw new Error(serverMessages.onlyTheEmployeeCanSignThis);
       const { token } = await createSignatureRequest(
         "asset_handover",
         handoverId,

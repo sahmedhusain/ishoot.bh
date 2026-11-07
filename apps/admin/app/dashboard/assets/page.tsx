@@ -1,4 +1,5 @@
-import { db, listAssetCategories, listAssets, ASSET_SORTS } from "@platform/database";
+import { listAssetCategories, listAssets, ASSET_SORTS } from "@platform/database";
+import { listEmployees } from "@platform/api-client";
 import { hasPermission, requirePagePermission } from "../../../lib/auth";
 import { AssetsListView } from "../../../components/assets/AssetsListView";
 import { pageMetadata } from "../../../lib/company-metadata";
@@ -19,13 +20,18 @@ export default async function AssetsPage({ searchParams }: { searchParams: Promi
     holder: value("holder") || "all",
     sort: (ASSET_SORTS as readonly string[]).includes(value("sort")) ? value("sort") : "tag",
   };
-  const [result, categories, employees, canCreate, canEdit] = await Promise.all([
+  const [result, categories, rawEmployees, canCreate, canEdit] = await Promise.all([
     listAssets(filters),
     listAssetCategories(false),
-    db.employee.findMany({ where: { status: { not: "terminated" } }, select: { id: true, firstNameEn: true, lastNameEn: true, firstNameAr: true, lastNameAr: true }, orderBy: { firstNameEn: "asc" } }),
+    listEmployees().catch(() => []),
     hasPermission("assets", "create"),
     hasPermission("assets", "edit"),
   ]);
+  const employees = rawEmployees.map((e) => ({
+    id: e.id,
+    name_en: `${e.first_name_en || ""} ${e.last_name_en || ""}`.trim() || e.id,
+    name_ar: `${e.first_name_ar || e.first_name_en || ""} ${e.last_name_ar || e.last_name_en || ""}`.trim() || e.id,
+  }));
   return (
     <AssetsListView
       items={result.items}
@@ -33,7 +39,7 @@ export default async function AssetsPage({ searchParams }: { searchParams: Promi
       totalValue={result.totalValue}
       filters={filters}
       categories={categories.map((c) => ({ id: c.id, name_en: c.name_en, name_ar: c.name_ar }))}
-      employees={employees.map((e) => ({ id: e.id, name_en: `${e.firstNameEn} ${e.lastNameEn}`, name_ar: `${e.firstNameAr} ${e.lastNameAr}` }))}
+      employees={employees}
       canCreate={canCreate}
       canEdit={canEdit}
     />

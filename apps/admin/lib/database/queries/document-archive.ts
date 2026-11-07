@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { db } from "../db";
+import { db } from "../atomic";
 import { ROUTES } from "../constants/routes";
 import type { PermissionResource } from "../constants/permissions";
 import {
@@ -237,8 +237,8 @@ function mapRow(r: Row): ArchiveDocument {
     created_at: r.created_at
       ? (typeof r.created_at === "string" ? r.created_at : r.created_at.toISOString())
       : new Date().toISOString(),
-    expires_on: r.expires_on
-      ? (typeof r.expires_on === "string" ? r.expires_on.slice(0, 10) : r.expires_on.toISOString().slice(0, 10))
+    expires_on: (r as any).expires_on
+      ? (typeof (r as any).expires_on === "string" ? (r as any).expires_on.slice(0, 10) : (r as any).expires_on.toISOString().slice(0, 10))
       : undefined,
     deletable: r.source === "attachment",
   };

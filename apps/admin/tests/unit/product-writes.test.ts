@@ -13,6 +13,13 @@ vi.mock("@platform/api-client", async (importOriginal) => {
     updateProduct: (id: string, data: any) => mocks.create({ data }),
   };
 });
+vi.mock("../../lib/database/atomic", () => ({
+  db: {
+    product: { findFirst: mocks.find },
+    productVariant: { findFirst: mocks.find },
+    $transaction: mocks.transaction,
+  },
+}));
 vi.mock("../../lib/database/db", () => ({
   db: {
     product: { findFirst: mocks.find },

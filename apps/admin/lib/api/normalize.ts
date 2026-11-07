@@ -114,6 +114,38 @@ export function normalizeApiRecord<T = any>(data: T): T {
   if (result.sku && !result.code) {
     result.code = result.sku;
   }
+  if (result.costPrice !== undefined && result.cost === undefined) {
+    result.cost = result.costPrice;
+  }
+  if (result.cost !== undefined && result.costPrice === undefined) {
+    result.costPrice = result.cost;
+  }
+  if (result.sellingPrice !== undefined && result.price === undefined) {
+    result.price = result.sellingPrice;
+  }
+  if (result.price !== undefined && result.sellingPrice === undefined) {
+    result.sellingPrice = result.price;
+  }
+  if (result.trackInventory !== undefined && result.trackStock === undefined) {
+    result.trackStock = result.trackInventory;
+  }
+  if (result.trackStock !== undefined && result.trackInventory === undefined) {
+    result.trackInventory = result.trackStock;
+  }
+
+  // Expense aliases:
+  if (result.vendor && !result.vendorName) {
+    result.vendorName = result.vendor;
+  }
+  if (result.vendorName && !result.vendor) {
+    result.vendor = result.vendorName;
+  }
+  if (result.title && !result.descriptionEn) {
+    result.descriptionEn = result.title;
+  }
+  if (result.descriptionEn && !result.title) {
+    result.title = result.descriptionEn;
+  }
 
   return result as T;
 }

@@ -1,7 +1,7 @@
 import { roundMoney, validMoneyAmount } from "../finance/money";
 import { assertCompanyCurrency } from "../finance/company-currency";
 import { serverMessages } from "@platform/locales";
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import {
   EXPENSE_PAYMENT_METHODS,
 } from "../constants/finance";

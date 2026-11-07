@@ -1,5 +1,5 @@
 import { listFAQs } from "@platform/api-client";
-import { db } from "../db";
+import { db } from "../atomic";
 
 export async function getFaqs(adminOnly = true) {
   try {

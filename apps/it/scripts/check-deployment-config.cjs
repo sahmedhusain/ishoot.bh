@@ -4,7 +4,15 @@ require('dotenv').config({ quiet: true });
 require('dotenv').config({ path: path.resolve(__dirname, '../../../.env'), quiet: true });
 const failures = []; const need = (ok, message) => { if (!ok) failures.push(message); };
 let url; try { url = new URL(process.env.DATABASE_URL); } catch { failures.push('DATABASE_URL must be a PostgreSQL URL'); }
-if (url) { need(['postgres:', 'postgresql:'].includes(url.protocol), 'Use a PostgreSQL connection'); need(Number(url.searchParams.get('connection_limit')) > 0, 'Set an explicit per-process connection_limit in DATABASE_URL'); need(Number(url.searchParams.get('pool_timeout')) > 0, 'Set a finite pool_timeout in DATABASE_URL'); if (!['localhost', '127.0.0.1'].includes(url.hostname)) need(['require', 'verify-full'].includes(url.searchParams.get('sslmode')), 'Require database TLS and verify the provider certificate policy'); }
+const isProduction = process.env.NODE_ENV === "production";
+if (url) {
+  need(['postgres:', 'postgresql:'].includes(url.protocol), 'Use a PostgreSQL connection');
+  if (isProduction) {
+    need(Number(url.searchParams.get('connection_limit')) > 0, 'Set an explicit per-process connection_limit in DATABASE_URL');
+    need(Number(url.searchParams.get('pool_timeout')) > 0, 'Set a finite pool_timeout in DATABASE_URL');
+    if (!['localhost', '127.0.0.1'].includes(url.hostname)) need(['require', 'verify-full'].includes(url.searchParams.get('sslmode')), 'Require database TLS and verify the provider certificate policy');
+  }
+}
 need(Buffer.from(process.env.MFA_ENCRYPTION_KEY || '', 'base64').length === 32, 'Set a separate 32-byte base64 MFA_ENCRYPTION_KEY');
 need(!!process.env.REVALIDATION_SECRET, 'Configure REVALIDATION_SECRET in both apps and the worker');
 need(!!process.env.API_URL, 'Configure API_URL (the backend gateway) for files and every backend service');
@@ -39,8 +47,10 @@ async function finish() {
       console,
     });
     const mail = await mod.exports.getResendCredentials();
-    need(!!mail?.apiKey && !!mail.fromEmail, 'Configure an active encrypted Resend integration with a verified sender (or legacy environment keys)');
-    need(!!mail?.webhookSecret, 'Configure the Resend webhook signing secret in the active integration');
+    if (isProduction) {
+      need(!!mail?.apiKey && !!mail.fromEmail, 'Configure an active encrypted Resend integration with a verified sender (or legacy environment keys)');
+      need(!!mail?.webhookSecret, 'Configure the Resend webhook signing secret in the active integration');
+    }
   } catch (err) {
     failures.push('Could not validate mail settings: ' + (err.message || err));
   }

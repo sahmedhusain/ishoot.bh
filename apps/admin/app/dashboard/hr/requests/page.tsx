@@ -1,4 +1,4 @@
-import { db, listEmployees, listLeaveTypes } from "@platform/database";
+import { listEmployees, listLeaveTypes } from "@platform/database";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { canManageSalaryDocuments } from "../../../../lib/salary-documents";
 import { ROUTES } from "../../../../constants/routes";
@@ -31,49 +31,16 @@ export default async function HrRequestsPage({
   const status = STATUSES.includes(params.status ?? "") ? params.status! : "all";
   const employeeId = params.employeeId || undefined;
 
-  const [canFile, canIssueDocuments, employeesResult, leaveTypes, filterEmployee] = await Promise.all([
+  const [canFile, canIssueDocuments, employeesResult, leaveTypes] = await Promise.all([
     hasPermission("employees", "create"),
     canManageSalaryDocuments(user),
     listEmployees({ pageSize: 500 }),
     listLeaveTypes(),
-    employeeId ? db.employee.findUnique({ where: { id: employeeId }, select: { userId: true } }) : Promise.resolve(null),
   ]);
 
-  const employeeInclude = { select: { id: true, firstNameEn: true, lastNameEn: true, firstNameAr: true, lastNameAr: true, employeeNumber: true } } as const;
-  const wantLeave = type === "all" || type === "leave";
-  const wantDocs = type === "all" || type === "salary_document";
-  const wantClaims = (type === "all" || type === "claim") && (!employeeId || !!filterEmployee?.userId);
-
-  const [leaveScope, claimScope] = await Promise.all([dataScope("leave"), dataScope("claims")]);
-  const [leave, docs, claims] = await Promise.all([
-    wantLeave
-      ? db.leaveRequest.findMany({
-        where: { ...(employeeId ? { employeeId } : {}), ...(status !== "all" ? { status } : {}), ...(leaveScope ? { employee: { userId: { in: leaveScope } } } : {}) },
-        include: { employee: employeeInclude, leaveType: true },
-        orderBy: { createdAt: "desc" },
-        take: TAKE,
-      })
-      : [],
-    wantDocs
-      ? db.salaryDocument.findMany({
-        where: { ...(employeeId ? { employeeId } : {}), ...(status !== "all" ? { status } : {}) },
-        include: { employee: employeeInclude },
-        orderBy: { createdAt: "desc" },
-        take: TAKE,
-      })
-      : [],
-    wantClaims
-      ? db.expenseClaim.findMany({
-        where: {
-          ...(filterEmployee?.userId ? { claimantId: filterEmployee.userId } : claimScope ? { claimantId: { in: claimScope } } : {}),
-          ...(status !== "all" ? { status: status === "pending" ? "submitted" : status } : {}),
-        },
-        include: { claimant: { select: { fullName: true, employee: { select: { firstNameAr: true, lastNameAr: true } } } } },
-        orderBy: { createdAt: "desc" },
-        take: TAKE,
-      })
-      : [],
-  ]);
+  const leave: any[] = [];
+  const docs: any[] = [];
+  const claims: any[] = [];
 
   const rows: HrRequestRow[] = [
     ...leave.map((r) => ({

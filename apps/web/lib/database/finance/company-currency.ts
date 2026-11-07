@@ -1,5 +1,5 @@
 import { serverMessages } from "@platform/locales";
-import { db } from "../db";
+import { db } from "../atomic";
 import { assertSupportedCurrency } from "../constants/finance";
 
 export async function companyCurrency(): Promise<string> {

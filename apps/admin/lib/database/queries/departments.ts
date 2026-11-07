@@ -22,15 +22,15 @@ export interface DepartmentNode {
 }
 
 export async function getDepartmentTree(): Promise<DepartmentNode[]> {
-  const rows = await listDepartments("service-token");
+  const rows = await listDepartments().catch(() => []);
   return rows.map(row => ({
     id: row.id,
     code: row.code,
     name_en: row.nameEn,
     name_ar: row.nameAr,
     catalogue_key: null,
-    parent_id: row.parentId,
-    manager_id: row.headId,
+    parent_id: row.parentId ?? null,
+    manager_id: row.headId ?? null,
     deputy_id: null,
     manager_name: null,
     deputy_name: null,
@@ -43,7 +43,7 @@ export async function getDepartmentTree(): Promise<DepartmentNode[]> {
 }
 
 export async function departmentSubtree(rootIds: string[]): Promise<string[]> {
-  const rows = await listDepartments("service-token");
+  const rows = await listDepartments().catch(() => []);
   const result = new Set(rootIds);
   let grew = true;
   while (grew) {

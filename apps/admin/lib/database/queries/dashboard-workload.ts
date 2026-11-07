@@ -1,6 +1,6 @@
 // Role dashboards: approvals waiting, request/SR workload and complaints, scoped by the caller.
 import type { Prisma } from "@prisma/client";
-import { db } from "../db";
+import { db } from "../atomic";
 import { STALE_APPROVAL_DAYS } from "../constants/approvals";
 import {
   REQUEST_CLOSED_STATUSES,

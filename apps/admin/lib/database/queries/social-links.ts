@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "../atomic";
 import { SocialLink } from "../types";
 
 function mapSocialLink(s: any): SocialLink {

@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "../atomic";
 
 export interface DiscountDecision {
   /** Discount as a percentage of the subtotal (0 when there is none). */

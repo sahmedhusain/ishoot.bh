@@ -7,7 +7,7 @@ import {
 
 import crypto from "crypto";
 import type { Prisma } from "@prisma/client";
-import { db } from "../db";
+import { db } from "../atomic";
 import { claimUploadOrLink } from "../services/uploads";
 import { advanceDealForEvent } from "./crm";
 import { validateSignatureImage } from "../services/signature-image";

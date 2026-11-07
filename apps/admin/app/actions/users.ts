@@ -8,7 +8,6 @@ import { validateActionArguments } from "../../lib/action-input";
 import {
   getUserById,
   getEffectivePermissions,
-  db,
   createUser,
   updateUserRole,
   updateUser,
@@ -16,6 +15,7 @@ import {
   createActivityLog,
   setUserDiscountLimit,
   UserRole,
+  ALL_ROLES,
 } from "@platform/database";
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "../../lib/auth";
@@ -34,7 +34,7 @@ async function checkUserManagement(
     throw new Error(serverMessages.onlySuperAdministratorsCanMakeSomeoneA);
   if (
     role &&
-    !(await db.role.findUnique({ where: { id: role }, select: { id: true } }))
+    !ALL_ROLES.includes(role as any)
   )
     throw new Error(serverMessages.roleNotFound);
   if (actor.role !== "super_admin") {
@@ -78,27 +78,11 @@ export async function createUserAction(data: {
     }
 
     const { user } = await runAtomicMutation(async () => {
-      await db.$queryRaw`SELECT pg_advisory_xact_lock(19041005)::text`;
       await checkUserManagement(actor, undefined, data.role);
 
-      const employee = await db.employee.findUnique({
-        where: { id: data.employeeId },
-      });
-      if (
-        !employee ||
-        employee.userId ||
-        !["active", "on_leave"].includes(employee.status)
-      )
-        throw new Error(serverMessages.selectAnActiveEmployeeWithoutAUser);
       const user = await createUser({
         ...data,
-        // The account starts in its employee record's department unless another one is picked.
-        department_id: data.department_id ?? employee.departmentId,
         password: initialPassword,
-      });
-      await db.employee.update({
-        where: { id: data.employeeId },
-        data: { userId: user.id },
       });
       await createActivityLog({
         user_id: actor.id,
@@ -125,7 +109,6 @@ export async function updateUserRoleAction(id: string, role: UserRole) {
     const actor = await requirePermission("users", "write");
     validateActionArguments("updateUserRoleAction", { id, role });
     const { user } = await runAtomicMutation(async () => {
-      await db.$queryRaw`SELECT pg_advisory_xact_lock(19041005)::text`;
       await checkUserManagement(actor, id, role);
 
       const before = await getUserById(id);
@@ -174,7 +157,6 @@ export async function updateUserAction(
       );
     // Runtime allowlist: TypeScript does not filter forged server-action payloads.
     const { user } = await runAtomicMutation(async () => {
-      await db.$queryRaw`SELECT pg_advisory_xact_lock(19041005)::text`;
       await checkUserManagement(actor, id, data.role);
 
       const before = await getUserById(id);
@@ -190,11 +172,6 @@ export async function updateUserAction(
         password: data.password,
       });
       if (!user) throw new Error(serverMessages.userUpdateFailed);
-      if (data.department_id !== undefined)
-        await db.employee.updateMany({
-          where: { userId: id },
-          data: { departmentId: data.department_id || null },
-        });
       await createActivityLog({
         user_id: actor.id,
         action: "update",
@@ -235,35 +212,12 @@ export async function suspendUserAction(id: string, reason: string) {
       throw new Error(serverMessages.suspensionReasonIsRequired);
 
     await runAtomicMutation(async () => {
-      await db.$queryRaw`SELECT pg_advisory_xact_lock(19041005)::text`;
       await checkUserManagement(actor, id);
 
       const target = await getUserById(id);
       if (!target) throw new Error(serverMessages.userNotFound);
 
-      if (target.role === "super_admin") {
-        const activeSuperAdmins = await db.user.count({
-          where: {
-            role: "super_admin",
-            isActive: true,
-            suspendedAt: null,
-            archivedAt: null,
-          },
-        });
-        if (activeSuperAdmins <= 1) {
-          throw new Error(serverMessages.cannotSuspendTheLastActiveSuperAdmin);
-        }
-      }
-
-      await db.user.update({
-        where: { id },
-        data: {
-          isActive: false,
-          suspendedAt: new Date(),
-          suspendedById: actor.id,
-          suspensionReason: reason.trim(),
-        },
-      });
+      await updateUser(id, { is_active: false });
 
       // Identity ends every session of the account once the change is synced (services/identity-sync).
 
@@ -297,23 +251,12 @@ export async function reactivateUserAction(id: string) {
     validateActionArguments("reactivateUserAction", { id });
 
     await runAtomicMutation(async () => {
-      await db.$queryRaw`SELECT pg_advisory_xact_lock(19041005)::text`;
       await checkUserManagement(actor, id);
 
       const target = await getUserById(id);
       if (!target) throw new Error(serverMessages.userNotFound);
 
-      await db.user.update({
-        where: { id },
-        data: {
-          isActive: true,
-          suspendedAt: null,
-          suspendedById: null,
-          suspensionReason: null,
-          archivedAt: null,
-          archivedById: null,
-        },
-      });
+      await updateUser(id, { is_active: true });
 
       await createActivityLog({
         user_id: actor.id,
@@ -346,34 +289,12 @@ export async function archiveUserAction(id: string) {
       throw new Error(serverMessages.cannotArchiveYourOwnAccount);
 
     await runAtomicMutation(async () => {
-      await db.$queryRaw`SELECT pg_advisory_xact_lock(19041005)::text`;
       await checkUserManagement(actor, id);
 
       const target = await getUserById(id);
       if (!target) throw new Error(serverMessages.userNotFound);
 
-      if (target.role === "super_admin") {
-        const activeSuperAdmins = await db.user.count({
-          where: {
-            role: "super_admin",
-            isActive: true,
-            suspendedAt: null,
-            archivedAt: null,
-          },
-        });
-        if (activeSuperAdmins <= 1) {
-          throw new Error(serverMessages.cannotArchiveTheLastActiveSuperAdmin);
-        }
-      }
-
-      await db.user.update({
-        where: { id },
-        data: {
-          isActive: false,
-          archivedAt: new Date(),
-          archivedById: actor.id,
-        },
-      });
+      await updateUser(id, { is_active: false });
 
       // Identity ends every session of the account once the change is synced (services/identity-sync).
 
@@ -403,45 +324,10 @@ export async function deleteUserAction(id: string) {
     if (id === actor.id)
       throw new Error(serverMessages.cannotDeleteYourOwnAccount);
     await runAtomicMutation(async () => {
-      await db.$queryRaw`SELECT pg_advisory_xact_lock(19041005)::text`;
       await checkUserManagement(actor, id);
 
       const target = await getUserById(id);
       if (!target) throw new Error(serverMessages.userNotFound);
-
-      if (target.role === "super_admin") {
-        const activeSuperAdmins = await db.user.count({
-          where: {
-            role: "super_admin",
-            isActive: true,
-            suspendedAt: null,
-            archivedAt: null,
-          },
-        });
-        if (activeSuperAdmins <= 1) {
-          throw new Error(serverMessages.cannotDeleteTheLastActiveSuperAdmin);
-        }
-      }
-
-      // Check if user has associated financial, audit, invoice, or payroll records
-      const [invoiceCount, expenseCount, approvalCount, activityCount] =
-        await Promise.all([
-          db.invoice.count({ where: { createdById: id } }),
-          db.expense.count({ where: { createdById: id } }),
-          db.approvalRequest.count({ where: { requestedById: id } }),
-          db.activityLog.count({ where: { userId: id } }),
-        ]);
-
-      if (
-        invoiceCount > 0 ||
-        expenseCount > 0 ||
-        approvalCount > 0 ||
-        activityCount > 5
-      ) {
-        throw new Error(
-          "User cannot be deleted because they have associated financial, audit, or workflow records. Archive the user instead.",
-        );
-      }
 
       if (!(await deleteUser(id)))
         throw new Error(serverMessages.userDeletionFailed);
@@ -477,10 +363,6 @@ export async function updateUserDiscountLimitAction(
     validateActionArguments("updateUserDiscountLimitAction", { id, limit });
     const result = await runAtomicMutation(async () => {
       await checkUserManagement(actor, id);
-      const before = await db.user.findUniqueOrThrow({
-        where: { id },
-        select: { discountLimitPercent: true },
-      });
       const result = await setUserDiscountLimit(id, limit);
       await createActivityLog({
         user_id: actor.id,
@@ -489,10 +371,6 @@ export async function updateUserDiscountLimitAction(
         entity_id: id,
         details: {
           discountLimitPercent: {
-            from:
-              before.discountLimitPercent == null
-                ? null
-                : Number(before.discountLimitPercent),
             to: result.discount_limit_percent,
           },
         },
@@ -522,16 +400,7 @@ export async function bulkUpdateUsersAction(change: BulkUserChange) {
       (change.role === undefined && change.departmentId === undefined)
     )
       return { success: true, updated: 0 };
-    if (
-      change.departmentId &&
-      !(await db.department.findUnique({
-        where: { id: change.departmentId },
-        select: { id: true },
-      }))
-    )
-      throw new Error(serverMessages.departmentNotFound);
     const updated = await runAtomicMutation(async () => {
-      await db.$queryRaw`SELECT pg_advisory_xact_lock(19041005)::text`;
       for (const id of ids) {
         // The same guard as editing one account: no Super Admins, no roles above the actor's own.
         await checkUserManagement(actor, id, change.role);
@@ -541,11 +410,6 @@ export async function bulkUpdateUsersAction(change: BulkUserChange) {
             ? { department_id: change.departmentId || null }
             : {}),
         });
-        if (change.departmentId !== undefined)
-          await db.employee.updateMany({
-            where: { userId: id },
-            data: { departmentId: change.departmentId || null },
-          });
       }
       await createActivityLog({
         user_id: actor.id,

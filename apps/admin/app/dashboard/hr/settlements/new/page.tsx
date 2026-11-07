@@ -1,4 +1,4 @@
-import { db } from "@platform/database";
+import { listEmployees } from "@platform/api-client";
 import { requirePagePermission } from "../../../../../lib/auth";
 import { NewSettlementForm } from "../../../../../components/settlements/NewSettlementForm";
 import { pageMetadata } from "../../../../../lib/company-metadata";
@@ -18,36 +18,17 @@ export default async function NewSettlementPage({
     typeof query.employeeId === "string" ? query.employeeId : "";
   const handoverId =
     typeof query.handoverId === "string" ? query.handoverId : "";
-  const [employees, handover] = await Promise.all([
-    db.employee.findMany({
-      where: {
-        finalSettlements: {
-          none: { status: { in: ["draft", "submitted", "approved", "paid"] } },
-        },
-      },
-      select: {
-        id: true,
-        employeeNumber: true,
-        firstNameEn: true,
-        lastNameEn: true,
-        firstNameAr: true,
-        lastNameAr: true,
-        status: true,
-      },
-      orderBy: { firstNameEn: "asc" },
-    }),
-    handoverId
-      ? db.employeeHandover.findUnique({
-        where: { id: handoverId },
-        select: {
-          id: true,
-          employeeId: true,
-          effectiveDate: true,
-          reason: true,
-        },
-      })
-      : null,
-  ]);
+  const rawEmployees = await listEmployees().catch(() => []);
+  const employees = rawEmployees.map((e) => ({
+    id: e.id,
+    employeeNumber: e.employee_number || e.id,
+    firstNameEn: e.first_name_en || "",
+    lastNameEn: e.last_name_en || "",
+    firstNameAr: e.first_name_ar || e.first_name_en || "",
+    lastNameAr: e.last_name_ar || e.last_name_en || "",
+    status: e.status || "active",
+  }));
+  const handover: any = null;
   return (
     <NewSettlementForm
       employees={employees.map((e) => ({

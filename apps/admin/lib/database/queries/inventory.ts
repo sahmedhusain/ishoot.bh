@@ -89,10 +89,10 @@ export async function getStockOverview(
   if (stock.length > 0) {
     rows = stock.map((s: any) => {
       const p = prodMap.get(s.productId || s.product_id) || {};
-      const onHand = Number(s.onHand ?? s.on_hand ?? 0);
-      const reserved = Number(s.reserved ?? 0);
-      const available = Number(s.available ?? onHand - reserved);
-      const unitCost = Number(s.unitCost ?? s.unit_cost ?? p.costPrice ?? p.cost_price ?? 0);
+      const onHand = Number(s.quantityOnHand ?? s.quantity_on_hand ?? s.onHand ?? s.on_hand ?? 0);
+      const reserved = Number(s.quantityReserved ?? s.quantity_reserved ?? s.reserved ?? 0);
+      const available = Number(s.quantityAvailable ?? s.quantity_available ?? s.available ?? onHand - reserved);
+      const unitCost = Number(s.unitCost ?? s.unit_cost ?? p.costPrice ?? p.cost_price ?? p.cost ?? 0);
       return {
         product_id: s.productId || s.product_id || p.id || "",
         variant_id: s.variantId || s.variant_id || null,
@@ -104,11 +104,11 @@ export async function getStockOverview(
         on_hand: onHand,
         reserved,
         available,
-        reorder_point: Number(s.reorderPoint ?? s.reorder_point ?? 5),
+        reorder_point: Number(s.reorderPoint ?? s.reorder_point ?? p.reorderPoint ?? p.reorder_point ?? 1),
         unit_cost: unitCost,
         total_value: onHand * unitCost,
         track_batches: Boolean(p.trackBatches ?? p.track_batches ?? false),
-        warehouse_id: s.warehouseId || s.warehouse_id || "",
+        warehouse_id: s.warehouseId || s.warehouse_id || s.locationId || s.location_id || "",
       };
     });
   } else if (products.length > 0) {
@@ -172,7 +172,7 @@ export async function getStockOverview(
   };
 }
 
-export async function getProductStock(productId: string): Promise<any> {
+export async function getProductStock(productId: string, actorId?: string): Promise<any> {
   const stock = await listStockLevels(productId);
   return stock || [];
 }
@@ -327,7 +327,7 @@ export async function changeStock(
       : -1;
   return adjustStock({
     movement: {
-      type: input.type as any,
+      movementType: input.type as any,
       productId: input.productId,
       variantId: input.variantId || undefined,
       locationId: input.locationId,
@@ -395,19 +395,19 @@ export async function createStockCount(
   });
 }
 
-export async function getStockCount(id: string, actorId?: string) {
+export async function getStockCount(id: string, actorId?: string): Promise<any> {
   // API doesn't have getStockCount.
   throw new Error("getStockCount is not implemented in API");
 }
 
-export async function listStockCounts(actorId?: string) {
+export async function listStockCounts(actorId?: string): Promise<any> {
   return listStockCounts();
 }
 
 export async function recordCountedQuantities(
   countId: string,
   entries: { lineId: string; counted: string; note?: string }[],
-) {
+): Promise<any> {
   // Not available in API.
   throw new Error("recordCountedQuantities is not implemented in API");
 }
@@ -415,7 +415,7 @@ export async function recordCountedQuantities(
 export async function addCountLine(
   countId: string,
   input: { productId: string; variantId?: string; locationId: string },
-) {
+): Promise<{ id: string; [key: string]: any }> {
   // Not available in API.
   throw new Error("addCountLine is not implemented in API");
 }
@@ -437,7 +437,7 @@ export async function findByCode(code: string) {
 export async function setStockCountStatus(
   countId: string,
   status: "review" | "counting" | "cancelled",
-) {
+): Promise<any> {
   // Not available in API.
   throw new Error("setStockCountStatus is not implemented in API");
 }
@@ -445,7 +445,7 @@ export async function setStockCountStatus(
 export async function approveStockCount(
   countId: string,
   userId: string | null,
-) {
+): Promise<{ low: any[]; adjusted: number; [key: string]: any }> {
   // Not available in API.
   throw new Error("approveStockCount is not implemented in API");
 }

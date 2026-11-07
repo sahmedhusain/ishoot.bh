@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { createHash } from "node:crypto";
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import { requireStockLocationAccess } from "./branches";
 import {
   validateStockLabelTemplate,
@@ -107,7 +107,7 @@ export async function generateSerialLabels(
         createdById: actorId,
       },
     });
-    const labels = [];
+    const labels: any[] = [];
     for (let index = 0; index < input.quantity; index++) {
       // UUID-derived identifiers are globally unique internal references, not manufactured GTINs.
       const code = `INT-${generation.id}-${String(index + 1).padStart(4, "0")}`;

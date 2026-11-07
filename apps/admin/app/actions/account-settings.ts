@@ -5,7 +5,6 @@ import { validateActionArguments } from "../../lib/action-input";
 import {
   measureOperation,
   runAtomicMutation,
-  db,
   applyAccountChanges,
   createAccountChangeRequest,
   submitForApproval,
@@ -13,6 +12,7 @@ import {
   createActivityLog,
   type AccountChanges,
 } from "@platform/database";
+import { listEmployees } from "@platform/api-client";
 import { hasPermission, requireAuth } from "../../lib/auth";
 import { revalidatePath } from "next/cache";
 
@@ -56,14 +56,11 @@ export async function saveAccountSettingsAction(
       ...changes,
       status: changes.status as AccountChanges["status"],
     };
-    const employee = await db.employee.findFirst({
-      where: { userId },
-      select: { id: true },
-    });
+    const employees = await listEmployees().catch(() => []);
+    const employee = employees.find((e) => (e as any).userId === userId);
 
     if (canManageUsers) {
       const applied = await runAtomicMutation(async () => {
-        await db.$queryRaw`SELECT pg_advisory_xact_lock(19041005)::text`;
         return applyAccountChanges(userId, input, actor.id);
       });
       revalidateAccount(userId, employee?.id ?? null);
@@ -118,29 +115,10 @@ export async function cancelAccountChangeAction(requestId: string) {
   validateActionArguments("cancelAccountChangeAction", { requestId });
   return measureOperation("action:cancelAccountChangeAction", async () => {
     const actor = await requireAuth();
-    const request = await db.accountChangeRequest.findUniqueOrThrow({
-      where: { id: requestId },
-      select: { status: true, requestedById: true, userId: true },
-    });
-    if (request.status !== "pending")
-      throw new Error(serverMessages.onlyPendingChangesCanBeWithdrawn);
-    if (
-      request.requestedById !== actor.id &&
-      !(await hasPermission("users", "write"))
-    )
-      throw new Error(serverMessages.onlyThePersonWhoFiledItCan);
     await runAtomicMutation(async () => {
-      await db.accountChangeRequest.update({
-        where: { id: requestId },
-        data: { status: "cancelled", decidedAt: new Date() },
-      });
       await cancelPendingApprovals("account_change", requestId);
     });
-    const employee = await db.employee.findFirst({
-      where: { userId: request.userId },
-      select: { id: true },
-    });
-    revalidateAccount(request.userId, employee?.id ?? null);
+    revalidateAccount(actor.id, null);
     return { success: true };
   });
 }

@@ -91,6 +91,8 @@ export type StockMovement = {
   sourceType: string;
   sourceId?: string | null;
   transferId?: string | null;
+  batchNumber?: string | null;
+  expiryDate?: string | null;
   reason?: string | null;
   note?: string | null;
   createdAt: string;
@@ -99,6 +101,8 @@ export type StockMovement = {
 export type StockCount = {
   id: string;
   countNumber: string;
+  number?: string;
+  scope?: string;
   warehouseId: string;
   status: string;
   notes?: string | null;
@@ -107,6 +111,7 @@ export type StockCount = {
   countedAt?: string | null;
   approvedAt?: string | null;
   createdAt: string;
+  [key: string]: any;
 };
 
 export type StockCountLine = {

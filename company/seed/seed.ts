@@ -45,15 +45,21 @@ const create = <T extends RecordWithID>(pathname: string, body: unknown) => requ
 
 async function assertEmpty() {
   const [contacts, pages, invoices, employees, products, customers] = await Promise.all([
-    request<RecordWithID[]>("GET", "/v1/sales/contacts"),
-    request<RecordWithID[]>("GET", "/v1/cms/pages?all=true"),
-    request<RecordWithID[]>("GET", "/v1/finance/invoices"),
-    request<RecordWithID[]>("GET", "/v1/hr/employees"),
-    request<RecordWithID[]>("GET", "/v1/inventory/products"),
-    request<RecordWithID[]>("GET", "/v1/commerce/customers"),
+    request<RecordWithID[]>("GET", "/v1/sales/contacts").catch(() => []),
+    request<RecordWithID[]>("GET", "/v1/cms/pages?all=true").catch(() => []),
+    request<RecordWithID[]>("GET", "/v1/finance/invoices").catch(() => []),
+    request<RecordWithID[]>("GET", "/v1/hr/employees").catch(() => []),
+    request<RecordWithID[]>("GET", "/v1/inventory/products").catch(() => []),
+    request<RecordWithID[]>("GET", "/v1/commerce/customers").catch(() => []),
   ]);
-  if ([contacts, pages, invoices, employees, products, customers].some((items) => (items?.length ?? 0) > 0))
+  const hasRecords = [contacts, pages, invoices, employees, products, customers].some((items) => (items?.length ?? 0) > 0);
+  if (hasRecords) {
+    if (process.env.SEED_FORCE === "true" || process.argv.includes("--force")) {
+      console.warn("⚠️ Existing records found; proceeding with seed due to SEED_FORCE=true / --force.");
+      return;
+    }
     throw new Error("Demo seed requires an empty service database; existing records were preserved.");
+  }
 }
 
 async function seedCMS(profileName: string) {
@@ -219,6 +225,32 @@ async function seedIdentityAndHR() {
     operations: deptProduction.id,
   };
 
+  const roleTitlesEn: Record<string, string> = {
+    super_admin: "Chief Executive Officer",
+    admin: "Managing Director",
+    finance_manager: "Finance Manager",
+    operations_manager: "Head of Production",
+    project_lead: "Lead Producer",
+    editor: "Senior Editor & Colorist",
+    accountant: "Senior Accountant",
+    sales: "Sales & Business Development Manager",
+    marketing: "Marketing & PR Specialist",
+    viewer: "Guest Observer",
+  };
+
+  const roleTitlesAr: Record<string, string> = {
+    super_admin: "الرئيس التنفيذي / مدير عام",
+    admin: "مدير العمليات العامة",
+    finance_manager: "مدير المالية والمحاسبة",
+    operations_manager: "مدير إدارة الإنتاج السينمائي",
+    project_lead: "منتج رئيسي / مدير مشاريع",
+    editor: "محرر ومونتير سينمائي أول",
+    accountant: "محاسب مالي أول",
+    sales: "مدير تطوير الأعمال والمبيعات",
+    marketing: "أخصائي التسويق والعلاقات العامة",
+    viewer: "مراقب خارجي معتمد",
+  };
+
   const employees: Record<string, RecordWithID> = {};
   for (const [idx, member] of demoStaff.entries()) {
     const email = member.email || `${member.key}@example.com`;
@@ -248,8 +280,8 @@ async function seedIdentityAndHR() {
       lastNameAr: lastAr || "",
       email,
       phone: member.phone ? member.phone.replace(/\s+/g, "") : "+97317000000",
-      jobTitleEn: member.role.replace(/_/g, " "),
-      jobTitleAr: member.nameAr,
+      jobTitleEn: roleTitlesEn[member.role] || member.role.replace(/_/g, " "),
+      jobTitleAr: roleTitlesAr[member.role] || member.role.replace(/_/g, " "),
       departmentId: depts[member.department] || deptProduction.id,
       hireDate: today,
       basicSalary: 1200.0 + idx * 100,
@@ -262,149 +294,7 @@ async function seedIdentityAndHR() {
   return employees;
 }
 
-async function seedSalesAndFinance() {
-  const createdContacts: Record<string, RecordWithID> = {};
-  for (const [idx, client] of demoClients.entries()) {
-    const contact = await create<{ id: string }>("/v1/sales/contacts", {
-      firstName: client.name,
-      lastName: "Representative",
-      email: `contact@${client.slug}.example`,
-      phone: `+97317000${String(idx + 10).padStart(3, "0")}`,
-      company: client.name,
-      contactType: "client",
-      tags: ["demo", "production", client.slug],
-    });
-    createdContacts[client.slug] = contact;
-  }
-
-  const primaryContact = createdContacts["gulfwave"] || Object.values(createdContacts)[0];
-  const secondaryContact = createdContacts["falcon-airways"] || Object.values(createdContacts)[1];
-  const tourismContact = createdContacts["iteb"] || Object.values(createdContacts)[2];
-  const bankContact = createdContacts["harbor-national-bank"] || Object.values(createdContacts)[3];
-  const circuitContact = createdContacts["desert-speedway"] || Object.values(createdContacts)[4];
-
-  // Deals across different stages
-  const deal1 = await create<{ id: string }>("/v1/sales/deals", {
-    title: "Gulfwave 5G Commercial Campaign",
-    contactId: primaryContact.id,
-    stage: "proposal",
-    value: 4500.0,
-    currency: "BHD",
-    probability: 65,
-    expectedCloseDate: `${today}T00:00:00Z`,
-  });
-
-  const deal2 = await create<{ id: string }>("/v1/sales/deals", {
-    title: "Falcon Airways Fleet Brand Story",
-    contactId: secondaryContact.id,
-    stage: "negotiation",
-    value: 6000.0,
-    currency: "BHD",
-    probability: 80,
-    expectedCloseDate: `${today}T00:00:00Z`,
-  });
-
-  const deal3 = await create<{ id: string }>("/v1/sales/deals", {
-    title: "Tourism Kingdom Showcase Film",
-    contactId: tourismContact.id,
-    stage: "closed_won",
-    value: 12000.0,
-    currency: "BHD",
-    probability: 100,
-    expectedCloseDate: `${today}T00:00:00Z`,
-  });
-
-  const deal4 = await create<{ id: string }>("/v1/sales/deals", {
-    title: "Harbor National Bank Digital Banking TVC",
-    contactId: bankContact.id,
-    stage: "closed_won",
-    value: 8500.0,
-    currency: "BHD",
-    probability: 100,
-    expectedCloseDate: `${today}T00:00:00Z`,
-  });
-
-  const deal5 = await create<{ id: string }>("/v1/sales/deals", {
-    title: "Bahrain Circuit 2026 Season Opener Film",
-    contactId: circuitContact.id,
-    stage: "qualification",
-    value: 15000.0,
-    currency: "BHD",
-    probability: 40,
-    expectedCloseDate: `${today}T00:00:00Z`,
-  });
-
-  // Quotations
-  const quotation1 = await create<{ id: string }>("/v1/sales/quotations", {
-    quotationNumber: "QTE-2026-000001",
-    contactId: primaryContact.id,
-    dealId: deal1.id,
-    subtotal: 3500.0,
-    discount: 0,
-    vatRate: 10.0,
-    vatAmount: 350.0,
-    total: 3850.0,
-    currency: "BHD",
-    validUntil: `${today}T00:00:00Z`,
-    items: [
-      { description: "Arri Alexa 35 Camera Package (2 Days)", quantity: 2, unitPrice: 1000.0, amount: 2000.0, sortOrder: 0 },
-      { description: "Cinema Prime Lenses (Set of 5)", quantity: 2, unitPrice: 500.0, amount: 1000.0, sortOrder: 1 },
-      { description: "Grip & Sound Equipment Package", quantity: 1, unitPrice: 500.0, amount: 500.0, sortOrder: 2 },
-    ],
-  });
-
-  const quotation2 = await create<{ id: string }>("/v1/sales/quotations", {
-    quotationNumber: "QTE-2026-000002",
-    contactId: secondaryContact.id,
-    dealId: deal2.id,
-    subtotal: 6000.0,
-    discount: 300.0,
-    vatRate: 10.0,
-    vatAmount: 570.0,
-    total: 6270.0,
-    currency: "BHD",
-    validUntil: `${today}T00:00:00Z`,
-    items: [
-      { description: "Commercial Film Production — In-flight Brand Story", quantity: 1, unitPrice: 4500.0, amount: 4500.0, sortOrder: 0 },
-      { description: "DaVinci Resolve HDR Color Grading & Mastering", quantity: 1, unitPrice: 1500.0, amount: 1500.0, sortOrder: 1 },
-    ],
-  });
-
-  const quotation3 = await create<{ id: string }>("/v1/sales/quotations", {
-    quotationNumber: "QTE-2026-000003",
-    contactId: tourismContact.id,
-    dealId: deal3.id,
-    subtotal: 12000.0,
-    discount: 1200.0,
-    vatRate: 10.0,
-    vatAmount: 1080.0,
-    total: 11880.0,
-    currency: "BHD",
-    validUntil: `${today}T00:00:00Z`,
-    items: [
-      { description: "Tourism Kingdom Showcase Film (8K Raw)", quantity: 1, unitPrice: 7000.0, amount: 7000.0, sortOrder: 0 },
-      { description: "Heavy-Lifter Drone Cinematography with Operator", quantity: 2, unitPrice: 1500.0, amount: 3000.0, sortOrder: 1 },
-      { description: "Original Cinematic Orchestral Score & Sound Design", quantity: 1, unitPrice: 2000.0, amount: 2000.0, sortOrder: 2 },
-    ],
-  });
-
-  const quotation4 = await create<{ id: string }>("/v1/sales/quotations", {
-    quotationNumber: "QTE-2026-000004",
-    contactId: bankContact.id,
-    dealId: deal4.id,
-    subtotal: 8500.0,
-    discount: 500.0,
-    vatRate: 10.0,
-    vatAmount: 800.0,
-    total: 8800.0,
-    currency: "BHD",
-    validUntil: `${today}T00:00:00Z`,
-    items: [
-      { description: "Digital Banking Mobile App Commercial TVC", quantity: 1, unitPrice: 6000.0, amount: 6000.0, sortOrder: 0 },
-      { description: "Studio Soundstage & Lighting Package (3 Days)", quantity: 1, unitPrice: 2500.0, amount: 2500.0, sortOrder: 1 },
-    ],
-  });
-
+async function seedSalesAndFinance(employees: Record<string, RecordWithID>) {
   // Helper date generators for realistic historical and overdue ranges
   const pastDate = (daysAgo: number) => {
     const d = new Date();
@@ -416,6 +306,185 @@ async function seedSalesAndFinance() {
     d.setDate(d.getDate() + daysAhead);
     return d.toISOString().slice(0, 10);
   };
+
+  const leadEmployee = employees["karim-fawzi"] || Object.values(employees)[0];
+  const salesEmployee = employees["sami-khoury"] || Object.values(employees)[0];
+  const producerEmployee = employees["tariq-saleh"] || Object.values(employees)[0];
+
+  const createdContacts: Record<string, RecordWithID> = {};
+  for (const [idx, client] of demoClients.entries()) {
+    const contact = await create<{ id: string }>("/v1/sales/contacts", {
+      firstName: client.name,
+      lastName: "Representative",
+      email: `contact@${client.slug}.example`,
+      phone: `+97317000${String(idx + 10).padStart(3, "0")}`,
+      company: client.name,
+      contactType: "client",
+      status: "active",
+      notes: `Primary corporate client account for ${client.name}.`,
+      tags: ["demo", "production", client.slug],
+    });
+    createdContacts[client.slug] = contact;
+  }
+
+  const primaryContact = createdContacts["gulfwave"] || Object.values(createdContacts)[0];
+  const secondaryContact = createdContacts["falcon-airways"] || Object.values(createdContacts)[1];
+  const tourismContact = createdContacts["island-tourism-events-board"] || createdContacts["iteb"] || Object.values(createdContacts)[2];
+  const bankContact = createdContacts["harbor-national-bank"] || Object.values(createdContacts)[3];
+  const circuitContact = createdContacts["desert-speedway"] || Object.values(createdContacts)[4];
+
+  // Deals across different stages
+  const deal1 = await create<{ id: string }>("/v1/sales/deals", {
+    title: "Gulfwave 5G Commercial Campaign",
+    contactId: primaryContact.id,
+    stage: "proposal",
+    status: "open",
+    assignedTo: leadEmployee.id,
+    notes: "Prime commercial campaign for Gulfwave 5G network rollout.",
+    value: 4500.0,
+    currency: "BHD",
+    probability: 65,
+    expectedCloseDate: `${today}T00:00:00Z`,
+  });
+
+  const deal2 = await create<{ id: string }>("/v1/sales/deals", {
+    title: "Falcon Airways Fleet Brand Story",
+    contactId: secondaryContact.id,
+    stage: "negotiation",
+    status: "open",
+    assignedTo: salesEmployee.id,
+    notes: "In-flight entertainment and fleet brand documentary series.",
+    value: 6000.0,
+    currency: "BHD",
+    probability: 80,
+    expectedCloseDate: `${today}T00:00:00Z`,
+  });
+
+  const deal3 = await create<{ id: string }>("/v1/sales/deals", {
+    title: "Tourism Kingdom Showcase Film",
+    contactId: tourismContact.id,
+    stage: "closed_won",
+    status: "won",
+    assignedTo: producerEmployee.id,
+    notes: "8K aerial and ground production showcasing cultural landmarks.",
+    value: 12000.0,
+    currency: "BHD",
+    probability: 100,
+    expectedCloseDate: `${today}T00:00:00Z`,
+  });
+
+  const deal4 = await create<{ id: string }>("/v1/sales/deals", {
+    title: "Harbor National Bank Digital Banking TVC",
+    contactId: bankContact.id,
+    stage: "closed_won",
+    status: "won",
+    assignedTo: leadEmployee.id,
+    notes: "Television and digital commercial for mobile banking launch.",
+    value: 8500.0,
+    currency: "BHD",
+    probability: 100,
+    expectedCloseDate: `${today}T00:00:00Z`,
+  });
+
+  const deal5 = await create<{ id: string }>("/v1/sales/deals", {
+    title: "Bahrain Circuit 2026 Season Opener Film",
+    contactId: circuitContact.id,
+    stage: "qualification",
+    status: "open",
+    assignedTo: salesEmployee.id,
+    notes: "High-speed track coverage and pre-season documentary trailer.",
+    value: 15000.0,
+    currency: "BHD",
+    probability: 40,
+    expectedCloseDate: `${today}T00:00:00Z`,
+  });
+
+  // Quotations
+  const quotation1 = await create<{ id: string }>("/v1/sales/quotations", {
+    quotationNumber: "QTE-2026-000001",
+    contactId: primaryContact.id,
+    dealId: deal1.id,
+    status: "sent",
+    subtotal: 3500.0,
+    discount: 0,
+    vatRate: 10.0,
+    vatAmount: 350.0,
+    total: 3850.0,
+    currency: "BHD",
+    validUntil: `${futureDate(30)}T00:00:00Z`,
+    terms: "50% advance upon confirmation, balance upon delivery.",
+    notes: "Includes ARRI Alexa 35 package and prime lenses.",
+    issuedAt: `${today}T00:00:00Z`,
+    items: [
+      { description: "Arri Alexa 35 Camera Package (2 Days)", quantity: 2, unitPrice: 1000.0, amount: 2000.0, sortOrder: 0 },
+      { description: "Cinema Prime Lenses (Set of 5)", quantity: 2, unitPrice: 500.0, amount: 1000.0, sortOrder: 1 },
+      { description: "Grip & Sound Equipment Package", quantity: 1, unitPrice: 500.0, amount: 500.0, sortOrder: 2 },
+    ],
+  });
+
+  const quotation2 = await create<{ id: string }>("/v1/sales/quotations", {
+    quotationNumber: "QTE-2026-000002",
+    contactId: secondaryContact.id,
+    dealId: deal2.id,
+    status: "sent",
+    subtotal: 6000.0,
+    discount: 300.0,
+    vatRate: 10.0,
+    vatAmount: 570.0,
+    total: 6270.0,
+    currency: "BHD",
+    validUntil: `${futureDate(30)}T00:00:00Z`,
+    terms: "Net 30 days from invoice date.",
+    notes: "Includes 4K master export and DaVinci color grading.",
+    issuedAt: `${today}T00:00:00Z`,
+    items: [
+      { description: "Commercial Film Production — In-flight Brand Story", quantity: 1, unitPrice: 4500.0, amount: 4500.0, sortOrder: 0 },
+      { description: "DaVinci Resolve HDR Color Grading & Mastering", quantity: 1, unitPrice: 1500.0, amount: 1500.0, sortOrder: 1 },
+    ],
+  });
+
+  const quotation3 = await create<{ id: string }>("/v1/sales/quotations", {
+    quotationNumber: "QTE-2026-000003",
+    contactId: tourismContact.id,
+    dealId: deal3.id,
+    status: "accepted",
+    subtotal: 12000.0,
+    discount: 1200.0,
+    vatRate: 10.0,
+    vatAmount: 1080.0,
+    total: 11880.0,
+    currency: "BHD",
+    validUntil: `${futureDate(15)}T00:00:00Z`,
+    terms: "Payment upon milestone delivery.",
+    notes: "Accepted by Tourism Board executive committee.",
+    issuedAt: `${pastDate(15)}T00:00:00Z`,
+    items: [
+      { description: "Tourism Kingdom Showcase Film (8K Raw)", quantity: 1, unitPrice: 7000.0, amount: 7000.0, sortOrder: 0 },
+      { description: "Heavy-Lifter Drone Cinematography with Operator", quantity: 2, unitPrice: 1500.0, amount: 3000.0, sortOrder: 1 },
+      { description: "Original Cinematic Orchestral Score & Sound Design", quantity: 1, unitPrice: 2000.0, amount: 2000.0, sortOrder: 2 },
+    ],
+  });
+
+  const quotation4 = await create<{ id: string }>("/v1/sales/quotations", {
+    quotationNumber: "QTE-2026-000004",
+    contactId: bankContact.id,
+    dealId: deal4.id,
+    status: "accepted",
+    subtotal: 8500.0,
+    discount: 500.0,
+    vatRate: 10.0,
+    vatAmount: 800.0,
+    total: 8800.0,
+    currency: "BHD",
+    validUntil: `${futureDate(20)}T00:00:00Z`,
+    terms: "50% advance, 50% upon delivery.",
+    notes: "Approved for principal photography and post.",
+    issuedAt: `${pastDate(10)}T00:00:00Z`,
+    items: [
+      { description: "Digital Banking Mobile App Commercial TVC", quantity: 1, unitPrice: 6000.0, amount: 6000.0, sortOrder: 0 },
+      { description: "Studio Soundstage & Lighting Package (3 Days)", quantity: 1, unitPrice: 2500.0, amount: 2500.0, sortOrder: 1 },
+    ],
+  });
 
   // -------------------------------------------------------------
   // Historical Invoices & Closed Cashflow (Months -5 through -2)
@@ -875,44 +944,82 @@ async function seedOperations(deal: RecordWithID, employees: Record<string, Reco
   const producerEmployee = employees["tariq-saleh"] || Object.values(employees)[0];
   const adminEmployee = employees["omar-haddad"] || Object.values(employees)[0];
 
-  // Warehouses
-  await create<{ id: string }>("/v1/inventory/warehouses", {
+  // 1. Product Categories
+  const categoriesData = [
+    { slug: "cinema-cameras", nameEn: "Cinema Cameras", nameAr: "كاميرات سينمائية", descriptionEn: "Large format and Super35 digital cinema camera packages", descriptionAr: "كاميرات سينمائية رقمية للإطار الكامل وسوبر 35", sortOrder: 1 },
+    { slug: "cinema-lenses", nameEn: "Cinema Lenses", nameAr: "عدسات سينمائية", descriptionEn: "Anamorphic and spherical cinema prime and zoom lenses", descriptionAr: "عدسات سينمائية أنامورفيك وبرايم وزوم", sortOrder: 2 },
+    { slug: "lighting-grip", nameEn: "Lighting & Grip", nameAr: "إضاءة وتجهيزات", descriptionEn: "Professional LED, HMI fixtures, wireless tubes and stabilizers", descriptionAr: "إضاءات LED متطورة ومعدات تثبيت وموازنة", sortOrder: 3 },
+    { slug: "aerial-drones", nameEn: "Aerial Drones", nameAr: "تصوير جوي ودرون", descriptionEn: "Heavy-lifter and cinema drones with raw recording capabilities", descriptionAr: "طائرات درون سينمائية متقدمة لتسجيل RAW", sortOrder: 4 },
+    { slug: "field-audio", nameEn: "Field Audio", nameAr: "هندسة الصوت الميداني", descriptionEn: "Multi-channel field recorders, mixers and wireless boom mics", descriptionAr: "أجهزة تسجيل صوت ميداني متعدد القنوات وميكروفونات لاسلكية", sortOrder: 5 },
+    { slug: "post-production", nameEn: "Post-Production", nameAr: "ما بعد الإنتاج والتلوين", descriptionEn: "Color grading hardware control panels and HDR master suites", descriptionAr: "لوحات تحكم التلوين السينمائي وأجهزة المونتاج", sortOrder: 6 },
+  ];
+
+  const categories: Record<string, RecordWithID> = {};
+  for (const cat of categoriesData) {
+    const createdCat = await create<{ id: string }>("/v1/inventory/categories", {
+      ...cat,
+      isActive: true,
+    }).catch(() => null);
+    if (createdCat) categories[cat.slug] = createdCat;
+  }
+
+  // 2. Warehouses & Stock Locations
+  const whMain = await create<{ id: string }>("/v1/inventory/warehouses", {
     code: "DEMO",
     nameEn: "Main Cinema Equipment Vault",
     nameAr: "مخزن المعدات السينمائية الرئيسي",
     address: "Seef District, Manama, Kingdom of Bahrain",
+    isActive: true,
     isDefault: true,
+    sortOrder: 1,
   }).catch(() => null);
 
-  await create<{ id: string }>("/v1/inventory/warehouses", {
+  const whStudio = await create<{ id: string }>("/v1/inventory/warehouses", {
     code: "STUDIO",
     nameEn: "Seef Soundstage & Studio Vault",
     nameAr: "مخزن استوديو السيف السينمائي",
     address: "Seef District, Kingdom of Bahrain",
+    isActive: true,
     isDefault: false,
+    sortOrder: 2,
   }).catch(() => null);
 
-  // Cinema Products & Rental Gear
-  const productsData = [
-    ["DEMO-CAM-001", "ARRI Alexa 35 Cinema Package", "حزمة كاميرا آري أليكسا 35 السينمائية", "4K RAW Super35 Cinema Camera with LPL mount", "كاميرا سينمائية فائقة الوضوح 4K RAW", 12000.0, 1000.0],
-    ["DEMO-CAM-002", "RED V-Raptor XL 8K VV Package", "حزمة كاميرا ريد رابتور 8K السينمائية", "8K Vista Vision Cinema Camera System with PL Mount", "نظام كاميرا سينمائي بدقة 8K مع مانت PL", 14000.0, 1200.0],
-    ["DEMO-LENS-001", "Cooke Anamorphic Prime Lenses (Set of 5)", "طقم عدسات كوك أنامورفيك (5 عدسات)", "Full-frame anamorphic lens set (32mm, 40mm, 50mm, 75mm, 100mm)", "طقم عدسات سينمائية أنامورفيك كاملة الإطار", 8500.0, 500.0],
-    ["DEMO-LENS-002", "ARRI Signature Prime Lens Set (18-125mm)", "طقم عدسات آري سيجنتشر برايم", "Full-frame large format cinema lens set", "عدسات آري السينمائية للإطار الكامل", 9500.0, 600.0],
-    ["DEMO-LIGHT-001", "Aputure 1200d Pro Daylight LED Package", "حزمة إضاءة أبتشر 1200d برو النهارية", "High-output daylight LED fixture with F10 Fresnel", "إضاءة LED فائقة القوة مع عدسة فرينل F10", 2500.0, 150.0],
-    ["DEMO-LIGHT-002", "Astera Titan Tube 8-Light Kit with Charging Case", "طقم أنابيب إضاءة أستيرا تايتان (8 أنابيب)", "Wireless pixel-controlled RGBMA LED tube lights", "أنابيب إضاءة لاسلكية ذكية RGBMA", 1800.0, 120.0],
-    ["DEMO-GRIP-001", "Freefly MōVI Pro Gimbal & Ring Package", "نظام مانع الاهتزاز موفي برو للسينما", "3-axis motorized camera stabilizer with Mimic controller", "مثبت كاميرا ثلاثي المحاور مع جهاز التحكم هواء", 3200.0, 200.0],
-    ["DEMO-DRONE-001", "DJI Inspire 3 8K Cinema Drone Package", "طائرات درون سينمائية DJI Inspire 3 8K", "Full-frame 8K ProRes RAW cinema drone system", "نظام تصوير جوي سينمائي بدقة 8K ProRes RAW", 7500.0, 800.0],
-    ["DEMO-AUDIO-001", "Sound Devices 888 16-Channel Audio Recorder", "جهاز تسجيل الصوت السينمائي الميداني 16 قناة", "16-channel portable audio recorder & mixer with timecode", "جهاز تسجيل ومزج صوت ميداني سينمائي مع تايم كود", 4200.0, 250.0],
-    ["DEMO-POST-001", "DaVinci Resolve Studio Advanced Control Panel", "لوحة التحكم المتقدمة دافينشي ريزولف", "Hardware control surface for 8K HDR color grading", "لوحة تحكم هاردوير للتلوين السينمائي 8K HDR", 11000.0, 800.0]
+  const locMain = whMain ? await create<{ id: string }>(`/v1/inventory/warehouses/${whMain.id}/locations`, {
+    code: "VAULT-01",
+    name: "Primary Gear Vault",
+    isActive: true,
+  }).catch(() => null) : null;
+
+  if (whStudio) {
+    await create<{ id: string }>(`/v1/inventory/warehouses/${whStudio.id}/locations`, {
+      code: "STUDIO-BAY",
+      name: "Stage Lighting & Rigging Bay",
+      isActive: true,
+    }).catch(() => null);
+  }
+
+  // 3. Cinema Products & Rental Gear with Initial Stock
+  const productsData: [string, string, string, string, string, number, number, string, number][] = [
+    ["DEMO-CAM-001", "ARRI Alexa 35 Cinema Package", "حزمة كاميرا آري أليكسا 35 السينمائية", "4K RAW Super35 Cinema Camera with LPL mount", "كاميرا سينمائية فائقة الوضوح 4K RAW", 12000.0, 1000.0, "cinema-cameras", 4],
+    ["DEMO-CAM-002", "RED V-Raptor XL 8K VV Package", "حزمة كاميرا ريد رابتور 8K السينمائية", "8K Vista Vision Cinema Camera System with PL Mount", "نظام كاميرا سينمائي بدقة 8K مع مانت PL", 14000.0, 1200.0, "cinema-cameras", 3],
+    ["DEMO-LENS-001", "Cooke Anamorphic Prime Lenses (Set of 5)", "طقم عدسات كوك أنامورفيك (5 عدسات)", "Full-frame anamorphic lens set (32mm, 40mm, 50mm, 75mm, 100mm)", "طقم عدسات سينمائية أنامورفيك كاملة الإطار", 8500.0, 500.0, "cinema-lenses", 5],
+    ["DEMO-LENS-002", "ARRI Signature Prime Lens Set (18-125mm)", "طقم عدسات آري سيجنتشر برايم", "Full-frame large format cinema lens set", "عدسات آري السينمائية للإطار الكامل", 9500.0, 600.0, "cinema-lenses", 5],
+    ["DEMO-LIGHT-001", "Aputure 1200d Pro Daylight LED Package", "حزمة إضاءة أبتشر 1200d برو النهارية", "High-output daylight LED fixture with F10 Fresnel", "إضاءة LED فائقة القوة مع عدسة فرينل F10", 2500.0, 150.0, "lighting-grip", 8],
+    ["DEMO-LIGHT-002", "Astera Titan Tube 8-Light Kit with Charging Case", "طقم أنابيب إضاءة أستيرا تايتان (8 أنابيب)", "Wireless pixel-controlled RGBMA LED tube lights", "أنابيب إضاءة لاسلكية ذكية RGBMA", 1800.0, 120.0, "lighting-grip", 12],
+    ["DEMO-GRIP-001", "Freefly MōVI Pro Gimbal & Ring Package", "نظام مانع الاهتزاز موفي برو للسينما", "3-axis motorized camera stabilizer with Mimic controller", "مثبت كاميرا ثلاثي المحاور مع جهاز التحكم هواء", 3200.0, 200.0, "lighting-grip", 6],
+    ["DEMO-DRONE-001", "DJI Inspire 3 8K Cinema Drone Package", "طائرات درون سينمائية DJI Inspire 3 8K", "Full-frame 8K ProRes RAW cinema drone system", "نظام تصوير جوي سينمائي بدقة 8K ProRes RAW", 7500.0, 800.0, "aerial-drones", 2],
+    ["DEMO-AUDIO-001", "Sound Devices 888 16-Channel Audio Recorder", "جهاز تسجيل الصوت السينمائي الميداني 16 قناة", "16-channel portable audio recorder & mixer with timecode", "جهاز تسجيل ومزج صوت ميداني سينمائي مع تايم كود", 4200.0, 250.0, "field-audio", 4],
+    ["DEMO-POST-001", "DaVinci Resolve Studio Advanced Control Panel", "لوحة التحكم المتقدمة دافينشي ريزولف", "Hardware control surface for 8K HDR color grading", "لوحة تحكم هاردوير للتلوين السينمائي 8K HDR", 11000.0, 800.0, "post-production", 2]
   ];
 
-  for (const [sku, nameEn, nameAr, descEn, descAr, costPrice, sellingPrice] of productsData) {
-    await create<{ id: string }>("/v1/inventory/products", {
+  for (const [sku, nameEn, nameAr, descEn, descAr, costPrice, sellingPrice, catSlug, qty] of productsData) {
+    const createdProduct = await create<{ id: string }>("/v1/inventory/products", {
       sku,
       nameEn,
       nameAr,
       descriptionEn: descEn,
       descriptionAr: descAr,
+      categoryId: categories[catSlug]?.id || null,
       costPrice,
       sellingPrice,
       taxRate: 0,
@@ -921,14 +1028,37 @@ async function seedOperations(deal: RecordWithID, employees: Record<string, Reco
       isActive: true,
       trackInventory: true,
     }).catch(() => null);
+
+    if (createdProduct?.id && locMain?.id) {
+      await create("/v1/inventory/stock/adjust", {
+        movement: {
+          productId: createdProduct.id,
+          locationId: locMain.id,
+          movementType: "initial",
+          quantity: qty,
+          unitCost: costPrice,
+          sourceType: "inventory",
+          note: "Initial seed inventory intake",
+        },
+        level: {
+          productId: createdProduct.id,
+          locationId: locMain.id,
+          quantityOnHand: qty,
+          quantityReserved: 0,
+          quantityAvailable: qty,
+          reorderPoint: 1,
+        },
+      }).catch((e) => console.warn("Stock adjust warning:", e?.message || e));
+    }
   }
 
-  // E-Commerce Customers
+  // 4. E-Commerce Customers
   await create<{ id: string }>("/v1/commerce/customers", {
     firstName: "Sami",
     lastName: "Saleh",
     email: "sami.saleh@example.invalid",
     phone: "+97317000404",
+    status: "active",
   }).catch(() => null);
 
   await create<{ id: string }>("/v1/commerce/customers", {
@@ -936,13 +1066,14 @@ async function seedOperations(deal: RecordWithID, employees: Record<string, Reco
     lastName: "Al-Khatib",
     email: "mona.khatib@example.invalid",
     phone: "+97339112233",
+    status: "active",
   }).catch(() => null);
 
-  // Fleet & Delivery Vehicles
+  // 5. Fleet & Delivery Vehicles
   await create("/v1/delivery/vehicles", { plate: "DEMO-1001", name: "Grip & Lighting Unit Van", kind: "van" }).catch(() => null);
   await create("/v1/delivery/vehicles", { plate: "DEMO-1002", name: "Camera & Audio Production Truck", kind: "truck" }).catch(() => null);
 
-  // Tasks
+  // 6. Workflow Tasks
   const tasksData = [
     ["Prepare demo production equipment call-sheet", "Verify ARRI Alexa 35 sensor calibration and Cooke Anamorphic lens package.", leadEmployee.id, "high"],
     ["Color grading & HDR master export", "DaVinci Resolve Studio color pass for Gulfwave 5G commercial reel.", editorEmployee.id, "high"],
@@ -958,19 +1089,20 @@ async function seedOperations(deal: RecordWithID, employees: Record<string, Reco
       assignedTo,
       dueDate: `${today}T00:00:00Z`,
       priority,
+      status: "in_progress",
       relatedEntityType: "deal",
       relatedEntityId: deal.id,
     }).catch(() => null);
   }
 
-  // Calendar Events
+  // 7. Calendar Events
   const calendarData = [
-    ["Gulfwave 5G Commercial Principal Photography", "Location shoot at Bahrain Bay with Alexa 35 package.", leadEmployee.id, "production", "09:00:00Z", "17:00:00Z"],
-    ["Pre-Production Technical Meeting with Client", "Review storyboard, shot list and lighting setup at Seef Studio Soundstage.", producerEmployee.id, "meeting", "10:00:00Z", "12:00:00Z"],
-    ["Final Color Suite Screening with Director & Client", "DaVinci Resolve HDR 4K screening in Post-Production Suite 1.", editorEmployee.id, "screening", "14:00:00Z", "16:00:00Z"]
+    ["Gulfwave 5G Commercial Principal Photography", "Location shoot at Bahrain Bay with Alexa 35 package.", leadEmployee.id, "production", "09:00:00Z", "17:00:00Z", "Bahrain Bay Promenade"],
+    ["Pre-Production Technical Meeting with Client", "Review storyboard, shot list and lighting setup at Seef Studio Soundstage.", producerEmployee.id, "meeting", "10:00:00Z", "12:00:00Z", "Seef Studio Soundstage"],
+    ["Final Color Suite Screening with Director & Client", "DaVinci Resolve HDR 4K screening in Post-Production Suite 1.", editorEmployee.id, "screening", "14:00:00Z", "16:00:00Z", "Post-Production Suite 1"]
   ];
 
-  for (const [title, description, organizerId, eventType, startTime, endTime] of calendarData) {
+  for (const [title, description, organizerId, eventType, startTime, endTime, location] of calendarData) {
     await create("/v1/workflow/calendar", {
       title,
       description,
@@ -978,6 +1110,8 @@ async function seedOperations(deal: RecordWithID, employees: Record<string, Reco
       endTime: `${today}T${endTime}`,
       organizerId,
       eventType,
+      location: location || "Seef Studio Soundstage",
+      isAllDay: false,
     }).catch(() => null);
   }
 }
@@ -999,7 +1133,7 @@ async function main() {
 
   await seedCMS(profile.display.nameEn);
   const employees = await seedIdentityAndHR();
-  const { deal } = await seedSalesAndFinance();
+  const { deal } = await seedSalesAndFinance(employees);
   await seedOperations(deal, employees);
   await publishDemoWebsite(preset.activity);
 

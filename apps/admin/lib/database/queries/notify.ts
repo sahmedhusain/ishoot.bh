@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "../atomic";
 import type {
   PermissionAction,
   PermissionResource,
@@ -29,7 +29,7 @@ export async function notifyUsersWithPermission(
     (
       await Promise.all(
         roles.map(async (role) =>
-          (await hasPermission(role, resource, action)) ? role : null,
+          (await hasPermission(role as string, resource, action)) ? role : null,
         ),
       )
     ).filter(Boolean),

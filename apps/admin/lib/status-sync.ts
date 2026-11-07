@@ -8,7 +8,7 @@ const state = globalThis as { __statusSync?: ReturnType<typeof setTimeout> };
 export function startStatusSync() {
   const every = Number(process.env.STATUS_SYNC_MS ?? 120_000);
   if (state.__statusSync || !Number.isFinite(every) || every <= 0) return;
-  if (!process.env.API_URL || !process.env.DATABASE_URL) return;
+  if (!process.env.API_URL) return;
   let failures = 0;
   const tick = async () => {
     try {

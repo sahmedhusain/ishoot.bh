@@ -1,6 +1,6 @@
 import { serverMessages } from "@platform/locales";
 import { listIntegrations } from "@platform/api-client";
-import { db } from "../db";
+import { db } from "../atomic";
 import {
   INTEGRATION_PROVIDERS,
   SOCIAL_PLAN_STATUSES,
@@ -260,7 +260,7 @@ export async function getSocialAnalytics(
             ? (owner.status as OwnerInsightStatus)
             : "auth_required";
           let error = typeof owner.error === "string" ? owner.error : null;
-          let snapshot = null;
+          let snapshot: any = null;
           const available =
             Array.isArray(owner.availablePeriods) &&
             owner.availablePeriods.includes(periodDays);
@@ -485,13 +485,7 @@ const planInclude = {
 } as const;
 
 function planView(
-  plan: Awaited<
-    ReturnType<
-      typeof db.socialContentPlan.findFirstOrThrow<{
-        include: typeof planInclude;
-      }>
-    >
-  >,
+  plan: any,
 ): SocialPlanView {
   return {
     id: plan.id,

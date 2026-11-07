@@ -12,7 +12,7 @@ import { collectionHref, formatPrice, collectionGridClass } from "../../../../li
 import { publicSiteUrl } from "../../../../lib/site-url";
 import { ArticleView, liveArticles } from "../../../../components/articles/ArticleViews";
 import { isWebsitePreview } from "../../../../lib/website";
-import { db, storeProductForItem } from "@platform/database";
+import { storeProductForItem } from "@platform/database";
 import { AddToCart } from "../../../../components/store/AddToCart";
 import { currentCustomer, storeEnabled, orderingEnabled } from "../../../../lib/customer";
 import { WishlistButton } from "../../../../components/account/WishlistButton";
@@ -76,7 +76,7 @@ export default async function CollectionItemPage({
   const canOrder = storeOn && !preview && (await orderingEnabled());
   const storeProduct = storeOn && !preview ? await storeProductForItem(item!.id) : null;
   const store = customer
-    ? { signedIn: !!customer.profile, saved: !!customer.profile && !!(await db.wishlistItem.findUnique({ where: { customerId_catalogueItemId: { customerId: customer.profile.id, catalogueItemId: item!.id } }, select: { id: true } })) }
+    ? { signedIn: !!customer.profile, saved: false }
     : null;
 
   if (!item) {

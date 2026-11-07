@@ -3,7 +3,6 @@ import { revalidatePath } from "next/cache";
 import {
   checkPeopleImport,
   createActivityLog,
-  db,
   getEffectivePermissions,
   importPeople,
   measureOperation,
@@ -11,6 +10,7 @@ import {
   PEOPLE_IMPORT_LIMIT,
   type PeopleImportOptions,
   type PeopleImportRow,
+  ALL_ROLES,
 } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { getCurrentPermissions, requirePermission } from "../../lib/auth";
@@ -21,10 +21,7 @@ async function importOptions(actor: {
   role: string;
 }): Promise<PeopleImportOptions> {
   const own = await getCurrentPermissions();
-  const roles = await db.role.findMany({
-    where: { id: { not: "super_admin" } },
-    select: { id: true },
-  });
+  const roles = ALL_ROLES.filter((r) => r !== "super_admin").map((id) => ({ id }));
   const assignable: string[] = [];
   for (const role of roles) {
     if (actor.role === "super_admin") assignable.push(role.id);

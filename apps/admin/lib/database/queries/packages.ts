@@ -1,4 +1,4 @@
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import { requireStockLocationAccess } from "./branches";
 import { postMovements } from "./inventory";
 import { assertPackageParent, uniqueSerials } from "../constants/stock-traceability";
@@ -16,7 +16,7 @@ export async function createStockPackage(input: PackageInput, actorId: string) {
 
     if (input.parentId) {
       const allPackages = await db.stockPackage.findMany({ select: { id: true, parentId: true } });
-      const parents = new Map(allPackages.map((p) => [p.id, p.parentId]));
+      const parents = new Map<string, string | null>(allPackages.map((p: any) => [p.id, p.parentId]));
       assertPackageParent("new-package", input.parentId, parents);
     }
 

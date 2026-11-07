@@ -1,5 +1,5 @@
 import { requirePagePermission } from "../../../../lib/auth";
-import { listLeaveRequests, listLeaveTypes, db, canDecideApproval, getLeaveBalances } from "@platform/database";
+import { listLeaveRequests, listLeaveTypes, canDecideApproval, getLeaveBalances } from "@platform/database";
 import { LeaveManagementView } from "../../../../components/hr/LeaveManagementView";
 import { pageMetadata } from "../../../../lib/company-metadata";
 
@@ -21,27 +21,20 @@ export default async function LeaveManagementPage({
   // This page is "my leave" for everyone, Super Admin and HR included. Other people's requests live in
   // HR Requests (all requests, and filing on someone's behalf) and the Approvals Center (deciding).
   const canFileForOthers = false;
-  const myEmployee = await db.employee.findFirst({ where: { userId: user.id }, include: { department: true } });
+  const myEmployee = null;
 
   const [{ items: requests, total }, leaveTypes, myBalances] = await Promise.all([
     listLeaveRequests({
       status: status === "all" ? undefined : status,
-      employeeId: myEmployee?.id || "no-employee",
+      employeeId: "no-employee",
       page,
       pageSize: 30,
     }),
     listLeaveTypes(),
-    myEmployee ? getLeaveBalances(myEmployee.id) : Promise.resolve([]),
+    Promise.resolve([]),
   ]);
 
-  const pendingIds = requests.filter((r) => r.status === "pending").map((r) => r.id);
-  const pendingApprovals = pendingIds.length
-    ? await db.approvalRequest.findMany({
-      where: { targetType: "leave_request", targetId: { in: pendingIds }, status: "pending" },
-      select: { targetId: true, status: true, requestedById: true, approverIds: true },
-    })
-    : [];
-  const decidableIds = pendingApprovals.filter((a) => canDecideApproval(a, user)).map((a) => a.targetId);
+  const decidableIds: string[] = [];
 
   return (
     <LeaveManagementView
@@ -50,17 +43,7 @@ export default async function LeaveManagementPage({
       myBalances={myBalances}
       // Only names are needed to file for someone else; salaries never leave the server here.
       allEmployees={[]}
-      myEmployee={
-        myEmployee
-          ? {
-            ...myEmployee,
-            leaveBalanceDays: Number(myEmployee.leaveBalanceDays),
-            hireDate: myEmployee.hireDate.toISOString(),
-            createdAt: myEmployee.createdAt.toISOString(),
-            updatedAt: myEmployee.updatedAt.toISOString(),
-          }
-          : null
-      }
+      myEmployee={null}
       currentUserId={user.id}
       canFileForOthers={canFileForOthers}
       decidableIds={decidableIds}

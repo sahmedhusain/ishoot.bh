@@ -75,19 +75,19 @@ const num = (value: any) => value == null ? null : Number(value.toString());
 const toRow = (p: any): ProductRow => ({
   id: p.id,
   sku: p.sku,
-  barcode: p.barcode,
+  barcode: p.barcode ?? null,
   name_en: p.nameEn,
   name_ar: p.nameAr,
-  category_id: p.categoryId,
-  category_en: p.category?.nameEn ?? null,
-  category_ar: p.category?.nameAr ?? null,
-  brand: p.brand,
-  unit: p.unit,
-  cost: num(p.cost) ?? 0,
-  price: num(p.price) ?? 0,
+  category_id: p.categoryId ?? null,
+  category_en: p.category?.nameEn ?? p.categoryEn ?? null,
+  category_ar: p.category?.nameAr ?? p.categoryAr ?? null,
+  brand: p.brand ?? null,
+  unit: p.unit ?? "item",
+  cost: num(p.cost ?? p.costPrice) ?? 0,
+  price: num(p.price ?? p.sellingPrice) ?? 0,
   image_url: p.imageUrls?.[0] ?? null,
-  track_stock: p.trackStock,
-  is_active: p.isActive,
+  track_stock: p.trackStock ?? p.trackInventory ?? true,
+  is_active: p.isActive ?? true,
   variant_count: p.variants?.length ?? 0,
   on_website: !!p.catalogueItemId,
 });
@@ -101,7 +101,11 @@ export interface ProductListQuery {
 }
 
 export async function listProducts(query: ProductListQuery = {}) {
-  const products = await listProductsApi();
+  const [products, categories] = await Promise.all([
+    listProductsApi(),
+    listCategories().catch(() => []),
+  ]);
+  const catMap = new Map<string, any>((categories || []).map((c: any) => [c.id, c] as [string, any]));
   const filtered = (products || []).filter(p => {
     if (query.categoryId && p.categoryId !== query.categoryId) return false;
     if (query.status === "active" && !p.isActive) return false;
@@ -114,8 +118,11 @@ export async function listProducts(query: ProductListQuery = {}) {
   });
   const pageSize = Math.min(Math.max(query.pageSize ?? 25, 1), 100);
   const page = Math.max(query.page ?? 1, 1);
-  const items = filtered.slice((page - 1) * pageSize, page * pageSize);
-  return { rows: items.map(toRow), total: filtered.length, page, pageSize };
+  const items = filtered.slice((page - 1) * pageSize, page * pageSize).map(p => {
+    const cat = p.categoryId ? catMap.get(p.categoryId) : undefined;
+    return toRow({ ...p, category: (p as any).category || cat });
+  });
+  return { rows: items, total: filtered.length, page, pageSize };
 }
 
 export async function getProduct(id: string): Promise<ProductRecord | null> {

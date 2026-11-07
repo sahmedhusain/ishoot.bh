@@ -83,6 +83,11 @@ export type Shipment = {
   proofSignature?: string | null;
   agencyId?: string | null;
   trackingNumber?: string | null;
+  driver_id?: string | null;
+  vehicle_id?: string | null;
+  tracking_token?: string | null;
+  order?: any;
+  [key: string]: any;
 };
 
 export type ShipmentEvent = {

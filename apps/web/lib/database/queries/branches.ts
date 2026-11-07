@@ -1,4 +1,4 @@
-import { db, runAtomicMutation } from "../db";
+import { db, runAtomicMutation } from "../atomic";
 import { getEffectivePermissions } from "./permissions";
 
 /** Resource rights and branch scope are both checked; callers cannot supply an actor's role. */

@@ -214,7 +214,7 @@ export async function getCustomerDossier(
         ? Promise.resolve([])
         : listInquiries().then(list => (list || []).filter(i => {
             const matchLead = (i.inquiryType || "inquiry") === "inquiry" || (i.inquiryType || "inquiry") === "quote_request";
-            const matchCustomer = i.customerId === id;
+            const matchCustomer = (i as any).customerId === id;
             const matchSearch = search ? (i.requesterName?.toLowerCase().includes(search.toLowerCase()) || i.message?.toLowerCase().includes(search.toLowerCase()) || i.subject?.toLowerCase().includes(search.toLowerCase())) : true;
             return matchLead && matchCustomer && matchSearch;
           })),
@@ -229,7 +229,7 @@ export async function getCustomerDossier(
       access?.invoices === false
         ? Promise.resolve([])
         : listInvoices().then(async (list) => {
-            const filtered = [];
+            const filtered: any[] = [];
             for (const inv of list || []) {
               let matchCustomer = inv.contactId === id;
               if (!matchCustomer && inv.dealId) {
@@ -245,7 +245,7 @@ export async function getCustomerDossier(
       access?.payments === false
         ? Promise.resolve([])
         : listPayments().then(async (list) => {
-            const filtered = [];
+            const filtered: any[] = [];
             for (const p of list || []) {
               const inv = p.invoiceId ? await getInvoice(p.invoiceId) : null;
               let matchCustomer = inv ? inv.contactId === id : false;
@@ -325,10 +325,10 @@ export async function getCustomerDossier(
     const [invoiceCount, paymentCount] = [invoicesRaw.length, paymentsRaw.length];
 
     const timestamps = [
-      ...activitiesRaw.map(a => new Date(a.createdAt).getTime()),
-      ...paymentsRaw.map(p => new Date(p.createdAt).getTime()),
-      ...invoicesRaw.map(i => new Date(i.createdAt).getTime()),
-      ...inquiriesRaw.map(i => new Date(i.createdAt).getTime()),
+      ...activitiesRaw.map((a: any) => new Date(a.createdAt || a.occurredAt || 0).getTime()),
+      ...paymentsRaw.map((p: any) => new Date(p.createdAt || p.receivedAt || p.paymentDate || 0).getTime()),
+      ...invoicesRaw.map((i: any) => new Date(i.createdAt || i.issueDate || 0).getTime()),
+      ...inquiriesRaw.map((i: any) => new Date(i.createdAt || i.created_at || 0).getTime()),
     ];
     const lastActivityDate = timestamps.length
       ? new Date(Math.max(...timestamps)).toISOString()
@@ -689,10 +689,10 @@ export async function globalAdminSearch(
         id: c.id,
         title:
           `${c.firstName || ""} ${c.lastName || ""}`.trim() ||
-          c.companyName ||
+          c.company ||
           "Client",
-        subtitle: c.companyName
-          ? `${c.companyName} • ${c.email || c.phone || ""}`
+        subtitle: c.company
+          ? `${c.company} • ${c.email || c.phone || ""}`
           : c.email || c.phone || "Client",
         url: ROUTES.crm.customer(c.id),
         badge: c.contactType || "client",
@@ -737,17 +737,18 @@ export async function globalAdminSearch(
     // 4. People
     const people = categories.has("people")
       ? await listITAccountsForIT("service-token")
-      : [];
-    for (const p of (people?.items || []).filter(p => {
+      : null;
+    const peopleList: any[] = Array.isArray(people) ? people : (people as any)?.items || [];
+    for (const p of peopleList.filter((p: any) => {
       return p.email?.toLowerCase().includes(clean.toLowerCase());
     }).slice(0, limit)) {
       results.push({
         category: "people",
         id: p.id,
         title: p.email,
-        subtitle: p.role,
+        subtitle: p.role || (p.roles && p.roles[0]) || "staff",
         url: `${ROUTES.directory}?q=${encodeURIComponent(p.email)}`,
-        badge: p.role,
+        badge: p.role || (p.roles && p.roles[0]) || "staff",
       });
     }
   } catch (e) {
@@ -762,7 +763,13 @@ export async function getCRMDealOverview(
   /** Owners whose deals count; null or missing for all. */ scope?:
     string[] | null,
 ) {
-  const deals = await listDeals().catch(() => []);
+  const [deals, contacts] = await Promise.all([
+    listDeals().catch(() => []),
+    listContacts().catch(() => []),
+  ]);
+  const contactMap = new Map<string, CRMContact>(
+    (contacts || []).map((c) => [c.id, mapContact(c)] as [string, CRMContact]),
+  );
   const filtered = scope ? (deals || []).filter((d) => d.assignedTo && scope.includes(d.assignedTo)) : (deals || []);
 
   const stageStats: Record<string, { count: number; value: number }> = {};
@@ -785,7 +792,13 @@ export async function getCRMDealOverview(
   const recent = [...filtered]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 5)
-    .map(mapDeal);
+    .map((d) => {
+      const mapped = mapDeal(d);
+      if (mapped.contact_id && contactMap.has(mapped.contact_id)) {
+        mapped.contact = contactMap.get(mapped.contact_id);
+      }
+      return mapped;
+    });
 
   return {
     recent,

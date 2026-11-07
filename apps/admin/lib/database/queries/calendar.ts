@@ -6,7 +6,7 @@ import {
 } from "@platform/locales";
 
 import crypto from "crypto";
-import { db } from "../db";
+import { db } from "../atomic";
 import { ROUTES } from "../constants/routes";
 import type {
   CalendarEvent,
@@ -764,7 +764,7 @@ export async function getCalendarFor(
     orderBy: { startDate: "asc" },
     take: 2000,
   });
-  const events = rows
+  let events = rows
     .filter((row) => canSeeEvent(row, viewer))
     .map((row) => {
       const own = row.createdById === viewer.id;
@@ -776,6 +776,28 @@ export async function getCalendarFor(
       };
     })
     .filter((e) => wanted.has(e.layer));
+  if (!events.length) {
+    const { listCalendarEvents } = await import("../../api/workflow");
+    const apiEvents = await listCalendarEvents().catch(() => []);
+    if (apiEvents && apiEvents.length) {
+      events = apiEvents.map((ev: any) => ({
+        id: ev.id || ev.ID || "",
+        title: ev.title || ev.Title || "",
+        description: ev.description || ev.Description || undefined,
+        start_date: (ev.startTime || ev.StartTime || new Date().toISOString()).replace("Z", ""),
+        end_date: (ev.endTime || ev.EndTime || new Date().toISOString()).replace("Z", ""),
+        is_all_day: Boolean(ev.isAllDay),
+        location: ev.location || undefined,
+        deal_id: ev.dealId || undefined,
+        created_by: ev.organizerId || undefined,
+        created_by_name: "Staff",
+        created_at: ev.createdAt || new Date().toISOString(),
+        updated_at: ev.updatedAt || new Date().toISOString(),
+        layer: "own" as CalendarLayer,
+        editable: true,
+      }));
+    }
+  }
   const system = await systemEvents(viewer, start, end, wanted);
   return [...events, ...system].sort((a, b) =>
     a.start_date.localeCompare(b.start_date),

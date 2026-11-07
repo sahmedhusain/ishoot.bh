@@ -1,9 +1,9 @@
 import {
-  db,
   getSupportClaims,
   listEmployeeSupports,
   listSupportPrograms,
 } from "@platform/database";
+import { listEmployees } from "@platform/api-client";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { SupportProgramsView } from "../../../../components/supports/SupportProgramsView";
 import { SupportClaimsPanel } from "../../../../components/hr/SupportClaimsPanel";
@@ -25,27 +25,24 @@ export default async function SupportsPage({
     typeof query[key] === "string" ? (query[key] as string) : undefined;
   const program = pick("program") ?? "all";
   const status = pick("status") ?? "all";
-  const [programs, enrolments, employees, canEdit, claims] = await Promise.all([
+  const [programs, enrolments, rawEmployees, canEdit, claims] = await Promise.all([
     listSupportPrograms(),
     listEmployeeSupports({
       programId: program === "all" ? undefined : program,
       status,
     }),
-    db.employee.findMany({
-      where: { status: { not: "terminated" } },
-      select: {
-        id: true,
-        employeeNumber: true,
-        firstNameEn: true,
-        lastNameEn: true,
-        firstNameAr: true,
-        lastNameAr: true,
-      },
-      orderBy: { firstNameEn: "asc" },
-    }),
+    listEmployees().catch(() => []),
     hasPermission("payroll", "edit"),
     getSupportClaims(),
   ]);
+  const employees = rawEmployees.map((e) => ({
+    id: e.id,
+    employeeNumber: e.employee_number || e.id,
+    firstNameEn: e.first_name_en || "",
+    lastNameEn: e.last_name_en || "",
+    firstNameAr: e.first_name_ar || e.first_name_en || "",
+    lastNameAr: e.last_name_ar || e.last_name_en || "",
+  }));
   return (
     <div className="space-y-8">
       <SupportProgramsView

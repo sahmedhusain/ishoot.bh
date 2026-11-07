@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "../atomic";
 import { postJournal } from "../queries/accounting-ledger";
 
 export interface StandardAccounts {

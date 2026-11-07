@@ -1,5 +1,5 @@
 import { serverMessages } from "@platform/locales";
-import { db } from "../db";
+import { db } from "../atomic";
 import { ServiceItem, ServiceCategory } from "../types";
 
 function mapService(s: any): ServiceItem {

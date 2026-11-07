@@ -14,6 +14,22 @@ const mocks = vi.hoisted(() => ({
   count: vi.fn(),
   currency: vi.fn(),
 }));
+vi.mock("../../lib/database/atomic", () => ({
+  db: {
+    $queryRaw: mocks.currency,
+    paymentAttempt: {
+      findUnique: mocks.attempt,
+      update: mocks.update,
+      updateMany: mocks.update,
+      findFirst: mocks.used,
+      count: mocks.count,
+      create: vi.fn(),
+    },
+    salesOrder: { findUnique: mocks.order, findUniqueOrThrow: mocks.order },
+    paymentWebhookEvent: { createMany: mocks.events },
+  },
+  runAtomicMutation: (operation: () => Promise<unknown>) => operation(),
+}));
 vi.mock("../../lib/database/db", () => ({
   db: {
     $queryRaw: mocks.currency,

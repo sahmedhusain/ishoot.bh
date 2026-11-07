@@ -31,6 +31,18 @@ docs/           Guides and architecture documentation
 run.sh          One entry point for setup, services, databases, development, tests and deployment
 ```
 
+## Audit & Verification Guardrails
+
+To verify the platform end-to-end (seed parity, directory isolation, service health, OpenAPI linting, per-app contract freshness, Newman contract smoke tests, and monorepo TypeScript checks):
+
+```bash
+npm run audit:all
+```
+
+- [Seed & Preset Parity Guide](docs/seed-parity.md)
+- [Codebase Isolation & Contracts Guide](docs/shared-code-migration.md)
+- [Platform Architecture Specification](docs/ARCHITECTURE.md)
+
 ## Quick start
 
 Prerequisites: Node 22 or newer, Go 1.24+, and Docker.

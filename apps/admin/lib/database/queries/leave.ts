@@ -4,7 +4,7 @@ import {
   serverMessages,
 } from "@platform/locales";
 
-import { db } from "../db";
+import { db } from "../atomic";
 import { leaveDaysCharged, type DayPortion } from "../hr/payroll-engine";
 import {
   getHrPolicy,
