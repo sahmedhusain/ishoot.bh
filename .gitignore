@@ -29,9 +29,6 @@ desktop.ini
 *.log
 graphify-out/
 .agents/
-# Uploaded customer and financial documents
-apps/admin/private/uploads/
-apps/admin/public/uploads/
 apps/*/.next-verify/
 
 .next-website-test/

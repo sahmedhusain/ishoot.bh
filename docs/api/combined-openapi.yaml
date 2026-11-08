@@ -22,26 +22,26 @@ tags:
     description: desk
   - name: CMS
     description: CMS micro-service endpoints
-  - name: articles
-    description: articles
+  - name: pages
+    description: pages
   - name: reviews
     description: reviews
   - name: snapshots
     description: snapshots
-  - name: pages
-    description: pages
-  - name: faqs
-    description: faqs
+  - name: articles
+    description: articles
   - name: statistics
     description: statistics
+  - name: faqs
+    description: faqs
   - name: Commerce
     description: Commerce micro-service endpoints
+  - name: coupons
+    description: coupons
   - name: orders
     description: orders
   - name: customers
     description: customers
-  - name: coupons
-    description: coupons
   - name: Delivery
     description: Delivery micro-service endpoints
   - name: shipments
@@ -56,10 +56,10 @@ tags:
     description: routes
   - name: Files
     description: Files micro-service endpoints
-  - name: files
-    description: files
   - name: uploads
     description: uploads
+  - name: files
+    description: files
   - name: Finance
     description: Finance micro-service endpoints
   - name: expenses
@@ -72,18 +72,20 @@ tags:
     description: payments
   - name: HR
     description: HR micro-service endpoints
-  - name: employees
-    description: employees
   - name: leave
     description: leave
   - name: payroll
     description: payroll
   - name: departments
     description: departments
+  - name: employees
+    description: employees
   - name: Identity
     description: Identity micro-service endpoints
   - name: Inventory
     description: Inventory micro-service endpoints
+  - name: warehouses
+    description: warehouses
   - name: categories
     description: categories
   - name: products
@@ -92,44 +94,42 @@ tags:
     description: stock
   - name: counts
     description: counts
-  - name: warehouses
-    description: warehouses
   - name: ITSM
     description: ITSM micro-service endpoints
   - name: requests
     description: requests
   - name: Notify
     description: Notify micro-service endpoints
-  - name: inbox
-    description: inbox
-  - name: me
-    description: me
   - name: services
     description: services
+  - name: me
+    description: me
+  - name: inbox
+    description: inbox
   - name: Realtime
     description: Realtime micro-service endpoints
   - name: Sales
     description: Sales micro-service endpoints
+  - name: contacts
+    description: contacts
   - name: deals
     description: deals
   - name: inquiries
     description: inquiries
   - name: quotations
     description: quotations
-  - name: contacts
-    description: contacts
   - name: System
     description: System micro-service endpoints
   - name: Workflow
     description: Workflow micro-service endpoints
-  - name: approvals
-    description: approvals
-  - name: signatures
-    description: signatures
   - name: tasks
     description: tasks
   - name: calendar
     description: calendar
+  - name: approvals
+    description: approvals
+  - name: signatures
+    description: signatures
 paths:
   /.well-known/jwks.json:
     get:

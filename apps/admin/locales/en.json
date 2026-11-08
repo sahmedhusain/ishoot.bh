@@ -181,12 +181,7 @@
       "admin": "Administrator",
       "department": "Department",
       "statusActive": "Active",
-      "statusInactive": "Disabled",
-      "production_manager": "Operations Manager",
-      "producer": "Project Lead",
-      "editor": "Content Editor",
-      "operations_manager": "Operations Manager",
-      "project_lead": "Project Lead"
+      "statusInactive": "Disabled"
     },
     "calendar": {
       "title": "Schedule & Deadlines",
@@ -11884,13 +11879,6 @@
     "executiveSub": "Live view of projects, the deal pipeline and cash flow.",
     "financialView": {
       "productionCostsDesc": "Supplies, rentals and wages"
-    },
-    "security": {
-      "roles": {
-        "production_manager": "Operations Head",
-        "editor": "Content Editor",
-        "operations_manager": "Operations Head"
-      }
     },
     "generalInfoTab": {
       "productionAndShootLiveFeed": "Schedule Live Feed URL (.ics)",

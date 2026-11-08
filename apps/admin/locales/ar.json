@@ -181,12 +181,7 @@
       "admin": "مدير النظام",
       "department": "القسم الإداري",
       "statusActive": "نشط",
-      "statusInactive": "معطل",
-      "production_manager": "مدير العمليات",
-      "producer": "مسؤول المشاريع",
-      "editor": "محرر المحتوى",
-      "operations_manager": "مدير العمليات",
-      "project_lead": "مسؤول المشاريع"
+      "statusInactive": "معطل"
     },
     "calendar": {
       "title": "المواعيد ومواعيد التسليم",
@@ -11884,13 +11879,6 @@
     "executiveSub": "متابعة حية للمشاريع وخط الصفقات والتدفقات النقدية.",
     "financialView": {
       "productionCostsDesc": "المشتريات والإيجارات والأجور"
-    },
-    "security": {
-      "roles": {
-        "production_manager": "مدير شؤون العمليات",
-        "editor": "محرر المحتوى",
-        "operations_manager": "رئيس العمليات"
-      }
     },
     "generalInfoTab": {
       "productionAndShootLiveFeed": "رابط تقويم المواعيد المباشر",

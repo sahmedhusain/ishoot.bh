@@ -50,8 +50,8 @@ describe("admin wording per business activity", () => {
     }
   });
 
-  test("activities other than media keep the neutral copy", () => {
-    for (const activity of BUSINESS_ACTIVITIES.filter((a) => a !== "media")) {
+  test("all business activities keep the neutral copy without hardcoded fallbacks", () => {
+    for (const activity of BUSINESS_ACTIVITIES) {
       for (const locale of ["en", "ar"] as const)
         expect(getAdminTranslations(locale, activity)).toEqual(
           getTranslations(locale).admin,
@@ -59,23 +59,6 @@ describe("admin wording per business activity", () => {
     }
     expect(getAdminTranslations("en", null)).toEqual(
       getTranslations("en").admin,
-    );
-  });
-
-  test("the media wording overrides existing keys only, in both languages", () => {
-    for (const activity of Object.keys(adminActivities)) {
-      const en = flat(adminActivityCopy("en", activity));
-      const ar = flat(adminActivityCopy("ar", activity));
-      expect(Object.keys(en).sort(), activity).toEqual(Object.keys(ar).sort());
-      const base = flat(getTranslations("en").admin);
-      for (const key of Object.keys(en))
-        expect(base, key).toHaveProperty([key]);
-    }
-    expect(getAdminTranslations("en", "media").nav.calendar).toBe(
-      adminActivities.media.en.nav.calendar,
-    );
-    expect(getAdminTranslations("en", "media").nav.deals).toBe(
-      getTranslations("en").admin.nav.deals,
     );
   });
 });

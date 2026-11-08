@@ -52,7 +52,7 @@ export function EmployeeAccountCard({
   const showPay = canViewPay || canManageUsers;
   const canEdit = !!account && !isSuperAdmin && (canManageUsers || canEditEmployees) && !pending;
 
-  const localRoles = roles.map((r) => ({ id: r.id, name: (t.roles as Record<string, string>)[r.id] ?? r.name }));
+  const localRoles = roles.map((r) => ({ id: r.id, name: r.name || (t.roles as Record<string, string>)[r.id] || r.id }));
   const roleName = (id: unknown) => localRoles.find((r) => r.id === id)?.name ?? String(id ?? "—");
   const managerName = (id: unknown) => (id ? managers.find((m) => m.id === id)?.name ?? "—" : a.noManager);
   const percent = (v: unknown, empty: string) => (v == null ? empty : `${v}%`);

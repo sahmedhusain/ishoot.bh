@@ -7,7 +7,7 @@
 //	                    (with -from-access-key, -from-secret-key, -from-region)
 //
 // The target and database come from the files service's own environment (DATABASE_URL, S3_*, FILES_*_BUCKET).
-// Run: go run ./tools/storage-copy -from-dir ../apps/admin/private/uploads
+// Run: go run ./tools/storage-copy -from-dir ./legacy-uploads
 package main
 
 import (

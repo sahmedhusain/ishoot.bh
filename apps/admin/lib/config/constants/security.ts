@@ -58,18 +58,13 @@ export const USER_ROLES: RoleConfig[] = [
   },
   {
     value: "operations_manager",
-    translationKey: "security.roles.productionManager",
+    translationKey: "roles.operations_manager",
     badgeColorClass: "text-indigo-400 bg-indigo-500/10 border-indigo-500/20",
   },
   {
     value: "project_lead",
-    translationKey: "security.roles.producer",
+    translationKey: "roles.project_lead",
     badgeColorClass: "text-cyan-400 bg-cyan-500/10 border-cyan-500/20",
-  },
-  {
-    value: "editor",
-    translationKey: "security.roles.editor",
-    badgeColorClass: "text-slate-400 bg-slate-500/10 border-slate-500/20",
   },
   {
     value: "viewer",
