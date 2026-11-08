@@ -100,9 +100,7 @@ async function mapSettings(s: any): Promise<CompanySettings> {
     rules_ar: s.rulesAr || undefined,
     theme: normalizeTheme(s.theme),
     setup_completed: Boolean(
-      s.setupCompletedAt ||
-      process.env.COMPANY_PROFILE?.trim() ||
-      process.env.NODE_ENV !== "production",
+      s.setupCompletedAt || process.env.COMPANY_PROFILE?.trim(),
     ),
     content_languages: normalizeLanguages(s.contentLanguages),
     primary_language: normalizePrimaryLanguage(
@@ -134,15 +132,31 @@ export async function getCompanySettings(): Promise<CompanySettings> {
       return mapSettings(row);
     }
     return mapSettings({
-      id: "default",
-      companyNameEn: "iShoot",
-      companyNameAr: "آي شوت",
-      defaultCurrency: "BHD",
-      currencyDecimals: 3,
-      vatPercentage: 10,
+      id: "unconfigured",
+      companyNameEn:
+        process.env.NEXT_PUBLIC_COMPANY_NAME_EN ||
+        process.env.COMPANY_NAME_EN ||
+        "",
+      companyNameAr:
+        process.env.NEXT_PUBLIC_COMPANY_NAME_AR ||
+        process.env.COMPANY_NAME_AR ||
+        "",
+      defaultCurrency: (process.env.NEXT_PUBLIC_DEFAULT_CURRENCY ||
+        process.env.DEFAULT_CURRENCY ||
+        "USD") as SupportedCurrency,
+      currencyDecimals: Number(
+        process.env.NEXT_PUBLIC_CURRENCY_DECIMALS ||
+          process.env.CURRENCY_DECIMALS ||
+          2,
+      ),
+      vatPercentage: Number(
+        process.env.NEXT_PUBLIC_VAT_PERCENTAGE ||
+          process.env.VAT_PERCENTAGE ||
+          0,
+      ),
       vatEnabled: false,
       theme: {},
-      contentLanguages: ["en", "ar"],
+      contentLanguages: ["en"],
       primaryLanguage: "en",
       updatedAt: new Date(),
     });

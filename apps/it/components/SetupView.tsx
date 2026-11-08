@@ -205,7 +205,7 @@ export function SetupView({
       <div className="flex flex-wrap items-center justify-between gap-4">
         <PageTitle title={s.title} description={s.description} />
         <Link
-          href="/"
+          href="/?skip=1"
           className="it-setup-skip inline-flex items-center gap-2 rounded border border-outline-variant px-3 py-2 text-sm font-medium text-ink hover:bg-surface-container"
         >
           <FastForward className="h-4 w-4" aria-hidden />

@@ -12,6 +12,7 @@ import {
   disableMFA,
   getOwnAccount,
   getQueueTicket,
+  getCompanySetupStatusForIT,
   isApiError,
   registerUpload,
   retryMessageForIT,
@@ -78,6 +79,7 @@ export async function signInAction(
   const clientIp = header
     ? (await headers()).get(header)?.split(",")[0]?.trim().slice(0, 45)
     : undefined;
+  let targetUrl = "/";
   try {
     const credential = await signIn(REALM, {
       email: identifier,
@@ -86,13 +88,19 @@ export async function signInAction(
       clientIp: clientIp || undefined,
     });
     await setCookies(sessionCookies(credential, identifier));
+    const status = await asUser(() =>
+      getCompanySetupStatusForIT(credential.accessToken),
+    ).catch(() => null);
+    if (!status?.finished) {
+      targetUrl = "/setup";
+    }
   } catch (error) {
     if (isApiError(error, "mfa_required")) return { step: "otp" };
     if (isApiError(error) && (error.status === 401 || error.status === 422))
       return { step, error: "invalid" };
     return { step, error: "unavailable" };
   }
-  redirect("/");
+  redirect(targetUrl);
 }
 
 export async function signOutAction() {

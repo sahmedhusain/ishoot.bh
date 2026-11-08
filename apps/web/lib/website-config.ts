@@ -500,8 +500,6 @@ export function validateWebsiteConfig(value: unknown): WebsiteConfig {
   if (data.documents !== undefined) {
     result.documents = validateWebsiteDocuments(data.documents);
   }
-  if (!result.contactTitleEn || !result.contactTitleAr)
-    throw new Error(serverMessages.contactTitlesAreRequiredInBothLanguages);
   return result;
 }
 export interface PublicService {
