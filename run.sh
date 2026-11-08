@@ -252,17 +252,17 @@ menu_doctor() {
     echo "${GREEN}${BOLD}=== 🛠️ System Doctor & Audit ===${RESET}"
     echo ""
     echo "  ${GREEN}[1]${RESET} Run System Doctor (Tools, .env, Services, Ports)"
-    echo "  ${GREEN}[2]${RESET} Inventory Audit"
-    echo "  ${GREEN}[3]${RESET} Customer Identities Audit"
-    echo "  ${GREEN}[4]${RESET} Security & Audit Verification"
+    echo "  ${GREEN}[2]${RESET} Run Full 5-Pillar End-to-End Audit"
+    echo "  ${GREEN}[3]${RESET} Run Codebase & Directory Isolation Check"
+    echo "  ${GREEN}[4]${RESET} Run IT Realm Security & Audit Verification"
     echo "  ${RED}[0]${RESET} Back to Main Menu"
     echo ""
     printf "%sEnter choice [0-4]: %s" "$BOLD" "$RESET"
     read -r subchoice || subchoice=""
     case "$subchoice" in
       1) cmd_doctor; pause_prompt ;;
-      2) cmd_audit inventory; pause_prompt ;;
-      3) cmd_audit identities; pause_prompt ;;
+      2) cmd_audit all; pause_prompt ;;
+      3) cmd_audit isolation; pause_prompt ;;
       4) cmd_audit security; pause_prompt ;;
       0) return ;;
       *) echo "${RED}Invalid choice.${RESET}"; sleep 1 ;;
@@ -304,23 +304,15 @@ menu_workers() {
     clear 2>/dev/null || true
     echo "${GREEN}${BOLD}=== ⚙️ Background Workers & Cron ===${RESET}"
     echo ""
-    echo "  ${GREEN}[1]${RESET} Start All Workers (Email, Revalidation, Maintenance)"
-    echo "  ${GREEN}[2]${RESET} Start Email Worker"
-    echo "  ${GREEN}[3]${RESET} Start Revalidation Worker"
-    echo "  ${GREEN}[4]${RESET} Start Maintenance Worker"
-    echo "  ${GREEN}[5]${RESET} Check Worker Health"
-    echo "  ${GREEN}[6]${RESET} Trigger Scheduled Cron (/api/cron)"
+    echo "  ${GREEN}[1]${RESET} Check Background Worker Services (notify, workflow, delivery)"
+    echo "  ${GREEN}[2]${RESET} Trigger Scheduled Cron (/api/cron)"
     echo "  ${RED}[0]${RESET} Back to Main Menu"
     echo ""
-    printf "%sEnter choice [0-6]: %s" "$BOLD" "$RESET"
+    printf "%sEnter choice [0-2]: %s" "$BOLD" "$RESET"
     read -r subchoice || subchoice=""
     case "$subchoice" in
-      1) cmd_worker all; pause_prompt ;;
-      2) cmd_worker email; pause_prompt ;;
-      3) cmd_worker revalidation; pause_prompt ;;
-      4) cmd_worker maintenance; pause_prompt ;;
-      5) cmd_worker check; pause_prompt ;;
-      6) cmd_cron; pause_prompt ;;
+      1) cmd_worker; pause_prompt ;;
+      2) cmd_cron; pause_prompt ;;
       0) return ;;
       *) echo "${RED}Invalid choice.${RESET}"; sleep 1 ;;
     esac
@@ -437,19 +429,12 @@ ${BOLD}Development${RESET}
   lint | types                     ESLint / TypeScript checks
 
 ${BOLD}Tests and checks${RESET}
-  check                            Everything CI's static job runs (lint, types, tests across admin, IT, web)
-  test [unit|checks|all]           Unit tests and static checks
-  test db                          Business-rule checks on disposable bare and seeded databases
-  test e2e [playwright args]       Prepare the e2e databases, then Playwright
-  test e2e:prepare                 Rebuild the e2e databases only
-  test e2e:ui                      Playwright UI mode
-  test e2e:report                  Open the last Playwright report
-  test volume                      2,000 people and 50,000 records, list timings
-  test ci                          The static job, the database job and the e2e job, in that order
+  check                            Everything CI runs (lint, types, tests across admin, IT, web, backend)
+  test [all|admin|it|web|backend|e2e]   Run unit tests or Playwright E2E tests
+  audit [all|isolation|security]   Full 5-pillar audit, isolation scanner, or security checks
 
 ${BOLD}Background work${RESET}
-  worker <email|revalidation|maintenance|all>   Run a worker (all = the three together)
-  worker check                     Worker configuration and queue health
+  worker                           Inspect background worker services (notify, workflow, delivery)
   cron [url]                       Call the admin's /api/cron once with CRON_SECRET (default ADMIN_URL)
 
 ${BOLD}Deployment${RESET}
@@ -466,7 +451,7 @@ EOF
 # ----------------------------------------------------------------------------------------------------------
 cmd_install() {
   step "Installing Node dependencies"
-  for app in apps/admin apps/it apps/web company backend/contracts scripts; do
+  for app in apps/admin apps/it apps/web company backend/contracts; do
     if [ -f "$app/package.json" ]; then
       npm --prefix "$app" install
     fi
