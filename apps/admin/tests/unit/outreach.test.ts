@@ -11,11 +11,11 @@ import {
   matchesSegment,
   trackedLink,
   utmSlug,
-} from "../../lib/database/constants/outreach";
+} from "../../lib/constants/outreach";
 import {
   ALL_RESOURCES,
   RESOURCE_FEATURES,
-} from "../../lib/database/constants/permissions";
+} from "../../lib/constants/permissions";
 
 describe("marketing, PR and legal", () => {
   test("campaign names become tracking names, and links carry them", () => {

@@ -3,18 +3,19 @@ import path from "node:path";
 
 export default defineConfig({
   resolve: {
-    alias: {
-      "@platform/contracts/catalog": path.resolve(__dirname, "./lib/contracts/catalog"),
-      "@platform/contracts": path.resolve(__dirname, "./lib/contracts/src"),
-      "@platform/database": path.resolve(__dirname, "./lib/database"),
-      "@platform/locales": path.resolve(__dirname, "./locales"),
-      "@platform/config": path.resolve(__dirname, "./lib/config"),
-      "@platform/api-client": path.resolve(__dirname, "./lib/api"),
-      "@platform/email": path.resolve(__dirname, "./lib/email"),
-      "@platform/ui": path.resolve(__dirname, "./components/ui"),
-      "@prisma/client": path.resolve(__dirname, "./lib/database/decimal.ts"),
-      "@": path.resolve(__dirname, "./"),
-    },
+    alias: [
+      { find: /^@platform\/database\/(.*)$/, replacement: path.resolve(__dirname, "./lib/$1") },
+      { find: "@platform/database", replacement: path.resolve(__dirname, "./lib/data-hub.ts") },
+      { find: "@platform/contracts/catalog", replacement: path.resolve(__dirname, "./lib/contracts/catalog") },
+      { find: "@platform/contracts", replacement: path.resolve(__dirname, "./lib/contracts/src") },
+      { find: "@platform/locales", replacement: path.resolve(__dirname, "./locales") },
+      { find: "@platform/config", replacement: path.resolve(__dirname, "./lib/config") },
+      { find: "@platform/api-client", replacement: path.resolve(__dirname, "./lib/api") },
+      { find: "@platform/email", replacement: path.resolve(__dirname, "./lib/email") },
+      { find: "@platform/ui", replacement: path.resolve(__dirname, "./components/ui") },
+      { find: "@prisma/client", replacement: path.resolve(__dirname, "./lib/decimal.ts") },
+      { find: "@", replacement: path.resolve(__dirname, "./") },
+    ],
   },
   test: {
     environment: "node",

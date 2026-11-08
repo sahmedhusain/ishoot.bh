@@ -451,7 +451,7 @@ export async function beginItMFAAction(password: string) {
   if (!password || typeof password !== "string") return { ok: false, error: "Password required" };
   try {
     const setup = await beginMFAEnrollment(user.token, password);
-    const issuer = "iShoot IT";
+    const issuer = process.env.NEXT_PUBLIC_APP_NAME || "IT Desk";
     const uri = `otpauth://totp/${encodeURIComponent(issuer + ":" + user.email)}?${new URLSearchParams({
       secret: setup.secret,
       issuer,

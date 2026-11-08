@@ -113,7 +113,13 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
 
   const isOrg = kind !== "individual";
   const local = kind === "company" && values.company_origin !== "foreign";
-  const bahrainAddress = values.address?.country === "BH";
+  const isStructuredAddress =
+    Boolean(
+      values.address?.building ||
+        values.address?.road ||
+        values.address?.block ||
+        values.address?.area,
+    ) || (companyCountry ? values.address?.country === companyCountry : false);
   const orgCountry = kind === "company" ? (local ? values.registration_country || companyCountry : values.registration_country) : values.registration_country || companyCountry;
   const showVat = vat.enabled || isOrg;
 
@@ -382,7 +388,7 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
           <Section title={f.sections.address}>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
               <Field label={f.address.country}>{countrySelect(values.address?.country, (v) => setAddress("country", v), false)}</Field>
-              {bahrainAddress ? (
+              {isStructuredAddress ? (
                 <>
                   <Field label={f.address.building}>
                     <Input dir="ltr" value={values.address?.building ?? ""} onChange={(e) => setAddress("building", e.target.value)} />

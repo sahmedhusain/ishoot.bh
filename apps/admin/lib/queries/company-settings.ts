@@ -128,11 +128,27 @@ export async function getCompanySettings(): Promise<CompanySettings> {
   } catch (error) {
     return mapSettings({
       id: "default",
-      companyNameEn: "iShoot",
-      companyNameAr: "آي شوت",
-      defaultCurrency: "BHD",
-      currencyDecimals: 3,
-      vatPercentage: 10,
+      companyNameEn:
+        process.env.NEXT_PUBLIC_COMPANY_NAME_EN ||
+        process.env.COMPANY_NAME_EN ||
+        "Company",
+      companyNameAr:
+        process.env.NEXT_PUBLIC_COMPANY_NAME_AR ||
+        process.env.COMPANY_NAME_AR ||
+        "الشركة",
+      defaultCurrency: (process.env.NEXT_PUBLIC_DEFAULT_CURRENCY ||
+        process.env.DEFAULT_CURRENCY ||
+        "USD") as SupportedCurrency,
+      currencyDecimals: Number(
+        process.env.NEXT_PUBLIC_CURRENCY_DECIMALS ||
+          process.env.CURRENCY_DECIMALS ||
+          2,
+      ),
+      vatPercentage: Number(
+        process.env.NEXT_PUBLIC_VAT_PERCENTAGE ||
+          process.env.VAT_PERCENTAGE ||
+          0,
+      ),
       vatEnabled: false,
       theme: {},
       contentLanguages: ["en", "ar"],

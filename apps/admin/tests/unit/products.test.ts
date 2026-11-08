@@ -9,12 +9,12 @@ import {
   variantCombinations,
   variantLabel,
   variantSku,
-} from "../../lib/database/constants/products";
+} from "../../lib/constants/products";
 import {
   DEFAULT_FEATURE_MODULES,
   moduleOnByDefault,
-} from "../../lib/database/constants/features";
-import { ACTIVITY_PRESETS } from "../../lib/database/website-presets";
+} from "../../lib/constants/features";
+import { ACTIVITY_PRESETS } from "../../lib/website-presets";
 
 describe("products", () => {
   test("options are cleaned: names and values trimmed, one language fills the other, repeats dropped", () => {

@@ -175,7 +175,7 @@ function createEngine(db, finalized) {
       }),
   });
   const leave = record("leave_request");
-  return load("../apps/admin/lib/database/services/approval-engine.ts", {
+  return load("../apps/admin/lib/services/approval-engine.ts", {
     "../db": { db, runAtomicMutation: async (fn) => fn() },
     "../queries/signature-policies": { getSignatureMode: async () => "stored" },
     "./signature-image": { validateSignatureImage: () => { } },

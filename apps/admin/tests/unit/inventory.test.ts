@@ -8,12 +8,12 @@ import {
   countVariance,
   daysToExpiry,
   roundQuantity,
-} from "../../lib/database/constants/inventory";
+} from "../../lib/constants/inventory";
 import {
   ALL_RESOURCES,
   PERMISSION_GROUPS,
   RESOURCE_FEATURES,
-} from "../../lib/database/constants/permissions";
+} from "../../lib/constants/permissions";
 
 describe("inventory", () => {
   test("receipts move the weighted average cost; empty or negative stock takes the new cost", () => {

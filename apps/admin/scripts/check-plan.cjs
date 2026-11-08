@@ -40,8 +40,8 @@ function loadTs(file, mocks) {
       id = ((i, m) => i in m ? i : (i.startsWith('@platform/database/') && '@platform/database' in m ? '@platform/database' : i))(id, mocks);
       if (id === "../atomic" || id === "../db") return mocks["../atomic"] || mocks["../db"] || { db: {}, runAtomicMutation: (fn) => fn() };
       if ((id === "@platform/api-client" || id.includes("/api/")) && !(id in mocks)) return new Proxy({}, { get: () => async () => [] });
-      if (id === "../finance/company-currency" && !(id in mocks)) return loadTs("../apps/admin/lib/database/finance/company-currency.ts", { "../db": mocks["../db"] });
-      if (id === "./contact-validation" && !(id in mocks)) return loadTs("../apps/admin/lib/database/queries/contact-validation.ts", { "../db": mocks["../db"] });
+      if (id === "../finance/company-currency" && !(id in mocks)) return loadTs("../apps/admin/lib/finance/company-currency.ts", { "../db": mocks["../db"] });
+      if (id === "./contact-validation" && !(id in mocks)) return loadTs("../apps/admin/lib/queries/contact-validation.ts", { "../db": mocks["../db"] });
       if (id in mocks) return mocks[id];
       if (id.startsWith("node:")) return require(id);
       const real = realConstants(resolveAdmin(file), id);
@@ -49,6 +49,7 @@ function loadTs(file, mocks) {
       throw new Error(`Unmocked dependency in ${file}: ${id}`);
     },
     console,
+    process,
     Date,
     Set,
     Map,
@@ -87,7 +88,7 @@ async function runTests() {
   const leaveStartDate = new Date("2026-10-10T00:00:00.000Z");
   const leaveEndDate = new Date("2026-10-20T23:59:59.999Z");
 
-  const leaveQueries = loadTs("../apps/admin/lib/database/queries/leave.ts", {
+  const leaveQueries = loadTs("../apps/admin/lib/queries/leave.ts", {
     // Leave rules and balances are not used by the availability checks below.
     "./hr-settings": { getHrPolicy: async () => ({}), holidaySet: async () => new Set(), listLeaveTypeRules: async () => [], toLeaveTypeRules: (row) => row },
     "./leave-balances": { getLeaveBalance: async () => ({}), refreshLeaveBalanceCache: async () => { } },
@@ -213,7 +214,7 @@ async function runTests() {
       _sum: sumFields(rows.filter((row) => row[args.by[0]] === key), args._sum),
     }));
 
-  const reportQueries = loadTs("../apps/admin/lib/database/queries/finance-reports.ts", {
+  const reportQueries = loadTs("../apps/admin/lib/queries/finance-reports.ts", {
     "../db": {
       db: {
         companySetting: { findUniqueOrThrow: async () => ({ defaultCurrency: "BHD" }) },
@@ -281,7 +282,7 @@ async function runTests() {
   let createdInvoice = null;
 
   let locks = 0;
-  const quotationConversionQueries = loadTs("../apps/admin/lib/database/queries/quotations.ts", {
+  const quotationConversionQueries = loadTs("../apps/admin/lib/queries/quotations.ts", {
     "../db": {
       runAtomicMutation: async (fn) => fn(),
       db: {
@@ -351,7 +352,7 @@ async function runTests() {
     { id: "sa-1", role: "super_admin", is_active: true },
   ];
 
-  const userQueries = loadTs("../apps/admin/lib/database/queries/users.ts", {
+  const userQueries = loadTs("../apps/admin/lib/queries/users.ts", {
     "../db": {
       db: {
         user: {

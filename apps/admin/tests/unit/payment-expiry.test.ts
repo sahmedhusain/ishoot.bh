@@ -8,31 +8,31 @@ const mocks = vi.hoisted(() => ({
   status: vi.fn(),
   move: vi.fn(),
 }));
-vi.mock("../../lib/database/atomic", () => ({
+vi.mock("../../lib/atomic", () => ({
   db: {
     paymentAttempt: { findMany: mocks.attempts, updateMany: mocks.expire },
     salesOrder: { findUnique: mocks.order },
   },
 }));
-vi.mock("../../lib/database/db", () => ({
+vi.mock("../../lib/db", () => ({
   db: {
     paymentAttempt: { findMany: mocks.attempts, updateMany: mocks.expire },
     salesOrder: { findUnique: mocks.order },
   },
 }));
-vi.mock("../../lib/database/payments/active", () => ({
+vi.mock("../../lib/payments/active", () => ({
   activePaymentGateway: vi.fn(),
   gatewayWithCredentials: mocks.gateway,
 }));
-vi.mock("../../lib/database/queries/store", () => ({
+vi.mock("../../lib/queries/store", () => ({
   moveOrder: mocks.move,
   recordOrderPayment: vi.fn(),
   recordOrderRefund: vi.fn(),
 }));
-vi.mock("../../lib/database/queries/notify", () => ({
+vi.mock("../../lib/queries/notify", () => ({
   notifyUsersWithPermission: vi.fn(),
 }));
-import { expireOnlinePayments } from "../../lib/database/queries/online-payments";
+import { expireOnlinePayments } from "../../lib/queries/online-payments";
 
 const now = new Date("2026-10-26T12:00:00Z");
 beforeEach(() => {

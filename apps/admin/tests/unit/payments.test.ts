@@ -5,8 +5,8 @@ import {
   PAYMENT_GATEWAY_IDS,
   formatGatewayAmount,
   fromMinorUnits,
-} from "../../lib/database/constants/payments";
-import { INTEGRATION_PROVIDERS } from "../../lib/database/constants/integrations";
+} from "../../lib/constants/payments";
+import { INTEGRATION_PROVIDERS } from "../../lib/constants/integrations";
 import {
   WebhookSignatureError,
   checkoutCom,
@@ -17,11 +17,11 @@ import {
   paytabs,
   stripe,
   tap,
-} from "../../lib/database/payments/gateways";
+} from "../../lib/payments/gateways";
 import {
   orderFromPaymentLink,
   paymentLinkToken,
-} from "../../lib/database/services/payment-links";
+} from "../../lib/services/payment-links";
 
 const hmac = (key: string, text: string) =>
   crypto.createHmac("sha256", key).update(text).digest("hex");

@@ -9,8 +9,8 @@ import {
   listPayments,
   listExpenses,
   listExpenseCategories,
-} from "../../api/finance";
-import { listContacts } from "../../api/sales";
+} from "../api/finance";
+import { listContacts } from "../api/sales";
 
 export interface FinancialSummaryReport {
   basis: "cash" | "accrual";

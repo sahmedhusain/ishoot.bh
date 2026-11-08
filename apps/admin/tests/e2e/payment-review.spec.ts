@@ -4,7 +4,7 @@ import enLocale from "../../locales/en.json";
 import arLocale from "../../locales/ar.json";
 import { en as webEn } from "../../locales";
 import { ar as webAr } from "../../locales";
-import { paymentLinkToken } from "../../lib/database/services/payment-links";
+import { paymentLinkToken } from "../../lib/services/payment-links";
 import { serverMessages } from "../../locales";
 import { ports } from "../../playwright.config";
 import { testDatabase } from "../../helpers";

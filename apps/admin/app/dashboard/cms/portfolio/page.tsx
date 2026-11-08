@@ -38,7 +38,6 @@ export default async function PortfolioManagerPage() {
 
 /** Details for a card style chosen independently of the website type. */
 function activityFieldsForLayout(layout: string) {
-  if (layout === "media") return activityPreset("media").collection.fields;
   if (layout === "product") return activityPreset("products").collection.fields;
   if (layout === "listing") return activityPreset("real_estate").collection.fields;
   return activityPreset("services").collection.fields;

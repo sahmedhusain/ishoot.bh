@@ -777,7 +777,7 @@ export async function getCalendarFor(
     })
     .filter((e) => wanted.has(e.layer));
   if (!events.length) {
-    const { listCalendarEvents } = await import("../../api/workflow");
+    const { listCalendarEvents } = await import("../api/workflow");
     const apiEvents = await listCalendarEvents().catch(() => []);
     if (apiEvents && apiEvents.length) {
       events = apiEvents.map((ev: any) => ({

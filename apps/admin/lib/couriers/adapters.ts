@@ -436,8 +436,10 @@ export const dhlExpress: CourierAdapter = {
   },
   async check(c) {
     need(c, "environment", "apiKey", "apiSecret", "accountNumber");
+    const checkCountry = String(c.countryCode || "US");
+    const checkCity = String(c.cityName || "New York");
     await call(
-      `${dhlBase(c)}/address-validate?type=delivery&countryCode=BH&cityName=Manama`,
+      `${dhlBase(c)}/address-validate?type=delivery&countryCode=${encodeURIComponent(checkCountry)}&cityName=${encodeURIComponent(checkCity)}`,
       { headers: { ...dhlAuth(c), Accept: "application/json" } },
     );
     return {

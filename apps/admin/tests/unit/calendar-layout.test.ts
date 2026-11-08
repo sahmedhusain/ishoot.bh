@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import type { CalendarEvent } from "../../lib/database/types";
+import type { CalendarEvent } from "../../lib/types";
 import { calendarMonthDays, calendarEventLanes } from "../../lib/calendar-layout";
 const day = new Date(2026, 9, 27);
 const event = (id: string, start: number, end: number, allDay = false) => ({ id, start_date: new Date(2026, 9, 27, start).toISOString(), end_date: new Date(2026, 9, 27, end).toISOString(), all_day: allDay }) as CalendarEvent;

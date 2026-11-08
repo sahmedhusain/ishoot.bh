@@ -9,8 +9,8 @@ import {
   listPayments,
   listExpenses,
   listExpenseCategories,
-} from "../../api/finance";
-import { listContacts } from "../../api/sales";
+} from "../api/finance";
+import { listContacts } from "../api/sales";
 
 async function getCompanyTimeZone(): Promise<string> {
   const setting = await db.companySetting

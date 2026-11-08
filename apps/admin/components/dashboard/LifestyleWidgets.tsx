@@ -745,7 +745,7 @@ export function LocalClockWidget({ settings }: LifestyleWidgetProps) {
   const showDate = settings?.showDate !== false;
   const showNumbers = settings?.showNumbers !== false;
   const timezoneCityKey =
-    typeof settings?.timezoneCity === "string" ? settings.timezoneCity : "manama";
+    typeof settings?.timezoneCity === "string" ? settings.timezoneCity : "london";
 
   const cityDef =
     WORLD_CLOCK_CITIES.find((c) => c.key === timezoneCityKey) ??
@@ -1051,12 +1051,12 @@ export function ClockWorldWidget({ settings }: LifestyleWidgetProps) {
     const raw =
       typeof settings?.zones === "string"
         ? settings.zones
-        : "manama,riyadh,dubai,london";
+        : "london,newyork,tokyo,dubai";
     const keys = raw
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean);
-    return keys.length > 0 ? keys : ["manama", "riyadh", "dubai", "london"];
+    return keys.length > 0 ? keys : ["london", "newyork", "tokyo", "dubai"];
   }, [settings?.zones]);
 
   const [now, setNow] = React.useState<Date>(() => new Date());
@@ -1228,8 +1228,11 @@ export function WeatherLocalWidget({ settings }: LifestyleWidgetProps) {
   const cityKey =
     typeof settings?.city === "string" && settings.city in WEATHER_CITY_PRESETS
       ? settings.city
-      : "manama";
-  const city = WEATHER_CITY_PRESETS[cityKey] ?? WEATHER_CITY_PRESETS.manama;
+      : "london";
+  const city =
+    WEATHER_CITY_PRESETS[cityKey] ??
+    WEATHER_CITY_PRESETS.london ??
+    Object.values(WEATHER_CITY_PRESETS)[0];
   const useFahrenheit = settings?.unit === "F";
   const showForecast = settings?.showForecast !== false;
   const showMetrics = settings?.showMetrics !== false;
@@ -2135,127 +2138,6 @@ export function QuickCalculatorWidget({ settings }: LifestyleWidgetProps) {
       >
         {b.calcClear}
       </button>
-    </section>
-  );
-}
-
-/**
- * 9. GCC & Global Currency Converter Widget (`currency_rates`)
- */
-const CURRENCY_RATES_TO_BHD: Record<string, number> = {
-  BHD: 1,
-  SAR: 9.95,
-  AED: 9.73,
-  KWD: 0.815,
-  QAR: 9.66,
-  OMR: 1.02,
-  USD: 2.65,
-  EUR: 2.44,
-  GBP: 2.09,
-};
-
-export const SUPPORTED_CURRENCIES = [
-  "BHD",
-  "SAR",
-  "AED",
-  "KWD",
-  "QAR",
-  "OMR",
-  "USD",
-  "EUR",
-  "GBP",
-] as const;
-
-export function CurrencyRatesWidget({ settings }: LifestyleWidgetProps) {
-  const { t } = useAdminLocale();
-  const b = t.dashboardBoard;
-
-  const baseCurrency =
-    typeof settings?.baseCurrency === "string" &&
-    settings.baseCurrency in CURRENCY_RATES_TO_BHD
-      ? settings.baseCurrency
-      : "BHD";
-  const defaultAmount =
-    typeof settings?.defaultAmount === "number" && settings.defaultAmount > 0
-      ? settings.defaultAmount
-      : 100;
-
-  const targetCurrencies = React.useMemo(() => {
-    const raw =
-      typeof settings?.targets === "string"
-        ? settings.targets
-        : "SAR,AED,USD,EUR";
-    const list = raw
-      .split(",")
-      .map((s) => s.trim())
-      .filter((c) => c in CURRENCY_RATES_TO_BHD && c !== baseCurrency);
-    return list.length > 0 ? list : ["SAR", "AED", "USD", "EUR"];
-  }, [settings?.targets, baseCurrency]);
-
-  const [amountStr, setAmountStr] = React.useState(String(defaultAmount));
-  React.useEffect(() => {
-    setAmountStr(String(defaultAmount));
-  }, [defaultAmount]);
-
-  const numericAmount = Number.parseFloat(amountStr) || 0;
-  const baseRate = CURRENCY_RATES_TO_BHD[baseCurrency] ?? 1;
-
-  return (
-    <section
-      {...widgetContainerProps(settings)}
-      suppressHydrationWarning
-      className="admin-widget h-full p-5 flex flex-col justify-between gap-3"
-    >
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="w-7 h-7 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 inline-flex items-center justify-center shrink-0">
-            <ArrowRightLeft className="w-3.5 h-3.5" aria-hidden="true" />
-          </span>
-          <h3 className="text-xs font-extrabold tracking-tight text-ink truncate">
-            {b.widgets.currency_rates}
-          </h3>
-        </div>
-        <span
-          dir="ltr"
-          className="text-[11px] font-extrabold text-primary bg-primary/12 px-2.5 py-0.5 rounded-full"
-        >
-          {baseCurrency}
-        </span>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <input
-          type="number"
-          dir="ltr"
-          value={amountStr}
-          onChange={(e) => setAmountStr(e.target.value)}
-          aria-label={b.currencyAmountLabel}
-          className="w-full h-9 rounded-xl bg-surface-container-lowest/90 border border-outline-variant/60 px-3 text-sm font-extrabold text-ink tabular-nums focus:outline-none focus:border-primary"
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 my-auto">
-        {targetCurrencies.slice(0, 4).map((code) => {
-          const targetRate = CURRENCY_RATES_TO_BHD[code] ?? 1;
-          const converted = (numericAmount / baseRate) * targetRate;
-          return (
-            <div
-              key={code}
-              dir="ltr"
-              className="rounded-xl bg-surface-container-highest/75 border border-outline-variant/45 px-3 py-2 flex items-center justify-between gap-2"
-            >
-              <span className="text-xs font-extrabold text-ink-muted">
-                {code}
-              </span>
-              <span className="text-xs sm:text-sm font-black text-ink tabular-nums truncate">
-                {converted.toLocaleString("en-US", {
-                  maximumFractionDigits: 2,
-                })}
-              </span>
-            </div>
-          );
-        })}
-      </div>
     </section>
   );
 }

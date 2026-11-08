@@ -2,6 +2,11 @@ import { serverMessages } from "@platform/locales";
 import { db } from "../atomic";
 import { assertSupportedCurrency } from "../constants/finance";
 
+const DEFAULT_FALLBACK_CURRENCY =
+  process.env.NEXT_PUBLIC_DEFAULT_CURRENCY ||
+  process.env.DEFAULT_CURRENCY ||
+  "USD";
+
 export async function companyCurrency(): Promise<string> {
   try {
     const { getCompanySettings } = await import("../queries/company-settings");
@@ -18,7 +23,7 @@ export async function companyCurrency(): Promise<string> {
       return company.defaultCurrency;
     }
   } catch {}
-  return "BHD";
+  return DEFAULT_FALLBACK_CURRENCY;
 }
 
 /** Currency belongs to the company; a submitted document cannot select a different currency. */
@@ -29,7 +34,7 @@ export async function assertCompanyCurrency(requested?: string, connection: Pick
     currency = rows?.[0]?.defaultCurrency;
   } catch {}
   if (!currency) {
-    currency = await companyCurrency().catch(() => "BHD");
+    currency = await companyCurrency().catch(() => DEFAULT_FALLBACK_CURRENCY);
   }
   assertSupportedCurrency(currency);
   if (requested !== undefined && requested !== currency) throw new Error(serverMessages.companyCurrencyRequired);

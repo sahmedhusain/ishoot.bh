@@ -372,8 +372,6 @@ export async function exportFinancialReportCsvAction(filters: {
   });
 }
 
-/** Pulls today's live rates for every supported currency; falls back silently to stored rates. */
-
 export async function createExpenseCategoryAction(data: {
   name_en: string;
   name_ar?: string;

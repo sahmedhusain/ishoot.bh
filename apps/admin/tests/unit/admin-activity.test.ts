@@ -6,7 +6,7 @@ import {
   getWebsiteTranslations,
 } from "../../locales";
 import adminActivities from "../../locales/admin-activities.json";
-import { BUSINESS_ACTIVITIES } from "../../lib/database/website-presets";
+import { BUSINESS_ACTIVITIES } from "../../lib/website-presets";
 
 const FILM_WORDS =
   /cinema|cinematic|film|shoot|production|studio|crew|\bgear\b|سينما|سينمائي|فيلم|أفلام|تصوير|إنتاج|الإنتاج|استوديو|طاقم|مونتاج/i;

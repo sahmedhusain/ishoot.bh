@@ -13,14 +13,14 @@ vi.mock("@platform/api-client", async (importOriginal) => {
     updateProduct: (id: string, data: any) => mocks.create({ data }),
   };
 });
-vi.mock("../../lib/database/atomic", () => ({
+vi.mock("../../lib/atomic", () => ({
   db: {
     product: { findFirst: mocks.find },
     productVariant: { findFirst: mocks.find },
     $transaction: mocks.transaction,
   },
 }));
-vi.mock("../../lib/database/db", () => ({
+vi.mock("../../lib/db", () => ({
   db: {
     product: { findFirst: mocks.find },
     productVariant: { findFirst: mocks.find },
@@ -30,7 +30,7 @@ vi.mock("../../lib/database/db", () => ({
 import {
   saveProduct,
   type ProductInput,
-} from "../../lib/database/queries/products";
+} from "../../lib/queries/products";
 import { serverMessages } from "../../locales";
 const input: ProductInput = {
   sku: "TEST-1",

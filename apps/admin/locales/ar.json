@@ -5003,7 +5003,7 @@
         "chooseTheCountryWhereTheCompany": "اختر الدولة المسجلة فيها الشركة",
         "enterTheCompanySRegistrationNumber": "أدخل رقم تسجيل الشركة",
         "enterTheGovernmentEntitySName": "أدخل اسم الجهة الحكومية",
-        "aBahrainVATNumberHas15": "يتكون رقم ضريبة القيمة المضافة في البحرين من 15 رقمًا",
+        "aBahrainVATNumberHas15": "يتكون رقم ضريبة القيمة المضافة من 15 رقمًا",
         "everyPointOfContactNeedsA": "يجب إدخال اسم لكل جهة اتصال",
         "aClientCanHaveAtMost": "يمكن أن يكون للعميل 20 جهة اتصال كحد أقصى",
         "addAtLeastOnePointOf": "أضف جهة اتصال واحدة على الأقل",
@@ -10334,7 +10334,6 @@
         "scratchpad_notes": "الملاحظات السريعة والمهام",
         "focus_pomodoro": "مؤقت التركيز وإنجاز المهام",
         "quick_calculator": "الحاسبة الذكية",
-        "currency_rates": "محوّل العملات",
         "countdown_milestone": "العد التنازلي للمواعيد",
         "sticky_quote": "اقتباس وحكمة اليوم",
         "bookmarks_launchpad": "منصة الروابط السريعة"

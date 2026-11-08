@@ -55,7 +55,7 @@ export async function getCompanyDirectory(filters: DirectoryFilters = {}) {
         text("phone", false),
       ]
     : [];
-  const [users, crew] = await Promise.all([
+  const [users, hrStaff] = await Promise.all([
     db.user.findMany({
       where: {
         isActive: true,
@@ -161,7 +161,7 @@ export async function getCompanyDirectory(filters: DirectoryFilters = {}) {
         manager: u.manager?.fullName ?? null,
         onLeave: u.employee?.status === "on_leave",
       })),
-    ...crew.map((e) => ({
+    ...hrStaff.map((e: any) => ({
       id: e.id,
       userId: null,
       name: `${e.firstNameEn} ${e.lastNameEn}`,

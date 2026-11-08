@@ -5003,7 +5003,7 @@
         "chooseTheCountryWhereTheCompany": "Choose the country where the company is registered",
         "enterTheCompanySRegistrationNumber": "Enter the company's registration number",
         "enterTheGovernmentEntitySName": "Enter the government entity's name",
-        "aBahrainVATNumberHas15": "A Bahrain VAT number has 15 digits",
+        "aBahrainVATNumberHas15": "A valid VAT number has 15 digits",
         "everyPointOfContactNeedsA": "Every point of contact needs a name",
         "aClientCanHaveAtMost": "A client can have at most 20 points of contact",
         "addAtLeastOnePointOf": "Add at least one point of contact",
@@ -10334,7 +10334,6 @@
         "scratchpad_notes": "Quick Notes & Checklist",
         "focus_pomodoro": "Focus Timer",
         "quick_calculator": "Expressive Calculator",
-        "currency_rates": "Currency Converter",
         "countdown_milestone": "Milestone Countdown",
         "sticky_quote": "Daily Quote & Motto",
         "bookmarks_launchpad": "Quick Bookmarks"

@@ -34,7 +34,6 @@ import {
   CalendarMiniWidget,
   ClockWorldWidget,
   CountdownMilestoneWidget,
-  CurrencyRatesWidget,
   FocusPomodoroWidget,
   LocalClockWidget,
   QuickCalculatorWidget,
@@ -172,7 +171,7 @@ export function DashboardWidget({
         const at = stages.findIndex((s) => s.id === key);
         return at < 0 ? Number.MAX_SAFE_INTEGER : at;
       };
-      const entries = Object.entries(data.deals.stageStats).sort(([a], [z]) => rank(a) - rank(z));
+      const entries = (Object.entries(data.deals.stageStats) as [string, { value: number; count: number }][]).sort(([a], [z]) => rank(a) - rank(z));
       const total = entries.reduce((sum, [, s]) => sum + (data.showMoney ? s.value : s.count), 0);
       return (
         <Panel title={title} icon={<Briefcase className="w-3.5 h-3.5" />} href={ROUTES.crm.deals}>
@@ -580,15 +579,6 @@ export function DashboardWidget({
     case "quick_calculator":
       return (
         <QuickCalculatorWidget
-          data={data}
-          settings={settings}
-          onUpdateSettings={onUpdateSettings}
-        />
-      );
-
-    case "currency_rates":
-      return (
-        <CurrencyRatesWidget
           data={data}
           settings={settings}
           onUpdateSettings={onUpdateSettings}

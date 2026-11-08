@@ -118,8 +118,8 @@ export async function listTasks(scope: TaskScope, filters: TaskFilters = {}) {
             t.status !== "done" || (t.completedAt?.getTime() ?? 0) >= cutoff,
         );
   if (!visible.length) {
-    const { listTasks: listWorkflowTasks } = await import("../../api/workflow");
-    const { listEmployees } = await import("../../api/hr");
+    const { listTasks: listWorkflowTasks } = await import("../api/workflow");
+    const { listEmployees } = await import("../api/hr");
     const [apiTasks, employees] = await Promise.all([
       listWorkflowTasks().catch(() => []),
       listEmployees().catch(() => []),
@@ -562,7 +562,7 @@ export async function taskChoices(scope: TaskScope) {
     listProjects(scope),
   ]);
   if (!departments.length || !users.length) {
-    const { listDepartments, listEmployees } = await import("../../api/hr");
+    const { listDepartments, listEmployees } = await import("../api/hr");
     const [apiDepts, apiEmps] = await Promise.all([
       listDepartments().catch(() => []),
       listEmployees().catch(() => []),

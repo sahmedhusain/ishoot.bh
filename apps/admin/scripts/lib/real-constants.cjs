@@ -5,13 +5,13 @@ const ts = require("typescript");
 const Module = require("node:module");
 
 const adminRoot = path.resolve(__dirname, "../..");
-const constantsDir = path.join(adminRoot, "lib/database/constants") + path.sep;
+const constantsDir = path.join(adminRoot, "lib/constants") + path.sep;
 const constantsDirs = [constantsDir, path.join(adminRoot, "constants") + path.sep];
 const pureFiles = [
   path.join(adminRoot, "lib/config/constants/currency.cjs"),
   path.join(adminRoot, "locales/index"),
-  path.join(adminRoot, "lib/database/finance/money"),
-  path.join(adminRoot, "lib/database/hr/payroll-engine"),
+  path.join(adminRoot, "lib/finance/money"),
+  path.join(adminRoot, "lib/hr/payroll-engine"),
 ];
 let registered = false;
 
@@ -23,11 +23,11 @@ function setupHooks() {
   Module._resolveFilename = function (request, parent, isMain, options) {
     if (request.startsWith("@platform/database/")) {
       const rel = request.slice("@platform/database/".length);
-      const candidate = path.join(adminRoot, "lib/database", rel);
+      const candidate = path.join(adminRoot, "lib", rel);
       return originalResolveFilename.call(this, candidate, parent, isMain, options);
     }
     if (request === "@platform/database") {
-      const candidate = path.join(adminRoot, "lib/database/index");
+      const candidate = path.join(adminRoot, "lib/index");
       return originalResolveFilename.call(this, candidate, parent, isMain, options);
     }
     if (request.startsWith("@platform/locales")) {

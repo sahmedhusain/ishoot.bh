@@ -3,15 +3,15 @@ import { getTranslations } from "../../locales";
 import {
   COURIER_KINDS,
   measuredCourierParcel,
-} from "../../lib/database/constants/delivery";
-import { INTEGRATION_PROVIDERS } from "../../lib/database/constants/integrations";
+} from "../../lib/constants/delivery";
+import { INTEGRATION_PROVIDERS } from "../../lib/constants/integrations";
 import {
   aramex,
   countryCode,
   courierStateFrom,
   dhlExpress,
   smsa,
-} from "../../lib/database/couriers/adapters";
+} from "../../lib/couriers/adapters";
 
 afterEach(() => vi.unstubAllGlobals());
 

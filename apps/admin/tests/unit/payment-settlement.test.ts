@@ -1,5 +1,5 @@
 import { getTranslations } from "../../locales";
-import { PAYMENT_ATTEMPT_STATUSES } from "../../lib/database/constants/payments";
+import { PAYMENT_ATTEMPT_STATUSES } from "../../lib/constants/payments";
 import { beforeEach, expect, test, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   attempt: vi.fn(),
@@ -14,7 +14,7 @@ const mocks = vi.hoisted(() => ({
   count: vi.fn(),
   currency: vi.fn(),
 }));
-vi.mock("../../lib/database/atomic", () => ({
+vi.mock("../../lib/atomic", () => ({
   db: {
     $queryRaw: mocks.currency,
     paymentAttempt: {
@@ -30,7 +30,7 @@ vi.mock("../../lib/database/atomic", () => ({
   },
   runAtomicMutation: (operation: () => Promise<unknown>) => operation(),
 }));
-vi.mock("../../lib/database/db", () => ({
+vi.mock("../../lib/db", () => ({
   db: {
     $queryRaw: mocks.currency,
     paymentAttempt: {
@@ -46,15 +46,15 @@ vi.mock("../../lib/database/db", () => ({
   },
   runAtomicMutation: (operation: () => Promise<unknown>) => operation(),
 }));
-vi.mock("../../lib/database/queries/store", () => ({
+vi.mock("../../lib/queries/store", () => ({
   recordOrderPayment: mocks.receipt,
   recordOrderRefund: vi.fn(),
   moveOrder: vi.fn(),
 }));
-vi.mock("../../lib/database/queries/notify", () => ({
+vi.mock("../../lib/queries/notify", () => ({
   notifyUsersWithPermission: mocks.notify,
 }));
-vi.mock("../../lib/database/payments/active", () => ({
+vi.mock("../../lib/payments/active", () => ({
   activePaymentGateway: mocks.active,
   gatewayWithCredentials: async () => ({
     credentials: {},
@@ -65,7 +65,7 @@ import {
   confirmReturn,
   settleAttempt,
   startOrderPayment,
-} from "../../lib/database/queries/online-payments";
+} from "../../lib/queries/online-payments";
 
 const order = {
   id: "order",

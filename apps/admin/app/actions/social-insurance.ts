@@ -177,7 +177,7 @@ export async function deleteEmployeeGosiRecordAction(id: string) {
   });
 }
 
-/** Registers everyone without a registration, by nationality (Bahraini, GCC, expatriate). */
+/** Registers everyone without a registration, by statutory classification (national, regional, expatriate). */
 export async function registerUnregisteredEmployeesAction(
   effectiveFrom: string,
 ) {

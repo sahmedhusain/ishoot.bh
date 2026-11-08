@@ -108,7 +108,7 @@ function TestForm() {
           dir="ltr"
           required
           placeholder={
-            channel === "email" ? "it@example.com" : "+973 3300 0000"
+            channel === "email" ? "it@example.com" : "+1 555 0100"
           }
           className={`${field} w-full`}
         />

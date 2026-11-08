@@ -3,6 +3,7 @@ import { db, runAtomicMutation } from "../atomic";
 import { mapContact, mapDeal, getCRMDeals } from "./crm";
 import type { Invoice, Payment } from "../types";
 import { getClientsPage, type ClientListParameters } from "./client-profiles";
+import { companyCurrency } from "../finance/company-currency";
 
 export type ListParameters = {
   q?: string;
@@ -244,6 +245,7 @@ export async function getInvoicesPage(
       if (apiInvoices.length) {
         const todayStr = new Date().toISOString().slice(0, 10);
         const contactMap = new Map<string, any>((apiContacts || []).map((c: any) => [c.id || c.ID, c] as [string, any]));
+        const fallbackCur = await companyCurrency().catch(() => "USD");
         items = apiInvoices.map((inv: any) => {
           const cid = inv.contactId || inv.ContactID || "";
           const cObj = cid ? contactMap.get(cid) : undefined;
@@ -254,7 +256,7 @@ export async function getInvoicesPage(
             issue_date: (inv.issueDate || inv.IssueDate || todayStr).slice(0, 10),
             due_date: (inv.dueDate || inv.DueDate || todayStr).slice(0, 10),
             status: inv.status || inv.Status || "sent",
-            currency: inv.currency || inv.Currency || "BHD",
+            currency: inv.currency || inv.Currency || fallbackCur,
             total_amount: Number(inv.total || inv.Total || inv.totalAmount || 0),
             amount_paid: Number(inv.amountPaid || inv.AmountPaid || 0),
             amount_due: Number(inv.balanceDue || inv.BalanceDue || Math.max(0, Number(inv.total || inv.Total || 0) - Number(inv.amountPaid || 0))),
@@ -358,6 +360,7 @@ export async function getPaymentsPage(
       if (apiPayments.length) {
         const invoiceMap = new Map<string, any>((apiInvoices || []).map((i: any) => [i.id || i.ID, i] as [string, any]));
         const contactMap = new Map<string, any>((apiContacts || []).map((c: any) => [c.id || c.ID, c] as [string, any]));
+        const fallbackCur = await companyCurrency().catch(() => "USD");
         items = apiPayments.map((p: any) => {
           const invId = p.invoiceId || p.InvoiceID;
           const inv = invId ? invoiceMap.get(invId) : undefined;
@@ -369,7 +372,7 @@ export async function getPaymentsPage(
             receipt_number: p.receiptNumber || p.paymentNumber || p.PaymentNumber || "",
             payment_date: (p.paymentDate || p.PaymentDate || new Date().toISOString()).slice(0, 10),
             amount: Number(p.amount || p.Amount || 0),
-            currency: p.currency || p.Currency || "BHD",
+            currency: p.currency || p.Currency || fallbackCur,
             payment_method: p.paymentMethod || p.PaymentMethod || "bank_transfer",
             invoiceNumber: inv?.invoiceNumber || inv?.InvoiceNumber || p.invoiceNumber || p.InvoiceNumber || "INV",
             customerName:
@@ -383,6 +386,7 @@ export async function getPaymentsPage(
         total = items.length;
       }
     }
+    const fallbackCur = await companyCurrency().catch(() => "USD");
     const [totals, receiptCount, invoiceCount] = batch
       ? [[], 0, 0]
       : await Promise.all([
@@ -396,7 +400,7 @@ export async function getPaymentsPage(
         ]);
     const finalTotals = totals.length
       ? totals.map((t) => ({ currency: t.currency, amount: Number(t._sum?.amount ?? 0) }))
-      : [{ currency: "BHD", amount: items.reduce((acc, p) => acc + (p.currency === "BHD" ? p.amount : 0), 0) }];
+      : [{ currency: fallbackCur, amount: items.reduce((acc, p) => acc + (p.currency === fallbackCur ? p.amount : 0), 0) }];
     return {
       ...result,
       items,
@@ -779,7 +783,8 @@ export async function getExpensesPage(
         });
         totalCount = items.length;
         const sum = items.reduce((acc, exp) => acc + (exp.amount || 0), 0);
-        finalTotals = [{ currency: "BHD", amount: sum }];
+        const fallbackCur = await companyCurrency().catch(() => "USD");
+        finalTotals = [{ currency: fallbackCur, amount: sum }];
       }
     }
     return {

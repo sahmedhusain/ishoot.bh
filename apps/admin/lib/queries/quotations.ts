@@ -770,7 +770,11 @@ export async function getQuotationListSummary(): Promise<QuotationListSummary> {
       if (q.status === "accepted" || q.status === "converted")
         summary.acceptedOrConverted++;
       if ((OPEN_QUOTATION_STATUSES as readonly string[]).includes(q.status)) {
-        const cur = q.currency || "BHD";
+        const cur =
+          q.currency ||
+          process.env.NEXT_PUBLIC_DEFAULT_CURRENCY ||
+          process.env.DEFAULT_CURRENCY ||
+          "USD";
         summary.openValueByCurrency[cur] = roundMoney(
           (summary.openValueByCurrency[cur] ?? 0) + Number(q.total ?? 0),
           cur,
@@ -823,7 +827,12 @@ export async function listQuotations(filters: {
       discountValue: Number(q.discount ?? q.Discount ?? 0),
       discountAmount: Number(q.discount ?? q.Discount ?? 0),
       totalAmount: Number(q.total ?? q.Total ?? 0),
-      currency: q.currency || q.Currency || "BHD",
+      currency:
+        q.currency ||
+        q.Currency ||
+        process.env.NEXT_PUBLIC_DEFAULT_CURRENCY ||
+        process.env.DEFAULT_CURRENCY ||
+        "USD",
       language: "ar",
       status: q.status || q.Status || "draft",
       createdAt: q.createdAt || q.CreatedAt || new Date().toISOString(),
@@ -857,7 +866,11 @@ export async function getAcceptedQuotationsUninvoiced(): Promise<Quotation[]> {
       discountValue: Number(q.discount ?? 0),
       discountAmount: Number(q.discount ?? 0),
       totalAmount: Number(q.total ?? 0),
-      currency: q.currency || "BHD",
+      currency:
+        q.currency ||
+        process.env.NEXT_PUBLIC_DEFAULT_CURRENCY ||
+        process.env.DEFAULT_CURRENCY ||
+        "USD",
       language: "ar",
       status: q.status || "draft",
       createdAt: q.createdAt,

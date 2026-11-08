@@ -12,11 +12,11 @@ import {
   zoneForAddress,
   zonedDate,
   zonedMoment,
-} from "../../lib/database/constants/delivery";
+} from "../../lib/constants/delivery";
 import {
   ALL_RESOURCES,
   RESOURCE_FEATURES,
-} from "../../lib/database/constants/permissions";
+} from "../../lib/constants/permissions";
 
 const zones = [
   {

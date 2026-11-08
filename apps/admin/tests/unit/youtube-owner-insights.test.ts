@@ -1,5 +1,5 @@
 import { afterEach, expect, test, vi } from "vitest";
-import { fetchSocialSnapshot } from "../../lib/database/integrations/providers";
+import { fetchSocialSnapshot } from "../../lib/integrations/providers";
 
 const channelId = "UC1234567890123456789012";
 const token = "owner-access-secret";

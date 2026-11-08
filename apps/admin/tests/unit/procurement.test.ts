@@ -10,12 +10,12 @@ import {
   documentTotals,
   matchBillLine,
   orderReceiptStatus,
-} from "../../lib/database/constants/procurement";
+} from "../../lib/constants/procurement";
 import {
   APPROVAL_CONDITION_FIELDS,
   APPROVAL_TARGET_ROUTES,
   APPROVAL_TARGET_TYPES,
-} from "../../lib/database/constants/approvals";
+} from "../../lib/constants/approvals";
 
 describe("procurement", () => {
   test("document totals round each line, then add VAT", () => {

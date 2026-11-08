@@ -402,7 +402,7 @@ export async function loadDashboardData(
     customFolders: (customFoldersData ?? []) as CustomArchiveFolder[],
     userProfile: userProfileData,
     currency: companyData.default_currency,
-    companyCity: companyData.city || "Manama",
+    companyCity: companyData.city || process.env.COMPANY_CITY || "",
     // Bank and registration details only for people who see finance.
     company: has("company")
       ? canFinance

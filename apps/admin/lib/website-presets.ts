@@ -107,7 +107,7 @@ export interface ActivityPreset {
   sections: readonly WebsiteSection[];
   pages: Record<WebsitePage, boolean>;
   inquiry: InquiryOptions;
-  /** The studio equipment list on the About page (media companies that rent gear). */
+  /** The equipment or asset list on the About page. */
   showEquipment: boolean;
   modules: ModuleChoice;
 }

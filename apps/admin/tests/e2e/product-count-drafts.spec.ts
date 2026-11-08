@@ -7,7 +7,7 @@ import { getModule, resetModule, setModule } from "../../modules";
 const en = enLocale.admin;
 const ar = arLocale.admin;
 const db =
-  testDatabase() as typeof import("../../lib/database/db").db;
+  testDatabase() as typeof import("../../lib/db").db;
 let marker = "",
   productIds: string[] = [],
   warehouseId = "",

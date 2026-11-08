@@ -20,8 +20,8 @@ import {
   listShiftTypes,
 } from "./hr-settings";
 
-/** Bahrain time; check-in/out times are entered as local HH:MM. */
-const LOCAL_OFFSET = "+03:00";
+/** Local time offset; check-in/out times are entered as local HH:MM. */
+const LOCAL_OFFSET = process.env.DEFAULT_TIMEZONE_OFFSET || "+00:00";
 export const ATTENDANCE_STATUSES = [
   "present",
   "absent",

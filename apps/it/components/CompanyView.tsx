@@ -77,7 +77,7 @@ export function CompanyView({
       bankIban: company.bankIban ?? "",
       bankAccountNumber: company.bankAccountNumber ?? "",
       bankSwift: company.bankSwift ?? "",
-      timeZone: company.timeZone ?? "Asia/Bahrain",
+      timeZone: company.timeZone ?? (process.env.NEXT_PUBLIC_DEFAULT_TIMEZONE || "UTC"),
       paymentTermsDays: company.paymentTermsDays,
       invoicePrefix: company.invoicePrefix,
       invoiceNextNumber: company.invoiceNextNumber,
@@ -468,7 +468,7 @@ export function CompanyView({
                   <div className="flex items-center gap-2">
                     <Input
                       disabled={company.currencyLocked}
-                      value={formData.defaultCurrency ?? "BHD"}
+                      value={formData.defaultCurrency ?? (process.env.NEXT_PUBLIC_DEFAULT_CURRENCY || "")}
                       onChange={(e) =>
                         update({ defaultCurrency: e.target.value.toUpperCase() })
                       }

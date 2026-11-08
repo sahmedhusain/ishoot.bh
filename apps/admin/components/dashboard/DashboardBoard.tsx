@@ -49,7 +49,6 @@ import type { DashboardData } from "../../lib/dashboard-widgets";
 import { errorMessage } from "../../lib/error-text";
 import { DashboardWidget } from "./DashboardWidgets";
 import {
-  SUPPORTED_CURRENCIES,
   WEATHER_CITIES_BY_COUNTRY,
   WEATHER_CITY_PRESETS,
   WORLD_CLOCK_CITIES,
@@ -99,7 +98,7 @@ function withPreviewFallbackData(data: DashboardData): DashboardData {
       profitMargin: 70.6,
       discountsGiven: 320,
       vatCollected: 1425,
-      currency: "BHD",
+      currency: data.currency || process.env.NEXT_PUBLIC_DEFAULT_CURRENCY || "USD",
     },
     cashflow: data.cashflow ?? [
       { monthKey: "2026-05", revenue: 11200, expenses: 3800 },
@@ -313,23 +312,6 @@ function WidgetMiniPreview({
             =
           </span>
         </div>
-      </div>
-    );
-  }
-
-  if (id === "currency_rates") {
-    return (
-      <div
-        dir="ltr"
-        className="h-14 rounded-xl bg-gradient-to-br from-emerald-500/12 to-surface-container-highest p-2 flex items-center justify-between px-3 border border-outline-variant/40 text-[10px] font-extrabold text-ink tabular-nums"
-      >
-        <span className="rounded-md bg-primary/15 text-primary px-2 py-1">
-          100.00
-        </span>
-        <span>→</span>
-        <span className="rounded-md bg-surface-container-lowest px-2 py-1">
-          265.00
-        </span>
       </div>
     );
   }
@@ -1421,7 +1403,7 @@ function WidgetSettingsModal({
     const raw =
       typeof draftSettings.zones === "string"
         ? draftSettings.zones
-        : "manama,riyadh,dubai,london";
+        : "london,newyork,tokyo,dubai";
     return new Set(
       raw
         .split(",")
@@ -1446,36 +1428,11 @@ function WidgetSettingsModal({
     typeof draftSettings.city === "string" &&
     draftSettings.city in WEATHER_CITY_PRESETS
       ? draftSettings.city
-      : "manama";
+      : "london";
   const currentWeatherCountry =
-    WEATHER_CITY_PRESETS[currentWeatherCity]?.countryCode ?? "bh";
+    WEATHER_CITY_PRESETS[currentWeatherCity]?.countryCode ?? "gb";
   const citiesForWeatherCountry =
-    WEATHER_CITIES_BY_COUNTRY[currentWeatherCountry] ?? ["manama"];
-
-  // Helper for Currency Converter targets
-  const selectedCurrencyTargets = useMemo(() => {
-    const raw =
-      typeof draftSettings.targets === "string"
-        ? draftSettings.targets
-        : "SAR,AED,USD,EUR";
-    return new Set(
-      raw
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean),
-    );
-  }, [draftSettings.targets]);
-
-  const toggleCurrencyTarget = (code: string) => {
-    const next = new Set(selectedCurrencyTargets);
-    if (next.has(code)) {
-      if (next.size <= 1) return;
-      next.delete(code);
-    } else {
-      next.add(code);
-    }
-    patchDraft({ targets: Array.from(next).join(",") });
-  };
+    WEATHER_CITIES_BY_COUNTRY[currentWeatherCountry] ?? ["london"];
 
   const allowedColOptions = useMemo(() => {
     const list: number[] = [];
@@ -1739,7 +1696,7 @@ function WidgetSettingsModal({
                     value={
                       typeof draftSettings.timezoneCity === "string"
                         ? draftSettings.timezoneCity
-                        : "manama"
+                        : "london"
                     }
                     onChange={(e) =>
                       patchDraft({ timezoneCity: e.target.value })
@@ -1964,7 +1921,7 @@ function WidgetSettingsModal({
                     onChange={(e) => {
                       const nextCountry = e.target.value;
                       const firstCity =
-                        WEATHER_CITIES_BY_COUNTRY[nextCountry]?.[0] ?? "manama";
+                        WEATHER_CITIES_BY_COUNTRY[nextCountry]?.[0] ?? "london";
                       patchDraft({
                         country: nextCountry,
                         city: firstCity,
@@ -2205,79 +2162,6 @@ function WidgetSettingsModal({
             </div>
           ) : null}
 
-          {item.id === "currency_rates" ? (
-            <div className="space-y-4 pt-3 border-t border-outline-variant/50">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-extrabold text-ink block">
-                    {b.currencyBaseLabel}
-                  </label>
-                  <Select
-                    value={
-                      typeof draftSettings.baseCurrency === "string"
-                        ? draftSettings.baseCurrency
-                        : "BHD"
-                    }
-                    onChange={(e) =>
-                      patchDraft({ baseCurrency: e.target.value })
-                    }
-                    aria-label={b.currencyBaseLabel}
-                  >
-                    {SUPPORTED_CURRENCIES.map((code) => (
-                      <option key={code} value={code}>
-                        {code}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-extrabold text-ink block">
-                    {b.currencyAmountLabel}
-                  </label>
-                  <input
-                    type="number"
-                    dir="ltr"
-                    value={
-                      typeof draftSettings.defaultAmount === "number"
-                        ? draftSettings.defaultAmount
-                        : 100
-                    }
-                    onChange={(e) =>
-                      patchDraft({
-                        defaultAmount: Number.parseFloat(e.target.value) || 100,
-                      })
-                    }
-                    aria-label={b.currencyAmountLabel}
-                    className="w-full h-10 rounded-xl bg-surface-container-lowest border border-outline-variant px-3 text-xs font-bold text-ink"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-extrabold text-ink block">
-                  {b.currencyTargetsLabel}
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {SUPPORTED_CURRENCIES.map((code) => {
-                    const checked = selectedCurrencyTargets.has(code);
-                    return (
-                      <button
-                        key={code}
-                        type="button"
-                        onClick={() => toggleCurrencyTarget(code)}
-                        className={`rounded-xl px-3 py-1.5 text-xs font-bold border ${
-                          checked
-                            ? "border-primary bg-primary text-on-primary"
-                            : "border-outline-variant/60 bg-surface-container-lowest text-ink"
-                        }`}
-                      >
-                        {code}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          ) : null}
 
           {item.id === "countdown_milestone" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-outline-variant/50">

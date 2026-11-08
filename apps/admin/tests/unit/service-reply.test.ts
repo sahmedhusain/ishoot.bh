@@ -6,8 +6,8 @@ const db = vi.hoisted(() => ({
   companySetting: { findFirst: vi.fn() },
   requestComment: { create: vi.fn() },
 }));
-vi.mock("../../lib/database/atomic", () => ({ db }));
-vi.mock("../../lib/database/db", () => ({ db }));
+vi.mock("../../lib/atomic", () => ({ db }));
+vi.mock("../../lib/db", () => ({ db }));
 const api = vi.hoisted(() => ({
   queueMessage: vi.fn(),
   getMessageStatus: vi.fn(),
@@ -19,7 +19,7 @@ vi.mock("../../lib/api/index", async (importOriginal) => ({
   ...api,
 }));
 
-import { replyToRequest } from "../../lib/database/queries/service-desk";
+import { replyToRequest } from "../../lib/queries/service-desk";
 beforeEach(() => vi.clearAllMocks());
 
 it("does not record a reply or advance its request when the mail queue refuses it", async () => {

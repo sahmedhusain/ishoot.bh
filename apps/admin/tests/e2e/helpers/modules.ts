@@ -6,7 +6,7 @@ import {
   listModules,
   setModule as save,
 } from "../../../lib/api/system";
-import { moduleOnByDefault } from "../../../lib/database/constants/features";
+import { moduleOnByDefault } from "../../../lib/constants/features";
 
 require("dotenv").config({
   path: path.resolve(__dirname, "../../.env"),

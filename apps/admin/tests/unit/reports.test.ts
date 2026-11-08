@@ -11,9 +11,9 @@ import {
   nextScheduledRun,
   previousPeriod,
   scheduledPeriod,
-} from "../../lib/database/constants/reports";
-import { ALL_RESOURCES } from "../../lib/database/constants/permissions";
-import { buildXlsx } from "../../lib/database/reports/xlsx";
+} from "../../lib/constants/reports";
+import { ALL_RESOURCES } from "../../lib/constants/permissions";
+import { buildXlsx } from "../../lib/reports/xlsx";
 
 describe("reports", () => {
   test("the period before has the same length and ends the day before", () => {

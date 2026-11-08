@@ -122,7 +122,13 @@ export function mapDeal(d: any): CRMDeal {
     contact: d.contact ? mapContact(d.contact) : undefined,
     title: d.title || d.Title || "",
     value: Number(d.dealValue ?? d.value ?? d.Value ?? 0),
-    currency: String(d.currency || d.Currency || "BHD"),
+    currency: String(
+      d.currency ||
+        d.Currency ||
+        process.env.NEXT_PUBLIC_DEFAULT_CURRENCY ||
+        process.env.DEFAULT_CURRENCY ||
+        "USD",
+    ),
     stage: ((d.dealStage || d.stage || d.Stage || "lead") as DealStage),
     probability: Number(d.probability ?? d.Probability ?? 50),
     target_close_date: d.expectedCloseDate

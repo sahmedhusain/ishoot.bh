@@ -1,12 +1,12 @@
 import { describe, expect, test } from "vitest";
-import { expectedDrawerCash } from "../../lib/database/finance/journal";
+import { expectedDrawerCash } from "../../lib/finance/journal";
 import {
   convertPackagingQuantity,
   assertPackageParent,
   expandSerialRange,
   uniqueSerials,
   validateStockLabelTemplate,
-} from "../../lib/database/constants/stock-traceability";
+} from "../../lib/constants/stock-traceability";
 
 describe("retail and closing calculations", () => {
   test("expectedDrawerCash computes opening + receipts + in - refunds - out - drops", () => {

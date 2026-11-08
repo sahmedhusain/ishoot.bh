@@ -192,7 +192,6 @@ export const DASHBOARD_WIDGETS: readonly DashboardWidgetDefinition[] = [
   panel("scratchpad_notes", "lifestyle", [], undefined, ["s", "m", "l"], "m"),
   panel("focus_pomodoro", "lifestyle", [], undefined, ["s", "m"], "s"),
   panel("quick_calculator", "lifestyle", [], undefined, ["s", "m"], "s"),
-  panel("currency_rates", "lifestyle", [], undefined, ["s", "m", "l"], "m"),
   panel("countdown_milestone", "lifestyle", [], undefined, ["s", "m", "l"], "s"),
   panel("sticky_quote", "lifestyle", [], undefined, ["s", "m", "l"], "s"),
   panel("bookmarks_launchpad", "lifestyle", [], undefined, ["s", "m", "l", "xl"], "m"),
@@ -271,7 +270,6 @@ const DESK_LAYOUTS: Record<DashboardDesk, string[]> = {
   finance: [
     "welcome_profile",
     "clock_local",
-    "currency_rates",
     "kpi_revenue",
     "kpi_receivables",
     "kpi_expenses",
@@ -494,7 +492,6 @@ export const DASHBOARD_PRESETS: Record<
     "scratchpad_notes",
     "focus_pomodoro",
     "quick_calculator",
-    "currency_rates",
     "countdown_milestone",
     "sticky_quote",
     "kpi_tasks",
@@ -575,7 +572,6 @@ export function widgetGridBounds(id: string): WidgetGridBounds {
     id === "calendar_mini" ||
     id === "scratchpad_notes" ||
     id === "quick_calculator" ||
-    id === "currency_rates" ||
     id === "bookmarks_launchpad"
   ) {
     return { minCols, maxCols, minRows: 2, maxRows: 4, defaultRows: 2 };

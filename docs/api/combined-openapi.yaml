@@ -26,34 +26,34 @@ tags:
     description: articles
   - name: reviews
     description: reviews
-  - name: faqs
-    description: faqs
-  - name: statistics
-    description: statistics
   - name: snapshots
     description: snapshots
   - name: pages
     description: pages
+  - name: faqs
+    description: faqs
+  - name: statistics
+    description: statistics
   - name: Commerce
     description: Commerce micro-service endpoints
-  - name: coupons
-    description: coupons
   - name: orders
     description: orders
   - name: customers
     description: customers
+  - name: coupons
+    description: coupons
   - name: Delivery
     description: Delivery micro-service endpoints
+  - name: shipments
+    description: shipments
+  - name: settings
+    description: settings
   - name: zones
     description: zones
   - name: vehicles
     description: vehicles
   - name: routes
     description: routes
-  - name: shipments
-    description: shipments
-  - name: settings
-    description: settings
   - name: Files
     description: Files micro-service endpoints
   - name: files
@@ -62,28 +62,30 @@ tags:
     description: uploads
   - name: Finance
     description: Finance micro-service endpoints
-  - name: invoices
-    description: invoices
-  - name: payments
-    description: payments
   - name: expenses
     description: expenses
   - name: settlements
     description: settlements
+  - name: invoices
+    description: invoices
+  - name: payments
+    description: payments
   - name: HR
     description: HR micro-service endpoints
-  - name: payroll
-    description: payroll
-  - name: departments
-    description: departments
   - name: employees
     description: employees
   - name: leave
     description: leave
+  - name: payroll
+    description: payroll
+  - name: departments
+    description: departments
   - name: Identity
     description: Identity micro-service endpoints
   - name: Inventory
     description: Inventory micro-service endpoints
+  - name: categories
+    description: categories
   - name: products
     description: products
   - name: stock
@@ -92,20 +94,18 @@ tags:
     description: counts
   - name: warehouses
     description: warehouses
-  - name: categories
-    description: categories
   - name: ITSM
     description: ITSM micro-service endpoints
   - name: requests
     description: requests
   - name: Notify
     description: Notify micro-service endpoints
-  - name: services
-    description: services
-  - name: me
-    description: me
   - name: inbox
     description: inbox
+  - name: me
+    description: me
+  - name: services
+    description: services
   - name: Realtime
     description: Realtime micro-service endpoints
   - name: Sales
@@ -122,14 +122,14 @@ tags:
     description: System micro-service endpoints
   - name: Workflow
     description: Workflow micro-service endpoints
-  - name: calendar
-    description: calendar
   - name: approvals
     description: approvals
   - name: signatures
     description: signatures
   - name: tasks
     description: tasks
+  - name: calendar
+    description: calendar
 paths:
   /.well-known/jwks.json:
     get:

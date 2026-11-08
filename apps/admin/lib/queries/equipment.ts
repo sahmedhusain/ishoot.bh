@@ -39,7 +39,7 @@ export async function getStudioEquipment(): Promise<StudioEquipment[]> {
       category: (p.categoryId ? catMap.get(p.categoryId) : undefined) || "Equipment",
       model_name: p.nameEn || p.NameEn || p.name || "",
       name_ar: p.nameAr || p.NameAr || p.nameEn || "",
-      brand: "Cinema Gear",
+      brand: p.brand || p.Brand || undefined,
       specification: p.descriptionEn || p.DescriptionEn || "",
       description_en: p.descriptionEn || p.DescriptionEn || undefined,
       description_ar: p.descriptionAr || p.DescriptionAr || undefined,

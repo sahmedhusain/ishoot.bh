@@ -1,13 +1,13 @@
 import { describe, expect, test } from "vitest";
 import { getTranslations } from "../../locales";
-import { BUSINESS_ACTIVITIES } from "../../lib/database/website-presets";
+import { BUSINESS_ACTIVITIES } from "../../lib/website-presets";
 import {
   ACTIVITY_DEAL_STAGES,
   BUILT_IN_DEAL_STAGES,
   SYSTEM_DEAL_STAGES,
   activityDealStages,
   DEAL_STAGE_ON_EVENT,
-} from "../../lib/database/constants/crm";
+} from "../../lib/constants/crm";
 
 describe("sales pipeline per business activity", () => {
   test("every activity has a pipeline framed by the system stages, without repeats", () => {

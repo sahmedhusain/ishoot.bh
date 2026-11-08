@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { t } from "../helpers/locale";
-import { STYLE_PRESETS } from "../../lib/database/constants/theme";
+import { STYLE_PRESETS } from "../../lib/constants/theme";
 import { acceptConfirmations } from "../../helpers";
 
 for (const mode of ["light", "dark"] as const) {

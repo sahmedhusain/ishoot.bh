@@ -7,16 +7,16 @@ import {
   TASK_STATUSES,
   dueBucket,
   projectProgress,
-} from "../../lib/database/constants/tasks";
+} from "../../lib/constants/tasks";
 import {
   ALL_RESOURCES,
   DEFAULT_ROLE_RULES,
   RESOURCE_FEATURES,
-} from "../../lib/database/constants/permissions";
+} from "../../lib/constants/permissions";
 import {
   DEFAULT_FEATURE_MODULES,
   moduleOnByDefault,
-} from "../../lib/database/constants/features";
+} from "../../lib/constants/features";
 
 describe("tasks", () => {
   test("due dates group into overdue, today, this week, later and none", () => {

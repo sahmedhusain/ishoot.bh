@@ -278,6 +278,7 @@ export interface StudioEquipment {
   display_order: number;
   created_at: string;
 }
+export type CompanyEquipment = StudioEquipment;
 
 export type InquiryStatus =
   | "new"

@@ -65,10 +65,10 @@
         "./lib/contracts/src/*"
       ],
       "@platform/database": [
-        "./lib/database/index.ts"
+        "./lib/index.ts"
       ],
       "@platform/database/*": [
-        "./lib/database/*"
+        "./lib/*"
       ],
       "@platform/email": [
         "./lib/email/index.ts"
@@ -89,10 +89,10 @@
         "./components/ui/*"
       ],
       "@prisma/client": [
-        "./lib/database/decimal.ts"
+        "./lib/decimal.ts"
       ],
       "@prisma/client/*": [
-        "./lib/database/decimal.ts"
+        "./lib/decimal.ts"
       ]
     }
   },

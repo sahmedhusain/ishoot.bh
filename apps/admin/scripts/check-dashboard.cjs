@@ -28,10 +28,10 @@ function load(file, mocks, jsx = false) {
       if (jsx && id === "react/jsx-runtime") return require("react/jsx-runtime");
       id = ((i, m) => i in m ? i : (i.startsWith("@platform/database/") && "@platform/database" in m ? "@platform/database" : i))(id, mocks);
       if (id === "../atomic" || id === "../db") return mocks["../atomic"] || mocks["../db"] || { db: {}, runAtomicMutation: (fn) => fn() };
-      if (id === "../finance/company-currency" && !(id in mocks)) return load("lib/database/finance/company-currency.ts", { "../db": mocks["../db"] });
+      if (id === "../finance/company-currency" && !(id in mocks)) return load("lib/finance/company-currency.ts", { "../db": mocks["../db"] });
       if (!(id in mocks)) { const real = realConstants(filePath, id); if (real) return real; throw Error("Unmocked dependency: " + id); }
       return mocks[id];
-    }, console, Date, Intl, Set, Map, URLSearchParams
+    }, console, process, Date, Intl, Set, Map, URLSearchParams
   });
   return module.exports;
 }
@@ -58,7 +58,6 @@ async function main() {
         ScratchpadNotesWidget: () => React.createElement("div", { "data-testid": "scratchpad-notes" }),
         FocusPomodoroWidget: () => React.createElement("div", { "data-testid": "focus-pomodoro" }),
         QuickCalculatorWidget: () => React.createElement("div", { "data-testid": "quick-calculator" }),
-        CurrencyRatesWidget: () => React.createElement("div", { "data-testid": "currency-rates" }),
         CountdownMilestoneWidget: () => React.createElement("div", { "data-testid": "countdown-milestone" }),
         StickyQuoteWidget: () => React.createElement("div", { "data-testid": "sticky-quote" }),
         BookmarksLaunchpadWidget: () => React.createElement("div", { "data-testid": "bookmarks-launchpad" }),
@@ -69,12 +68,12 @@ async function main() {
       "../../hooks/useAdminLocale": { useAdminLocale: () => ({ t, locale }) },
       "../../lib/deal-stages": { dealStageLabel: (stage) => stage.name_en || t.stages[stage.id] || stage.id },
     }, true);
-    const empty = { generatedAt: "2026-10-06T00:00:00.000Z", currency: "BHD", showMoney: false, finance: null, cashflow: null, deals: null, stages: null, leads: null, orders: null, recentOrders: null, lowStock: null, shipments: null, tasks: null, campaigns: null, legal: null, events: null, activity: null, company: null, workload: null, actions: [] };
+    const empty = { generatedAt: "2026-10-06T00:00:00.000Z", currency: "USD", showMoney: false, finance: null, cashflow: null, deals: null, stages: null, leads: null, orders: null, recentOrders: null, lowStock: null, shipments: null, tasks: null, campaigns: null, legal: null, events: null, activity: null, company: null, workload: null, actions: [] };
     const render = (id, data) => renderToStaticMarkup(React.createElement(DashboardWidget, { id, data: { ...empty, ...data } }));
     assert.equal(render("kpi_revenue", {}), "", "A widget without its data renders nothing");
     const finance = { revenue: 9876, outstanding: 22, overdue: 0, expenses: 44, netProfit: 9832, profitMargin: 99 };
     assert.ok(render("kpi_revenue", { finance }).includes(t.dashboardBoard.widgets.kpi_revenue) && render("kpi_revenue", { finance }).includes("money:9876"));
-    const deals = { recent: [{ id: "d1", title: "Deal one", stage: "lead", value: 500, currency: "BHD", contact: null }], stageStats: { lead: { count: 1, value: 500 } }, activeCount: 1, activePipelineValue: 500 };
+    const deals = { recent: [{ id: "d1", title: "Deal one", stage: "lead", value: 500, currency: "USD", contact: null }], stageStats: { lead: { count: 1, value: 500 } }, activeCount: 1, activePipelineValue: 500 };
     assert.ok(!render("pipeline_stages", { deals }).includes("money:"), "Deal values stay hidden without finance access");
     assert.ok(!render("recent_deals", { deals }).includes("money:"));
     assert.ok(render("pipeline_stages", { deals, showMoney: true }).includes("money:500"));
@@ -117,7 +116,7 @@ async function main() {
   for (const w of dash.DASHBOARD_WIDGETS) assert.ok(w.sizes.includes(w.defaultSize), `${w.id} default size is allowed`);
 
   let aggregations = 0, listReads = 0;
-  const { getCRMDealOverview } = load("lib/database/queries/crm.ts", {
+  const { getCRMDealOverview } = load("lib/queries/crm.ts", {
     "./company-settings": {}, "../services/lead-resolver": {},
     "@platform/api-client": {
       listContacts: async () => [],
@@ -144,7 +143,7 @@ async function main() {
 
   // Linked deals only ever move forward, and never out of a closed stage.
   const advances = [];
-  const { advanceDealForEvent } = load("lib/database/queries/crm.ts", {
+  const { advanceDealForEvent } = load("lib/queries/crm.ts", {
     "./company-settings": {}, "../services/lead-resolver": {}, "../db": { db: {} },
     "@platform/api-client": new Proxy({}, { get: () => async () => [] }),
   });
