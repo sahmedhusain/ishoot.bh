@@ -22,28 +22,30 @@ tags:
     description: desk
   - name: CMS
     description: CMS micro-service endpoints
+  - name: reviews
+    description: reviews
+  - name: snapshots
+    description: snapshots
   - name: pages
     description: pages
   - name: articles
     description: articles
-  - name: snapshots
-    description: snapshots
   - name: faqs
     description: faqs
-  - name: reviews
-    description: reviews
   - name: statistics
     description: statistics
   - name: Commerce
     description: Commerce micro-service endpoints
-  - name: orders
-    description: orders
   - name: customers
     description: customers
   - name: coupons
     description: coupons
+  - name: orders
+    description: orders
   - name: Delivery
     description: Delivery micro-service endpoints
+  - name: shipments
+    description: shipments
   - name: settings
     description: settings
   - name: zones
@@ -52,8 +54,6 @@ tags:
     description: vehicles
   - name: routes
     description: routes
-  - name: shipments
-    description: shipments
   - name: Files
     description: Files micro-service endpoints
   - name: uploads
@@ -62,28 +62,30 @@ tags:
     description: files
   - name: Finance
     description: Finance micro-service endpoints
-  - name: invoices
-    description: invoices
   - name: expenses
     description: expenses
+  - name: invoices
+    description: invoices
   - name: payments
     description: payments
   - name: settlements
     description: settlements
   - name: HR
     description: HR micro-service endpoints
-  - name: leave
-    description: leave
   - name: payroll
     description: payroll
   - name: departments
     description: departments
   - name: employees
     description: employees
+  - name: leave
+    description: leave
   - name: Identity
     description: Identity micro-service endpoints
   - name: Inventory
     description: Inventory micro-service endpoints
+  - name: warehouses
+    description: warehouses
   - name: categories
     description: categories
   - name: products
@@ -92,8 +94,6 @@ tags:
     description: stock
   - name: counts
     description: counts
-  - name: warehouses
-    description: warehouses
   - name: ITSM
     description: ITSM micro-service endpoints
   - name: requests
@@ -110,26 +110,26 @@ tags:
     description: Realtime micro-service endpoints
   - name: Sales
     description: Sales micro-service endpoints
-  - name: quotations
-    description: quotations
-  - name: deals
-    description: deals
-  - name: contacts
-    description: contacts
   - name: inquiries
     description: inquiries
+  - name: quotations
+    description: quotations
+  - name: contacts
+    description: contacts
+  - name: deals
+    description: deals
   - name: System
     description: System micro-service endpoints
   - name: Workflow
     description: Workflow micro-service endpoints
+  - name: signatures
+    description: signatures
   - name: tasks
     description: tasks
   - name: calendar
     description: calendar
   - name: approvals
     description: approvals
-  - name: signatures
-    description: signatures
 paths:
   /.well-known/jwks.json:
     get:

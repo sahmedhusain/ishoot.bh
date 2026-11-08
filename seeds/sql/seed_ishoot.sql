@@ -1,7 +1,8 @@
 -- ============================================================================
 -- PURE SQL SEED: iShoot Cinema Production S.P.C.
--- Complete multi-microservice fixtures across all 15 schemas
--- Generated: 2026-11-08T15:05:15.223Z
+-- Comprehensive production fixtures: 55+ Invoices, 50 Customers, 35 Contacts,
+-- 40 Deals, 30 Products, 35 Expenses, 4 Payroll Runs, 25 Tasks, 15 ITSM Tickets
+-- Generated: 2026-11-08T16:21:06.031Z
 -- ============================================================================
 BEGIN;
 
@@ -106,6 +107,18 @@ VALUES ('2f91022c-2cbe-4b14-9530-dd07e0d39931', 'favicon', 'Icon for light backg
 ON CONFLICT (id) DO UPDATE SET file_url = EXCLUDED.file_url, updated_at = now();
 
 INSERT INTO system.module_setting (module_key, enabled, updated_by, updated_at)
+VALUES ('hr_payroll', true, 'seed:sql', now())
+ON CONFLICT (module_key) DO UPDATE SET enabled = true, updated_at = now();
+INSERT INTO system.module_setting (module_key, enabled, updated_by, updated_at)
+VALUES ('itsm', true, 'seed:sql', now())
+ON CONFLICT (module_key) DO UPDATE SET enabled = true, updated_at = now();
+INSERT INTO system.module_setting (module_key, enabled, updated_by, updated_at)
+VALUES ('audit_trail', true, 'seed:sql', now())
+ON CONFLICT (module_key) DO UPDATE SET enabled = true, updated_at = now();
+INSERT INTO system.module_setting (module_key, enabled, updated_by, updated_at)
+VALUES ('notifications', true, 'seed:sql', now())
+ON CONFLICT (module_key) DO UPDATE SET enabled = true, updated_at = now();
+INSERT INTO system.module_setting (module_key, enabled, updated_by, updated_at)
 VALUES ('crm_deals', true, 'seed:sql', now())
 ON CONFLICT (module_key) DO UPDATE SET enabled = true, updated_at = now();
 INSERT INTO system.module_setting (module_key, enabled, updated_by, updated_at)
@@ -148,10 +161,10 @@ INSERT INTO system.module_setting (module_key, enabled, updated_by, updated_at)
 VALUES ('legal', true, 'seed:sql', now())
 ON CONFLICT (module_key) DO UPDATE SET enabled = true, updated_at = now();
 
-INSERT INTO system.document_sequence (kind, prefix, next_number) VALUES ('invoice', 'ISH', 105), ('receipt', 'RCT', 107) ON CONFLICT (kind) DO UPDATE SET prefix = EXCLUDED.prefix, next_number = EXCLUDED.next_number;
+INSERT INTO system.document_sequence (kind, prefix, next_number) VALUES ('invoice', 'ISH', 201), ('receipt', 'RCT', 201) ON CONFLICT (kind) DO UPDATE SET prefix = EXCLUDED.prefix, next_number = EXCLUDED.next_number;
 
 -- ----------------------------------------------------------------------------
--- 3. FILES SERVICE (Upload Objects for Brand Artwork & Fonts)
+-- 3. FILES SERVICE (Brand Artwork, Logos, Fonts)
 -- ----------------------------------------------------------------------------
 INSERT INTO files.upload_object (id, file_url, owner_id, file_name, file_size, mime_type, is_public, claimed_at, expires_at, created_at)
 VALUES ('bcdae73d-092c-491e-ab5d-692ecceea06c', '/api/files/brand/logo-text-dark_ce4688a0b9d4.png', 'system', 'logo-text-dark.png', 31357, 'image/png', true, now(), now() + interval '100 years', now())
@@ -236,24 +249,18 @@ VALUES ('faf0efc9-2b4d-45f9-a140-3719cbe911f7', '/api/files/brand/signature_28e8
 ON CONFLICT (file_url) DO NOTHING;
 
 -- ----------------------------------------------------------------------------
--- 4. IDENTITY SERVICE (Accounts, Staff Roles, Scopes, Permissions)
+-- 4. IDENTITY SERVICE (Roles, Scopes, Accounts & Permissions)
 -- ----------------------------------------------------------------------------
-
-INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, created_at, updated_at)
-VALUES ('staff', 'sami-khoury', 'sales@example.com', 'SK0009', '$argon2id$v=19$m=19456,t=2,p=1$mSbMeSezKloR2+1pqltwMA$3jQM9u6DzMnfPMgylalPh11Yk5wllf1bxwe/MoUQCmQ', '{"sales"}', true, false, now(), now())
-ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, active = true, updated_at = now();
-INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, created_at, updated_at)
-VALUES ('staff', 'hana-yousef', 'marketing@example.com', 'HY0010', '$argon2id$v=19$m=19456,t=2,p=1$agm6jJxmmZXY+r/xoK9EUQ$hGUkusIA7NVuvBgjDT1eJGO9ZyqHP/XO/Y9xFFa+8Bg', '{"marketing"}', true, false, now(), now())
-ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, active = true, updated_at = now();
-INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, created_at, updated_at)
-VALUES ('staff', 'guest', 'guest@example.com', 'GO0011', '$argon2id$v=19$m=19456,t=2,p=1$PzVq/hrVrqoB/nVDhs8hpA$1rtDEGazyISd32w3oJU34XDSt6eV0gaZpYoNTzIfKUg', '{"viewer"}', true, false, now(), now())
-ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, active = true, updated_at = now();
-INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, created_at, updated_at)
-VALUES ('staff', 'omar-haddad', 'omar-haddad@example.com', 'OH0002', '$argon2id$v=19$m=19456,t=2,p=1$gfqeZ9CupfsdShN9TJq8VQ$t8dV/7Jhhr3hULEu8D5ATaITqN+ILLu34Kh55T5fPbM', '{"super_admin"}', true, false, now(), now())
-ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, active = true, updated_at = now();
-INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, created_at, updated_at)
-VALUES ('staff', 'yusuf-rahman', 'director@example.com', 'YR0003', '$argon2id$v=19$m=19456,t=2,p=1$AEADNvnMM/shq/R6f7nlGQ$i9uupG4/DzvTidEgt7g0wnpELR8M3QlGQeUg13xaGj0', '{"admin"}', true, false, now(), now())
-ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, active = true, updated_at = now();
+INSERT INTO identity.staff_role (id, name_en, name_ar, is_system, created_at, revision) VALUES ('super_admin', 'Super Administrator', 'المسؤول العام', true, now(), 1) ON CONFLICT (id) DO NOTHING;
+INSERT INTO identity.staff_role (id, name_en, name_ar, is_system, created_at, revision) VALUES ('admin', 'Administrator', 'مدير النظام', true, now(), 1) ON CONFLICT (id) DO NOTHING;
+INSERT INTO identity.staff_role (id, name_en, name_ar, is_system, created_at, revision) VALUES ('finance_manager', 'Finance Manager', 'المدير المالي', true, now(), 1) ON CONFLICT (id) DO NOTHING;
+INSERT INTO identity.staff_role (id, name_en, name_ar, is_system, created_at, revision) VALUES ('operations_manager', 'Operations Manager', 'مدير العمليات', true, now(), 1) ON CONFLICT (id) DO NOTHING;
+INSERT INTO identity.staff_role (id, name_en, name_ar, is_system, created_at, revision) VALUES ('project_lead', 'Project Lead', 'مدير المشروع', true, now(), 1) ON CONFLICT (id) DO NOTHING;
+INSERT INTO identity.staff_role (id, name_en, name_ar, is_system, created_at, revision) VALUES ('editor', 'Editor', 'محرر محتوى', true, now(), 1) ON CONFLICT (id) DO NOTHING;
+INSERT INTO identity.staff_role (id, name_en, name_ar, is_system, created_at, revision) VALUES ('accountant', 'Accountant', 'محاسب', true, now(), 1) ON CONFLICT (id) DO NOTHING;
+INSERT INTO identity.staff_role (id, name_en, name_ar, is_system, created_at, revision) VALUES ('sales', 'Sales Specialist', 'أخصائي مبيعات', true, now(), 1) ON CONFLICT (id) DO NOTHING;
+INSERT INTO identity.staff_role (id, name_en, name_ar, is_system, created_at, revision) VALUES ('marketing', 'Marketing Specialist', 'أخصائي تسويق', true, now(), 1) ON CONFLICT (id) DO NOTHING;
+INSERT INTO identity.staff_role (id, name_en, name_ar, is_system, created_at, revision) VALUES ('viewer', 'Viewer', 'مراقب عام', true, now(), 1) ON CONFLICT (id) DO NOTHING;
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, created_at, updated_at)
 VALUES ('staff', 'layla-nasser', 'finance@example.com', 'LN0004', '$argon2id$v=19$m=19456,t=2,p=1$TAbJr6lgxdcxC+ljsAmHwA$rUz/JqqAj5GjSgxeRLIbcPcm4jy9Gg29sgKoUxhKjqU', '{"finance_manager"}', true, false, now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, active = true, updated_at = now();
@@ -275,6 +282,21 @@ ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_h
 INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, created_at, updated_at)
 VALUES ('staff', 'faisal-mansour', 'accountant@example.com', 'FM0008', '$argon2id$v=19$m=19456,t=2,p=1$O+stBWvZlrKljxz1CD7PmQ$pLJX+x+OwgbV1aP7zJzWjwBwCFgp5b2+tensIgjhNe0', '{"accountant"}', true, false, now(), now())
 ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, active = true, updated_at = now();
+INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, created_at, updated_at)
+VALUES ('staff', 'sami-khoury', 'sales@example.com', 'SK0009', '$argon2id$v=19$m=19456,t=2,p=1$mSbMeSezKloR2+1pqltwMA$3jQM9u6DzMnfPMgylalPh11Yk5wllf1bxwe/MoUQCmQ', '{"sales"}', true, false, now(), now())
+ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, active = true, updated_at = now();
+INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, created_at, updated_at)
+VALUES ('staff', 'hana-yousef', 'marketing@example.com', 'HY0010', '$argon2id$v=19$m=19456,t=2,p=1$agm6jJxmmZXY+r/xoK9EUQ$hGUkusIA7NVuvBgjDT1eJGO9ZyqHP/XO/Y9xFFa+8Bg', '{"marketing"}', true, false, now(), now())
+ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, active = true, updated_at = now();
+INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, created_at, updated_at)
+VALUES ('staff', 'guest', 'guest@example.com', 'GO0011', '$argon2id$v=19$m=19456,t=2,p=1$PzVq/hrVrqoB/nVDhs8hpA$1rtDEGazyISd32w3oJU34XDSt6eV0gaZpYoNTzIfKUg', '{"viewer"}', true, false, now(), now())
+ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, active = true, updated_at = now();
+INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, created_at, updated_at)
+VALUES ('staff', 'omar-haddad', 'omar-haddad@example.com', 'OH0002', '$argon2id$v=19$m=19456,t=2,p=1$gfqeZ9CupfsdShN9TJq8VQ$t8dV/7Jhhr3hULEu8D5ATaITqN+ILLu34Kh55T5fPbM', '{"super_admin"}', true, false, now(), now())
+ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, active = true, updated_at = now();
+INSERT INTO identity.account (realm, subject_id, email, username, password_hash, roles, active, mfa_enabled, created_at, updated_at)
+VALUES ('staff', 'yusuf-rahman', 'director@example.com', 'YR0003', '$argon2id$v=19$m=19456,t=2,p=1$AEADNvnMM/shq/R6f7nlGQ$i9uupG4/DzvTidEgt7g0wnpELR8M3QlGQeUg13xaGj0', '{"admin"}', true, false, now(), now())
+ON CONFLICT (realm, subject_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, active = true, updated_at = now();
 INSERT INTO identity.staff_access (realm, subject_id, permission_overrides, updated_at) VALUES ('staff', 'super-admin', '{}'::jsonb, now()) ON CONFLICT (realm, subject_id) DO NOTHING;
 INSERT INTO identity.staff_access (realm, subject_id, permission_overrides, updated_at) VALUES ('staff', 'omar-haddad', '{}'::jsonb, now()) ON CONFLICT (realm, subject_id) DO NOTHING;
 INSERT INTO identity.staff_access (realm, subject_id, permission_overrides, updated_at) VALUES ('staff', 'yusuf-rahman', '{}'::jsonb, now()) ON CONFLICT (realm, subject_id) DO NOTHING;
@@ -288,7 +310,7 @@ INSERT INTO identity.staff_access (realm, subject_id, permission_overrides, upda
 INSERT INTO identity.staff_access (realm, subject_id, permission_overrides, updated_at) VALUES ('staff', 'guest', '{}'::jsonb, now()) ON CONFLICT (realm, subject_id) DO NOTHING;
 
 -- ----------------------------------------------------------------------------
--- 5. HR SERVICE (Departments, Employees, Leaves, Attendance, Payroll)
+-- 5. HR SERVICE (Departments, Employees, Payroll Runs, Leaves, Attendance)
 -- ----------------------------------------------------------------------------
 INSERT INTO hr.department (id, code, name_en, name_ar) VALUES ('920539be-a979-42c1-bb53-a90ea0005289', 'EXEC', 'Executive', 'الإدارة التنفيذية') ON CONFLICT (id) DO NOTHING;
 INSERT INTO hr.department (id, code, name_en, name_ar) VALUES ('7754f827-b81d-4198-b382-cd5c6afbb561', 'FIN', 'Finance', 'المالية') ON CONFLICT (id) DO NOTHING;
@@ -328,166 +350,745 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO hr.employee (id, employee_number, first_name_en, last_name_en, first_name_ar, last_name_ar, email, phone, job_title_en, job_title_ar, department_id, hire_date, status, basic_salary, housing_allowance, transport_allowance, other_allowances, created_at, updated_at)
 VALUES ('3e911960-0003-4981-ac1a-8085dd66a212', 'GO0011', 'Guest', 'Observer', 'مراقب', 'عام', 'guest@example.com', '+97336008800', 'Guest Observer', 'مراقب خارجي معتمد', '942af868-b755-4460-8930-01492e6ae65b', (CURRENT_DATE - INTERVAL '365 days')::date, 'active', 2100, 250, 75, 0.000, now(), now())
 ON CONFLICT (id) DO NOTHING;
-
--- Leave requests
-INSERT INTO hr.leave_request (id, employee_id, leave_type, start_date, end_date, days_count, status, reason, created_at, updated_at) VALUES
-  ('lr-001', '04c696d7-f5e1-408c-8723-205b567d6119', 'annual', (CURRENT_DATE - INTERVAL '40 days')::date, (CURRENT_DATE - INTERVAL '35 days')::date, 5.0, 'approved', 'Annual family vacation', now(), now()),
-  ('lr-002', '519c98db-889e-4b93-ba19-0015bde5a465', 'sick', (CURRENT_DATE - INTERVAL '15 days')::date, (CURRENT_DATE - INTERVAL '14 days')::date, 2.0, 'approved', 'Medical recovery with doctor note', now(), now()),
-  ('lr-003', '71190c9f-71eb-41a5-8636-7f2ad6960be8', 'annual', (CURRENT_DATE + INTERVAL '10 days')::date, (CURRENT_DATE + INTERVAL '15 days')::date, 5.0, 'pending', 'Planned personal travel', now(), now())
+INSERT INTO hr.payroll_run (id, period_month, period_year, status, total_gross, total_deductions, total_net, currency, processed_at, approved_by, created_at)
+VALUES ('pr-2026-07', 7, 2026, 'completed', 14500.000, 750.000, 13750.000, 'BHD', (CURRENT_DATE - INTERVAL '105 days')::timestamptz, 'super-admin', now())
 ON CONFLICT (id) DO NOTHING;
-
--- Attendance entries
-INSERT INTO hr.attendance_entry (id, employee_id, entry_date, check_in, check_out, status, notes, created_at) VALUES
-  ('att-001', '04c696d7-f5e1-408c-8723-205b567d6119', CURRENT_DATE, (CURRENT_DATE + TIME '08:45:00')::timestamptz, NULL, 'present', 'On-site studio setup', now()),
-  ('att-002', '519c98db-889e-4b93-ba19-0015bde5a465', CURRENT_DATE, (CURRENT_DATE + TIME '09:00:00')::timestamptz, NULL, 'present', 'Editing suite A', now())
+INSERT INTO hr.payroll_run (id, period_month, period_year, status, total_gross, total_deductions, total_net, currency, processed_at, approved_by, created_at)
+VALUES ('pr-2026-08', 8, 2026, 'completed', 14500.000, 750.000, 13750.000, 'BHD', (CURRENT_DATE - INTERVAL '75 days')::timestamptz, 'super-admin', now())
 ON CONFLICT (id) DO NOTHING;
-
--- Historical Payroll Runs
-INSERT INTO hr.payroll_run (id, period_month, period_year, status, total_gross, total_deductions, total_net, currency, processed_at, approved_by, created_at) VALUES
-  ('pr-2026-09', 9, 2026, 'completed', 14500.000, 750.000, 13750.000, 'BHD', (CURRENT_DATE - INTERVAL '40 days')::timestamptz, 'super-admin', now()),
-  ('pr-2026-10', 10, 2026, 'completed', 14500.000, 750.000, 13750.000, 'BHD', (CURRENT_DATE - INTERVAL '10 days')::timestamptz, 'super-admin', now())
+INSERT INTO hr.payroll_run (id, period_month, period_year, status, total_gross, total_deductions, total_net, currency, processed_at, approved_by, created_at)
+VALUES ('pr-2026-09', 9, 2026, 'completed', 14500.000, 750.000, 13750.000, 'BHD', (CURRENT_DATE - INTERVAL '45 days')::timestamptz, 'super-admin', now())
 ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status) VALUES
-  ('pi-09-01', 'pr-2026-09', '04c696d7-f5e1-408c-8723-205b567d6119', 1800.000, 400.000, 150.000, 2050.000, 'paid'),
-  ('pi-09-02', 'pr-2026-09', '519c98db-889e-4b93-ba19-0015bde5a465', 1500.000, 325.000, 120.000, 1705.000, 'paid'),
-  ('pi-10-01', 'pr-2026-10', '04c696d7-f5e1-408c-8723-205b567d6119', 1800.000, 400.000, 150.000, 2050.000, 'paid'),
-  ('pi-10-02', 'pr-2026-10', '519c98db-889e-4b93-ba19-0015bde5a465', 1500.000, 325.000, 120.000, 1705.000, 'paid')
+INSERT INTO hr.payroll_run (id, period_month, period_year, status, total_gross, total_deductions, total_net, currency, processed_at, approved_by, created_at)
+VALUES ('pr-2026-10', 10, 2026, 'completed', 14500.000, 750.000, 13750.000, 'BHD', (CURRENT_DATE - INTERVAL '15 days')::timestamptz, 'super-admin', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-001', 'pr-2026-07', '04c696d7-f5e1-408c-8723-205b567d6119', 1200, 325, 84, 1441, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-002', 'pr-2026-07', '519c98db-889e-4b93-ba19-0015bde5a465', 1300, 325, 91, 1534, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-003', 'pr-2026-07', '71190c9f-71eb-41a5-8636-7f2ad6960be8', 1400, 325, 98, 1627, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-004', 'pr-2026-07', '8e70e1a0-9cdb-4b70-8b0a-70da5ee5b744', 1500, 325, 105, 1720, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-005', 'pr-2026-07', '52f3083b-d0eb-41ac-8f20-3b6c7f0d7a75', 1600, 325, 112, 1813, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-006', 'pr-2026-07', 'c1947ad8-900f-419f-a0e2-3f2afe3d1bda', 1700, 325, 119, 1906, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-007', 'pr-2026-07', '17fcd4f9-6dbd-491e-a392-cc3a9a42f277', 1800, 325, 126, 1999, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-008', 'pr-2026-07', '67a177f9-65e6-4e40-b0a9-f1168e276326', 1900, 325, 133, 2092, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-009', 'pr-2026-07', '3b06b26b-5eb5-4395-837e-4e24d0a148de', 2000, 325, 140, 2185, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-010', 'pr-2026-07', '3e911960-0003-4981-ac1a-8085dd66a212', 2100, 325, 147, 2278, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-011', 'pr-2026-08', '04c696d7-f5e1-408c-8723-205b567d6119', 1200, 325, 84, 1441, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-012', 'pr-2026-08', '519c98db-889e-4b93-ba19-0015bde5a465', 1300, 325, 91, 1534, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-013', 'pr-2026-08', '71190c9f-71eb-41a5-8636-7f2ad6960be8', 1400, 325, 98, 1627, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-014', 'pr-2026-08', '8e70e1a0-9cdb-4b70-8b0a-70da5ee5b744', 1500, 325, 105, 1720, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-015', 'pr-2026-08', '52f3083b-d0eb-41ac-8f20-3b6c7f0d7a75', 1600, 325, 112, 1813, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-016', 'pr-2026-08', 'c1947ad8-900f-419f-a0e2-3f2afe3d1bda', 1700, 325, 119, 1906, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-017', 'pr-2026-08', '17fcd4f9-6dbd-491e-a392-cc3a9a42f277', 1800, 325, 126, 1999, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-018', 'pr-2026-08', '67a177f9-65e6-4e40-b0a9-f1168e276326', 1900, 325, 133, 2092, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-019', 'pr-2026-08', '3b06b26b-5eb5-4395-837e-4e24d0a148de', 2000, 325, 140, 2185, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-020', 'pr-2026-08', '3e911960-0003-4981-ac1a-8085dd66a212', 2100, 325, 147, 2278, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-021', 'pr-2026-09', '04c696d7-f5e1-408c-8723-205b567d6119', 1200, 325, 84, 1441, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-022', 'pr-2026-09', '519c98db-889e-4b93-ba19-0015bde5a465', 1300, 325, 91, 1534, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-023', 'pr-2026-09', '71190c9f-71eb-41a5-8636-7f2ad6960be8', 1400, 325, 98, 1627, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-024', 'pr-2026-09', '8e70e1a0-9cdb-4b70-8b0a-70da5ee5b744', 1500, 325, 105, 1720, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-025', 'pr-2026-09', '52f3083b-d0eb-41ac-8f20-3b6c7f0d7a75', 1600, 325, 112, 1813, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-026', 'pr-2026-09', 'c1947ad8-900f-419f-a0e2-3f2afe3d1bda', 1700, 325, 119, 1906, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-027', 'pr-2026-09', '17fcd4f9-6dbd-491e-a392-cc3a9a42f277', 1800, 325, 126, 1999, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-028', 'pr-2026-09', '67a177f9-65e6-4e40-b0a9-f1168e276326', 1900, 325, 133, 2092, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-029', 'pr-2026-09', '3b06b26b-5eb5-4395-837e-4e24d0a148de', 2000, 325, 140, 2185, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-030', 'pr-2026-09', '3e911960-0003-4981-ac1a-8085dd66a212', 2100, 325, 147, 2278, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-031', 'pr-2026-10', '04c696d7-f5e1-408c-8723-205b567d6119', 1200, 325, 84, 1441, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-032', 'pr-2026-10', '519c98db-889e-4b93-ba19-0015bde5a465', 1300, 325, 91, 1534, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-033', 'pr-2026-10', '71190c9f-71eb-41a5-8636-7f2ad6960be8', 1400, 325, 98, 1627, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-034', 'pr-2026-10', '8e70e1a0-9cdb-4b70-8b0a-70da5ee5b744', 1500, 325, 105, 1720, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-035', 'pr-2026-10', '52f3083b-d0eb-41ac-8f20-3b6c7f0d7a75', 1600, 325, 112, 1813, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-036', 'pr-2026-10', 'c1947ad8-900f-419f-a0e2-3f2afe3d1bda', 1700, 325, 119, 1906, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-037', 'pr-2026-10', '17fcd4f9-6dbd-491e-a392-cc3a9a42f277', 1800, 325, 126, 1999, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-038', 'pr-2026-10', '67a177f9-65e6-4e40-b0a9-f1168e276326', 1900, 325, 133, 2092, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-039', 'pr-2026-10', '3b06b26b-5eb5-4395-837e-4e24d0a148de', 2000, 325, 140, 2185, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.payroll_item (id, payroll_run_id, employee_id, basic_salary, allowances, deductions, net_salary, status)
+VALUES ('pi-040', 'pr-2026-10', '3e911960-0003-4981-ac1a-8085dd66a212', 2100, 325, 147, 2278, 'paid')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.leave_request (id, employee_id, leave_type, start_date, end_date, days_count, status, reason, created_at, updated_at)
+VALUES ('lr-001', '04c696d7-f5e1-408c-8723-205b567d6119', 'annual', (CURRENT_DATE - INTERVAL '140 days')::date, (CURRENT_DATE - INTERVAL '135 days')::date, 5, 'approved', 'Annual leave family vacation', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.leave_request (id, employee_id, leave_type, start_date, end_date, days_count, status, reason, created_at, updated_at)
+VALUES ('lr-002', '519c98db-889e-4b93-ba19-0015bde5a465', 'sick', (CURRENT_DATE - INTERVAL '115 days')::date, (CURRENT_DATE - INTERVAL '114 days')::date, 2, 'approved', 'Medical recovery with hospital certificate', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.leave_request (id, employee_id, leave_type, start_date, end_date, days_count, status, reason, created_at, updated_at)
+VALUES ('lr-003', '71190c9f-71eb-41a5-8636-7f2ad6960be8', 'annual', (CURRENT_DATE - INTERVAL '95 days')::date, (CURRENT_DATE - INTERVAL '92 days')::date, 4, 'approved', 'Travel for documentary film screening', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.leave_request (id, employee_id, leave_type, start_date, end_date, days_count, status, reason, created_at, updated_at)
+VALUES ('lr-004', '8e70e1a0-9cdb-4b70-8b0a-70da5ee5b744', 'emergency', (CURRENT_DATE - INTERVAL '80 days')::date, (CURRENT_DATE - INTERVAL '80 days')::date, 1, 'approved', 'Family urgent matter', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.leave_request (id, employee_id, leave_type, start_date, end_date, days_count, status, reason, created_at, updated_at)
+VALUES ('lr-005', '52f3083b-d0eb-41ac-8f20-3b6c7f0d7a75', 'annual', (CURRENT_DATE - INTERVAL '65 days')::date, (CURRENT_DATE - INTERVAL '60 days')::date, 6, 'approved', 'Post-production wrap vacation', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.leave_request (id, employee_id, leave_type, start_date, end_date, days_count, status, reason, created_at, updated_at)
+VALUES ('lr-006', 'c1947ad8-900f-419f-a0e2-3f2afe3d1bda', 'sick', (CURRENT_DATE - INTERVAL '45 days')::date, (CURRENT_DATE - INTERVAL '43 days')::date, 3, 'approved', 'Flu recovery', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.leave_request (id, employee_id, leave_type, start_date, end_date, days_count, status, reason, created_at, updated_at)
+VALUES ('lr-007', '17fcd4f9-6dbd-491e-a392-cc3a9a42f277', 'annual', (CURRENT_DATE - INTERVAL '30 days')::date, (CURRENT_DATE - INTERVAL '26 days')::date, 5, 'approved', 'Personal travel', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.leave_request (id, employee_id, leave_type, start_date, end_date, days_count, status, reason, created_at, updated_at)
+VALUES ('lr-008', '67a177f9-65e6-4e40-b0a9-f1168e276326', 'annual', (CURRENT_DATE - INTERVAL '15 days')::date, (CURRENT_DATE - INTERVAL '12 days')::date, 4, 'approved', 'Annual holiday', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.leave_request (id, employee_id, leave_type, start_date, end_date, days_count, status, reason, created_at, updated_at)
+VALUES ('lr-009', '3b06b26b-5eb5-4395-837e-4e24d0a148de', 'annual', (CURRENT_DATE - INTERVAL '-10 days')::date, (CURRENT_DATE - INTERVAL '-15 days')::date, 5, 'pending', 'Planned upcoming winter vacation', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.leave_request (id, employee_id, leave_type, start_date, end_date, days_count, status, reason, created_at, updated_at)
+VALUES ('lr-010', '519c98db-889e-4b93-ba19-0015bde5a465', 'annual', (CURRENT_DATE - INTERVAL '-5 days')::date, (CURRENT_DATE - INTERVAL '-7 days')::date, 3, 'pending', 'Personal leaves', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.attendance_entry (id, employee_id, entry_date, check_in, check_out, status, notes, created_at)
+VALUES ('att-04c696d7-f5e1-408c-8723-205b567d6119-today', '04c696d7-f5e1-408c-8723-205b567d6119', CURRENT_DATE, (CURRENT_DATE + TIME '08:45:00')::timestamptz, NULL, 'present', 'Studio check-in', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.attendance_entry (id, employee_id, entry_date, check_in, check_out, status, notes, created_at)
+VALUES ('att-519c98db-889e-4b93-ba19-0015bde5a465-today', '519c98db-889e-4b93-ba19-0015bde5a465', CURRENT_DATE, (CURRENT_DATE + TIME '08:45:00')::timestamptz, NULL, 'present', 'Studio check-in', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.attendance_entry (id, employee_id, entry_date, check_in, check_out, status, notes, created_at)
+VALUES ('att-71190c9f-71eb-41a5-8636-7f2ad6960be8-today', '71190c9f-71eb-41a5-8636-7f2ad6960be8', CURRENT_DATE, (CURRENT_DATE + TIME '08:45:00')::timestamptz, NULL, 'present', 'Studio check-in', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.attendance_entry (id, employee_id, entry_date, check_in, check_out, status, notes, created_at)
+VALUES ('att-8e70e1a0-9cdb-4b70-8b0a-70da5ee5b744-today', '8e70e1a0-9cdb-4b70-8b0a-70da5ee5b744', CURRENT_DATE, (CURRENT_DATE + TIME '08:45:00')::timestamptz, NULL, 'present', 'Studio check-in', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.attendance_entry (id, employee_id, entry_date, check_in, check_out, status, notes, created_at)
+VALUES ('att-52f3083b-d0eb-41ac-8f20-3b6c7f0d7a75-today', '52f3083b-d0eb-41ac-8f20-3b6c7f0d7a75', CURRENT_DATE, (CURRENT_DATE + TIME '08:45:00')::timestamptz, NULL, 'present', 'Studio check-in', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.attendance_entry (id, employee_id, entry_date, check_in, check_out, status, notes, created_at)
+VALUES ('att-c1947ad8-900f-419f-a0e2-3f2afe3d1bda-today', 'c1947ad8-900f-419f-a0e2-3f2afe3d1bda', CURRENT_DATE, (CURRENT_DATE + TIME '08:45:00')::timestamptz, NULL, 'present', 'Studio check-in', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.attendance_entry (id, employee_id, entry_date, check_in, check_out, status, notes, created_at)
+VALUES ('att-17fcd4f9-6dbd-491e-a392-cc3a9a42f277-today', '17fcd4f9-6dbd-491e-a392-cc3a9a42f277', CURRENT_DATE, (CURRENT_DATE + TIME '08:45:00')::timestamptz, NULL, 'present', 'Studio check-in', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.attendance_entry (id, employee_id, entry_date, check_in, check_out, status, notes, created_at)
+VALUES ('att-67a177f9-65e6-4e40-b0a9-f1168e276326-today', '67a177f9-65e6-4e40-b0a9-f1168e276326', CURRENT_DATE, (CURRENT_DATE + TIME '08:45:00')::timestamptz, NULL, 'present', 'Studio check-in', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.attendance_entry (id, employee_id, entry_date, check_in, check_out, status, notes, created_at)
+VALUES ('att-3b06b26b-5eb5-4395-837e-4e24d0a148de-today', '3b06b26b-5eb5-4395-837e-4e24d0a148de', CURRENT_DATE, (CURRENT_DATE + TIME '08:45:00')::timestamptz, NULL, 'present', 'Studio check-in', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO hr.attendance_entry (id, employee_id, entry_date, check_in, check_out, status, notes, created_at)
+VALUES ('att-3e911960-0003-4981-ac1a-8085dd66a212-today', '3e911960-0003-4981-ac1a-8085dd66a212', CURRENT_DATE, (CURRENT_DATE + TIME '08:45:00')::timestamptz, NULL, 'present', 'Studio check-in', now())
 ON CONFLICT (id) DO NOTHING;
 
 -- ----------------------------------------------------------------------------
 -- 6. SALES SERVICE (Contacts, Deals across all stages, Quotations, Inquiries)
 -- ----------------------------------------------------------------------------
 INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
-VALUES ('6da302d1-002d-448c-8bb3-b57267ed897b', 'Gulfwave', 'Representative', 'contact@gulfwave.example', '+97317000010', 'Gulfwave', 'client', 'active', 'Primary corporate client account for Gulfwave.', '{"demo","production","gulfwave"}', now(), now())
+VALUES ('cont-001', 'Jasim', 'Al-Shirawi', 'j.shirawi@bic.com.bh', '+97339001101', 'Bahrain International Circuit (BIC)', 'client', 'active', 'Primary media production & creative liaison for Bahrain International Circuit (BIC).', '{"f1","motorsport","sports"}', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
-VALUES ('8377fdfc-0f8f-4318-9347-6a4cc3fa04b2', 'Falcon Airways', 'Representative', 'contact@falcon-airways.example', '+97317000011', 'Falcon Airways', 'client', 'active', 'Primary corporate client account for Falcon Airways.', '{"demo","production","falcon-airways"}', now(), now())
+VALUES ('cont-002', 'Tariq', 'Al-Moayyed', 't.moayyed@falconair.com', '+97339001102', 'Falcon Airways', 'client', 'active', 'Primary media production & creative liaison for Falcon Airways.', '{"aviation","commercial","enterprise"}', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
-VALUES ('b8867d87-042a-47cc-b51c-60030f74ea13', 'Summit Aluminium', 'Representative', 'contact@summit-aluminium.example', '+97317000012', 'Summit Aluminium', 'client', 'active', 'Primary corporate client account for Summit Aluminium.', '{"demo","production","summit-aluminium"}', now(), now())
+VALUES ('cont-003', 'Sara', 'Kanoo', 's.kanoo@ewbahrain.com', '+97339001103', 'Exhibition World Bahrain (EWB)', 'client', 'active', 'Primary media production & creative liaison for Exhibition World Bahrain (EWB).', '{"events","macc","government"}', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
-VALUES ('d44a3635-10c1-45f9-8e86-4d12a16959a5', 'Harbor National Bank (HNB)', 'Representative', 'contact@harbor-national-bank.example', '+97317000013', 'Harbor National Bank (HNB)', 'client', 'active', 'Primary corporate client account for Harbor National Bank (HNB).', '{"demo","production","harbor-national-bank"}', now(), now())
+VALUES ('cont-004', 'Faisal', 'Fakhro', 'f.fakhro@hnb.com.bh', '+97339001104', 'Harbor National Bank (HNB)', 'client', 'active', 'Primary media production & creative liaison for Harbor National Bank (HNB).', '{"banking","fintech","corporate"}', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
-VALUES ('bf4f5402-c649-43e7-99f9-40287dd6cc5f', 'Orbit Telecom', 'Representative', 'contact@orbit-telecom.example', '+97317000014', 'Orbit Telecom', 'client', 'active', 'Primary corporate client account for Orbit Telecom.', '{"demo","production","orbit-telecom"}', now(), now())
+VALUES ('cont-005', 'Noura', 'Al-Zayani', 'n.zayani@gulfwave.bh', '+97339001105', 'Gulfwave Telecommunications', 'client', 'active', 'Primary media production & creative liaison for Gulfwave Telecommunications.', '{"5g","tvc","telecom"}', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
-VALUES ('0dea1494-7d86-4190-be16-7735724a4ca1', 'Nexa Mobile', 'Representative', 'contact@nexa-mobile.example', '+97317000015', 'Nexa Mobile', 'client', 'active', 'Primary corporate client account for Nexa Mobile.', '{"demo","production","nexa-mobile"}', now(), now())
+VALUES ('cont-006', 'Salman', 'Al-Khalifa', 's.khalifa@bapco.bh', '+97339001106', 'Bapco Energies', 'client', 'active', 'Primary media production & creative liaison for Bapco Energies.', '{"energy","oil_gas","sustainability"}', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
-VALUES ('ad7345d0-a388-4b06-abd5-c7ee701a5513', 'Delta Energies', 'Representative', 'contact@delta-energies.example', '+97317000016', 'Delta Energies', 'client', 'active', 'Primary corporate client account for Delta Energies.', '{"demo","production","delta-energies"}', now(), now())
+VALUES ('cont-007', 'Ebrahim', 'Al-Amer', 'e.amer@alba.com.bh', '+97339001107', 'Aluminium Bahrain (Alba)', 'client', 'active', 'Primary media production & creative liaison for Aluminium Bahrain (Alba).', '{"industrial","metals","export"}', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
-VALUES ('2555c520-11c5-4f07-822e-1934c8dfebbe', 'Pearl Holding Company', 'Representative', 'contact@pearl-holding-company.example', '+97317000017', 'Pearl Holding Company', 'client', 'active', 'Primary corporate client account for Pearl Holding Company.', '{"demo","production","pearl-holding-company"}', now(), now())
+VALUES ('cont-008', 'Haya', 'Al-Ghatam', 'h.ghatam@beyon.com', '+97339001108', 'Batelco / Beyon Group', 'client', 'active', 'Primary media production & creative liaison for Batelco / Beyon Group.', '{"telecom","digital","lifestyle"}', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
-VALUES ('66afd81f-3071-4bb7-8d19-c36e1f5ca76c', 'Bayview Grand Hotel', 'Representative', 'contact@bayview-grand-hotel.example', '+97317000018', 'Bayview Grand Hotel', 'client', 'active', 'Primary corporate client account for Bayview Grand Hotel.', '{"demo","production","bayview-grand-hotel"}', now(), now())
+VALUES ('cont-009', 'Bader', 'Al-Jalahma', 'b.jalahma@stc.com.bh', '+97339001109', 'STC Bahrain', 'client', 'active', 'Primary media production & creative liaison for STC Bahrain.', '{"telecom","fintech","events"}', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
-VALUES ('20940bb1-586a-4890-bb23-f0979b15511c', 'Regional Investment Board', 'Representative', 'contact@regional-investment-board.example', '+97317000019', 'Regional Investment Board', 'client', 'active', 'Primary corporate client account for Regional Investment Board.', '{"demo","production","regional-investment-board"}', now(), now())
+VALUES ('cont-010', 'Lulwa', 'Al-Ansari', 'l.ansari@nbbonline.com', '+97339001110', 'National Bank of Bahrain (NBB)', 'client', 'active', 'Primary media production & creative liaison for National Bank of Bahrain (NBB).', '{"finance","heritage","banking"}', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
-VALUES ('ca2b7adc-903a-4173-8298-00039b40ee55', 'Island Tourism & Events Board', 'Representative', 'contact@island-tourism-events-board.example', '+97317000020', 'Island Tourism & Events Board', 'client', 'active', 'Primary corporate client account for Island Tourism & Events Board.', '{"demo","production","island-tourism-events-board"}', now(), now())
+VALUES ('cont-011', 'Adel', 'Al-Buainain', 'a.buainain@bbkonline.com', '+97339001111', 'Bank of Bahrain and Kuwait (BBK)', 'client', 'active', 'Primary media production & creative liaison for Bank of Bahrain and Kuwait (BBK).', '{"banking","retail","corporate"}', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
-VALUES ('2ba296fa-41e0-4dc5-b619-27f66608e57d', 'Seafront Properties', 'Representative', 'contact@seafront-properties.example', '+97317000021', 'Seafront Properties', 'client', 'active', 'Primary corporate client account for Seafront Properties.', '{"demo","production","seafront-properties"}', now(), now())
+VALUES ('cont-012', 'Reem', 'Al-Rowaiei', 'r.rowaiei@ahliunited.com', '+97339001112', 'Ahli United Bank (AUB)', 'client', 'active', 'Primary media production & creative liaison for Ahli United Bank (AUB).', '{"private_banking","regional"}', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
-VALUES ('c13fc361-8e05-4079-8f0d-efca24b9acc6', 'Nova Digital', 'Representative', 'contact@nova-digital.example', '+97317000022', 'Nova Digital', 'client', 'active', 'Primary corporate client account for Nova Digital.', '{"demo","production","nova-digital"}', now(), now())
+VALUES ('cont-013', 'Mustafa', 'Darwish', 'm.darwish@fintechbay.bh', '+97339001113', 'Bahrain FinTech Bay', 'partner', 'active', 'Primary media production & creative liaison for Bahrain FinTech Bay.', '{"innovation","accelerator","tech"}', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
-VALUES ('7da38d44-a3e4-4038-829a-96b746d2f4bf', 'Desert Speedway (DSW)', 'Representative', 'contact@desert-speedway.example', '+97317000023', 'Desert Speedway (DSW)', 'client', 'active', 'Primary corporate client account for Desert Speedway (DSW).', '{"demo","production","desert-speedway"}', now(), now())
+VALUES ('cont-014', 'Shaikha', 'Al-Hammadi', 's.hammadi@marassi.bh', '+97339001114', 'Marassi Al Bahrain (Eagle Hills)', 'client', 'active', 'Primary media production & creative liaison for Marassi Al Bahrain (Eagle Hills).', '{"real_estate","luxury","development"}', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
-VALUES ('653f6aaa-2cc2-4b4d-8629-25d7c3cc8b81', 'NovaPay FinTech', 'Representative', 'contact@novapay-fintech.example', '+97317000024', 'NovaPay FinTech', 'client', 'active', 'Primary corporate client account for NovaPay FinTech.', '{"demo","production","novapay-fintech"}', now(), now())
+VALUES ('cont-015', 'Hamad', 'Al-Doseri', 'h.doseri@dilmunia.bh', '+97339001115', 'Dilmunia Health Island', 'client', 'active', 'Primary media production & creative liaison for Dilmunia Health Island.', '{"healthcare","wellness","lifestyle"}', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
-VALUES ('93b9c821-47b1-4366-8ef0-47880d46efda', 'Palm Golf Club', 'Representative', 'contact@palm-golf-club.example', '+97317000025', 'Palm Golf Club', 'client', 'active', 'Primary corporate client account for Palm Golf Club.', '{"demo","production","palm-golf-club"}', now(), now())
+VALUES ('cont-016', 'Dina', 'Balooch', 'd.balooch@fourseasons.com', '+97339001116', 'Four Seasons Hotel Bahrain Bay', 'client', 'active', 'Primary media production & creative liaison for Four Seasons Hotel Bahrain Bay.', '{"hospitality","luxury","dining"}', now(), now())
 ON CONFLICT (id) DO NOTHING;
-
+INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
+VALUES ('cont-017', 'Mahmood', 'Al-Maskati', 'm.maskati@ritzcarlton.com', '+97339001117', 'The Ritz-Carlton Bahrain', 'client', 'active', 'Primary media production & creative liaison for The Ritz-Carlton Bahrain.', '{"resort","events","hospitality"}', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
+VALUES ('cont-018', 'Zainab', 'Al-Banna', 'z.banna@danamall.bh', '+97339001118', 'Dana Mall & LuLu Group', 'client', 'active', 'Primary media production & creative liaison for Dana Mall & LuLu Group.', '{"retail","fmcg","shopping"}', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
+VALUES ('cont-019', 'Rawan', 'Al-Arrayed', 'r.arrayed@citycentrebahrain.com', '+97339001119', 'City Centre Bahrain (Majid Al Futtaim)', 'client', 'active', 'Primary media production & creative liaison for City Centre Bahrain (Majid Al Futtaim).', '{"retail","entertainment","campaign"}', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
+VALUES ('cont-020', 'Omar', 'Al-Tajer', 'o.tajer@seef.com.bh', '+97339001120', 'Seef Properties', 'client', 'active', 'Primary media production & creative liaison for Seef Properties.', '{"real_estate","malls","hospitality"}', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
+VALUES ('cont-021', 'Khalid', 'Al-Nuaimi', 'k.nuaimi@bahrainedb.com', '+97339001121', 'Economic Development Board (EDB)', 'partner', 'active', 'Primary media production & creative liaison for Economic Development Board (EDB).', '{"inward_investment","government"}', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
+VALUES ('cont-022', 'Amina', 'Al-Hamar', 'a.hamar@iaa.gov.bh', '+97339001122', 'Information Affairs Authority (IAA)', 'partner', 'active', 'Primary media production & creative liaison for Information Affairs Authority (IAA).', '{"broadcast","licensing","media"}', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
+VALUES ('cont-023', 'Hussain', 'Al-Sharif', 'h.sharif@btea.bh', '+97339001123', 'Bahrain Tourism & Exhibitions Authority (BTEA)', 'client', 'active', 'Primary media production & creative liaison for Bahrain Tourism & Exhibitions Authority (BTEA).', '{"tourism","festivals","culture"}', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
+VALUES ('cont-024', 'Ziyad', 'Al-Kaabi', 'z.kaabi@mumtalakat.bh', '+97339001124', 'Bahrain Mumtalakat Holding', 'client', 'active', 'Primary media production & creative liaison for Bahrain Mumtalakat Holding.', '{"sovereign","investment","portfolio"}', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
+VALUES ('cont-025', 'Mona', 'Al-Shurooqi', 'm.shurooqi@albaraka.com', '+97339001125', 'Al Baraka Banking Group', 'client', 'active', 'Primary media production & creative liaison for Al Baraka Banking Group.', '{"islamic_banking","global","csr"}', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
+VALUES ('cont-026', 'Kareem', 'Merchant', 'k.merchant@gulfair.com', '+97339001126', 'Gulf Air Falcon Corporate', 'client', 'active', 'Primary media production & creative liaison for Gulf Air Falcon Corporate.', '{"national_carrier","in_flight"}', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
+VALUES ('cont-027', 'Fatima', 'Sultan', 'f.sultan@bdutyfree.com', '+97339001127', 'Bahrain Duty Free', 'client', 'active', 'Primary media production & creative liaison for Bahrain Duty Free.', '{"retail","travel","luxury"}', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
+VALUES ('cont-028', 'Waleed', 'Qamber', 'w.qamber@jumeirah.com', '+97339001128', 'Jumeirah Gulf of Bahrain Resort', 'client', 'active', 'Primary media production & creative liaison for Jumeirah Gulf of Bahrain Resort.', '{"resort","spa","tourism"}', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
+VALUES ('cont-029', 'Deena', 'Ghuloom', 'd.ghuloom@ogilvy.com', '+97339001129', 'Memac Ogilvy Bahrain', 'agency', 'active', 'Primary media production & creative liaison for Memac Ogilvy Bahrain.', '{"creative_agency","tvc","advertising"}', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
+VALUES ('cont-030', 'Ali', 'Behzad', 'a.behzad@fpmccann.com', '+97339001130', 'FP7 McCann Bahrain', 'agency', 'active', 'Primary media production & creative liaison for FP7 McCann Bahrain.', '{"advertising","campaigns","media"}', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
+VALUES ('cont-031', 'Layla', 'Rahimi', 'l.rahimi@leoburnett.com', '+97339001131', 'Leo Burnett Middle East', 'agency', 'active', 'Primary media production & creative liaison for Leo Burnett Middle East.', '{"creative","film","production"}', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
+VALUES ('cont-032', 'Ahmed', 'Al-Saffar', 'a.saffar@tbwaraad.com', '+97339001132', 'TBWA Raad Bahrain', 'agency', 'active', 'Primary media production & creative liaison for TBWA Raad Bahrain.', '{"disruption","branding","pr"}', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
+VALUES ('cont-033', 'Maryam', 'Kameshki', 'm.kameshki@alhawaj.com', '+97339001133', 'Al Hawaj Group', 'client', 'active', 'Primary media production & creative liaison for Al Hawaj Group.', '{"perfumes","luxury_retail","fashion"}', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
+VALUES ('cont-034', 'Talal', 'Almoayyed', 't.almoayyed@almoayyed.com.bh', '+97339001134', 'Y.K. Almoayyed & Sons', 'client', 'active', 'Primary media production & creative liaison for Y.K. Almoayyed & Sons.', '{"automotive","electronics","conglomerate"}', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.contact (id, first_name, last_name, email, phone, company, contact_type, status, notes, tags, created_at, updated_at)
+VALUES ('cont-035', 'Nasser', 'Kanoo', 'n.kanoo@ekkanoo.com.bh', '+97339001135', 'Ebrahim K. Kanoo (Toyota/Lexus)', 'client', 'active', 'Primary media production & creative liaison for Ebrahim K. Kanoo (Toyota/Lexus).', '{"automotive","tvc","commercials"}', now(), now())
+ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
-VALUES ('969985f6-0f01-46b0-b249-5a2dc9a4c302', 'Gulfwave 5G Commercial Campaign', '6da302d1-002d-448c-8bb3-b57267ed897b', 'proposal', 4500, 'BHD', 65, (CURRENT_DATE + INTERVAL '15 days')::date, 'open', '8e70e1a0-9cdb-4b70-8b0a-70da5ee5b744', 'Prime commercial campaign for Gulfwave 5G network rollout.', now(), now())
+VALUES ('deal-001', 'F1 Gulf Air Bahrain Grand Prix 2027 Broadcast Promos', 'cont-001', 'lead', 2500.000, 'BHD', 20, (CURRENT_DATE + INTERVAL '15 days')::date, 'open', '04c696d7-f5e1-408c-8723-205b567d6119', 'Strategic production deal for F1 Gulf Air Bahrain Grand Prix 2027 Broadcast Promos. Assigned to production lead.', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
-VALUES ('ff0d29e4-9f22-45b6-bc62-1d41e52dd559', 'Falcon Airways Fleet Brand Story', '8377fdfc-0f8f-4318-9347-6a4cc3fa04b2', 'negotiation', 6000, 'BHD', 80, (CURRENT_DATE + INTERVAL '15 days')::date, 'open', '67a177f9-65e6-4e40-b0a9-f1168e276326', 'In-flight entertainment and fleet brand documentary series.', now(), now())
+VALUES ('deal-002', 'Falcon Airways Global Brand Film & In-Flight VR', 'cont-002', 'lead', 3450.000, 'BHD', 20, (CURRENT_DATE + INTERVAL '22 days')::date, 'open', '519c98db-889e-4b93-ba19-0015bde5a465', 'Strategic production deal for Falcon Airways Global Brand Film & In-Flight VR. Assigned to production lead.', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
-VALUES ('d575c254-f371-45f9-97ba-e4f094755e14', 'Tourism Kingdom Showcase Film', 'ca2b7adc-903a-4173-8298-00039b40ee55', 'closed_won', 12000, 'BHD', 100, (CURRENT_DATE + INTERVAL '15 days')::date, 'won', '52f3083b-d0eb-41ac-8f20-3b6c7f0d7a75', '8K aerial and ground production showcasing cultural landmarks.', now(), now())
+VALUES ('deal-003', 'Exhibition World 2027 Mega-Events Documentary', 'cont-003', 'lead', 4400.000, 'BHD', 20, (CURRENT_DATE + INTERVAL '29 days')::date, 'open', '71190c9f-71eb-41a5-8636-7f2ad6960be8', 'Strategic production deal for Exhibition World 2027 Mega-Events Documentary. Assigned to production lead.', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
-VALUES ('1be2fbe8-3c04-4889-bf29-922787977335', 'Harbor National Bank Digital Banking TVC', 'd44a3635-10c1-45f9-8e86-4d12a16959a5', 'closed_won', 8500, 'BHD', 100, (CURRENT_DATE + INTERVAL '15 days')::date, 'won', '8e70e1a0-9cdb-4b70-8b0a-70da5ee5b744', 'Television and digital commercial for mobile banking launch.', now(), now())
+VALUES ('deal-004', 'Harbor National Bank Flagship Digital Branch Launch', 'cont-004', 'lead', 5350.000, 'BHD', 20, (CURRENT_DATE + INTERVAL '36 days')::date, 'open', '8e70e1a0-9cdb-4b70-8b0a-70da5ee5b744', 'Strategic production deal for Harbor National Bank Flagship Digital Branch Launch. Assigned to production lead.', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
-VALUES ('e0a08fdc-df79-48f1-aecf-f3464ace27c3', 'Bahrain Circuit 2026 Season Opener Film', '7da38d44-a3e4-4038-829a-96b746d2f4bf', 'qualification', 15000, 'BHD', 40, (CURRENT_DATE + INTERVAL '15 days')::date, 'open', '67a177f9-65e6-4e40-b0a9-f1168e276326', 'High-speed track coverage and pre-season documentary trailer.', now(), now())
+VALUES ('deal-005', 'Gulfwave National 5G Commercial Campaign', 'cont-005', 'lead', 6300.000, 'BHD', 20, (CURRENT_DATE + INTERVAL '43 days')::date, 'open', '52f3083b-d0eb-41ac-8f20-3b6c7f0d7a75', 'Strategic production deal for Gulfwave National 5G Commercial Campaign. Assigned to production lead.', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
-VALUES ('deal-extra-001', 'Bayview Grand Hotel 360 Virtual Tour', '6da302d1-002d-448c-8bb3-b57267ed897b', 'closed_lost', 3500, 'BHD', 0, (CURRENT_DATE + INTERVAL '15 days')::date, 'lost', '04c696d7-f5e1-408c-8723-205b567d6119', 'Client postponed marketing spend until next quarter', now(), now())
+VALUES ('deal-006', 'Bapco Solar Energy Park Feature Showcase', 'cont-006', 'lead', 7250.000, 'BHD', 20, (CURRENT_DATE + INTERVAL '50 days')::date, 'open', 'c1947ad8-900f-419f-a0e2-3f2afe3d1bda', 'Strategic production deal for Bapco Solar Energy Park Feature Showcase. Assigned to production lead.', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
-VALUES ('deal-extra-002', 'NovaPay Corporate Fintech Explainers', '8377fdfc-0f8f-4318-9347-6a4cc3fa04b2', 'negotiation', 7200, 'BHD', 75, (CURRENT_DATE + INTERVAL '15 days')::date, 'open', '519c98db-889e-4b93-ba19-0015bde5a465', 'Contract terms under review by legal counsel', now(), now())
+VALUES ('deal-007', 'Alba Net-Zero Carbon Milestone Docuseries', 'cont-007', 'lead', 8200.000, 'BHD', 20, (CURRENT_DATE + INTERVAL '57 days')::date, 'open', '17fcd4f9-6dbd-491e-a392-cc3a9a42f277', 'Strategic production deal for Alba Net-Zero Carbon Milestone Docuseries. Assigned to production lead.', now(), now())
 ON CONFLICT (id) DO NOTHING;
-INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at) VALUES
-  ('deal-extra-001', 'Bayview Grand Hotel 360 Virtual Tour', '6da302d1-002d-448c-8bb3-b57267ed897b', 'closed_lost', 3500.000, 'BHD', 0, (CURRENT_DATE - INTERVAL '20 days')::date, 'lost', '04c696d7-f5e1-408c-8723-205b567d6119', 'Client postponed marketing spend until next quarter', now(), now()),
-  ('deal-extra-002', 'NovaPay Corporate Fintech Explainers', '8377fdfc-0f8f-4318-9347-6a4cc3fa04b2', 'negotiation', 7200.000, 'BHD', 75, (CURRENT_DATE + INTERVAL '30 days')::date, 'open', '519c98db-889e-4b93-ba19-0015bde5a465', 'Contract terms under review by legal counsel', now(), now())
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-008', 'Beyon Cyber Security Operations Centre Virtual Tour', 'cont-008', 'qualified', 9150.000, 'BHD', 40, (CURRENT_DATE + INTERVAL '15 days')::date, 'open', '67a177f9-65e6-4e40-b0a9-f1168e276326', 'Strategic production deal for Beyon Cyber Security Operations Centre Virtual Tour. Assigned to production lead.', now(), now())
 ON CONFLICT (id) DO NOTHING;
-
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-009', 'STC 5G Standalone Network Commercial Teasers', 'cont-009', 'qualified', 10100.000, 'BHD', 40, (CURRENT_DATE + INTERVAL '22 days')::date, 'open', '3b06b26b-5eb5-4395-837e-4e24d0a148de', 'Strategic production deal for STC 5G Standalone Network Commercial Teasers. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-010', 'NBB National Day 2026 Historical Docu-Drama', 'cont-010', 'qualified', 11050.000, 'BHD', 40, (CURRENT_DATE + INTERVAL '29 days')::date, 'open', '3e911960-0003-4981-ac1a-8085dd66a212', 'Strategic production deal for NBB National Day 2026 Historical Docu-Drama. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-011', 'BBK Digital Onboarding Social Media Mini-Series', 'cont-011', 'qualified', 12000.000, 'BHD', 40, (CURRENT_DATE + INTERVAL '36 days')::date, 'open', '04c696d7-f5e1-408c-8723-205b567d6119', 'Strategic production deal for BBK Digital Onboarding Social Media Mini-Series. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-012', 'Ahli United Regional Wealth Management Film', 'cont-012', 'qualified', 12950.000, 'BHD', 40, (CURRENT_DATE + INTERVAL '43 days')::date, 'open', '519c98db-889e-4b93-ba19-0015bde5a465', 'Strategic production deal for Ahli United Regional Wealth Management Film. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-013', 'Bahrain FinTech Bay Ecosystem Impact Video', 'cont-013', 'qualified', 13900.000, 'BHD', 40, (CURRENT_DATE + INTERVAL '50 days')::date, 'open', '71190c9f-71eb-41a5-8636-7f2ad6960be8', 'Strategic production deal for Bahrain FinTech Bay Ecosystem Impact Video. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-014', 'Marassi Living Waterfront Residential TVC', 'cont-014', 'proposal', 14850.000, 'BHD', 60, (CURRENT_DATE + INTERVAL '15 days')::date, 'open', '8e70e1a0-9cdb-4b70-8b0a-70da5ee5b744', 'Strategic production deal for Marassi Living Waterfront Residential TVC. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-015', 'Dilmunia Well-being Island Virtual Reality 360', 'cont-015', 'proposal', 15800.000, 'BHD', 60, (CURRENT_DATE + INTERVAL '22 days')::date, 'open', '52f3083b-d0eb-41ac-8f20-3b6c7f0d7a75', 'Strategic production deal for Dilmunia Well-being Island Virtual Reality 360. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-016', 'Four Seasons Luxury Pearl Suite Commercial', 'cont-016', 'proposal', 16750.000, 'BHD', 60, (CURRENT_DATE + INTERVAL '29 days')::date, 'open', 'c1947ad8-900f-419f-a0e2-3f2afe3d1bda', 'Strategic production deal for Four Seasons Luxury Pearl Suite Commercial. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-017', 'Ritz-Carlton Royal Beachfront Dining Showcase', 'cont-017', 'proposal', 17700.000, 'BHD', 60, (CURRENT_DATE + INTERVAL '36 days')::date, 'open', '17fcd4f9-6dbd-491e-a392-cc3a9a42f277', 'Strategic production deal for Ritz-Carlton Royal Beachfront Dining Showcase. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-018', 'Dana Mall Hypermarket Modernization Promos', 'cont-018', 'proposal', 18650.000, 'BHD', 60, (CURRENT_DATE + INTERVAL '43 days')::date, 'open', '67a177f9-65e6-4e40-b0a9-f1168e276326', 'Strategic production deal for Dana Mall Hypermarket Modernization Promos. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-019', 'City Centre Bahrain Winter Carnival Film', 'cont-019', 'proposal', 19600.000, 'BHD', 60, (CURRENT_DATE + INTERVAL '50 days')::date, 'open', '3b06b26b-5eb5-4395-837e-4e24d0a148de', 'Strategic production deal for City Centre Bahrain Winter Carnival Film. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-020', 'Seef Mall Iconic Pearl Heritage Video Campaign', 'cont-020', 'proposal', 20550.000, 'BHD', 60, (CURRENT_DATE + INTERVAL '57 days')::date, 'open', '3e911960-0003-4981-ac1a-8085dd66a212', 'Strategic production deal for Seef Mall Iconic Pearl Heritage Video Campaign. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-021', 'Bahrain EDB Global Tech Founders Recruitment Videos', 'cont-021', 'negotiation', 21500.000, 'BHD', 80, (CURRENT_DATE + INTERVAL '15 days')::date, 'open', '04c696d7-f5e1-408c-8723-205b567d6119', 'Strategic production deal for Bahrain EDB Global Tech Founders Recruitment Videos. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-022', 'IAA Golden Screen Television Restorations', 'cont-022', 'negotiation', 22450.000, 'BHD', 80, (CURRENT_DATE + INTERVAL '22 days')::date, 'open', '519c98db-889e-4b93-ba19-0015bde5a465', 'Strategic production deal for IAA Golden Screen Television Restorations. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-023', 'BTEA Bahrain Food Festival 2027 Campaign', 'cont-023', 'negotiation', 23400.000, 'BHD', 80, (CURRENT_DATE + INTERVAL '29 days')::date, 'open', '71190c9f-71eb-41a5-8636-7f2ad6960be8', 'Strategic production deal for BTEA Bahrain Food Festival 2027 Campaign. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-024', 'Mumtalakat Sustainable Assets Portfolio Film', 'cont-024', 'negotiation', 24350.000, 'BHD', 80, (CURRENT_DATE + INTERVAL '36 days')::date, 'open', '8e70e1a0-9cdb-4b70-8b0a-70da5ee5b744', 'Strategic production deal for Mumtalakat Sustainable Assets Portfolio Film. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-025', 'Al Baraka Ethical Banking Worldwide Campaign', 'cont-025', 'negotiation', 25300.000, 'BHD', 80, (CURRENT_DATE + INTERVAL '43 days')::date, 'open', '52f3083b-d0eb-41ac-8f20-3b6c7f0d7a75', 'Strategic production deal for Al Baraka Ethical Banking Worldwide Campaign. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-026', 'Gulf Air Heritage Flight 75th Anniversary Film', 'cont-026', 'negotiation', 26250.000, 'BHD', 80, (CURRENT_DATE + INTERVAL '50 days')::date, 'open', 'c1947ad8-900f-419f-a0e2-3f2afe3d1bda', 'Strategic production deal for Gulf Air Heritage Flight 75th Anniversary Film. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-027', 'Bahrain Duty Free Luxury Concourse Walkthrough', 'cont-027', 'negotiation', 27200.000, 'BHD', 80, (CURRENT_DATE + INTERVAL '57 days')::date, 'open', '17fcd4f9-6dbd-491e-a392-cc3a9a42f277', 'Strategic production deal for Bahrain Duty Free Luxury Concourse Walkthrough. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-028', 'Jumeirah Resort Coastal Sunsets Cinema Package', 'cont-028', 'closed_won', 28150.000, 'BHD', 100, (CURRENT_DATE + INTERVAL '-20 days')::date, 'won', '67a177f9-65e6-4e40-b0a9-f1168e276326', 'Strategic production deal for Jumeirah Resort Coastal Sunsets Cinema Package. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-029', 'Ogilvy Luxury Perfume TVC Studio Production', 'cont-029', 'closed_won', 29100.000, 'BHD', 100, (CURRENT_DATE + INTERVAL '-20 days')::date, 'won', '3b06b26b-5eb5-4395-837e-4e24d0a148de', 'Strategic production deal for Ogilvy Luxury Perfume TVC Studio Production. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-030', 'FP7 McCann Telecom Ramadan TVC Principal Shoot', 'cont-030', 'closed_won', 30050.000, 'BHD', 100, (CURRENT_DATE + INTERVAL '-20 days')::date, 'won', '3e911960-0003-4981-ac1a-8085dd66a212', 'Strategic production deal for FP7 McCann Telecom Ramadan TVC Principal Shoot. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-031', 'Leo Burnett Regional Bank Summer Campaign', 'cont-031', 'closed_won', 31000.000, 'BHD', 100, (CURRENT_DATE + INTERVAL '-20 days')::date, 'won', '04c696d7-f5e1-408c-8723-205b567d6119', 'Strategic production deal for Leo Burnett Regional Bank Summer Campaign. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-032', 'TBWA Raad FinTech AI Assistant Explainer', 'cont-032', 'closed_won', 31950.000, 'BHD', 100, (CURRENT_DATE + INTERVAL '-20 days')::date, 'won', '519c98db-889e-4b93-ba19-0015bde5a465', 'Strategic production deal for TBWA Raad FinTech AI Assistant Explainer. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-033', 'Al Hawaj Signature Oudh Fragrance Launch Film', 'cont-033', 'closed_won', 32900.000, 'BHD', 100, (CURRENT_DATE + INTERVAL '-20 days')::date, 'won', '71190c9f-71eb-41a5-8636-7f2ad6960be8', 'Strategic production deal for Al Hawaj Signature Oudh Fragrance Launch Film. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-034', 'Almoayyed Motors Commercial Vehicles Fleet Shoot', 'cont-034', 'closed_won', 33850.000, 'BHD', 100, (CURRENT_DATE + INTERVAL '-20 days')::date, 'won', '8e70e1a0-9cdb-4b70-8b0a-70da5ee5b744', 'Strategic production deal for Almoayyed Motors Commercial Vehicles Fleet Shoot. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-035', 'Toyota Land Cruiser Extreme Offroad Desert TVC', 'cont-035', 'closed_won', 34800.000, 'BHD', 100, (CURRENT_DATE + INTERVAL '-20 days')::date, 'won', '52f3083b-d0eb-41ac-8f20-3b6c7f0d7a75', 'Strategic production deal for Toyota Land Cruiser Extreme Offroad Desert TVC. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-036', 'Lexus Electrified Luxury SUV Launch Master', 'cont-001', 'closed_won', 35750.000, 'BHD', 100, (CURRENT_DATE + INTERVAL '-20 days')::date, 'won', 'c1947ad8-900f-419f-a0e2-3f2afe3d1bda', 'Strategic production deal for Lexus Electrified Luxury SUV Launch Master. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-037', 'Bahrain Bay Sunset Hyperlapse Drone 8K Reel', 'cont-002', 'closed_won', 36700.000, 'BHD', 100, (CURRENT_DATE + INTERVAL '-20 days')::date, 'won', '17fcd4f9-6dbd-491e-a392-cc3a9a42f277', 'Strategic production deal for Bahrain Bay Sunset Hyperlapse Drone 8K Reel. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-038', 'South Governorate Coastal Preservation Short', 'cont-003', 'closed_lost', 2650.000, 'BHD', 0, (CURRENT_DATE + INTERVAL '-10 days')::date, 'lost', '67a177f9-65e6-4e40-b0a9-f1168e276326', 'Strategic production deal for South Governorate Coastal Preservation Short. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-039', 'Manama Souq Artisans Heritage Digital Archive', 'cont-004', 'closed_lost', 3600.000, 'BHD', 0, (CURRENT_DATE + INTERVAL '-10 days')::date, 'lost', '3b06b26b-5eb5-4395-837e-4e24d0a148de', 'Strategic production deal for Manama Souq Artisans Heritage Digital Archive. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.deal (id, title, contact_id, stage, value, currency, probability, expected_close_date, status, assigned_to, notes, created_at, updated_at)
+VALUES ('deal-040', 'Pearling Path UNESCO World Heritage Showcase', 'cont-005', 'closed_lost', 4550.000, 'BHD', 0, (CURRENT_DATE + INTERVAL '-10 days')::date, 'lost', '3e911960-0003-4981-ac1a-8085dd66a212', 'Strategic production deal for Pearling Path UNESCO World Heritage Showcase. Assigned to production lead.', now(), now())
+ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
-VALUES ('4823dae2-54fd-4fd6-98d0-87fa217834a8', 'QTE-2026-000001', '6da302d1-002d-448c-8bb3-b57267ed897b', '969985f6-0f01-46b0-b249-5a2dc9a4c302', 'sent', 3500, 0, 10, 350, 3850, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, '50% advance upon confirmation, balance upon delivery.', 'Includes ARRI Alexa 35 package and prime lenses.', now(), now(), now())
+VALUES ('qte-001', 'QTE-2026-001', 'cont-001', 'deal-001', 'accepted', 3000.000, 0.000, 10, 300, 3300, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for F1 Gulf Air Bahrain Grand Prix 2027 Broadcast Promos', now(), now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
-VALUES ('f5c023b7-e4d0-4086-a46e-28b6c44e06f7', 'QTE-2026-000002', '8377fdfc-0f8f-4318-9347-6a4cc3fa04b2', 'ff0d29e4-9f22-45b6-bc62-1d41e52dd559', 'sent', 6000, 300, 10, 570, 6270, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Net 30 days from invoice date.', 'Includes 4K master export and DaVinci color grading.', now(), now(), now())
+VALUES ('qte-002', 'QTE-2026-002', 'cont-002', 'deal-002', 'accepted', 4200.000, 0.000, 10, 420, 4620, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for Falcon Airways Global Brand Film & In-Flight VR', now(), now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
-VALUES ('8c14b29a-852d-4199-9faa-731ccc911a7e', 'QTE-2026-000003', 'ca2b7adc-903a-4173-8298-00039b40ee55', 'd575c254-f371-45f9-97ba-e4f094755e14', 'accepted', 12000, 1200, 10, 1080, 11880, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Payment upon milestone delivery.', 'Accepted by Tourism Board executive committee.', now(), now(), now())
+VALUES ('qte-003', 'QTE-2026-003', 'cont-003', 'deal-003', 'accepted', 5400.000, 0.000, 10, 540, 5940, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for Exhibition World 2027 Mega-Events Documentary', now(), now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
-VALUES ('7a370f0e-94f7-4ac3-8a62-4bdf03183963', 'QTE-2026-000004', 'd44a3635-10c1-45f9-8e86-4d12a16959a5', '1be2fbe8-3c04-4889-bf29-922787977335', 'accepted', 8500, 500, 10, 800, 8800, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, '50% advance, 50% upon delivery.', 'Approved for principal photography and post.', now(), now(), now())
+VALUES ('qte-004', 'QTE-2026-004', 'cont-004', 'deal-004', 'accepted', 6600.000, 0.000, 10, 660, 7260, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for Harbor National Bank Flagship Digital Branch Launch', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-005', 'QTE-2026-005', 'cont-005', 'deal-005', 'accepted', 7800.000, 0.000, 10, 780, 8580, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for Gulfwave National 5G Commercial Campaign', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-006', 'QTE-2026-006', 'cont-006', 'deal-006', 'accepted', 9000.000, 0.000, 10, 900, 9900, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for Bapco Solar Energy Park Feature Showcase', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-007', 'QTE-2026-007', 'cont-007', 'deal-007', 'accepted', 10200.000, 0.000, 10, 1020, 11220, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for Alba Net-Zero Carbon Milestone Docuseries', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-008', 'QTE-2026-008', 'cont-008', 'deal-008', 'accepted', 11400.000, 0.000, 10, 1140, 12540, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for Beyon Cyber Security Operations Centre Virtual Tour', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-009', 'QTE-2026-009', 'cont-009', 'deal-009', 'accepted', 12600.000, 0.000, 10, 1260, 13860, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for STC 5G Standalone Network Commercial Teasers', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-010', 'QTE-2026-010', 'cont-010', 'deal-010', 'accepted', 13800.000, 0.000, 10, 1380, 15180, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for NBB National Day 2026 Historical Docu-Drama', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-011', 'QTE-2026-011', 'cont-011', 'deal-011', 'accepted', 15000.000, 0.000, 10, 1500, 16500, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for BBK Digital Onboarding Social Media Mini-Series', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-012', 'QTE-2026-012', 'cont-012', 'deal-012', 'accepted', 16200.000, 0.000, 10, 1620, 17820, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for Ahli United Regional Wealth Management Film', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-013', 'QTE-2026-013', 'cont-013', 'deal-013', 'accepted', 17400.000, 0.000, 10, 1740, 19140, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for Bahrain FinTech Bay Ecosystem Impact Video', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-014', 'QTE-2026-014', 'cont-014', 'deal-014', 'accepted', 18600.000, 0.000, 10, 1860, 20460, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for Marassi Living Waterfront Residential TVC', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-015', 'QTE-2026-015', 'cont-015', 'deal-015', 'accepted', 19800.000, 0.000, 10, 1980, 21780, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for Dilmunia Well-being Island Virtual Reality 360', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-016', 'QTE-2026-016', 'cont-016', 'deal-016', 'sent', 21000.000, 0.000, 10, 2100, 23100, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for Four Seasons Luxury Pearl Suite Commercial', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-017', 'QTE-2026-017', 'cont-017', 'deal-017', 'sent', 22200.000, 0.000, 10, 2220, 24420, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for Ritz-Carlton Royal Beachfront Dining Showcase', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-018', 'QTE-2026-018', 'cont-018', 'deal-018', 'sent', 23400.000, 0.000, 10, 2340, 25740, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for Dana Mall Hypermarket Modernization Promos', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-019', 'QTE-2026-019', 'cont-019', 'deal-019', 'sent', 24600.000, 0.000, 10, 2460, 27060, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for City Centre Bahrain Winter Carnival Film', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-020', 'QTE-2026-020', 'cont-020', 'deal-020', 'sent', 25800.000, 0.000, 10, 2580, 28380, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for Seef Mall Iconic Pearl Heritage Video Campaign', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-021', 'QTE-2026-021', 'cont-021', 'deal-021', 'sent', 27000.000, 0.000, 10, 2700, 29700, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for Bahrain EDB Global Tech Founders Recruitment Videos', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-022', 'QTE-2026-022', 'cont-022', 'deal-022', 'sent', 3200.000, 0.000, 10, 320, 3520, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for IAA Golden Screen Television Restorations', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-023', 'QTE-2026-023', 'cont-023', 'deal-023', 'draft', 4400.000, 0.000, 10, 440, 4840, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for BTEA Bahrain Food Festival 2027 Campaign', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-024', 'QTE-2026-024', 'cont-024', 'deal-024', 'draft', 5600.000, 0.000, 10, 560, 6160, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for Mumtalakat Sustainable Assets Portfolio Film', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-025', 'QTE-2026-025', 'cont-025', 'deal-025', 'draft', 6800.000, 0.000, 10, 680, 7480, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for Al Baraka Ethical Banking Worldwide Campaign', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-026', 'QTE-2026-026', 'cont-026', 'deal-026', 'draft', 8000.000, 0.000, 10, 800, 8800, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for Gulf Air Heritage Flight 75th Anniversary Film', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-027', 'QTE-2026-027', 'cont-027', 'deal-027', 'rejected', 9200.000, 0.000, 10, 920, 10120, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for Bahrain Duty Free Luxury Concourse Walkthrough', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-028', 'QTE-2026-028', 'cont-028', 'deal-028', 'rejected', 10400.000, 0.000, 10, 1040, 11440, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for Jumeirah Resort Coastal Sunsets Cinema Package', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-029', 'QTE-2026-029', 'cont-029', 'deal-029', 'rejected', 11600.000, 0.000, 10, 1160, 12760, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for Ogilvy Luxury Perfume TVC Studio Production', now(), now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation (id, quotation_number, contact_id, deal_id, status, subtotal, discount, vat_rate, vat_amount, total, currency, valid_until, terms, notes, issued_at, created_at, updated_at)
+VALUES ('qte-030', 'QTE-2026-030', 'cont-030', 'deal-030', 'rejected', 12800.000, 0.000, 10, 1280, 14080, 'BHD', (CURRENT_DATE + INTERVAL '30 days')::date, 'Quotation valid for 30 calendar days. 50% mobilization deposit upon commissioning.', 'Production proposal for FP7 McCann Telecom Ramadan TVC Principal Shoot', now(), now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
-VALUES ('d2fd40ca-1e8b-4d68-bf4f-1334d7344b01', '4823dae2-54fd-4fd6-98d0-87fa217834a8', 'Arri Alexa 35 Camera Package (2 Days)', 2, 1000, 2000, 0)
+VALUES ('qi-001', 'qte-001', 'Principal Photography & Cinema Gear Crew Package', 1, 2100, 2100, 1)
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
-VALUES ('2f6689de-de53-49df-8db5-7b39b175f03a', '4823dae2-54fd-4fd6-98d0-87fa217834a8', 'Cinema Prime Lenses (Set of 5)', 2, 500, 1000, 1)
+VALUES ('qi-002', 'qte-001', 'Post-Production, Color Grading & Cinema Surround Master', 1, 900, 900, 2)
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
-VALUES ('66f056bc-c28f-44f1-98e5-958f42f01475', '4823dae2-54fd-4fd6-98d0-87fa217834a8', 'Grip & Sound Equipment Package', 1, 500, 500, 2)
+VALUES ('qi-003', 'qte-002', 'Principal Photography & Cinema Gear Crew Package', 1, 2940, 2940, 1)
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
-VALUES ('b01494dd-dcd4-463c-b4bd-6122cb469fbe', 'f5c023b7-e4d0-4086-a46e-28b6c44e06f7', 'Commercial Film Production — In-flight Brand Story', 1, 4500, 4500, 0)
+VALUES ('qi-004', 'qte-002', 'Post-Production, Color Grading & Cinema Surround Master', 1, 1260, 1260, 2)
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
-VALUES ('b468fd55-215c-43a1-846b-852a449872f1', 'f5c023b7-e4d0-4086-a46e-28b6c44e06f7', 'DaVinci Resolve HDR Color Grading & Mastering', 1, 1500, 1500, 1)
+VALUES ('qi-005', 'qte-003', 'Principal Photography & Cinema Gear Crew Package', 1, 3780, 3780, 1)
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
-VALUES ('493d55e7-36c7-4624-b3fd-30d2659cfac9', '8c14b29a-852d-4199-9faa-731ccc911a7e', 'Tourism Kingdom Showcase Film (8K Raw)', 1, 7000, 7000, 0)
+VALUES ('qi-006', 'qte-003', 'Post-Production, Color Grading & Cinema Surround Master', 1, 1620, 1620, 2)
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
-VALUES ('8646cdfe-a26b-450e-9bab-92530afd610c', '8c14b29a-852d-4199-9faa-731ccc911a7e', 'Heavy-Lifter Drone Cinematography with Operator', 2, 1500, 3000, 1)
+VALUES ('qi-007', 'qte-004', 'Principal Photography & Cinema Gear Crew Package', 1, 4620, 4620, 1)
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
-VALUES ('3204a939-956d-4f5f-a965-a12f1b9aa7c1', '8c14b29a-852d-4199-9faa-731ccc911a7e', 'Original Cinematic Orchestral Score & Sound Design', 1, 2000, 2000, 2)
+VALUES ('qi-008', 'qte-004', 'Post-Production, Color Grading & Cinema Surround Master', 1, 1980, 1980, 2)
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
-VALUES ('8a87db21-9042-4aa7-bafc-1afb092b7220', '7a370f0e-94f7-4ac3-8a62-4bdf03183963', 'Digital Banking Mobile App Commercial TVC', 1, 6000, 6000, 0)
+VALUES ('qi-009', 'qte-005', 'Principal Photography & Cinema Gear Crew Package', 1, 5460, 5460, 1)
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
-VALUES ('f5661226-6fcb-4fe6-9090-9c802366bb16', '7a370f0e-94f7-4ac3-8a62-4bdf03183963', 'Studio Soundstage & Lighting Package (3 Days)', 1, 2500, 2500, 1)
+VALUES ('qi-010', 'qte-005', 'Post-Production, Color Grading & Cinema Surround Master', 1, 2340, 2340, 2)
 ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO sales.inquiry (id, subject, message, requester_name, requester_email, requester_phone, status, created_at, updated_at)
-VALUES ('40846238-a5ec-45f1-b17d-fc3e9c2d6c08', 'Gulfwave 5G Commercial Pickup Day', 'Requesting studio crew, Arri Alexa 35 package, and director for 5G Ultra commercial pickup day.', 'Hamad Al-Romaihi', 'h.alromaihi@gulfwave.example', '+97339441122', 'new', now(), now())
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-011', 'qte-006', 'Principal Photography & Cinema Gear Crew Package', 1, 6300, 6300, 1)
 ON CONFLICT (id) DO NOTHING;
-INSERT INTO sales.inquiry (id, subject, message, requester_name, requester_email, requester_phone, status, created_at, updated_at)
-VALUES ('8d84e373-df97-496f-a404-921cceecc11c', 'Exhibition World Bahrain Drone Scope Change', 'Scope change: Additional 4K FPV drone passes and sunset hyperlapse shots over Exhibition World Bahrain.', 'Tariq Al-Doseri', 't.aldoseri@iteb.example', '+97336119900', 'new', now(), now())
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-012', 'qte-006', 'Post-Production, Color Grading & Cinema Surround Master', 1, 2700, 2700, 2)
 ON CONFLICT (id) DO NOTHING;
-INSERT INTO sales.inquiry (id, subject, message, requester_name, requester_email, requester_phone, status, created_at, updated_at)
-VALUES ('a41d57a0-77a0-4d6d-be9f-43b111911493', 'NBB Annual Shareholders Summit Video Coverage', 'Requesting multi-camera live streaming and highlight video production for NBB Annual Summit.', 'Lulwa Al-Sada', 'l.alsada@nbb.example', '+97339887766', 'new', now(), now())
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-013', 'qte-007', 'Principal Photography & Cinema Gear Crew Package', 1, 7140, 7140, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-014', 'qte-007', 'Post-Production, Color Grading & Cinema Surround Master', 1, 3060, 3060, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-015', 'qte-008', 'Principal Photography & Cinema Gear Crew Package', 1, 7980, 7980, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-016', 'qte-008', 'Post-Production, Color Grading & Cinema Surround Master', 1, 3420, 3420, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-017', 'qte-009', 'Principal Photography & Cinema Gear Crew Package', 1, 8820, 8820, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-018', 'qte-009', 'Post-Production, Color Grading & Cinema Surround Master', 1, 3780, 3780, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-019', 'qte-010', 'Principal Photography & Cinema Gear Crew Package', 1, 9660, 9660, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-020', 'qte-010', 'Post-Production, Color Grading & Cinema Surround Master', 1, 4140, 4140, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-021', 'qte-011', 'Principal Photography & Cinema Gear Crew Package', 1, 10500, 10500, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-022', 'qte-011', 'Post-Production, Color Grading & Cinema Surround Master', 1, 4500, 4500, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-023', 'qte-012', 'Principal Photography & Cinema Gear Crew Package', 1, 11340, 11340, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-024', 'qte-012', 'Post-Production, Color Grading & Cinema Surround Master', 1, 4860, 4860, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-025', 'qte-013', 'Principal Photography & Cinema Gear Crew Package', 1, 12180, 12180, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-026', 'qte-013', 'Post-Production, Color Grading & Cinema Surround Master', 1, 5220, 5220, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-027', 'qte-014', 'Principal Photography & Cinema Gear Crew Package', 1, 13020, 13020, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-028', 'qte-014', 'Post-Production, Color Grading & Cinema Surround Master', 1, 5580, 5580, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-029', 'qte-015', 'Principal Photography & Cinema Gear Crew Package', 1, 13860, 13860, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-030', 'qte-015', 'Post-Production, Color Grading & Cinema Surround Master', 1, 5940, 5940, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-031', 'qte-016', 'Principal Photography & Cinema Gear Crew Package', 1, 14700, 14700, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-032', 'qte-016', 'Post-Production, Color Grading & Cinema Surround Master', 1, 6300, 6300, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-033', 'qte-017', 'Principal Photography & Cinema Gear Crew Package', 1, 15540, 15540, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-034', 'qte-017', 'Post-Production, Color Grading & Cinema Surround Master', 1, 6660, 6660, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-035', 'qte-018', 'Principal Photography & Cinema Gear Crew Package', 1, 16380, 16380, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-036', 'qte-018', 'Post-Production, Color Grading & Cinema Surround Master', 1, 7020, 7020, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-037', 'qte-019', 'Principal Photography & Cinema Gear Crew Package', 1, 17220, 17220, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-038', 'qte-019', 'Post-Production, Color Grading & Cinema Surround Master', 1, 7380, 7380, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-039', 'qte-020', 'Principal Photography & Cinema Gear Crew Package', 1, 18060, 18060, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-040', 'qte-020', 'Post-Production, Color Grading & Cinema Surround Master', 1, 7740, 7740, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-041', 'qte-021', 'Principal Photography & Cinema Gear Crew Package', 1, 18900, 18900, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-042', 'qte-021', 'Post-Production, Color Grading & Cinema Surround Master', 1, 8100, 8100, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-043', 'qte-022', 'Principal Photography & Cinema Gear Crew Package', 1, 2240, 2240, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-044', 'qte-022', 'Post-Production, Color Grading & Cinema Surround Master', 1, 960, 960, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-045', 'qte-023', 'Principal Photography & Cinema Gear Crew Package', 1, 3080, 3080, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-046', 'qte-023', 'Post-Production, Color Grading & Cinema Surround Master', 1, 1320, 1320, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-047', 'qte-024', 'Principal Photography & Cinema Gear Crew Package', 1, 3920, 3920, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-048', 'qte-024', 'Post-Production, Color Grading & Cinema Surround Master', 1, 1680, 1680, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-049', 'qte-025', 'Principal Photography & Cinema Gear Crew Package', 1, 4760, 4760, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-050', 'qte-025', 'Post-Production, Color Grading & Cinema Surround Master', 1, 2040, 2040, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-051', 'qte-026', 'Principal Photography & Cinema Gear Crew Package', 1, 5600, 5600, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-052', 'qte-026', 'Post-Production, Color Grading & Cinema Surround Master', 1, 2400, 2400, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-053', 'qte-027', 'Principal Photography & Cinema Gear Crew Package', 1, 6440, 6440, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-054', 'qte-027', 'Post-Production, Color Grading & Cinema Surround Master', 1, 2760, 2760, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-055', 'qte-028', 'Principal Photography & Cinema Gear Crew Package', 1, 7280, 7280, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-056', 'qte-028', 'Post-Production, Color Grading & Cinema Surround Master', 1, 3120, 3120, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-057', 'qte-029', 'Principal Photography & Cinema Gear Crew Package', 1, 8120, 8120, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-058', 'qte-029', 'Post-Production, Color Grading & Cinema Surround Master', 1, 3480, 3480, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-059', 'qte-030', 'Principal Photography & Cinema Gear Crew Package', 1, 8960, 8960, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.quotation_item (id, quotation_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('qi-060', 'qte-030', 'Post-Production, Color Grading & Cinema Surround Master', 1, 3840, 3840, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.inquiry (id, inquiry_type, subject, message, requester_name, requester_email, requester_phone, status, created_at, updated_at)
+VALUES ('inq-001', 'production', 'Production inquiry for upcoming commercial series', 'We are looking for cinema camera packages and post-production suites in Bahrain.', 'Jasim Al-Shirawi', 'j.shirawi@bic.com.bh', '+97339001101', 'new', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.inquiry (id, inquiry_type, subject, message, requester_name, requester_email, requester_phone, status, created_at, updated_at)
+VALUES ('inq-002', 'production', 'Production inquiry for upcoming commercial series', 'We are looking for cinema camera packages and post-production suites in Bahrain.', 'Tariq Al-Moayyed', 't.moayyed@falconair.com', '+97339001102', 'new', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.inquiry (id, inquiry_type, subject, message, requester_name, requester_email, requester_phone, status, created_at, updated_at)
+VALUES ('inq-003', 'production', 'Production inquiry for upcoming commercial series', 'We are looking for cinema camera packages and post-production suites in Bahrain.', 'Sara Kanoo', 's.kanoo@ewbahrain.com', '+97339001103', 'new', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.inquiry (id, inquiry_type, subject, message, requester_name, requester_email, requester_phone, status, created_at, updated_at)
+VALUES ('inq-004', 'production', 'Production inquiry for upcoming commercial series', 'We are looking for cinema camera packages and post-production suites in Bahrain.', 'Faisal Fakhro', 'f.fakhro@hnb.com.bh', '+97339001104', 'new', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.inquiry (id, inquiry_type, subject, message, requester_name, requester_email, requester_phone, status, created_at, updated_at)
+VALUES ('inq-005', 'production', 'Production inquiry for upcoming commercial series', 'We are looking for cinema camera packages and post-production suites in Bahrain.', 'Noura Al-Zayani', 'n.zayani@gulfwave.bh', '+97339001105', 'new', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.inquiry (id, inquiry_type, subject, message, requester_name, requester_email, requester_phone, status, created_at, updated_at)
+VALUES ('inq-006', 'production', 'Production inquiry for upcoming commercial series', 'We are looking for cinema camera packages and post-production suites in Bahrain.', 'Salman Al-Khalifa', 's.khalifa@bapco.bh', '+97339001106', 'new', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.inquiry (id, inquiry_type, subject, message, requester_name, requester_email, requester_phone, status, created_at, updated_at)
+VALUES ('inq-007', 'production', 'Production inquiry for upcoming commercial series', 'We are looking for cinema camera packages and post-production suites in Bahrain.', 'Ebrahim Al-Amer', 'e.amer@alba.com.bh', '+97339001107', 'new', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.inquiry (id, inquiry_type, subject, message, requester_name, requester_email, requester_phone, status, created_at, updated_at)
+VALUES ('inq-008', 'production', 'Production inquiry for upcoming commercial series', 'We are looking for cinema camera packages and post-production suites in Bahrain.', 'Haya Al-Ghatam', 'h.ghatam@beyon.com', '+97339001108', 'new', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.inquiry (id, inquiry_type, subject, message, requester_name, requester_email, requester_phone, status, created_at, updated_at)
+VALUES ('inq-009', 'production', 'Production inquiry for upcoming commercial series', 'We are looking for cinema camera packages and post-production suites in Bahrain.', 'Bader Al-Jalahma', 'b.jalahma@stc.com.bh', '+97339001109', 'new', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.inquiry (id, inquiry_type, subject, message, requester_name, requester_email, requester_phone, status, created_at, updated_at)
+VALUES ('inq-010', 'production', 'Production inquiry for upcoming commercial series', 'We are looking for cinema camera packages and post-production suites in Bahrain.', 'Lulwa Al-Ansari', 'l.ansari@nbbonline.com', '+97339001110', 'new', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.inquiry (id, inquiry_type, subject, message, requester_name, requester_email, requester_phone, status, created_at, updated_at)
+VALUES ('inq-011', 'production', 'Production inquiry for upcoming commercial series', 'We are looking for cinema camera packages and post-production suites in Bahrain.', 'Adel Al-Buainain', 'a.buainain@bbkonline.com', '+97339001111', 'new', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.inquiry (id, inquiry_type, subject, message, requester_name, requester_email, requester_phone, status, created_at, updated_at)
+VALUES ('inq-012', 'production', 'Production inquiry for upcoming commercial series', 'We are looking for cinema camera packages and post-production suites in Bahrain.', 'Reem Al-Rowaiei', 'r.rowaiei@ahliunited.com', '+97339001112', 'new', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.inquiry (id, inquiry_type, subject, message, requester_name, requester_email, requester_phone, status, created_at, updated_at)
+VALUES ('inq-013', 'production', 'Production inquiry for upcoming commercial series', 'We are looking for cinema camera packages and post-production suites in Bahrain.', 'Mustafa Darwish', 'm.darwish@fintechbay.bh', '+97339001113', 'new', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.inquiry (id, inquiry_type, subject, message, requester_name, requester_email, requester_phone, status, created_at, updated_at)
+VALUES ('inq-014', 'production', 'Production inquiry for upcoming commercial series', 'We are looking for cinema camera packages and post-production suites in Bahrain.', 'Shaikha Al-Hammadi', 's.hammadi@marassi.bh', '+97339001114', 'new', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO sales.inquiry (id, inquiry_type, subject, message, requester_name, requester_email, requester_phone, status, created_at, updated_at)
+VALUES ('inq-015', 'production', 'Production inquiry for upcoming commercial series', 'We are looking for cinema camera packages and post-production suites in Bahrain.', 'Hamad Al-Doseri', 'h.doseri@dilmunia.bh', '+97339001115', 'new', now(), now())
 ON CONFLICT (id) DO NOTHING;
 
 -- ----------------------------------------------------------------------------
--- 7. FINANCE SERVICE (Expense Categories, Expenses, Invoices across aging buckets, Payments)
+-- 7. FINANCE SERVICE (Expense Categories, Expenses, 55 Invoices across Aging Buckets, Payments)
 -- ----------------------------------------------------------------------------
 INSERT INTO finance.expense_category (id, code, name_en, name_ar, sort_order) VALUES ('expcat-01', 'gear_rental', 'Equipment & Gear Rentals', 'استئجار معدات وكاميرات', 1) ON CONFLICT (id) DO NOTHING;
 INSERT INTO finance.expense_category (id, code, name_en, name_ar, sort_order) VALUES ('expcat-02', 'crew_wages', 'Crew & Talent Wages', 'أجور الطواقم والممثلين', 2) ON CONFLICT (id) DO NOTHING;
@@ -506,205 +1107,1414 @@ INSERT INTO finance.expense_category (id, code, name_en, name_ar, sort_order) VA
   ('expcat-11', 'maintenance_repairs', 'Gear Calibration & Repairs', 'صيانة ومعايرة المعدات', 11),
   ('expcat-12', 'legal_accounting', 'Legal & Professional Audit', 'استشارات قانونية ومحاسبية', 12)
 ON CONFLICT (id) DO NOTHING;
-
--- Historical & Current Expenses
-INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at) VALUES
-  ('exp-01', 'Location scouting, generator fuel & transport', 320.000, 'BHD', 'expcat-03', (CURRENT_DATE - INTERVAL '145 days')::date, 'Manama Transport Co.', 'approved', 'Southern Governorate scouting', now(), now()),
-  ('exp-02', 'High-Output HMI & Astera Lighting Package Sub-Lease', 650.000, 'BHD', 'expcat-01', (CURRENT_DATE - INTERVAL '115 days')::date, 'Gulf Optics & Grip', 'approved', 'Astera Titan tubes for night shoot', now(), now()),
-  ('exp-03', 'Sound design & 7.1 surround mixing engineer wage', 480.000, 'BHD', 'expcat-02', (CURRENT_DATE - INTERVAL '85 days')::date, 'Bahrain Sound Labs', 'approved', 'Cinema audio mastering', now(), now()),
-  ('exp-04', 'Aerial drone airspace clearance fee', 550.000, 'BHD', 'expcat-01', (CURRENT_DATE - INTERVAL '55 days')::date, 'Civil Aviation Affairs (CAA)', 'approved', 'Restricted zone permit', now(), now()),
-  ('exp-05', 'Production crew catering & craft services', 450.000, 'BHD', 'expcat-03', (CURRENT_DATE - INTERVAL '32 days')::date, 'Gourmet Catering Co.', 'approved', 'Full day catering 35 crew', now(), now()),
-  ('exp-06', 'DaVinci Resolve cloud collaboration server', 120.000, 'BHD', 'expcat-05', (CURRENT_DATE - INTERVAL '25 days')::date, 'Blackmagic Cloud Services', 'approved', 'Remote color grading server', now(), now()),
-  ('exp-07', 'Filming permit — Bahrain Bay Coastal Sequence', 180.000, 'BHD', 'expcat-06', (CURRENT_DATE - INTERVAL '5 days')::date, 'Information Affairs Authority', 'approved', 'Official coastal filming permit', now(), now()),
-  ('exp-08', 'Studio Soundstage High-Capacity AC & Power Load', 420.000, 'BHD', 'expcat-04', CURRENT_DATE, 'Electricity & Water Authority', 'approved', '18KW light power supply', now(), now())
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-001', 'Specialized Anamorphic Prime Lenses Sub-Lease', 850.000, 'BHD', 'expcat-01', (CURRENT_DATE - INTERVAL '154 days')::date, 'Gulf Optics & Grip', 'approved', 'Verified receipt and logged into ledger under expcat-01.', now(), now())
 ON CONFLICT (id) DO NOTHING;
-
--- Invoices across aging buckets with dynamic date arithmetic
-INSERT INTO finance.invoice (id, invoice_number, contact_id, deal_id, quotation_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at) VALUES
-  -- Historical Paid Invoices
-  ('inv-hist-01', 'INV-HIST-0001', 'bf4f5402-c649-43e7-99f9-40287dd6cc5f', 'e0a08fdc-df79-48f1-aecf-f3464ace27c3', NULL, 'paid', (CURRENT_DATE - INTERVAL '150 days')::date, (CURRENT_DATE - INTERVAL '120 days')::date, 4000.000, 0.000, 10.00, 400.000, 4400.000, 4400.000, 0.000, 'BHD', 'Bahrain Circuit F1 Pre-Season Cinematography', 'Net 30 days', now(), now()),
-  ('inv-hist-02', 'INV-HIST-0002', '8377fdfc-0f8f-4318-9347-6a4cc3fa04b2', 'ff0d29e4-9f22-45b6-bc62-1d41e52dd559', NULL, 'paid', (CURRENT_DATE - INTERVAL '120 days')::date, (CURRENT_DATE - INTERVAL '90 days')::date, 9000.000, 0.000, 10.00, 900.000, 9900.000, 9900.000, 0.000, 'BHD', 'Falcon Airways Fleet Brand Story 4K Master', 'Net 30 days', now(), now()),
-  ('inv-hist-03', 'INV-HIST-0003', 'b8867d87-042a-47cc-b51c-60030f74ea13', 'd575c254-f371-45f9-97ba-e4f094755e14', NULL, 'paid', (CURRENT_DATE - INTERVAL '90 days')::date, (CURRENT_DATE - INTERVAL '60 days')::date, 6000.000, 0.000, 10.00, 600.000, 6600.000, 6600.000, 0.000, 'BHD', 'Bahrain Bay Sunset Hyperlapse & Drone Photography', 'Net 30 days', now(), now()),
-  ('inv-hist-04', 'INV-HIST-0004', 'd44a3635-10c1-45f9-8e86-4d12a16959a5', '1be2fbe8-3c04-4889-bf29-922787977335', NULL, 'paid', (CURRENT_DATE - INTERVAL '60 days')::date, (CURRENT_DATE - INTERVAL '30 days')::date, 7000.000, 0.000, 10.00, 700.000, 7700.000, 7700.000, 0.000, 'BHD', 'Digital Banking TVC Teasers & Cutdowns', 'Net 30 days', now(), now()),
-  -- Overdue Invoices for Aging Buckets
-  ('inv-aging-01', 'INV-AGING-0001', '6da302d1-002d-448c-8bb3-b57267ed897b', '969985f6-0f01-46b0-b249-5a2dc9a4c302', NULL, 'partially_paid', (CURRENT_DATE - INTERVAL '38 days')::date, (CURRENT_DATE - INTERVAL '8 days')::date, 5000.000, 0.000, 10.00, 500.000, 5500.000, 2750.000, 2750.000, 'BHD', 'Corporate Identity Docu-Series Phase 1 (Overdue 8d)', 'Net 30 days', now(), now()),
-  ('inv-aging-02', 'INV-AGING-0002', 'bf4f5402-c649-43e7-99f9-40287dd6cc5f', 'e0a08fdc-df79-48f1-aecf-f3464ace27c3', NULL, 'overdue', (CURRENT_DATE - INTERVAL '75 days')::date, (CURRENT_DATE - INTERVAL '45 days')::date, 2000.000, 0.000, 10.00, 200.000, 2200.000, 0.000, 2200.000, 'BHD', 'Speedway Rigging & Wireless Video Feed (Overdue 45d)', 'Net 30 days', now(), now()),
-  ('inv-aging-03', 'INV-AGING-0003', '8377fdfc-0f8f-4318-9347-6a4cc3fa04b2', 'ff0d29e4-9f22-45b6-bc62-1d41e52dd559', NULL, 'overdue', (CURRENT_DATE - INTERVAL '105 days')::date, (CURRENT_DATE - INTERVAL '75 days')::date, 1500.000, 0.000, 10.00, 150.000, 1650.000, 0.000, 1650.000, 'BHD', 'Aviation Safety Briefing Animation (Overdue 75d)', 'Net 30 days', now(), now()),
-  ('inv-aging-04', 'INV-AGING-0004', 'd44a3635-10c1-45f9-8e86-4d12a16959a5', '1be2fbe8-3c04-4889-bf29-922787977335', NULL, 'overdue', (CURRENT_DATE - INTERVAL '140 days')::date, (CURRENT_DATE - INTERVAL '110 days')::date, 1200.000, 0.000, 10.00, 120.000, 1320.000, 0.000, 1320.000, 'BHD', 'Archival Footage 4K Restoration (Overdue 110d)', 'Net 30 days', now(), now()),
-  -- Current Invoices
-  ('inv-curr-01', 'DEMO-INV-0001', '6da302d1-002d-448c-8bb3-b57267ed897b', '969985f6-0f01-46b0-b249-5a2dc9a4c302', '4823dae2-54fd-4fd6-98d0-87fa217834a8', 'partially_paid', CURRENT_DATE, (CURRENT_DATE + INTERVAL '25 days')::date, 3500.000, 0.000, 10.00, 350.000, 3850.000, 1925.000, 1925.000, 'BHD', 'Gulfwave 5G Commercial (50% Deposit Paid)', '50% deposit, balance on delivery', now(), now()),
-  ('inv-curr-02', 'INV-2026-0001', 'b8867d87-042a-47cc-b51c-60030f74ea13', 'd575c254-f371-45f9-97ba-e4f094755e14', '8c14b29a-852d-4199-9faa-731ccc911a7e', 'paid', (CURRENT_DATE - INTERVAL '10 days')::date, (CURRENT_DATE + INTERVAL '20 days')::date, 10800.000, 0.000, 10.00, 1080.000, 11880.000, 11880.000, 0.000, 'BHD', 'Exhibition World Bahrain Showcase (100% Paid)', 'Milestone settlement', now(), now()),
-  ('inv-curr-03', 'INV-2026-0002', 'd44a3635-10c1-45f9-8e86-4d12a16959a5', '1be2fbe8-3c04-4889-bf29-922787977335', '7a370f0e-94f7-4ac3-8a62-4bdf03183963', 'sent', (CURRENT_DATE - INTERVAL '5 days')::date, (CURRENT_DATE + INTERVAL '28 days')::date, 8000.000, 0.000, 10.00, 800.000, 8800.000, 0.000, 8800.000, 'BHD', 'Digital Banking TVC Principal Photography & Post', '50% advance, balance on master export', now(), now())
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-002', '7.1 Cinema Soundstage Surround Mix Engineer Sessions', 620.000, 'BHD', 'expcat-02', (CURRENT_DATE - INTERVAL '150 days')::date, 'Bahrain Sound Labs', 'approved', 'Verified receipt and logged into ledger under expcat-02.', now(), now())
 ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order) VALUES
-  ('ii-01', 'inv-hist-01', 'Bahrain Circuit F1 Pre-Season Cinematography & FPV Drone', 1, 4000.000, 4000.000, 0),
-  ('ii-02', 'inv-hist-02', 'Falcon Airways In-Flight Brand Story 4K Master Export', 1, 9000.000, 9000.000, 0),
-  ('ii-03', 'inv-hist-03', 'Bahrain Bay Sunset Hyperlapse & Drone Photography Package', 1, 6000.000, 6000.000, 0),
-  ('ii-04', 'inv-hist-04', 'Digital Banking Mobile Experience Campaign (Teasers & Cutdowns)', 1, 7000.000, 7000.000, 0),
-  ('ii-05', 'inv-aging-01', 'Corporate Identity Documentary Series Phase 1', 1, 5000.000, 5000.000, 0),
-  ('ii-06', 'inv-aging-02', 'Speedway Track-Day Cinema Rigging & Wireless Video Feed', 1, 2000.000, 2000.000, 0),
-  ('ii-07', 'inv-aging-03', 'Aviation Safety Briefing Animated Graphics & Sound Design', 1, 1500.000, 1500.000, 0),
-  ('ii-08', 'inv-aging-04', 'Archival Footage Licensing & 4K Digital Restoration', 1, 1200.000, 1200.000, 0),
-  ('ii-09', 'inv-curr-01', 'Gulfwave 5G Commercial Production (50% Deposit)', 1, 3500.000, 3500.000, 0),
-  ('ii-10', 'inv-curr-02', 'Exhibition World Inauguration Film (100% Paid)', 1, 10800.000, 10800.000, 0),
-  ('ii-11', 'inv-curr-03', 'Digital Banking TVC Principal Photography & Post', 1, 8000.000, 8000.000, 0)
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-003', 'Location Scouting 4x4 Fleet & Fuel — Southern Desert', 380.000, 'BHD', 'expcat-03', (CURRENT_DATE - INTERVAL '145 days')::date, 'Manama Transport Co.', 'approved', 'Verified receipt and logged into ledger under expcat-03.', now(), now())
 ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at) VALUES
-  ('pay-01', 'RCT-HIST-0001', 'inv-hist-01', 'bf4f5402-c649-43e7-99f9-40287dd6cc5f', 4400.000, 'BHD', 'bank_transfer', (CURRENT_DATE - INTERVAL '135 days')::date, 'PAY-F1-0001', 'completed', 'Settled via wire', now()),
-  ('pay-02', 'RCT-HIST-0002', 'inv-hist-02', '8377fdfc-0f8f-4318-9347-6a4cc3fa04b2', 9900.000, 'BHD', 'bank_transfer', (CURRENT_DATE - INTERVAL '105 days')::date, 'PAY-FLC-0002', 'completed', 'Settled via wire', now()),
-  ('pay-03', 'RCT-HIST-0003', 'inv-hist-03', 'b8867d87-042a-47cc-b51c-60030f74ea13', 6600.000, 'BHD', 'bank_transfer', (CURRENT_DATE - INTERVAL '75 days')::date, 'PAY-BHT-0003', 'completed', 'Settled via wire', now()),
-  ('pay-04', 'RCT-HIST-0004', 'inv-hist-04', 'd44a3635-10c1-45f9-8e86-4d12a16959a5', 7700.000, 'BHD', 'bank_transfer', (CURRENT_DATE - INTERVAL '45 days')::date, 'PAY-HNB-0004', 'completed', 'Settled via wire', now()),
-  ('pay-05', 'RCT-AGING-0001', 'inv-aging-01', '6da302d1-002d-448c-8bb3-b57267ed897b', 2750.000, 'BHD', 'benefit_pay', (CURRENT_DATE - INTERVAL '35 days')::date, 'BENEFIT-331201', 'completed', 'Settled via BenefitPay', now()),
-  ('pay-06', 'DEMO-RCT-0001', 'inv-curr-01', '6da302d1-002d-448c-8bb3-b57267ed897b', 1925.000, 'BHD', 'benefit_pay', CURRENT_DATE, 'DEMO-PAY-0001', 'completed', '50% advance', now()),
-  ('pay-07', 'RCT-2026-0001', 'inv-curr-02', 'b8867d87-042a-47cc-b51c-60030f74ea13', 11880.000, 'BHD', 'bank_transfer', CURRENT_DATE, 'PAY-BAT-2026-9921', 'completed', 'Full settlement', now())
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-004', 'Soundstage 180kVA Mobile Power Generator Sub-Rental', 550.000, 'BHD', 'expcat-04', (CURRENT_DATE - INTERVAL '140 days')::date, 'Electricity & Water Authority Hookups', 'approved', 'Verified receipt and logged into ledger under expcat-04.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-005', 'Frame.io & DaVinci Resolve Cloud Enterprise 1yr Renewal', 480.000, 'BHD', 'expcat-05', (CURRENT_DATE - INTERVAL '135 days')::date, 'Blackmagic Design & Adobe Cloud', 'approved', 'Verified receipt and logged into ledger under expcat-05.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-006', 'Civil Aviation Affairs Drone Airspace Flight Permits (Zone A)', 550.000, 'BHD', 'expcat-06', (CURRENT_DATE - INTERVAL '130 days')::date, 'Ministry of Transportation & Telecom', 'approved', 'Verified receipt and logged into ledger under expcat-06.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-007', 'Voiceover Recording Artist Sessions & Arabic Narration', 420.000, 'BHD', 'expcat-07', (CURRENT_DATE - INTERVAL '125 days')::date, 'Gulf Media Talent Agency', 'approved', 'Verified receipt and logged into ledger under expcat-07.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-008', 'Studio Soundstage Green Cyclorama Wall Repaint & Prep', 280.000, 'BHD', 'expcat-08', (CURRENT_DATE - INTERVAL '120 days')::date, 'Seef Paint & Studio Maintenance', 'approved', 'Verified receipt and logged into ledger under expcat-08.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-009', 'DCI 4K Barco Cinema Projection Calibration & Licensing', 650.000, 'BHD', 'expcat-09', (CURRENT_DATE - INTERVAL '115 days')::date, 'Cinema Engineering Middle East', 'approved', 'Verified receipt and logged into ledger under expcat-09.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-010', 'Middle East Film Festival Showcase Submission Fees', 340.000, 'BHD', 'expcat-10', (CURRENT_DATE - INTERVAL '110 days')::date, 'Red Sea & Dubai Film Mart', 'approved', 'Verified receipt and logged into ledger under expcat-10.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-011', 'Cooke Lens Ultrasonic Cleaning & Optical Collimation', 720.000, 'BHD', 'expcat-11', (CURRENT_DATE - INTERVAL '105 days')::date, 'Optics Tech Service Germany', 'approved', 'Verified receipt and logged into ledger under expcat-11.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-012', 'Annual External Financial Audit & Tax Filing Service', 1500.000, 'BHD', 'expcat-12', (CURRENT_DATE - INTERVAL '100 days')::date, 'KPMG Fakhro Bahrain', 'approved', 'Verified receipt and logged into ledger under expcat-12.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-013', 'High-Speed Phantom Flex4K Camera Rental for Fluid TVC', 1250.000, 'BHD', 'expcat-01', (CURRENT_DATE - INTERVAL '95 days')::date, 'Arabia Camera Rentals Dubai', 'approved', 'Verified receipt and logged into ledger under expcat-01.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-014', 'Foley Artistry & Custom Acoustic Sound Design Library', 450.000, 'BHD', 'expcat-02', (CURRENT_DATE - INTERVAL '90 days')::date, 'Soundscape Audio Bahrain', 'approved', 'Verified receipt and logged into ledger under expcat-02.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-015', 'Production Crew Craft Services & Gourmet Hot Catering (40 crew)', 580.000, 'BHD', 'expcat-03', (CURRENT_DATE - INTERVAL '85 days')::date, 'Gourmet Catering Co. W.L.L.', 'approved', 'Verified receipt and logged into ledger under expcat-03.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-016', 'Studio Soundstage High-Capacity Air Conditioning Heavy Power', 420.000, 'BHD', 'expcat-04', (CURRENT_DATE - INTERVAL '80 days')::date, 'Bahrain Cooling Systems', 'approved', 'Verified receipt and logged into ledger under expcat-04.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-017', 'Boris FX Sapphire & Mocha Pro Post-Production Licenses', 390.000, 'BHD', 'expcat-05', (CURRENT_DATE - INTERVAL '75 days')::date, 'Boris FX Software', 'approved', 'Verified receipt and logged into ledger under expcat-05.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-018', 'Bahrain Bay Coastal Filming Permit & Water Security Boat', 350.000, 'BHD', 'expcat-06', (CURRENT_DATE - INTERVAL '70 days')::date, 'Information Affairs Authority', 'approved', 'Verified receipt and logged into ledger under expcat-06.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-019', 'Principal Actors Day Rates — Telecom Ramadan Commercial', 1100.000, 'BHD', 'expcat-07', (CURRENT_DATE - INTERVAL '65 days')::date, 'Bahrain Actor Guild & Casting', 'approved', 'Verified receipt and logged into ledger under expcat-07.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-020', 'Custom Futuristic Bank Branch Set Construction & Props', 890.000, 'BHD', 'expcat-08', (CURRENT_DATE - INTERVAL '60 days')::date, 'Artistry Woodcraft & Sets', 'approved', 'Verified receipt and logged into ledger under expcat-08.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-021', 'Dolby Vision HDR Master Deliverable License & Quality Check', 750.000, 'BHD', 'expcat-09', (CURRENT_DATE - INTERVAL '55 days')::date, 'Dolby Laboratories ME', 'approved', 'Verified receipt and logged into ledger under expcat-09.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-022', 'Social Media Campaign Paid Boost & Reel Distribution', 450.000, 'BHD', 'expcat-10', (CURRENT_DATE - INTERVAL '50 days')::date, 'Meta Platforms Ireland', 'approved', 'Verified receipt and logged into ledger under expcat-10.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-023', 'DJI Ronin 4D Gimbal Motor Recalibration & Cable Loom Replacement', 310.000, 'BHD', 'expcat-11', (CURRENT_DATE - INTERVAL '45 days')::date, 'DJI Authorized Service GCC', 'approved', 'Verified receipt and logged into ledger under expcat-11.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-024', 'Intellectual Property & Trademark Legal Consultation', 650.000, 'BHD', 'expcat-12', (CURRENT_DATE - INTERVAL '40 days')::date, 'Hassan Radhi & Associates', 'approved', 'Verified receipt and logged into ledger under expcat-12.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-025', 'Astera Titan Tubes 8-Light Kit Sub-Rental for Night Shoot', 620.000, 'BHD', 'expcat-01', (CURRENT_DATE - INTERVAL '35 days')::date, 'Gulf Optics & Grip', 'approved', 'Verified receipt and logged into ledger under expcat-01.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-026', 'Sennheiser Wireless Frequency Coordination Clearance', 250.000, 'BHD', 'expcat-02', (CURRENT_DATE - INTERVAL '30 days')::date, 'Telecommunications Regulatory Authority (TRA)', 'approved', 'Verified receipt and logged into ledger under expcat-02.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-027', 'Production Logistics Van Fuel, Tolls & Airport Transfers', 280.000, 'BHD', 'expcat-03', (CURRENT_DATE - INTERVAL '25 days')::date, 'Bahrain Airport Services Logistics', 'approved', 'Verified receipt and logged into ledger under expcat-03.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-028', 'Soundstage Soundproofing & Heavy Acoustic Baffles Addition', 480.000, 'BHD', 'expcat-04', (CURRENT_DATE - INTERVAL '20 days')::date, 'Acoustic Solutions W.L.L.', 'approved', 'Verified receipt and logged into ledger under expcat-04.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-029', 'Cinema 4D & Redshift Render Engine Annual Licenses', 560.000, 'BHD', 'expcat-05', (CURRENT_DATE - INTERVAL '15 days')::date, 'Maxon Computer GmbH', 'approved', 'Verified receipt and logged into ledger under expcat-05.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-030', 'Heritage Village Filming Clearance & Police Escort Fee', 220.000, 'BHD', 'expcat-06', (CURRENT_DATE - INTERVAL '12 days')::date, 'Ministry of Interior Traffic Directorate', 'approved', 'Verified receipt and logged into ledger under expcat-06.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-031', 'Voice Talent & English Broadcast Narrator Licensing', 380.000, 'BHD', 'expcat-07', (CURRENT_DATE - INTERVAL '9 days')::date, 'Voiceovers UK Ltd', 'approved', 'Verified receipt and logged into ledger under expcat-07.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-032', 'Soundstage Chromakey Floor Epoxy Resurfacing', 320.000, 'BHD', 'expcat-08', (CURRENT_DATE - INTERVAL '7 days')::date, 'Modern Paints Bahrain', 'approved', 'Verified receipt and logged into ledger under expcat-08.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-033', 'Color Grading Suite Sony BVM Monitor Annual Calibration', 490.000, 'BHD', 'expcat-09', (CURRENT_DATE - INTERVAL '5 days')::date, 'Sony Professional Middle East', 'approved', 'Verified receipt and logged into ledger under expcat-09.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-034', 'Production Portfolio Brand Book Printing & Premium Binding', 340.000, 'BHD', 'expcat-10', (CURRENT_DATE - INTERVAL '3 days')::date, 'Al Ayam Publishing Press', 'approved', 'Verified receipt and logged into ledger under expcat-10.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.expense (id, title, amount, currency, category_id, expense_date, vendor, status, notes, created_at, updated_at)
+VALUES ('exp-035', 'Studio Soundstage High-Capacity Power Load Hookup', 420.000, 'BHD', 'expcat-04', (CURRENT_DATE - INTERVAL '1 days')::date, 'Electricity & Water Authority Hookups', 'approved', 'Verified receipt and logged into ledger under expcat-04.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-01', 'INV-2026-001', 'cont-001', 'paid', (CURRENT_DATE - INTERVAL '155 days')::date, (CURRENT_DATE - INTERVAL '125 days')::date, 5400.000, 0.000, 10, 540, 5940, 5940, 0, 'BHD', 'F1 Season Opener Trackside Cinematography & FPV Rigging', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-02', 'INV-2026-002', 'cont-002', 'paid', (CURRENT_DATE - INTERVAL '150 days')::date, (CURRENT_DATE - INTERVAL '120 days')::date, 8800.000, 0.000, 10, 880, 9680, 9680, 0, 'BHD', 'Falcon Airways Fleet Refresh In-Flight Safety Master 4K', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-03', 'INV-2026-003', 'cont-003', 'paid', (CURRENT_DATE - INTERVAL '145 days')::date, (CURRENT_DATE - INTERVAL '115 days')::date, 12000.000, 0.000, 10, 1200, 13200, 13200, 0, 'BHD', 'Exhibition World Inaugural Summit Multi-Camera Livestream', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-04', 'INV-2026-004', 'cont-004', 'paid', (CURRENT_DATE - INTERVAL '140 days')::date, (CURRENT_DATE - INTERVAL '110 days')::date, 7200.000, 0.000, 10, 720, 7920, 7920, 0, 'BHD', 'Digital Banking Mobile App Launch Teasers & Cinema Cutdowns', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-05', 'INV-2026-005', 'cont-005', 'paid', (CURRENT_DATE - INTERVAL '135 days')::date, (CURRENT_DATE - INTERVAL '105 days')::date, 9500.000, 0.000, 10, 950, 10450, 10450, 0, 'BHD', 'Gulfwave 5G Network Ultra-HD Commercial TVC Production', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-06', 'INV-2026-006', 'cont-006', 'paid', (CURRENT_DATE - INTERVAL '130 days')::date, (CURRENT_DATE - INTERVAL '100 days')::date, 6400.000, 0.000, 10, 640, 7040, 7040, 0, 'BHD', 'Bapco Energies Sustainability Docu-Feature (Phase 1)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-07', 'INV-2026-007', 'cont-007', 'paid', (CURRENT_DATE - INTERVAL '125 days')::date, (CURRENT_DATE - INTERVAL '95 days')::date, 4800.000, 0.000, 10, 480, 5280, 5280, 0, 'BHD', 'Alba Line 6 Smelter Industrial Hyperlapse & Drone Photography', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-08', 'INV-2026-008', 'cont-008', 'paid', (CURRENT_DATE - INTERVAL '120 days')::date, (CURRENT_DATE - INTERVAL '90 days')::date, 4200.000, 0.000, 10, 420, 4620, 4620, 0, 'BHD', 'Beyon Digital Campus Architectural Tour & 360 Experience', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-09', 'INV-2026-009', 'cont-009', 'paid', (CURRENT_DATE - INTERVAL '115 days')::date, (CURRENT_DATE - INTERVAL '85 days')::date, 3900.000, 0.000, 10, 390, 4290, 4290, 0, 'BHD', 'STC Winter Festival Drone Light Show Video Production', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-10', 'INV-2026-010', 'cont-010', 'paid', (CURRENT_DATE - INTERVAL '110 days')::date, (CURRENT_DATE - INTERVAL '80 days')::date, 14500.000, 0.000, 10, 1450, 15950, 15950, 0, 'BHD', 'National Bank of Bahrain 65th Anniversary Film Mastering', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-11', 'INV-2026-011', 'cont-011', 'paid', (CURRENT_DATE - INTERVAL '105 days')::date, (CURRENT_DATE - INTERVAL '75 days')::date, 3200.000, 0.000, 10, 320, 3520, 3520, 0, 'BHD', 'BBK Super Saver Campaign Social Cutdowns & Audio Mastering', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-12', 'INV-2026-012', 'cont-012', 'paid', (CURRENT_DATE - INTERVAL '100 days')::date, (CURRENT_DATE - INTERVAL '70 days')::date, 5600.000, 0.000, 10, 560, 6160, 6160, 0, 'BHD', 'Ahli United Bank Private Wealth Summit Documentaries', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-13', 'INV-2026-013', 'cont-013', 'paid', (CURRENT_DATE - INTERVAL '95 days')::date, (CURRENT_DATE - INTERVAL '65 days')::date, 2800.000, 0.000, 10, 280, 3080, 3080, 0, 'BHD', 'FinTech Acceleration Demo Day Highlights & Founder Spotlights', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-14', 'INV-2026-014', 'cont-014', 'paid', (CURRENT_DATE - INTERVAL '90 days')::date, (CURRENT_DATE - INTERVAL '60 days')::date, 8200.000, 0.000, 10, 820, 9020, 9020, 0, 'BHD', 'Marassi Beachfront Lifestyle Cinematography Package', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-15', 'INV-2026-015', 'cont-015', 'paid', (CURRENT_DATE - INTERVAL '85 days')::date, (CURRENT_DATE - INTERVAL '55 days')::date, 3600.000, 0.000, 10, 360, 3960, 3960, 0, 'BHD', 'Dilmunia Canal Promenade Sunset Time-Lapse & Drone Survey', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-16', 'INV-2026-016', 'cont-016', 'paid', (CURRENT_DATE - INTERVAL '80 days')::date, (CURRENT_DATE - INTERVAL '50 days')::date, 4500.000, 0.000, 10, 450, 4950, 4950, 0, 'BHD', 'Four Seasons Bahrain Bay Gourmet Culinary Masterclass Series', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-17', 'INV-2026-017', 'cont-017', 'paid', (CURRENT_DATE - INTERVAL '75 days')::date, (CURRENT_DATE - INTERVAL '45 days')::date, 6800.000, 0.000, 10, 680, 7480, 7480, 0, 'BHD', 'Ritz-Carlton Beach Resort Summer Campaign Commercials', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-18', 'INV-2026-018', 'cont-018', 'paid', (CURRENT_DATE - INTERVAL '70 days')::date, (CURRENT_DATE - INTERVAL '40 days')::date, 2200.000, 0.000, 10, 220, 2420, 2420, 0, 'BHD', 'Dana Mall Family Shopping Festival Promo Spots', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-19', 'INV-2026-019', 'cont-019', 'paid', (CURRENT_DATE - INTERVAL '60 days')::date, (CURRENT_DATE - INTERVAL '30 days')::date, 5100.000, 0.000, 10, 510, 5610, 5610, 0, 'BHD', 'City Centre Bahrain Fashion Weekend 4K Highlights & TVC', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-20', 'INV-2026-020', 'cont-020', 'paid', (CURRENT_DATE - INTERVAL '50 days')::date, (CURRENT_DATE - INTERVAL '20 days')::date, 7800.000, 0.000, 10, 780, 8580, 8580, 0, 'BHD', 'Seef Mall National Day Golden Jubilee Heritage Film', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-21', 'INV-2026-021', 'cont-021', 'paid', (CURRENT_DATE - INTERVAL '40 days')::date, (CURRENT_DATE - INTERVAL '10 days')::date, 9200.000, 0.000, 10, 920, 10120, 10120, 0, 'BHD', 'Invest in Bahrain International Roadshow Media Package', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-22', 'INV-2026-022', 'cont-022', 'paid', (CURRENT_DATE - INTERVAL '30 days')::date, (CURRENT_DATE - INTERVAL '0 days')::date, 3500.000, 0.000, 10, 350, 3850, 3850, 0, 'BHD', 'Official IAA Media Archive 4K Remastering & Restorations', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-23', 'INV-AGING-01', 'cont-023', 'overdue', (CURRENT_DATE - INTERVAL '52 days')::date, (CURRENT_DATE - INTERVAL '22 days')::date, 6200.000, 0.000, 10, 620, 6820, 0, 6820, 'BHD', 'BTEA Heritage Tourism Short Films (Overdue 22d)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-24', 'INV-AGING-02', 'cont-024', 'overdue', (CURRENT_DATE - INTERVAL '48 days')::date, (CURRENT_DATE - INTERVAL '18 days')::date, 8400.000, 0.000, 10, 840, 9240, 0, 9240, 'BHD', 'Mumtalakat Annual Investor Presentation Video (Overdue 18d)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-25', 'INV-AGING-03', 'cont-025', 'overdue', (CURRENT_DATE - INTERVAL '45 days')::date, (CURRENT_DATE - INTERVAL '15 days')::date, 5100.000, 0.000, 10, 510, 5610, 0, 5610, 'BHD', 'Al Baraka Global Islamic Banking Documentary (Overdue 15d)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-26', 'INV-AGING-04', 'cont-026', 'overdue', (CURRENT_DATE - INTERVAL '42 days')::date, (CURRENT_DATE - INTERVAL '12 days')::date, 4300.000, 0.000, 10, 430, 4730, 0, 4730, 'BHD', 'Gulf Air Falcon Miles Rewards Program Promo (Overdue 12d)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-27', 'INV-AGING-05', 'cont-027', 'overdue', (CURRENT_DATE - INTERVAL '40 days')::date, (CURRENT_DATE - INTERVAL '10 days')::date, 3700.000, 0.000, 10, 370, 4070, 0, 4070, 'BHD', 'Bahrain Duty Free Summer Golden Ticket Campaign (Overdue 10d)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-28', 'INV-AGING-06', 'cont-028', 'overdue', (CURRENT_DATE - INTERVAL '82 days')::date, (CURRENT_DATE - INTERVAL '52 days')::date, 3900.000, 0.000, 10, 390, 4290, 0, 4290, 'BHD', 'Jumeirah Gulf of Bahrain Private Villa Aerial Rigging (Overdue 52d)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-29', 'INV-AGING-07', 'cont-029', 'overdue', (CURRENT_DATE - INTERVAL '80 days')::date, (CURRENT_DATE - INTERVAL '50 days')::date, 6500.000, 0.000, 10, 650, 7150, 0, 7150, 'BHD', 'Ogilvy Luxury Automotive Commercial Soundstage Rental (Overdue 50d)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-30', 'INV-AGING-08', 'cont-030', 'overdue', (CURRENT_DATE - INTERVAL '77 days')::date, (CURRENT_DATE - INTERVAL '47 days')::date, 5800.000, 0.000, 10, 580, 6380, 0, 6380, 'BHD', 'FP7 McCann Telecommunications TVC Post Production (Overdue 47d)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-31', 'INV-AGING-09', 'cont-031', 'overdue', (CURRENT_DATE - INTERVAL '75 days')::date, (CURRENT_DATE - INTERVAL '45 days')::date, 4200.000, 0.000, 10, 420, 4620, 0, 4620, 'BHD', 'Leo Burnett Regional Bank Social Media Animation Package (Overdue 45d)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-32', 'INV-AGING-10', 'cont-032', 'overdue', (CURRENT_DATE - INTERVAL '72 days')::date, (CURRENT_DATE - INTERVAL '42 days')::date, 3100.000, 0.000, 10, 310, 3410, 0, 3410, 'BHD', 'TBWA Raad FinTech Explainer Series Sound Mix (Overdue 42d)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-33', 'INV-AGING-11', 'cont-033', 'overdue', (CURRENT_DATE - INTERVAL '112 days')::date, (CURRENT_DATE - INTERVAL '82 days')::date, 4700.000, 0.000, 10, 470, 5170, 0, 5170, 'BHD', 'Al Hawaj Perfume Luxury Brand Story 8K Video (Overdue 82d)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-34', 'INV-AGING-12', 'cont-034', 'overdue', (CURRENT_DATE - INTERVAL '110 days')::date, (CURRENT_DATE - INTERVAL '80 days')::date, 2900.000, 0.000, 10, 290, 3190, 0, 3190, 'BHD', 'Almoayyed Electronics Showroom Grand Opening Coverage (Overdue 80d)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-35', 'INV-AGING-13', 'cont-035', 'overdue', (CURRENT_DATE - INTERVAL '107 days')::date, (CURRENT_DATE - INTERVAL '77 days')::date, 9800.000, 0.000, 10, 980, 10780, 0, 10780, 'BHD', 'E.K. Kanoo Lexus Hybrid Experience Film Production (Overdue 77d)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-36', 'INV-AGING-14', 'cont-001', 'overdue', (CURRENT_DATE - INTERVAL '105 days')::date, (CURRENT_DATE - INTERVAL '75 days')::date, 3400.000, 0.000, 10, 340, 3740, 0, 3740, 'BHD', 'BIC Drag Racing Night Event Wireless Video System (Overdue 75d)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-37', 'INV-AGING-15', 'cont-002', 'overdue', (CURRENT_DATE - INTERVAL '102 days')::date, (CURRENT_DATE - INTERVAL '72 days')::date, 6100.000, 0.000, 10, 610, 6710, 0, 6710, 'BHD', 'Falcon Airways Pilot Training VR Simulation Backgrounds (Overdue 72d)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-38', 'INV-AGING-16', 'cont-003', 'overdue', (CURRENT_DATE - INTERVAL '152 days')::date, (CURRENT_DATE - INTERVAL '122 days')::date, 7300.000, 0.000, 10, 730, 8030, 0, 8030, 'BHD', 'EWB Global Logistics Expo Pre-Roll Cinematography (Overdue 122d)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-39', 'INV-AGING-17', 'cont-004', 'overdue', (CURRENT_DATE - INTERVAL '148 days')::date, (CURRENT_DATE - INTERVAL '118 days')::date, 2400.000, 0.000, 10, 240, 2640, 0, 2640, 'BHD', 'HNB Corporate Governance Boardroom Recording (Overdue 118d)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-40', 'INV-AGING-18', 'cont-005', 'overdue', (CURRENT_DATE - INTERVAL '144 days')::date, (CURRENT_DATE - INTERVAL '114 days')::date, 4600.000, 0.000, 10, 460, 5060, 0, 5060, 'BHD', 'Gulfwave Fiber Rollout Documentary Series Part 1 (Overdue 114d)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-41', 'INV-AGING-19', 'cont-006', 'overdue', (CURRENT_DATE - INTERVAL '140 days')::date, (CURRENT_DATE - INTERVAL '110 days')::date, 3800.000, 0.000, 10, 380, 4180, 0, 4180, 'BHD', 'Bapco Historical Refinery Heritage Archive Ingest (Overdue 110d)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-42', 'INV-PART-01', 'cont-007', 'partially_paid', (CURRENT_DATE - INTERVAL '65 days')::date, (CURRENT_DATE - INTERVAL '35 days')::date, 8000.000, 0.000, 10, 800, 8800, 4400, 4400, 'BHD', 'Alba Safety First Induction Cinema Video (Phase 1 50% Paid)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-43', 'INV-PART-02', 'cont-008', 'partially_paid', (CURRENT_DATE - INTERVAL '58 days')::date, (CURRENT_DATE - INTERVAL '28 days')::date, 6000.000, 0.000, 10, 600, 6600, 3300, 3300, 'BHD', 'Beyon Telecom Retail Experience Animation Package (50% Paid)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-44', 'INV-PART-03', 'cont-009', 'partially_paid', (CURRENT_DATE - INTERVAL '50 days')::date, (CURRENT_DATE - INTERVAL '20 days')::date, 5400.000, 0.000, 10, 540, 5940, 2970, 2970, 'BHD', 'STC Cyber Defense Lab Corporate Explainers (50% Paid)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-45', 'INV-PART-04', 'cont-010', 'partially_paid', (CURRENT_DATE - INTERVAL '45 days')::date, (CURRENT_DATE - INTERVAL '15 days')::date, 9000.000, 0.000, 10, 900, 9900, 4950, 4950, 'BHD', 'NBB Ramadan Charitable Foundation Short Films (50% Paid)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-46', 'INV-PART-05', 'cont-011', 'partially_paid', (CURRENT_DATE - INTERVAL '14 days')::date, (CURRENT_DATE + INTERVAL '16 days')::date, 7000.000, 0.000, 10, 700, 7700, 3850, 3850, 'BHD', 'BBK Youth Savings Account TVC Commercial (50% Advance Paid)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-47', 'INV-PART-06', 'cont-014', 'partially_paid', (CURRENT_DATE - INTERVAL '10 days')::date, (CURRENT_DATE + INTERVAL '20 days')::date, 11000.000, 0.000, 10, 1100, 12100, 3630, 8470, 'BHD', 'Marassi Galleria Luxury Fashion Shoot (30% Deposit Paid)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-48', 'INV-PART-07', 'cont-016', 'partially_paid', (CURRENT_DATE - INTERVAL '6 days')::date, (CURRENT_DATE + INTERVAL '24 days')::date, 6500.000, 0.000, 10, 650, 7150, 3575, 3575, 'BHD', 'Four Seasons Wedding Showcase 8K Production (50% Booking Advance)', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-49', 'INV-CURR-01', 'cont-017', 'sent', (CURRENT_DATE - INTERVAL '8 days')::date, (CURRENT_DATE + INTERVAL '22 days')::date, 4800.000, 0.000, 10, 480, 5280, 0, 5280, 'BHD', 'Ritz-Carlton Seafood Festival Promos & Social Cutdowns', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-50', 'INV-CURR-02', 'cont-021', 'sent', (CURRENT_DATE - INTERVAL '6 days')::date, (CURRENT_DATE + INTERVAL '24 days')::date, 8600.000, 0.000, 10, 860, 9460, 0, 9460, 'BHD', 'Bahrain EDB International Tech Summit Recap Video', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-51', 'INV-CURR-03', 'cont-029', 'sent', (CURRENT_DATE - INTERVAL '4 days')::date, (CURRENT_DATE + INTERVAL '26 days')::date, 12500.000, 0.000, 10, 1250, 13750, 0, 13750, 'BHD', 'Ogilvy FMCG National Brand Commercial 4K Master', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-52', 'INV-CURR-04', 'cont-034', 'sent', (CURRENT_DATE - INTERVAL '3 days')::date, (CURRENT_DATE + INTERVAL '27 days')::date, 3800.000, 0.000, 10, 380, 4180, 0, 4180, 'BHD', 'Almoayyed Motors Commercial Fleet Photography', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-53', 'INV-CURR-05', 'cont-035', 'sent', (CURRENT_DATE - INTERVAL '1 days')::date, (CURRENT_DATE + INTERVAL '29 days')::date, 15000.000, 0.000, 10, 1500, 16500, 0, 16500, 'BHD', 'Toyota Land Cruiser Desert Adventure TVC Principal Photography', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-54', 'INV-DRAFT-01', 'cont-002', 'draft', (CURRENT_DATE - INTERVAL '2 days')::date, (CURRENT_DATE + INTERVAL '30 days')::date, 18000.000, 0.000, 10, 1800, 19800, 0, 19800, 'BHD', 'Falcon Airways Boeing 787 Interior Virtual Reality Tour', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice (id, invoice_number, contact_id, status, issue_date, due_date, subtotal, discount, vat_rate, vat_amount, total, amount_paid, balance_due, currency, notes, terms, created_at, updated_at)
+VALUES ('inv-55', 'INV-DRAFT-02', 'cont-005', 'draft', (CURRENT_DATE - INTERVAL '1 days')::date, (CURRENT_DATE + INTERVAL '30 days')::date, 9500.000, 0.000, 10, 950, 10450, 0, 10450, 'BHD', 'Gulfwave Smart Cities IoT Showcase Film Series', 'Payment terms: 30 days net from invoice issue date. Bank transfer or BenefitPay accepted.', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-001', 'inv-01', 'F1 Season Opener Trackside Cinematography & FPV Rigging — Principal Filming & Crew', 1, 3510, 3510, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-002', 'inv-01', 'F1 Season Opener Trackside Cinematography & FPV Rigging — 8K RAW Editing, Color Grading & Sound Master', 1, 1890, 1890, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-003', 'inv-02', 'Falcon Airways Fleet Refresh In-Flight Safety Master 4K — Principal Filming & Crew', 1, 5720, 5720, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-004', 'inv-02', 'Falcon Airways Fleet Refresh In-Flight Safety Master 4K — 8K RAW Editing, Color Grading & Sound Master', 1, 3080, 3080, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-005', 'inv-03', 'Exhibition World Inaugural Summit Multi-Camera Livestream — Principal Filming & Crew', 1, 7800, 7800, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-006', 'inv-03', 'Exhibition World Inaugural Summit Multi-Camera Livestream — 8K RAW Editing, Color Grading & Sound Master', 1, 4200, 4200, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-007', 'inv-04', 'Digital Banking Mobile App Launch Teasers & Cinema Cutdowns — Principal Filming & Crew', 1, 4680, 4680, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-008', 'inv-04', 'Digital Banking Mobile App Launch Teasers & Cinema Cutdowns — 8K RAW Editing, Color Grading & Sound Master', 1, 2520, 2520, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-009', 'inv-05', 'Gulfwave 5G Network Ultra-HD Commercial TVC Production — Principal Filming & Crew', 1, 6175, 6175, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-010', 'inv-05', 'Gulfwave 5G Network Ultra-HD Commercial TVC Production — 8K RAW Editing, Color Grading & Sound Master', 1, 3325, 3325, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-011', 'inv-06', 'Bapco Energies Sustainability Docu-Feature (Phase 1) — Principal Filming & Crew', 1, 4160, 4160, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-012', 'inv-06', 'Bapco Energies Sustainability Docu-Feature (Phase 1) — 8K RAW Editing, Color Grading & Sound Master', 1, 2240, 2240, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-013', 'inv-07', 'Alba Line 6 Smelter Industrial Hyperlapse & Drone Photography — Principal Filming & Crew', 1, 3120, 3120, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-014', 'inv-07', 'Alba Line 6 Smelter Industrial Hyperlapse & Drone Photography — 8K RAW Editing, Color Grading & Sound Master', 1, 1680, 1680, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-015', 'inv-08', 'Beyon Digital Campus Architectural Tour & 360 Experience — Principal Filming & Crew', 1, 2730, 2730, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-016', 'inv-08', 'Beyon Digital Campus Architectural Tour & 360 Experience — 8K RAW Editing, Color Grading & Sound Master', 1, 1470, 1470, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-017', 'inv-09', 'STC Winter Festival Drone Light Show Video Production — Principal Filming & Crew', 1, 2535, 2535, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-018', 'inv-09', 'STC Winter Festival Drone Light Show Video Production — 8K RAW Editing, Color Grading & Sound Master', 1, 1365, 1365, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-019', 'inv-10', 'National Bank of Bahrain 65th Anniversary Film Mastering — Principal Filming & Crew', 1, 9425, 9425, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-020', 'inv-10', 'National Bank of Bahrain 65th Anniversary Film Mastering — 8K RAW Editing, Color Grading & Sound Master', 1, 5075, 5075, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-021', 'inv-11', 'BBK Super Saver Campaign Social Cutdowns & Audio Mastering — Principal Filming & Crew', 1, 2080, 2080, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-022', 'inv-11', 'BBK Super Saver Campaign Social Cutdowns & Audio Mastering — 8K RAW Editing, Color Grading & Sound Master', 1, 1120, 1120, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-023', 'inv-12', 'Ahli United Bank Private Wealth Summit Documentaries — Principal Filming & Crew', 1, 3640, 3640, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-024', 'inv-12', 'Ahli United Bank Private Wealth Summit Documentaries — 8K RAW Editing, Color Grading & Sound Master', 1, 1960, 1960, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-025', 'inv-13', 'FinTech Acceleration Demo Day Highlights & Founder Spotlights — Principal Filming & Crew', 1, 1820, 1820, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-026', 'inv-13', 'FinTech Acceleration Demo Day Highlights & Founder Spotlights — 8K RAW Editing, Color Grading & Sound Master', 1, 980, 980, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-027', 'inv-14', 'Marassi Beachfront Lifestyle Cinematography Package — Principal Filming & Crew', 1, 5330, 5330, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-028', 'inv-14', 'Marassi Beachfront Lifestyle Cinematography Package — 8K RAW Editing, Color Grading & Sound Master', 1, 2870, 2870, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-029', 'inv-15', 'Dilmunia Canal Promenade Sunset Time-Lapse & Drone Survey — Principal Filming & Crew', 1, 2340, 2340, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-030', 'inv-15', 'Dilmunia Canal Promenade Sunset Time-Lapse & Drone Survey — 8K RAW Editing, Color Grading & Sound Master', 1, 1260, 1260, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-031', 'inv-16', 'Four Seasons Bahrain Bay Gourmet Culinary Masterclass Series — Principal Filming & Crew', 1, 2925, 2925, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-032', 'inv-16', 'Four Seasons Bahrain Bay Gourmet Culinary Masterclass Series — 8K RAW Editing, Color Grading & Sound Master', 1, 1575, 1575, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-033', 'inv-17', 'Ritz-Carlton Beach Resort Summer Campaign Commercials — Principal Filming & Crew', 1, 4420, 4420, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-034', 'inv-17', 'Ritz-Carlton Beach Resort Summer Campaign Commercials — 8K RAW Editing, Color Grading & Sound Master', 1, 2380, 2380, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-035', 'inv-18', 'Dana Mall Family Shopping Festival Promo Spots — Principal Filming & Crew', 1, 1430, 1430, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-036', 'inv-18', 'Dana Mall Family Shopping Festival Promo Spots — 8K RAW Editing, Color Grading & Sound Master', 1, 770, 770, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-037', 'inv-19', 'City Centre Bahrain Fashion Weekend 4K Highlights & TVC — Principal Filming & Crew', 1, 3315, 3315, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-038', 'inv-19', 'City Centre Bahrain Fashion Weekend 4K Highlights & TVC — 8K RAW Editing, Color Grading & Sound Master', 1, 1785, 1785, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-039', 'inv-20', 'Seef Mall National Day Golden Jubilee Heritage Film — Principal Filming & Crew', 1, 5070, 5070, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-040', 'inv-20', 'Seef Mall National Day Golden Jubilee Heritage Film — 8K RAW Editing, Color Grading & Sound Master', 1, 2730, 2730, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-041', 'inv-21', 'Invest in Bahrain International Roadshow Media Package — Principal Filming & Crew', 1, 5980, 5980, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-042', 'inv-21', 'Invest in Bahrain International Roadshow Media Package — 8K RAW Editing, Color Grading & Sound Master', 1, 3220, 3220, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-043', 'inv-22', 'Official IAA Media Archive 4K Remastering & Restorations — Principal Filming & Crew', 1, 2275, 2275, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-044', 'inv-22', 'Official IAA Media Archive 4K Remastering & Restorations — 8K RAW Editing, Color Grading & Sound Master', 1, 1225, 1225, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-045', 'inv-23', 'BTEA Heritage Tourism Short Films (Overdue 22d) — Principal Filming & Crew', 1, 4030, 4030, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-046', 'inv-23', 'BTEA Heritage Tourism Short Films (Overdue 22d) — 8K RAW Editing, Color Grading & Sound Master', 1, 2170, 2170, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-047', 'inv-24', 'Mumtalakat Annual Investor Presentation Video (Overdue 18d) — Principal Filming & Crew', 1, 5460, 5460, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-048', 'inv-24', 'Mumtalakat Annual Investor Presentation Video (Overdue 18d) — 8K RAW Editing, Color Grading & Sound Master', 1, 2940, 2940, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-049', 'inv-25', 'Al Baraka Global Islamic Banking Documentary (Overdue 15d) — Principal Filming & Crew', 1, 3315, 3315, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-050', 'inv-25', 'Al Baraka Global Islamic Banking Documentary (Overdue 15d) — 8K RAW Editing, Color Grading & Sound Master', 1, 1785, 1785, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-051', 'inv-26', 'Gulf Air Falcon Miles Rewards Program Promo (Overdue 12d) — Principal Filming & Crew', 1, 2795, 2795, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-052', 'inv-26', 'Gulf Air Falcon Miles Rewards Program Promo (Overdue 12d) — 8K RAW Editing, Color Grading & Sound Master', 1, 1505, 1505, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-053', 'inv-27', 'Bahrain Duty Free Summer Golden Ticket Campaign (Overdue 10d) — Principal Filming & Crew', 1, 2405, 2405, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-054', 'inv-27', 'Bahrain Duty Free Summer Golden Ticket Campaign (Overdue 10d) — 8K RAW Editing, Color Grading & Sound Master', 1, 1295, 1295, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-055', 'inv-28', 'Jumeirah Gulf of Bahrain Private Villa Aerial Rigging (Overdue 52d) — Principal Filming & Crew', 1, 2535, 2535, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-056', 'inv-28', 'Jumeirah Gulf of Bahrain Private Villa Aerial Rigging (Overdue 52d) — 8K RAW Editing, Color Grading & Sound Master', 1, 1365, 1365, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-057', 'inv-29', 'Ogilvy Luxury Automotive Commercial Soundstage Rental (Overdue 50d) — Principal Filming & Crew', 1, 4225, 4225, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-058', 'inv-29', 'Ogilvy Luxury Automotive Commercial Soundstage Rental (Overdue 50d) — 8K RAW Editing, Color Grading & Sound Master', 1, 2275, 2275, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-059', 'inv-30', 'FP7 McCann Telecommunications TVC Post Production (Overdue 47d) — Principal Filming & Crew', 1, 3770, 3770, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-060', 'inv-30', 'FP7 McCann Telecommunications TVC Post Production (Overdue 47d) — 8K RAW Editing, Color Grading & Sound Master', 1, 2030, 2030, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-061', 'inv-31', 'Leo Burnett Regional Bank Social Media Animation Package (Overdue 45d) — Principal Filming & Crew', 1, 2730, 2730, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-062', 'inv-31', 'Leo Burnett Regional Bank Social Media Animation Package (Overdue 45d) — 8K RAW Editing, Color Grading & Sound Master', 1, 1470, 1470, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-063', 'inv-32', 'TBWA Raad FinTech Explainer Series Sound Mix (Overdue 42d) — Principal Filming & Crew', 1, 2015, 2015, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-064', 'inv-32', 'TBWA Raad FinTech Explainer Series Sound Mix (Overdue 42d) — 8K RAW Editing, Color Grading & Sound Master', 1, 1085, 1085, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-065', 'inv-33', 'Al Hawaj Perfume Luxury Brand Story 8K Video (Overdue 82d) — Principal Filming & Crew', 1, 3055, 3055, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-066', 'inv-33', 'Al Hawaj Perfume Luxury Brand Story 8K Video (Overdue 82d) — 8K RAW Editing, Color Grading & Sound Master', 1, 1645, 1645, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-067', 'inv-34', 'Almoayyed Electronics Showroom Grand Opening Coverage (Overdue 80d) — Principal Filming & Crew', 1, 1885, 1885, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-068', 'inv-34', 'Almoayyed Electronics Showroom Grand Opening Coverage (Overdue 80d) — 8K RAW Editing, Color Grading & Sound Master', 1, 1015, 1015, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-069', 'inv-35', 'E.K. Kanoo Lexus Hybrid Experience Film Production (Overdue 77d) — Principal Filming & Crew', 1, 6370, 6370, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-070', 'inv-35', 'E.K. Kanoo Lexus Hybrid Experience Film Production (Overdue 77d) — 8K RAW Editing, Color Grading & Sound Master', 1, 3430, 3430, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-071', 'inv-36', 'BIC Drag Racing Night Event Wireless Video System (Overdue 75d) — Principal Filming & Crew', 1, 2210, 2210, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-072', 'inv-36', 'BIC Drag Racing Night Event Wireless Video System (Overdue 75d) — 8K RAW Editing, Color Grading & Sound Master', 1, 1190, 1190, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-073', 'inv-37', 'Falcon Airways Pilot Training VR Simulation Backgrounds (Overdue 72d) — Principal Filming & Crew', 1, 3965, 3965, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-074', 'inv-37', 'Falcon Airways Pilot Training VR Simulation Backgrounds (Overdue 72d) — 8K RAW Editing, Color Grading & Sound Master', 1, 2135, 2135, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-075', 'inv-38', 'EWB Global Logistics Expo Pre-Roll Cinematography (Overdue 122d) — Principal Filming & Crew', 1, 4745, 4745, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-076', 'inv-38', 'EWB Global Logistics Expo Pre-Roll Cinematography (Overdue 122d) — 8K RAW Editing, Color Grading & Sound Master', 1, 2555, 2555, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-077', 'inv-39', 'HNB Corporate Governance Boardroom Recording (Overdue 118d) — Principal Filming & Crew', 1, 1560, 1560, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-078', 'inv-39', 'HNB Corporate Governance Boardroom Recording (Overdue 118d) — 8K RAW Editing, Color Grading & Sound Master', 1, 840, 840, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-079', 'inv-40', 'Gulfwave Fiber Rollout Documentary Series Part 1 (Overdue 114d) — Principal Filming & Crew', 1, 2990, 2990, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-080', 'inv-40', 'Gulfwave Fiber Rollout Documentary Series Part 1 (Overdue 114d) — 8K RAW Editing, Color Grading & Sound Master', 1, 1610, 1610, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-081', 'inv-41', 'Bapco Historical Refinery Heritage Archive Ingest (Overdue 110d) — Principal Filming & Crew', 1, 2470, 2470, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-082', 'inv-41', 'Bapco Historical Refinery Heritage Archive Ingest (Overdue 110d) — 8K RAW Editing, Color Grading & Sound Master', 1, 1330, 1330, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-083', 'inv-42', 'Alba Safety First Induction Cinema Video (Phase 1 50% Paid) — Principal Filming & Crew', 1, 5200, 5200, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-084', 'inv-42', 'Alba Safety First Induction Cinema Video (Phase 1 50% Paid) — 8K RAW Editing, Color Grading & Sound Master', 1, 2800, 2800, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-085', 'inv-43', 'Beyon Telecom Retail Experience Animation Package (50% Paid) — Principal Filming & Crew', 1, 3900, 3900, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-086', 'inv-43', 'Beyon Telecom Retail Experience Animation Package (50% Paid) — 8K RAW Editing, Color Grading & Sound Master', 1, 2100, 2100, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-087', 'inv-44', 'STC Cyber Defense Lab Corporate Explainers (50% Paid) — Principal Filming & Crew', 1, 3510, 3510, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-088', 'inv-44', 'STC Cyber Defense Lab Corporate Explainers (50% Paid) — 8K RAW Editing, Color Grading & Sound Master', 1, 1890, 1890, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-089', 'inv-45', 'NBB Ramadan Charitable Foundation Short Films (50% Paid) — Principal Filming & Crew', 1, 5850, 5850, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-090', 'inv-45', 'NBB Ramadan Charitable Foundation Short Films (50% Paid) — 8K RAW Editing, Color Grading & Sound Master', 1, 3150, 3150, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-091', 'inv-46', 'BBK Youth Savings Account TVC Commercial (50% Advance Paid) — Principal Filming & Crew', 1, 4550, 4550, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-092', 'inv-46', 'BBK Youth Savings Account TVC Commercial (50% Advance Paid) — 8K RAW Editing, Color Grading & Sound Master', 1, 2450, 2450, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-093', 'inv-47', 'Marassi Galleria Luxury Fashion Shoot (30% Deposit Paid) — Principal Filming & Crew', 1, 7150, 7150, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-094', 'inv-47', 'Marassi Galleria Luxury Fashion Shoot (30% Deposit Paid) — 8K RAW Editing, Color Grading & Sound Master', 1, 3850, 3850, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-095', 'inv-48', 'Four Seasons Wedding Showcase 8K Production (50% Booking Advance) — Principal Filming & Crew', 1, 4225, 4225, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-096', 'inv-48', 'Four Seasons Wedding Showcase 8K Production (50% Booking Advance) — 8K RAW Editing, Color Grading & Sound Master', 1, 2275, 2275, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-097', 'inv-49', 'Ritz-Carlton Seafood Festival Promos & Social Cutdowns — Principal Filming & Crew', 1, 3120, 3120, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-098', 'inv-49', 'Ritz-Carlton Seafood Festival Promos & Social Cutdowns — 8K RAW Editing, Color Grading & Sound Master', 1, 1680, 1680, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-099', 'inv-50', 'Bahrain EDB International Tech Summit Recap Video — Principal Filming & Crew', 1, 5590, 5590, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-100', 'inv-50', 'Bahrain EDB International Tech Summit Recap Video — 8K RAW Editing, Color Grading & Sound Master', 1, 3010, 3010, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-101', 'inv-51', 'Ogilvy FMCG National Brand Commercial 4K Master — Principal Filming & Crew', 1, 8125, 8125, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-102', 'inv-51', 'Ogilvy FMCG National Brand Commercial 4K Master — 8K RAW Editing, Color Grading & Sound Master', 1, 4375, 4375, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-103', 'inv-52', 'Almoayyed Motors Commercial Fleet Photography — Principal Filming & Crew', 1, 2470, 2470, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-104', 'inv-52', 'Almoayyed Motors Commercial Fleet Photography — 8K RAW Editing, Color Grading & Sound Master', 1, 1330, 1330, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-105', 'inv-53', 'Toyota Land Cruiser Desert Adventure TVC Principal Photography — Principal Filming & Crew', 1, 9750, 9750, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-106', 'inv-53', 'Toyota Land Cruiser Desert Adventure TVC Principal Photography — 8K RAW Editing, Color Grading & Sound Master', 1, 5250, 5250, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-107', 'inv-54', 'Falcon Airways Boeing 787 Interior Virtual Reality Tour — Principal Filming & Crew', 1, 11700, 11700, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-108', 'inv-54', 'Falcon Airways Boeing 787 Interior Virtual Reality Tour — 8K RAW Editing, Color Grading & Sound Master', 1, 6300, 6300, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-109', 'inv-55', 'Gulfwave Smart Cities IoT Showcase Film Series — Principal Filming & Crew', 1, 6175, 6175, 1)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.invoice_item (id, invoice_id, description, quantity, unit_price, amount, sort_order)
+VALUES ('ii-110', 'inv-55', 'Gulfwave Smart Cities IoT Showcase Film Series — 8K RAW Editing, Color Grading & Sound Master', 1, 3325, 3325, 2)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-001', 'RCT-2026-001', 'inv-01', 'cont-001', 5940, 'BHD', 'bank_transfer', (CURRENT_DATE - INTERVAL '140 days')::date, 'REF-INV-2026-001-TXN2', 'completed', 'Settlement for F1 Season Opener Trackside Cinematography & FPV Rigging', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-002', 'RCT-2026-002', 'inv-02', 'cont-002', 9680, 'BHD', 'bank_transfer', (CURRENT_DATE - INTERVAL '130 days')::date, 'REF-INV-2026-002-TXN3', 'completed', 'Settlement for Falcon Airways Fleet Refresh In-Flight Safety Master 4K', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-003', 'RCT-2026-003', 'inv-03', 'cont-003', 13200, 'BHD', 'bank_transfer', (CURRENT_DATE - INTERVAL '131 days')::date, 'REF-INV-2026-003-TXN4', 'completed', 'Settlement for Exhibition World Inaugural Summit Multi-Camera Livestream', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-004', 'RCT-2026-004', 'inv-04', 'cont-004', 7920, 'BHD', 'bank_transfer', (CURRENT_DATE - INTERVAL '115 days')::date, 'REF-INV-2026-004-TXN5', 'completed', 'Settlement for Digital Banking Mobile App Launch Teasers & Cinema Cutdowns', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-005', 'RCT-2026-005', 'inv-05', 'cont-005', 10450, 'BHD', 'benefit_pay', (CURRENT_DATE - INTERVAL '117 days')::date, 'REF-INV-2026-005-TXN6', 'completed', 'Settlement for Gulfwave 5G Network Ultra-HD Commercial TVC Production', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-006', 'RCT-2026-006', 'inv-06', 'cont-006', 7040, 'BHD', 'bank_transfer', (CURRENT_DATE - INTERVAL '118 days')::date, 'REF-INV-2026-006-TXN7', 'completed', 'Settlement for Bapco Energies Sustainability Docu-Feature (Phase 1)', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-007', 'RCT-2026-007', 'inv-07', 'cont-007', 5280, 'BHD', 'bank_transfer', (CURRENT_DATE - INTERVAL '103 days')::date, 'REF-INV-2026-007-TXN8', 'completed', 'Settlement for Alba Line 6 Smelter Industrial Hyperlapse & Drone Photography', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-008', 'RCT-2026-008', 'inv-08', 'cont-008', 4620, 'BHD', 'bank_transfer', (CURRENT_DATE - INTERVAL '105 days')::date, 'REF-INV-2026-008-TXN9', 'completed', 'Settlement for Beyon Digital Campus Architectural Tour & 360 Experience', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-009', 'RCT-2026-009', 'inv-09', 'cont-009', 4290, 'BHD', 'credit_card', (CURRENT_DATE - INTERVAL '99 days')::date, 'REF-INV-2026-009-TXN10', 'completed', 'Settlement for STC Winter Festival Drone Light Show Video Production', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-010', 'RCT-2026-010', 'inv-10', 'cont-010', 15950, 'BHD', 'bank_transfer', (CURRENT_DATE - INTERVAL '90 days')::date, 'REF-INV-2026-010-TXN11', 'completed', 'Settlement for National Bank of Bahrain 65th Anniversary Film Mastering', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-011', 'RCT-2026-011', 'inv-11', 'cont-011', 3520, 'BHD', 'bank_transfer', (CURRENT_DATE - INTERVAL '91 days')::date, 'REF-INV-2026-011-TXN12', 'completed', 'Settlement for BBK Super Saver Campaign Social Cutdowns & Audio Mastering', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-012', 'RCT-2026-012', 'inv-12', 'cont-012', 6160, 'BHD', 'bank_transfer', (CURRENT_DATE - INTERVAL '81 days')::date, 'REF-INV-2026-012-TXN13', 'completed', 'Settlement for Ahli United Bank Private Wealth Summit Documentaries', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-013', 'RCT-2026-013', 'inv-13', 'cont-013', 3080, 'BHD', 'benefit_pay', (CURRENT_DATE - INTERVAL '85 days')::date, 'REF-INV-2026-013-TXN14', 'completed', 'Settlement for FinTech Acceleration Demo Day Highlights & Founder Spotlights', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-014', 'RCT-2026-014', 'inv-14', 'cont-014', 9020, 'BHD', 'bank_transfer', (CURRENT_DATE - INTERVAL '69 days')::date, 'REF-INV-2026-014-TXN15', 'completed', 'Settlement for Marassi Beachfront Lifestyle Cinematography Package', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-015', 'RCT-2026-015', 'inv-15', 'cont-015', 3960, 'BHD', 'bank_transfer', (CURRENT_DATE - INTERVAL '70 days')::date, 'REF-INV-2026-015-TXN16', 'completed', 'Settlement for Dilmunia Canal Promenade Sunset Time-Lapse & Drone Survey', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-016', 'RCT-2026-016', 'inv-16', 'cont-016', 4950, 'BHD', 'credit_card', (CURRENT_DATE - INTERVAL '66 days')::date, 'REF-INV-2026-016-TXN17', 'completed', 'Settlement for Four Seasons Bahrain Bay Gourmet Culinary Masterclass Series', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-017', 'RCT-2026-017', 'inv-17', 'cont-017', 7480, 'BHD', 'bank_transfer', (CURRENT_DATE - INTERVAL '57 days')::date, 'REF-INV-2026-017-TXN18', 'completed', 'Settlement for Ritz-Carlton Beach Resort Summer Campaign Commercials', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-018', 'RCT-2026-018', 'inv-18', 'cont-018', 2420, 'BHD', 'benefit_pay', (CURRENT_DATE - INTERVAL '58 days')::date, 'REF-INV-2026-018-TXN19', 'completed', 'Settlement for Dana Mall Family Shopping Festival Promo Spots', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-019', 'RCT-2026-019', 'inv-19', 'cont-019', 5610, 'BHD', 'bank_transfer', (CURRENT_DATE - INTERVAL '40 days')::date, 'REF-INV-2026-019-TXN20', 'completed', 'Settlement for City Centre Bahrain Fashion Weekend 4K Highlights & TVC', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-020', 'RCT-2026-020', 'inv-20', 'cont-020', 8580, 'BHD', 'bank_transfer', (CURRENT_DATE - INTERVAL '34 days')::date, 'REF-INV-2026-020-TXN21', 'completed', 'Settlement for Seef Mall National Day Golden Jubilee Heritage Film', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-021', 'RCT-2026-021', 'inv-21', 'cont-021', 10120, 'BHD', 'bank_transfer', (CURRENT_DATE - INTERVAL '25 days')::date, 'REF-INV-2026-021-TXN22', 'completed', 'Settlement for Invest in Bahrain International Roadshow Media Package', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-022', 'RCT-2026-022', 'inv-22', 'cont-022', 3850, 'BHD', 'bank_transfer', (CURRENT_DATE - INTERVAL '20 days')::date, 'REF-INV-2026-022-TXN23', 'completed', 'Settlement for Official IAA Media Archive 4K Remastering & Restorations', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-023', 'RCT-PART-01', 'inv-42', 'cont-007', 4400, 'BHD', 'bank_transfer', (CURRENT_DATE - INTERVAL '55 days')::date, 'REF-INV-PART-01-TXN24', 'completed', 'Settlement for Alba Safety First Induction Cinema Video (Phase 1 50% Paid)', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-024', 'RCT-PART-02', 'inv-43', 'cont-008', 3300, 'BHD', 'bank_transfer', (CURRENT_DATE - INTERVAL '48 days')::date, 'REF-INV-PART-02-TXN25', 'completed', 'Settlement for Beyon Telecom Retail Experience Animation Package (50% Paid)', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-025', 'RCT-PART-03', 'inv-44', 'cont-009', 2970, 'BHD', 'benefit_pay', (CURRENT_DATE - INTERVAL '40 days')::date, 'REF-INV-PART-03-TXN26', 'completed', 'Settlement for STC Cyber Defense Lab Corporate Explainers (50% Paid)', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-026', 'RCT-PART-04', 'inv-45', 'cont-010', 4950, 'BHD', 'bank_transfer', (CURRENT_DATE - INTERVAL '35 days')::date, 'REF-INV-PART-04-TXN27', 'completed', 'Settlement for NBB Ramadan Charitable Foundation Short Films (50% Paid)', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-027', 'RCT-PART-05', 'inv-46', 'cont-011', 3850, 'BHD', 'benefit_pay', (CURRENT_DATE - INTERVAL '4 days')::date, 'REF-INV-PART-05-TXN28', 'completed', 'Settlement for BBK Youth Savings Account TVC Commercial (50% Advance Paid)', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-028', 'RCT-PART-06', 'inv-47', 'cont-014', 3630, 'BHD', 'bank_transfer', (CURRENT_DATE - INTERVAL '0 days')::date, 'REF-INV-PART-06-TXN29', 'completed', 'Settlement for Marassi Galleria Luxury Fashion Shoot (30% Deposit Paid)', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO finance.payment (id, payment_number, invoice_id, contact_id, amount, currency, payment_method, payment_date, reference, status, notes, created_at)
+VALUES ('pay-029', 'RCT-PART-07', 'inv-48', 'cont-016', 3575, 'BHD', 'credit_card', (CURRENT_DATE - INTERVAL '0 days')::date, 'REF-INV-PART-07-TXN30', 'completed', 'Settlement for Four Seasons Wedding Showcase 8K Production (50% Booking Advance)', now())
 ON CONFLICT (id) DO NOTHING;
 
 -- ----------------------------------------------------------------------------
--- 8. INVENTORY SERVICE (Categories, Warehouses, Locations, Products, Stock)
+-- 8. INVENTORY SERVICE (Categories, Warehouses, Locations, Products, Stock Levels)
 -- ----------------------------------------------------------------------------
-INSERT INTO inventory.product_category (id, slug, name_en, name_ar, description_en, description_ar, sort_order, is_active) VALUES ('60ec2df4-551c-4de5-88e6-a059e78439dc', 'cinema-cameras', 'Cinema Cameras', 'كاميرات سينمائية', 'Large format and Super35 digital cinema camera packages', 'كاميرات سينمائية رقمية للإطار الكامل وسوبر 35', 1, true) ON CONFLICT (id) DO NOTHING;
-INSERT INTO inventory.product_category (id, slug, name_en, name_ar, description_en, description_ar, sort_order, is_active) VALUES ('46202273-9e02-42b2-885f-fd38c18e1ee0', 'cinema-lenses', 'Cinema Lenses', 'عدسات سينمائية', 'Anamorphic and spherical cinema prime and zoom lenses', 'عدسات سينمائية أنامورفيك وبرايم وزوم', 2, true) ON CONFLICT (id) DO NOTHING;
-INSERT INTO inventory.product_category (id, slug, name_en, name_ar, description_en, description_ar, sort_order, is_active) VALUES ('00fdc6d1-98ef-4d60-98e1-a62f0876d156', 'lighting-grip', 'Lighting & Grip', 'إضاءة وتجهيزات', 'Professional LED, HMI fixtures, wireless tubes and stabilizers', 'إضاءات LED متطورة ومعدات تثبيت وموازنة', 3, true) ON CONFLICT (id) DO NOTHING;
-INSERT INTO inventory.product_category (id, slug, name_en, name_ar, description_en, description_ar, sort_order, is_active) VALUES ('8ea0e0ca-6f8c-4279-81f6-0308a6a57fc1', 'aerial-drones', 'Aerial Drones', 'تصوير جوي ودرون', 'Heavy-lifter and cinema drones with raw recording capabilities', 'طائرات درون سينمائية متقدمة لتسجيل RAW', 4, true) ON CONFLICT (id) DO NOTHING;
-INSERT INTO inventory.product_category (id, slug, name_en, name_ar, description_en, description_ar, sort_order, is_active) VALUES ('e5fb322f-f5f5-43bc-8898-bc7187cc790f', 'field-audio', 'Field Audio', 'هندسة الصوت الميداني', 'Multi-channel field recorders, mixers and wireless boom mics', 'أجهزة تسجيل صوت ميداني متعدد القنوات وميكروفونات لاسلكية', 5, true) ON CONFLICT (id) DO NOTHING;
-INSERT INTO inventory.product_category (id, slug, name_en, name_ar, description_en, description_ar, sort_order, is_active) VALUES ('20670350-e2ac-447c-8d46-72491e1828a4', 'post-production', 'Post-Production', 'ما بعد الإنتاج والتلوين', 'Color grading hardware control panels and HDR master suites', 'لوحات تحكم التلوين السينمائي وأجهزة المونتاج', 6, true) ON CONFLICT (id) DO NOTHING;
-INSERT INTO inventory.warehouse (id, code, name_en, name_ar, address, is_active, is_default, sort_order, created_at, updated_at) VALUES ('3a2939ad-f352-4fe0-a639-935422fe3f29', 'DEMO', 'Main Cinema Equipment Vault', 'مخزن المعدات السينمائية الرئيسي', 'Seef District, Manama, Kingdom of Bahrain', true, true, 1, now(), now()) ON CONFLICT (id) DO NOTHING;
-INSERT INTO inventory.warehouse (id, code, name_en, name_ar, address, is_active, is_default, sort_order, created_at, updated_at) VALUES ('7da571bc-d198-4fcf-92d6-b0a03637ed4d', 'STUDIO', 'Seef Soundstage & Studio Vault', 'مخزن استوديو السيف السينمائي', 'Seef District, Kingdom of Bahrain', true, false, 2, now(), now()) ON CONFLICT (id) DO NOTHING;
-INSERT INTO inventory.stock_location (id, warehouse_id, code, name, is_active, created_at) VALUES ('9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', '3a2939ad-f352-4fe0-a639-935422fe3f29', 'VAULT-01', 'Primary Gear Vault', true, now()) ON CONFLICT (id) DO NOTHING;
-INSERT INTO inventory.stock_location (id, warehouse_id, code, name, is_active, created_at) VALUES ('c0121511-2fba-4bbd-8a68-ffb3ba9f566b', '7da571bc-d198-4fcf-92d6-b0a03637ed4d', 'STUDIO-BAY', 'Stage Lighting & Rigging Bay', true, now()) ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product_category (id, slug, name_en, name_ar, description_en, description_ar, sort_order, is_active)
+VALUES ('cameras', 'cameras', 'Cinema Cameras & Packages', 'كاميرات السينما الاحترافية', 'Top-tier 8K & 4K full frame cinema cameras', 'كاميرات السينما الاحترافية', 1, true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product_category (id, slug, name_en, name_ar, description_en, description_ar, sort_order, is_active)
+VALUES ('lenses', 'lenses', 'Anamorphic & Prime Lenses', 'عدسات أنامورفيك وبرايم', 'Cinema primes, zooms and anamorphic glass', 'عدسات أنامورفيك وبرايم', 2, true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product_category (id, slug, name_en, name_ar, description_en, description_ar, sort_order, is_active)
+VALUES ('lighting', 'lighting', 'Production Lighting & Grips', 'إضاءة الإنتاج ومعدات التوزيع', 'High-output LED fixtures and tubes', 'إضاءة الإنتاج ومعدات التوزيع', 3, true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product_category (id, slug, name_en, name_ar, description_en, description_ar, sort_order, is_active)
+VALUES ('audio', 'audio', 'Location Sound & Recorders', 'هندسة الصوت الميداني', 'Multi-track recorders and shotgun mics', 'هندسة الصوت الميداني', 4, true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product_category (id, slug, name_en, name_ar, description_en, description_ar, sort_order, is_active)
+VALUES ('drones', 'drones-gimbals', 'Cinema Drones & Gimbals', 'الدرونز وموانع الاهتزاز', 'Heavy-lift cinema aerials and handheld 4-axis gimbals', 'الدرونز وموانع الاهتزاز', 5, true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product_category (id, slug, name_en, name_ar, description_en, description_ar, sort_order, is_active)
+VALUES ('monitors', 'monitors-wireless', 'Wireless Video & HDR Monitors', 'شاشات العرض والنقل اللاسلكي', '4K zero-latency video links and mastering monitors', 'شاشات العرض والنقل اللاسلكي', 6, true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product_category (id, slug, name_en, name_ar, description_en, description_ar, sort_order, is_active)
+VALUES ('grip', 'heavy-grip', 'Studio Jibs, Tripods & Grips', 'حوامل ورافعات الاستوديو', 'Fluid heads, C-stands, dollies and jibs', 'حوامل ورافعات الاستوديو', 7, true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product_category (id, slug, name_en, name_ar, description_en, description_ar, sort_order, is_active)
+VALUES ('post', 'post-storage', 'Post-Production Workstations', 'محطات المونتاج والتلوين', 'High-speed NVMe storage and DCI grading suites', 'محطات المونتاج والتلوين', 8, true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.warehouse (id, code, name_en, name_ar, address, is_active, is_default, sort_order, created_at, updated_at)
+VALUES ('3a2939ad-f352-4fe0-a639-935422fe3f29', 'DEMO', 'Main Cinema Equipment Vault', 'مخزن المعدات السينمائية الرئيسي', 'Seef District, Manama, Kingdom of Bahrain', true, true, 1, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.warehouse (id, code, name_en, name_ar, address, is_active, is_default, sort_order, created_at, updated_at)
+VALUES ('7da571bc-d198-4fcf-92d6-b0a03637ed4d', 'STUDIO', 'Seef Soundstage & Studio Vault', 'مخزن استوديو السيف السينمائي', 'Seef District, Kingdom of Bahrain', true, false, 2, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_location (id, warehouse_id, code, name, is_active, created_at)
+VALUES ('9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', '3a2939ad-f352-4fe0-a639-935422fe3f29', 'VAULT-01', 'Primary Gear Vault', true, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_location (id, warehouse_id, code, name, is_active, created_at)
+VALUES ('c0121511-2fba-4bbd-8a68-ffb3ba9f566b', '7da571bc-d198-4fcf-92d6-b0a03637ed4d', 'STUDIO-BAY', 'Stage Lighting & Rigging Bay', true, now())
+ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
-VALUES ('65553066-46ec-4d81-8055-265fcf269b9b', 'DEMO-CAM-001', 'ARRI Alexa 35 Cinema Package', 'حزمة كاميرا آري أليكسا 35 السينمائية', '4K RAW Super35 Cinema Camera with LPL mount', 'كاميرا سينمائية فائقة الوضوح 4K RAW', '60ec2df4-551c-4de5-88e6-a059e78439dc', 12000, 1000, 'BHD', 0, true, true, 1, now(), now())
+VALUES ('prod-cam-alx-35', 'CAM-ALX-35', 'ARRI Alexa 35 Camera Package', 'كاميرا آري أليكسا 35 سينمائية', 'ARRI Alexa 35 Camera Package', 'كاميرا آري أليكسا 35 سينمائية', 'cameras', 18000.0000, 350.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
-VALUES ('sl-' || '65553066-46ec-4d81-8055-265fcf269b9b', '65553066-46ec-4d81-8055-265fcf269b9b', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4, 0, 4, 1, now()) ON CONFLICT (id) DO NOTHING;
+VALUES ('sl-' || 'prod-cam-alx-35', 'prod-cam-alx-35', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
-VALUES ('sm-' || '65553066-46ec-4d81-8055-265fcf269b9b', '65553066-46ec-4d81-8055-265fcf269b9b', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4, 12000, 'inventory', 'Initial seed gear intake', now()) ON CONFLICT (id) DO NOTHING;
+VALUES ('sm-' || 'prod-cam-alx-35', 'prod-cam-alx-35', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 18000.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
-VALUES ('8f1d7f9b-69d5-4fa8-a984-fba7a636dfe4', 'DEMO-CAM-002', 'RED V-Raptor XL 8K VV Package', 'حزمة كاميرا ريد رابتور 8K السينمائية', '8K Vista Vision Cinema Camera System with PL Mount', 'نظام كاميرا سينمائي بدقة 8K مع مانت PL', '60ec2df4-551c-4de5-88e6-a059e78439dc', 14000, 1200, 'BHD', 0, true, true, 1, now(), now())
+VALUES ('prod-cam-alx-lf', 'CAM-ALX-LF', 'ARRI Alexa Mini LF Production Kit', 'كاميرا آري أليكسا ميني إل إف', 'ARRI Alexa Mini LF Production Kit', 'كاميرا آري أليكسا ميني إل إف', 'cameras', 14000.0000, 280.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
-VALUES ('sl-' || '8f1d7f9b-69d5-4fa8-a984-fba7a636dfe4', '8f1d7f9b-69d5-4fa8-a984-fba7a636dfe4', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4, 0, 4, 1, now()) ON CONFLICT (id) DO NOTHING;
+VALUES ('sl-' || 'prod-cam-alx-lf', 'prod-cam-alx-lf', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
-VALUES ('sm-' || '8f1d7f9b-69d5-4fa8-a984-fba7a636dfe4', '8f1d7f9b-69d5-4fa8-a984-fba7a636dfe4', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4, 14000, 'inventory', 'Initial seed gear intake', now()) ON CONFLICT (id) DO NOTHING;
+VALUES ('sm-' || 'prod-cam-alx-lf', 'prod-cam-alx-lf', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 14000.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
-VALUES ('2266decb-fa8f-4da3-8ebc-ad407a7fca71', 'DEMO-LENS-001', 'Cooke Anamorphic Prime Lenses (Set of 5)', 'طقم عدسات كوك أنامورفيك (5 عدسات)', 'Full-frame anamorphic lens set (32mm, 40mm, 50mm, 75mm, 100mm)', 'طقم عدسات سينمائية أنامورفيك كاملة الإطار', '46202273-9e02-42b2-885f-fd38c18e1ee0', 8500, 500, 'BHD', 0, true, true, 1, now(), now())
+VALUES ('prod-cam-red-rap', 'CAM-RED-RAP', 'RED V-Raptor 8K VV Cinema Package', 'كاميرا ريد في-رابتور 8K سينمائية', 'RED V-Raptor 8K VV Cinema Package', 'كاميرا ريد في-رابتور 8K سينمائية', 'cameras', 9500.0000, 220.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
-VALUES ('sl-' || '2266decb-fa8f-4da3-8ebc-ad407a7fca71', '2266decb-fa8f-4da3-8ebc-ad407a7fca71', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4, 0, 4, 1, now()) ON CONFLICT (id) DO NOTHING;
+VALUES ('sl-' || 'prod-cam-red-rap', 'prod-cam-red-rap', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
-VALUES ('sm-' || '2266decb-fa8f-4da3-8ebc-ad407a7fca71', '2266decb-fa8f-4da3-8ebc-ad407a7fca71', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4, 8500, 'inventory', 'Initial seed gear intake', now()) ON CONFLICT (id) DO NOTHING;
+VALUES ('sm-' || 'prod-cam-red-rap', 'prod-cam-red-rap', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 9500.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
-VALUES ('dda790d9-5a97-440b-88fa-64997aba52e0', 'DEMO-LENS-002', 'ARRI Signature Prime Lens Set (18-125mm)', 'طقم عدسات آري سيجنتشر برايم', 'Full-frame large format cinema lens set', 'عدسات آري السينمائية للإطار الكامل', '46202273-9e02-42b2-885f-fd38c18e1ee0', 9500, 600, 'BHD', 0, true, true, 1, now(), now())
+VALUES ('prod-cam-sny-fx9', 'CAM-SNY-FX9', 'Sony FX9 Full-Frame Cinema Kit', 'كاميرا سوني FX9 سينمائية متكاملة', 'Sony FX9 Full-Frame Cinema Kit', 'كاميرا سوني FX9 سينمائية متكاملة', 'cameras', 4200.0000, 120.0000, 'BHD', 10.00, true, true, 2.00, now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
-VALUES ('sl-' || 'dda790d9-5a97-440b-88fa-64997aba52e0', 'dda790d9-5a97-440b-88fa-64997aba52e0', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4, 0, 4, 1, now()) ON CONFLICT (id) DO NOTHING;
+VALUES ('sl-' || 'prod-cam-sny-fx9', 'prod-cam-sny-fx9', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 2.0000, now())
+ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
-VALUES ('sm-' || 'dda790d9-5a97-440b-88fa-64997aba52e0', 'dda790d9-5a97-440b-88fa-64997aba52e0', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4, 9500, 'inventory', 'Initial seed gear intake', now()) ON CONFLICT (id) DO NOTHING;
+VALUES ('sm-' || 'prod-cam-sny-fx9', 'prod-cam-sny-fx9', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 4200.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
-VALUES ('a68d16e2-754f-450f-aa72-d66d2e49d037', 'DEMO-LIGHT-001', 'Aputure 1200d Pro Daylight LED Package', 'حزمة إضاءة أبتشر 1200d برو النهارية', 'High-output daylight LED fixture with F10 Fresnel', 'إضاءة LED فائقة القوة مع عدسة فرينل F10', '00fdc6d1-98ef-4d60-98e1-a62f0876d156', 2500, 150, 'BHD', 0, true, true, 1, now(), now())
+VALUES ('prod-cam-sny-fx3', 'CAM-SNY-FX3', 'Sony FX3 B-Camera Production Rig', 'كاميرا سوني FX3 المحمولة', 'Sony FX3 B-Camera Production Rig', 'كاميرا سوني FX3 المحمولة', 'cameras', 1600.0000, 65.0000, 'BHD', 10.00, true, true, 2.00, now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
-VALUES ('sl-' || 'a68d16e2-754f-450f-aa72-d66d2e49d037', 'a68d16e2-754f-450f-aa72-d66d2e49d037', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4, 0, 4, 1, now()) ON CONFLICT (id) DO NOTHING;
+VALUES ('sl-' || 'prod-cam-sny-fx3', 'prod-cam-sny-fx3', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 2.0000, now())
+ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
-VALUES ('sm-' || 'a68d16e2-754f-450f-aa72-d66d2e49d037', 'a68d16e2-754f-450f-aa72-d66d2e49d037', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4, 2500, 'inventory', 'Initial seed gear intake', now()) ON CONFLICT (id) DO NOTHING;
+VALUES ('sm-' || 'prod-cam-sny-fx3', 'prod-cam-sny-fx3', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 1600.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
-VALUES ('3e51a64d-f2a8-42c9-be18-b712d1f39cac', 'DEMO-LIGHT-002', 'Astera Titan Tube 8-Light Kit with Charging Case', 'طقم أنابيب إضاءة أستيرا تايتان (8 أنابيب)', 'Wireless pixel-controlled RGBMA LED tube lights', 'أنابيب إضاءة لاسلكية ذكية RGBMA', '00fdc6d1-98ef-4d60-98e1-a62f0876d156', 1800, 120, 'BHD', 0, true, true, 1, now(), now())
+VALUES ('prod-lns-cok-set', 'LNS-COK-SET', 'Cooke Anamorphic/i Full Frame Plus Set (5 Lenses)', 'طقم عدسات كوك أنامورفيك فل فريم (5 عدسات)', 'Cooke Anamorphic/i Full Frame Plus Set (5 Lenses)', 'طقم عدسات كوك أنامورفيك فل فريم (5 عدسات)', 'lenses', 24000.0000, 450.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
-VALUES ('sl-' || '3e51a64d-f2a8-42c9-be18-b712d1f39cac', '3e51a64d-f2a8-42c9-be18-b712d1f39cac', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4, 0, 4, 1, now()) ON CONFLICT (id) DO NOTHING;
+VALUES ('sl-' || 'prod-lns-cok-set', 'prod-lns-cok-set', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
-VALUES ('sm-' || '3e51a64d-f2a8-42c9-be18-b712d1f39cac', '3e51a64d-f2a8-42c9-be18-b712d1f39cac', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4, 1800, 'inventory', 'Initial seed gear intake', now()) ON CONFLICT (id) DO NOTHING;
+VALUES ('sm-' || 'prod-lns-cok-set', 'prod-lns-cok-set', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 24000.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
-VALUES ('15e07ada-1097-4bf8-bb66-43710b6c7f64', 'DEMO-GRIP-001', 'Freefly MōVI Pro Gimbal & Ring Package', 'نظام مانع الاهتزاز موفي برو للسينما', '3-axis motorized camera stabilizer with Mimic controller', 'مثبت كاميرا ثلاثي المحاور مع جهاز التحكم هواء', '00fdc6d1-98ef-4d60-98e1-a62f0876d156', 3200, 200, 'BHD', 0, true, true, 1, now(), now())
+VALUES ('prod-lns-ari-35t', 'LNS-ARI-35T', 'ARRI Signature Prime 35mm T1.8 Lens', 'عدسة آري سيغنتشر برايم 35 ملم', 'ARRI Signature Prime 35mm T1.8 Lens', 'عدسة آري سيغنتشر برايم 35 ملم', 'lenses', 7200.0000, 110.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
-VALUES ('sl-' || '15e07ada-1097-4bf8-bb66-43710b6c7f64', '15e07ada-1097-4bf8-bb66-43710b6c7f64', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4, 0, 4, 1, now()) ON CONFLICT (id) DO NOTHING;
+VALUES ('sl-' || 'prod-lns-ari-35t', 'prod-lns-ari-35t', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
-VALUES ('sm-' || '15e07ada-1097-4bf8-bb66-43710b6c7f64', '15e07ada-1097-4bf8-bb66-43710b6c7f64', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4, 3200, 'inventory', 'Initial seed gear intake', now()) ON CONFLICT (id) DO NOTHING;
+VALUES ('sm-' || 'prod-lns-ari-35t', 'prod-lns-ari-35t', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 7200.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
-VALUES ('e15e60e5-18bd-46f1-8e06-9895acdea115', 'DEMO-DRONE-001', 'DJI Inspire 3 8K Cinema Drone Package', 'طائرات درون سينمائية DJI Inspire 3 8K', 'Full-frame 8K ProRes RAW cinema drone system', 'نظام تصوير جوي سينمائي بدقة 8K ProRes RAW', '8ea0e0ca-6f8c-4279-81f6-0308a6a57fc1', 7500, 800, 'BHD', 0, true, true, 1, now(), now())
+VALUES ('prod-lns-zes-50t', 'LNS-ZES-50T', 'Zeiss Supreme Prime 50mm T1.5 Lens', 'عدسة زايس سوبريم برايم 50 ملم', 'Zeiss Supreme Prime 50mm T1.5 Lens', 'عدسة زايس سوبريم برايم 50 ملم', 'lenses', 5800.0000, 95.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
-VALUES ('sl-' || 'e15e60e5-18bd-46f1-8e06-9895acdea115', 'e15e60e5-18bd-46f1-8e06-9895acdea115', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4, 0, 4, 1, now()) ON CONFLICT (id) DO NOTHING;
+VALUES ('sl-' || 'prod-lns-zes-50t', 'prod-lns-zes-50t', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
-VALUES ('sm-' || 'e15e60e5-18bd-46f1-8e06-9895acdea115', 'e15e60e5-18bd-46f1-8e06-9895acdea115', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4, 7500, 'inventory', 'Initial seed gear intake', now()) ON CONFLICT (id) DO NOTHING;
+VALUES ('sm-' || 'prod-lns-zes-50t', 'prod-lns-zes-50t', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 5800.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
-VALUES ('4b21ac82-129a-4b1f-82f4-df553825df1a', 'DEMO-AUDIO-001', 'Sound Devices 888 16-Channel Audio Recorder', 'جهاز تسجيل الصوت السينمائي الميداني 16 قناة', '16-channel portable audio recorder & mixer with timecode', 'جهاز تسجيل ومزج صوت ميداني سينمائي مع تايم كود', 'e5fb322f-f5f5-43bc-8898-bc7187cc790f', 4200, 250, 'BHD', 0, true, true, 1, now(), now())
+VALUES ('prod-lns-ang-opt', 'LNS-ANG-OPT', 'Angenieux Optimo Ultra 12x Cinema Zoom Lens', 'عدسة تقريب سينمائية آنجينو أوبتيمو 12x', 'Angenieux Optimo Ultra 12x Cinema Zoom Lens', 'عدسة تقريب سينمائية آنجينو أوبتيمو 12x', 'lenses', 16500.0000, 320.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
-VALUES ('sl-' || '4b21ac82-129a-4b1f-82f4-df553825df1a', '4b21ac82-129a-4b1f-82f4-df553825df1a', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4, 0, 4, 1, now()) ON CONFLICT (id) DO NOTHING;
+VALUES ('sl-' || 'prod-lns-ang-opt', 'prod-lns-ang-opt', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
-VALUES ('sm-' || '4b21ac82-129a-4b1f-82f4-df553825df1a', '4b21ac82-129a-4b1f-82f4-df553825df1a', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4, 4200, 'inventory', 'Initial seed gear intake', now()) ON CONFLICT (id) DO NOTHING;
+VALUES ('sm-' || 'prod-lns-ang-opt', 'prod-lns-ang-opt', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 16500.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
-VALUES ('eac7476b-e7de-49a9-bc68-fb6640a1e956', 'DEMO-POST-001', 'DaVinci Resolve Studio Advanced Control Panel', 'لوحة التحكم المتقدمة دافينشي ريزولف', 'Hardware control surface for 8K HDR color grading', 'لوحة تحكم هاردوير للتلوين السينمائي 8K HDR', '20670350-e2ac-447c-8d46-72491e1828a4', 11000, 800, 'BHD', 0, true, true, 1, now(), now())
+VALUES ('prod-lns-cn-2470', 'LNS-CN-2470', 'Canon CN-E Cinema Prime Lens Kit', 'طقم عدسات كانون سينمائية برايم', 'Canon CN-E Cinema Prime Lens Kit', 'طقم عدسات كانون سينمائية برايم', 'lenses', 4500.0000, 85.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
-VALUES ('sl-' || 'eac7476b-e7de-49a9-bc68-fb6640a1e956', 'eac7476b-e7de-49a9-bc68-fb6640a1e956', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4, 0, 4, 1, now()) ON CONFLICT (id) DO NOTHING;
+VALUES ('sl-' || 'prod-lns-cn-2470', 'prod-lns-cn-2470', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
 INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
-VALUES ('sm-' || 'eac7476b-e7de-49a9-bc68-fb6640a1e956', 'eac7476b-e7de-49a9-bc68-fb6640a1e956', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4, 11000, 'inventory', 'Initial seed gear intake', now()) ON CONFLICT (id) DO NOTHING;
+VALUES ('sm-' || 'prod-lns-cn-2470', 'prod-lns-cn-2470', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 4500.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-lgt-apt-2600', 'LGT-APT-2600', 'Aputure Electro Storm XT26 2600W Point-Source LED', 'إضاءة أبوتر إلكترو ستورم 2600 واط', 'Aputure Electro Storm XT26 2600W Point-Source LED', 'إضاءة أبوتر إلكترو ستورم 2600 واط', 'lighting', 2800.0000, 75.0000, 'BHD', 10.00, true, true, 2.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-lgt-apt-2600', 'prod-lgt-apt-2600', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 2.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-lgt-apt-2600', 'prod-lgt-apt-2600', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 2800.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-lgt-ari-skyx', 'LGT-ARI-SKYX', 'ARRI SkyPanel X21 High-Output LED Softlight', 'إضاءة آري سكاي بانل إكس21 سوفت لايت', 'ARRI SkyPanel X21 High-Output LED Softlight', 'إضاءة آري سكاي بانل إكس21 سوفت لايت', 'lighting', 3400.0000, 90.0000, 'BHD', 10.00, true, true, 2.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-lgt-ari-skyx', 'prod-lgt-ari-skyx', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 2.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-lgt-ari-skyx', 'prod-lgt-ari-skyx', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 3400.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-lgt-ast-tit8', 'LGT-AST-TIT8', 'Astera Titan Tube 8-Light Wireless LED Kit', 'طقم أنابيب أستيرا تيتان 8 وحدات لاسلكية', 'Astera Titan Tube 8-Light Wireless LED Kit', 'طقم أنابيب أستيرا تيتان 8 وحدات لاسلكية', 'lighting', 2100.0000, 60.0000, 'BHD', 10.00, true, true, 2.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-lgt-ast-tit8', 'prod-lgt-ast-tit8', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 2.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-lgt-ast-tit8', 'prod-lgt-ast-tit8', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 2100.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-lgt-nan-720b', 'LGT-NAN-720B', 'Nanlite Forza 720B Bi-Color Spot Light', 'إضاءة نانلايت فورزا 720B ثنائية اللون', 'Nanlite Forza 720B Bi-Color Spot Light', 'إضاءة نانلايت فورزا 720B ثنائية اللون', 'lighting', 1200.0000, 45.0000, 'BHD', 10.00, true, true, 3.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-lgt-nan-720b', 'prod-lgt-nan-720b', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 3.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-lgt-nan-720b', 'prod-lgt-nan-720b', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 1200.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-lgt-kof-l100', 'LGT-KOF-L100', 'Kino Flo FreeStyle 31 LED DMX Production Light', 'إضاءة كينو فلو فري ستايل ستوديو', 'Kino Flo FreeStyle 31 LED DMX Production Light', 'إضاءة كينو فلو فري ستايل ستوديو', 'lighting', 1800.0000, 55.0000, 'BHD', 10.00, true, true, 2.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-lgt-kof-l100', 'prod-lgt-kof-l100', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 2.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-lgt-kof-l100', 'prod-lgt-kof-l100', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 1800.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-aud-snd-888', 'AUD-SND-888', 'Sound Devices 888 16-Channel 20-Track Field Recorder', 'جهاز تسجيل صوتي ميداني ساوند ديفايسز 888', 'Sound Devices 888 16-Channel 20-Track Field Recorder', 'جهاز تسجيل صوتي ميداني ساوند ديفايسز 888', 'audio', 3200.0000, 80.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-aud-snd-888', 'prod-aud-snd-888', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-aud-snd-888', 'prod-aud-snd-888', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 3200.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-aud-snh-416', 'AUD-SNH-416', 'Sennheiser MKH 416 Moisture-Resistant Shotgun Mic', 'ميكروفون شوتجن سيمهايزر MKH 416', 'Sennheiser MKH 416 Moisture-Resistant Shotgun Mic', 'ميكروفون شوتجن سيمهايزر MKH 416', 'audio', 450.0000, 25.0000, 'BHD', 10.00, true, true, 4.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-aud-snh-416', 'prod-aud-snh-416', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 4.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-aud-snh-416', 'prod-aud-snh-416', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 450.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-aud-wsy-dual', 'AUD-WSY-DUAL', 'Wisycom Wireless Dual Receiver & Bodypack Mic Kit', 'طقم ميكروفونات لاسلكية ويزيكوم احترافية', 'Wisycom Wireless Dual Receiver & Bodypack Mic Kit', 'طقم ميكروفونات لاسلكية ويزيكوم احترافية', 'audio', 2600.0000, 70.0000, 'BHD', 10.00, true, true, 2.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-aud-wsy-dual', 'prod-aud-wsy-dual', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 2.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-aud-wsy-dual', 'prod-aud-wsy-dual', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 2600.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-aud-lec-smwb', 'AUD-LEC-SMWB', 'Lectrosonics Wideband Wireless Transmitter System', 'جهاز إرسال لاسلكي لكتروسونيكس', 'Lectrosonics Wideband Wireless Transmitter System', 'جهاز إرسال لاسلكي لكتروسونيكس', 'audio', 1800.0000, 50.0000, 'BHD', 10.00, true, true, 2.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-aud-lec-smwb', 'prod-aud-lec-smwb', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 2.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-aud-lec-smwb', 'prod-aud-lec-smwb', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 1800.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-drn-dji-ins3', 'DRN-DJI-INS3', 'DJI Inspire 3 Cinema Drone with Zenmuse X9-8K Air', 'طائرة درون سينمائية دي جيه آي إنسباير 3 بدقة 8K', 'DJI Inspire 3 Cinema Drone with Zenmuse X9-8K Air', 'طائرة درون سينمائية دي جيه آي إنسباير 3 بدقة 8K', 'drones', 4800.0000, 160.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-drn-dji-ins3', 'prod-drn-dji-ins3', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-drn-dji-ins3', 'prod-drn-dji-ins3', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 4800.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-gmb-dji-4d8k', 'GMB-DJI-4D8K', 'DJI Ronin 4D 8K 4-Axis Cinema Gimbal Camera', 'مانع اهتزاز سينمائي دي جيه آي رونين 4D رباعي المحاور', 'DJI Ronin 4D 8K 4-Axis Cinema Gimbal Camera', 'مانع اهتزاز سينمائي دي جيه آي رونين 4D رباعي المحاور', 'drones', 3600.0000, 120.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-gmb-dji-4d8k', 'prod-gmb-dji-4d8k', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-gmb-dji-4d8k', 'prod-gmb-dji-4d8k', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 3600.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-gmb-frf-movi', 'GMB-FRF-MOVI', 'Freefly MōVI Pro Motorized Cinema Gimbal Stabilizer', 'مانع اهتزاز سينمائي فريفلاي موفي برو', 'Freefly MōVI Pro Motorized Cinema Gimbal Stabilizer', 'مانع اهتزاز سينمائي فريفلاي موفي برو', 'drones', 2400.0000, 85.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-gmb-frf-movi', 'prod-gmb-frf-movi', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-gmb-frf-movi', 'prod-gmb-frf-movi', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 2400.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-mon-trd-4kmx', 'MON-TRD-4KMX', 'Teradek Bolt 4K MAX 12G-SDI Wireless Video System', 'نظام نقل فيديو لاسلكي تيراديك بولت 4K ماكس', 'Teradek Bolt 4K MAX 12G-SDI Wireless Video System', 'نظام نقل فيديو لاسلكي تيراديك بولت 4K ماكس', 'monitors', 4500.0000, 95.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-mon-trd-4kmx', 'prod-mon-trd-4kmx', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-mon-trd-4kmx', 'prod-mon-trd-4kmx', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 4500.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-mon-smh-18in', 'MON-SMH-18IN', 'SmallHD Cine 18 4K High-Bright Production Monitor', 'شاشة مراقبة إنتاجية سمول إتش دي 18 بوصة 4K', 'SmallHD Cine 18 4K High-Bright Production Monitor', 'شاشة مراقبة إنتاجية سمول إتش دي 18 بوصة 4K', 'monitors', 2100.0000, 60.0000, 'BHD', 10.00, true, true, 2.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-mon-smh-18in', 'prod-mon-smh-18in', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 2.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-mon-smh-18in', 'prod-mon-smh-18in', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 2100.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-mon-sny-hx31', 'MON-SNY-HX31', 'Sony BVM-HX310 31-inch 4K HDR Reference Master Monitor', 'شاشة مرجعية سوني 31 بوصة لتصحيح الألوان 4K HDR', 'Sony BVM-HX310 31-inch 4K HDR Reference Master Monitor', 'شاشة مرجعية سوني 31 بوصة لتصحيح الألوان 4K HDR', 'monitors', 12500.0000, 250.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-mon-sny-hx31', 'prod-mon-sny-hx31', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-mon-sny-hx31', 'prod-mon-sny-hx31', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 12500.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-grp-ezr-var5', 'GRP-EZR-VAR5', 'EasyRig Vario 5 with Cinema Gimbal Vest and Flowline', 'حزام وحامل إيزي ريج فاريو 5 سينمائي', 'EasyRig Vario 5 with Cinema Gimbal Vest and Flowline', 'حزام وحامل إيزي ريج فاريو 5 سينمائي', 'grip', 1500.0000, 40.0000, 'BHD', 10.00, true, true, 2.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-grp-ezr-var5', 'prod-grp-ezr-var5', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 2.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-grp-ezr-var5', 'prod-grp-ezr-var5', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 1500.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-grp-sch-v20s', 'GRP-SCH-V20S', 'Sachtler Video 20 S1 Carbon Fiber Fluid Head Tripod', 'ترايبود ساخلر فيديو 20 احترافي كربون فايبر', 'Sachtler Video 20 S1 Carbon Fiber Fluid Head Tripod', 'ترايبود ساخلر فيديو 20 احترافي كربون فايبر', 'grip', 2900.0000, 65.0000, 'BHD', 10.00, true, true, 2.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-grp-sch-v20s', 'prod-grp-sch-v20s', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 2.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-grp-sch-v20s', 'prod-grp-sch-v20s', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 2900.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-grp-mat-cst4', 'GRP-MAT-CST4', 'Matthews 40-inch C-Stand Grip Kit with Grip Head & Arm', 'طقم سي-ستاند ماثيوز 40 بوصة مع ذراع قبضة', 'Matthews 40-inch C-Stand Grip Kit with Grip Head & Arm', 'طقم سي-ستاند ماثيوز 40 بوصة مع ذراع قبضة', 'grip', 180.0000, 15.0000, 'BHD', 10.00, true, true, 8.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-grp-mat-cst4', 'prod-grp-mat-cst4', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 8.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-grp-mat-cst4', 'prod-grp-mat-cst4', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 180.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-grp-prm-jib9', 'GRP-PRM-JIB9', 'Proaim Studio Heavy-Duty 9ft Soundstage Jib Crane', 'رافعة كاميرا استوديو بروايم 9 أقدام', 'Proaim Studio Heavy-Duty 9ft Soundstage Jib Crane', 'رافعة كاميرا استوديو بروايم 9 أقدام', 'grip', 1200.0000, 50.0000, 'BHD', 10.00, true, true, 1.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-grp-prm-jib9', 'prod-grp-prm-jib9', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 1.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-grp-prm-jib9', 'prod-grp-prm-jib9', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 1200.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.product (id, sku, name_en, name_ar, description_en, description_ar, category_id, cost_price, selling_price, currency, tax_rate, is_active, track_inventory, reorder_point, created_at, updated_at)
+VALUES ('prod-pst-mac-stum', 'PST-MAC-STUM', 'Apple Mac Studio M2 Ultra (128GB Unified RAM) Workstation', 'محطة مونتاج وتلوين ماك ستوديو إم2 ألترا', 'Apple Mac Studio M2 Ultra (128GB Unified RAM) Workstation', 'محطة مونتاج وتلوين ماك ستوديو إم2 ألترا', 'post', 3200.0000, 90.0000, 'BHD', 10.00, true, true, 2.00, now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_level (id, product_id, location_id, quantity_on_hand, quantity_reserved, quantity_available, reorder_point, updated_at)
+VALUES ('sl-' || 'prod-pst-mac-stum', 'prod-pst-mac-stum', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 4.0000, 0.0000, 4.0000, 2.0000, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO inventory.stock_movement (id, product_id, location_id, movement_type, quantity, unit_cost, source_type, note, created_at)
+VALUES ('sm-' || 'prod-pst-mac-stum', 'prod-pst-mac-stum', '9beb13e4-55d1-41bc-a1bd-e21ab0a3b1cf', 'initial', 4.0000, 3200.0000, 'inventory', 'Initial vault intake & testing', now())
+ON CONFLICT (id) DO NOTHING;
 
 -- ----------------------------------------------------------------------------
--- 9. COMMERCE & DELIVERY (Customers, Addresses, Coupons, Vehicles, Delivery Zones)
+-- 9. COMMERCE & DELIVERY (50 Customers & Addresses, Orders, Coupons, Fleet)
 -- ----------------------------------------------------------------------------
-INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at) VALUES ('76edbd13-9ff8-414c-bd74-25e2849382a8', 'Sami', 'Saleh', 'sami.saleh@example.invalid', '+97317000404', 'active', now(), now()) ON CONFLICT (id) DO NOTHING;
-INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default) VALUES ('addr-' || '76edbd13-9ff8-414c-bd74-25e2849382a8', '76edbd13-9ff8-414c-bd74-25e2849382a8', 'shipping', 'Primary Studio', 'Building 140, Road 2819', 'Floor 4, Suite 402', 'Seef District', 'Capital', '1012', 'BH', true) ON CONFLICT (id) DO NOTHING;
-INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at) VALUES ('7a03bf4b-99db-4d7f-97c0-4b72071c6a6b', 'Mona', 'Al-Khatib', 'mona.khatib@example.invalid', '+97339112233', 'active', now(), now()) ON CONFLICT (id) DO NOTHING;
-INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default) VALUES ('addr-' || '7a03bf4b-99db-4d7f-97c0-4b72071c6a6b', '7a03bf4b-99db-4d7f-97c0-4b72071c6a6b', 'shipping', 'Primary Studio', 'Building 140, Road 2819', 'Floor 4, Suite 402', 'Seef District', 'Capital', '1012', 'BH', true) ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-001', 'Abdullah', 'Al-Khalifa', 'abdullah.alkhalifa1@example.com', '+97336000000', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-002', 'Mohammed', 'Al-Mahmood', 'mohammed.almahmood2@example.com', '+97336001111', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-003', 'Fatima', 'Al-Sayed', 'fatima.alsayed3@example.com', '+97336002222', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-004', 'Ali', 'Al-Doseri', 'ali.aldoseri4@example.com', '+97336003333', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-005', 'Zainab', 'Al-Amer', 'zainab.alamer5@example.com', '+97336004444', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-006', 'Hassan', 'Al-Ghatam', 'hassan.alghatam6@example.com', '+97336005555', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-007', 'Maryam', 'Al-Abbasi', 'maryam.alabbasi7@example.com', '+97336006666', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-008', 'Khalid', 'Al-Ansari', 'khalid.alansari8@example.com', '+97336007777', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-009', 'Noor', 'Al-Jalahma', 'noor.aljalahma9@example.com', '+97336008888', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-010', 'Hussain', 'Al-Buainain', 'hussain.albuainain10@example.com', '+97336009999', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-011', 'Ahmed', 'Al-Rowaiei', 'ahmed.alrowaiei11@example.com', '+97336011110', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-012', 'Sara', 'Al-Hammadi', 'sara.alhammadi12@example.com', '+97336012221', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-013', 'Yusuf', 'Al-Bahrani', 'yusuf.albahrani13@example.com', '+97336013332', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-014', 'Reem', 'Al-Kooheji', 'reem.alkooheji14@example.com', '+97336014443', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-015', 'Hamad', 'Al-Mutawa', 'hamad.almutawa15@example.com', '+97336015554', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-016', 'Amina', 'Al-Zayani', 'amina.alzayani16@example.com', '+97336016665', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-017', 'Salman', 'Al-Gosaibi', 'salman.algosaibi17@example.com', '+97336017776', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-018', 'Layla', 'Al-Shirawi', 'layla.alshirawi18@example.com', '+97336018887', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-019', 'Omar', 'Al-Moayyed', 'omar.almoayyed19@example.com', '+97336019998', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-020', 'Huda', 'Al-Tamimi', 'huda.altamimi20@example.com', '+97336021109', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-021', 'Jasim', 'Fakhro', 'jasim.fakhro21@example.com', '+97336022220', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-022', 'Eman', 'Kanoo', 'eman.kanoo22@example.com', '+97336023331', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-023', 'Tariq', 'Yateem', 'tariq.yateem23@example.com', '+97336024442', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-024', 'Mona', 'Balooch', 'mona.balooch24@example.com', '+97336025553', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-025', 'Faisal', 'Al-Marzooq', 'faisal.almarzooq25@example.com', '+97336026664', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-026', 'Dina', 'Al-Hassan', 'dina.alhassan26@example.com', '+97336027775', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-027', 'Nasser', 'Al-Maskati', 'nasser.almaskati27@example.com', '+97336028886', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-028', 'Lulwa', 'Al-Arrayed', 'lulwa.alarrayed28@example.com', '+97336029997', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-029', 'Bader', 'Al-Sabah', 'bader.alsabah29@example.com', '+97336031108', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-030', 'Salma', 'Al-Thani', 'salma.althani30@example.com', '+97336032219', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-031', 'Adel', 'Al-Nuaimi', 'adel.alnuaimi31@example.com', '+97336033330', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-032', 'Haya', 'Al-Kaabi', 'haya.alkaabi32@example.com', '+97336034441', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-033', 'Mustafa', 'Al-Shurooqi', 'mustafa.alshurooqi33@example.com', '+97336035552', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-034', 'Rania', 'Al-Hamar', 'rania.alhamar34@example.com', '+97336036663', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-035', 'Waleed', 'Al-Sharif', 'waleed.alsharif35@example.com', '+97336037774', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-036', 'Shaikha', 'Al-Najjar', 'shaikha.alnajjar36@example.com', '+97336038885', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-037', 'Mahmood', 'Al-Madani', 'mahmood.almadani37@example.com', '+97336039996', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-038', 'Rawan', 'Al-Banna', 'rawan.albanna38@example.com', '+97336041107', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-039', 'Saud', 'Al-Tajer', 'saud.altajer39@example.com', '+97336042218', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-040', 'Dana', 'Al-Khatib', 'dana.alkhatib40@example.com', '+97336043329', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-041', 'Ziyad', 'Sultan', 'ziyad.sultan41@example.com', '+97336044440', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-042', 'Asma', 'Merchant', 'asma.merchant42@example.com', '+97336045551', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-043', 'Ibrahim', 'Darwish', 'ibrahim.darwish43@example.com', '+97336046662', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-044', 'Noura', 'Qamber', 'noura.qamber44@example.com', '+97336047773', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-045', 'Talal', 'Ghuloom', 'talal.ghuloom45@example.com', '+97336048884', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-046', 'Ghada', 'Behzad', 'ghada.behzad46@example.com', '+97336049995', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-047', 'Rashid', 'Rahimi', 'rashid.rahimi47@example.com', '+97336051106', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-048', 'Deena', 'Al-Zaki', 'deena.alzaki48@example.com', '+97336052217', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-049', 'Kareem', 'Al-Saffar', 'kareem.alsaffar49@example.com', '+97336053328', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer (id, first_name, last_name, email, phone, status, created_at, updated_at)
+VALUES ('cust-050', 'Yasmin', 'Kameshki', 'yasmin.kameshki50@example.com', '+97336054439', 'active', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-001', 'cust-001', 'shipping', 'Corporate Office', 'Building 204, Road 3812', 'Floor 3, Creative Wing', 'Manama', 'Capital', '318', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-002', 'cust-002', 'shipping', 'Production Studio', 'Tower B, Suite 501, Road 2819', '', 'Seef District', 'Capital', '428', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-003', 'cust-003', 'shipping', 'Corporate Office', 'Al Raya Tower, Flat 12, Road 2408', '', 'Juffair', 'Capital', '324', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-004', 'cust-004', 'shipping', 'Production Studio', 'Villa 42, Avenue 15', 'Floor 3, Creative Wing', 'Saar', 'Northern', '525', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-005', 'cust-005', 'shipping', 'Corporate Office', 'Lagoon Villa 18, Floating City Walk', '', 'Amwaj Islands', 'Muharraq', '257', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-006', 'cust-006', 'shipping', 'Production Studio', 'Building 88, Bukuwara Road 12', '', 'Riffa', 'Southern', '911', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-007', 'cust-007', 'shipping', 'Corporate Office', 'Office 203, DCC Complex 4', 'Floor 3, Creative Wing', 'Sanabis', 'Capital', '410', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-008', 'cust-008', 'shipping', 'Production Studio', 'Villa 310, Budaiya Main Highway', '', 'Budaiya', 'Northern', '550', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-009', 'cust-009', 'shipping', 'Corporate Office', 'Hangar Office 4, Airport Road 22', '', 'Muharraq', 'Muharraq', '202', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-010', 'cust-010', 'shipping', 'Production Studio', 'Resort Annex 3, Zallaq Coastal Way', 'Floor 3, Creative Wing', 'Zallaq', 'Southern', '1052', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-011', 'cust-011', 'shipping', 'Corporate Office', 'Building 204, Road 3812', '', 'Manama', 'Capital', '318', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-012', 'cust-012', 'shipping', 'Production Studio', 'Tower B, Suite 501, Road 2819', '', 'Seef District', 'Capital', '428', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-013', 'cust-013', 'shipping', 'Corporate Office', 'Al Raya Tower, Flat 12, Road 2408', 'Floor 3, Creative Wing', 'Juffair', 'Capital', '324', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-014', 'cust-014', 'shipping', 'Production Studio', 'Villa 42, Avenue 15', '', 'Saar', 'Northern', '525', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-015', 'cust-015', 'shipping', 'Corporate Office', 'Lagoon Villa 18, Floating City Walk', '', 'Amwaj Islands', 'Muharraq', '257', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-016', 'cust-016', 'shipping', 'Production Studio', 'Building 88, Bukuwara Road 12', 'Floor 3, Creative Wing', 'Riffa', 'Southern', '911', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-017', 'cust-017', 'shipping', 'Corporate Office', 'Office 203, DCC Complex 4', '', 'Sanabis', 'Capital', '410', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-018', 'cust-018', 'shipping', 'Production Studio', 'Villa 310, Budaiya Main Highway', '', 'Budaiya', 'Northern', '550', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-019', 'cust-019', 'shipping', 'Corporate Office', 'Hangar Office 4, Airport Road 22', 'Floor 3, Creative Wing', 'Muharraq', 'Muharraq', '202', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-020', 'cust-020', 'shipping', 'Production Studio', 'Resort Annex 3, Zallaq Coastal Way', '', 'Zallaq', 'Southern', '1052', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-021', 'cust-021', 'shipping', 'Corporate Office', 'Building 204, Road 3812', '', 'Manama', 'Capital', '318', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-022', 'cust-022', 'shipping', 'Production Studio', 'Tower B, Suite 501, Road 2819', 'Floor 3, Creative Wing', 'Seef District', 'Capital', '428', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-023', 'cust-023', 'shipping', 'Corporate Office', 'Al Raya Tower, Flat 12, Road 2408', '', 'Juffair', 'Capital', '324', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-024', 'cust-024', 'shipping', 'Production Studio', 'Villa 42, Avenue 15', '', 'Saar', 'Northern', '525', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-025', 'cust-025', 'shipping', 'Corporate Office', 'Lagoon Villa 18, Floating City Walk', 'Floor 3, Creative Wing', 'Amwaj Islands', 'Muharraq', '257', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-026', 'cust-026', 'shipping', 'Production Studio', 'Building 88, Bukuwara Road 12', '', 'Riffa', 'Southern', '911', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-027', 'cust-027', 'shipping', 'Corporate Office', 'Office 203, DCC Complex 4', '', 'Sanabis', 'Capital', '410', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-028', 'cust-028', 'shipping', 'Production Studio', 'Villa 310, Budaiya Main Highway', 'Floor 3, Creative Wing', 'Budaiya', 'Northern', '550', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-029', 'cust-029', 'shipping', 'Corporate Office', 'Hangar Office 4, Airport Road 22', '', 'Muharraq', 'Muharraq', '202', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-030', 'cust-030', 'shipping', 'Production Studio', 'Resort Annex 3, Zallaq Coastal Way', '', 'Zallaq', 'Southern', '1052', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-031', 'cust-031', 'shipping', 'Corporate Office', 'Building 204, Road 3812', 'Floor 3, Creative Wing', 'Manama', 'Capital', '318', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-032', 'cust-032', 'shipping', 'Production Studio', 'Tower B, Suite 501, Road 2819', '', 'Seef District', 'Capital', '428', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-033', 'cust-033', 'shipping', 'Corporate Office', 'Al Raya Tower, Flat 12, Road 2408', '', 'Juffair', 'Capital', '324', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-034', 'cust-034', 'shipping', 'Production Studio', 'Villa 42, Avenue 15', 'Floor 3, Creative Wing', 'Saar', 'Northern', '525', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-035', 'cust-035', 'shipping', 'Corporate Office', 'Lagoon Villa 18, Floating City Walk', '', 'Amwaj Islands', 'Muharraq', '257', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-036', 'cust-036', 'shipping', 'Production Studio', 'Building 88, Bukuwara Road 12', '', 'Riffa', 'Southern', '911', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-037', 'cust-037', 'shipping', 'Corporate Office', 'Office 203, DCC Complex 4', 'Floor 3, Creative Wing', 'Sanabis', 'Capital', '410', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-038', 'cust-038', 'shipping', 'Production Studio', 'Villa 310, Budaiya Main Highway', '', 'Budaiya', 'Northern', '550', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-039', 'cust-039', 'shipping', 'Corporate Office', 'Hangar Office 4, Airport Road 22', '', 'Muharraq', 'Muharraq', '202', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-040', 'cust-040', 'shipping', 'Production Studio', 'Resort Annex 3, Zallaq Coastal Way', 'Floor 3, Creative Wing', 'Zallaq', 'Southern', '1052', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-041', 'cust-041', 'shipping', 'Corporate Office', 'Building 204, Road 3812', '', 'Manama', 'Capital', '318', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-042', 'cust-042', 'shipping', 'Production Studio', 'Tower B, Suite 501, Road 2819', '', 'Seef District', 'Capital', '428', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-043', 'cust-043', 'shipping', 'Corporate Office', 'Al Raya Tower, Flat 12, Road 2408', 'Floor 3, Creative Wing', 'Juffair', 'Capital', '324', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-044', 'cust-044', 'shipping', 'Production Studio', 'Villa 42, Avenue 15', '', 'Saar', 'Northern', '525', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-045', 'cust-045', 'shipping', 'Corporate Office', 'Lagoon Villa 18, Floating City Walk', '', 'Amwaj Islands', 'Muharraq', '257', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-046', 'cust-046', 'shipping', 'Production Studio', 'Building 88, Bukuwara Road 12', 'Floor 3, Creative Wing', 'Riffa', 'Southern', '911', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-047', 'cust-047', 'shipping', 'Corporate Office', 'Office 203, DCC Complex 4', '', 'Sanabis', 'Capital', '410', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-048', 'cust-048', 'shipping', 'Production Studio', 'Villa 310, Budaiya Main Highway', '', 'Budaiya', 'Northern', '550', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-049', 'cust-049', 'shipping', 'Corporate Office', 'Hangar Office 4, Airport Road 22', 'Floor 3, Creative Wing', 'Muharraq', 'Muharraq', '202', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO commerce.customer_address (id, customer_id, address_type, label, line1, line2, city, state, postal_code, country, is_default)
+VALUES ('addr-cust-050', 'cust-050', 'shipping', 'Production Studio', 'Resort Annex 3, Zallaq Coastal Way', '', 'Zallaq', 'Southern', '1052', 'BH', true)
+ON CONFLICT (id) DO NOTHING;
 INSERT INTO commerce.coupon (id, code, discount_type, discount_value, min_order_amount, is_active, starts_at, expires_at, created_at) VALUES
-  ('cpn-001', 'RAMADAN2026', 'percentage', 15.00, 1000.000, true, now() - interval '10 days', now() + interval '60 days', now()),
-  ('cpn-002', 'NEWGEAR100', 'fixed', 100.000, 1500.000, true, now() - interval '5 days', now() + interval '90 days', now())
+  ('cpn-001', 'RAMADAN2026', 'percentage', 15.000, 1000.000, true, now() - interval '20 days', now() + interval '60 days', now()),
+  ('cpn-002', 'NEWGEAR100', 'fixed', 100.000, 1500.000, true, now() - interval '10 days', now() + interval '90 days', now()),
+  ('cpn-003', 'F1SPECIAL', 'percentage', 20.000, 3000.000, true, now() - interval '5 days', now() + interval '45 days', now()),
+  ('cpn-004', 'PRODUCERVIP', 'fixed', 250.000, 5000.000, true, now() - interval '1 day', now() + interval '120 days', now())
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO delivery.vehicle (id, plate, name, kind, notes, is_active, created_at, updated_at) VALUES ('1086bb44-da2e-4dee-b6af-766896063bb2', 'DEMO-1001', 'Grip & Lighting Unit Van', 'van', 'Production fleet unit', true, now(), now()) ON CONFLICT (id) DO NOTHING;
-INSERT INTO delivery.vehicle (id, plate, name, kind, notes, is_active, created_at, updated_at) VALUES ('1f739e28-7062-4f23-ad9a-6651415159ff', 'DEMO-1002', 'Camera & Audio Production Truck', 'truck', 'Production fleet unit', true, now(), now()) ON CONFLICT (id) DO NOTHING;
+INSERT INTO delivery.vehicle (id, plate, name, kind, notes, is_active, created_at, updated_at) VALUES
+  ('veh-01', '521990', 'Mercedes-Benz Sprinter 519 Camera Truck', 'van', 'Heavy camera package and lighting transport', true, now(), now()),
+  ('veh-02', '412033', 'Ford Transit Mobile Production Office', 'van', 'DIT on-set color grading workstation inside', true, now(), now()),
+  ('veh-03', '631899', 'Isuzu NPR 4.5-Ton Heavy Grip Truck', 'truck', 'C-stands, track, dollies and generator power', true, now(), now()),
+  ('veh-04', '719022', 'Toyota HiAce Crew Shuttle Van', 'van', 'Production crew transport (14 seats)', true, now(), now()),
+  ('veh-05', '881023', 'Toyota Land Cruiser 300 GR-Sport Scouting Unit', 'car', 'Desert and rugged terrain scouting vehicle', true, now(), now())
+ON CONFLICT (id) DO NOTHING;
+
 INSERT INTO delivery.delivery_zone (id, name_en, name_ar, areas, fee, min_order, free_over, is_active, sort_order, created_at, updated_at) VALUES
-  ('dz-01', 'Capital Governorate (Manama & Seef)', 'محافظة العاصمة (المنامة والسيف)', '{"Manama", "Seef", "Juffair"}', 5.000, 20.000, 100.000, true, 1, now(), now()),
-  ('dz-02', 'Northern Governorate (Saar & Budaiya)', 'المحافظة الشمالية (سار والبديع)', '{"Saar", "Budaiya", "Janabiya"}', 7.000, 20.000, 150.000, true, 2, now(), now()),
-  ('dz-03', 'Southern Governorate (Zallaq & Sakhir)', 'المحافظة الجنوبية (الزلاق والصخير)', '{"Zallaq", "Sakhir", "Riffa"}', 10.000, 30.000, 200.000, true, 3, now(), now())
+  ('dz-01', 'Capital Governorate (Manama & Seef)', 'محافظة العاصمة (المنامة والسيف)', '{"Manama", "Seef", "Juffair", "Sanabis"}', 5.000, 20.000, 100.000, true, 1, now(), now()),
+  ('dz-02', 'Northern Governorate (Saar & Budaiya)', 'المحافظة الشمالية (سار والبديع)', '{"Saar", "Budaiya", "Janabiya", "Jasra"}', 7.000, 20.000, 150.000, true, 2, now(), now()),
+  ('dz-03', 'Southern Governorate (Zallaq & Sakhir)', 'المحافظة الجنوبية (الزلاق والصخير)', '{"Zallaq", "Sakhir", "Riffa", "Durrat Al Bahrain"}', 10.000, 30.000, 200.000, true, 3, now(), now())
 ON CONFLICT (id) DO NOTHING;
-
 INSERT INTO delivery.delivery_slot (id, zone_id, weekday, slot_start, slot_end, capacity, is_active, created_at) VALUES
   ('ds-01', 'dz-01', 1, '09:00', '13:00', 8, true, now()),
   ('ds-02', 'dz-01', 1, '14:00', '18:00', 8, true, now()),
-  ('ds-03', 'dz-02', 2, '10:00', '15:00', 6, true, now())
+  ('ds-03', 'dz-02', 2, '10:00', '15:00', 6, true, now()),
+  ('ds-04', 'dz-03', 3, '09:00', '14:00', 6, true, now())
 ON CONFLICT (id) DO NOTHING;
 
 -- ----------------------------------------------------------------------------
 -- 10. WORKFLOW SERVICE (Tasks, Calendar Events, Letter Templates)
 -- ----------------------------------------------------------------------------
 INSERT INTO workflow.task (id, title, description, assigned_to, due_date, priority, status, related_entity_type, related_entity_id, created_at, updated_at)
-VALUES ('21eec528-ff83-44bd-9b7f-4945b1ed7ec9', 'Prepare demo production equipment call-sheet', 'Verify ARRI Alexa 35 sensor calibration and Cooke Anamorphic lens package.', '8e70e1a0-9cdb-4b70-8b0a-70da5ee5b744', (CURRENT_DATE + INTERVAL '5 days')::date, 'high', 'in_progress', 'deal', '969985f6-0f01-46b0-b249-5a2dc9a4c302', now(), now())
+VALUES ('tsk-01', 'Complete Soundstage Light Grid Rigging for STC 5G TVC', 'Complete Soundstage Light Grid Rigging for STC 5G TVC', '519c98db-889e-4b93-ba19-0015bde5a465', (CURRENT_DATE + INTERVAL '-25 days')::date, 'urgent', 'done', 'production', 'proj-main', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO workflow.task (id, title, description, assigned_to, due_date, priority, status, related_entity_type, related_entity_id, created_at, updated_at)
-VALUES ('179986be-c944-48b9-b0a4-2cbb575a1be5', 'Color grading & HDR master export', 'DaVinci Resolve Studio color pass for Gulfwave 5G commercial reel.', 'c1947ad8-900f-419f-a0e2-3f2afe3d1bda', (CURRENT_DATE + INTERVAL '5 days')::date, 'high', 'in_progress', 'deal', '969985f6-0f01-46b0-b249-5a2dc9a4c302', now(), now())
+VALUES ('tsk-02', 'Finalize DCI 4K Color Grading Pass for Falcon Airways Master', 'Finalize DCI 4K Color Grading Pass for Falcon Airways Master', '71190c9f-71eb-41a5-8636-7f2ad6960be8', (CURRENT_DATE + INTERVAL '-18 days')::date, 'high', 'done', 'production', 'proj-main', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO workflow.task (id, title, description, assigned_to, due_date, priority, status, related_entity_type, related_entity_id, created_at, updated_at)
-VALUES ('2e2f0407-09c2-453f-ac21-4ce565aaf744', 'Location Recce & Power Load Audit at Marassi', 'Inspect power distribution and camera positioning angles for Marassi shoot.', '52f3083b-d0eb-41ac-8f20-3b6c7f0d7a75', (CURRENT_DATE + INTERVAL '5 days')::date, 'medium', 'in_progress', 'deal', '969985f6-0f01-46b0-b249-5a2dc9a4c302', now(), now())
+VALUES ('tsk-03', 'Apply for Coastal Airspace Drone Permits with Civil Aviation', 'Apply for Coastal Airspace Drone Permits with Civil Aviation', '8e70e1a0-9cdb-4b70-8b0a-70da5ee5b744', (CURRENT_DATE + INTERVAL '-12 days')::date, 'high', 'done', 'production', 'proj-main', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO workflow.task (id, title, description, assigned_to, due_date, priority, status, related_entity_type, related_entity_id, created_at, updated_at)
-VALUES ('14e37c26-7c9f-4a1f-b2a6-017100a89836', 'Submit Filming Permit Application to IAA', 'Submit location details and crew passport IDs to Ministry of Information Affairs.', '04c696d7-f5e1-408c-8723-205b567d6119', (CURRENT_DATE + INTERVAL '5 days')::date, 'high', 'in_progress', 'deal', '969985f6-0f01-46b0-b249-5a2dc9a4c302', now(), now())
+VALUES ('tsk-04', 'Clean, Collimator-Test & Pack Cooke Anamorphic Prime Set', 'Clean, Collimator-Test & Pack Cooke Anamorphic Prime Set', '52f3083b-d0eb-41ac-8f20-3b6c7f0d7a75', (CURRENT_DATE + INTERVAL '-8 days')::date, 'normal', 'done', 'production', 'proj-main', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO workflow.task (id, title, description, assigned_to, due_date, priority, status, related_entity_type, related_entity_id, created_at, updated_at)
-VALUES ('d76b192a-a3b8-4dc3-bc4c-ec943e48b462', 'Pre-Production Equipment Checkout & Test Shots', 'Assemble Alexa 35 rig, test wireless video transmitters and Astera tube sync.', '8e70e1a0-9cdb-4b70-8b0a-70da5ee5b744', (CURRENT_DATE + INTERVAL '5 days')::date, 'medium', 'in_progress', 'deal', '969985f6-0f01-46b0-b249-5a2dc9a4c302', now(), now())
+VALUES ('tsk-05', 'Audit External Drive Archives and Run Checksums for EWB Footage', 'Audit External Drive Archives and Run Checksums for EWB Footage', 'c1947ad8-900f-419f-a0e2-3f2afe3d1bda', (CURRENT_DATE + INTERVAL '-4 days')::date, 'normal', 'done', 'production', 'proj-main', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO workflow.task (id, title, description, assigned_to, due_date, priority, status, related_entity_type, related_entity_id, created_at, updated_at)
+VALUES ('tsk-06', 'Deliver Final 8K Master ProRes 4444 XQ to Batelco Brand Team', 'Deliver Final 8K Master ProRes 4444 XQ to Batelco Brand Team', '71190c9f-71eb-41a5-8636-7f2ad6960be8', (CURRENT_DATE + INTERVAL '2 days')::date, 'urgent', 'in_progress', 'production', 'proj-main', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO workflow.task (id, title, description, assigned_to, due_date, priority, status, related_entity_type, related_entity_id, created_at, updated_at)
+VALUES ('tsk-07', 'Prepare Location Scouting Repertoire for Gulf Coast Luxury Resort', 'Prepare Location Scouting Repertoire for Gulf Coast Luxury Resort', '519c98db-889e-4b93-ba19-0015bde5a465', (CURRENT_DATE + INTERVAL '4 days')::date, 'high', 'in_progress', 'production', 'proj-main', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO workflow.task (id, title, description, assigned_to, due_date, priority, status, related_entity_type, related_entity_id, created_at, updated_at)
+VALUES ('tsk-08', 'Calibrate Sony BVM-HX310 Reference Monitors with SpectraCal Colorimeter', 'Calibrate Sony BVM-HX310 Reference Monitors with SpectraCal Colorimeter', '8e70e1a0-9cdb-4b70-8b0a-70da5ee5b744', (CURRENT_DATE + INTERVAL '5 days')::date, 'high', 'in_progress', 'production', 'proj-main', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO workflow.task (id, title, description, assigned_to, due_date, priority, status, related_entity_type, related_entity_id, created_at, updated_at)
+VALUES ('tsk-09', 'Review Q4 Equipment Insurance & Fleet Registration Renewals', 'Review Q4 Equipment Insurance & Fleet Registration Renewals', '04c696d7-f5e1-408c-8723-205b567d6119', (CURRENT_DATE + INTERVAL '7 days')::date, 'normal', 'todo', 'production', 'proj-main', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO workflow.task (id, title, description, assigned_to, due_date, priority, status, related_entity_type, related_entity_id, created_at, updated_at)
+VALUES ('tsk-10', 'Draft Commercial Production Scope for Bapco Energy Park Project', 'Draft Commercial Production Scope for Bapco Energy Park Project', '519c98db-889e-4b93-ba19-0015bde5a465', (CURRENT_DATE + INTERVAL '9 days')::date, 'high', 'todo', 'production', 'proj-main', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO workflow.task (id, title, description, assigned_to, due_date, priority, status, related_entity_type, related_entity_id, created_at, updated_at)
+VALUES ('tsk-11', 'Coordinate Extras Casting & Call Sheets for Toyota Offroad Shoot', 'Coordinate Extras Casting & Call Sheets for Toyota Offroad Shoot', '52f3083b-d0eb-41ac-8f20-3b6c7f0d7a75', (CURRENT_DATE + INTERVAL '11 days')::date, 'normal', 'todo', 'production', 'proj-main', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO workflow.task (id, title, description, assigned_to, due_date, priority, status, related_entity_type, related_entity_id, created_at, updated_at)
+VALUES ('tsk-12', 'Schedule Soundstage Cyclorama Fresh White Paint Job', 'Schedule Soundstage Cyclorama Fresh White Paint Job', 'c1947ad8-900f-419f-a0e2-3f2afe3d1bda', (CURRENT_DATE + INTERVAL '14 days')::date, 'low', 'todo', 'production', 'proj-main', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO workflow.task (id, title, description, assigned_to, due_date, priority, status, related_entity_type, related_entity_id, created_at, updated_at)
+VALUES ('tsk-13', 'Ingest and Create DaVinci Proxies for F1 Circuit Shoot', 'Ingest and Create DaVinci Proxies for F1 Circuit Shoot', '71190c9f-71eb-41a5-8636-7f2ad6960be8', (CURRENT_DATE + INTERVAL '15 days')::date, 'normal', 'todo', 'production', 'proj-main', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO workflow.task (id, title, description, assigned_to, due_date, priority, status, related_entity_type, related_entity_id, created_at, updated_at)
+VALUES ('tsk-14', 'Update Web Portfolio Showcase with Recent Bahrain Bay Drone Shots', 'Update Web Portfolio Showcase with Recent Bahrain Bay Drone Shots', '8e70e1a0-9cdb-4b70-8b0a-70da5ee5b744', (CURRENT_DATE + INTERVAL '18 days')::date, 'low', 'todo', 'production', 'proj-main', now(), now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO workflow.task (id, title, description, assigned_to, due_date, priority, status, related_entity_type, related_entity_id, created_at, updated_at)
+VALUES ('tsk-15', 'Organize Monthly Grip Department Inventory and Rigging Inspection', 'Organize Monthly Grip Department Inventory and Rigging Inspection', '52f3083b-d0eb-41ac-8f20-3b6c7f0d7a75', (CURRENT_DATE + INTERVAL '20 days')::date, 'normal', 'todo', 'production', 'proj-main', now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO workflow.calendar_event (id, title, description, start_time, end_time, organizer_id, event_type, location, is_all_day, created_at)
-VALUES ('44ecdd69-53e3-4f43-9a05-6240ec1b61ba', 'Gulfwave 5G Commercial Principal Photography', 'Location shoot at Bahrain Bay with Alexa 35 package.', now() + interval '2 days', now() + interval '2 days 4 hours', '8e70e1a0-9cdb-4b70-8b0a-70da5ee5b744', 'production', 'Bahrain Bay Promenade', false, now())
+VALUES ('evt-01', 'STC 5G TVC Principal Photography (Day 1)', 'Soundstage A filming with ARRI Alexa 35 & Cooke lenses', (CURRENT_DATE - INTERVAL '10 days' + TIME '09:00:00')::timestamptz, (CURRENT_DATE - INTERVAL '10 days' + TIME '09:00:00' + INTERVAL '10 hours')::timestamptz, '519c98db-889e-4b93-ba19-0015bde5a465', 'production', 'iShoot Soundstage A, Manama', false, now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO workflow.calendar_event (id, title, description, start_time, end_time, organizer_id, event_type, location, is_all_day, created_at)
-VALUES ('fa9e68fe-194d-4d45-8471-98262903a8ec', 'Pre-Production Technical Meeting with Client', 'Review storyboard, shot list and lighting setup at Seef Studio Soundstage.', now() + interval '2 days', now() + interval '2 days 4 hours', '52f3083b-d0eb-41ac-8f20-3b6c7f0d7a75', 'meeting', 'Seef Studio Soundstage', false, now())
+VALUES ('evt-02', 'STC 5G TVC Principal Photography (Day 2)', 'Exterior location filming at Bahrain Bay Promenade', (CURRENT_DATE - INTERVAL '9 days' + TIME '09:00:00')::timestamptz, (CURRENT_DATE - INTERVAL '9 days' + TIME '09:00:00' + INTERVAL '8 hours')::timestamptz, '519c98db-889e-4b93-ba19-0015bde5a465', 'production', 'Bahrain Bay Coastal Walk', false, now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO workflow.calendar_event (id, title, description, start_time, end_time, organizer_id, event_type, location, is_all_day, created_at)
-VALUES ('c2b97db0-9f8f-43a6-b935-3171c318de82', 'Final Color Suite Screening with Director & Client', 'DaVinci Resolve HDR 4K screening in Post-Production Suite 1.', now() + interval '2 days', now() + interval '2 days 4 hours', 'c1947ad8-900f-419f-a0e2-3f2afe3d1bda', 'screening', 'Post-Production Suite 1', false, now())
+VALUES ('evt-03', 'Falcon Airways Executive Screenings & Approval', 'Screening of final 4K in-flight master in screening suite', (CURRENT_DATE - INTERVAL '5 days' + TIME '09:00:00')::timestamptz, (CURRENT_DATE - INTERVAL '5 days' + TIME '09:00:00' + INTERVAL '3 hours')::timestamptz, '04c696d7-f5e1-408c-8723-205b567d6119', 'production', 'Cinema Grading Theater, Seef', false, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO workflow.calendar_event (id, title, description, start_time, end_time, organizer_id, event_type, location, is_all_day, created_at)
+VALUES ('evt-04', 'Bapco Sustainability Film Pre-Production Meeting', 'Director, DP and creative producer alignment session', (CURRENT_DATE - INTERVAL '2 days' + TIME '09:00:00')::timestamptz, (CURRENT_DATE - INTERVAL '2 days' + TIME '09:00:00' + INTERVAL '2 hours')::timestamptz, '519c98db-889e-4b93-ba19-0015bde5a465', 'production', 'Conference Suite 1', false, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO workflow.calendar_event (id, title, description, start_time, end_time, organizer_id, event_type, location, is_all_day, created_at)
+VALUES ('evt-05', 'Toyota Land Cruiser Desert Location Scouting', 'Scouting Sakhir and Zallaq dunes with client agency reps', (CURRENT_DATE - INTERVAL '-1 days' + TIME '09:00:00')::timestamptz, (CURRENT_DATE - INTERVAL '-1 days' + TIME '09:00:00' + INTERVAL '5 hours')::timestamptz, '519c98db-889e-4b93-ba19-0015bde5a465', 'production', 'Sakhir Desert Area', false, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO workflow.calendar_event (id, title, description, start_time, end_time, organizer_id, event_type, location, is_all_day, created_at)
+VALUES ('evt-06', 'Quarterly Board Operations & Financial Review', 'Q3 financial performance and 2027 gear cap-ex planning', (CURRENT_DATE - INTERVAL '-3 days' + TIME '09:00:00')::timestamptz, (CURRENT_DATE - INTERVAL '-3 days' + TIME '09:00:00' + INTERVAL '3 hours')::timestamptz, '04c696d7-f5e1-408c-8723-205b567d6119', 'production', 'Executive Boardroom', false, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO workflow.calendar_event (id, title, description, start_time, end_time, organizer_id, event_type, location, is_all_day, created_at)
+VALUES ('evt-07', 'Exhibition World Bahrain Tech Summit Filming', 'Live event coverage with 4-camera wireless optical fiber rig', (CURRENT_DATE - INTERVAL '-6 days' + TIME '09:00:00')::timestamptz, (CURRENT_DATE - INTERVAL '-6 days' + TIME '09:00:00' + INTERVAL '8 hours')::timestamptz, '519c98db-889e-4b93-ba19-0015bde5a465', 'production', 'EWB Main Hall 1', false, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO workflow.calendar_event (id, title, description, start_time, end_time, organizer_id, event_type, location, is_all_day, created_at)
+VALUES ('evt-08', 'Color Grading Masterclass & Staff Training', 'HDR workflow and ACES 1.3 color transform training', (CURRENT_DATE - INTERVAL '-10 days' + TIME '09:00:00')::timestamptz, (CURRENT_DATE - INTERVAL '-10 days' + TIME '09:00:00' + INTERVAL '4 hours')::timestamptz, '71190c9f-71eb-41a5-8636-7f2ad6960be8', 'production', 'Grading Suite B', false, now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO workflow.letter_template (id, name_en, name_ar, template_body, sort_order) VALUES
   ('lt-01', 'Employment & Salary Certificate', 'شهادة راتب وعمل', 'This is to certify that {{employee_name}} is employed at {{company_name}} with monthly salary {{salary}}.', 1),
-  ('lt-02', 'Quotation Official Cover Letter', 'خطاب تقديم عرض أسعار', 'We are pleased to submit our commercial quotation {{quotation_number}} for your review.', 2)
+  ('lt-02', 'Quotation Official Cover Letter', 'خطاب تقديم عرض أسعار', 'We are pleased to submit our commercial quotation {{quotation_number}} for your review.', 2),
+  ('lt-03', 'Equipment Vault Release Handover Form', 'إقرار استلام وتسليم معدات تصوير', 'The undersigned acknowledges receipt of camera packages listed in voucher {{voucher_number}} in pristine condition.', 3)
 ON CONFLICT (id) DO NOTHING;
 
 -- ----------------------------------------------------------------------------
--- 11. CMS SERVICE (Pages, Articles, FAQs, Statistics, Reviews, Content Snapshot)
+-- 11. CMS SERVICE (Pages, Articles, FAQs, Statistics, Reviews, Snapshot)
 -- ----------------------------------------------------------------------------
 INSERT INTO cms.page (id, slug, page_type, title_en, title_ar, blocks, is_visible, in_header, in_footer, sort_order, created_at, updated_at)
 VALUES ('6fb633a9-ce4b-4666-9077-60771c345ebf', 'about', 'about', 'Northwind — About', 'عن Northwind', '[{"type":"hero","titleAr":"نصنع القصة","titleEn":"Made for the Story"}]'::jsonb, true, true, false, 1, now(), now())
@@ -716,16 +2526,16 @@ INSERT INTO cms.page (id, slug, page_type, title_en, title_ar, blocks, is_visibl
 VALUES ('37ade01e-bb1e-4b1b-bc3c-3b11f260410a', 'equipment-rental', 'services', 'Cinema Gear & Studio Soundstage Vault', 'تأجير المعدات السينمائية والاستوديو', '[{"type":"services","titleAr":"خزينة المعدات","titleEn":"Equipment Vault"}]'::jsonb, true, true, false, 3, now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO cms.article (id, slug, title_en, title_ar, excerpt_en, excerpt_ar, category, tags, author_name, status, featured, publish_at, created_at, updated_at)
-VALUES ('b45b8577-6564-4ee3-b02f-03e94b127428', 'story-1', 'Behind the Scenes: Gulfwave 5G Anamorphic Campaign', 'خلف الكواليس: حملة ألترا 5G الأنامورفية', 'Behind-the-scenes look at filming with ARRI Alexa 35 and Cooke Anamorphic lenses at Bahrain Bay.', 'نظرة على كواليس التصوير بكاميرات آري وعدسات أنامورفيك في خليج البحرين.', 'case-study', '{"production","cinema","tech"}', 'Editorial Team', 'published', true, now(), now(), now())
+VALUES ('b45b8577-6564-4ee3-b02f-03e94b127428', 'story-1', 'Behind the Scenes: Gulfwave 5G Anamorphic Campaign', 'خلف الكواليس: حملة ألترا 5G الأنامورفية', 'Behind-the-scenes look at filming with ARRI Alexa 35 and Cooke Anamorphic lenses at Bahrain Bay.', 'نظرة على كواليس التصوير بكاميرات آري وعدسات أنامورفيك في خليج البحرين.', 'case-study', '{"production","cinema","tech"}', 'iShoot Editorial Team', 'published', true, now(), now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO cms.article (id, slug, title_en, title_ar, excerpt_en, excerpt_ar, category, tags, author_name, status, featured, publish_at, created_at, updated_at)
-VALUES ('87df8568-e6b5-4306-a11a-013eff76d29e', 'story-2', 'Documenting Bahrain''s Heritage in 8K RAW', 'توثيق تراث البحرين بدقة 8K RAW', 'Behind the 8K RAW aerial and ground production for Exhibition World Bahrain.', 'كيف تم إنتاج الفيلم التوثيقي لمركز المعارض بدقة 8K RAW.', 'technology', '{"production","cinema","tech"}', 'Editorial Team', 'published', false, now(), now(), now())
+VALUES ('87df8568-e6b5-4306-a11a-013eff76d29e', 'story-2', 'Documenting Bahrain''s Heritage in 8K RAW', 'توثيق تراث البحرين بدقة 8K RAW', 'Behind the 8K RAW aerial and ground production for Exhibition World Bahrain.', 'كيف تم إنتاج الفيلم التوثيقي لمركز المعارض بدقة 8K RAW.', 'technology', '{"production","cinema","tech"}', 'iShoot Editorial Team', 'published', false, now(), now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO cms.article (id, slug, title_en, title_ar, excerpt_en, excerpt_ar, category, tags, author_name, status, featured, publish_at, created_at, updated_at)
-VALUES ('86279b56-65df-427d-966a-da7806da2515', 'story-3', 'Mastering HDR Color Grading in DaVinci Resolve Studio', 'إتقان التلوين السينمائي HDR في دافينشي ريزولف', 'Technical breakdown of our post-production color pipeline.', 'تفاصيل استراتيجية التلوين السينمائي الرقمي لإصدارات HDR.', 'case-study', '{"production","cinema","tech"}', 'Editorial Team', 'published', false, now(), now(), now())
+VALUES ('86279b56-65df-427d-966a-da7806da2515', 'story-3', 'Mastering HDR Color Grading in DaVinci Resolve Studio', 'إتقان التلوين السينمائي HDR في دافينشي ريزولف', 'Technical breakdown of our post-production color pipeline.', 'تفاصيل استراتيجية التلوين السينمائي الرقمي لإصدارات HDR.', 'case-study', '{"production","cinema","tech"}', 'iShoot Editorial Team', 'published', false, now(), now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO cms.article (id, slug, title_en, title_ar, excerpt_en, excerpt_ar, category, tags, author_name, status, featured, publish_at, created_at, updated_at)
-VALUES ('459c1380-0b64-4048-a6ef-29db82b3318b', 'story-4', 'Next-Gen Aerial Drone Cinematography Workflows', 'تقنيات التصوير الجوي السينمائي بالدرون', 'How heavy-lifter drones and 8K sensors transform commercial filming.', 'كيف تسهم طائرات الدرون مع مستشعرات 8K في الارتقاء بالإعلانات التجارية.', 'technology', '{"production","cinema","tech"}', 'Editorial Team', 'published', false, now(), now(), now())
+VALUES ('459c1380-0b64-4048-a6ef-29db82b3318b', 'story-4', 'Next-Gen Aerial Drone Cinematography Workflows', 'تقنيات التصوير الجوي السينمائي بالدرون', 'How heavy-lifter drones and 8K sensors transform commercial filming.', 'كيف تسهم طائرات الدرون مع مستشعرات 8K في الارتقاء بالإعلانات التجارية.', 'technology', '{"production","cinema","tech"}', 'iShoot Editorial Team', 'published', false, now(), now(), now())
 ON CONFLICT (id) DO NOTHING;
 INSERT INTO cms.faq (id, question_en, question_ar, answer_en, answer_ar, category, is_published, sort_order, created_at)
 VALUES ('8a98790e-fa2c-445f-8511-2e56b11cea59', 'What media production services do you offer?', 'ما هي خدمات الإنتاج الإعلامي التي تقدمونها؟', 'We offer full-service commercial production, brand films, aerial drone cinematography, studio soundstage rental, and DaVinci Resolve HDR color grading.', 'نقدم خدمات الإنتاج الإعلاني والسينمائي المتكامل، التصوير الجوي بالدرون، تأجير الاستوديو، والتلوين السينمائي HDR.', 'general', true, 1, now())
@@ -801,22 +2611,75 @@ INSERT INTO itsm.sla_policy (priority, response_minutes, resolve_minutes, update
   ('low', 1440, 10080, 'seed:sql', now())
 ON CONFLICT (priority) DO UPDATE SET response_minutes = EXCLUDED.response_minutes, resolve_minutes = EXCLUDED.resolve_minutes, updated_at = now();
 
-INSERT INTO itsm.ticket (id, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, description, asset_ref, assignee_id, assignee_name, respond_by, resolve_by, first_response_at, resolved_at, created_at, updated_at) VALUES
-  ('70da75a0-0445-4b10-ad20-a6366b6a0ad1', 'super-admin', 'Super Admin', 'admin@ishoot.bh', 'infrastructure', 'storage', 'high', 'in_progress', 'High-Speed NAS Storage Volume Expansion', 'Post-production NAS storage at 92% capacity for 8K RAW footage intake.', 'NAS-VOL-01', '430c4105-6360-4415-bf1b-087d582c7fc6', 'admin@example.com', now() + interval '2 hours', now() + interval '24 hours', now() - interval '1 hour', NULL, now() - interval '2 days', now()),
-  ('70da75a0-0445-4b10-ad20-a6366b6a0ad2', 'super-admin', 'Super Admin', 'admin@ishoot.bh', 'hardware', 'calibration', 'medium', 'resolved', 'DaVinci Resolve HDR Reference Monitor Calibration', 'Quarterly calibration completed for Sony BVM-HX310 reference monitor.', 'MON-HDR-01', '430c4105-6360-4415-bf1b-087d582c7fc6', 'admin@example.com', now() - interval '9 days', now() - interval '7 days', now() - interval '9 days', now() - interval '8 days', now() - interval '10 days', now())
+INSERT INTO itsm.ticket (id, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, description, asset_ref, assignee_id, assignee_name, respond_by, resolve_by, first_response_at, resolved_at, created_at, updated_at)
+VALUES ('70da75a0-0445-4b10-ad20-a6366b6a0ad1', 'super-admin', 'Super Admin', 'admin@ishoot.bh', 'infrastructure', 'storage', 'high', 'in_progress', 'Post-Production 200TB NAS Storage Capacity Expansion', 'NAS volume at 92% capacity following 8K RAW footage intake from BIC track-day.', 'NAS-VOL-01', '430c4105-6360-4415-bf1b-087d582c7fc6', 'admin@example.com', (CURRENT_DATE - INTERVAL '4 days')::timestamptz, now() + interval '24 hours', (CURRENT_DATE - INTERVAL '4 days')::timestamptz, NULL, (CURRENT_DATE - INTERVAL '2 days')::timestamptz, now())
 ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO itsm.ticket_event (id, ticket_id, actor_realm, actor_id, kind, from_status, to_status, detail, created_at) VALUES
-  ('80da75a0-0445-4b10-ad20-a6366b6a0ad1', '70da75a0-0445-4b10-ad20-a6366b6a0ad1', 'staff', 'super-admin', 'created', NULL, 'in_progress', '{"message": "Ticket created via system"}'::jsonb, now() - interval '2 days'),
-  ('80da75a0-0445-4b10-ad20-a6366b6a0ad2', '70da75a0-0445-4b10-ad20-a6366b6a0ad2', 'it', '430c4105-6360-4415-bf1b-087d582c7fc6', 'status_change', 'in_progress', 'resolved', '{"message": "Colorimeter calibration certified"}'::jsonb, now() - interval '8 days')
+INSERT INTO itsm.ticket_event (id, ticket_id, actor_realm, actor_id, kind, from_status, to_status, detail, created_at)
+VALUES ('7eda75a0-0445-4b10-ad20-a6366b6a0ad1', '70da75a0-0445-4b10-ad20-a6366b6a0ad1', 'staff', 'super-admin', 'status_change', 'in_progress', 'in_progress', '{"message": "Action logged in service desk"}'::jsonb, (CURRENT_DATE - INTERVAL '2 days')::timestamptz)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO itsm.ticket (id, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, description, asset_ref, assignee_id, assignee_name, respond_by, resolve_by, first_response_at, resolved_at, created_at, updated_at)
+VALUES ('70da75a0-0445-4b10-ad20-a6366b6a0ad2', 'super-admin', 'Super Admin', 'admin@ishoot.bh', 'hardware', 'calibration', 'medium', 'resolved', 'DaVinci Resolve HDR Reference Monitor Quarterly Calibration', 'Quarterly calibration completed for Sony BVM-HX310 reference monitor with Klein colorimeter.', 'MON-HDR-01', '430c4105-6360-4415-bf1b-087d582c7fc6', 'admin@example.com', (CURRENT_DATE - INTERVAL '9 days')::timestamptz, now() + interval '24 hours', (CURRENT_DATE - INTERVAL '9 days')::timestamptz, (CURRENT_DATE - INTERVAL '8 days')::timestamptz, (CURRENT_DATE - INTERVAL '10 days')::timestamptz, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO itsm.ticket_event (id, ticket_id, actor_realm, actor_id, kind, from_status, to_status, detail, created_at)
+VALUES ('7eda75a0-0445-4b10-ad20-a6366b6a0ad2', '70da75a0-0445-4b10-ad20-a6366b6a0ad2', 'staff', 'super-admin', 'status_change', 'in_progress', 'resolved', '{"message": "Action logged in service desk"}'::jsonb, (CURRENT_DATE - INTERVAL '10 days')::timestamptz)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO itsm.ticket (id, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, description, asset_ref, assignee_id, assignee_name, respond_by, resolve_by, first_response_at, resolved_at, created_at, updated_at)
+VALUES ('70da75a0-0445-4b10-ad20-a6366b6a0ad3', 'super-admin', 'Super Admin', 'admin@ishoot.bh', 'software', 'licensing', 'urgent', 'resolved', 'Frame.io Enterprise Seat Licensing Expiry', 'Cloud collaboration seats failed auto-renewal; critical for client reviews today.', 'SW-FRAME-01', '430c4105-6360-4415-bf1b-087d582c7fc6', 'admin@example.com', (CURRENT_DATE - INTERVAL '15 days')::timestamptz, now() + interval '24 hours', (CURRENT_DATE - INTERVAL '15 days')::timestamptz, (CURRENT_DATE - INTERVAL '14 days')::timestamptz, (CURRENT_DATE - INTERVAL '16 days')::timestamptz, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO itsm.ticket_event (id, ticket_id, actor_realm, actor_id, kind, from_status, to_status, detail, created_at)
+VALUES ('7eda75a0-0445-4b10-ad20-a6366b6a0ad3', '70da75a0-0445-4b10-ad20-a6366b6a0ad3', 'staff', 'super-admin', 'status_change', 'in_progress', 'resolved', '{"message": "Action logged in service desk"}'::jsonb, (CURRENT_DATE - INTERVAL '16 days')::timestamptz)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO itsm.ticket (id, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, description, asset_ref, assignee_id, assignee_name, respond_by, resolve_by, first_response_at, resolved_at, created_at, updated_at)
+VALUES ('70da75a0-0445-4b10-ad20-a6366b6a0ad4', 'super-admin', 'Super Admin', 'admin@ishoot.bh', 'network', 'wireless', 'high', 'resolved', 'Soundstage High-Throughput Wireless Access Point Intermittent', 'Wireless dropouts affecting Teradek Bolt live iPad monitoring feeds on Stage A.', 'NET-WIFI-02', '430c4105-6360-4415-bf1b-087d582c7fc6', 'admin@example.com', (CURRENT_DATE - INTERVAL '22 days')::timestamptz, now() + interval '24 hours', (CURRENT_DATE - INTERVAL '22 days')::timestamptz, (CURRENT_DATE - INTERVAL '21 days')::timestamptz, (CURRENT_DATE - INTERVAL '23 days')::timestamptz, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO itsm.ticket_event (id, ticket_id, actor_realm, actor_id, kind, from_status, to_status, detail, created_at)
+VALUES ('7eda75a0-0445-4b10-ad20-a6366b6a0ad4', '70da75a0-0445-4b10-ad20-a6366b6a0ad4', 'staff', 'super-admin', 'status_change', 'in_progress', 'resolved', '{"message": "Action logged in service desk"}'::jsonb, (CURRENT_DATE - INTERVAL '23 days')::timestamptz)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO itsm.ticket (id, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, description, asset_ref, assignee_id, assignee_name, respond_by, resolve_by, first_response_at, resolved_at, created_at, updated_at)
+VALUES ('70da75a0-0445-4b10-ad20-a6366b6a0ad5', 'super-admin', 'Super Admin', 'admin@ishoot.bh', 'hardware', 'firmware', 'normal', 'resolved', 'ARRI Alexa 35 SUP 2.1 Firmware Update & Lens Table Sync', 'Install latest ARRI SUP 2.1 firmware across both Alexa 35 camera bodies.', 'CAM-ALX-01', '430c4105-6360-4415-bf1b-087d582c7fc6', 'admin@example.com', (CURRENT_DATE - INTERVAL '35 days')::timestamptz, now() + interval '24 hours', (CURRENT_DATE - INTERVAL '35 days')::timestamptz, (CURRENT_DATE - INTERVAL '34 days')::timestamptz, (CURRENT_DATE - INTERVAL '36 days')::timestamptz, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO itsm.ticket_event (id, ticket_id, actor_realm, actor_id, kind, from_status, to_status, detail, created_at)
+VALUES ('7eda75a0-0445-4b10-ad20-a6366b6a0ad5', '70da75a0-0445-4b10-ad20-a6366b6a0ad5', 'staff', 'super-admin', 'status_change', 'in_progress', 'resolved', '{"message": "Action logged in service desk"}'::jsonb, (CURRENT_DATE - INTERVAL '36 days')::timestamptz)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO itsm.ticket (id, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, description, asset_ref, assignee_id, assignee_name, respond_by, resolve_by, first_response_at, resolved_at, created_at, updated_at)
+VALUES ('70da75a0-0445-4b10-ad20-a6366b6a0ad6', 'super-admin', 'Super Admin', 'admin@ishoot.bh', 'access', 'vpn', 'medium', 'resolved', 'Remote Colorist VPN Access Credentials Setup', 'Configure secure WireGuard tunnel for freelance colorist working from Dubai.', 'VPN-REMOTE-04', '430c4105-6360-4415-bf1b-087d582c7fc6', 'admin@example.com', (CURRENT_DATE - INTERVAL '48 days')::timestamptz, now() + interval '24 hours', (CURRENT_DATE - INTERVAL '48 days')::timestamptz, (CURRENT_DATE - INTERVAL '47 days')::timestamptz, (CURRENT_DATE - INTERVAL '49 days')::timestamptz, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO itsm.ticket_event (id, ticket_id, actor_realm, actor_id, kind, from_status, to_status, detail, created_at)
+VALUES ('7eda75a0-0445-4b10-ad20-a6366b6a0ad6', '70da75a0-0445-4b10-ad20-a6366b6a0ad6', 'staff', 'super-admin', 'status_change', 'in_progress', 'resolved', '{"message": "Action logged in service desk"}'::jsonb, (CURRENT_DATE - INTERVAL '49 days')::timestamptz)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO itsm.ticket (id, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, description, asset_ref, assignee_id, assignee_name, respond_by, resolve_by, first_response_at, resolved_at, created_at, updated_at)
+VALUES ('70da75a0-0445-4b10-ad20-a6366b6a0ad7', 'super-admin', 'Super Admin', 'admin@ishoot.bh', 'infrastructure', 'backup', 'high', 'resolved', 'LTO-8 Tape Archival Ingest Station Read Error', 'Clean tape head and verify parity on Cold Archive Volume 14.', 'LTO-TAPE-01', '430c4105-6360-4415-bf1b-087d582c7fc6', 'admin@example.com', (CURRENT_DATE - INTERVAL '60 days')::timestamptz, now() + interval '24 hours', (CURRENT_DATE - INTERVAL '60 days')::timestamptz, (CURRENT_DATE - INTERVAL '59 days')::timestamptz, (CURRENT_DATE - INTERVAL '61 days')::timestamptz, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO itsm.ticket_event (id, ticket_id, actor_realm, actor_id, kind, from_status, to_status, detail, created_at)
+VALUES ('7eda75a0-0445-4b10-ad20-a6366b6a0ad7', '70da75a0-0445-4b10-ad20-a6366b6a0ad7', 'staff', 'super-admin', 'status_change', 'in_progress', 'resolved', '{"message": "Action logged in service desk"}'::jsonb, (CURRENT_DATE - INTERVAL '61 days')::timestamptz)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO itsm.ticket (id, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, description, asset_ref, assignee_id, assignee_name, respond_by, resolve_by, first_response_at, resolved_at, created_at, updated_at)
+VALUES ('70da75a0-0445-4b10-ad20-a6366b6a0ad8', 'super-admin', 'Super Admin', 'admin@ishoot.bh', 'hardware', 'audio', 'normal', 'resolved', 'Sound Devices 888 Dante Network Clock Desync', 'Resolve PTP clock master conflict between field recorder and studio interface.', 'AUD-DANTE-01', '430c4105-6360-4415-bf1b-087d582c7fc6', 'admin@example.com', (CURRENT_DATE - INTERVAL '75 days')::timestamptz, now() + interval '24 hours', (CURRENT_DATE - INTERVAL '75 days')::timestamptz, (CURRENT_DATE - INTERVAL '74 days')::timestamptz, (CURRENT_DATE - INTERVAL '76 days')::timestamptz, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO itsm.ticket_event (id, ticket_id, actor_realm, actor_id, kind, from_status, to_status, detail, created_at)
+VALUES ('7eda75a0-0445-4b10-ad20-a6366b6a0ad8', '70da75a0-0445-4b10-ad20-a6366b6a0ad8', 'staff', 'super-admin', 'status_change', 'in_progress', 'resolved', '{"message": "Action logged in service desk"}'::jsonb, (CURRENT_DATE - INTERVAL '76 days')::timestamptz)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO itsm.ticket (id, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, description, asset_ref, assignee_id, assignee_name, respond_by, resolve_by, first_response_at, resolved_at, created_at, updated_at)
+VALUES ('70da75a0-0445-4b10-ad20-a6366b6a0ad9', 'super-admin', 'Super Admin', 'admin@ishoot.bh', 'software', 'os', 'low', 'resolved', 'Mac Studio Workstations macOS Sonoma Security Patches', 'Perform scheduled maintenance update across 4 edit suites.', 'MAC-STU-ALL', '430c4105-6360-4415-bf1b-087d582c7fc6', 'admin@example.com', (CURRENT_DATE - INTERVAL '90 days')::timestamptz, now() + interval '24 hours', (CURRENT_DATE - INTERVAL '90 days')::timestamptz, (CURRENT_DATE - INTERVAL '89 days')::timestamptz, (CURRENT_DATE - INTERVAL '91 days')::timestamptz, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO itsm.ticket_event (id, ticket_id, actor_realm, actor_id, kind, from_status, to_status, detail, created_at)
+VALUES ('7eda75a0-0445-4b10-ad20-a6366b6a0ad9', '70da75a0-0445-4b10-ad20-a6366b6a0ad9', 'staff', 'super-admin', 'status_change', 'in_progress', 'resolved', '{"message": "Action logged in service desk"}'::jsonb, (CURRENT_DATE - INTERVAL '91 days')::timestamptz)
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO itsm.ticket (id, requester_id, requester_name, requester_email, category, subcategory, priority, status, title, description, asset_ref, assignee_id, assignee_name, respond_by, resolve_by, first_response_at, resolved_at, created_at, updated_at)
+VALUES ('70da75a0-0445-4b10-ad20-a6366b6a0ada', 'super-admin', 'Super Admin', 'admin@ishoot.bh', 'hardware', 'power', 'high', 'resolved', 'Studio Soundstage UPS Battery Pack Health Warning', 'Replace aging lead-acid battery cells on 15kVA central UPS system.', 'PWR-UPS-01', '430c4105-6360-4415-bf1b-087d582c7fc6', 'admin@example.com', (CURRENT_DATE - INTERVAL '110 days')::timestamptz, now() + interval '24 hours', (CURRENT_DATE - INTERVAL '110 days')::timestamptz, (CURRENT_DATE - INTERVAL '109 days')::timestamptz, (CURRENT_DATE - INTERVAL '112 days')::timestamptz, now())
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO itsm.ticket_event (id, ticket_id, actor_realm, actor_id, kind, from_status, to_status, detail, created_at)
+VALUES ('7eda75a0-0445-4b10-ad20-a6366b6a0ada', '70da75a0-0445-4b10-ad20-a6366b6a0ada', 'staff', 'super-admin', 'status_change', 'in_progress', 'resolved', '{"message": "Action logged in service desk"}'::jsonb, (CURRENT_DATE - INTERVAL '112 days')::timestamptz)
 ON CONFLICT (id) DO NOTHING;
 
 -- ----------------------------------------------------------------------------
--- 13. NOTIFY SERVICE (Preferences & Notification Feed)
+-- 13. NOTIFY SERVICE (In-App Notification Feed)
 -- ----------------------------------------------------------------------------
 INSERT INTO notify.notification (id, realm, recipient, category, priority, title, body, caller, silent, deliver_at, created_at) VALUES
-  ('90da75a0-0445-4b10-ad20-a6366b6a0ad1', 'staff', 'super-admin', 'finance', 'high', 'Invoice Payment Received', 'Payment of 11,880 BHD received for Exhibition World Inauguration Film.', 'finance-svc', false, now() - interval '1 hour', now() - interval '1 hour'),
-  ('90da75a0-0445-4b10-ad20-a6366b6a0ad2', 'staff', 'super-admin', 'inventory', 'normal', 'Equipment Check-in Complete', 'ARRI Alexa 35 package safely checked back into Main Equipment Vault.', 'inventory-svc', false, now() - interval '4 hours', now() - interval '4 hours')
+  ('90da75a0-0445-4b10-ad20-a6366b6a0ad1', 'staff', 'super-admin', 'finance', 'high', 'Invoice Payment Received', 'Payment of 14,500 BHD received from NBB for 65th Anniversary Film.', 'finance-svc', false, now() - interval '1 hour', now() - interval '1 hour'),
+  ('90da75a0-0445-4b10-ad20-a6366b6a0ad2', 'staff', 'super-admin', 'inventory', 'normal', 'Equipment Check-in Complete', 'ARRI Alexa 35 & Cooke lenses safely returned to Vault.', 'inventory-svc', false, now() - interval '3 hours', now() - interval '3 hours'),
+  ('90da75a0-0445-4b10-ad20-a6366b6a0ad3', 'staff', 'super-admin', 'sales', 'normal', 'New High-Value Deal Qualified', 'Toyota Land Cruiser Offroad TVC proposal requested by E.K. Kanoo.', 'sales-svc', false, now() - interval '5 hours', now() - interval '5 hours'),
+  ('90da75a0-0445-4b10-ad20-a6366b6a0ad4', 'staff', 'super-admin', 'hr', 'low', 'Monthly Payroll Run Processed', 'Payroll for October 2026 successfully disbursed to all 12 employees.', 'hr-svc', false, now() - interval '1 day', now() - interval '1 day')
 ON CONFLICT (id) DO NOTHING;
 
 COMMIT;
