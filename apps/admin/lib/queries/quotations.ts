@@ -11,6 +11,7 @@ import {
 } from "@platform/api-client";
 
 import { db, runAtomicMutation } from "../atomic";
+import { getCompanyConfiguration } from "../api/company";
 import { Quotation, calculateInvoiceTotals } from "../types";
 import { getNextSequenceNumber } from "./sequence";
 import { allocateDocumentNumber } from "../finance/numbering";
@@ -610,12 +611,10 @@ export async function convertQuotationToInvoice(
       );
     }
 
-    const company = await db.companySetting.findFirst({
-      select: { paymentTermsDays: true },
-    });
+    const company = await getCompanyConfiguration().catch(() => null);
     const issueDate = new Date();
     const dueDate = new Date(issueDate);
-    dueDate.setDate(dueDate.getDate() + (company?.paymentTermsDays ?? 30));
+    dueDate.setDate(dueDate.getDate() + ((company as any)?.paymentTermsDays ?? 30));
     const invoiceNumber = await allocateDocumentNumber("invoice", issueDate);
 
     await assertCompanyCurrency(quotation.currency);

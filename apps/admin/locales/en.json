@@ -5522,7 +5522,6 @@
         "invalidInputFor0": "Invalid input for {0}",
         "invalidationHttp0": "Invalidation HTTP {0}",
         "noApprovalHandlerRegisteredFor0": "No approval handler registered for {0}",
-        "noExchangeRateIsAvailableFor0": "No exchange rate is available for {0} → {1}",
         "notYetEligibleForThisLeaveType": "Not yet eligible for this leave type (available from {0})",
         "onlyAcceptedQuotationsCanBeConvertedTo": "Only accepted quotations can be converted to invoices (current status: {0})",
         "onlyDraftQuotationsCanBeEditedCurrent": "Only draft quotations can be edited (current status: {0})",

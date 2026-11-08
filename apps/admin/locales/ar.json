@@ -5522,7 +5522,6 @@
         "invalidInputFor0": "البيانات المدخلة غير صحيحة",
         "invalidationHttp0": "تعذّر تحديث الموقع",
         "noApprovalHandlerRegisteredFor0": "نوع الاعتماد غير مدعوم",
-        "noExchangeRateIsAvailableFor0": "لا يتوفر سعر صرف من {0} إلى {1}",
         "notYetEligibleForThisLeaveType": "لست مؤهلاً لهذا النوع من الإجازات بعد (متاح من {0})",
         "onlyAcceptedQuotationsCanBeConvertedTo": "لا تُحوَّل إلى فواتير إلا عروض الأسعار المقبولة (الحالة الحالية: {0})",
         "onlyDraftQuotationsCanBeEditedCurrent": "لا تُعدَّل إلا عروض الأسعار المسودة (الحالة الحالية: {0})",

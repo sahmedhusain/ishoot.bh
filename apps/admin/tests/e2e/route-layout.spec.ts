@@ -1,9 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { expect, test } from "@playwright/test";
-import { testDatabase } from "../../helpers";
-import { prepareLayoutFixtures } from "../../route-layout-fixtures";
-import { modules, setModule } from "../../modules";
+import { testDatabase } from "./helpers/helpers";
+import { prepareLayoutFixtures } from "./helpers/route-layout-fixtures";
+import { modules, setModule } from "./helpers/modules";
 
 const db = testDatabase();
 let disabledModules: string[] = [];

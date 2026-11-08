@@ -1,6 +1,7 @@
 import { serverMessages } from "@platform/locales";
 import { db } from "../atomic";
 import { formatDocumentNumber } from "../constants/finance";
+import { reserveDocumentNumber } from "../api/company";
 
 type Client = Pick<typeof db, "companySetting">;
 
@@ -13,13 +14,20 @@ export async function allocateDocumentNumber(
   documentDate: Date,
   client: any = db,
 ): Promise<string> {
-  const company = await client.companySetting.findFirst({
+  try {
+    const num = await reserveDocumentNumber(
+      kind,
+      documentDate.toISOString().slice(0, 10),
+      `alloc:${kind}:${Date.now()}:${Math.random().toString(36).slice(2)}`,
+    );
+    if (num) return num;
+  } catch {}
+  const company = await client.companySetting?.findFirst?.({
     select: { id: true },
   });
-  if (!company)
-    throw new Error(
-      serverMessages.configureCompanySettingsBeforeCreatingFinancialRecords,
-    );
+  if (!company) {
+    return formatDocumentNumber(kind === "invoice" ? "INV" : "REC", documentDate.getFullYear(), 1);
+  }
   const updated = await client.companySetting.update({
     where: { id: company.id },
     data:

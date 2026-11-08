@@ -5,6 +5,7 @@ import { referencePrefixFor } from "../constants/requests";
 import { getNextSequenceNumber } from "../queries/sequence";
 import { formatPhoneE164 } from "../constants/phone";
 import { isValidEmail, normalizeEmail } from "../constants/validation";
+import { getCompanyConfiguration } from "../api/company";
 
 export function normalizeToE164(phone: string, defaultCountry?: string): string | null {
   return formatPhoneE164(phone, undefined, defaultCountry) || null;
@@ -49,7 +50,7 @@ export async function resolveIncomingLead(
 ): Promise<ResolvedLeadResult> {
   if (data.email && !isValidEmail(data.email)) throw new Error(serverMessages.customerEmailInvalid);
   const emailNorm = normalizeEmail(data.email);
-  const company = data.phone ? await db.companySetting.findUnique({ where: { singleton: 1 }, select: { country: true } }) : null;
+  const company = data.phone ? await getCompanyConfiguration().catch(() => null) : null;
   const phoneE164 = data.phone ? normalizeToE164(data.phone, company?.country ?? undefined) : null;
   if (data.phone && !phoneE164)
     throw new Error(serverMessages.invalidPhoneNumber);

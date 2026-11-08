@@ -1,4 +1,5 @@
 import { db } from "../atomic";
+import { getCompanyConfiguration } from "../api/company";
 
 export interface DiscountDecision {
   /** Discount as a percentage of the subtotal (0 when there is none). */
@@ -34,16 +35,11 @@ export async function discountDecision(
       where: { id: userId },
       select: { role: true, discountLimitPercent: true },
     }),
-    db.companySetting.findFirst({
-      select: {
-        defaultDiscountLimitPercent: true,
-        quotationsAlwaysNeedApproval: true,
-      },
-    }),
+    getCompanyConfiguration().catch(() => null),
   ]);
   const percent = discountPercent(subtotal, discountAmount);
   const always =
-    options.alwaysApprove ?? company?.quotationsAlwaysNeedApproval ?? false;
+    options.alwaysApprove ?? (company as any)?.quotationsAlwaysNeedApproval ?? false;
   if (user.role === "super_admin")
     return {
       percent,
@@ -56,7 +52,7 @@ export async function discountDecision(
     user.discountLimitPercent === null
       ? null
       : Number(user.discountLimitPercent);
-  const limit = own ?? Number(company?.defaultDiscountLimitPercent ?? 0);
+  const limit = own ?? Number((company as any)?.defaultDiscountLimitPercent ?? 0);
   const withinLimit = percent <= limit + 1e-9;
   return {
     percent,

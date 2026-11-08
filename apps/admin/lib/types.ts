@@ -1389,31 +1389,6 @@ export interface RequestComment {
   updatedAt: Date | string;
 }
 
-export interface ExchangeRateSnapshot {
-  id: string;
-  baseCurrency: string;
-  quoteCurrency: string;
-  rate: number;
-  effectiveDate: Date | string;
-  fetchedAt: Date | string;
-  provider: string;
-  sourceEvidence?: string | null;
-  createdAt: Date | string;
-}
-
-export interface DocumentFx {
-  id: string;
-  documentType: "quotation" | "invoice" | string;
-  documentId: string;
-  baseAmount: number;
-  targetAmount: number;
-  rawRate: number;
-  marginPercent: number;
-  effectiveRate: number;
-  rateSnapshotId?: string | null;
-  createdAt: Date | string;
-}
-
 export interface PaymentAllocation {
   id: string;
   paymentId: string;

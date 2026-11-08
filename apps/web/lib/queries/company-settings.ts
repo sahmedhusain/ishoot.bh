@@ -112,10 +112,6 @@ export async function getCompanySettings(): Promise<CompanySettings> {
     const settings = await getCompanyConfiguration();
     return mapSettings({ ...settings, updatedAt: new Date(settings.updatedAt) });
   } catch (error) {
-    const row = await db.companySetting.findUnique({ where: { singleton: 1 } }).catch(() => null);
-    if (row) {
-      return mapSettings(row);
-    }
     return mapSettings({
       id: "unconfigured",
       companyNameEn: "",

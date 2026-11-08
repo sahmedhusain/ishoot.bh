@@ -481,9 +481,6 @@ export async function approveSupplierBill(
   if (!bill.matched && !reason)
     throw new Error(serverMessages.procurementBillMismatch);
   const category = await purchasesCategory();
-  const company = await db.companySetting.findFirst({
-    select: { defaultCurrency: true },
-  });
   const en = getTranslations("en").admin.procurement.bills;
   const ar = getTranslations("ar").admin.procurement.bills;
   return db.$transaction(async (tx) => {
@@ -508,7 +505,7 @@ export async function approveSupplierBill(
         netAmount: bill.subtotal,
         inputVatAmount: bill.vat_amount,
         taxInvoiceNumber: bill.supplier_ref || null,
-        currency: await assertCompanyCurrency(company?.defaultCurrency ?? accountingCurrency),
+        currency: await assertCompanyCurrency(),
         expenseDate: new Date(`${bill.bill_date}T00:00:00.000Z`),
         vendorName: bill.supplier.name,
         receiptUrl: bill.attachment_url,

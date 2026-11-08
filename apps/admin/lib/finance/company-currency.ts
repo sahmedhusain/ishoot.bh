@@ -13,13 +13,6 @@ export async function companyCurrency(): Promise<string> {
       return settings.default_currency;
     }
   } catch {}
-  try {
-    const company = await db.companySetting.findFirst({ select: { defaultCurrency: true } });
-    if (company?.defaultCurrency) {
-      assertSupportedCurrency(company.defaultCurrency);
-      return company.defaultCurrency;
-    }
-  } catch {}
   return DEFAULT_FALLBACK_CURRENCY;
 }
 
@@ -31,7 +24,7 @@ export async function assertCompanyCurrency(requested?: string, connection: Pick
     currency = rows?.[0]?.defaultCurrency;
   } catch {}
   if (!currency) {
-    currency = await companyCurrency().catch(() => DEFAULT_FALLBACK_CURRENCY);
+    currency = await companyCurrency();
   }
   assertSupportedCurrency(currency);
   if (requested !== undefined && requested !== currency) throw new Error(serverMessages.companyCurrencyRequired);

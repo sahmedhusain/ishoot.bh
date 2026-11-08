@@ -14,16 +14,12 @@ export async function companyVat(
     const vatEnabled = Boolean(settings.vat_enabled);
     return {
       vatEnabled,
-      vatPercentage: vatEnabled ? Number(settings.vat_percentage ?? 10) : 0,
+      vatPercentage: vatEnabled ? Number(settings.vat_percentage ?? 0) : 0,
     };
   } catch {
-    const company = await client.companySetting?.findFirst?.({
-      select: { vatEnabled: true, vatPercentage: true },
-    });
-    const vatEnabled = company?.vatEnabled ?? false;
     return {
-      vatEnabled,
-      vatPercentage: vatEnabled ? Number(company?.vatPercentage ?? 10) : 0,
+      vatEnabled: false,
+      vatPercentage: 0,
     };
   }
 }

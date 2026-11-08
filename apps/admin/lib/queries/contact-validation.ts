@@ -1,7 +1,7 @@
 import { serverMessages } from "@platform/locales";
-import { db } from "../atomic";
 import { formatPhoneE164 } from "../constants/phone";
 import { isValidEmail, normalizeEmail } from "../constants/validation";
+import { getCompanyConfiguration } from "../api/company";
 
 /** Every contact writer shares the same rules, including imports and administrative actions. */
 export async function normalizeContactInput<T extends { email?: string | null; phone?: string | null }>(input: T, countryOverride?: string): Promise<T> {
@@ -12,8 +12,12 @@ export async function normalizeContactInput<T extends { email?: string | null; p
   }
   if (typeof data.phone === "string") {
     const raw = data.phone.trim();
-    const company = raw && countryOverride === undefined ? await db.companySetting.findUnique({ where: { singleton: 1 }, select: { country: true } }) : null;
-    const phone = raw ? formatPhoneE164(raw, undefined, countryOverride ?? company?.country ?? "") : "";
+    let defaultCountry = countryOverride;
+    if (raw && defaultCountry === undefined) {
+      const company = await getCompanyConfiguration().catch(() => null);
+      defaultCountry = company?.country ?? "";
+    }
+    const phone = raw ? formatPhoneE164(raw, undefined, defaultCountry ?? "") : "";
     if (raw && !phone) throw new Error(serverMessages.invalidPhoneNumber);
     data.phone = phone;
   }

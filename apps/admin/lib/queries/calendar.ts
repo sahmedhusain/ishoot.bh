@@ -14,6 +14,7 @@ import type {
   CalendarVisibility,
 } from "../types";
 import { getEffectivePermissions } from "./permissions";
+import { getCompanyConfiguration } from "../api/company";
 
 /** Events without their own colour follow the company accent (resolved by the browser from the theme). */
 const ACCENT = "rgb(var(--brand-accent))";
@@ -371,10 +372,7 @@ async function systemEvents(
     // Scheduled days and expected closing: your deals and your team's; all of them for whoever manages the pipeline.
     const all = can("deals:delete");
     const activity = (
-      await db.companySetting.findUnique({
-        where: { singleton: 1 },
-        select: { businessActivity: true },
-      })
+      await getCompanyConfiguration().catch(() => null)
     )?.businessActivity;
     const deals = await db.crmDeal.findMany({
       where: {

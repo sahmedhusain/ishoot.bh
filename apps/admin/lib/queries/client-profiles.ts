@@ -19,6 +19,7 @@ import {
 } from "../constants/clients";
 import type { ClientListRow, ClientProfileInput, CRMContact } from "../types";
 import { mapContact } from "./crm";
+import { getCompanyConfiguration } from "../api/company";
 
 const MAX_CONTACT_PERSONS = 20;
 const clean = (value: unknown, max = 200): string | null => {
@@ -286,7 +287,7 @@ export async function getClientProfile(id: string): Promise<CRMContact | null> {
 export async function createClientProfile(
   input: ClientProfileInput,
 ): Promise<CRMContact> {
-  const company = await db.companySetting.findUnique({ where: { singleton: 1 }, select: { country: true } });
+  const company = await getCompanyConfiguration().catch(() => null);
   const { data, persons } = normalizeClientProfile(input, countryIso(company?.country) ?? company?.country ?? undefined);
   return runAtomicMutation(async () => {
     await assertUniqueCr(data.crNumber);
@@ -317,7 +318,7 @@ export async function updateClientProfile(
       merged.first_name = undefined;
       merged.last_name = undefined;
     }
-    const company = await db.companySetting.findUnique({ where: { singleton: 1 }, select: { country: true } });
+    const company = await getCompanyConfiguration().catch(() => null);
     const { data, persons } = normalizeClientProfile(merged, countryIso(company?.country) ?? company?.country ?? undefined);
     await assertUniqueCr(data.crNumber, id);
     await db.clientContactPerson.deleteMany({ where: { contactId: id } });
@@ -375,13 +376,8 @@ export type ClientListFilters = ReturnType<typeof clientListParameters>;
  */
 function standingSql(baseCurrency: string) {
   const convert = (expr: Prisma.Sql) =>
-    Prisma.sql`CASE WHEN inv.currency = ${baseCurrency} THEN ${expr} WHEN r.rate > 0 THEN ${expr} / r.rate ELSE 0 END`;
+    Prisma.sql`CASE WHEN inv.currency = ${baseCurrency} THEN ${expr} ELSE 0 END`;
   return Prisma.sql`
-    rates AS (
-      SELECT DISTINCT ON ("quoteCurrency") "quoteCurrency" AS currency, rate
-      FROM "ExchangeRateSnapshot" WHERE "baseCurrency" = ${baseCurrency}
-      ORDER BY "quoteCurrency", "effectiveDate" DESC
-    ),
     inv AS (
       SELECT COALESCE(i."clientId", d."contactId") AS cid, i.id, i.currency, i."totalAmount" AS total, i."dueDate", i."issueDate"
       FROM "Invoice" i LEFT JOIN "CrmDeal" d ON d.id = i."dealId"
@@ -400,7 +396,7 @@ function standingSql(baseCurrency: string) {
         BOOL_OR(inv.total > COALESCE(paid.amount, 0) AND inv."dueDate" < CURRENT_DATE) AS overdue,
         COUNT(*)::int AS invoice_count,
         GREATEST(MAX(inv."issueDate"), MAX(paid.last)) AS last_billing
-      FROM inv LEFT JOIN paid ON paid."invoiceId" = inv.id LEFT JOIN rates r ON r.currency = inv.currency
+      FROM inv LEFT JOIN paid ON paid."invoiceId" = inv.id
       GROUP BY inv.cid
     ),
     ranked AS (
@@ -517,9 +513,7 @@ type StandingRow = {
 
 async function baseCurrency() {
   const accountingCurrency = await getAccountingCurrency();
-  const settings = await db.companySetting.findFirst({
-    select: { defaultCurrency: true },
-  });
+  const settings = await getCompanyConfiguration().catch(() => null);
   return settings?.defaultCurrency || accountingCurrency;
 }
 

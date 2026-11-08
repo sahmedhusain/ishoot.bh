@@ -8,6 +8,7 @@ import { isValidEmail, normalizeEmail } from "../constants/validation";
 import { defaultWebsiteCommerce, selectedPickupBranch, validateWebsiteCommerce, type PublicBranch } from "../constants/website-commerce";
 import { serverMessages } from "@platform/locales";
 import { db, runAtomicMutation } from "../atomic";
+import { getCompanyConfiguration } from "../api/company";
 import { allocateDocumentNumber } from "../finance/numbering";
 import { normalizeProductOptions, variantLabel } from "../constants/products";
 import { roundQuantity } from "../constants/inventory";
@@ -387,9 +388,7 @@ export async function quoteCart(
       update: {},
       create: { id: "default" },
     }),
-    client.companySetting.findFirst({
-      select: { vatEnabled: true, vatPercentage: true, defaultCurrency: true },
-    }),
+    getCompanyConfiguration().catch(() => null),
   ]);
   let coupon: {
     kind: "percent" | "fixed";
@@ -1064,9 +1063,7 @@ export async function issueOrderInvoice(orderId: string, byId: string | null) {
   });
   if (!order) throw new Error(serverMessages.procurementDocumentMissing);
   if (order.invoiceId) return order.invoiceId;
-  const company = await db.companySetting.findFirst({
-    select: { vatEnabled: true, vatPercentage: true, paymentTermsDays: true },
-  });
+  const company = await getCompanyConfiguration().catch(() => null);
   const issueDate = new Date();
   const fee = num(order.deliveryFee);
   const lines = [
@@ -1114,14 +1111,14 @@ export async function issueOrderInvoice(orderId: string, byId: string | null) {
         clientId: order.contactId,
         issueDate,
         dueDate: new Date(
-          issueDate.getTime() + (company?.paymentTermsDays ?? 0) * 86_400_000,
+          issueDate.getTime() + ((company as any)?.paymentTermsDays ?? 0) * 86_400_000,
         ),
         subtotal: roundMoney(num(order.subtotal) + fee, order.currency),
         discountType: num(order.discountAmount) > 0 ? "fixed" : "none",
         discountValue: order.discountAmount,
         discountAmount: order.discountAmount,
         vatEnabled: num(order.vatAmount) > 0,
-        vatPercentage: company?.vatPercentage ?? 0,
+        vatPercentage: (company?.vatPercentage as number) ?? 0,
         vatAmount: order.vatAmount,
         totalAmount: order.total,
         currency: order.currency,

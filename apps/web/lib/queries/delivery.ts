@@ -32,15 +32,15 @@ async function settingsRow(client: Tx | typeof db = db) {
   });
 }
 
+import { getCompanyConfiguration } from "../api/company";
+
 /** The delivery time zone: the store's choice, else the company country's. */
 async function timeZoneOf(
   row: { timeZone: string | null },
   client: Tx | typeof db = db,
 ) {
   if (row.timeZone) return row.timeZone;
-  const company = await client.companySetting.findFirst({
-    select: { country: true },
-  });
+  const company = await getCompanyConfiguration().catch(() => null);
   return defaultTimeZone(company?.country);
 }
 

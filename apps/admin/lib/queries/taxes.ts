@@ -1,5 +1,6 @@
 import { serverMessages } from "@platform/locales";
 import { db, runAtomicMutation } from "../atomic";
+import { getCompanyConfiguration } from "../api/company";
 
 /** A tax the company is registered for besides VAT, as the settings screen shows it. */
 export interface TaxRateRecord {
@@ -144,9 +145,7 @@ export async function getTaxCertificate(
   code: string,
 ): Promise<TaxCertificate | null> {
   if (code === VAT_TAX_CODE) {
-    const company = await db.companySetting.findFirst({
-      select: { vatEnabled: true, vatId: true, vatCertificateUrl: true },
-    });
+    const company = await getCompanyConfiguration().catch(() => null);
     if (!company?.vatId && !company?.vatCertificateUrl) return null;
     return {
       code,

@@ -7,6 +7,7 @@ import {
 import { db } from "../atomic";
 import { getMessageStatus, queueMessage } from "@platform/api-client";
 import { resolveIncomingLead } from "../services/lead-resolver";
+import { getCompanyConfiguration } from "../api/company";
 
 const escape = (value: string) =>
   value.replace(
@@ -158,9 +159,7 @@ export async function replyToRequest(
   if (input.channel === "email") {
     if (!request.email || !isValidEmail(request.email))
       throw new Error(serverMessages.serviceReplyNoEmail);
-    const company = await db.companySetting.findFirst({
-      select: { companyNameEn: true, companyNameAr: true },
-    });
+    const company = await getCompanyConfiguration().catch(() => null);
     const locale = request.locale === "en" ? "en" : "ar";
     const copy = getTranslations(locale).admin.serviceDesk.email;
     const companyName =

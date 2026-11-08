@@ -11,11 +11,10 @@ import {
   listExpenseCategories,
 } from "../api/finance";
 import { listContacts } from "../api/sales";
+import { getCompanyConfiguration } from "../api/company";
 
 async function getCompanyTimeZone(): Promise<string> {
-  const setting = await db.companySetting
-    .findUnique({ where: { singleton: 1 }, select: { timeZone: true } })
-    .catch(() => null);
+  const setting = await getCompanyConfiguration().catch(() => null);
   return setting?.timeZone || "UTC";
 }
 
