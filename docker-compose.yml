@@ -487,7 +487,7 @@ services:
       DATABASE_URLS: >-
         postgres://svc_audit:${AUDIT_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_cms:${CMS_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_commerce:${COMMERCE_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_delivery:${DELIVERY_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_files:${FILES_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_finance:${FINANCE_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_hr:${HR_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_identity:${IDENTITY_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_inventory:${INVENTORY_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_itsm:${ITSM_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_notify:${NOTIFY_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_realtime:${REALTIME_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_sales:${SALES_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_system:${SYSTEM_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db},postgres://svc_workflow:${WORKFLOW_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-platform_db}
     volumes:
-      - ./deploy/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./backend/deploy/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
     ports:
       - "127.0.0.1:${PGBOUNCER_PORT:-6432}:6432"
     healthcheck:
@@ -820,7 +820,7 @@ services:
       AUTH_JWKS_URL: ${AUTH_JWKS_URL:-http://identity:8080/.well-known/jwks.json}
       AUTH_SERVICE_KEYS_FILE: /keys/service-keys.json
     volumes:
-      - ./deploy/helm/platform/files/gateway:/config:ro
+      - ./backend/deploy/helm/platform/files/gateway:/config:ro
       - ${SERVICE_KEYS_FILE:-./.local/service-keys.json}:/keys/service-keys.json:ro
     ports:
       - "127.0.0.1:${GATEWAY_PORT:-8080}:8080"
