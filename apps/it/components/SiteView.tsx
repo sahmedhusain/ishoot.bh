@@ -199,7 +199,7 @@ function DomainsCard({
             </Button>
           )}
         </div>
-        <p className="text-xs text-ink-muted">{d.dnsIntro}</p>
+        <p className="text-xs text-ink-muted">{formatMessage(d.dnsIntro, { hours: 48 })}</p>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { formatMessage } from "@platform/locales";
 import { useRouter } from "next/navigation";
 import { Database, RefreshCw, Send, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button, Card } from "@platform/ui";
@@ -110,7 +111,7 @@ export function DatabaseView({ stats }: { stats: DatabaseStats | null }) {
                           ) : (
                             <AlertCircle className="h-3 w-3" />
                           )}
-                          {isClean ? dbCopy.synced : dbCopy.lagging}
+                          {isClean ? formatMessage(dbCopy.synced, { lag: 0 }) : dbCopy.lagging}
                         </span>
                       </td>
                     </tr>

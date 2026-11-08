@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { KeyRound, Monitor, Loader2, ShieldCheck, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { Button, Input, formatDate } from "@platform/ui";
+import { formatMessage } from "@platform/locales";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
   changeMyPasswordAction,
@@ -102,7 +103,7 @@ export function ProfileSecurityView({
             <KeyRound aria-hidden className="h-4 w-4 text-accent" />
             {p.changePassword}
           </h3>
-          <p className="mt-2 text-sm text-ink-muted">{p.passwordHint}</p>
+          <p className="mt-2 text-sm text-ink-muted">{formatMessage(p.passwordHint, { min: 12 })}</p>
           <form onSubmit={submit} className="mt-5 space-y-4">
             <label className="block text-sm text-ink">
               {t.securitySettings.currentPassword}

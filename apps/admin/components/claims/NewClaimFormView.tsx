@@ -1,6 +1,7 @@
 "use client";
 import { useCompanyCurrency } from "@platform/ui";
 import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
+import { formatMessage } from "@platform/locales";
 
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
@@ -301,7 +302,7 @@ export function NewClaimFormView({
               <span className="text-sm font-semibold">
                 {uploading ? c.uploading : c.addReceipt}
               </span>
-              <span className="text-[11px]">{c.receiptHint}</span>
+              <span className="text-[11px]">{formatMessage(c.receiptHint, { maxSize: 10 })}</span>
             </button>
           )}
           {!receipt && (

@@ -8,7 +8,7 @@ import {
 import { detectFileType } from "../../lib/contracts/src";
 
 const root = path.resolve(__dirname, "../../../../");
-const profilesDir = path.join(root, "company/profiles");
+const profilesDir = path.join(root, "seeds/assets");
 const profiles = fs
   .readdirSync(profilesDir)
   .filter((name) =>

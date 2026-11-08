@@ -136,7 +136,7 @@ export function DashboardWidget({
     case "kpi_pipeline":
       return data.deals && <Kpi settings={settings} title={title} icon={<Briefcase className="w-3.5 h-3.5" />} tone="bg-accent/15 text-accent" value={data.showMoney ? countMoney(data.deals.activePipelineValue) : count(data.deals.activeCount)} sub={formatMessage(b.dealsCount, { n: String(data.deals.activeCount) })} href={ROUTES.crm.deals} />;
     case "kpi_leads":
-      return data.leads != null && <Kpi settings={settings} title={title} icon={<Inbox className="w-3.5 h-3.5" />} tone="bg-blue-500/15 text-blue-500" value={count(data.leads)} sub={t.kpi.lastSevenDays} href={ROUTES.requests.list} />;
+      return data.leads != null && <Kpi settings={settings} title={title} icon={<Inbox className="w-3.5 h-3.5" />} tone="bg-blue-500/15 text-blue-500" value={count(data.leads)} sub={formatMessage(t.kpi.lastSevenDays, { days: 7 })} href={ROUTES.requests.list} />;
     case "kpi_orders":
       return data.orders && <Kpi settings={settings} title={title} icon={<ShoppingBag className="w-3.5 h-3.5" />} tone="bg-violet-500/15 text-violet-500" value={count(data.orders.open, b.openOrders)} sub={<>{money(data.orders.today_total)} · {formatMessage(b.todaySales, { n: String(data.orders.today_count) })}</>} href={ROUTES.orders.list} />;
     case "kpi_shipments": {
@@ -286,7 +286,7 @@ export function DashboardWidget({
               ))}
             </ul>
           ) : (
-            <Empty>{t.dashboardView.zeroUpcomingShoots}</Empty>
+            <Empty>{t.dashboardView.zeroUpcomingAppointments}</Empty>
           )}
         </Panel>
       );

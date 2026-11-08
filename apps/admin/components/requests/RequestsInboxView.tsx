@@ -1,5 +1,6 @@
 "use client";
 import { DataTable } from "@platform/ui";
+import { formatMessage } from "@platform/locales";
 
 import * as React from "react";
 import Link from "next/link";
@@ -178,7 +179,7 @@ export function RequestsInboxView({
             </Select>
             <Select name="due" defaultValue={filters.due} aria-label={copy.filters.due} className={select}>
               <option value="all">{copy.filters.anyDue}</option>
-              {REQUEST_DUE_FILTERS.map((d) => <option key={d} value={d}>{copy.dues[d]}</option>)}
+              {REQUEST_DUE_FILTERS.map((d) => <option key={d} value={d}>{d === "week" ? formatMessage(copy.dues[d], { days: 7 }) : copy.dues[d]}</option>)}
             </Select>
             <label className="flex flex-col gap-0.5 text-[10px] text-ink-muted">
               {copy.filters.from}

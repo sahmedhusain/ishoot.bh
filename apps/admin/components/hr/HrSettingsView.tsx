@@ -1,5 +1,6 @@
 "use client";
 import { useCompanyCurrency } from "@platform/ui";
+import { formatMessage } from "@platform/locales";
 
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
@@ -146,7 +147,7 @@ function PolicyForm({ policy, editable }: { policy: HrPolicyRules; editable: boo
             <label className={labelClass}>
               {h.dailyRateBasis}
               <Select className={fieldClass} value={form.dailyRateBasis} onChange={(e) => set("dailyRateBasis", e.target.value as HrPolicyRules["dailyRateBasis"])}>
-                <option value="30">{h.basis30}</option>
+                <option value="30">{formatMessage(h.basis30, { days: 30 })}</option>
                 <option value="calendar_days">{h.basisCalendar}</option>
                 <option value="working_days">{h.basisWorking}</option>
               </Select>

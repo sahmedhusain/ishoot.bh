@@ -7,17 +7,17 @@ const root = path.resolve(__dirname, "../..");
 
 export const admin = users.admin;
 
-/** The demo profile every seeded run uses, read from company/ so tests never hardcode a company. */
+/** The demo profile every seeded run uses, read from seeds/assets so tests never hardcode a company. */
 export const demo = {
   ...JSON.parse(
     fs.readFileSync(
-      path.join(root, "company/profiles/demo/company.json"),
+      path.join(root, "seeds/assets/demo/company.json"),
       "utf8",
     ),
   ),
   theme: JSON.parse(
     fs.readFileSync(
-      path.join(root, "company/profiles/demo/theme.json"),
+      path.join(root, "seeds/assets/demo/theme.json"),
       "utf8",
     ),
   ),
@@ -25,16 +25,16 @@ export const demo = {
 
 /** Names of every company profile other than the demo; none may ever appear on a demo page. */
 export const otherCompanyNames: string[] = fs
-  .readdirSync(path.join(root, "company/profiles"))
+  .readdirSync(path.join(root, "seeds/assets"))
   .filter(
     (name) =>
       name !== "demo" &&
-      fs.existsSync(path.join(root, "company/profiles", name, "company.json")),
+      fs.existsSync(path.join(root, "seeds/assets", name, "company.json")),
   )
   .flatMap((name) => {
     const { display = {}, company = {} } = JSON.parse(
       fs.readFileSync(
-        path.join(root, "company/profiles", name, "company.json"),
+        path.join(root, "seeds/assets", name, "company.json"),
         "utf8",
       ),
     );

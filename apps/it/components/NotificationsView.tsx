@@ -148,7 +148,7 @@ export function NotificationsView({
   return (
     <>
       <PageTitle title={n.title} description={n.description} />
-      <div className="grid grid-cols-3 gap-3 mb-6" aria-label={n.lastDay}>
+      <div className="grid grid-cols-3 gap-3 mb-6" aria-label={formatMessage(n.lastDay, { hours: 24 })}>
         {(["sent", "queued", "failed"] as const).map((status) => (
           <Card
             key={status}
@@ -156,7 +156,7 @@ export function NotificationsView({
           >
             <div className="text-xs text-ink-muted">{n.statuses[status]}</div>
             <div className="text-2xl font-bold text-ink">{total(status)}</div>
-            <div className="text-[11px] text-ink-muted">{n.lastDay}</div>
+            <div className="text-[11px] text-ink-muted">{formatMessage(n.lastDay, { hours: 24 })}</div>
           </Card>
         ))}
       </div>

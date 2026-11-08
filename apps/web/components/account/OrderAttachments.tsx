@@ -69,7 +69,7 @@ export function OrderAttachments({
               if (!result.ok)
                 throw new Error(
                   result.status === 413
-                    ? t("account.orderAttachments.fileLimit")
+                    ? t("account.orderAttachments.fileLimit", { maxSize: 10 })
                     : t("account.orderAttachments.uploadFailed"),
                 );
               form.reset();
@@ -88,7 +88,7 @@ export function OrderAttachments({
         >
           <label className="block text-sm space-y-2">
             <span>
-              {t("account.orderAttachments.inputHelp")}
+              {t("account.orderAttachments.inputHelp", { maxSize: 10, maxFiles: 10 })}
             </span>
             <input
               name="file"

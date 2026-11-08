@@ -36,7 +36,14 @@ export function ReportView({ result, locale: dataLocale, compare, schedules, cur
   const router = useRouter();
   const { definition } = result;
   const title = (copy.catalog as Record<string, { title: string; description: string }>)[definition.key];
-  const columnLabel = (key: string) => (copy.columns as Record<string, string>)[key] ?? key;
+  const columnLabel = (key: string) => {
+    const raw = (copy.columns as Record<string, string>)[key] ?? key;
+    if (key === "d1_30") return formatMessage(raw, { min: 1, max: 30 });
+    if (key === "d31_60") return formatMessage(raw, { min: 31, max: 60 });
+    if (key === "d61_90") return formatMessage(raw, { min: 61, max: 90 });
+    if (key === "d90_plus") return formatMessage(raw, { days: 90 });
+    return raw;
+  };
   const [period, setPeriod] = React.useState({ from: result.from, to: result.to });
   const query = (next: { from?: string; to?: string; compare?: boolean; format?: string }) => {
     const params = new URLSearchParams();
@@ -87,7 +94,7 @@ export function ReportView({ result, locale: dataLocale, compare, schedules, cur
             <Button type="button" size="sm" variant="primary" className="rounded-full" onClick={() => go(period)} data-testid="report-run">{copy.view.run}</Button>
             <div className="flex flex-wrap gap-1">
               {(Object.keys(ranges) as (keyof typeof ranges)[]).map((k) => (
-                <button key={k} type="button" onClick={() => { setPeriod(ranges[k]); go(ranges[k]); }} className="rounded-full border border-outline-variant px-2.5 py-1 text-xs hover:border-accent">{copy.view.presets[k]}</button>
+                <button key={k} type="button" onClick={() => { setPeriod(ranges[k]); go(ranges[k]); }} className="rounded-full border border-outline-variant px-2.5 py-1 text-xs hover:border-accent">{k === "last30" ? formatMessage(copy.view.presets[k], { days: 30 }) : copy.view.presets[k]}</button>
               ))}
             </div>
             {measure && (

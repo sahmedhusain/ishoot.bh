@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { formatMessage } from "@platform/locales";
 import { Input, FloatingSurface } from "@platform/ui";
 import { errorMessage } from "../../lib/error-text";
 import { useRouter } from "next/navigation";
@@ -444,7 +445,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
                   })}
                 </div>
                 <p className="px-2.5 pt-2 pb-1 text-[11px] text-ink-muted leading-relaxed border-t border-outline-variant/50">
-                  {t.quickJump.helper}
+                  {formatMessage(t.quickJump.helper, { min: 2 })}
                 </p>
               </div>
             )}

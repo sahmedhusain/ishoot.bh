@@ -57,7 +57,7 @@ export function InventoryStockView({ rows, total, page, pageSize, totalValue, fi
 
       {expiring.length > 0 && (
         <Card className="p-4 border-amber-500/30 bg-amber-500/[0.06]" data-page-section>
-          <h2 className="flex items-center gap-2 text-sm font-bold text-ink"><AlertTriangle className="w-4 h-4 text-amber-600" aria-hidden="true" />{copy.expiring}</h2>
+          <h2 className="flex items-center gap-2 text-sm font-bold text-ink"><AlertTriangle className="w-4 h-4 text-amber-600" aria-hidden="true" />{formatMessage(copy.expiring, { days: 30 })}</h2>
           <ul className="mt-2 space-y-1 text-sm">
             {expiring.map((b) => {
               const days = daysToExpiry(b.expiry) ?? 0;

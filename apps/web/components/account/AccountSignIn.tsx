@@ -225,7 +225,7 @@ export function AccountSignIn({
                   />
                   {tab === "signUp" && (
                     <span className="block text-xs text-ink-muted">
-                      {t("account.passwordHint")}
+                      {t("account.passwordHint", { min: 8 })}
                     </span>
                   )}
                 </label>

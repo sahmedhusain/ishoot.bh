@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { DEMO_PRESETS, demoPreset } from "../../../../company/seed/demo-presets";
+import { DEMO_PRESETS, demoPreset } from "../../lib/demo-presets";
 import { ACTIVITY_PRESETS, BUSINESS_ACTIVITIES } from "@platform/database/website-presets";
 import { DEFAULT_FEATURE_MODULES } from "@platform/database/constants/features";
 import { STYLE_PRESETS } from "@platform/database/constants/theme";

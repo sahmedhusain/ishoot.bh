@@ -52,37 +52,45 @@ This loads **Northwind Studio**, a fictional company with its own logo, colours 
 
 - Admin: http://localhost:3001. Sign in with `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD`.
 - Website: http://localhost:3000 (English at `/en`, Arabic at `/ar`).
-- Other demo accounts are listed in `company/seed/demo-staff.json` (for example `finance@example.com`, `sales@example.com`). They all use `SUPER_ADMIN_PASSWORD`.
-- `./run.sh db reset --light` gives the same company with less data and takes about 20 seconds.
+- Other demo accounts are listed in `seeds/demo-staff.json` (for example `finance@example.com`, `sales@example.com`). They all use `SUPER_ADMIN_PASSWORD`.
+- `./run.sh db seed` seeds iShoot Cinema demo data; `./run.sh db seed demo` seeds Northwind Studio.
 
-## B. Load a company profile
+## B. Load a company profile and assets
 
-A **company profile** is a folder that holds one company's identity, theme and brand files:
+Company profiles and assets are organized in pure SQL seeds and asset directories under `seeds/`:
 
 ```
-company/profiles/acme/
-  company.json   names, registration and VAT numbers, address, contacts, bank, currency, document prefixes
-  theme.json     primary and accent colours, fonts, corner style, default light or dark mode
-  assets/        brand/ (text logos, icons, stamp, signature), fonts/ (woff2), media/ (website images)
-  raw/           original design files (.ai, .zip…), never committed
+seeds/
+  sql/
+    seed_ishoot.sql     Full pure SQL seed for iShoot Cinema
+    seed_northwind.sql  Full pure SQL seed for Northwind Studio
+    seed_bootstrap.sql  Clean bootstrap seed for wizard setup
+    presets/            Preset overrides (commerce, services, all, etc.)
+  assets/
+    ishoot/             Brand artwork, logos, icons, fonts, media, and raw design assets
+    demo/               Neutral Northwind brand artwork and assets
 ```
 
-The format of each file is described in [company/README.md](../company/README.md).
+The seed workflow is documented in [DATABASE.md](DATABASE.md).
 
-### Create a profile
+### Applying seeds and presets
 
-1. Copy the demo as a starting point:
+1. Seed the default company (iShoot Cinema):
    ```bash
-   cp -R company/profiles/demo company/profiles/acme
+   ./run.sh db seed
    ```
-2. Edit `company/profiles/acme/company.json`, setting the `display` names, the `company` fields and the `assets` file names.
-3. Edit `theme.json`. Colours are `#RRGGBB`. Fonts are a Google family from the curated list, `"system"`, or uploaded WOFF2 files in `assets/fonts/`.
-4. Replace the artwork in `assets/brand/` with PNG, JPEG or WebP files (not SVG):
-   - `logo` and `darkLogo`: the **text logo only**, for light and dark backgrounds. The apps place the icon next to it.
-   - `icon` and `darkIcon`: the square mark on its own.
-   - `stamp` and `signature`: printed on approved documents.
-5. Check the profile:
+2. Seed the neutral demo company (Northwind Studio):
    ```bash
+   ./run.sh db seed demo
+   ```
+3. Apply an activity preset (e.g. commerce, services, food, agency):
+   ```bash
+   ./run.sh db preset commerce
+   ```
+4. Reset and verify:
+   ```bash
+   node scripts/verify-seed-dates.js
+   ```
    ./run.sh test unit
    ```
 
@@ -162,6 +170,6 @@ More detail: [DATABASE.md](DATABASE.md) (database and seeds), [TESTING.md](TESTI
 
 ## Rules that keep the system company-neutral
 
-- Company names, colours, fonts, logos, addresses and registration numbers go in `company/profiles/<name>/` or in the database, never in `apps/` or `packages/`. `./run.sh test brand` fails otherwise, and it runs in CI.
+- Company names, colours, fonts, logos, addresses and registration numbers go in `seeds/assets/<name>/` or in the database, never in `apps/` or `packages/`.
 - Interface text goes in the owning app's locale files under `apps/{admin,web,it}/locales`, never inline (see [LOCALIZATION.md](LOCALIZATION.md)).
 - Demo people and companies are fictional and use `example.com` or `.example` addresses.

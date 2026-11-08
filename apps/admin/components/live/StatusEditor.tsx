@@ -129,11 +129,24 @@ function StatusEditor({ onDone }: { onDone?: () => void }) {
             onChange={(e) => setDuration(e.target.value as PresenceDuration)}
             className="mt-1 w-full rounded-xl border border-outline-variant bg-surface-raised px-3 py-2 text-sm font-normal text-ink focus:outline-none focus:ring-2 focus:ring-accent"
           >
-            {PRESENCE_DURATIONS.map((d) => (
-              <option key={d} value={d}>
-                {(s.durations as Record<string, string>)[d] ?? d}
-              </option>
-            ))}
+            {PRESENCE_DURATIONS.map((d) => {
+              const raw = (s.durations as Record<string, string>)[d] ?? d;
+              const label =
+                d === "30m"
+                  ? formatMessage(raw, { minutes: 30 })
+                  : d === "1h"
+                    ? formatMessage(raw, { hours: 1 })
+                    : d === "2h"
+                      ? formatMessage(raw, { hours: 2 })
+                      : d === "4h"
+                        ? formatMessage(raw, { hours: 4 })
+                        : raw;
+              return (
+                <option key={d} value={d}>
+                  {label}
+                </option>
+              );
+            })}
           </select>
         </label>
       </div>

@@ -32,8 +32,14 @@ export function ClientTierBadge({ standing }: { standing: ClientStanding }) {
     standing.rank && standing.tier !== "none"
       ? formatMessage(c.profile.rankLine, { rank: String(standing.rank), total: String(standing.rankedClients) })
       : c.profile.notRanked;
+  const tierHint =
+    standing.tier in c.tierHints
+      ? formatMessage(c.tierHints[standing.tier as keyof typeof c.tierHints], {
+          pct: standing.tier === "A" ? 80 : standing.tier === "B" ? 15 : 5,
+        })
+      : "";
   return (
-    <span title={`${c.tierHints[standing.tier]} · ${label}`} className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-bold ${TIER_STYLE[standing.tier]}`}>
+    <span title={tierHint ? `${tierHint} · ${label}` : label} className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-bold ${TIER_STYLE[standing.tier]}`}>
       <Trophy className="h-3.5 w-3.5" />
       {standing.tier === "none" ? c.tierNames.none : formatMessage(c.profile.tierLabel, { tier: standing.tier })}
       {standing.rank ? <span className="font-medium opacity-80">· #{standing.rank}</span> : null}

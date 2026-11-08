@@ -44,7 +44,7 @@ export function WorkloadPanels({ approvals, requests, complaints, generatedAt }:
             <Tile label={w.pending} value={approvals.awaitingMe} tone={approvals.awaitingMe ? "accent" : "neutral"} href={ROUTES.approvals()} />
             <Tile label={w.oldestWaiting} value={age(approvals.oldestAwaitingAt)} />
             <Tile label={w.submittedPending} value={approvals.mySubmittedPending} href={ROUTES.approvals({ scope: "mine" })} />
-            <Tile label={w.decidedLast30} value={approvals.myDecidedLast30} />
+            <Tile label={formatMessage(w.decidedLast30, { days: 30 })} value={approvals.myDecidedLast30} />
           </div>
           {Object.keys(approvals.awaitingMeByType).length > 0 && (
             <div className="flex flex-wrap gap-2">
@@ -84,8 +84,8 @@ export function WorkloadPanels({ approvals, requests, complaints, generatedAt }:
             <div className="grid grid-cols-2 gap-3">
               <Tile label={w.pending} value={approvals.org.pending} />
               <Tile label={formatMessage(w.stale, { days: String(STALE_APPROVAL_DAYS) })} value={approvals.org.stale} tone={approvals.org.stale ? "warn" : "neutral"} />
-              <Tile label={w.approved30} value={approvals.org.approvedLast30} />
-              <Tile label={w.rejected30} value={approvals.org.rejectedLast30} />
+              <Tile label={formatMessage(w.approved30, { days: 30 })} value={approvals.org.approvedLast30} />
+              <Tile label={formatMessage(w.rejected30, { days: 30 })} value={approvals.org.rejectedLast30} />
               <Tile label={w.avgDecision} value={duration(approvals.org.avgDecisionHours)} wide />
             </div>
             <Breakdown title={w.byType} data={approvals.org.byType} label={typeLabel} />
@@ -102,7 +102,7 @@ export function WorkloadPanels({ approvals, requests, complaints, generatedAt }:
             <Tile label={t.requestInbox.stats.unassigned} value={requests.unassigned} tone={requests.unassigned ? "warn" : "neutral"} href={requestsLink({ scope: "unassigned" })} />
             <Tile label={t.requestInbox.stats.awaitingApproval} value={requests.awaitingApproval} href={requestsLink({ status: "pending_approval" })} />
             <Tile label={w.newLast7} value={requests.newLast7} />
-            <Tile label={w.resolved30} value={requests.resolvedLast30} />
+            <Tile label={formatMessage(w.resolved30, { days: 30 })} value={requests.resolvedLast30} />
             <Tile label={w.avgResolution} value={duration(requests.avgResolutionHours)} />
             <Tile label={w.slaMet} value={requests.slaMetPct == null ? w.none : `${requests.slaMetPct}%`} tone={requests.slaMetPct != null && requests.slaMetPct < 80 ? "warn" : "neutral"} />
           </div>
@@ -132,7 +132,7 @@ export function WorkloadPanels({ approvals, requests, complaints, generatedAt }:
             <Tile label={t.requestInbox.stats.overdue} value={complaints.overdue} tone={complaints.overdue ? "danger" : "neutral"} href={requestsLink({ kind: "feedback", overdue: "true" })} />
             <Tile label={t.requestInbox.stats.unassigned} value={complaints.unassigned} tone={complaints.unassigned ? "warn" : "neutral"} href={requestsLink({ kind: "feedback", scope: "unassigned" })} />
             <Tile label={w.newLast7} value={complaints.newLast7} hint={formatMessage(w.vsLastWeek, { n: String(complaints.newPrevious7) })} tone={complaints.newLast7 > complaints.newPrevious7 ? "warn" : "neutral"} />
-            <Tile label={w.resolved30} value={complaints.resolvedLast30} />
+            <Tile label={formatMessage(w.resolved30, { days: 30 })} value={complaints.resolvedLast30} />
             <Tile label={w.avgResolution} value={duration(complaints.avgResolutionHours)} />
             <Tile label={w.slaMet} value={complaints.slaMetPct == null ? w.none : `${complaints.slaMetPct}%`} />
           </div>

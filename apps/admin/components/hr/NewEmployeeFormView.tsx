@@ -330,7 +330,7 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
                 onChange={(e) => setJobTitleEn(e.target.value)}
                 placeholder={
                   t.newEmployeeForm.jobTitlePlaceholderEn ||
-                  t.newEmployeeForm.eGSeniorCinematographer
+                  t.newEmployeeForm.eGSeniorAccountant
                 }
                 className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised p-2 text-ink"
                dir="ltr"/>
@@ -346,7 +346,7 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false, 
                 onChange={(e) => setJobTitleAr(e.target.value)}
                 placeholder={
                   t.newEmployeeForm.jobTitlePlaceholderAr ||
-                  t.newEmployeeForm.exampleSeniorCinematographer
+                  t.newEmployeeForm.exampleSeniorAccountant
                 }
                 className="w-full text-xs rounded-md border border-outline-variant bg-surface-raised p-2 text-ink"
               />

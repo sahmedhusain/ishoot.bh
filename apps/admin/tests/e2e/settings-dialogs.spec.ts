@@ -1,5 +1,6 @@
 import { selectOption } from "../../select-option";
 import { expect, test } from "@playwright/test";
+import { formatMessage } from "@platform/locales";
 import enLocale from "../../locales/en.json";
 import arLocale from "../../locales/ar.json";
 const en = enLocale.admin;
@@ -105,7 +106,10 @@ for (const locale of ["en", "ar"] as const) {
       })
       .click();
     await expect(dialog.getByRole("alert")).toHaveText(
-      t.payrollManagement.invalidPeriod,
+      formatMessage(t.payrollManagement.invalidPeriod, {
+        startYear: 2020,
+        endYear: 2035,
+      }),
     );
     await year.fill("2026");
     await page.route("**/dashboard/hr/payroll", (route) =>

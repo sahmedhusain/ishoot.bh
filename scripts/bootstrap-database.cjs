@@ -1,68 +1,35 @@
-// Provisions the first IT administrator through identity, then optionally installs a company profile through
-// the system and files APIs. It intentionally has no direct database client.
+// Provisions the minimal clean database setup (roles, modules, sequences, base accounts)
+// using pure SQL seeds.
 const { execFileSync } = require("node:child_process");
+const fs = require("node:fs");
 const path = require("node:path");
 
 const root = path.resolve(__dirname, "..");
 try {
   require("dotenv").config({ path: path.join(root, ".env"), quiet: true });
 } catch (e) {
-  try {
-    require(path.join(root, "company/node_modules/dotenv")).config({ path: path.join(root, ".env"), quiet: true });
-  } catch (err) {}
-}
-try {
-  require("ts-node").register({ project: path.resolve(__dirname, "../company/tsconfig.json") });
-} catch (e) {
-  try {
-    require(path.join(root, "company/node_modules/ts-node")).register({ project: path.resolve(__dirname, "../company/tsconfig.json") });
-  } catch (err) {}
+  // dotenv loaded by runner
 }
 
-const { loadCompanyProfile, installCompanyProfile } = require("../company/tools/company-profile.ts");
-
-function requireCredential() {
-  const email = process.env.SUPER_ADMIN_EMAIL?.trim().toLowerCase();
-  const password = process.env.SUPER_ADMIN_PASSWORD;
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !password || password.length < 12)
-    throw new Error("Set SUPER_ADMIN_EMAIL and a SUPER_ADMIN_PASSWORD of at least 12 characters");
-  return { email, password };
-}
-
-function identityCommand() {
-  const binary = path.join(root, "backend/bin/identity");
-  return require("node:fs").existsSync(binary)
-    ? [binary, ["bootstrap-it"]]
-    : ["go", ["run", "./services/identity/cmd/api", "bootstrap-it"]];
-}
+const run = (command, commandArgs, extra = {}) =>
+  execFileSync(command, commandArgs, { cwd: root, stdio: "inherit", env: { ...process.env, ...extra } });
 
 async function main() {
-  const { email, password } = requireCredential();
-  const [command, args] = identityCommand();
-  try {
-    execFileSync(command, [...args, "-email", email], {
-      cwd: command === "go" ? path.join(root, "backend") : root,
-      input: `${password}\n`,
-      stdio: ["pipe", "inherit", "inherit"],
-      env: { SERVICE_NAME: "identity", ...process.env },
-    });
-  } catch (err) {
-    if (!err.message?.includes("an IT account already exists") && !err.stdout?.toString().includes("an IT account already exists")) {
-      // Ignore if account already exists
-    }
-  }
-  const { syncAccount, setAccountPassword } = require("../apps/admin/lib/api/identity");
-  await syncAccount("staff", "super-admin", { email, roles: ["super_admin"], active: true });
-  await setAccountPassword("staff", "super-admin", { password });
-  await syncAccount("it", "it-admin", { email, roles: ["it_admin"], active: true }).catch(() => {});
-  await setAccountPassword("it", "it-admin", { password }).catch(() => {});
+  const profile = process.env.COMPANY_PROFILE?.trim();
 
-  const name = process.env.COMPANY_PROFILE?.trim();
-  if (name) await installCompanyProfile(loadCompanyProfile(name), "bootstrap");
-  console.log("Bootstrap complete. The identity, system and files services own all persisted setup data.");
+  if (profile) {
+    const seedTarget = (profile === "demo" || profile === "northwind") ? "northwind" : "ishoot";
+    console.log(`Bootstrapping database with full profile "${seedTarget}"...`);
+    run(path.join(root, "run.sh"), ["db", "seed", seedTarget]);
+  } else {
+    console.log("Bootstrapping minimal clean database (pure SQL)...");
+    run(path.join(root, "run.sh"), ["db", "bootstrap"]);
+  }
+
+  console.log("Bootstrap complete. System is ready.");
 }
 
 main().catch((error) => {
   console.error(error.message || error);
-  process.exitCode = 1;
+  process.exit(1);
 });

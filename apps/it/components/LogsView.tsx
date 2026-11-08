@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { formatMessage } from "@platform/locales";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -179,10 +180,10 @@ export function LogsView({
                 onChange={(e) => setToggleTTL(parseInt(e.target.value, 10))}
                 className="block w-36 rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm"
               >
-                <option value={15}>{l.ttl15m}</option>
-                <option value={30}>{l.ttl30m}</option>
-                <option value={60}>{l.ttl1h}</option>
-                <option value={1440}>{l.ttl24h}</option>
+                <option value={15}>{formatMessage(l.ttl15m, { minutes: 15 })}</option>
+                <option value={30}>{formatMessage(l.ttl30m, { minutes: 30 })}</option>
+                <option value={60}>{formatMessage(l.ttl1h, { hours: 1 })}</option>
+                <option value={1440}>{formatMessage(l.ttl24h, { hours: 24 })}</option>
               </select>
             </label>
 

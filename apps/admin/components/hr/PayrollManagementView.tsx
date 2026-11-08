@@ -1,5 +1,6 @@
 "use client";
 import { useCompanyCurrency } from "@platform/ui";
+import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
@@ -541,7 +542,7 @@ export function PayrollManagementView({
 
       {/* Generate Run Modal */}
       <Modal isOpen={showGenerateModal} onClose={() => setShowGenerateModal(false)} title={t.payrollManagement.generateMonthlyPayrollCycle} description={t.payrollManagement.calculateSalaryItemsUsingEmployment} busy={generating} className="max-w-md" footer={<div className="flex justify-end gap-3"><Button type="button" variant="ghost" disabled={generating} onClick={() => setShowGenerateModal(false)}>{t.shared.cancel}</Button><Button type="submit" form={generateFormId} disabled={generating}>{generating ? t.payrollManagement.calculating : t.payrollManagement.generateRun}</Button></div>}>
-        <form id={generateFormId} onSubmit={handleGenerate} onInvalidCapture={() => setGenerateError(t.payrollManagement.invalidPeriod)}>
+        <form id={generateFormId} onSubmit={handleGenerate} onInvalidCapture={() => setGenerateError(formatMessage(t.payrollManagement.invalidPeriod, { startYear: 2020, endYear: 2035 }))}>
           <fieldset disabled={generating}>
             <div className="grid grid-cols-2 gap-3">
               <div>

@@ -365,7 +365,7 @@ export function WebSettingsView({
               </div>
 
               <div className="grid sm:grid-cols-2 gap-4">
-                {(["about_text_en", "about_text_ar"] as const).map(key => <label key={key} className="text-sm">{t.webSettings.studioStory} ({key === "about_text_ar" ? t.websiteEditor.inArabic : t.websiteEditor.inEnglish})<textarea rows={5} maxLength={20000} className="w-full border rounded p-3 bg-transparent" dir={key.endsWith("ar") ? "rtl" : "ltr"} value={settings[key] || ""} onChange={e => setSettings({ ...settings, [key]: e.target.value })} /></label>)}
+                {(["about_text_en", "about_text_ar"] as const).map(key => <label key={key} className="text-sm">{t.webSettings.companyStory} ({key === "about_text_ar" ? t.websiteEditor.inArabic : t.websiteEditor.inEnglish})<textarea rows={5} maxLength={20000} className="w-full border rounded p-3 bg-transparent" dir={key.endsWith("ar") ? "rtl" : "ltr"} value={settings[key] || ""} onChange={e => setSettings({ ...settings, [key]: e.target.value })} /></label>)}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <label className="block space-y-1">
@@ -760,7 +760,7 @@ export function WebSettingsView({
                 <label className="block space-y-1">
                   <span className="text-xs font-semibold text-ink flex items-center gap-1.5">
                     <Phone className="w-3.5 h-3.5 text-ink-muted" />
-                    <span>{t.webSettingsView.studioPhone}</span>
+                    <span>{t.webSettingsView.mainPhone}</span>
                   </span>
                   <PhoneInput
                     value={settings.phone}

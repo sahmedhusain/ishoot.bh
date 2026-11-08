@@ -131,7 +131,11 @@ export function NotificationSettingsPanel() {
           <div className="flex flex-wrap gap-2">
             {(["1h", "8h", "tomorrow", "forever"] as const).map((choice) => (
               <Button key={choice} size="sm" variant="outline" onClick={() => set({ mutedUntil: muteUntil(choice) })}>
-                {l.muteFor[choice]}
+                {choice === "1h"
+                  ? formatMessage(l.muteFor[choice], { hours: 1 })
+                  : choice === "8h"
+                    ? formatMessage(l.muteFor[choice], { hours: 8 })
+                    : l.muteFor[choice]}
               </Button>
             ))}
           </div>

@@ -451,7 +451,7 @@ EOF
 # ----------------------------------------------------------------------------------------------------------
 cmd_install() {
   step "Installing Node dependencies"
-  for app in apps/admin apps/it apps/web company backend/contracts; do
+  for app in apps/admin apps/it apps/web backend/contracts; do
     if [ -f "$app/package.json" ]; then
       npm --prefix "$app" install
     fi
@@ -672,13 +672,35 @@ SQL
         npm --prefix backend/contracts run build || true
       fi
       ;;
-    seed) run npm --prefix company run seed ;;
+    seed)
+      local target_profile="${1:-${COMPANY_PROFILE:-ishoot}}"
+      local seed_file="seeds/sql/seed_ishoot.sql"
+      if [ "$target_profile" = "demo" ] || [ "$target_profile" = "northwind" ]; then
+        seed_file="seeds/sql/seed_northwind.sql"
+      elif [ "$target_profile" = "bootstrap" ]; then
+        seed_file="seeds/sql/seed_bootstrap.sql"
+      elif [ -f "seeds/sql/seed_${target_profile}.sql" ]; then
+        seed_file="seeds/sql/seed_${target_profile}.sql"
+      elif [ -f "seeds/seed.sql" ]; then
+        seed_file="seeds/seed.sql"
+      fi
+      step "Seeding database using pure SQL ($seed_file)"
+      pg_tool psql "$(plain_db_url)" < "$seed_file"
+      ok "Seeded database from $seed_file."
+      ;;
+    preset)
+      local preset_name="${1:-}"
+      [ -n "$preset_name" ] || die "Usage: ./run.sh db preset <all|products|services|commerce|food|agency>"
+      local preset_file="seeds/sql/presets/preset_${preset_name}.sql"
+      [ -f "$preset_file" ] || die "Preset file $preset_file not found."
+      step "Applying activity preset SQL ($preset_file)"
+      pg_tool psql "$(plain_db_url)" < "$preset_file"
+      ok "Applied preset $preset_name."
+      ;;
     bootstrap)
-      local profile="" overwrite=""
-      while [ $# -gt 0 ]; do
-        case "$1" in --profile) profile="$2"; shift 2 ;; --overwrite) overwrite=1; shift ;; *) die "Unknown option $1" ;; esac
-      done
-      COMPANY_PROFILE="${profile:-${COMPANY_PROFILE:-}}" COMPANY_PROFILE_OVERWRITE="$overwrite" node scripts/bootstrap-database.cjs
+      step "Bootstrapping minimal clean database (pure SQL)"
+      pg_tool psql "$(plain_db_url)" < "seeds/sql/seed_bootstrap.sql"
+      ok "Database bootstrapped."
       ;;
     integrity | check) cmd_db status ;;
     psql) pg_tool psql "$(plain_db_url)" ;;
@@ -885,9 +907,8 @@ cmd_deploy() {
 # ----------------------------------------------------------------------------------------------------------
 cmd_company() {
   case "${1:-list}" in
-    list) ls -1 company/profiles | grep -v '^\.' | grep -v README ;;
-    demo-assets) npm --prefix company run assets:demo ;;
-    *) die "company [list|demo-assets]" ;;
+    list) ls -1 seeds/assets 2>/dev/null | grep -v '^\.' | grep -v README ;;
+    *) die "company [list]" ;;
   esac
 }
 cmd_audit() {
@@ -949,7 +970,7 @@ else
       done
       ;;
     types | type-check)
-      for app in apps/admin apps/it apps/web company backend/contracts; do
+      for app in apps/admin apps/it apps/web backend/contracts; do
         if [ -f "$app/package.json" ]; then
           npm --prefix "$app" run type-check
         fi

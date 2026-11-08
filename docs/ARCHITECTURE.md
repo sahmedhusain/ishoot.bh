@@ -29,7 +29,7 @@ flowchart LR
     end
 
     %% Seed data
-    Seed["Seed & Presets<br/>company/seed"]:::seed
+    Seed["Pure SQL Seeds & Presets<br/>seeds/sql"]:::seed
 
     %% Connections
     Web -->|REST| G
@@ -142,7 +142,7 @@ The platform's technical architecture is governed by key engineering decisions:
 ## Company Identity and Theming
 
 ```
-company/profiles/<name>  ──db:bootstrap / db:seed──▶  CompanySetting (identity, theme JSON, file URLs)
+seeds/assets/<name>      ──db:bootstrap / db:seed──▶  CompanySetting (identity, theme JSON, file URLs)
 setup wizard / Settings ─────────────────────────────▶          │        + files in storage (public-assets)
                                                                 ▼
               each root layout: themeStylesheet(theme) → <style> CSS variables + Google/uploaded fonts

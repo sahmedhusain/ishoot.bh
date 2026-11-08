@@ -1,10 +1,10 @@
-// Run: pnpm db:reset [--profile <name> | --demo <preset>] [--style <style>] [--empty] [--light] [--yes]
+// Run: pnpm db:reset [--profile <name> | --demo <preset>] [--empty] [--yes]
 // Local development only: wipes the local service volumes, re-applies every service migration and fills it again.
-//   (default)  demo business data for COMPANY_PROFILE (or --profile, default "ishoot"), full volume
-//   --light    the same without the large generated volume (faster)
+//   (default)  demo business data for COMPANY_PROFILE (or --profile, default "ishoot"), pure SQL seed
 //   --empty    no demo data: roles, permissions and SUPER_ADMIN only; the admin then shows the setup wizard
 // Refuses to run against anything but a database on this machine, or with NODE_ENV=production.
 const { execFileSync } = require("node:child_process");
+const fs = require("node:fs");
 const path = require("node:path");
 const readline = require("node:readline/promises");
 
@@ -33,7 +33,6 @@ if (process.env.NODE_ENV === "production") {
 }
 
 let demo = option("demo") || process.env.SEED_PRESET?.trim();
-const style = option("style") || process.env.SEED_STYLE?.trim();
 let profile = option("profile") || process.env.COMPANY_PROFILE?.trim();
 
 if (profile === "all") {
@@ -47,7 +46,7 @@ async function selectProfileInteractive() {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   console.log("\nSelect company profile or demo workspace:");
   console.log("  1) ishoot   — iShoot Cinema Production S.P.C. (Default)");
-  console.log("  2) demo     — Northwind Traders / Harbor Projects W.L.L.");
+  console.log("  2) demo     — Northwind Studio W.L.L.");
   console.log("  3) media    — Media & Production Preset");
   console.log("  4) commerce — Store & Commerce Preset");
   console.log("  5) services — Professional Services Preset");
@@ -89,10 +88,9 @@ async function selectProfileInteractive() {
   }
 }
 
-if (flag("demo") && (!option("demo") || option("demo").startsWith("--"))) throw new Error("--demo needs a preset; run pnpm db:demo:list");
-if (flag("style") && (!option("style") || option("style").startsWith("--"))) throw new Error("--style needs a style; run pnpm db:demo:list");
+if (flag("demo") && (!option("demo") || option("demo").startsWith("--"))) throw new Error("--demo needs a preset (e.g. commerce, services, media, all)");
 if (demo && flag("profile") && option("profile") !== "all") throw new Error("Choose --demo or --profile; demo presets use the shared demo company.");
-if (flag("empty") && (demo || style)) throw new Error("--empty cannot be combined with a demo preset or style.");
+if (flag("empty") && demo) throw new Error("--empty cannot be combined with a demo preset.");
 
 const run = (command, commandArgs, extra = {}) =>
   execFileSync(command, commandArgs, { cwd: root, stdio: "inherit", env: { ...process.env, ...extra } });
@@ -118,36 +116,34 @@ async function confirm(target) {
 async function main() {
   await selectProfileInteractive();
 
-  if (demo || style) {
-    const tsNodePath = require.resolve("ts-node", { paths: [path.join(root, "company"), root] });
-    const tsconfigPaths = require(require.resolve("tsconfig-paths", { paths: [path.join(root, "company"), root] }));
-    const tsconfig = require(path.join(root, "company/tsconfig.json"));
-    require(tsNodePath).register({ project: path.join(root, "company/tsconfig.json") });
-    tsconfigPaths.register({
-      baseUrl: path.join(root, "company"),
-      paths: tsconfig.compilerOptions.paths,
-    });
-    const { demoPreset } = require("../company/seed/demo-presets.ts");
-    demoPreset(demo || "media", style);
-  }
-
   profile = demo ? "demo" : profile || "ishoot";
-  const mode = flag("empty") ? "empty" : flag("light") ? "light" : "full";
+  const mode = flag("empty") ? "empty" : "full";
   const target = `${url.hostname}:${url.port || 5432}${url.pathname}`;
 
-  console.log(`Database: ${target}\nMode: ${mode}${mode === "empty" ? "" : ` (company profile "${profile}"${demo ? `, demo "${demo}"` : ""}${style ? `, style "${style}"` : ""})`}`);
+  console.log(`Database: ${target}\nMode: ${mode}${mode === "empty" ? "" : ` (company profile "${profile}"${demo ? `, demo "${demo}"` : ""})`}`);
   await confirm(target);
 
   resetServiceData();
   run(path.join(root, "run.sh"), ["db", "migrate"]);
-  run(process.execPath, ["scripts/bootstrap-database.cjs"], { COMPANY_PROFILE: mode === "empty" ? "" : profile });
 
   if (mode === "empty") {
+    run(path.join(root, "run.sh"), ["db", "bootstrap"]);
     console.log("\nEmpty database ready. Sign in with SUPER_ADMIN_EMAIL to run the setup wizard.");
     return;
   }
-  run("npm", ["--prefix", "company", "run", "seed"], { COMPANY_PROFILE: profile, SEED_PRESET: demo || "", SEED_STYLE: style || "" });
-  run("npm", ["--prefix", "company", "run", "check:demo"], { COMPANY_PROFILE: profile, SEED_PRESET: demo || "" });
+
+  const seedTarget = (profile === "demo" || profile === "northwind") ? "northwind" : "ishoot";
+  run(path.join(root, "run.sh"), ["db", "seed", seedTarget]);
+
+  if (demo && demo !== "ishoot") {
+    const presetFile = path.join(root, `seeds/sql/presets/preset_${demo}.sql`);
+    if (fs.existsSync(presetFile)) {
+      console.log(`Applying activity preset: ${demo}...`);
+      run(path.join(root, "run.sh"), ["db", "preset", demo]);
+    }
+  }
+
+  run("node", ["scripts/verify-seed-dates.js"]);
   console.log(`\nDemo service data ready for "${profile}".`);
 }
 

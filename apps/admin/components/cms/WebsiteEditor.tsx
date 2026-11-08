@@ -197,7 +197,7 @@ export function WebsiteEditor({
         </p>
       )}
       <section className="space-y-4 rounded-xl border p-5" data-page-section>
-        <h2 className="font-bold">{t.websiteEditor.studioImageAndHistory}</h2>
+        <h2 className="font-bold">{t.websiteEditor.companyImageAndHistory}</h2>
         <div className="block space-y-1"><span>{t.websiteEditor.imageUrl}</span><AssetUrlInput value={draft.aboutImageUrl || ""} onChange={(url) => change({ ...draft, aboutImageUrl: url })} resource="settings" /></div>
         {(draft.pillars || []).map((entry, index) => <div key={index} className="grid gap-3 sm:grid-cols-2 border p-3 rounded">
           {(["titleEn", "titleAr", "textEn", "textAr"] as const).map(key => <label key={key}>{key}<textarea className={field} maxLength={1500} value={entry[key]} onChange={e => change({ ...draft, pillars: draft.pillars!.map((p, i) => i === index ? { ...p, [key]: e.target.value } : p) })} /></label>)}

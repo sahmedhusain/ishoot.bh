@@ -593,7 +593,7 @@ export function LeaveManagementView({
           <Button type="button" variant="danger" disabled={!rejectNotes.trim() || !!loadingId} onClick={() => { if (rejectingRequestId) void handleDecision(rejectingRequestId, "rejected", rejectNotes); }}>{loadingId ? t.shared.submitting : t.shared.confirmRejection}</Button>
         </div>}>
         <label htmlFor={rejectId} className="block text-xs font-medium text-ink mb-1">{t.leaveManagement.reasonForRejection}</label>
-        <Textarea id={rejectId} rows={3} required value={rejectNotes} disabled={!!loadingId} onChange={event => { setRejectNotes(event.target.value); setRejectError(""); }} placeholder={t.leaveManagement.rejectNotesPlaceholder || t.leaveManagement.eGCriticalCommercialShoot} aria-invalid={!!rejectError} aria-describedby={rejectError ? `${rejectId}-error` : undefined} />
+        <Textarea id={rejectId} rows={3} required value={rejectNotes} disabled={!!loadingId} onChange={event => { setRejectNotes(event.target.value); setRejectError(""); }} placeholder={t.leaveManagement.rejectNotesPlaceholder || t.leaveManagement.eGCriticalClientWork} aria-invalid={!!rejectError} aria-describedby={rejectError ? `${rejectId}-error` : undefined} />
         {rejectError && <p id={`${rejectId}-error`} role="alert" className="mt-3 text-sm text-rose-700 dark:text-rose-300">{rejectError}</p>}
       </Modal>
     </div>

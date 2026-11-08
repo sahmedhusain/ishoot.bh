@@ -286,7 +286,11 @@ export function NotificationCenter() {
                           className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-start text-sm text-ink hover:bg-ink/5"
                         >
                           <BellOff aria-hidden className="h-4 w-4 text-ink-muted" />
-                          {l.muteFor[choice]}
+                          {choice === "1h"
+                            ? formatMessage(l.muteFor[choice], { hours: 1 })
+                            : choice === "8h"
+                              ? formatMessage(l.muteFor[choice], { hours: 8 })
+                              : l.muteFor[choice]}
                         </button>
                       ))
                     )}

@@ -555,14 +555,14 @@ export function SettingsView({
                     onClick={() => set({ mutedUntil: muteUntil("1h") })}
                     className="rounded-full border border-outline-variant px-3 py-1.5 text-xs font-medium text-ink hover:bg-surface-container"
                   >
-                    {sn.muteOptions["1h"]}
+                    {formatMessage(sn.muteOptions["1h"], { hours: 1 })}
                   </button>
                   <button
                     type="button"
                     onClick={() => set({ mutedUntil: muteUntil("8h") })}
                     className="rounded-full border border-outline-variant px-3 py-1.5 text-xs font-medium text-ink hover:bg-surface-container"
                   >
-                    {sn.muteOptions["8h"]}
+                    {formatMessage(sn.muteOptions["8h"], { hours: 8 })}
                   </button>
                   <button
                     type="button"

@@ -231,7 +231,7 @@ export function ProductEditorView({ product, categories, currency, languages, ca
         <Card className="p-5 space-y-4" data-page-section>
           <div>
             <h2 className="font-bold text-ink">{copy.images}</h2>
-            <p className="text-xs text-ink-muted mt-0.5">{copy.imagesHint}</p>
+            <p className="text-xs text-ink-muted mt-0.5">{formatMessage(copy.imagesHint, { max: 12 })}</p>
           </div>
           {images.length > 0 && (
             <ul className="flex flex-wrap gap-3">

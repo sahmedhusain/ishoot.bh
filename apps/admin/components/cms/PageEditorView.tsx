@@ -295,7 +295,7 @@ export function PageEditorView({ page, languages, canCode, catalogueSlug, activi
                 {(id) => <Textarea id={id} dir="ltr" rows={key === "html" ? 8 : 5} disabled={!canCode} value={String(d[key] ?? "")} onChange={(e) => patchBlock(block.id, { [key]: e.target.value } as never)} className="font-mono text-xs rounded-lg" />}
               </Field>
             ))}
-            <Field label={copy.fields.height} hint={copy.hints.height}>{(id) => <Input id={id} type="number" min={0} max={4000} disabled={!canCode} value={Number(d.height)} onChange={(e) => patchBlock(block.id, { height: Number(e.target.value) || 0 } as never)} className="rounded-lg w-32" />}</Field>
+            <Field label={copy.fields.height} hint={formatMessage(copy.hints.height, { value: 0 })}>{(id) => <Input id={id} type="number" min={0} max={4000} disabled={!canCode} value={Number(d.height)} onChange={(e) => patchBlock(block.id, { height: Number(e.target.value) || 0 } as never)} className="rounded-lg w-32" />}</Field>
           </div>
         );
       case "divider":

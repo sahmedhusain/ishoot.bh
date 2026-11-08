@@ -16,7 +16,7 @@ test.describe.configure({ mode: "serial", retries: 0 });
 const copy = t.setupWizard;
 const logo = path.resolve(
   __dirname,
-  "../../../../company/profiles/demo/assets/brand/logo-light.png",
+  "../../../../seeds/assets/demo/assets/brand/logo-light.png",
 );
 
 test("a new company completes the setup wizard and gets its own brand and website", async ({

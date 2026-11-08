@@ -2,6 +2,7 @@
 // The IT account's status (docs/adr/0012): pick one and when it clears, or go back to automatic.
 import * as React from "react";
 import { toast } from "sonner";
+import { formatMessage } from "@platform/locales";
 import { PresenceDot, UserAvatar, type PresenceTone } from "@platform/ui";
 import {
   PRESENCE_DURATIONS,
@@ -81,11 +82,24 @@ export function ItStatus({ email }: { email: string }) {
           <label className="mt-2 block px-2 text-xs text-ink-muted">
             {c.clearAfter}
             <select value={duration} onChange={(e) => setDuration(e.target.value as PresenceDuration)} className="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-2 py-1 text-sm text-ink">
-              {PRESENCE_DURATIONS.map((d) => (
-                <option key={d} value={d}>
-                  {(c.durations as Record<string, string>)[d] ?? d}
-                </option>
-              ))}
+              {PRESENCE_DURATIONS.map((d) => {
+                const raw = (c.durations as Record<string, string>)[d] ?? d;
+                const label =
+                  d === "30m"
+                    ? formatMessage(raw, { minutes: 30 })
+                    : d === "1h"
+                      ? formatMessage(raw, { hours: 1 })
+                      : d === "2h"
+                        ? formatMessage(raw, { hours: 2 })
+                        : d === "4h"
+                          ? formatMessage(raw, { hours: 4 })
+                          : raw;
+                return (
+                  <option key={d} value={d}>
+                    {label}
+                  </option>
+                );
+              })}
             </select>
           </label>
           {status?.chosen && (

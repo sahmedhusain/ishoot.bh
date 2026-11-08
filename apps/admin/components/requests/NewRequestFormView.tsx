@@ -191,7 +191,7 @@ export function NewRequestFormView({
               {
                 id: "SR",
                 label: t.newRequestForm.serviceRequestSr,
-                desc: t.newRequestForm.commercialShootDroneStudio,
+                desc: t.newRequestForm.customWorkBookings,
                 icon: Layers,
                 color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40",
               },
@@ -452,7 +452,7 @@ export function NewRequestFormView({
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder={
-                t.newRequestForm.provideCompleteTechnicalSpecificationsShoot
+                t.newRequestForm.provideCompleteSpecifications
               }
               className="w-full px-3 py-2 text-xs rounded-xl border border-outline-variant dark:border-white/10 bg-surface-raised dark:bg-black/30 text-ink focus:outline-none focus:ring-2 focus:ring-accent"
             />

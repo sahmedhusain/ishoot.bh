@@ -30,7 +30,7 @@ export function ExpiringDocumentsCard({ rows }: { rows: ExpiringDocumentRow[] })
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="flex items-center gap-2 text-sm font-bold text-ink">
           <CalendarClock className="h-4 w-4 text-amber-600" />
-          {c.expiringTitle}
+          {formatMessage(c.expiringTitle, { days: 60 })}
         </h2>
         <span className="text-xs text-ink-muted">
           {formatMessage(c.expiringSummary, { count: String(rows.length), expired: String(expired) })}

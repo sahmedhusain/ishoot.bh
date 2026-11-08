@@ -98,7 +98,7 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
           [c.stats.active, String(active.length)],
           [c.stats.monthly, money(monthly)],
           [c.stats.yearly, money(monthly * 12)],
-          [c.stats.dueSoon, String(dueSoon.length), overdue.length ? "text-rose-600 dark:text-rose-300" : ""],
+          [formatMessage(c.stats.dueSoon, { days: 7 }), String(dueSoon.length), overdue.length ? "text-rose-600 dark:text-rose-300" : ""],
         ].map(([label, value, tone]) => (
           <div key={label} className="rounded-2xl border border-outline-variant bg-surface-raised p-4">
             <div className="text-[11px] text-ink-muted">{label}</div>
@@ -135,7 +135,11 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
             </Field>
             <Field label={c.fields.frequency}>
               <Select value={editing.value.frequency} onChange={(e) => set("frequency", e.target.value)}>
-                {FREQUENCIES.map((f) => <option key={f} value={f}>{c.frequencies[f]}</option>)}
+                {FREQUENCIES.map((f) => (
+                  <option key={f} value={f}>
+                    {f === "quarterly" ? formatMessage(c.frequencies[f], { count: 3 }) : f === "semiannual" ? formatMessage(c.frequencies[f], { count: 6 }) : c.frequencies[f]}
+                  </option>
+                ))}
               </Select>
             </Field>
             <Field label={c.fields.startDate} hint={c.fields.startHint}><Input type="date" value={editing.value.start_date} onChange={(e) => set("start_date", e.target.value)} /></Field>
@@ -202,7 +206,7 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
                       </div>
                     </td>
                     <td className="px-4 py-3 text-xs text-ink whitespace-nowrap">
-                      <div>{c.frequencies[r.frequency]}</div>
+                      <div>{r.frequency === "quarterly" ? formatMessage(c.frequencies[r.frequency], { count: 3 }) : r.frequency === "semiannual" ? formatMessage(c.frequencies[r.frequency], { count: 6 }) : c.frequencies[r.frequency]}</div>
                       <div className="text-ink-muted">{r.auto_record ? c.modes.auto : c.modes.manual}</div>
                     </td>
                     <td className="px-4 py-3 text-end text-xs whitespace-nowrap tabular-nums">

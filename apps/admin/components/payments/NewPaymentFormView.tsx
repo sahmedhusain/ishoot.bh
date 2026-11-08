@@ -1,6 +1,7 @@
 "use client";
 import { useUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import { errorMessage } from "../../lib/error-text";
+import { formatMessage } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
 import { uploadFileDirectly } from "../../lib/upload-client";
 import { AddLinkInline } from "../shared/LinkOrUploadField";
@@ -184,7 +185,14 @@ export function NewPaymentFormView({
     if (!selectedInvoiceId || amount <= 0) return;
 
     if (paymentMethod === "cheque" && (!chequeFile || !bankReceiptFile)) {
-      setFormError(t.newPaymentForm.chequePaymentsRequireUploadingBoth);
+      setFormError(
+        formatMessage(t.newPaymentForm.chequePaymentsRequireUploadingBoth, {
+          first: 1,
+          firstDoc: t.newPaymentView.chequeCopyLabel,
+          second: 2,
+          secondDoc: t.newPaymentView.bankSlipLabel,
+        }),
+      );
       return;
     }
 
@@ -415,7 +423,7 @@ export function NewPaymentFormView({
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="w-4 h-4 text-primary dark:text-mint" />
                     <h3 className="text-xs font-bold text-ink uppercase tracking-wider">
-                      {t.newPaymentView.chequeSettlementDocsTitle}
+                      {formatMessage(t.newPaymentView.chequeSettlementDocsTitle, { count: 2 })}
                     </h3>
                   </div>
                   <span className="text-[10px]  px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200 font-bold">

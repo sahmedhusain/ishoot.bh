@@ -454,7 +454,11 @@ export function SocialAnalyticsView({
         actions={
           <>
           <Select aria-label={s.period} className={`${fieldClass} w-auto`} value={String(analytics.periodDays)} onChange={(e) => setParam("days", e.target.value === "30" ? null : e.target.value)}>
-            {(["7", "30", "90", "365"] as const).map((days) => <option key={days} value={days}>{s.periods[days]}</option>)}
+            {(["7", "30", "90", "365"] as const).map((days) => (
+              <option key={days} value={days}>
+                {formatMessage(s.periods[days], days === "365" ? { months: 12 } : { days: Number(days) })}
+              </option>
+            ))}
           </Select>
           <Select aria-label={s.allPlatforms} className={`${fieldClass} w-auto`} value={platform ?? ""} onChange={(e) => setParam("platform", e.target.value || null)}>
             <option value="">{s.allPlatforms}</option>

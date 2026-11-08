@@ -1,5 +1,6 @@
 "use client";
 import { DataTable } from "@platform/ui";
+import { formatMessage } from "@platform/locales";
 
 import * as React from "react";
 import type { ActivityLog } from "@platform/database/types";
@@ -196,7 +197,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
           </div>
           <div>
             <div className="text-lg  font-bold text-ink">
-              {t.hrExtensions.scope}
+              {formatMessage(t.hrExtensions.scope, { count: 100 })}
             </div>
             <div className="text-xs text-ink-muted">{t.audit.eventsLogged}</div>
           </div>

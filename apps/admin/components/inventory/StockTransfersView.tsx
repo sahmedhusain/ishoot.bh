@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import { formatMessage } from "@platform/locales";
 import { Button, Card, Select } from "@platform/ui";
 import type { getTransferWorkspace } from "@platform/database/queries/transfer-workspace";
 import {
@@ -188,7 +189,7 @@ export function StockTransfersView({ data }: { data: Data }) {
           )}
         </Field>
         {!data.transfers.length && <p>{c.empty}</p>}
-        {data.hasMore && <p className="text-sm">{c.recentOnly}</p>}
+        {data.hasMore && <p className="text-sm">{formatMessage(c.recentOnly, { count: 100 })}</p>}
       </Card>
       {transfer && (
         <Card className="p-5 space-y-4">

@@ -40,10 +40,10 @@ export function FinancialAnalyticsView({ finance, insight, categoryTotals, categ
   const spendTotal = Object.values(categoryTotals).reduce((sum, amount) => sum + amount, 0);
 
   const kpis = [
-    { icon: Percent, label: copy.collectionRate, value: `${insight.collectionRate.toFixed(1)}%`, hint: copy.collectionRateHint },
+    { icon: Percent, label: copy.collectionRate, value: `${insight.collectionRate.toFixed(1)}%`, hint: formatMessage(copy.collectionRateHint, { months: 12 }) },
     { icon: CalendarClock, label: copy.daysToCollect, value: `${insight.averageDaysToCollect} ${copy.days}`, hint: copy.daysToCollectHint },
     { icon: Wallet, label: copy.outstanding, value: <CurrencyDisplay amount={finance.outstanding} currency={companyCurrency} />, hint: copy.outstandingHint },
-    { icon: Receipt, label: copy.averageInvoice, value: <CurrencyDisplay amount={insight.averageInvoiceValue} currency={companyCurrency} />, hint: formatMessage(copy.averageInvoiceHint, { count: String(insight.invoicesIssued) }) },
+    { icon: Receipt, label: copy.averageInvoice, value: <CurrencyDisplay amount={insight.averageInvoiceValue} currency={companyCurrency} />, hint: formatMessage(copy.averageInvoiceHint, { count: String(insight.invoicesIssued), months: 12 }) },
   ];
 
   return (
@@ -66,7 +66,7 @@ export function FinancialAnalyticsView({ finance, insight, categoryTotals, categ
       </div>
 
       <Card className="p-6 sm:p-8 rounded-3xl space-y-4" data-page-section>
-        <h2 className="text-sm font-bold text-ink uppercase tracking-wider">{copy.cashTrend}</h2>
+        <h2 className="text-sm font-bold text-ink uppercase tracking-wider">{formatMessage(copy.cashTrend, { months: 12 })}</h2>
         <div className="h-72 w-full">
           <DeferredCashflowChart kind="finance" data={chartData} />
         </div>
@@ -85,23 +85,27 @@ export function FinancialAnalyticsView({ finance, insight, categoryTotals, categ
                 ))}
               </div>
               <ul className="divide-y divide-outline-variant text-sm">
-                {insight.aging.map((bucket, i) => (
-                  <li key={bucket.bucket} data-test={`aging-${bucket.bucket}`} data-testid={`aging-${bucket.bucket}`} className="flex items-center justify-between py-2.5">
-                    <span className="flex items-center gap-2 text-ink">
-                      <span className={`h-2.5 w-2.5 rounded-full ${AGING_COLORS[i]}`} />
-                      {copy.agingBuckets[bucket.bucket]}
-                      <span className="text-xs text-ink-muted">· {formatMessage(copy.invoicesCount, { count: String(bucket.count) })}</span>
-                    </span>
-                    <span className="font-semibold text-ink"><CurrencyDisplay amount={bucket.amount} currency={companyCurrency} /></span>
-                  </li>
-                ))}
+                {insight.aging.map((bucket, i) => {
+                  const raw = copy.agingBuckets[bucket.bucket];
+                  const label = bucket.bucket === "d1_30" ? formatMessage(raw, { min: 1, max: 30 }) : bucket.bucket === "d31_60" ? formatMessage(raw, { min: 31, max: 60 }) : bucket.bucket === "d61_90" ? formatMessage(raw, { min: 61, max: 90 }) : bucket.bucket === "d90_plus" ? formatMessage(raw, { days: 90 }) : raw;
+                  return (
+                    <li key={bucket.bucket} data-test={`aging-${bucket.bucket}`} data-testid={`aging-${bucket.bucket}`} className="flex items-center justify-between py-2.5">
+                      <span className="flex items-center gap-2 text-ink">
+                        <span className={`h-2.5 w-2.5 rounded-full ${AGING_COLORS[i]}`} />
+                        {label}
+                        <span className="text-xs text-ink-muted">· {formatMessage(copy.invoicesCount, { count: String(bucket.count) })}</span>
+                      </span>
+                      <span className="font-semibold text-ink"><CurrencyDisplay amount={bucket.amount} currency={companyCurrency} /></span>
+                    </li>
+                  );
+                })}
               </ul>
             </>
           )}
         </Card>
 
         <Card className="p-6 rounded-3xl space-y-4" data-page-section>
-          <h2 className="text-sm font-bold text-ink uppercase tracking-wider">{copy.topClients}</h2>
+          <h2 className="text-sm font-bold text-ink uppercase tracking-wider">{formatMessage(copy.topClients, { months: 12 })}</h2>
           {insight.topClients.length === 0 ? (
             <p className="text-sm text-ink-muted">{copy.noData}</p>
           ) : (

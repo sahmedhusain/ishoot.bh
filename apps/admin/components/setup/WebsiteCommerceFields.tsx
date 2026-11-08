@@ -1,6 +1,7 @@
 "use client";
 
 import { Input, PhoneInput, Select, Textarea } from "@platform/ui";
+import { formatMessage } from "@platform/locales";
 import {
   WEBSITE_CAPABILITIES,
   type WebsiteCommerce,
@@ -86,7 +87,7 @@ export function WebsiteCommerceFields({
       </p>
       <label className="block text-sm space-y-1">
         <span>
-          {copy.facetLabels}
+          {formatMessage(copy.facetLabels, { max: 12 })}
         </span>
         <Textarea
           value={(commerce.facetLabels ?? []).join("\n")}
@@ -114,7 +115,7 @@ export function WebsiteCommerceFields({
       {!!categories.length && (
         <details className="rounded-lg border border-outline-variant p-4 space-y-3">
           <summary className="cursor-pointer font-medium">
-            {copy.categoryTree}
+            {formatMessage(copy.categoryTree, { max: 6 })}
           </summary>
           {categories.map((category) => (
             <label key={category.slug} className="block text-sm space-y-1">

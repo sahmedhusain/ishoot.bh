@@ -56,7 +56,7 @@ export async function getSessionUser(id: string): Promise<Profile | null> {
 
   // Check demo-staff if applicable
   try {
-    const demoStaff = require("../../../../../company/seed/demo-staff.json");
+    const demoStaff = require("../../../../../seeds/demo-staff.json");
     const member = (demoStaff as any[]).find((m) => m.key === id || m.email === id);
     if (member) {
       return {

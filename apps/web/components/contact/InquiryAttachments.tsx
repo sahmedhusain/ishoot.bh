@@ -38,7 +38,13 @@ export function InquiryAttachments({
             body: file,
           });
           if (!result.ok)
-            throw new Error(t("contact.attachments.uploadFailed"));
+            throw new Error(
+              t("contact.attachments.uploadFailed", {
+                minutes: 10,
+                maxSize: 10,
+                maxFiles: 3,
+              }),
+            );
           form.reset();
           setMessage(t("contact.attachments.fileAttached"));
         } catch (err) {

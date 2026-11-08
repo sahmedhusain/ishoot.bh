@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { formatMessage } from "@platform/locales";
 import { Button, Modal, SegmentedButton, Select } from "@platform/ui";
 import {
   ArrowDown,
@@ -370,7 +371,7 @@ export function SidebarCustomizerModal({
 
         {tab === "pinned" && (
           <div className="space-y-3">
-            <p className="text-xs text-ink-muted">{copy.pinnedHint}</p>
+            <p className="text-xs text-ink-muted">{formatMessage(copy.pinnedHint, { max: 8 })}</p>
             <div className="max-h-80 overflow-y-auto space-y-3 pe-1">
               {orderedSections.map((section) => (
                 <div

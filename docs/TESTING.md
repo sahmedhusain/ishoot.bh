@@ -65,7 +65,7 @@ npx playwright test --ui
 broken images and downloads, new-tab links without `rel="noreferrer"`, links into the other language, and who may
 open each attachment. They take several minutes; run them with `--project=admin` or `--project=web` and a spec path.
 
-Tests read their expectations from the repository instead of hardcoding them: the demo company and theme come from `company/profiles/demo`, and labels come from the admin's Arabic locale file.
+Tests read their expectations from the repository instead of hardcoding them: the demo company and theme come from `seeds/assets/demo`, and labels come from the admin's Arabic locale file.
 
 ## Writing tests
 
@@ -91,7 +91,7 @@ These need running servers and are not part of CI:
 
 | Script                                               | Purpose                                                                                                                   |
 | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `node apps/web/scripts/check-website-http.cjs`       | Website HTTP behaviour against a preview server on a `_test` database (fixtures: `node company/seed/website-preview.cjs`) |
+| `node apps/web/scripts/check-website-http.cjs`       | Website HTTP behaviour against a preview server on a `_test` database |
 | `node scripts/check-admin-followup-http.cjs`         | Admin HTTP follow-up checks against a running server                                                                      |
 | `node scripts/profile-local-http.cjs`                | Local response-time baseline (not a production benchmark)                                                                 |
 | `node scripts/test-heavy-load-and-optimizations.cjs` | Stress and edge-case scenarios on a `_test` database                                                                      |

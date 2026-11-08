@@ -3,6 +3,7 @@ import type { StatisticItem } from "../../types/cms";
 
 import * as React from "react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { formatMessage } from "@platform/locales";
 import { Button, Card, Modal, Input, Select, ConfirmDialog } from "@platform/ui";
 import { STATISTIC_PRESETS, type StatisticPreset } from "@platform/database/constants/statistics";
 import { Plus, Edit, Trash2, Activity } from "lucide-react";
@@ -166,7 +167,7 @@ export function StatsManagementView({ initialStats, languages }: { initialStats:
               <div>
                 <label htmlFor="stat-round" className="text-xs font-bold block mb-1">{t.statsView.roundTo}</label>
                 <Input id="stat-round" type="number" min={1} value={roundTo} onChange={e => setRoundTo(e.target.value)} aria-describedby="stat-round-hint" />
-                <p id="stat-round-hint" className="text-[11px] text-ink-muted mt-1">{t.statsView.roundToHint}</p>
+                <p id="stat-round-hint" className="text-[11px] text-ink-muted mt-1">{formatMessage(t.statsView.roundToHint, { multiple: 10, exampleFrom: 157, exampleTo: 150 })}</p>
               </div>
               <div>
                 <label htmlFor="stat-suffix" className="text-xs font-bold block mb-1">{t.statsView.suffix}</label>

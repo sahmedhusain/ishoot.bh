@@ -97,7 +97,7 @@ export function DomainSettingsCard({ initialWebsiteDomain, initialAdminDomain, c
             {copy.check}
           </Button>
         </div>
-        <p className="text-xs text-ink-muted">{copy.dnsIntro}</p>
+        <p className="text-xs text-ink-muted">{formatMessage(copy.dnsIntro, { hours: 48 })}</p>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>

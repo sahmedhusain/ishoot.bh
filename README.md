@@ -1,6 +1,6 @@
 # Business platform
 
-A complete business system, IT operational dashboard, and bilingual public website, in Arabic and English, that any company can install and brand as its own. Nothing about a specific company lives in the code: each installation sets its name, activity, colours, fonts, logos and configuration in a first-run setup wizard, or from a profile in [`company/`](company/README.md).
+A complete business system, IT operational dashboard, and bilingual public website, in Arabic and English, that any company can install and brand as its own. Nothing about a specific company lives in the code: each installation sets its name, activity, colours, fonts, logos and configuration in a first-run setup wizard, or from pure SQL seeds and presets in [`seeds/`](seeds/).
 
 **The admin system (`apps/admin`)** covers CRM and deals, quotations, invoices and payments, expenses and claims, HR and payroll, assets, approvals, documents and letters, calendar and announcements; products, stock and purchasing; an online store with customer accounts, online payments (seven gateways) and delivery (zones, time slots, own fleet with a driver's phone view, courier agencies); tasks and projects, customer service, marketing campaigns and broadcasts, public relations and legal matters; and a report catalogue with CSV, Excel and PDF exports. Optional areas are modules a company switches on.
 
@@ -22,10 +22,9 @@ backend/
                 gateway, cms, sales, finance, workflow, hr, inventory, commerce, delivery)
   pkg/          Shared Go libraries (httpx, outbox, authn, db, catalog, telemetry, logx)
 contracts/      Canonical event schemas, catalog definitions, and test fixtures
-company/
-  profiles/     One folder per company: identity, theme, logos, fonts, media (demo = neutral example)
-  seed/         Demo business data
-  tools/        Installs a profile into the database and file storage
+seeds/
+  sql/          Pure SQL seed files (seed_ishoot.sql, seed_northwind.sql, seed_bootstrap.sql, presets/)
+  assets/       Brand artwork, logos, icons, fonts and raw design assets
 scripts/        Workspace check suites, workers, bootstrap, reset and the .env tool
 docs/           Guides and architecture documentation
 run.sh          One entry point for setup, services, databases, development, tests and deployment
@@ -63,9 +62,10 @@ This installs dependencies, creates `.env` from [`.env.example`](.env.example) w
 
 | Start with               | Command                              | Result                                                                                     |
 | ------------------------ | ------------------------------------ | ------------------------------------------------------------------------------------------ |
-| The demo company         | `./run.sh db reset`                  | The fictional company in `company/profiles/demo`, with full demo data (`--light` for less) |
-| Your own company profile | `./run.sh db reset --profile <name>` | Your brand on demo data (`./run.sh db bootstrap --profile <name>` for a real installation) |
-| A blank company          | `./run.sh db reset --empty`          | The admin opens the first-run setup wizard                                                 |
+| iShoot Cinema (Default)  | `./run.sh db seed` (or `db reset`)   | The full iShoot Cinema production fixtures, brand artwork & scenarios                     |
+| Northwind Studio         | `./run.sh db seed demo`              | Northwind Studio fixtures, brand artwork & presets                                         |
+| Activity Presets         | `./run.sh db preset <name>`          | Activity preset SQL override (commerce, services, products, food, agency, all)             |
+| A blank company          | `./run.sh db bootstrap`              | Minimal clean setup; the admin opens the first-run setup wizard                             |
 
 [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) walks through each option, including how to create a company profile. `./run.sh doctor` checks your tools, `.env`, database and ports.
 
@@ -93,7 +93,7 @@ Each frontend application (`apps/admin`, `apps/it`, `apps/web`) is a strictly de
 | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)               | Run the demo, load a company profile, or start blank with the setup wizard                           |
 | [docs/backend/README.md](docs/backend/README.md)                 | Go microservices architecture, schema ownership, and event-driven design                             |
-| [company/README.md](company/README.md)                           | Company profile format: identity, theme, fonts, brand files                                          |
+| [docs/DATABASE.md](docs/DATABASE.md)                             | Pure SQL database seeds, migration, and presets                                                      |
 | [docs/FEATURES.md](docs/FEATURES.md)                             | What each area of the admin, IT dashboard, and website does, and its rules                          |
 | [docs/DATABASE.md](docs/DATABASE.md)                             | Start, seed, reset, migrate, back up and restore the database                                        |
 | [docs/OPERATIONS.md](docs/OPERATIONS.md)                         | Environment variables, integrations, workers, domains, deployment and upgrades                       |

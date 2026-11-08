@@ -1870,7 +1870,7 @@ function WidgetSettingsModal({
                     onChange={(e) => patchDraft({ showUtc: e.target.checked })}
                     className="rounded border-outline-variant text-primary focus:ring-primary"
                   />
-                  {b.worldClockShowUtc}
+                  {formatMessage(b.worldClockShowUtc, { offset: 3 })}
                 </label>
                 <label className="inline-flex items-center gap-2 text-xs font-semibold text-ink cursor-pointer">
                   <input
@@ -1996,7 +1996,7 @@ function WidgetSettingsModal({
                     }
                     className="rounded border-outline-variant text-primary focus:ring-primary"
                   />
-                  {b.weatherShowForecast}
+                  {formatMessage(b.weatherShowForecast, { days: 3 })}
                 </label>
                 <label className="inline-flex items-center gap-2 text-xs font-semibold text-ink cursor-pointer">
                   <input

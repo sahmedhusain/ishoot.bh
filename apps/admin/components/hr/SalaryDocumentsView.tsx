@@ -239,7 +239,7 @@ export function SalaryDocumentsView({
               <fieldset className="space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <legend className="text-sm font-semibold text-ink">
-                    {h.months}
+                    {formatMessage(h.months, { max: 24 })}
                   </legend>
                   {months.length > 0 && (
                     <div className="flex items-center gap-2 text-xs">

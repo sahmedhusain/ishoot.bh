@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Button, Card, Input } from "@platform/ui";
+import { formatMessage } from "@platform/locales";
 import { KeyRound, Loader2, ShieldCheck } from "lucide-react";
 import { signInAction, type SignInState } from "../actions";
 import { useCopy } from "../../components/CopyProvider";
@@ -78,7 +79,7 @@ export function LoginForm() {
               maxLength={64}
             />
             <span className="block text-[11px] text-ink-muted">
-              {c.otpHint}
+              {formatMessage(c.otpHint, { digits: 6 })}
             </span>
           </label>
         )}

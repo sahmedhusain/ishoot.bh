@@ -379,7 +379,7 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
             rows={5}
             placeholder={
               t.newMomForm.agendaPlaceholder ||
-              t.newMomForm.n1AirspaceDroneFilmingClearance
+              t.newMomForm.agendaItem1
             }
             value={agenda}
             onChange={(e) => setAgenda(e.target.value)}

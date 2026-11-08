@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Input } from "@platform/ui";
+import { formatMessage } from "@platform/locales";
 import type { WebsiteDocument } from "@platform/database/constants/website-documents";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { uploadFileDirectly } from "../../lib/upload-client";
@@ -75,7 +76,7 @@ export function WebsiteDocumentsFields({
             <span>
               {busy === index
                 ? copy.uploading
-                : copy.uploadPdfHelp}
+                : formatMessage(copy.uploadPdfHelp, { maxSize: 10 })}
             </span>
             <input
               type="file"

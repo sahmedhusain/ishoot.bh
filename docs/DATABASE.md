@@ -1,6 +1,6 @@
 # Database guide: start, seed, reset and manage
 
-The apps use PostgreSQL through Prisma. The schema of record is `packages/database/prisma/schema.prisma`, and every change ships as a migration in `packages/database/prisma/migrations/`. Demo data and company profiles live in [`company/`](../company/README.md).
+The apps use PostgreSQL with Go microservice migrations across 15 schemas. Pure SQL seed fixtures and company assets live in [`seeds/`](../seeds/).
 
 Run every command from the repository root. Each step below has a `./run.sh` shortcut (`./run.sh help` lists them).
 
@@ -40,39 +40,41 @@ Admin: http://localhost:3001, sign in with `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_
 
 | Command                          | Result                                                                                                                        | Time   |
 | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------ |
-| `./run.sh db reset`              | Full demo company: about 200 invoices, 150 deals, 27 employees, payroll, assets, approvals, website content                   | ~2 min |
-| `./run.sh db reset --light`      | Same demo company without the large generated volume                                                                          | ~20 s  |
-| `./run.sh db reset --empty`      | Roles, permissions and your super admin only. The admin opens the **first-run setup wizard**, as a new customer would see it. | ~10 s  |
-| `./run.sh db reset --profile <name>` | Demo data branded with another profile from `company/profiles/`                                                           |        |
+| `./run.sh db reset`              | Full iShoot Cinema demo fixtures: invoices across aging buckets, deals, employees, payroll, assets, tickets, website content   | ~5 s   |
+| `./run.sh db reset --profile demo` | Northwind Studio demo fixtures with pure SQL seed                                                                           | ~5 s   |
+| `./run.sh db reset --empty`      | Roles, permissions and super admin only. The admin opens the **first-run setup wizard**.                                      | ~2 s   |
+| `./run.sh db preset <name>`      | Apply activity preset SQL override (commerce, services, products, food, agency, all)                                         | ~1 s   |
 
 Each reset:
 
-1. drops every table and re-applies all migrations (`prisma migrate reset` and goose service migrations);
-2. empties uploaded files: the local upload folder, or the `public-assets` and `private-assets` buckets, which it creates if they are missing;
-3. seeds (`./run.sh db seed`) or bootstraps (`./run.sh db bootstrap`);
-4. runs `./run.sh db integrity` after a seed.
+1. drops every table and re-applies all microservice migrations (`./run.sh db migrate`);
+2. resets file storage objects and company assets;
+3. seeds pure SQL (`./run.sh db seed`) or bootstraps (`./run.sh db bootstrap`);
+4. verifies realistic date arithmetic (`node scripts/verify-seed-dates.js`).
 
-Every demo account uses `SUPER_ADMIN_PASSWORD`. The demo staff emails are listed in `company/seed/demo-staff.json` (for example `finance@example.com`).
+Every demo account uses `SUPER_ADMIN_PASSWORD` (`Admin12345678!`). The demo staff emails are listed in `seeds/demo-staff.json` (for example `finance@example.com`).
 
 ## 4. Seeding
 
 | Command                                                                | Use it for                                                                                                                                                                                         |
 | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `./run.sh db seed`                                                     | Fill an **empty** database with demo data (it refuses if business records exist, so it never mixes with real data). `SEED_VOLUME=off` skips the large generated volume.                            |
-| `./run.sh db bootstrap`                                                | A real installation: roles, permissions, default modules and the first admin. Never deletes or overwrites anything. Without `COMPANY_PROFILE`, the company starts blank and the setup wizard runs. |
-| `COMPANY_PROFILE=<name> ./run.sh db bootstrap`                         | Same, plus the profile's identity, brand files and theme                                                                                                                                           |
-| `COMPANY_PROFILE=<name> COMPANY_PROFILE_OVERWRITE=1 ./run.sh db bootstrap` | Re-apply a profile to an existing installation. This also moves stored `/brand/...` paths left over from older versions to uploaded files.                                                         |
-| `./run.sh db integrity`                                                | Audit any database (seeded or real) against the business rules: totals, statuses, numbering, approvals, HR and more                                                                                |
+| `./run.sh db seed`                                                     | Seed iShoot Cinema demo data using pure SQL (`seeds/sql/seed_ishoot.sql`).                                                                                                                         |
+| `./run.sh db seed demo`                                                | Seed Northwind Studio demo data using pure SQL (`seeds/sql/seed_northwind.sql`).                                                                                                                   |
+| `./run.sh db preset <preset>`                                          | Apply activity preset SQL override (`seeds/sql/presets/preset_<name>.sql`).                                                                                                                       |
+| `./run.sh db bootstrap`                                                | A clean installation: roles, permissions, default modules and first admin. Starts blank for first-run setup wizard (`seeds/sql/seed_bootstrap.sql`).                                               |
 
 Where the seed data lives:
 
-| File                             | Contents                                                                                                                          |
+| File / Folder                    | Contents                                                                                                                          |
 | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `company/seed/seed.ts`           | Company setup, users and roles, website content, clients, deals, quotations, invoices, payments, HR, payroll, calendar, documents |
-| `company/seed/seed-volume.ts`    | The large generated volume, created through the app's own domain functions and then reconciled with its rules                     |
-| `company/seed/demo-staff.json`   | Fictional staff, their roles and emails                                                                                           |
-| `company/seed/demo-clients.json` | Fictional client companies (their logos are generated into the demo profile)                                                      |
-| `company/profiles/<name>/`       | Company identity, theme and brand files (see [company/README.md](../company/README.md))                                           |
+| `seeds/sql/seed_ishoot.sql`      | Pure SQL seed for iShoot Cinema Production S.P.C. (all 15 schemas, diverse aging buckets, deals, inventory, HR)                  |
+| `seeds/sql/seed_northwind.sql`   | Pure SQL seed for Northwind Studio W.L.L. (neutral demo company)                                                                  |
+| `seeds/sql/seed_bootstrap.sql`   | Clean minimal installation SQL seed for setup wizard                                                                              |
+| `seeds/sql/presets/`             | Activity preset SQL files (`preset_all.sql`, `preset_commerce.sql`, `preset_services.sql`, etc.)                                  |
+| `seeds/assets/ishoot/`           | Preserved iShoot brand assets, logos, fonts, artwork, and raw design source files (`.ai`, `.pdf`, `.zip`)                         |
+| `seeds/assets/demo/`             | Neutral Northwind Studio brand assets, logos and icons                                                                            |
+| `seeds/demo-staff.json`          | Fictional staff, their roles and emails                                                                                           |
+| `seeds/demo-clients.json`        | Fictional client companies                                                                                                        |
 
 All demo people and companies are fictional and use `example.com` or `.example` addresses. Keep it that way: `./run.sh test brand` and the unit tests fail if a profile's name, domain, colours or fonts appear in the apps.
 

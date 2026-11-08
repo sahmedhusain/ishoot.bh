@@ -385,7 +385,7 @@ export function CompanyArchiveView({
             "text-ink",
           ],
           [
-            v.stats.expiring,
+            formatMessage(v.stats.expiring, { days: 60 }),
             counts.expiring,
             href({ expiry: "expiring", sort: "expiry" }),
             "text-amber-600 dark:text-amber-300",
@@ -478,7 +478,7 @@ export function CompanyArchiveView({
         >
           {EXPIRY.map((x) => (
             <option key={x} value={x}>
-              {v.expiryFilters[x]}
+              {x === "expiring" ? formatMessage(v.expiryFilters[x], { days: 60 }) : v.expiryFilters[x]}
             </option>
           ))}
         </Select>

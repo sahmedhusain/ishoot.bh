@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Input } from "@platform/ui";
+import { formatMessage } from "@platform/locales";
 import { Loader2, UploadCloud, X } from "lucide-react";
 import { ContentImage } from "./ContentImage";
 import { websiteMedia } from "../../lib/website-media";
@@ -91,7 +92,7 @@ export function AssetUrlInput({ value, onChange, resource, placeholder, required
           }}
         />
       </div>
-      <p className={`text-[11px] ${error ? "text-rose-500" : "text-ink-muted"}`}>{error || t.assetField.hint}</p>
+      <p className={`text-[11px] ${error ? "text-rose-500" : "text-ink-muted"}`}>{error || formatMessage(t.assetField.hint, { maxSize: 10 })}</p>
     </div>
   );
 }

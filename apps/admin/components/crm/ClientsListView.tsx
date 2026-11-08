@@ -232,7 +232,7 @@ export function ClientsListView({
             </Select>
             <Select name="activity" defaultValue={filters.activity} aria-label={c.filters.activity} className={select}>
               <option value="all">{c.filters.anyActivity}</option>
-              {CLIENT_ACTIVITY_FILTERS.map((a) => <option key={a} value={a}>{c.activities[a]}</option>)}
+              {CLIENT_ACTIVITY_FILTERS.map((a) => <option key={a} value={a}>{c.activities[a] ? formatMessage(c.activities[a], { months: 6 }) : a}</option>)}
             </Select>
           </div>
         ) : null}
@@ -266,7 +266,7 @@ export function ClientsListView({
                 return (
                   <tr key={row.id} className="hover:bg-ink/[0.02] align-top">
                     <td className="px-4 py-3">
-                      <span title={c.tierHints[row.tier]} className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-bold ${TIER_STYLE[row.tier]}`}>
+                      <span title={row.tier in c.tierHints ? formatMessage(c.tierHints[row.tier as keyof typeof c.tierHints], { pct: row.tier === "A" ? 80 : row.tier === "B" ? 15 : 5 }) : undefined} className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-bold ${TIER_STYLE[row.tier]}`}>
                         {row.tier === "A" ? <Trophy className="w-3 h-3" /> : null}
                         {row.tier === "none" ? "—" : row.tier}
                       </span>

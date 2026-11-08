@@ -35,7 +35,7 @@ coverage/
 # Large top-level directories (not needed in Docker build)
 apps/
 contracts/
-company/
+seeds/
 deploy/
 docs/
 graphify-out/

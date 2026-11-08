@@ -353,12 +353,12 @@ export function validateWebsiteConfig(value: unknown): WebsiteConfig {
   }
   if (data.pillars !== undefined) {
     if (!Array.isArray(data.pillars) || data.pillars.length > 12)
-      throw new Error(serverMessages.invalidStudioHistory);
+      throw new Error(serverMessages.invalidCompanyHistory);
     result.pillars = data.pillars.map((p: any) => {
       const entry = {} as WebsitePillar;
       for (const key of ["titleEn", "titleAr", "textEn", "textAr"] as const) {
         if (typeof p?.[key] !== "string" || p[key].length > 1500)
-          throw new Error(serverMessages.invalidStudioHistoryText);
+          throw new Error(serverMessages.invalidCompanyHistoryText);
         entry[key] = p[key].trim();
       }
       return entry;

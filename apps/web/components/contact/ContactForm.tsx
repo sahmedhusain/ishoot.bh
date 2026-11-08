@@ -109,7 +109,7 @@ export function ContactForm({
       return;
     }
     if (intent === "review" && !rating) {
-      setError(t("contact.validationRating"));
+      setError(t("contact.validationRating", { min: 1, max: 5 }));
       return;
     }
 
@@ -415,13 +415,13 @@ export function ContactForm({
                     {t("contact.chooseTimelineOptional")}
                   </option>
                   <option value="urgent">
-                    {t("contact.timelineUrgent")}
+                    {t("contact.timelineUrgent", { weeks: 2 })}
                   </option>
                   <option value="month">
                     {t("contact.timelineMonth")}
                   </option>
                   <option value="quarter">
-                    {t("contact.timelineQuarter")}
+                    {t("contact.timelineQuarter", { min: 1, max: 3 })}
                   </option>
                   <option value="flexible">
                     {t("contact.timelineFlexible")}
@@ -477,7 +477,7 @@ export function ContactForm({
         {intent === "review" && (
           <fieldset className="space-y-2">
             <legend className="text-xs font-semibold text-ink font-sans">
-              {t("contact.starRatingLabel")} *
+              {t("contact.starRatingLabel", { min: 1, max: 5 })} *
             </legend>
             <div className="flex gap-2 p-3 rounded-2xl bg-white/5 border border-white/10 w-fit">
               {[1, 2, 3, 4, 5].map((value) => (
