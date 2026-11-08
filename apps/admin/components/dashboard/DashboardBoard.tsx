@@ -98,7 +98,7 @@ function withPreviewFallbackData(data: DashboardData): DashboardData {
       profitMargin: 70.6,
       discountsGiven: 320,
       vatCollected: 1425,
-      currency: data.currency || process.env.NEXT_PUBLIC_DEFAULT_CURRENCY || "USD",
+      currency: data.currency || "USD",
     },
     cashflow: data.cashflow ?? [
       { monthKey: "2026-05", revenue: 11200, expenses: 3800 },

@@ -86,9 +86,7 @@ async function mapSettings(s: any): Promise<CompanySettings> {
     rules_en: s.rulesEn || undefined,
     rules_ar: s.rulesAr || undefined,
     theme: normalizeTheme(s.theme),
-    setup_completed: Boolean(
-      s.setupCompletedAt || process.env.COMPANY_PROFILE?.trim(),
-    ),
+    setup_completed: Boolean(s.setupCompletedAt),
     content_languages: normalizeLanguages(s.contentLanguages),
     primary_language: normalizePrimaryLanguage(
       s.primaryLanguage,
@@ -120,27 +118,11 @@ export async function getCompanySettings(): Promise<CompanySettings> {
     }
     return mapSettings({
       id: "unconfigured",
-      companyNameEn:
-        process.env.NEXT_PUBLIC_COMPANY_NAME_EN ||
-        process.env.COMPANY_NAME_EN ||
-        "",
-      companyNameAr:
-        process.env.NEXT_PUBLIC_COMPANY_NAME_AR ||
-        process.env.COMPANY_NAME_AR ||
-        "",
-      defaultCurrency: (process.env.NEXT_PUBLIC_DEFAULT_CURRENCY ||
-        process.env.DEFAULT_CURRENCY ||
-        "USD") as SupportedCurrency,
-      currencyDecimals: Number(
-        process.env.NEXT_PUBLIC_CURRENCY_DECIMALS ||
-          process.env.CURRENCY_DECIMALS ||
-          2,
-      ),
-      vatPercentage: Number(
-        process.env.NEXT_PUBLIC_VAT_PERCENTAGE ||
-          process.env.VAT_PERCENTAGE ||
-          0,
-      ),
+      companyNameEn: "",
+      companyNameAr: "",
+      defaultCurrency: "USD" as SupportedCurrency,
+      currencyDecimals: 2,
+      vatPercentage: 0,
       vatEnabled: false,
       theme: {},
       contentLanguages: ["en"],

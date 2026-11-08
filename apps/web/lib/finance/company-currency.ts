@@ -18,7 +18,7 @@ export async function companyCurrency(): Promise<string> {
       return company.defaultCurrency;
     }
   } catch {}
-  return "BHD";
+  return "USD";
 }
 
 /** Currency belongs to the company; a submitted document cannot select a different currency. */
@@ -29,7 +29,7 @@ export async function assertCompanyCurrency(requested?: string, connection: Pick
     currency = rows?.[0]?.defaultCurrency;
   } catch {}
   if (!currency) {
-    currency = await companyCurrency().catch(() => "BHD");
+    currency = await companyCurrency().catch(() => "USD");
   }
   assertSupportedCurrency(currency);
   if (requested !== undefined && requested !== currency) throw new Error(serverMessages.companyCurrencyRequired);

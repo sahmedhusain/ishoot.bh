@@ -144,7 +144,7 @@ export function WebSettingsView({
     }
   };
 
-  const webUrl = process.env.NEXT_PUBLIC_WEB_URL || domainOrigin(settings.website_domain) || settings.website || "";
+  const webUrl = domainOrigin(settings.website_domain) || settings.website || "";
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16 animate-fade-in select-none">

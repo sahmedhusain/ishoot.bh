@@ -155,7 +155,7 @@ export async function POST(req: NextRequest) {
         const reference = escape(resolved.reference);
         try {
           const settings = await getCompanySettings();
-          const recipient = process.env.NOTIFICATION_EMAIL || settings.email;
+          const recipient = settings.email;
           const deliveries = await Promise.allSettled([
             email
               ? sendEmail({

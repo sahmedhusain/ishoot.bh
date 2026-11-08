@@ -86,7 +86,6 @@ export default async function LocaleLayout({
   // and how to reach it.
   const isConfigured = Boolean(
     company.setup_completed ||
-    process.env.COMPANY_PROFILE?.trim() ||
     process.env.NODE_ENV !== "production",
   );
   if ((!enabled || !website || !isConfigured) && !preview) {

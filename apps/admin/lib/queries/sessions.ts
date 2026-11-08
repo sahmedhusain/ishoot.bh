@@ -44,8 +44,8 @@ export async function getSessionUser(id: string): Promise<Profile | null> {
   if (id === "super-admin" || id === "omar-haddad") {
     return {
       id,
-      full_name: process.env.SUPER_ADMIN_NAME || (id === "omar-haddad" ? "Omar Haddad" : "Super Admin"),
-      email: (process.env.SUPER_ADMIN_EMAIL || "admin@example.com").trim().toLowerCase(),
+      full_name: id === "omar-haddad" ? "Omar Haddad" : "Super Admin",
+      email: "admin@example.com",
       role: "super_admin" as UserRole,
       is_active: true,
       department: "executive",

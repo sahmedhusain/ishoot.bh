@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
         user = {
           id: credential.subjectId,
           full_name: credential.subjectId === "super-admin"
-            ? (process.env.SUPER_ADMIN_NAME || "Super Admin")
+            ? "Super Admin"
             : identifier.split("@")[0],
           email: identifier.includes("@") ? identifier.toLowerCase() : `${identifier.toLowerCase()}@example.com`,
           username: credential.subjectId === "super-admin" ? "BA0001" : identifier,

@@ -21,7 +21,7 @@ import {
 } from "./hr-settings";
 
 /** Local time offset; check-in/out times are entered as local HH:MM. */
-const LOCAL_OFFSET = process.env.DEFAULT_TIMEZONE_OFFSET || "+00:00";
+const LOCAL_OFFSET = "+00:00";
 export const ATTENDANCE_STATUSES = [
   "present",
   "absent",

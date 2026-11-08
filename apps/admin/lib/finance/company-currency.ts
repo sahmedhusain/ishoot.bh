@@ -2,10 +2,7 @@ import { serverMessages } from "@platform/locales";
 import { db } from "../atomic";
 import { assertSupportedCurrency } from "../constants/finance";
 
-const DEFAULT_FALLBACK_CURRENCY =
-  process.env.NEXT_PUBLIC_DEFAULT_CURRENCY ||
-  process.env.DEFAULT_CURRENCY ||
-  "USD";
+const DEFAULT_FALLBACK_CURRENCY = "USD";
 
 export async function companyCurrency(): Promise<string> {
   try {

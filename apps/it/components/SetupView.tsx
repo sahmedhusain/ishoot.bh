@@ -75,7 +75,7 @@ export function SetupView({
   const [nameEn, setNameEn] = React.useState(company?.companyNameEn ?? "");
   const [nameAr, setNameAr] = React.useState(company?.companyNameAr ?? "");
   const [cr, setCr] = React.useState(company?.crNumber ?? "");
-  const [currency, setCurrency] = React.useState(company?.defaultCurrency ?? (process.env.NEXT_PUBLIC_DEFAULT_CURRENCY || ""));
+  const [currency, setCurrency] = React.useState(company?.defaultCurrency ?? "");
   const [webDomain, setWebDomain] = React.useState(domains?.websiteDomain ?? "");
   const [adminDomain, setAdminDomain] = React.useState(domains?.adminDomain ?? "");
   const [moduleStates, setModuleStates] = React.useState<Record<string, boolean>>(() => {

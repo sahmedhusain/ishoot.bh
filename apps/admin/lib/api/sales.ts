@@ -221,11 +221,7 @@ export const createQuotation = (input: any, token?: string) => {
     vatRate: Number(input.vatRate ?? input.vatPercentage ?? 0),
     vatAmount: Number(input.vatAmount ?? 0),
     total: Number(input.total ?? input.totalAmount ?? input.subtotal ?? 0),
-    currency:
-      input.currency ||
-      process.env.NEXT_PUBLIC_DEFAULT_CURRENCY ||
-      process.env.DEFAULT_CURRENCY ||
-      "USD",
+    currency: input.currency || "USD",
     validUntil,
     items: (input.items || input.lineItems || []).map((item: any, idx: number) => ({
       description: item.description || item.descriptionEn || item.description_en || "",

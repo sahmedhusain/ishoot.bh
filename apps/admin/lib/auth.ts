@@ -36,9 +36,9 @@ export const getCurrentUser = cache(async (): Promise<Profile | null> =>
       user = {
         id: staff.userId,
         full_name: staff.userId === "super-admin"
-          ? (process.env.SUPER_ADMIN_NAME || "Super Admin")
+          ? "Super Admin"
           : "Staff User",
-        email: process.env.SUPER_ADMIN_EMAIL || "admin@example.com",
+        email: "admin@example.com",
         role: staff.roles[0] as any,
         is_active: true,
         department: "executive",
