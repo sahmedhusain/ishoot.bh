@@ -97,11 +97,11 @@ components:
         service: { type: string }
         entity: { type: string }
         verb: { type: string }
-        actor: { type: [string, "null"], description: "Who made the change: <caller>:<person> or it:<IT account>" }
+        actor: { type: string, nullable: true, description: "Who made the change: <caller>:<person> or it:<IT account>" }
         occurredAt: { type: string, format: date-time, description: When the broker stored the event }
         receivedAt: { type: string, format: date-time }
         payload: { type: object, additionalProperties: true }
-        traceId: { type: [string, "null"], description: The W3C trace the change happened in }
+        traceId: { type: string, nullable: true, description: The W3C trace the change happened in }
     Problem:
       type: object
       required: [type, title, status, code]

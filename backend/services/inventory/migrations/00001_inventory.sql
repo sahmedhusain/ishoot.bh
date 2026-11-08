@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS inventory.product (
     category_id text REFERENCES inventory.product_category(id) ON DELETE SET NULL,
     cost_price numeric(14, 4) NOT NULL DEFAULT 0.0000,
     selling_price numeric(14, 4) NOT NULL DEFAULT 0.0000,
-    currency text NOT NULL DEFAULT 'BHD',
+    currency text NOT NULL DEFAULT '',
     tax_rate numeric(5, 2) NOT NULL DEFAULT 0.00,
     barcode text,
     is_active boolean NOT NULL DEFAULT true,

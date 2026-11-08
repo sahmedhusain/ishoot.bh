@@ -383,7 +383,7 @@ components:
         totalGross: { type: string, default: "0.000" }
         totalDeductions: { type: string, default: "0.000" }
         totalNet: { type: string, default: "0.000" }
-        currency: { type: string, default: "BHD" }
+        currency: { type: string }
         items:
           type: array
           items:

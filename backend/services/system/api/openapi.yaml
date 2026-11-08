@@ -722,10 +722,10 @@ components:
         provider: { type: string }
         isActive: { type: boolean }
         healthStatus: { type: string }
-        accountName: { type: [string, "null"] }
-        lastError: { type: [string, "null"] }
-        lastCheckedAt: { type: [string, "null"], format: date-time }
-        lastSyncedAt: { type: [string, "null"], format: date-time }
+        accountName: { type: string, nullable: true }
+        lastError: { type: string, nullable: true }
+        lastCheckedAt: { type: string, nullable: true, format: date-time }
+        lastSyncedAt: { type: string, nullable: true, format: date-time }
         values:
           type: object
           additionalProperties: { type: string }
@@ -735,8 +735,8 @@ components:
         config:
           type: object
           additionalProperties: true
-        updatedBy: { type: [string, "null"] }
-        updatedAt: { type: [string, "null"], format: date-time }
+        updatedBy: { type: string, nullable: true }
+        updatedAt: { type: string, nullable: true, format: date-time }
     ServiceIntegration:
       type: object
       required: [provider, isActive, healthStatus, credentials, config]
@@ -744,18 +744,18 @@ components:
         provider: { type: string }
         isActive: { type: boolean }
         healthStatus: { type: string }
-        accountName: { type: [string, "null"] }
-        lastError: { type: [string, "null"] }
-        lastCheckedAt: { type: [string, "null"], format: date-time }
-        lastSyncedAt: { type: [string, "null"], format: date-time }
+        accountName: { type: string, nullable: true }
+        lastError: { type: string, nullable: true }
+        lastCheckedAt: { type: string, nullable: true, format: date-time }
+        lastSyncedAt: { type: string, nullable: true, format: date-time }
         credentials:
           type: object
           additionalProperties: { type: string }
         config:
           type: object
           additionalProperties: true
-        updatedBy: { type: [string, "null"] }
-        updatedAt: { type: [string, "null"], format: date-time }
+        updatedBy: { type: string, nullable: true }
+        updatedAt: { type: string, nullable: true, format: date-time }
     SaveIntegrationServiceInput:
       type: object
       required: [isActive, actorId]
@@ -783,18 +783,18 @@ components:
       type: object
       properties:
         healthStatus: { type: string }
-        lastError: { type: [string, "null"] }
-        accountName: { type: [string, "null"] }
-        lastCheckedAt: { type: [string, "null"], format: date-time }
-        lastSyncedAt: { type: [string, "null"], format: date-time }
+        lastError: { type: string, nullable: true }
+        accountName: { type: string, nullable: true }
+        lastCheckedAt: { type: string, nullable: true, format: date-time }
+        lastSyncedAt: { type: string, nullable: true, format: date-time }
         config:
           type: object
           additionalProperties: true
         refreshedCredentials:
           type: object
           additionalProperties: { type: string }
-        syncLeaseToken: { type: [string, "null"] }
-        syncLeaseUntil: { type: [string, "null"], format: date-time }
+        syncLeaseToken: { type: string, nullable: true }
+        syncLeaseUntil: { type: string, nullable: true, format: date-time }
     Changed:
       type: object
       properties:
@@ -908,7 +908,7 @@ components:
               "type": "object",
               "additionalProperties": false,
               "required": ["kind"],
-              "properties": { "kind": { "const": "system", "type": "string" } },
+              "properties": { "kind": { "type": "string", "enum": ["system"] } },
             },
             {
               "type": "object",
@@ -916,7 +916,7 @@ components:
               "required": ["kind", "family"],
               "properties":
                 {
-                  "kind": { "const": "google", "type": "string" },
+                  "kind": { "type": "string", "enum": ["google"] },
                   "family":
                     { "type": "string", "pattern": "^[A-Za-z0-9 ]{1,60}$" },
                 },
@@ -927,7 +927,7 @@ components:
               "required": ["kind", "family", "files"],
               "properties":
                 {
-                  "kind": { "const": "upload", "type": "string" },
+                  "kind": { "type": "string", "enum": ["upload"] },
                   "family":
                     { "type": "string", "pattern": "^[A-Za-z0-9 ]{1,60}$" },
                   "files":
@@ -1075,84 +1075,81 @@ components:
             "id": { "type": "string" },
             "companyNameEn": { "type": "string" },
             "companyNameAr": { "type": "string" },
-            "crNumber": { "type": ["string", "null"] },
-            "vatId": { "type": ["string", "null"] },
+            "crNumber": { "type": "string", "nullable": true },
+            "vatId": { "type": "string", "nullable": true },
             "vatEnabled": { "type": "boolean" },
             "vatPercentage": { "type": ["string", "number"] },
-            "vatCertificateUrl": { "type": ["string", "null"] },
+            "vatCertificateUrl": { "type": "string", "nullable": true },
             "defaultCurrency": { "type": "string" },
             "currencyDecimals": { "type": "integer" },
-            "addressEn": { "type": ["string", "null"] },
-            "addressAr": { "type": ["string", "null"] },
-            "phone": { "type": ["string", "null"] },
-            "whatsappPhone": { "type": ["string", "null"] },
-            "email": { "type": ["string", "null"] },
-            "website": { "type": ["string", "null"] },
-            "instagramUrl": { "type": ["string", "null"] },
-            "linkedinUrl": { "type": ["string", "null"] },
-            "youtubeUrl": { "type": ["string", "null"] },
-            "bankName": { "type": ["string", "null"] },
-            "bankIban": { "type": ["string", "null"] },
-            "bankAccountNumber": { "type": ["string", "null"] },
-            "bankSwift": { "type": ["string", "null"] },
-            "timeZone": { "type": ["string", "null"] },
-            "logoUrl": { "type": ["string", "null"] },
-            "darkLogoUrl": { "type": ["string", "null"] },
-            "fullLogoUrl": { "type": ["string", "null"] },
-            "darkFullLogoUrl": { "type": ["string", "null"] },
-            "iconUrl": { "type": ["string", "null"] },
-            "darkIconUrl": { "type": ["string", "null"] },
-            "documentHeaderUrl": { "type": ["string", "null"] },
-            "documentFooterUrl": { "type": ["string", "null"] },
-            "stampUrl": { "type": ["string", "null"] },
-            "signatureUrl": { "type": ["string", "null"] },
+            "addressEn": { "type": "string", "nullable": true },
+            "addressAr": { "type": "string", "nullable": true },
+            "phone": { "type": "string", "nullable": true },
+            "whatsappPhone": { "type": "string", "nullable": true },
+            "email": { "type": "string", "nullable": true },
+            "website": { "type": "string", "nullable": true },
+            "instagramUrl": { "type": "string", "nullable": true },
+            "linkedinUrl": { "type": "string", "nullable": true },
+            "youtubeUrl": { "type": "string", "nullable": true },
+            "bankName": { "type": "string", "nullable": true },
+            "bankIban": { "type": "string", "nullable": true },
+            "bankAccountNumber": { "type": "string", "nullable": true },
+            "bankSwift": { "type": "string", "nullable": true },
+            "timeZone": { "type": "string", "nullable": true },
+            "logoUrl": { "type": "string", "nullable": true },
+            "darkLogoUrl": { "type": "string", "nullable": true },
+            "fullLogoUrl": { "type": "string", "nullable": true },
+            "darkFullLogoUrl": { "type": "string", "nullable": true },
+            "iconUrl": { "type": "string", "nullable": true },
+            "darkIconUrl": { "type": "string", "nullable": true },
+            "documentHeaderUrl": { "type": "string", "nullable": true },
+            "documentFooterUrl": { "type": "string", "nullable": true },
+            "stampUrl": { "type": "string", "nullable": true },
+            "signatureUrl": { "type": "string", "nullable": true },
             "paymentTermsDays": { "type": "integer" },
             "invoicePrefix": { "type": "string" },
             "invoiceNextNumber": { "type": "integer" },
             "receiptPrefix": { "type": "string" },
             "receiptNextNumber": { "type": "integer" },
-            "ceoNameEn": { "type": ["string", "null"] },
-            "ceoNameAr": { "type": ["string", "null"] },
-            "ceoTitleEn": { "type": ["string", "null"] },
-            "ceoTitleAr": { "type": ["string", "null"] },
-            "ceoQuoteEn": { "type": ["string", "null"] },
-            "ceoQuoteAr": { "type": ["string", "null"] },
-            "missionEn": { "type": ["string", "null"] },
-            "missionAr": { "type": ["string", "null"] },
-            "visionEn": { "type": ["string", "null"] },
-            "visionAr": { "type": ["string", "null"] },
-            "aboutTextEn": { "type": ["string", "null"] },
-            "aboutTextAr": { "type": ["string", "null"] },
-            "termsEn": { "type": ["string", "null"] },
-            "termsAr": { "type": ["string", "null"] },
-            "rulesEn": { "type": ["string", "null"] },
-            "rulesAr": { "type": ["string", "null"] },
+            "ceoNameEn": { "type": "string", "nullable": true },
+            "ceoNameAr": { "type": "string", "nullable": true },
+            "ceoTitleEn": { "type": "string", "nullable": true },
+            "ceoTitleAr": { "type": "string", "nullable": true },
+            "ceoQuoteEn": { "type": "string", "nullable": true },
+            "ceoQuoteAr": { "type": "string", "nullable": true },
+            "missionEn": { "type": "string", "nullable": true },
+            "missionAr": { "type": "string", "nullable": true },
+            "visionEn": { "type": "string", "nullable": true },
+            "visionAr": { "type": "string", "nullable": true },
+            "aboutTextEn": { "type": "string", "nullable": true },
+            "aboutTextAr": { "type": "string", "nullable": true },
+            "termsEn": { "type": "string", "nullable": true },
+            "termsAr": { "type": "string", "nullable": true },
+            "rulesEn": { "type": "string", "nullable": true },
+            "rulesAr": { "type": "string", "nullable": true },
             "updatedAt": { "type": "string", "format": "date-time" },
             "defaultDiscountLimitPercent": { "type": ["string", "number"] },
             "quotationsAlwaysNeedApproval": { "type": "boolean" },
             "theme":
               {
-                "anyOf":
-                  [
-                    { "$ref": "#/components/schemas/CompanyTheme" },
-                    { "type": "null" },
-                  ],
+                "allOf": [{ "$ref": "#/components/schemas/CompanyTheme" }],
+                "nullable": true,
               },
             "setupCompletedAt":
-              { "type": ["string", "null"], "format": "date-time" },
+              { "type": "string", "format": "date-time", "nullable": true },
             "contentLanguages":
               {
                 "type": "array",
                 "items": { "type": "string", "enum": ["ar", "en"] },
               },
             "primaryLanguage": { "type": "string" },
-            "businessActivity": { "type": ["string", "null"] },
-            "taglineEn": { "type": ["string", "null"] },
-            "taglineAr": { "type": ["string", "null"] },
-            "foundedYear": { "type": ["integer", "null"] },
-            "city": { "type": ["string", "null"] },
-            "country": { "type": ["string", "null"] },
-            "mapUrl": { "type": ["string", "null"] },
+            "businessActivity": { "type": "string", "nullable": true },
+            "taglineEn": { "type": "string", "nullable": true },
+            "taglineAr": { "type": "string", "nullable": true },
+            "foundedYear": { "type": "integer", "nullable": true },
+            "city": { "type": "string", "nullable": true },
+            "country": { "type": "string", "nullable": true },
+            "mapUrl": { "type": "string", "nullable": true },
             "currencyLocked": { "type": "boolean" },
             "revision": { "type": "integer", "minimum": 1 },
           },
@@ -1166,66 +1163,63 @@ components:
           {
             "companyNameEn": { "type": "string" },
             "companyNameAr": { "type": "string" },
-            "crNumber": { "type": ["string", "null"] },
-            "vatId": { "type": ["string", "null"] },
+            "crNumber": { "type": "string", "nullable": true },
+            "vatId": { "type": "string", "nullable": true },
             "vatEnabled": { "type": "boolean" },
             "vatPercentage": { "type": ["string", "number"] },
-            "vatCertificateUrl": { "type": ["string", "null"] },
+            "vatCertificateUrl": { "type": "string", "nullable": true },
             "defaultCurrency": { "type": "string" },
-            "addressEn": { "type": ["string", "null"] },
-            "addressAr": { "type": ["string", "null"] },
-            "phone": { "type": ["string", "null"] },
-            "whatsappPhone": { "type": ["string", "null"] },
-            "email": { "type": ["string", "null"] },
-            "website": { "type": ["string", "null"] },
-            "instagramUrl": { "type": ["string", "null"] },
-            "linkedinUrl": { "type": ["string", "null"] },
-            "youtubeUrl": { "type": ["string", "null"] },
-            "bankName": { "type": ["string", "null"] },
-            "bankIban": { "type": ["string", "null"] },
-            "bankAccountNumber": { "type": ["string", "null"] },
-            "bankSwift": { "type": ["string", "null"] },
-            "timeZone": { "type": ["string", "null"] },
-            "logoUrl": { "type": ["string", "null"] },
-            "darkLogoUrl": { "type": ["string", "null"] },
-            "fullLogoUrl": { "type": ["string", "null"] },
-            "darkFullLogoUrl": { "type": ["string", "null"] },
-            "iconUrl": { "type": ["string", "null"] },
-            "darkIconUrl": { "type": ["string", "null"] },
-            "documentHeaderUrl": { "type": ["string", "null"] },
-            "documentFooterUrl": { "type": ["string", "null"] },
-            "stampUrl": { "type": ["string", "null"] },
-            "signatureUrl": { "type": ["string", "null"] },
+            "addressEn": { "type": "string", "nullable": true },
+            "addressAr": { "type": "string", "nullable": true },
+            "phone": { "type": "string", "nullable": true },
+            "whatsappPhone": { "type": "string", "nullable": true },
+            "email": { "type": "string", "nullable": true },
+            "website": { "type": "string", "nullable": true },
+            "instagramUrl": { "type": "string", "nullable": true },
+            "linkedinUrl": { "type": "string", "nullable": true },
+            "youtubeUrl": { "type": "string", "nullable": true },
+            "bankName": { "type": "string", "nullable": true },
+            "bankIban": { "type": "string", "nullable": true },
+            "bankAccountNumber": { "type": "string", "nullable": true },
+            "bankSwift": { "type": "string", "nullable": true },
+            "timeZone": { "type": "string", "nullable": true },
+            "logoUrl": { "type": "string", "nullable": true },
+            "darkLogoUrl": { "type": "string", "nullable": true },
+            "fullLogoUrl": { "type": "string", "nullable": true },
+            "darkFullLogoUrl": { "type": "string", "nullable": true },
+            "iconUrl": { "type": "string", "nullable": true },
+            "darkIconUrl": { "type": "string", "nullable": true },
+            "documentHeaderUrl": { "type": "string", "nullable": true },
+            "documentFooterUrl": { "type": "string", "nullable": true },
+            "stampUrl": { "type": "string", "nullable": true },
+            "signatureUrl": { "type": "string", "nullable": true },
             "paymentTermsDays": { "type": "integer" },
             "invoicePrefix": { "type": "string" },
             "invoiceNextNumber": { "type": "integer" },
             "receiptPrefix": { "type": "string" },
             "receiptNextNumber": { "type": "integer" },
-            "ceoNameEn": { "type": ["string", "null"] },
-            "ceoNameAr": { "type": ["string", "null"] },
-            "ceoTitleEn": { "type": ["string", "null"] },
-            "ceoTitleAr": { "type": ["string", "null"] },
-            "ceoQuoteEn": { "type": ["string", "null"] },
-            "ceoQuoteAr": { "type": ["string", "null"] },
-            "missionEn": { "type": ["string", "null"] },
-            "missionAr": { "type": ["string", "null"] },
-            "visionEn": { "type": ["string", "null"] },
-            "visionAr": { "type": ["string", "null"] },
-            "aboutTextEn": { "type": ["string", "null"] },
-            "aboutTextAr": { "type": ["string", "null"] },
-            "termsEn": { "type": ["string", "null"] },
-            "termsAr": { "type": ["string", "null"] },
-            "rulesEn": { "type": ["string", "null"] },
-            "rulesAr": { "type": ["string", "null"] },
+            "ceoNameEn": { "type": "string", "nullable": true },
+            "ceoNameAr": { "type": "string", "nullable": true },
+            "ceoTitleEn": { "type": "string", "nullable": true },
+            "ceoTitleAr": { "type": "string", "nullable": true },
+            "ceoQuoteEn": { "type": "string", "nullable": true },
+            "ceoQuoteAr": { "type": "string", "nullable": true },
+            "missionEn": { "type": "string", "nullable": true },
+            "missionAr": { "type": "string", "nullable": true },
+            "visionEn": { "type": "string", "nullable": true },
+            "visionAr": { "type": "string", "nullable": true },
+            "aboutTextEn": { "type": "string", "nullable": true },
+            "aboutTextAr": { "type": "string", "nullable": true },
+            "termsEn": { "type": "string", "nullable": true },
+            "termsAr": { "type": "string", "nullable": true },
+            "rulesEn": { "type": "string", "nullable": true },
+            "rulesAr": { "type": "string", "nullable": true },
             "defaultDiscountLimitPercent": { "type": ["string", "number"] },
             "quotationsAlwaysNeedApproval": { "type": "boolean" },
             "theme":
               {
-                "anyOf":
-                  [
-                    { "$ref": "#/components/schemas/CompanyTheme" },
-                    { "type": "null" },
-                  ],
+                "allOf": [{ "$ref": "#/components/schemas/CompanyTheme" }],
+                "nullable": true,
               },
             "contentLanguages":
               {
@@ -1233,13 +1227,13 @@ components:
                 "items": { "type": "string", "enum": ["ar", "en"] },
               },
             "primaryLanguage": { "type": "string" },
-            "businessActivity": { "type": ["string", "null"] },
-            "taglineEn": { "type": ["string", "null"] },
-            "taglineAr": { "type": ["string", "null"] },
-            "foundedYear": { "type": ["integer", "null"] },
-            "city": { "type": ["string", "null"] },
-            "country": { "type": ["string", "null"] },
-            "mapUrl": { "type": ["string", "null"] },
+            "businessActivity": { "type": "string", "nullable": true },
+            "taglineEn": { "type": "string", "nullable": true },
+            "taglineAr": { "type": "string", "nullable": true },
+            "foundedYear": { "type": "integer", "nullable": true },
+            "city": { "type": "string", "nullable": true },
+            "country": { "type": "string", "nullable": true },
+            "mapUrl": { "type": "string", "nullable": true },
           },
       }
     CompanyPatchBody:
@@ -1271,8 +1265,8 @@ components:
             "assetKey": { "type": "string" },
             "title": { "type": "string" },
             "fileUrl": { "type": "string" },
-            "mimeType": { "type": ["string", "null"] },
-            "fileSize": { "type": ["integer", "null"] },
+            "mimeType": { "type": "string", "nullable": true },
+            "fileSize": { "type": "integer", "nullable": true },
             "createdAt": { "type": "string", "format": "date-time" },
             "updatedAt": { "type": "string", "format": "date-time" },
           },

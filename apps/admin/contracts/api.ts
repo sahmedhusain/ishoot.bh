@@ -842,8 +842,27 @@ export interface paths {
         /** @description get operation for /v1/finance/expense-categories */
         get: operations["listExpenseCategories"];
         put?: never;
-        post?: never;
+        /** @description post operation for /v1/finance/expense-categories */
+        post: operations["createExpenseCategory"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/finance/expense-categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** @description put operation for /v1/finance/expense-categories/{id} */
+        put: operations["updateExpenseCategory"];
+        post?: never;
+        /** @description delete operation for /v1/finance/expense-categories/{id} */
+        delete: operations["deleteExpenseCategory"];
         options?: never;
         head?: never;
         patch?: never;
@@ -3816,16 +3835,16 @@ export interface components {
             title: string;
         };
         CompanyFont: {
-            /** @constant */
+            /** @enum {string} */
             kind: "system";
         } | {
             family: string;
-            /** @constant */
+            /** @enum {string} */
             kind: "google";
         } | {
             family: string;
             files: components["schemas"]["CompanyFontFile"][];
-            /** @constant */
+            /** @enum {string} */
             kind: "upload";
         };
         CompanyFontFile: {
@@ -4132,8 +4151,7 @@ export interface components {
         CreateDealRequest: {
             assignedTo?: string;
             contactId?: string;
-            /** @default BHD */
-            currency: string;
+            currency?: string;
             /** Format: date */
             expectedCloseDate?: string;
             notes?: string;
@@ -4187,8 +4205,7 @@ export interface components {
         CreateExpenseRequest: {
             amount: string;
             categoryId?: string;
-            /** @default BHD */
-            currency: string;
+            currency?: string;
             /** Format: date */
             expenseDate?: string;
             notes?: string;
@@ -4222,8 +4239,7 @@ export interface components {
         };
         CreateInvoiceRequest: {
             contactId?: string;
-            /** @default BHD */
-            currency: string;
+            currency?: string;
             dealId?: string;
             /** @default 0.000 */
             discount: string;
@@ -4248,7 +4264,7 @@ export interface components {
             total: string;
             /** @default 0.000 */
             vatAmount: string;
-            /** @default 10.00 */
+            /** @default 0.00 */
             vatRate: string;
         };
         CreateLeaveRequest: {
@@ -4284,8 +4300,7 @@ export interface components {
             titleEn: string;
         };
         CreatePayrollRunRequest: {
-            /** @default BHD */
-            currency: string;
+            currency?: string;
             items?: {
                 allowances?: string;
                 basicSalary: string;
@@ -4308,8 +4323,7 @@ export interface components {
             barcode?: string;
             categoryId?: string;
             costPrice: string;
-            /** @default BHD */
-            currency: string;
+            currency?: string;
             descriptionAr?: string;
             descriptionEn?: string;
             nameAr: string;
@@ -4319,8 +4333,7 @@ export interface components {
         };
         CreateQuotationRequest: {
             contactId?: string;
-            /** @default BHD */
-            currency: string;
+            currency?: string;
             dealId?: string;
             /** @default 0.000 */
             discount: string;
@@ -4342,7 +4355,7 @@ export interface components {
             validUntil?: string;
             /** @default 0.000 */
             vatAmount: string;
-            /** @default 10.00 */
+            /** @default 0.00 */
             vatRate: string;
         };
         CreateReviewRequest: {
@@ -4901,7 +4914,6 @@ export interface components {
         PlaceOrderRequest: {
             /** @default website */
             channel: string;
-            /** @default BHD */
             currency: string;
             customerId?: string;
             email?: string;
@@ -4983,6 +4995,7 @@ export interface components {
             actorId?: string;
             /** @description E-mail only; together at most NOTIFY_MAX_ATTACHMENT_BYTES */
             attachments?: {
+                /** Format: byte */
                 content: string;
                 contentType?: string;
                 filename: string;
@@ -5041,8 +5054,7 @@ export interface components {
         RecordPaymentRequest: {
             amount: string;
             contactId?: string;
-            /** @default BHD */
-            currency: string;
+            currency?: string;
             invoiceId?: string;
             notes?: string;
             /** Format: date */
@@ -7322,6 +7334,89 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ExpenseCategory"][];
                 };
+            };
+        };
+    };
+    createExpenseCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    code: string;
+                    id?: string;
+                    nameAr: string;
+                    nameEn: string;
+                    /** @default 0 */
+                    sortOrder?: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Created category */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExpenseCategory"];
+                };
+            };
+        };
+    };
+    updateExpenseCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    code: string;
+                    nameAr: string;
+                    nameEn: string;
+                    /** @default 0 */
+                    sortOrder?: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Updated category */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExpenseCategory"];
+                };
+            };
+        };
+    };
+    deleteExpenseCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Category deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

@@ -110,7 +110,9 @@ export function activityDealStages(
   activity: string | null | undefined,
 ): BuiltInDealStage[] {
   const middle =
-    ACTIVITY_DEAL_STAGES[activity ?? ""] ?? ACTIVITY_DEAL_STAGES.media;
+    ACTIVITY_DEAL_STAGES[activity ?? ""] ??
+    ACTIVITY_DEAL_STAGES.services ??
+    ACTIVITY_DEAL_STAGES.other;
   return [
     "lead",
     "proposal_sent",

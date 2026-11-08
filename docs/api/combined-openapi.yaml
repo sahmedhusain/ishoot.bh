@@ -22,30 +22,28 @@ tags:
     description: desk
   - name: CMS
     description: CMS micro-service endpoints
-  - name: pages
-    description: pages
+  - name: statistics
+    description: statistics
+  - name: articles
+    description: articles
   - name: reviews
     description: reviews
   - name: snapshots
     description: snapshots
-  - name: articles
-    description: articles
-  - name: statistics
-    description: statistics
+  - name: pages
+    description: pages
   - name: faqs
     description: faqs
   - name: Commerce
     description: Commerce micro-service endpoints
+  - name: customers
+    description: customers
   - name: coupons
     description: coupons
   - name: orders
     description: orders
-  - name: customers
-    description: customers
   - name: Delivery
     description: Delivery micro-service endpoints
-  - name: shipments
-    description: shipments
   - name: settings
     description: settings
   - name: zones
@@ -54,6 +52,8 @@ tags:
     description: vehicles
   - name: routes
     description: routes
+  - name: shipments
+    description: shipments
   - name: Files
     description: Files micro-service endpoints
   - name: uploads
@@ -62,24 +62,24 @@ tags:
     description: files
   - name: Finance
     description: Finance micro-service endpoints
-  - name: expenses
-    description: expenses
-  - name: settlements
-    description: settlements
   - name: invoices
     description: invoices
   - name: payments
     description: payments
+  - name: expenses
+    description: expenses
+  - name: settlements
+    description: settlements
   - name: HR
     description: HR micro-service endpoints
+  - name: employees
+    description: employees
   - name: leave
     description: leave
   - name: payroll
     description: payroll
   - name: departments
     description: departments
-  - name: employees
-    description: employees
   - name: Identity
     description: Identity micro-service endpoints
   - name: Inventory
@@ -102,34 +102,34 @@ tags:
     description: Notify micro-service endpoints
   - name: services
     description: services
-  - name: me
-    description: me
   - name: inbox
     description: inbox
+  - name: me
+    description: me
   - name: Realtime
     description: Realtime micro-service endpoints
   - name: Sales
     description: Sales micro-service endpoints
-  - name: contacts
-    description: contacts
   - name: deals
     description: deals
   - name: inquiries
     description: inquiries
+  - name: contacts
+    description: contacts
   - name: quotations
     description: quotations
   - name: System
     description: System micro-service endpoints
   - name: Workflow
     description: Workflow micro-service endpoints
-  - name: tasks
-    description: tasks
-  - name: calendar
-    description: calendar
   - name: approvals
     description: approvals
   - name: signatures
     description: signatures
+  - name: tasks
+    description: tasks
+  - name: calendar
+    description: calendar
 paths:
   /.well-known/jwks.json:
     get:
@@ -1775,6 +1775,108 @@ paths:
                   $ref: '#/components/schemas/ExpenseCategory'
                 type: array
           description: List of categories
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - expenses
+        - Finance
+        - Admin
+    post:
+      description: post operation for /v1/finance/expense-categories
+      operationId: createExpenseCategory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                code:
+                  type: string
+                id:
+                  type: string
+                nameAr:
+                  type: string
+                nameEn:
+                  type: string
+                sortOrder:
+                  default: 0
+                  type: integer
+              required:
+                - nameEn
+                - nameAr
+                - code
+              type: object
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpenseCategory'
+          description: Created category
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - expenses
+        - Finance
+        - Admin
+  /v1/finance/expense-categories/{id}:
+    delete:
+      description: delete operation for /v1/finance/expense-categories/{id}
+      operationId: deleteExpenseCategory
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Category deleted
+      security:
+        - staffToken: []
+        - serviceToken: []
+      tags:
+        - expenses
+        - Finance
+        - Admin
+    put:
+      description: put operation for /v1/finance/expense-categories/{id}
+      operationId: updateExpenseCategory
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                code:
+                  type: string
+                nameAr:
+                  type: string
+                nameEn:
+                  type: string
+                sortOrder:
+                  default: 0
+                  type: integer
+              required:
+                - nameEn
+                - nameAr
+                - code
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpenseCategory'
+          description: Updated category
       security:
         - staffToken: []
         - serviceToken: []
@@ -7587,9 +7689,8 @@ components:
       properties:
         actor:
           description: 'Who made the change: <caller>:<person> or it:<IT account>'
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         entity:
           type: string
         id:
@@ -7613,9 +7714,8 @@ components:
           type: string
         traceId:
           description: The W3C trace the change happened in
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         verb:
           type: string
       required:
@@ -7792,17 +7892,15 @@ components:
           format: date-time
           type: string
         fileSize:
-          type:
-            - integer
-            - "null"
+          nullable: true
+          type: integer
         fileUrl:
           type: string
         id:
           type: string
         mimeType:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         title:
           type: string
         updatedAt:
@@ -7866,7 +7964,8 @@ components:
         - additionalProperties: false
           properties:
             kind:
-              const: system
+              enum:
+                - system
               type: string
           required:
             - kind
@@ -7877,7 +7976,8 @@ components:
               pattern: ^[A-Za-z0-9 ]{1,60}$
               type: string
             kind:
-              const: google
+              enum:
+                - google
               type: string
           required:
             - kind
@@ -7895,7 +7995,8 @@ components:
               minItems: 1
               type: array
             kind:
-              const: upload
+              enum:
+                - upload
               type: string
           required:
             - kind
@@ -7920,69 +8021,53 @@ components:
       additionalProperties: false
       properties:
         aboutTextAr:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         aboutTextEn:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         addressAr:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         addressEn:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         bankAccountNumber:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         bankIban:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         bankName:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         bankSwift:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         businessActivity:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         ceoNameAr:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         ceoNameEn:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         ceoQuoteAr:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         ceoQuoteEn:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         ceoTitleAr:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         ceoTitleEn:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         city:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         companyNameAr:
           type: string
         companyNameEn:
@@ -7995,25 +8080,20 @@ components:
             type: string
           type: array
         country:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         crNumber:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         darkFullLogoUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         darkIconUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         darkLogoUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         defaultCurrency:
           type: string
         defaultDiscountLimitPercent:
@@ -8021,63 +8101,50 @@ components:
             - string
             - number
         documentFooterUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         documentHeaderUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         email:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         foundedYear:
-          type:
-            - integer
-            - "null"
+          nullable: true
+          type: integer
         fullLogoUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         iconUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         instagramUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         invoiceNextNumber:
           type: integer
         invoicePrefix:
           type: string
         linkedinUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         logoUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         mapUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         missionAr:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         missionEn:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         paymentTermsDays:
           type: integer
         phone:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         primaryLanguage:
           type: string
         quotationsAlwaysNeedApproval:
@@ -8087,79 +8154,63 @@ components:
         receiptPrefix:
           type: string
         rulesAr:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         rulesEn:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         signatureUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         stampUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         taglineAr:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         taglineEn:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         termsAr:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         termsEn:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         theme:
-          anyOf:
+          allOf:
             - $ref: '#/components/schemas/CompanyTheme'
-            - type: "null"
+          nullable: true
         timeZone:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         vatCertificateUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         vatEnabled:
           type: boolean
         vatId:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         vatPercentage:
           type:
             - string
             - number
         visionAr:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         visionEn:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         website:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         whatsappPhone:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         youtubeUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
       required: []
       type: object
     CompanyPatchBody:
@@ -8186,69 +8237,53 @@ components:
       additionalProperties: false
       properties:
         aboutTextAr:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         aboutTextEn:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         addressAr:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         addressEn:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         bankAccountNumber:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         bankIban:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         bankName:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         bankSwift:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         businessActivity:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         ceoNameAr:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         ceoNameEn:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         ceoQuoteAr:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         ceoQuoteEn:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         ceoTitleAr:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         ceoTitleEn:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         city:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         companyNameAr:
           type: string
         companyNameEn:
@@ -8261,29 +8296,24 @@ components:
             type: string
           type: array
         country:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         crNumber:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         currencyDecimals:
           type: integer
         currencyLocked:
           type: boolean
         darkFullLogoUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         darkIconUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         darkLogoUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         defaultCurrency:
           type: string
         defaultDiscountLimitPercent:
@@ -8291,65 +8321,52 @@ components:
             - string
             - number
         documentFooterUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         documentHeaderUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         email:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         foundedYear:
-          type:
-            - integer
-            - "null"
+          nullable: true
+          type: integer
         fullLogoUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         iconUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         id:
           type: string
         instagramUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         invoiceNextNumber:
           type: integer
         invoicePrefix:
           type: string
         linkedinUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         logoUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         mapUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         missionAr:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         missionEn:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         paymentTermsDays:
           type: integer
         phone:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         primaryLanguage:
           type: string
         quotationsAlwaysNeedApproval:
@@ -8362,89 +8379,72 @@ components:
           minimum: 1
           type: integer
         rulesAr:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         rulesEn:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         setupCompletedAt:
           format: date-time
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         signatureUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         stampUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         taglineAr:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         taglineEn:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         termsAr:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         termsEn:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         theme:
-          anyOf:
+          allOf:
             - $ref: '#/components/schemas/CompanyTheme'
-            - type: "null"
+          nullable: true
         timeZone:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         updatedAt:
           format: date-time
           type: string
         vatCertificateUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         vatEnabled:
           type: boolean
         vatId:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         vatPercentage:
           type:
             - string
             - number
         visionAr:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         visionEn:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         website:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         websitePublished:
           type: boolean
         whatsappPhone:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         youtubeUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
       required:
         - websitePublished
         - id
@@ -8881,7 +8881,6 @@ components:
         contactId:
           type: string
         currency:
-          default: BHD
           type: string
         expectedCloseDate:
           format: date
@@ -8996,7 +8995,6 @@ components:
         categoryId:
           type: string
         currency:
-          default: BHD
           type: string
         expenseDate:
           format: date
@@ -9069,7 +9067,6 @@ components:
         contactId:
           type: string
         currency:
-          default: BHD
           type: string
         dealId:
           type: string
@@ -9120,7 +9117,7 @@ components:
           default: "0.000"
           type: string
         vatRate:
-          default: "10.00"
+          default: "0.00"
           type: string
       required:
         - invoiceNumber
@@ -9193,7 +9190,6 @@ components:
     CreatePayrollRunRequest:
       properties:
         currency:
-          default: BHD
           type: string
         items:
           items:
@@ -9243,7 +9239,6 @@ components:
         costPrice:
           type: string
         currency:
-          default: BHD
           type: string
         descriptionAr:
           type: string
@@ -9269,7 +9264,6 @@ components:
         contactId:
           type: string
         currency:
-          default: BHD
           type: string
         dealId:
           type: string
@@ -9315,7 +9309,7 @@ components:
           default: "0.000"
           type: string
         vatRate:
-          default: "10.00"
+          default: "0.00"
           type: string
       required:
         - quotationNumber
@@ -9616,9 +9610,8 @@ components:
     DeskIntegration:
       properties:
         accountName:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         config:
           additionalProperties: true
           type: object
@@ -9628,18 +9621,15 @@ components:
           type: boolean
         lastCheckedAt:
           format: date-time
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         lastError:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         lastSyncedAt:
           format: date-time
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         provider:
           type: string
         secrets:
@@ -9648,13 +9638,11 @@ components:
           type: object
         updatedAt:
           format: date-time
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         updatedBy:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         values:
           additionalProperties:
             type: string
@@ -9966,13 +9954,11 @@ components:
     InboxItem:
       properties:
         actionUrl:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         actorId:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         archived:
           type: boolean
         body:
@@ -9984,20 +9970,17 @@ components:
           format: date-time
           type: string
         entityId:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         entityType:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         id:
           format: uuid
           type: string
         messageKey:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         messageParams:
           additionalProperties:
             type: string
@@ -10013,9 +9996,8 @@ components:
           type: boolean
         readAt:
           format: date-time
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         silent:
           description: Arrived while its category or record was muted
           type: boolean
@@ -10266,9 +10248,8 @@ components:
     Message:
       properties:
         actor:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         attachments:
           description: IT detail only
           items:
@@ -10299,31 +10280,26 @@ components:
           type: string
         html:
           description: IT detail only
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         id:
           format: uuid
           type: string
         lastError:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         provider:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         providerId:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         recipient:
           type: string
         sentAt:
           format: date-time
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         status:
           enum:
             - queued
@@ -10331,14 +10307,12 @@ components:
             - failed
           type: string
         subject:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         text:
           description: IT detail only
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
       required:
         - id
         - caller
@@ -10391,9 +10365,8 @@ components:
           type: string
         archivedAt:
           format: date-time
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         body:
           maxLength: 2000
           type: string
@@ -10403,17 +10376,15 @@ components:
           type: string
         createdAt:
           format: date-time
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         dedupeKey:
           maxLength: 200
           type: string
         deliverAt:
           format: date-time
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         entityId:
           maxLength: 100
           type: string
@@ -10442,9 +10413,8 @@ components:
           type: string
         readAt:
           format: date-time
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         realm:
           enum:
             - staff
@@ -10741,7 +10711,6 @@ components:
           default: website
           type: string
         currency:
-          default: BHD
           type: string
         customerId:
           type: string
@@ -10797,9 +10766,8 @@ components:
         mutedUntil:
           description: Everything is quiet until then; 9999-12-31 means until turned back on
           format: date-time
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         popupsEnabled:
           type: boolean
         sound:
@@ -10835,13 +10803,11 @@ components:
           type: string
         lastSeenAt:
           format: date-time
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         message:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         source:
           enum:
             - manual
@@ -10854,9 +10820,8 @@ components:
         until:
           description: When this status ends, if known
           format: date-time
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         userId:
           type: string
       required:
@@ -10953,7 +10918,7 @@ components:
           items:
             properties:
               content:
-                contentEncoding: base64
+                format: byte
                 type: string
               contentType:
                 maxLength: 200
@@ -11103,7 +11068,6 @@ components:
         contactId:
           type: string
         currency:
-          default: BHD
           type: string
         invoiceId:
           type: string
@@ -11348,9 +11312,8 @@ components:
     ServiceIntegration:
       properties:
         accountName:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         config:
           additionalProperties: true
           type: object
@@ -11364,29 +11327,24 @@ components:
           type: boolean
         lastCheckedAt:
           format: date-time
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         lastError:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         lastSyncedAt:
           format: date-time
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         provider:
           type: string
         updatedAt:
           format: date-time
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         updatedBy:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
       required:
         - provider
         - isActive
@@ -12136,9 +12094,8 @@ components:
     UpdateIntegrationStatusInput:
       properties:
         accountName:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         config:
           additionalProperties: true
           type: object
@@ -12146,31 +12103,26 @@ components:
           type: string
         lastCheckedAt:
           format: date-time
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         lastError:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         lastSyncedAt:
           format: date-time
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         refreshedCredentials:
           additionalProperties:
             type: string
           type: object
         syncLeaseToken:
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
         syncLeaseUntil:
           format: date-time
-          type:
-            - string
-            - "null"
+          nullable: true
+          type: string
       type: object
     UpdatePageRequest:
       properties:
@@ -12450,25 +12402,22 @@ components:
           schema:
             properties:
               chosen:
+                nullable: true
                 properties:
                   expiresAt:
                     format: date-time
-                    type:
-                      - string
-                      - "null"
+                    nullable: true
+                    type: string
                   message:
-                    type:
-                      - string
-                      - "null"
+                    nullable: true
+                    type: string
                   status:
                     type: string
                 required:
                   - status
                   - message
                   - expiresAt
-                type:
-                  - object
-                  - "null"
+                type: object
               presence:
                 $ref: '#/components/schemas/Presence'
               upcoming:
@@ -12530,9 +12479,8 @@ components:
                       type: string
                     until:
                       format: date-time
-                      type:
-                        - string
-                        - "null"
+                      nullable: true
+                      type: string
                   required:
                     - entityType
                     - entityId
@@ -12873,9 +12821,8 @@ components:
               until:
                 description: Until unmuted when null
                 format: date-time
-                type:
-                  - string
-                  - "null"
+                nullable: true
+                type: string
             required:
               - entityType
               - entityId
@@ -12910,15 +12857,13 @@ components:
               expiresAt:
                 description: Until changed when null
                 format: date-time
-                type:
-                  - string
-                  - "null"
+                nullable: true
+                type: string
               message:
                 description: Up to the catalogue's message length
                 maxLength: 1000
-                type:
-                  - string
-                  - "null"
+                nullable: true
+                type: string
               status:
                 description: A status from the catalogue that can be chosen
                 type: string

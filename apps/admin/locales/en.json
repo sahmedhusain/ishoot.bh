@@ -7786,7 +7786,7 @@
           },
           "manufacturing": {
             "name": "Manufacturing",
-            "description": "Factories, workshops and producers."
+            "description": "Factories, workshops and manufacturers."
           },
           "it_software": {
             "name": "IT & software",
@@ -11764,7 +11764,7 @@
         "stamp": "Official Company Seal / Stamp",
         "stampDesc": "High-resolution circular or oval corporate stamp applied to verified documents.",
         "signature": "Authorized Signatory Signature",
-        "signatureDesc": "Transparent PNG of the executive or producer's official signature.",
+        "signatureDesc": "Transparent PNG of the executive or authorized signatory's official signature.",
         "letterheadHeader": "Letterhead Header Banner",
         "letterheadHeaderDesc": "Top banner design for official corporate correspondence and quotations.",
         "letterheadFooter": "Letterhead Footer Banner",

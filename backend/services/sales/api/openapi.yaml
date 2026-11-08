@@ -448,7 +448,7 @@ components:
         contactId: { type: string }
         stage: { type: string, default: "lead" }
         value: { type: string, default: "0.000" }
-        currency: { type: string, default: "BHD" }
+        currency: { type: string }
         probability: { type: integer, default: 20 }
         expectedCloseDate: { type: string, format: date }
         status: { type: string, default: "open" }
@@ -555,10 +555,10 @@ components:
         contactId: { type: string }
         subtotal: { type: string, default: "0.000" }
         discount: { type: string, default: "0.000" }
-        vatRate: { type: string, default: "10.00" }
+        vatRate: { type: string, default: "0.00" }
         vatAmount: { type: string, default: "0.000" }
         total: { type: string, default: "0.000" }
-        currency: { type: string, default: "BHD" }
+        currency: { type: string }
         validUntil: { type: string, format: date }
         terms: { type: string }
         notes: { type: string }

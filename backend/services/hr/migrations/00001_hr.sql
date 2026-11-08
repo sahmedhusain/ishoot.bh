@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS hr.payroll_run (
     total_gross numeric(14, 3) NOT NULL DEFAULT 0.000,
     total_deductions numeric(14, 3) NOT NULL DEFAULT 0.000,
     total_net numeric(14, 3) NOT NULL DEFAULT 0.000,
-    currency text NOT NULL DEFAULT 'BHD',
+    currency text NOT NULL DEFAULT '',
     processed_at timestamptz,
     approved_by text,
     created_at timestamptz NOT NULL DEFAULT now()

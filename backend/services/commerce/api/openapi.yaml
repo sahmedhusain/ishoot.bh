@@ -260,7 +260,7 @@ components:
         paymentMethod: { type: string }
         subtotal: { type: string }
         total: { type: string }
-        currency: { type: string, default: "BHD" }
+        currency: { type: string }
         lines:
           type: array
           items: { $ref: "#/components/schemas/SalesOrderLineInput" }

@@ -4,6 +4,7 @@ package httpapi
 import (
 	"errors"
 	"net/http"
+	"os"
 
 	"github.com/labstack/echo/v4"
 
@@ -195,7 +196,11 @@ func (h *handler) createPayroll(c echo.Context) error {
 		in.Status = "draft"
 	}
 	if in.Currency == "" {
-		in.Currency = "BHD"
+		if def := os.Getenv("DEFAULT_CURRENCY"); def != "" {
+			in.Currency = def
+		} else {
+			in.Currency = "USD"
+		}
 	}
 	created, err := h.svc.CreatePayrollRun(c.Request().Context(), in.CreatePayrollRunParams, in.Items)
 	if err != nil {

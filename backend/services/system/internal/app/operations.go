@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -97,9 +98,17 @@ func (s *Service) RuntimeConfig(ctx context.Context) (RuntimeConfigView, error) 
 	if err != nil {
 		toggles = []sqlcdb.SystemDebugToggle{}
 	}
+	tz := os.Getenv("DEFAULT_TIMEZONE")
+	if tz == "" {
+		tz = "UTC"
+	}
+	env := os.Getenv("APP_ENV")
+	if env == "" {
+		env = "production"
+	}
 	return RuntimeConfigView{
-		Environment:    "production",
-		TimeZone:       "Asia/Bahrain",
+		Environment:    env,
+		TimeZone:       tz,
 		ActiveLogLevel: "info",
 		DebugToggles:   toggles,
 		LokiURL:        "/explore",

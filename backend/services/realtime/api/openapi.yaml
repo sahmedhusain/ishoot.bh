@@ -272,8 +272,8 @@ components:
             required: [status]
             properties:
               status: { type: string, description: A status from the catalogue that can be chosen }
-              message: { type: [string, "null"], maxLength: 1000, description: Up to the catalogue's message length }
-              expiresAt: { type: [string, "null"], format: date-time, description: Until changed when null }
+              message: { type: string, nullable: true, maxLength: 1000, description: Up to the catalogue's message length }
+              expiresAt: { type: string, nullable: true, format: date-time, description: Until changed when null }
     Activity:
       required: true
       content:
@@ -304,12 +304,13 @@ components:
             properties:
               presence: { $ref: "#/components/schemas/Presence" }
               chosen:
-                type: [object, "null"]
+                type: object
+                nullable: true
                 required: [status, message, expiresAt]
                 properties:
                   status: { type: string }
-                  message: { type: [string, "null"] }
-                  expiresAt: { type: [string, "null"], format: date-time }
+                  message: { type: string, nullable: true }
+                  expiresAt: { type: string, nullable: true, format: date-time }
               upcoming:
                 type: array
                 items:
@@ -335,9 +336,9 @@ components:
         status: { type: string }
         source: { type: string, enum: [manual, leave, calendar, connection] }
         connection: { type: string, enum: [online, idle, offline] }
-        message: { type: [string, "null"] }
-        until: { type: [string, "null"], format: date-time, description: "When this status ends, if known" }
-        lastSeenAt: { type: [string, "null"], format: date-time }
+        message: { type: string, nullable: true }
+        until: { type: string, nullable: true, format: date-time, description: "When this status ends, if known" }
+        lastSeenAt: { type: string, nullable: true, format: date-time }
     WindowInput:
       type: object
       required: [sourceId, kind, startsAt, endsAt, userIds]

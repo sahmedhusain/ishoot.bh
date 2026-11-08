@@ -248,6 +248,11 @@ export interface PortfolioItem {
     editor?: string;
     sound?: string;
     gaffer?: string;
+    lead?: string;
+    specialist?: string;
+    contributor?: string;
+    reviewer?: string;
+    [role: string]: string | undefined;
   };
   is_featured: boolean;
   display_order: number;

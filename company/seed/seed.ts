@@ -787,6 +787,26 @@ async function seedSalesAndFinance(employees: Record<string, RecordWithID>) {
 
 
   // -------------------------------------------------------------
+  // Seed Expense Categories for Demo
+  // -------------------------------------------------------------
+  const demoExpenseCategories = [
+    { id: "expcat-01", nameEn: "Equipment & Gear Rentals", nameAr: "استئجار معدات وكاميرات", code: "gear_rental", sortOrder: 1 },
+    { id: "expcat-02", nameEn: "Crew & Talent Wages", nameAr: "أجور الطواقم والممثلين", code: "crew_wages", sortOrder: 2 },
+    { id: "expcat-03", nameEn: "Travel & Location Logistics", nameAr: "سفر ونقل وإعاشة", code: "travel_logistics", sortOrder: 3 },
+    { id: "expcat-04", nameEn: "Studio Lease & Utilities", nameAr: "إيجار ومصاريف الاستوديو", code: "studio_overhead", sortOrder: 4 },
+    { id: "expcat-05", nameEn: "Software, Storage & Cloud", nameAr: "برمجيات واشتراكات وسحابة", code: "software_licenses", sortOrder: 5 },
+    { id: "expcat-06", nameEn: "Marketing & Festival Submissions", nameAr: "تسويق ومشاركات مهرجانات", code: "marketing_pr", sortOrder: 6 },
+    { id: "expcat-07", nameEn: "Salaries & Wages", nameAr: "الرواتب والأجور", code: "salaries", sortOrder: 7 },
+    { id: "expcat-08", nameEn: "Pensions & Social Insurance", nameAr: "التأمينات الاجتماعية", code: "gosi", sortOrder: 8 },
+    { id: "expcat-09", nameEn: "Staff Benefits & Allowances", nameAr: "مزايا وبدلات الموظفين", code: "staff_benefits", sortOrder: 9 },
+    { id: "expcat-10", nameEn: "Sales Commissions & Incentives", nameAr: "عمولات وحوافز المبيعات", code: "commissions", sortOrder: 10 },
+    { id: "expcat-28", nameEn: "Other Expenses", nameAr: "مصروفات أخرى", code: "other", sortOrder: 28 },
+  ];
+  for (const cat of demoExpenseCategories) {
+    await create("/v1/finance/expense-categories", cat).catch(() => {});
+  }
+
+  // -------------------------------------------------------------
   // Historical & Operational Expenses across Categories
   // -------------------------------------------------------------
   await create("/v1/finance/expenses", {

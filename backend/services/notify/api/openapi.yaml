@@ -425,7 +425,7 @@ components:
             properties:
               entityType: { type: string, minLength: 1, maxLength: 100 }
               entityId: { type: string, minLength: 1, maxLength: 100 }
-              until: { type: [string, "null"], format: date-time, description: Until unmuted when null }
+              until: { type: string, nullable: true, format: date-time, description: Until unmuted when null }
   responses:
     Message:
       description: The message
@@ -494,7 +494,7 @@ components:
                   properties:
                     entityType: { type: string }
                     entityId: { type: string }
-                    until: { type: [string, "null"], format: date-time }
+                    until: { type: string, nullable: true, format: date-time }
                     createdAt: { type: string, format: date-time }
   schemas:
     NewNotification:
@@ -516,10 +516,10 @@ components:
         entityId: { type: string, maxLength: 100 }
         actorId: { type: string, maxLength: 64 }
         dedupeKey: { type: string, maxLength: 200 }
-        deliverAt: { type: [string, "null"], format: date-time }
-        createdAt: { type: [string, "null"], format: date-time }
-        readAt: { type: [string, "null"], format: date-time }
-        archivedAt: { type: [string, "null"], format: date-time }
+        deliverAt: { type: string, nullable: true, format: date-time }
+        createdAt: { type: string, nullable: true, format: date-time }
+        readAt: { type: string, nullable: true, format: date-time }
+        archivedAt: { type: string, nullable: true, format: date-time }
     InboxItem:
       type: object
       required: [id, category, priority, title, body, messageKey, messageParams, actionUrl, entityType, entityId, actorId, silent, read, archived, createdAt, readAt]
@@ -529,22 +529,22 @@ components:
         priority: { type: string, enum: [low, normal, high, urgent] }
         title: { type: string }
         body: { type: string }
-        messageKey: { type: [string, "null"] }
+        messageKey: { type: string, nullable: true }
         messageParams: { type: object, additionalProperties: { type: string } }
-        actionUrl: { type: [string, "null"] }
-        entityType: { type: [string, "null"] }
-        entityId: { type: [string, "null"] }
-        actorId: { type: [string, "null"] }
+        actionUrl: { type: string, nullable: true }
+        entityType: { type: string, nullable: true }
+        entityId: { type: string, nullable: true }
+        actorId: { type: string, nullable: true }
         silent: { type: boolean, description: Arrived while its category or record was muted }
         read: { type: boolean }
         archived: { type: boolean }
         createdAt: { type: string, format: date-time, description: When it appeared in the inbox }
-        readAt: { type: [string, "null"], format: date-time }
+        readAt: { type: string, nullable: true, format: date-time }
     Preferences:
       type: object
       required: [mutedUntil, soundEnabled, sound, volume, popupsEnabled, desktopEnabled, categories]
       properties:
-        mutedUntil: { type: [string, "null"], format: date-time, description: "Everything is quiet until then; 9999-12-31 means until turned back on" }
+        mutedUntil: { type: string, nullable: true, format: date-time, description: "Everything is quiet until then; 9999-12-31 means until turned back on" }
         soundEnabled: { type: boolean }
         sound: { type: string, enum: [chime, ping, pop, bell, alert] }
         volume: { type: integer, minimum: 0, maximum: 100 }
@@ -580,7 +580,7 @@ components:
             properties:
               filename: { type: string, maxLength: 200 }
               contentType: { type: string, maxLength: 200 }
-              content: { type: string, contentEncoding: base64 }
+              content: { type: string, format: byte }
         idempotencyKey: { type: string, minLength: 1, maxLength: 200 }
         actorId: { type: string, maxLength: 64, description: The person the caller acts for }
     Message:
@@ -589,19 +589,19 @@ components:
       properties:
         id: { type: string, format: uuid }
         caller: { type: string }
-        actor: { type: [string, "null"] }
+        actor: { type: string, nullable: true }
         channel: { type: string, enum: [email, whatsapp] }
         recipient: { type: string }
-        subject: { type: [string, "null"] }
+        subject: { type: string, nullable: true }
         status: { type: string, enum: [queued, sent, failed] }
         attempts: { type: integer }
-        provider: { type: [string, "null"] }
-        providerId: { type: [string, "null"] }
-        lastError: { type: [string, "null"] }
+        provider: { type: string, nullable: true }
+        providerId: { type: string, nullable: true }
+        lastError: { type: string, nullable: true }
         createdAt: { type: string, format: date-time }
-        sentAt: { type: [string, "null"], format: date-time }
-        text: { type: [string, "null"], description: IT detail only }
-        html: { type: [string, "null"], description: IT detail only }
+        sentAt: { type: string, nullable: true, format: date-time }
+        text: { type: string, nullable: true, description: IT detail only }
+        html: { type: string, nullable: true, description: IT detail only }
         attachments:
           type: array
           description: IT detail only

@@ -197,6 +197,70 @@ paths:
               schema:
                 type: array
                 items: { $ref: "#/components/schemas/ExpenseCategory" }
+    post:
+      tags: [expenses]
+      operationId: createExpenseCategory
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nameEn, nameAr, code]
+              properties:
+                id: { type: string }
+                nameEn: { type: string }
+                nameAr: { type: string }
+                code: { type: string }
+                sortOrder: { type: integer, default: 0 }
+      responses:
+        "201":
+          description: Created category
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ExpenseCategory" }
+
+  /v1/finance/expense-categories/{id}:
+    put:
+      tags: [expenses]
+      operationId: updateExpenseCategory
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nameEn, nameAr, code]
+              properties:
+                nameEn: { type: string }
+                nameAr: { type: string }
+                code: { type: string }
+                sortOrder: { type: integer, default: 0 }
+      responses:
+        "200":
+          description: Updated category
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ExpenseCategory" }
+    delete:
+      tags: [expenses]
+      operationId: deleteExpenseCategory
+      security: [{ staffToken: [] }, { serviceToken: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204":
+          description: Category deleted
 
   /v1/finance/settlements:
     get:
@@ -282,10 +346,10 @@ components:
         dueDate: { type: string, format: date }
         subtotal: { type: string, default: "0.000" }
         discount: { type: string, default: "0.000" }
-        vatRate: { type: string, default: "10.00" }
+        vatRate: { type: string, default: "0.00" }
         vatAmount: { type: string, default: "0.000" }
         total: { type: string, default: "0.000" }
-        currency: { type: string, default: "BHD" }
+        currency: { type: string }
         notes: { type: string }
         terms: { type: string }
         items:
@@ -325,7 +389,7 @@ components:
         invoiceId: { type: string }
         contactId: { type: string }
         amount: { type: string }
-        currency: { type: string, default: "BHD" }
+        currency: { type: string }
         paymentMethod: { type: string, default: "bank_transfer" }
         paymentDate: { type: string, format: date }
         reference: { type: string }
@@ -367,7 +431,7 @@ components:
         title: { type: string }
         categoryId: { type: string }
         amount: { type: string }
-        currency: { type: string, default: "BHD" }
+        currency: { type: string }
         expenseDate: { type: string, format: date }
         notes: { type: string }
         vendor: { type: string }

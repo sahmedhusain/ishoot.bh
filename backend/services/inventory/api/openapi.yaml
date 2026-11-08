@@ -286,7 +286,7 @@ components:
         categoryId: { type: string }
         costPrice: { type: string }
         sellingPrice: { type: string }
-        currency: { type: string, default: "BHD" }
+        currency: { type: string }
         barcode: { type: string }
 
     StockMovement:

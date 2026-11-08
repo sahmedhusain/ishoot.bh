@@ -53,6 +53,9 @@ func Register(e *echo.Echo, svc *app.Service, opts Options) {
 
 	// Expense Categories
 	g.GET("/expense-categories", h.listExpenseCategories)
+	g.POST("/expense-categories", h.createExpenseCategory)
+	g.PUT("/expense-categories/:id", h.updateExpenseCategory)
+	g.DELETE("/expense-categories/:id", h.deleteExpenseCategory)
 
 	// Settlements
 	g.GET("/settlements", h.listSettlements)
@@ -187,6 +190,38 @@ func (h *handler) listExpenseCategories(c echo.Context) error {
 		return err
 	}
 	return c.JSON(http.StatusOK, cats)
+}
+
+func (h *handler) createExpenseCategory(c echo.Context) error {
+	var in sqlcdb.CreateExpenseCategoryParams
+	if err := c.Bind(&in); err != nil {
+		return problem.New(http.StatusBadRequest, "bad_request", err.Error())
+	}
+	cat, err := h.svc.CreateExpenseCategory(c.Request().Context(), in)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusCreated, cat)
+}
+
+func (h *handler) updateExpenseCategory(c echo.Context) error {
+	var in sqlcdb.UpdateExpenseCategoryParams
+	if err := c.Bind(&in); err != nil {
+		return problem.New(http.StatusBadRequest, "bad_request", err.Error())
+	}
+	in.ID = c.Param("id")
+	cat, err := h.svc.UpdateExpenseCategory(c.Request().Context(), in)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, cat)
+}
+
+func (h *handler) deleteExpenseCategory(c echo.Context) error {
+	if err := h.svc.DeleteExpenseCategory(c.Request().Context(), c.Param("id")); err != nil {
+		return err
+	}
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (h *handler) listSettlements(c echo.Context) error {

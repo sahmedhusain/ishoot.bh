@@ -5,19 +5,22 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"math"
 	"math/big"
 	"net/url"
-	"platform.local/backend/pkg/catalog"
-	"platform.local/backend/pkg/contact"
-	"platform.local/backend/pkg/outbox"
-	"platform.local/backend/services/system/internal/postgres"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 	_ "time/tzdata"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+
+	"platform.local/backend/pkg/catalog"
+	"platform.local/backend/pkg/contact"
+	"platform.local/backend/pkg/outbox"
+	"platform.local/backend/services/system/internal/postgres"
 )
 
 var ErrCompanyMissing = errors.New("company is not configured")
@@ -27,7 +30,43 @@ var ErrSequenceBackwards = errors.New("document sequences only move forward")
 func ptr[T any](value T) *T { return &value }
 func newCompany(now time.Time) CompanyRecord {
 	theme, _ := json.Marshal(defaultTheme())
-	return CompanyRecord{ID: uuid.NewString(), DefaultCurrency: "BHD", CurrencyDecimals: 3, VatPercentage: "10.00", DefaultDiscountLimitPercent: "5.00", PaymentTermsDays: 30, InvoicePrefix: "INV", InvoiceNextNumber: 1, ReceiptPrefix: "RCT", ReceiptNextNumber: 1, TimeZone: ptr("Asia/Bahrain"), Theme: theme, ContentLanguages: []string{"ar", "en"}, PrimaryLanguage: "ar", UpdatedAt: now}
+	defaultCurrency := os.Getenv("DEFAULT_CURRENCY")
+	if defaultCurrency == "" {
+		defaultCurrency = "USD"
+	}
+	defaultDecimals := 2
+	if defDecStr := os.Getenv("DEFAULT_CURRENCY_DECIMALS"); defDecStr != "" {
+		if d, err := strconv.Atoi(defDecStr); err == nil {
+			defaultDecimals = d
+		}
+	} else if defaultCurrency == "BHD" || defaultCurrency == "KWD" || defaultCurrency == "OMR" {
+		defaultDecimals = 3
+	}
+	vatPercent := os.Getenv("DEFAULT_VAT_PERCENTAGE")
+	if vatPercent == "" {
+		vatPercent = "0.00"
+	}
+	timeZone := os.Getenv("DEFAULT_TIMEZONE")
+	if timeZone == "" {
+		timeZone = "UTC"
+	}
+	return CompanyRecord{
+		ID:                          uuid.NewString(),
+		DefaultCurrency:             defaultCurrency,
+		CurrencyDecimals:            int64(defaultDecimals),
+		VatPercentage:               json.Number(vatPercent),
+		DefaultDiscountLimitPercent: "5.00",
+		PaymentTermsDays:            30,
+		InvoicePrefix:               "INV",
+		InvoiceNextNumber:           1,
+		ReceiptPrefix:               "RCT",
+		ReceiptNextNumber:           1,
+		TimeZone:                    ptr(timeZone),
+		Theme:                       theme,
+		ContentLanguages:            []string{"ar", "en"},
+		PrimaryLanguage:             "ar",
+		UpdatedAt:                   now,
+	}
 }
 func companyRecord(ctx context.Context, store *postgres.Store, lock bool) (CompanyRecord, error) {
 	row, err := store.Company(ctx, lock)

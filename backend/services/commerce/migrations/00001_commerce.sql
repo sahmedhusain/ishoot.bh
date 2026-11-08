@@ -20,16 +20,16 @@ CREATE TABLE IF NOT EXISTS commerce.customer_address (
     city text NOT NULL,
     state text NOT NULL DEFAULT '',
     postal_code text NOT NULL DEFAULT '',
-    country text NOT NULL DEFAULT 'BH',
+    country text NOT NULL DEFAULT '',
     is_default boolean NOT NULL DEFAULT false
 );
 CREATE INDEX IF NOT EXISTS cust_addr_cust_idx ON commerce.customer_address (customer_id);
 
 CREATE TABLE IF NOT EXISTS commerce.store_settings (
     id text PRIMARY KEY DEFAULT 'default',
-    currency text NOT NULL DEFAULT 'BHD',
+    currency text NOT NULL DEFAULT '',
     tax_inclusive boolean NOT NULL DEFAULT true,
-    default_tax_rate numeric(5, 2) NOT NULL DEFAULT 10.00,
+    default_tax_rate numeric(5, 2) NOT NULL DEFAULT 0.00,
     minimum_order_amount numeric(14, 3) NOT NULL DEFAULT 0.000,
     free_shipping_threshold numeric(14, 3) NOT NULL DEFAULT 0.000
 );
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS commerce.sales_order (
     total numeric(15, 6) NOT NULL DEFAULT 0.000000,
     amount_paid numeric(15, 6) NOT NULL DEFAULT 0.000000,
     amount_refunded numeric(15, 6) NOT NULL DEFAULT 0.000000,
-    currency text NOT NULL DEFAULT 'BHD',
+    currency text NOT NULL DEFAULT '',
     locale text NOT NULL DEFAULT 'ar',
     note text,
     warehouse_id text,
