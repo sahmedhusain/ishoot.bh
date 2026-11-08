@@ -79,11 +79,6 @@ export const CLIENT_ACTIVITY_FILTERS = ["active", "dormant"] as const;
 /** A client with no invoice, payment or request in this many days is dormant. */
 export const CLIENT_DORMANT_DAYS = 180;
 
-/** A Bahrain CR: registration number and branch, e.g. 142859-1. */
-export const BAHRAIN_CR_PATTERN = /^\d{1,7}-\d{1,3}$/;
-/** A Bahrain VAT account number has 15 digits. */
-export const BAHRAIN_VAT_PATTERN = /^\d{15}$/;
-
 /** GCC first, then every other ISO 3166-1 country. Names live in the locale files. */
 export const COUNTRY_CODES = [
   "BH",

@@ -37,7 +37,7 @@ export const EXPIRY_WARNING_DAYS = 60;
 
 export type ExpiryStatus = "expired" | "expiring" | "valid" | "none";
 
-/** Expiry status of a date (YYYY-MM-DD or ISO) as of today in Bahrain. */
+/** Expiry status of a date (YYYY-MM-DD or ISO) as of today. */
 export function expiryStatus(
   date: string | Date | null | undefined,
   warningDays = EXPIRY_WARNING_DAYS,

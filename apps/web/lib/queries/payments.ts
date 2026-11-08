@@ -10,8 +10,6 @@ import {
 } from "../finance/money";
 import { allocateDocumentNumber } from "../finance/numbering";
 import { PAYABLE_INVOICE_STATUSES } from "../constants/finance";
-import { advanceDealForEvent } from "./crm";
-import { mapDocumentTaxLines } from "../finance/vat";
 import { db } from "../atomic";
 import { Payment, SupportedCurrency, PaymentMethod } from "../types";
 
@@ -58,72 +56,26 @@ function mapPayment(p: any): Payment {
           after_discount:
             Number(p.invoice.subtotal) - Number(p.invoice.discountAmount || 0),
           vat_enabled: p.invoice.vatEnabled,
-          vat_percentage: Number(p.invoice.vatPercentage),
-          vat_amount: Number(p.invoice.vatAmount),
-          other_taxes: mapDocumentTaxLines(p.invoice.taxes),
-          other_tax_amount: Number(p.invoice.otherTaxAmount ?? 0),
+          vat_percentage: Number(p.invoice.vatPercentage || 0),
+          vat_amount: Number(p.invoice.vatAmount || 0),
           total_amount: totalInvoice,
+          currency: String(p.invoice.currency ?? ""),
+          language: (p.invoice.language as any) || "en",
+          status: p.invoice.status,
           amount_paid: totalPaidOnInvoice,
           amount_due: amountDue,
-          currency: p.invoice.currency as SupportedCurrency,
-          language: p.invoice.language as "en" | "ar",
-          status: p.invoice.status as any,
-          created_at: p.invoice.createdAt.toISOString(),
-          updated_at: p.invoice.updatedAt.toISOString(),
+          created_at: p.invoice.createdAt?.toISOString?.() ?? new Date().toISOString(),
+          updated_at: p.invoice.updatedAt?.toISOString?.() ?? new Date().toISOString(),
           contact: contactObj
-            ? {
+            ? ({
                 id: contactObj.id,
-                full_name:
-                  `${contactObj.firstName || ""} ${contactObj.lastName || ""}`.trim() ||
-                  contactObj.companyName ||
-                  "Client",
-                email: contactObj.email || "",
-                phone: contactObj.phone || undefined,
+                full_name: contactObj.fullName || contactObj.name || "",
                 company: contactObj.companyName || undefined,
-                created_at: contactObj.createdAt
-                  ? contactObj.createdAt.toISOString()
-                  : new Date().toISOString(),
-                updated_at: contactObj.updatedAt
-                  ? contactObj.updatedAt.toISOString()
-                  : new Date().toISOString(),
-              }
+              } as any)
             : undefined,
         }
       : undefined,
   };
-}
-
-export async function getAllPayments(options?: {
-  limit?: number;
-  offset?: number;
-  invoiceId?: string;
-}): Promise<Payment[]> {
-  try {
-    const payments = await db.payment.findMany({
-      where: options?.invoiceId ? { invoiceId: options.invoiceId } : undefined,
-      take: options?.limit,
-      skip: options?.offset,
-      include: options?.invoiceId
-        ? undefined
-        : {
-            invoice: {
-              include: {
-                client: true,
-                payments: true,
-                taxes: { orderBy: { displayOrder: "asc" } },
-                deal: {
-                  include: { contact: true },
-                },
-              },
-            },
-          },
-      orderBy: { paymentDate: "desc" },
-    });
-    return payments.map(mapPayment);
-  } catch (e) {
-    console.error("Error fetching payments from DB:", e);
-    throw e;
-  }
 }
 
 export async function getPaymentById(id: string): Promise<Payment | null> {
@@ -171,55 +123,6 @@ export async function getPaymentById(id: string): Promise<Payment | null> {
   }
 }
 
-export async function getPaymentByIdOrNumber(
-  idOrNumber: string,
-): Promise<Payment | null> {
-  try {
-    const payment = await db.payment.findFirst({
-      where: {
-        OR: [{ id: idOrNumber }, { receiptNumber: idOrNumber }],
-      },
-      include: {
-        invoice: {
-          include: {
-            client: true,
-            payments: true,
-            taxes: { orderBy: { displayOrder: "asc" } },
-            deal: {
-              include: { contact: true },
-            },
-          },
-        },
-      },
-    });
-    if (!payment) return null;
-
-    const attachments = await db.attachment.findMany({
-      where: { entityType: "payment", entityId: payment.id },
-      include: { uploadedBy: true },
-      orderBy: { createdAt: "desc" },
-    });
-
-    const mapped = mapPayment(payment);
-    mapped.proof_attachments = attachments.map((a: any) => ({
-      id: a.id,
-      file_name: a.fileName,
-      file_url: a.fileUrl,
-      file_size: a.fileSize || undefined,
-      mime_type: a.mimeType || undefined,
-      entity_type: a.entityType,
-      entity_id: a.entityId,
-      uploaded_by: a.uploadedBy?.fullName || a.uploadedBy?.email || undefined,
-      created_at: a.createdAt.toISOString(),
-    }));
-
-    return mapped;
-  } catch (e) {
-    console.error(`Error fetching payment ${idOrNumber}:`, e);
-    throw e;
-  }
-}
-
 export async function createPayment(paymentData: {
   invoice_id: string;
   payment_date?: string;
@@ -256,7 +159,7 @@ export async function createPayment(paymentData: {
     });
     if (
       !payable ||
-      !(PAYABLE_INVOICE_STATUSES as readonly string[]).includes(payable.status)
+      !(PAYABLE_INVOICE_STATUSES as readonly string[]).includes(payable.status as any)
     )
       throw new Error(
         payable?.status === "draft"
@@ -264,7 +167,8 @@ export async function createPayment(paymentData: {
           : "Invoice is not payable",
       );
     await assertCompanyCurrency(payable.currency, tx);
-    if (!validMoneyAmount(paymentData.amount, payable.currency)) throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
+    if (!validMoneyAmount(paymentData.amount, payable.currency))
+      throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
     if (paymentData.currency && paymentData.currency !== payable.currency)
       throw new Error(serverMessages.paymentCurrencyMustMatchInvoice);
     const paid = sumMoney(
@@ -306,7 +210,8 @@ export async function createPayment(paymentData: {
       paymentData.proof_attachments.length > 0
     ) {
       for (const att of paymentData.proof_attachments) {
-        const upload = await claimUploadOrLink(att.fileUrl,
+        const upload = await claimUploadOrLink(
+          att.fileUrl,
           paymentData.created_by,
         );
         await tx.attachment.create({
@@ -335,33 +240,8 @@ export async function createPayment(paymentData: {
   return result;
 }
 
-export async function deletePayment(id: string): Promise<boolean> {
-  try {
-    await db.$transaction(async (tx) => {
-      const payment = await tx.payment.findUnique({
-        where: { id },
-        select: { invoiceId: true },
-      });
-
-      if (!payment) throw new Error(serverMessages.paymentNotFound);
-      await tx.$queryRaw`SELECT id FROM "Invoice" WHERE id = ${payment.invoiceId} FOR UPDATE`;
-      await tx.payment.delete({ where: { id } });
-
-      await reconcileInvoicePaymentStatus(tx, payment.invoiceId);
-    });
-    return true;
-  } catch (e) {
-    console.error(`Error deleting payment ${id}:`, e);
-    throw e;
-  }
-}
-
-/**
- * Derives an invoice's payment status from its payments, in minor units:
- * fully paid → paid, some paid → partially_paid, nothing paid → overdue/sent by due date. Drafts and voids are left alone.
- */
 async function reconcileInvoicePaymentStatus(
-  tx: Pick<typeof db, "invoice" | "crmDeal" | "dealPipelineStage">,
+  tx: any,
   invoiceId: string,
 ): Promise<void> {
   const invoice = await tx.invoice.findUnique({
@@ -371,17 +251,16 @@ async function reconcileInvoicePaymentStatus(
   if (!invoice || invoice.status === "void" || invoice.status === "draft")
     return;
   const paid = sumMoney(
-    invoice.payments.map((p) => p.amount),
+    invoice.payments.map((p: any) => p.amount),
     invoice.currency,
   );
   const next =
     paymentStatusFor(Number(invoice.totalAmount), paid, invoice.currency) ??
     (invoice.dueDate < new Date() ? "overdue" : "sent");
-  if (next !== invoice.status)
+  if (next !== invoice.status) {
     await tx.invoice.update({
       where: { id: invoiceId },
       data: { status: next },
     });
-  if (next === "paid")
-    await advanceDealForEvent(tx, invoice.dealId, "invoice_paid");
+  }
 }

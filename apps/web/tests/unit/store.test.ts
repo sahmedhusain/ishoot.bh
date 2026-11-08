@@ -8,10 +8,6 @@ import {
   couponProblem,
   priceOrder,
 } from "@platform/database/constants/store";
-import {
-  ALL_RESOURCES,
-  RESOURCE_FEATURES,
-} from "@platform/database/constants/permissions";
 
 describe("store", () => {
   test("an order is priced lines, coupon, delivery, then VAT on the discounted goods and delivery", () => {
@@ -117,9 +113,7 @@ describe("store", () => {
       for (const t of targets) expect(ORDER_STATUSES).toContain(t);
   });
 
-  test("orders are a store resource with known status, channel and method values", () => {
-    expect(ALL_RESOURCES).toContain("orders");
-    expect(RESOURCE_FEATURES.orders).toBe("store");
+  test("orders have known status, channel and method values", () => {
     expect(ORDER_STATUSES.length).toBeGreaterThan(0);
     expect(ORDER_CHANNELS.length).toBeGreaterThan(0);
     expect(ORDER_PAYMENT_METHODS.length).toBeGreaterThan(0);

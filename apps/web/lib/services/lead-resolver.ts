@@ -1,10 +1,14 @@
-import { slaDueFor } from "./service-sla";
 import { serverMessages } from "@platform/locales";
 import { db } from "../atomic";
 import { referencePrefixFor } from "../constants/requests";
 import { getNextSequenceNumber } from "../queries/sequence";
 import { formatPhoneE164 } from "../constants/phone";
 import { isValidEmail, normalizeEmail } from "../constants/validation";
+
+function slaDueFor(priority?: string | null, from = new Date()) {
+  const hours = priority === "urgent" ? 4 : priority === "high" ? 24 : 72;
+  return new Date(from.getTime() + hours * 3_600_000);
+}
 
 export function normalizeToE164(phone: string, defaultCountry?: string): string | null {
   return formatPhoneE164(phone, undefined, defaultCountry) || null;
@@ -159,7 +163,7 @@ export async function resolveIncomingLead(
         utmCampaign: data.utmCampaign || null,
         priority: data.priority || "normal",
         // Every request starts with the service desk's promised resolution time for its priority.
-        slaDueDate: await slaDueFor(data.priority, new Date(), tx),
+        slaDueDate: slaDueFor(data.priority, new Date()),
       },
     });
     return {

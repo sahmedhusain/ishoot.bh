@@ -1,52 +1,5 @@
-import { db, runAtomicMutation } from "../atomic";
-import { requireBranchAccess } from "./branches";
-
-export interface StoreRegionInput {
-  id?: string;
-  code: string;
-  nameEn: string;
-  nameAr: string;
-  currency: string;
-  defaultLanguage?: string;
-  branchId: string;
-  isEnabled?: boolean;
-  priceMultiplier?: number | string;
-  settings?: Record<string, unknown>;
-}
-
-export async function saveStoreRegion(input: StoreRegionInput, actorId: string) {
-  return runAtomicMutation(async () => {
-    await requireBranchAccess(actorId, input.branchId, true);
-    if (!input.code.trim() || !input.nameEn.trim() || !input.nameAr.trim() || !input.currency.trim())
-      throw new Error("Invalid store region");
-
-    const multiplier = Number(input.priceMultiplier ?? 1);
-    if (multiplier < 0) throw new Error("Invalid store region");
-
-    const data = {
-      code: input.code.trim().toUpperCase(),
-      nameEn: input.nameEn.trim(),
-      nameAr: input.nameAr.trim(),
-      currency: input.currency.trim().toUpperCase(),
-      defaultLanguage: input.defaultLanguage?.trim() || "en",
-      branchId: input.branchId,
-      isEnabled: input.isEnabled ?? true,
-      priceMultiplier: multiplier,
-      settings: input.settings ? JSON.parse(JSON.stringify(input.settings)) : undefined,
-    };
-
-    if (input.id) {
-      const existing = await db.storeRegion.findUnique({ where: { id: input.id } });
-      if (!existing) throw new Error("Store region not found");
-      return db.storeRegion.update({
-        where: { id: input.id },
-        data,
-      });
-    }
-
-    return db.storeRegion.create({ data });
-  });
-}
+import { Prisma } from "@prisma/client";
+import { db } from "../atomic";
 
 export async function listStoreRegions() {
   return db.storeRegion.findMany({
@@ -62,28 +15,12 @@ export async function getStoreRegion(code: string) {
   });
 }
 
-class Decimal {
-  private value: number;
-  constructor(val: number | string) {
-    this.value = Number(val);
-  }
-  mul(multiplier: number | string | { toString(): string }) {
-    return new Decimal(this.value * Number(multiplier.toString()));
-  }
-  toFixed(digits?: number) {
-    return this.value.toFixed(digits);
-  }
-  toNumber() {
-    return this.value;
-  }
-  toString() {
-    return this.value.toString();
-  }
-}
-
-export async function resolveRegionalPrice(basePrice: number | string, regionCode: string) {
+export async function resolveRegionalPrice(
+  basePrice: number | string,
+  regionCode: string,
+) {
   const region = await getStoreRegion(regionCode);
-  const base = new Decimal(basePrice.toString());
+  const base = new Prisma.Decimal(basePrice.toString());
   if (!region || !region.isEnabled) return base;
   return base.mul(region.priceMultiplier);
 }

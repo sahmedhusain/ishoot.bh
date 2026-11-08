@@ -7,8 +7,6 @@ import { db, runAtomicMutation } from "../atomic";
 import { isValidEmail, normalizeEmail } from "../constants/validation";
 import { isValidPhone, formatPhoneE164, phoneSearchVariants } from "../constants/phone";
 import {
-  BAHRAIN_CR_PATTERN,
-  BAHRAIN_VAT_PATTERN,
   CLIENT_ACTIVITY_FILTERS,
   CLIENT_BALANCE_FILTERS,
   CLIENT_DORMANT_DAYS,
@@ -114,7 +112,7 @@ export function normalizeClientProfile(input: ClientProfileInput, companyCountry
     if (companyOrigin === "local") {
       registrationCountry = clean(input.registration_country, 2) ?? companyCountry ?? null;
       crNumber = clean(input.cr_number, 100)?.replace(/\s+/g, "") ?? null;
-      if (!crNumber || (registrationCountry === "BH" && !BAHRAIN_CR_PATTERN.test(crNumber)))
+      if (!crNumber)
         throw new Error(serverMessages.enterTheCommercialRegistrationCRNumber);
     } else {
       registrationCountry = clean(input.registration_country, 2);
@@ -139,8 +137,7 @@ export function normalizeClientProfile(input: ClientProfileInput, companyCountry
   if (
     vatNumber &&
     kind !== "individual" &&
-    registrationCountry === "BH" &&
-    !BAHRAIN_VAT_PATTERN.test(vatNumber)
+    !/^[A-Za-z0-9-]{3,30}$/.test(vatNumber)
   )
     throw new Error(serverMessages.aBahrainVATNumberHas15);
 

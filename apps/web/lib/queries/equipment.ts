@@ -1,4 +1,3 @@
-import { serverMessages } from "@platform/locales";
 import { db } from "../atomic";
 import { StudioEquipment } from "../types";
 
@@ -37,77 +36,4 @@ export async function getStudioEquipment(): Promise<StudioEquipment[]> {
 
 export async function getAllEquipment(): Promise<StudioEquipment[]> {
   return getStudioEquipment();
-}
-
-function validateEquipment(data: Partial<StudioEquipment>) {
-  for (const [key, value, max] of [["category", data.category, 80], ["model_name", data.model_name, 160], ["name_ar", data.name_ar, 160], ["brand", data.brand, 160], ["specification", data.specification, 4000]] as const) {
-    if (value !== undefined && (typeof value !== "string" || value.trim().length > max || ((key === "category" || key === "model_name") && !value.trim()))) throw new Error(serverMessages.invalidInput);
-  }
-  if (data.quantity !== undefined && (!Number.isInteger(data.quantity) || data.quantity < 0)) throw new Error(serverMessages.invalidInput);
-  if (data.display_order !== undefined && (!Number.isInteger(data.display_order) || data.display_order < 0)) throw new Error(serverMessages.invalidInput);
-}
-
-export async function createEquipment(data: {
-  category: StudioEquipment["category"];
-  model_name: string;
-  name_ar?: string;
-  brand?: string;
-  specification?: string;
-  quantity?: number;
-  display_order?: number;
-}): Promise<StudioEquipment> {
-  validateEquipment(data);
-  const created = await db.studioEquipment.create({
-    data: {
-      category: data.category.trim(),
-      nameEn: data.model_name.trim(),
-      nameAr: data.name_ar || data.model_name,
-      brand: data.brand || null,
-      specification: data.specification || null,
-      descriptionEn: data.specification || null,
-      quantity: data.quantity ?? 1,
-      displayOrder: data.display_order ?? 0,
-    },
-  });
-  return mapEquipment(created);
-}
-
-export async function updateEquipment(
-  id: string,
-  data: Partial<StudioEquipment>,
-): Promise<StudioEquipment | null> {
-  try {
-    validateEquipment(data);
-    const updateData: any = {};
-    if (data.category !== undefined) updateData.category = data.category.trim();
-    if (data.model_name !== undefined) updateData.nameEn = data.model_name.trim();
-    if (data.name_ar !== undefined) updateData.nameAr = data.name_ar;
-    if (data.brand !== undefined) updateData.brand = data.brand;
-    if (data.specification !== undefined) {
-      updateData.specification = data.specification;
-      updateData.descriptionEn = data.specification;
-    }
-    if (data.quantity !== undefined) updateData.quantity = data.quantity;
-    if (data.display_order !== undefined)
-      updateData.displayOrder = data.display_order;
-
-    const updated = await db.studioEquipment.update({
-      where: { id },
-      data: updateData,
-    });
-    return mapEquipment(updated);
-  } catch (e) {
-    console.error(`Error updating equipment ${id}:`, e);
-    throw e;
-  }
-}
-
-export async function deleteEquipment(id: string): Promise<boolean> {
-  try {
-    await db.studioEquipment.delete({ where: { id } });
-    return true;
-  } catch (e) {
-    console.error(`Error deleting equipment ${id}:`, e);
-    throw e;
-  }
 }
